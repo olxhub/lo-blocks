@@ -73,287 +73,8 @@ Let's begin.
 
 <HH> ============= Screen: Practice Quiz 1: Reinforcement vs. Punishment ======================== </HH>
 
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
-<MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
+<!-- Moved into psych_sba_part2_quiz_questions.olx -->
 
->>Liam reads a book every night because he earns a sticker for each completed book.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Getting the sticker increases the likelihood that Liam will read the book, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 2 -->
-<MarkupProblem id="reinforce_punish_practice_1b" title="Question 2: Asking"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Daniel puts away his toys so his parents will stop asking him to clean up.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-The parent's asking increases the likelihood that Daniel will put his toys away, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 3 -->
-<MarkupProblem id="reinforce_punish_practice_1c" title="Question 3: Getting Burned"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Lucas stops touching the hot stove after he accidentally burns his hand.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Getting his hand burned reduces the likelihood that Daniel will continue his previous behavior (touching the hot stove), so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 4 -->
-<MarkupProblem id="reinforce_punish_practice_1d" title="Question 4: Tantrum"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Getting out of eating her vegetables makes Victoria more likely to throw another tantrum, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 5 -->
-<MarkupProblem id="reinforce_punish_practice_1e" title="Question 5: Glaring"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Glaring makes Michael less likely to stand up, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 6 -->
-<MarkupProblem id="reinforce_punish_practice_1f" title="Question 6: Less Screen Time"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Getting less screen time decreases the likelihood that Nicole will show her homework to her parents, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 7 -->
-<MarkupProblem id="reinforce_punish_practice_1g" title="Question 7: Candy"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Mia whines at the store because her parents give her candy to quiet her.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-The parents giving Mia candy makes her more likely to whine, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 8 -->
-<MarkupProblem id="reinforce_punish_practice_1h" title="Question 8: Uncalled-on"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Noah practices the piano daily because his parents cheer him on after each session.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Getting cheered on increases the likelihood that Noah will practice daily, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 9 -->
-<MarkupProblem id="reinforce_punish_practice_1i" title="Question 9: Getting Upset"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Matthew makes his bed every morning so his mom doesn't get upset.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-His mom getting upset increases the probability of Matthew making his bed every morning, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1j" title="Question 10: Not Called On"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Luna stops asking questions in class because her teacher never calls on her to speak.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Not being called on makes Luna less likely to ask questions in class, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1k" title="Question 11: Artist!"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Being called an artist makes Layla more likely to scribble on walls, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1l" title="Question 12: Firm Command"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys, so it's punishment.
-[/explanation]
-]]></MarkupProblem>
-
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1m" title="Question 13: Timeout"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Being made to sit in a quiet corner makes Nathan less likely to interrupt, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1n" title="Question 14: Lose Recess Time"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>William follows playground rules so he doesn't lose recess time.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Losing recess time makes William more likely to follow classroom rules, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1o" title="Question 15: Grounded for Poor Grades"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Aiden studies for tests to avoid being grounded for poor grades.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Getting grounded for poor grades makes Aiden more likely to study, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1p" title="Question 16: Removing dessert"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Removing desserts made Jackson less likely to try new foods, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1q" title="Question 17: Being Told"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Chloe stops playing with scissors after being told by her teacher.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-The teacher telling her to stop made Chloe less likely to play with scissors, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1r" title="Question 18: Offer Snack"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Offering a snack made Jack more likely to put on his shoes, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1s" title="Question 19: Excluded"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Amelia stops participating in group activities after being excluded as punishment in the past.<<
-
-( ) Reinforcement
-(x) Punishment
-
-[explanation]
-Being excluded made Amelia less likely to participate in group activities, so this is punishment.
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
-<MarkupProblem id="reinforce_punish_practice_1t" title="Question 20: Super-Organized Badge"><![CDATA[
-## Practice Quiz: Reinforcement vs. Punishment
-
->>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
-
-(x) Reinforcement
-( ) Punishment
-
-[explanation]
-Getting the badge made Charlotte more likely to organized her desk, so this is reinforcement.
-[/explanation]
-]]></MarkupProblem>
 
 
 <Markdown id="operant_conditioning_clear_screen_1">
@@ -396,7 +117,9 @@ a typically **unpleasant** stimulus immediately after a response.
 <Markdown>
 ## Provide Examples of Different Kinds of Operant Conditioning
 </Markdown>
+
 <SplitPanel id="conditioning_example_chart_details">
+
 <LeftPane>
 <Markdown>
 Positive Reinforcement
@@ -408,6 +131,7 @@ Positive Punishment
 </Markdown>
 <TextArea id="positive_punishment_example" placeholder="Put an example of positive punishment here" />
 </LeftPane>
+
 <RightPane>
 <Markdown>
 Negative Reinforcement
@@ -420,6 +144,7 @@ Negative Punishment
 <TextArea id="negative_punishment_example" placeholder="Put an example of negative punishment here" />
 </RightPane>
 </SplitPanel>
+
 <Markdown>
 Remember:
 - **Positive** = Adding something
@@ -463,354 +188,12 @@ Remember:
 
 
 <HH> ============= Screen: Practice Quiz 2: The Four Types ======================== </HH>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
-<MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Liam reads a book every night because he earns a sticker for each completed book.<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (stickers) - Positive
-- Behavior happens more often (reading a book every night) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 2 -->
-<MarkupProblem id="four_types_practice_1b" title="Question 2: Asking"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Daniel puts away his toys so his parents will stop asking him to clean up.<<
-
-( ) Positive Reinforcement
-(x) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is being taken away (parents asking him to clean up) - Negative
-- Behavior happens more often (putting toys away) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 3 -->
-<MarkupProblem id="four_types_practice_1c" title="Question 3: Getting Burned"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Lucas stops touching the hot stove after he accidentally burns his hand.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-(x) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is added (burning his hand) - Positive
-- Behavior happens less often (touching the stove) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 4 -->
-<MarkupProblem id="four_types_practice_1d" title="Question 4: Tantrum"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
-
-( ) Positive Reinforcement
-(x) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is taken away (eating her vegetables) - Negative
-- Behavior happens more often (throwing a tantrum) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 5 -->
-<MarkupProblem id="four_types_practice_1e" title="Question 5: Glaring"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-(x) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is added (father frowning and glaring at him) - Positive
-- Behavior happens less often (standing up) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 6 -->
-<MarkupProblem id="four_types_practice_1f" title="Question 6: Less Screen Time"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-(x) Negative Punishment
-
-[explanation]
-- Something desirable is taken away (screen time) - Negative
-- Behavior happens less often (showing parents homework) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 7 -->
-<MarkupProblem id="four_types_practice_1g" title="Question 7: Candy"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Mia whines at the store because her parents give her candy to quiet her.<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (parents give her candy) - Positive
-- Behavior happens more often (whining at store) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 8 -->
-<MarkupProblem id="four_types_practice_1h" title="Question 8: Uncalled-on"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Noah practices the piano daily because his parents cheer him on after each session.<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (his parents cheer him on after each session) - Positive
-- Behavior happens more often (practices the piano daily) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 9 -->
-<MarkupProblem id="four_types_practice_1i" title="Question 9: Getting Upset"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Matthew makes his bed every morning so his mom doesn't get upset.<<
-
-( ) Positive Reinforcement
-(x) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is taken away (mom being upset) - Negative
-- Behavior happens more often (making bed every morning) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 10 -->
-<MarkupProblem id="four_types_practice_1j" title="Question 10: Not Called On"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Luna stops asking questions in class because her teacher never calls on her to speak.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-(x) Negative Punishment
-
-[explanation]
-- Something undesirable is taken away (teacher never calling on her to speak) - Negative
-- Behavior happens less often (asking questions in class) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 11 -->
-<MarkupProblem id="four_types_practice_1k" title="Question 11: Artist!"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (sibling laughing and calling her "an artist") - Positive
-- Behavior happens more often (scribbles on walls) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 12 -->
-<MarkupProblem id="four_types_practice_1l" title="Question 12: Firm Command"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-(x) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is added (being told firmly that it's unacceptable) - Positive
-- Behavior happens less often (throwing toys) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 13 -->
-<MarkupProblem id="four_types_practice_1m" title="Question 13: Timeout"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-(x) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is added - making him sit in a "quiet corner" - Positive
-- Behavior happens less often (interrupting) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 14 -->
-<MarkupProblem id="four_types_practice_1n" title="Question 14: Lose Recess Time"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>William follows playground rules so he doesn't lose recess time.<<
-
-( ) Positive Reinforcement
-(x) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is taken away (losing recess time) - Negative
-- Behavior happens more often (follows playground rules) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 15 -->
-<MarkupProblem id="four_types_practice_1o" title="Question 15: Grounded for Poor Grades"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Aiden studies for tests to avoid being grounded for poor grades.<<
-
-( ) Positive Reinforcement
-(x) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is taken away (being grounded for poor grades) - Negative
-- Behavior happens more often (studying) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 16 -->
-<MarkupProblem id="four_types_practice_1p" title="Question 16: Removing dessert"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Jackson doesn't try new foods because his favorite dessert was once removed for refusing broccoli.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-(x) Negative Punishment
-
-[explanation]
-- Something desirable is taken away (his favorite dessert) - Negative
-- Behavior happens less often (trying new foods) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 17 -->
-<MarkupProblem id="four_types_practice_1q" title="Question 17: Being Told"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Chloe stops playing with scissors after being told by her teacher.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-(x) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something undesirable is added (being told by her teacher) - Positive
-- Behavior happens less often (playing with scissors) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 18 -->
-<MarkupProblem id="four_types_practice_1r" title="Question 18: Offer Snack"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (offering a snack) - Positive
-- Behavior happens more often (putting on shoes) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 19 -->
-<MarkupProblem id="four_types_practice_1s" title="Question 19: Excluded"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Amelia stops participating in group activities after being excluded as punishment in the past.<<
-
-( ) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-(x) Negative Punishment
-
-[explanation]
-- Something desirable is being taken away (being included) - Negative
-- Behavior happens less often (participating) - Punishment
-[/explanation]
-]]></MarkupProblem>
-
-<!-- Quiz 2: Four Types of Operant Conditioning, Question 20 -->
-<MarkupProblem id="four_types_practice_1t" title="Question 20: Super-Organized Badge"><![CDATA[
-## Practice Quiz: The Four Types of Operant Conditioning
-
->>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
-
-(x) Positive Reinforcement
-( ) Negative Reinforcement
-( ) Positive Punishment
-( ) Negative Punishment
-
-[explanation]
-- Something desirable is added (earns a 'Super Organized' badge) - Positive
-- Behavior happens more often (organizes her desk) - Reinforcement
-[/explanation]
-]]></MarkupProblem>
-
+<!-- Moved into psych_sba_part2_quiz_questions.olx -->
 
 <!-- Clear screen -->
 <Markdown id="clear_screen_after_quiz">
 &nbsp;
 </Markdown>
-
 
 <HH> ============= Screen: The email opening we wrote ======================== </HH>
 
@@ -882,12 +265,14 @@ _As you are filling in your email outline, so are your friends._
 <HH> ============= Screen: The final email ======================== </HH>
 
 <Tabs id="final_email_tab">
+
 <Vertical id="tab1" title="The Final Email">
 <Markdown>
 ### Write the final email
 </Markdown>
 <TextArea id="final_email" rows="10" />
 </Vertical>
+
 <Vertical id="tab2" title="JJ's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
@@ -927,11 +312,12 @@ _As you are filling in your email outline, so are your friends._
     **Cozy Blanket**: Reward with a special cozy blanket or plush pillow
     for their efforts.
 
-5.  _Final paragraph -- wish her luck!_
+5. _Final paragraph -- wish her luck!_
 
-    I hope with this advice, your next babysitting gig goes much better.
+   I hope with this advice, your next babysitting gig goes much better.
 </Markdown>
 </Vertical>
+
 <Vertical id="tab3" title="Lin's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
@@ -940,45 +326,46 @@ _As you are filling in your email outline, so are your friends._
 <Markdown>
 2. _What psychological technique we are recommending (positive reinforcement)._
 
-    Using positive reinforcement is an effective way to encourage a child
-    to go to bed at bedtime.
+   Using positive reinforcement is an effective way to encourage a child
+   to go to bed at bedtime.
 
 3. _Explanation of what positive reinforcement is and why it works._
 
-    Positive reinforcement involves rewarding the child when they perform
-    the desired behavior, which increases the likelihood that they will
-    repeat it in the future.
+   Positive reinforcement involves rewarding the child when they perform
+   the desired behavior, which increases the likelihood that they will
+   repeat it in the future.
 
-    It helps establish a clear connection between the desired behavior
-    (going to bed on time) and the rewarding outcome. This approach
-    encourages the child to view bedtime as a positive experience rather
-    than something to resist, fostering motivation and cooperation over
-    time. By focusing on rewarding good behavior rather than punishing
-    noncompliance, the child is more likely to feel empowered and develop
-    healthy habits.
+   It helps establish a clear connection between the desired behavior
+   (going to bed on time) and the rewarding outcome. This approach
+   encourages the child to view bedtime as a positive experience rather
+   than something to resist, fostering motivation and cooperation over
+   time. By focusing on rewarding good behavior rather than punishing
+   noncompliance, the child is more likely to feel empowered and develop
+   healthy habits.
 
 4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
 
-     **Sing a Lullaby**: Offer to sing their favorite lullaby if they go
-     to bed without delay.
+   **Sing a Lullaby**: Offer to sing their favorite lullaby if they go
+   to bed without delay.
 
-     **Golden Star Award**: Create a "Golden Star" award for being a
-     good bedtime hero.
+   **Golden Star Award**: Create a "Golden Star" award for being a
+   good bedtime hero.
 
-     **Pajama Party Theme**: Let them pick fun pajamas as part of
-     bedtime preparation.
+   **Pajama Party Theme**: Let them pick fun pajamas as part of
+   bedtime preparation.
 
-     **Countdown Timer**: Use a timer with a cheerful tune to make bedtime
-     feel exciting.
+   **Countdown Timer**: Use a timer with a cheerful tune to make bedtime
+   feel exciting.
 
-    **Bedtime Snack**: Reward with a small, healthy snack like fruit or
-    yogurt before bed.
+   **Bedtime Snack**: Reward with a small, healthy snack like fruit or
+   yogurt before bed.
 
 5.  _Final paragraph -- wish her luck!_
 
     With luck, this will help!
 </Markdown>
 </Vertical>
+
 <Vertical id="tab4" title="Annie's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
@@ -987,50 +374,52 @@ _As you are filling in your email outline, so are your friends._
 <Markdown>
 2. _What psychological technique we are recommending (positive reinforcement)._
 
-    Positive reinforcement is a powerful strategy to encourage desired
-    behaviors in children, such as going to bed at bedtime.
+   Positive reinforcement is a powerful strategy to encourage desired
+   behaviors in children, such as going to bed at bedtime.
 
 3. _Explanation of what positive reinforcement is and why it works._
 
-    Positive reinforcement involves providing a desirable reward or
-    incentive after the desired behavior occurs, increasing the likelihood
-    that the behavior will be repeated.
+   Positive reinforcement involves providing a desirable reward or
+   incentive after the desired behavior occurs, increasing the likelihood
+   that the behavior will be repeated.
 
-    It is effective because it motivates behavior through encouragement
-    rather than conflict. Children are more likely to cooperate when they
-    know their efforts will be recognized and appreciated. Additionally,
-    it helps build their sense of accomplishment and strengthens their
-    ability to follow routines, which is crucial for their development.
-    By using positive reinforcement, you create a routine that feels
-    rewarding and enjoyable for the child, making it easier for them
-    to develop healthy habits over time.
+   It is effective because it motivates behavior through encouragement
+   rather than conflict. Children are more likely to cooperate when they
+   know their efforts will be recognized and appreciated. Additionally,
+   it helps build their sense of accomplishment and strengthens their
+   ability to follow routines, which is crucial for their development.
+   By using positive reinforcement, you create a routine that feels
+   rewarding and enjoyable for the child, making it easier for them
+   to develop healthy habits over time.
 
 
 4. _List of positive reinforcement techniques she can try to get the kid to bed at bedtime._
 
-     **Bedtime Buddy**: Allow them to sleep with their favorite stuffed animal
-     or toy.
+    **Bedtime Buddy**: Allow them to sleep with their favorite stuffed animal
+    or toy.
 
-     **Favorite Song**: Play one favorite soothing song before lights out
-     as a reward.
+    **Favorite Song**: Play one favorite soothing song before lights out
+    as a reward.
 
-     **Superhero Role**: Call them a "bedtime superhero" for helping achieve
-     their goals.
+    **Superhero Role**: Call them a "bedtime superhero" for helping achieve
+    their goals.
 
-     **Magical Bedtime Passport**: Stamp their bedtime passport for every
-     on-time bed night.
+    **Magical Bedtime Passport**: Stamp their bedtime passport for every
+    on-time bed night.
 
-     **Calming Scents**: Reward with a choice of calming scents like
-     lavender-scented mist for their room
+    **Calming Scents**: Reward with a choice of calming scents like
+    lavender-scented mist for their room
 
 5.  _Final paragraph -- wish her luck!_
 
     I hope these techniques make your net babysitting experience a lot easier!
 </Markdown>
 </Vertical>
+
 <Vertical id="tab5" title="My outline">
 <Use ref="draft_full_email" />
 </Vertical>
+
 </Tabs>
 
 
@@ -1062,12 +451,14 @@ Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
 <HH> ============= Screen: Completion ======================== </HH>
 
 <Vertical id="psych_sba_part_2_completion_page">
+
 <Markdown>
 **Confirm that you are done with this exercise.**
 </Markdown>
 <CheckboxInput id="psych_part_2_finished">
 <Key id="psych_Part_2_finished">I'm finished with this task!</Key>
 </CheckboxInput>
+
 <Markdown when="'CONTENT/psych_Part_2_finished' in @psych_part_2_finished.value">
 - In this activity, you learned about **the four types of operant conditioning**
   (positive and negative reinforcement and punishment) and developed recommendations
