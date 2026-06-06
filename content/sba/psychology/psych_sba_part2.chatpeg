@@ -47,87 +47,87 @@ Practice Quiz 1
 
 JJ: Hey, everyone, I've got an idea.
 
-JJ: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don’t we try to answer those questions? Then, we can discuss them ...
+JJ: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don't we try to answer those questions? Then, we can discuss them ...
 
 ::reinforce_punish_practice_1 [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 1: Sticker"]
 
---- wait @reinforce_punish_practice_1.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1b [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 2: Asking"]
 
---- wait @reinforce_punish_practice_1b.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1b.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1c [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 3: Getting Burned"]
 
---- wait @reinforce_punish_practice_1c.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1c.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1d [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 4: Tantrum"]
 
---- wait @reinforce_punish_practice_1d.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1d.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1e [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 5: Glaring"]
 
---- wait @reinforce_punish_practice_1e.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1e.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1f [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 6: Less Screen Time"]
 
---- wait @reinforce_punish_practice_1f.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1f.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1g [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 7: Candy"]
 
---- wait @reinforce_punish_practice_1g.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1g.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1h [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 8: Uncalled-on"]
 
---- wait @reinforce_punish_practice_1h.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1h.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1i [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 9: Getting Upset"]
 
---- wait @reinforce_punish_practice_1i.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1i.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1j [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 10: Not Called On"]
 
---- wait @reinforce_punish_practice_1j.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1j.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1k [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 11: Artist!"]
 
---- wait @reinforce_punish_practice_1k.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1k.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1l [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 12: Firm Command"]
 
---- wait @reinforce_punish_practice_1l.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1l.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1m [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 13: Timeout"]
 
---- wait @reinforce_punish_practice_1m.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1m.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1n [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 14: Lose Recess Time"]
 
---- wait @reinforce_punish_practice_1n.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1n.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1o [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 15: Grounded for Poor Grades"]
 
---- wait @reinforce_punish_practice_1o.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1o.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1p [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 16: Removing dessert"]
 
---- wait @reinforce_punish_practice_1p.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1p.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1q [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 17: Being Told"]
 
---- wait @reinforce_punish_practice_1q.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1q.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1r [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 18: Offer Snack"]
 
---- wait @reinforce_punish_practice_1r.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1r.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1s [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 19: Excluded"]
 
---- wait @reinforce_punish_practice_1s.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1s.correct === correctness.correct ---
 
 ::reinforce_punish_practice_1t [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 20: Super-Organized Badge"]
 
---- wait @reinforce_punish_practice_1t.submitCount > 0 ---
+--- wait @reinforce_punish_practice_1t.correct === correctness.correct ---
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1c
 
@@ -201,9 +201,9 @@ JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, posi
 
 JJ: Look! Here's what I have in my notes.
 
-Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime. The adult is **adding** spanking, something that is **undesirable**, to **decrease** the child’s behavior of avoiding bedtime.
+Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime. The adult is **adding** spanking, something that is **undesirable**, to **decrease** the child's behavior of avoiding bedtime.
 
-Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime. The adult is **taking away** the toy, something **desirable**, to decrease the child’s behavior of avoiding bedtime.
+Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime. The adult is **taking away** the toy, something **desirable**, to decrease the child's behavior of avoiding bedtime.
 
 ::operant_conditioning_poster [display=target:psych_sba_sidebar2 label="Reinforcement & punishment chart"]
 
@@ -239,83 +239,83 @@ Annie: I am, too. Let's give it a try!
 
 ::four_types_practice_1 [display=target:psych_sba_sidebar2 label="Four Types Practice 1: Sticker"]
 
---- wait @four_types_practice_1.submitCount > 0 ---
+--- wait @four_types_practice_1.correct === correctness.correct ---
 
 ::four_types_practice_1b [display=target:psych_sba_sidebar2 label="Four Types Practice 2: Asking"]
 
---- wait @four_types_practice_1b.submitCount > 0 ---
+--- wait @four_types_practice_1b.correct === correctness.correct ---
 
 ::four_types_practice_1c [display=target:psych_sba_sidebar2 label="Four Types Practice 3: Getting Burned"]
 
---- wait @four_types_practice_1c.submitCount > 0 ---
+--- wait @four_types_practice_1c.correct === correctness.correct ---
 
 ::four_types_practice_1d [display=target:psych_sba_sidebar2 label="Four Types Practice 4: Tantrum"]
 
---- wait @four_types_practice_1d.submitCount > 0 ---
+--- wait @four_types_practice_1d.correct === correctness.correct ---
 
 ::four_types_practice_1e [display=target:psych_sba_sidebar2 label="Four Types Practice 5: Glaring"]
 
---- wait @four_types_practice_1e.submitCount > 0 ---
+--- wait @four_types_practice_1e.correct === correctness.correct ---
 
 ::four_types_practice_1f [display=target:psych_sba_sidebar2 label="Four Types Practice 6: Less Screen Time"]
 
---- wait @four_types_practice_1f.submitCount > 0 ---
+--- wait @four_types_practice_1f.correct === correctness.correct ---
 
 ::four_types_practice_1g [display=target:psych_sba_sidebar2 label="Four Types Practice 7: Candy"]
 
---- wait @four_types_practice_1g.submitCount > 0 ---
+--- wait @four_types_practice_1g.correct === correctness.correct ---
 
 ::four_types_practice_1h [display=target:psych_sba_sidebar2 label="Four Types Practice 8: Uncalled-on"]
 
---- wait @four_types_practice_1h.submitCount > 0 ---
+--- wait @four_types_practice_1h.correct === correctness.correct ---
 
 ::four_types_practice_1i [display=target:psych_sba_sidebar2 label="Four Types Practice 9: Getting Upset"]
 
---- wait @four_types_practice_1i.submitCount > 0 ---
+--- wait @four_types_practice_1i.correct === correctness.correct ---
 
 ::four_types_practice_1j [display=target:psych_sba_sidebar2 label="Four Types Practice 10: Not Called On"]
 
---- wait @four_types_practice_1j.submitCount > 0 ---
+--- wait @four_types_practice_1j.correct === correctness.correct ---
 
 ::four_types_practice_1k [display=target:psych_sba_sidebar2 label="Four Types Practice 11: Artist!"]
 
---- wait @four_types_practice_1k.submitCount > 0 ---
+--- wait @four_types_practice_1k.correct === correctness.correct ---
 
 ::four_types_practice_1l [display=target:psych_sba_sidebar2 label="Four Types Practice 12: Firm Command"]
 
---- wait @four_types_practice_1l.submitCount > 0 ---
+--- wait @four_types_practice_1l.correct === correctness.correct ---
 
 ::four_types_practice_1m [display=target:psych_sba_sidebar2 label="Four Types Practice 13: Timeout"]
 
---- wait @four_types_practice_1m.submitCount > 0 ---
+--- wait @four_types_practice_1m.correct === correctness.correct ---
 
 ::four_types_practice_1n [display=target:psych_sba_sidebar2 label="Four Types Practice 14: Lose Recess Time"]
 
---- wait @four_types_practice_1n.submitCount > 0 ---
+--- wait @four_types_practice_1n.correct === correctness.correct ---
 
 ::four_types_practice_1o [display=target:psych_sba_sidebar2 label="Four Types Practice 15: Grounded for Poor Grades"]
 
---- wait @four_types_practice_1o.submitCount > 0 ---
+--- wait @four_types_practice_1o.correct === correctness.correct ---
 
 ::four_types_practice_1p [display=target:psych_sba_sidebar2 label="Four Types Practice 16: Removing dessert"]
 
---- wait @four_types_practice_1p.submitCount > 0 ---
+--- wait @four_types_practice_1p.correct === correctness.correct ---
 
 ::four_types_practice_1q [display=target:psych_sba_sidebar2 label="Four Types Practice 17: Being Told"]
 
---- wait @four_types_practice_1q.submitCount > 0 ---
+--- wait @four_types_practice_1q.correct === correctness.correct ---
 
 ::four_types_practice_1r [display=target:psych_sba_sidebar2 label="Four Types Practice 18: Offer Snack"]
 
---- wait @four_types_practice_1r.submitCount > 0 ---
+--- wait @four_types_practice_1r.correct === correctness.correct ---
 
 ::four_types_practice_1s [display=target:psych_sba_sidebar2 label="Four Types Practice 19: Excluded"]
 
---- wait @four_types_practice_1s.submitCount > 0 ---
+--- wait @four_types_practice_1s.correct === correctness.correct ---
 
 ::four_types_practice_1t [display=target:psych_sba_sidebar2 label="Four Types Practice 20: Super-Organized Badge"]
 
---- wait @four_types_practice_1t.submitCount > 0 ---
+--- wait @four_types_practice_1t.correct === correctness.correct ---
 
 psych_sba_sidebar2 -> clear_screen_after_quiz
 
@@ -328,7 +328,7 @@ Writing the Final Email to Lin's Friend
 
 Annie: Don't forget that the whole **point** of this was to figure out what to tell my friend! We still have to solve her babysitting problem.
 
-::norulesparenting_summary [display=target:psych_sba_sidebar2 label="Our no-rules-parenting summary"]
+::norulesparenting_summary [display=target:psych_sba_sidebar2 label="The opening to the message we wrote to Annie's roommate"]
 
 Lin: So, here's what we already wrote ... What do we need to do next?
 

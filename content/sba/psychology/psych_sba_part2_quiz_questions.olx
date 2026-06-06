@@ -1,0 +1,643 @@
+<!--
+---
+description: "Practice quiz question banks for Psychology Study Group: 2. Operant Conditioning. Not an independent activity -- the questions are embedded into the chat flow by ID; this file is included so the bank can be edited and reviewed directly."
+category: psychology
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
+---
+-->
+<Vertical>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
+<MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Liam reads a book every night because he earns a sticker for each completed book.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Getting the sticker increases the likelihood that Liam will read the book, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 2 -->
+<MarkupProblem id="reinforce_punish_practice_1b" title="Question 2: Asking" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Daniel puts away his toys so his parents will stop asking him to clean up.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+The parent's asking increases the likelihood that Daniel will put his toys away, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 3 -->
+<MarkupProblem id="reinforce_punish_practice_1c" title="Question 3: Getting Burned" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Lucas stops touching the hot stove after he accidentally burns his hand.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Getting his hand burned reduces the likelihood that Daniel will continue his previous behavior (touching the hot stove), so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 4 -->
+<MarkupProblem id="reinforce_punish_practice_1d" title="Question 4: Tantrum" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Getting out of eating her vegetables makes Victoria more likely to throw another tantrum, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 5 -->
+<MarkupProblem id="reinforce_punish_practice_1e" title="Question 5: Glaring" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Glaring makes Michael less likely to stand up, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 6 -->
+<MarkupProblem id="reinforce_punish_practice_1f" title="Question 6: Less Screen Time" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Getting less screen time decreases the likelihood that Nicole will show her homework to her parents, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 7 -->
+<MarkupProblem id="reinforce_punish_practice_1g" title="Question 7: Candy" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Mia whines at the store because her parents give her candy to quiet her.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+The parents giving Mia candy makes her more likely to whine, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 8 -->
+<MarkupProblem id="reinforce_punish_practice_1h" title="Question 8: Uncalled-on" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Noah practices the piano daily because his parents cheer him on after each session.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Getting cheered on increases the likelihood that Noah will practice daily, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, Question 9 -->
+<MarkupProblem id="reinforce_punish_practice_1i" title="Question 9: Getting Upset" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Matthew makes his bed every morning so his mom doesn't get upset.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+His mom getting upset increases the probability of Matthew making his bed every morning, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1j" title="Question 10: Not Called On" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Luna stops asking questions in class because her teacher never calls on her to speak.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Not being called on makes Luna less likely to ask questions in class, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1k" title="Question 11: Artist!" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Being called an artist makes Layla more likely to scribble on walls, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1l" title="Question 12: Firm Command" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys, so it's punishment.
+[/explanation]
+]]></MarkupProblem>
+
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1m" title="Question 13: Timeout" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Being made to sit in a quiet corner makes Nathan less likely to interrupt, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1n" title="Question 14: Lose Recess Time" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>William follows playground rules so he doesn't lose recess time.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Losing recess time makes William more likely to follow classroom rules, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1o" title="Question 15: Grounded for Poor Grades" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Aiden studies for tests to avoid being grounded for poor grades.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Getting grounded for poor grades makes Aiden more likely to study, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1p" title="Question 16: Removing dessert" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Jackson doesn't try new food because his parents once took away his favorite cookie because he refused to eat his broccoli.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Taking away his favorite cookie made Jackson less likely to try new food, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1q" title="Question 17: Being Told" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Chloe stops playing with scissors after being told by her teacher.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+The teacher telling her to stop made Chloe less likely to play with scissors, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1r" title="Question 18: Offer Snack" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Offering a snack made Jack more likely to put on his shoes, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1s" title="Question 19: Excluded" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Amelia stops participating in group activities after being excluded in the past.<<
+
+( ) Reinforcement {{ Try Again }}
+(x) Punishment    {{ Correct }}
+
+[explanation]
+Being excluded made Amelia less likely to participate in group activities, so this is punishment.
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 1: Basic Reinforcement vs Punishment, ctd. -->
+<MarkupProblem id="reinforce_punish_practice_1t" title="Question 20: Super-Organized Badge" showanswer="never"><![CDATA[
+## Practice Quiz: Reinforcement vs. Punishment
+
+>>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
+
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
+
+[explanation]
+Getting the badge made Charlotte more likely to organize her desk, so this is reinforcement.
+[/explanation]
+]]></MarkupProblem>
+
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
+<MarkupProblem id="four_types_practice_1" title="Question 1: Sticker" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Liam reads a book every night because he earns a sticker for each completed book.<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (stickers) - Positive
+- Behavior happens more often (reading a book every night) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 2 -->
+<MarkupProblem id="four_types_practice_1b" title="Question 2: Asking" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Daniel puts away his toys so his parents will stop asking him to clean up.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+(x) Negative Reinforcement {{ Correct }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is being taken away (parents asking him to clean up) - Negative
+- Behavior happens more often (putting toys away) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 3 -->
+<MarkupProblem id="four_types_practice_1c" title="Question 3: Getting Burned" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Lucas stops touching the hot stove after he accidentally burns his hand.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+(x) Positive Punishment    {{ Correct }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is added (burning his hand) - Positive
+- Behavior happens less often (touching the stove) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 4 -->
+<MarkupProblem id="four_types_practice_1d" title="Question 4: Tantrum" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+(x) Negative Reinforcement {{ Correct }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is taken away (eating her vegetables) - Negative
+- Behavior happens more often (throwing a tantrum) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 5 -->
+<MarkupProblem id="four_types_practice_1e" title="Question 5: Glaring" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+(x) Positive Punishment    {{ Correct }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is added (father frowning and glaring at him) - Positive
+- Behavior happens less often (standing up) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 6 -->
+<MarkupProblem id="four_types_practice_1f" title="Question 6: Less Screen Time" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+(x) Negative Punishment    {{ Correct }}
+
+[explanation]
+- Something desirable is taken away (screen time) - Negative
+- Behavior happens less often (showing parents homework) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 7 -->
+<MarkupProblem id="four_types_practice_1g" title="Question 7: Candy" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Mia whines at the store because her parents give her candy to quiet her.<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (parents give her candy) - Positive
+- Behavior happens more often (whining at store) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 8 -->
+<MarkupProblem id="four_types_practice_1h" title="Question 8: Uncalled-on" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Noah practices the piano daily because his parents cheer him on after each session.<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (his parents cheer him on after each session) - Positive
+- Behavior happens more often (practices the piano daily) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 9 -->
+<MarkupProblem id="four_types_practice_1i" title="Question 9: Getting Upset" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Matthew makes his bed every morning so his mom doesn't get upset.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+(x) Negative Reinforcement {{ Correct }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is taken away (mom being upset) - Negative
+- Behavior happens more often (making bed every morning) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 10 -->
+<MarkupProblem id="four_types_practice_1j" title="Question 10: Not Called On" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Luna stops asking questions in class because her teacher never calls on her to speak.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+(x) Negative Punishment    {{ Correct }}
+
+[explanation]
+- Something undesirable is taken away (teacher never calling on her to speak) - Negative
+- Behavior happens less often (asking questions in class) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 11 -->
+<MarkupProblem id="four_types_practice_1k" title="Question 11: Artist!" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (sibling laughing and calling her "an artist") - Positive
+- Behavior happens more often (scribbles on walls) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 12 -->
+<MarkupProblem id="four_types_practice_1l" title="Question 12: Firm Command" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+(x) Positive Punishment    {{ Correct }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is added (being told firmly that it's unacceptable) - Positive
+- Behavior happens less often (throwing toys) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 13 -->
+<MarkupProblem id="four_types_practice_1m" title="Question 13: Timeout" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+(x) Positive Punishment    {{ Correct }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is added (making him sit in a "quiet corner") - Positive
+- Behavior happens less often (interrupting) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 14 -->
+<MarkupProblem id="four_types_practice_1n" title="Question 14: Lose Recess Time" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>William follows playground rules so he doesn't lose recess time.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+(x) Negative Reinforcement {{ Correct }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is taken away (losing recess time) - Negative
+- Behavior happens more often (follows playground rules) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 15 -->
+<MarkupProblem id="four_types_practice_1o" title="Question 15: Grounded for Poor Grades" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Aiden studies for tests to avoid being grounded for poor grades.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+(x) Negative Reinforcement {{ Correct }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is taken away (being grounded for poor grades) - Negative
+- Behavior happens more often (studying) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 16 -->
+<MarkupProblem id="four_types_practice_1p" title="Question 16: Removing dessert" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Jackson doesn't try new food because his parents once took away his favorite cookie because he refused to eat his broccoli.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+(x) Negative Punishment    {{ Correct }}
+
+[explanation]
+- Something desirable is taken away (his favorite cookie) - Negative
+- Behavior happens less often (trying new foods) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 17 -->
+<MarkupProblem id="four_types_practice_1q" title="Question 17: Being Told" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Chloe stops playing with scissors after being told by her teacher.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+(x) Positive Punishment    {{ Correct }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something undesirable is added (being told by her teacher) - Positive
+- Behavior happens less often (playing with scissors) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 18 -->
+<MarkupProblem id="four_types_practice_1r" title="Question 18: Offer Snack" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (offering a snack) - Positive
+- Behavior happens more often (putting on shoes) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 19 -->
+<MarkupProblem id="four_types_practice_1s" title="Question 19: Excluded" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Amelia stops participating in group activities after being excluded in the past.<<
+
+( ) Positive Reinforcement {{ Try Again }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+(x) Negative Punishment    {{ Correct }}
+
+[explanation]
+- Something desirable is being taken away (being included) - Negative
+- Behavior happens less often (participating) - Punishment
+[/explanation]
+]]></MarkupProblem>
+
+<!-- Quiz 2: Four Types of Operant Conditioning, Question 20 -->
+<MarkupProblem id="four_types_practice_1t" title="Question 20: Super-Organized Badge" showanswer="never"><![CDATA[
+## Practice Quiz: The Four Types of Operant Conditioning
+
+>>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
+
+(x) Positive Reinforcement {{ Correct }}
+( ) Negative Reinforcement {{ Try Again }}
+( ) Positive Punishment    {{ Try Again }}
+( ) Negative Punishment    {{ Try Again }}
+
+[explanation]
+- Something desirable is added (earns a 'Super Organized' badge) - Positive
+- Behavior happens more often (organizes her desk) - Reinforcement
+[/explanation]
+]]></MarkupProblem>
+
+
+</Vertical>
