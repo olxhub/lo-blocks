@@ -160,24 +160,10 @@ Remember:
 <Markdown id="filled_out_poster">
 ## Annie's Chart
 
-|                   | Add Something          | Remove Something       |
-|-------------------|--------------------------|------------------------|
-|    &nbsp;              |     &nbsp;                    |  &nbsp;                     |
-| **Increase Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Positive_**           | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Negative_**           |
-|                   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Reinforcement_** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Reinforcement_**      |
-|                   | _Give the child a sticker_ | _Allow the child to_     |
-|                   | _of his favorite cartoon_  | _have a pass on chores_  |
-|                   | _character when they_      | _when they go to bed_    |
-|                   | _go to bed when asked._    | _when asked_             |
-|-------------------|--------------------------|------------------------|
-| **Decrease Behavior** | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Positive_**       | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Negative_**          |
-|                   | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Punishment_**         | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**_Punishment_**       |
-|                   | _Make the child write_   | _Take away  his elec-_   |
-|                   | _"I will go to sleep on_ | _tronics for a week_     |
-|                   | _time" 100 times if he_  | _after he refuses to go_ |
-|                   | _does not go to bed_     | _to bed three times._    |
-|                   | _when asked._            |                        |
-|-------------------|------------------------|------------------------|
+| | Add Something | Remove Something |
+|---|---|---|
+| **Increase Behavior** | **Positive Reinforcement:** _Give the child a sticker of his favorite cartoon character when they go to bed when asked._ | **Negative Reinforcement:** _Allow the child to have a pass on chores when they go to bed when asked._ |
+| **Decrease Behavior** | **Positive Punishment:** _Make the child write "I will go to sleep on time" 100 times if he does not go to bed when asked._ | **Negative Punishment:** _Take away his electronics for a week after he refuses to go to bed three times._ |
 
 Remember:
 - **Positive** = Adding something
@@ -276,8 +262,9 @@ _As you are filling in your email outline, so are your friends._
 <Vertical id="tab2" title="JJ's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+
+   Don't give up on the bedtime yet -- I really think we can turn this around! A consistent bedtime is one of the most reliable things for a six-year-old: better sleep, better behavior, more security. The plan isn't broken; we just need to adjust the approach until we find what works.
 </Markdown>
-<Ref id="email_opening_final_jj" target="email_draft" />
 <Markdown>
 2. _What psychological technique we are recommending._
 
@@ -321,8 +308,9 @@ _As you are filling in your email outline, so are your friends._
 <Vertical id="tab3" title="Lin's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+
+   I'd encourage you not to abandon a consistent bedtime. Predictable routines are strongly linked to healthy sleep and behavior in young children, and removing that structure usually makes things harder, not easier. The trouble so far isn't a sign that bedtimes don't work -- it's a sign the strategy needs adjusting.
 </Markdown>
-<Ref id="email_opening_final_lin" target="email_draft" />
 <Markdown>
 2. _What psychological technique we are recommending._
 
@@ -369,8 +357,9 @@ _As you are filling in your email outline, so are your friends._
 <Vertical id="tab4" title="Annie's Outline">
 <Markdown>
 1. _Why Annie's Friend Shouldn't Give Up On Setting Bedtime._
+
+   Okay, so I know it feels like nothing's working, but please don't give up on a bedtime. Every kid I've been around does better with a routine they can count on -- it's easier on everybody once it clicks. The bedtime isn't the problem; we just haven't found the thing that works for him yet.
 </Markdown>
-<Ref id="email_opening_final_annie" target="email_draft" />
 <Markdown>
 2. _What psychological technique we are recommending._
 

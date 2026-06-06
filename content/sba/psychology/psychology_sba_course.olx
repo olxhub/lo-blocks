@@ -22,6 +22,8 @@ license: AGPL
        By the time you read this, it might be. If so, please remove this comment. -->
   <Use ref="psych_sba"       when="@psych_irb_consent"/>
   <Use ref="psych_sba2"      when="@psych_irb_consent"/>
+  <!-- Hidden for the summer term: Parts 3 & 4 are not covered this summer. Restore for fall:
   <Use ref="psych_sba_part3" when="@psych_irb_consent"/>
   <Use ref="psych_sba_part4" when="@psych_irb_consent"/>
+  -->
 </Course>
