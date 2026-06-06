@@ -21,8 +21,8 @@ license: AGPL
 
 >>Liam reads a book every night because he earns a sticker for each completed book.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Getting the sticker increases the likelihood that Liam will read the book, so this is reinforcement.
@@ -35,8 +35,8 @@ Getting the sticker increases the likelihood that Liam will read the book, so th
 
 >>Daniel puts away his toys so his parents will stop asking him to clean up.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 The parent's asking increases the likelihood that Daniel will put his toys away, so this is reinforcement.
@@ -50,7 +50,7 @@ The parent's asking increases the likelihood that Daniel will put his toys away,
 >>Lucas stops touching the hot stove after he accidentally burns his hand.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Getting his hand burned reduces the likelihood that Daniel will continue his previous behavior (touching the hot stove), so this is punishment.
@@ -63,8 +63,8 @@ Getting his hand burned reduces the likelihood that Daniel will continue his pre
 
 >>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Getting out of eating her vegetables makes Victoria more likely to throw another tantrum, so this is reinforcement.
@@ -78,7 +78,7 @@ Getting out of eating her vegetables makes Victoria more likely to throw another
 >>Michael stays seated during meals after his father frowns and glares at him every time he stands up.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Glaring makes Michael less likely to stand up, so this is punishment.
@@ -92,7 +92,7 @@ Glaring makes Michael less likely to stand up, so this is punishment.
 >>Nicole avoids showing her homework to her parents because they reduce her screen time when it's incomplete.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Getting less screen time decreases the likelihood that Nicole will show her homework to her parents, so this is punishment.
@@ -105,8 +105,8 @@ Getting less screen time decreases the likelihood that Nicole will show her home
 
 >>Mia whines at the store because her parents give her candy to quiet her.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 The parents giving Mia candy makes her more likely to whine, so this is reinforcement.
@@ -119,8 +119,8 @@ The parents giving Mia candy makes her more likely to whine, so this is reinforc
 
 >>Noah practices the piano daily because his parents cheer him on after each session.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Getting cheered on increases the likelihood that Noah will practice daily, so this is reinforcement.
@@ -133,8 +133,8 @@ Getting cheered on increases the likelihood that Noah will practice daily, so th
 
 >>Matthew makes his bed every morning so his mom doesn't get upset.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 His mom getting upset increases the probability of Matthew making his bed every morning, so this is reinforcement.
@@ -148,7 +148,7 @@ His mom getting upset increases the probability of Matthew making his bed every 
 >>Luna stops asking questions in class because her teacher never calls on her to speak.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Not being called on makes Luna less likely to ask questions in class, so this is punishment.
@@ -161,8 +161,8 @@ Not being called on makes Luna less likely to ask questions in class, so this is
 
 >>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Being called an artist makes Layla more likely to scribble on walls, so this is reinforcement.
@@ -177,7 +177,7 @@ Being called an artist makes Layla more likely to scribble on walls, so this is 
 >>Benjamin stops throwing toys after being told firmly that it's unacceptable.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Being firmly told that it's unacceptable decreases the probability of Benjamin throwing toys, so it's punishment.
@@ -192,7 +192,7 @@ Being firmly told that it's unacceptable decreases the probability of Benjamin t
 >>Nathan stops interrupting when his teacher starts making him sit in a "quiet corner."<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Being made to sit in a quiet corner makes Nathan less likely to interrupt, so this is punishment.
@@ -205,8 +205,8 @@ Being made to sit in a quiet corner makes Nathan less likely to interrupt, so th
 
 >>William follows playground rules so he doesn't lose recess time.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Losing recess time makes William more likely to follow classroom rules, so this is reinforcement.
@@ -219,8 +219,8 @@ Losing recess time makes William more likely to follow classroom rules, so this 
 
 >>Aiden studies for tests to avoid being grounded for poor grades.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Getting grounded for poor grades makes Aiden more likely to study, so this is reinforcement.
@@ -234,7 +234,7 @@ Getting grounded for poor grades makes Aiden more likely to study, so this is re
 >>Jackson doesn't try new food because his parents once took away his favorite cookie because he refused to eat his broccoli.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Taking away his favorite cookie made Jackson less likely to try new food, so this is punishment.
@@ -248,7 +248,7 @@ Taking away his favorite cookie made Jackson less likely to try new food, so thi
 >>Chloe stops playing with scissors after being told by her teacher.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 The teacher telling her to stop made Chloe less likely to play with scissors, so this is punishment.
@@ -261,8 +261,8 @@ The teacher telling her to stop made Chloe less likely to play with scissors, so
 
 >>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Offering a snack made Jack more likely to put on his shoes, so this is reinforcement.
@@ -276,7 +276,7 @@ Offering a snack made Jack more likely to put on his shoes, so this is reinforce
 >>Amelia stops participating in group activities after being excluded in the past.<<
 
 ( ) Reinforcement {{ Try Again }}
-(x) Punishment
+(x) Punishment    {{ Correct }}
 
 [explanation]
 Being excluded made Amelia less likely to participate in group activities, so this is punishment.
@@ -289,8 +289,8 @@ Being excluded made Amelia less likely to participate in group activities, so th
 
 >>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
 
-(x) Reinforcement
-( ) Punishment {{ Try Again }}
+(x) Reinforcement {{ Correct }}
+( ) Punishment    {{ Try Again }}
 
 [explanation]
 Getting the badge made Charlotte more likely to organize her desk, so this is reinforcement.
@@ -304,7 +304,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Liam reads a book every night because he earns a sticker for each completed book.<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
@@ -322,7 +322,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 >>Daniel puts away his toys so his parents will stop asking him to clean up.<<
 
 ( ) Positive Reinforcement {{ Try Again }}
-(x) Negative Reinforcement
+(x) Negative Reinforcement {{ Correct }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
 
@@ -340,7 +340,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
-(x) Positive Punishment
+(x) Positive Punishment    {{ Correct }}
 ( ) Negative Punishment    {{ Try Again }}
 
 [explanation]
@@ -356,7 +356,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 >>Victoria throws a tantrum at dinner to get out of eating her vegetables.<<
 
 ( ) Positive Reinforcement {{ Try Again }}
-(x) Negative Reinforcement
+(x) Negative Reinforcement {{ Correct }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
 
@@ -374,7 +374,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
-(x) Positive Punishment
+(x) Positive Punishment    {{ Correct }}
 ( ) Negative Punishment    {{ Try Again }}
 
 [explanation]
@@ -392,7 +392,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
-(x) Negative Punishment
+(x) Negative Punishment    {{ Correct }}
 
 [explanation]
 - Something desirable is taken away (screen time) - Negative
@@ -406,7 +406,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Mia whines at the store because her parents give her candy to quiet her.<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
@@ -423,7 +423,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Noah practices the piano daily because his parents cheer him on after each session.<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
@@ -441,7 +441,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 >>Matthew makes his bed every morning so his mom doesn't get upset.<<
 
 ( ) Positive Reinforcement {{ Try Again }}
-(x) Negative Reinforcement
+(x) Negative Reinforcement {{ Correct }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
 
@@ -460,7 +460,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
-(x) Negative Punishment
+(x) Negative Punishment    {{ Correct }}
 
 [explanation]
 - Something undesirable is taken away (teacher never calling on her to speak) - Negative
@@ -474,7 +474,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Layla scribbles on walls because her sibling laughs and calls her "an artist."<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
@@ -494,7 +494,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
-(x) Positive Punishment
+(x) Positive Punishment    {{ Correct }}
 ( ) Negative Punishment    {{ Try Again }}
 
 [explanation]
@@ -511,7 +511,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
-(x) Positive Punishment
+(x) Positive Punishment    {{ Correct }}
 ( ) Negative Punishment    {{ Try Again }}
 
 [explanation]
@@ -527,7 +527,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 >>William follows playground rules so he doesn't lose recess time.<<
 
 ( ) Positive Reinforcement {{ Try Again }}
-(x) Negative Reinforcement
+(x) Negative Reinforcement {{ Correct }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
 
@@ -544,7 +544,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 >>Aiden studies for tests to avoid being grounded for poor grades.<<
 
 ( ) Positive Reinforcement {{ Try Again }}
-(x) Negative Reinforcement
+(x) Negative Reinforcement {{ Correct }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
 
@@ -563,7 +563,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
-(x) Negative Punishment
+(x) Negative Punishment    {{ Correct }}
 
 [explanation]
 - Something desirable is taken away (his favorite cookie) - Negative
@@ -579,7 +579,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
-(x) Positive Punishment
+(x) Positive Punishment    {{ Correct }}
 ( ) Negative Punishment    {{ Try Again }}
 
 [explanation]
@@ -594,7 +594,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Jack refuses to put on his shoes until his parent offers a snack as a bribe.<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
@@ -614,7 +614,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 ( ) Positive Reinforcement {{ Try Again }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
-(x) Negative Punishment
+(x) Negative Punishment    {{ Correct }}
 
 [explanation]
 - Something desirable is being taken away (being included) - Negative
@@ -628,7 +628,7 @@ Getting the badge made Charlotte more likely to organize her desk, so this is re
 
 >>Charlotte organizes her desk because she earns a "Super Organized" badge from her teacher for doing so.<<
 
-(x) Positive Reinforcement
+(x) Positive Reinforcement {{ Correct }}
 ( ) Negative Reinforcement {{ Try Again }}
 ( ) Positive Punishment    {{ Try Again }}
 ( ) Negative Punishment    {{ Try Again }}
