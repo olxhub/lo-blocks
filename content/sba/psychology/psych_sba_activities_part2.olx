@@ -17,8 +17,6 @@ license: AGPL
 <Vertical id="psych_sba_activities_part2" title="Psychology Study Group: 2. Operant Conditioning (Activities)" launchable="true">
 
 
-<IntakeGate ready="!@psych_part_2_finished.value">
-<Markdown> </Markdown>
 <Vertical>
 <!-- Introduction section -->
 <Markdown id="bedtime_problem_introduction2">
@@ -68,7 +66,6 @@ Let's begin.
 - _Ella withdraws from group activities because her peers laughed at her during a presentation._
 </Markdown>
 </Vertical>
-</IntakeGate>
 
 <!-- Quiz 1: Basic Reinforcement vs Punishment, Question 1 -->
 <MarkupProblem id="reinforce_punish_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -352,8 +349,6 @@ Getting the badge made Charlotte more likely to organized her desk, so this is r
 [/explanation]
 ]]></MarkupProblem>
 
-<IntakeGate ready="!@psych_part_2_finished.value">
-<Markdown> </Markdown>
 <Vertical>
 <Markdown id="operant_conditioning_clear_screen_1">
 &nbsp;
@@ -379,7 +374,6 @@ a typically **unpleasant** stimulus immediately after a response.
 
 <Image id="operant_conditioning_poster" src="images/poster.jpg" alt="Chart on types of reinforcement and punishment" />
 </Vertical>
-</IntakeGate>
 
 <Vertical id="conditioning_example_chart">
 <Markdown>
@@ -418,8 +412,6 @@ Remember:
 </Markdown>
 </Vertical>
 
-<IntakeGate ready="!@psych_part_2_finished.value">
-<Markdown> </Markdown>
 <!-- Reinforcement poster -->
 <Markdown id="filled_out_poster">
 ## Quick Reference Chart
@@ -449,7 +441,6 @@ Remember:
 - **Reinforcement** = Increases behavior
 - **Punishment** = Decreases behavior
 </Markdown>
-</IntakeGate>
 
 <!-- Quiz 2: Four Types of Operant Conditioning, Question 1 -->
 <MarkupProblem id="four_types_practice_1" title="Question 1: Sticker"><![CDATA[
@@ -806,8 +797,6 @@ Remember:
 <UseDynamic id="ref_email_draft2" target="email_draft" />
 </Vertical>
 
-<IntakeGate ready="!@psych_part_2_finished.value">
-<Markdown> </Markdown>
 <Vertical id="outline_of_full_email">
 <Markdown>
 ## Outline for Our Email to Annie's Friend
@@ -826,7 +815,6 @@ Remember:
 5. Final paragraph -- wish her luck!
 </Markdown>
 </Vertical>
-</IntakeGate>
 
 <Vertical id="draft_full_email">
 <Markdown>
@@ -1010,8 +998,6 @@ _As you are filling in your email outline, so are your friends._
 <Use ref="draft_full_email" />
 </Vertical>
 </Tabs>
-<IntakeGate ready="!@psych_part_2_finished.value">
-<Markdown> </Markdown>
 <Markdown id="roommate_response">
 ## Annie's roommate's email:
 
@@ -1033,7 +1019,6 @@ So far, he has gone to bed without a fuss three nights in a row!
 
 Please tell everyone I really appreciate their ideas! Y'all are lifesavers!
 </Markdown>
-</IntakeGate>
 
 <Vertical id="psych_sba_part_2_completion_page">
 <Markdown>
