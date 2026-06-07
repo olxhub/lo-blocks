@@ -1,4 +1,4 @@
-// src/components/blocks/ErrorNode/_ErrorNode.tsx
+// packages/shared/components/blocks/utility/ErrorNode/_ErrorNode.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

@@ -1,4 +1,4 @@
-// src/app/layout.tsx
+// apps/web/app/layout.tsx
 //
 // Server component — reads PMSS config files and passes the raw text
 // to StoreWrapper so the client can initialize config before rendering.

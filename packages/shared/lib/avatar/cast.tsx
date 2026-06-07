@@ -1,4 +1,4 @@
-// src/lib/cast.ts
+// packages/shared/lib/avatar/cast.tsx
 //
 // Cast-of-characters runtime library — parsing, validation, merging,
 // and propthreading for the cast system.

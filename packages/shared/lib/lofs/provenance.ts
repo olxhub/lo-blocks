@@ -1,4 +1,4 @@
-// src/lib/lofs/provenance.ts
+// packages/shared/lib/lofs/provenance.ts
 //
 // Provenance utilities.
 //

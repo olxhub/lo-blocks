@@ -1,4 +1,4 @@
-// CastEditor/CastEditor.ts
+// packages/shared/components/blocks/scenario/CastEditor/CastEditor.ts
 //
 // Cast-of-characters editor — manages a collection of characters,
 // each with its own avatar, traits, bio, and stats.

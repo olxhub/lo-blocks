@@ -1,4 +1,4 @@
-// src/components/blocks/test/DevProblem.jsx
+// packages/shared/components/blocks/_test/DevProblem.ts
 import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';
 import { _DevProblem } from './_DevProblem';

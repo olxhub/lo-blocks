@@ -1,4 +1,4 @@
-// src/components/blocks/reference/AggregatedInputs/_AggregatedInputs.jsx
+// packages/shared/components/blocks/reference/AggregatedInputs/_AggregatedInputs.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

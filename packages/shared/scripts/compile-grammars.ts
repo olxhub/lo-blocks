@@ -1,4 +1,4 @@
-// src/scripts/compile-grammars.js
+// packages/shared/scripts/compile-grammars.ts
 // scripts/compile-grammars.js
 import { promises as fs } from 'fs';
 import path from 'path';

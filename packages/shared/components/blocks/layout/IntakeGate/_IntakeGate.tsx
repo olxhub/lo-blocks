@@ -1,4 +1,4 @@
-// src/components/blocks/layout/IntakeGate/_IntakeGate.tsx
+// packages/shared/components/blocks/layout/IntakeGate/_IntakeGate.tsx
 //
 // IntakeGate layout - gates content behind a readiness condition.
 //

@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/CapaProblem.js
+// packages/shared/components/blocks/CapaProblem/CapaProblem.ts
 
 /*
  * TODO: This codebase (CapaProblem, _CapaProblem) should be

@@ -1,4 +1,4 @@
-// src/components/blocks/PEGDevBlock/PEGDevBlock.js
+// packages/shared/components/blocks/specialized/PEGDevBlock/PEGDevBlock.ts
 import { dev } from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';

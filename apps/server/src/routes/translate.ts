@@ -1,4 +1,4 @@
-// routes/translate.ts
+// apps/server/src/routes/translate.ts
 //
 // POST /api/translate — content translation endpoint (Hono).
 //

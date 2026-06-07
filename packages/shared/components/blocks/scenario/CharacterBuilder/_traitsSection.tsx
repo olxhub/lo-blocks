@@ -1,4 +1,4 @@
-// CharacterBuilder/_traitsSection.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_traitsSection.tsx
 //
 // Dimension card editor — expanded view for a single character trait.
 // Includes AI-powered generation that reads other filled-in traits

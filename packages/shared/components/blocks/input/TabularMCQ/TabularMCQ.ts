@@ -1,4 +1,4 @@
-// src/components/blocks/TabularMCQ/TabularMCQ.js
+// packages/shared/components/blocks/input/TabularMCQ/TabularMCQ.ts
 //
 // TabularMCQ - Matrix-style multiple choice for surveys, assessments, and personality tests.
 //

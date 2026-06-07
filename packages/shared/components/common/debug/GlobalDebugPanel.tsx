@@ -1,4 +1,4 @@
-// src/components/common/debug/GlobalDebugPanel.tsx
+// packages/shared/components/common/debug/GlobalDebugPanel.tsx
 //
 // Global debug panel wrapper - handles keyboard shortcut and renders panel.
 // Add to root layout for system-wide availability.

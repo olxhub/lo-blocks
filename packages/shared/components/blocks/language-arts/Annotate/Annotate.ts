@@ -1,4 +1,4 @@
-// Annotate/Annotate.ts
+// packages/shared/components/blocks/language-arts/Annotate/Annotate.ts
 //
 // Annotate — text annotation block for close reading and note-taking.
 //

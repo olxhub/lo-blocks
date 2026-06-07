@@ -1,4 +1,4 @@
-// src/app/page.tsx
+// apps/web/app/page.tsx
 //
 // Server component wrapper. Renders the client-side HomePage component.
 //

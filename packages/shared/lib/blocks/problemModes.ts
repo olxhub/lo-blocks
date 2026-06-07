@@ -1,4 +1,4 @@
-// src/lib/blocks/problemModes.ts
+// packages/shared/lib/blocks/problemModes.ts
 //
 // Utility functions for problem submission modes, attempts, and answer visibility.
 //

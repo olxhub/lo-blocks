@@ -1,4 +1,4 @@
-// src/lib/editor/context.js
+// apps/web/app/studio/context.ts
 //
 // Context building for LLM editor assistant.
 //

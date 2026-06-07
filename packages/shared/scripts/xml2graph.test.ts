@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/scripts/xml2graph.test.js
+// packages/shared/scripts/xml2graph.test.ts
 
 import { test, expect, afterEach } from 'vitest';
 import { spawn } from 'child_process';

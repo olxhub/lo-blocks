@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/shared.ts
+// packages/shared/lib/state/fieldTypes/shared.ts
 //
 // Shared utilities used by all field type constructors.
 //

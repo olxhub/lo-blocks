@@ -1,4 +1,4 @@
-// src/app/docs/page.jsx
+// apps/web/app/docs/page.jsx
 //
 // Server component wrapper. Renders the client-side DocsPage component.
 //

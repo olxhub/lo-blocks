@@ -1,4 +1,4 @@
-// src/lib/content/parseOLX.ts
+// packages/shared/lib/content/parseOLX.ts
 //
 // OLX document parser - main entry point for processing Learning Observer XML content.
 //

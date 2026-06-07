@@ -1,4 +1,4 @@
-// src/components/common/PopoutWrapper.tsx
+// packages/shared/components/common/PopoutWrapper.tsx
 //
 // Universal pop-out wrapper for blocks. Renders an expand button over the block
 // content and, when activated, portals the content into a full-viewport overlay.

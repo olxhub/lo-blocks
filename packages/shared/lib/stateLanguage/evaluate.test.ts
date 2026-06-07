@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/evaluate.test.ts
+// packages/shared/lib/stateLanguage/evaluate.test.ts
 
 import { describe, it, expect } from 'vitest';
 import { parse } from './parser';

@@ -1,4 +1,4 @@
-// src/components/blocks/SplitPanel/_SplitPanel.jsx
+// packages/shared/components/blocks/layout/SplitPanel/_SplitPanel.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

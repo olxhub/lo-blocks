@@ -1,4 +1,4 @@
-// lib/character/dimensions.ts
+// packages/shared/lib/avatar/traits.ts
 //
 // Character dimension catalog and stat presets for the CharacterBuilder.
 //

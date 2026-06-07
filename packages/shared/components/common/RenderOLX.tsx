@@ -1,4 +1,4 @@
-// src/components/common/RenderOLX.tsx
+// packages/shared/components/common/RenderOLX.tsx
 //
 // Generic component for rendering OLX content from various sources.
 //

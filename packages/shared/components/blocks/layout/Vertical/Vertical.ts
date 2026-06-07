@@ -1,4 +1,4 @@
-// src/components/blocks/Vertical/Vertical.jsx
+// packages/shared/components/blocks/layout/Vertical/Vertical.ts
 import * as parsers from '@/lib/content/parsers';
 import { core } from '@/lib/blocks';
 import { _Vertical } from './_Vertical';

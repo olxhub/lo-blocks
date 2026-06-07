@@ -1,4 +1,4 @@
-// src/components/common/debug/ThemeSync.tsx
+// packages/shared/components/common/debug/ThemeSync.tsx
 //
 // Keeps DOM data attributes in sync with Redux theme settings.
 // Rendered in StoreWrapperInner so it's always mounted.

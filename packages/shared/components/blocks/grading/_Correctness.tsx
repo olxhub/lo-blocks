@@ -1,4 +1,4 @@
-// src/components/blocks/_Correctness.jsx
+// packages/shared/components/blocks/grading/_Correctness.tsx
 //
 // Visual indicator showing grading status.
 // Note: requiresGrader=true in block definition means graderId is injected by render.

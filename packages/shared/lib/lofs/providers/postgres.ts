@@ -1,4 +1,4 @@
-// src/lib/lofs/providers/postgres.ts
+// packages/shared/lib/lofs/providers/postgres.ts
 //
 // Postgres storage provider - database-backed content (stub).
 //

@@ -1,4 +1,4 @@
-// src/components/common/LanguageSwitcher.tsx
+// packages/shared/components/common/LanguageSwitcher.tsx
 //
 // Language selector with three-tier UI:
 // 1. Supported - curated languages available for current content + browser language

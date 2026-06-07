@@ -1,4 +1,4 @@
-// src/app/studio/panels/FilesPanel.tsx
+// apps/web/app/studio/panels/FilesPanel.tsx
 'use client';
 
 import { useState } from 'react';

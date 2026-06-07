@@ -1,4 +1,4 @@
-// lib/crdt/actorId.ts
+// packages/shared/lib/crdt/actorId.ts
 //
 // Actor ID — unique identifier for this client in CRDT operations.
 //

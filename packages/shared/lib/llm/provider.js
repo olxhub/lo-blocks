@@ -1,4 +1,4 @@
-// src/lib/llm/provider.js
+// packages/shared/lib/llm/provider.js
 //
 // LLM provider credentials and availability detection.
 //

@@ -1,4 +1,4 @@
-// src/app/api/olxjson/route.ts
+// apps/web/app/api/olxjson/route.ts
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';

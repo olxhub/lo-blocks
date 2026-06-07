@@ -1,4 +1,4 @@
-// src/components/blocks/scenario/AvatarEditor/AvatarEditor.ts
+// packages/shared/components/blocks/scenario/AvatarEditor/AvatarEditor.ts
 
 import yaml from 'js-yaml';
 import { z } from 'zod';

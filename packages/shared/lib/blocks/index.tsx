@@ -1,4 +1,4 @@
-// src/lib/blocks/index.tsx
+// packages/shared/lib/blocks/index.tsx
 //
 // Learning Observer block system - central exports for educational component framework.
 //

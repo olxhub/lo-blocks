@@ -1,4 +1,4 @@
-// src/app/studio/page.tsx
+// apps/web/app/studio/page.tsx
 //
 // Server component wrapper. Renders the client-side StudioPage component.
 //

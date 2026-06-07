@@ -1,4 +1,4 @@
-// src/lib/util/fileTypes.test.ts
+// packages/shared/lib/util/fileTypes.test.ts
 //
 // End-to-end tests for file type detection.
 // Not exhaustive unit tests - just verify the system works correctly.

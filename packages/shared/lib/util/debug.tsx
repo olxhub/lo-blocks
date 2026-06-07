@@ -1,4 +1,4 @@
-// src/lib/util/debug.tsx
+// packages/shared/lib/util/debug.tsx
 'use client';
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';

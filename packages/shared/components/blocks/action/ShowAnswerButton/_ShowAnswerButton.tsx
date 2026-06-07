@@ -1,4 +1,4 @@
-// src/components/blocks/action/ShowAnswerButton/_ShowAnswerButton.jsx
+// packages/shared/components/blocks/action/ShowAnswerButton/_ShowAnswerButton.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

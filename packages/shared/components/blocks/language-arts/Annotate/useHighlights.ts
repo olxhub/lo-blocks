@@ -1,4 +1,4 @@
-// Annotate/useHighlights.ts
+// packages/shared/components/blocks/language-arts/Annotate/useHighlights.ts
 //
 // DOM-level utilities for the Annotate block's in-passage text highlighting.
 //

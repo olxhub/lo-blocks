@@ -1,4 +1,4 @@
-// src/components/blocks/_DynamicList.jsx
+// packages/shared/components/blocks/layout/_DynamicList.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

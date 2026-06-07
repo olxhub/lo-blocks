@@ -1,4 +1,4 @@
-// src/components/blocks/action/HintButton/HintButton.js
+// packages/shared/components/blocks/action/HintButton/HintButton.ts
 //
 // Button to reveal the next hint in a DemandHints component.
 //

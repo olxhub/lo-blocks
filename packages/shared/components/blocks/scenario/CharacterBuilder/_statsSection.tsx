@@ -1,4 +1,4 @@
-// CharacterBuilder/_statsSection.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_statsSection.tsx
 //
 // RPG-style stats card editor with unit conversion, roll mechanics,
 // and currency formatting.

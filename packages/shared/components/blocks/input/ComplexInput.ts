@@ -1,4 +1,4 @@
-// src/components/blocks/ComplexInput.js
+// packages/shared/components/blocks/input/ComplexInput.ts
 
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';

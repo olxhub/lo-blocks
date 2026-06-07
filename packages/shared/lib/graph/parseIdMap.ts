@@ -1,4 +1,4 @@
-// src/lib/graph/parseIdMap.ts
+// packages/shared/lib/graph/parseIdMap.ts
 //
 // Graph visualization - converts Learning Observer content into visual node graphs.
 //

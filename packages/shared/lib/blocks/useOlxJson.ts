@@ -1,4 +1,4 @@
-// src/lib/blocks/useOlxJson.ts
+// packages/shared/lib/blocks/useOlxJson.ts
 //
 // OlxJson content access — fetch-on-demand from Redux.
 //

@@ -1,4 +1,4 @@
-// src/lib/lofs/index.ts
+// packages/shared/lib/lofs/index.ts
 //
 // Storage abstraction layer - pluggable and stackable content persistence.
 //

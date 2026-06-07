@@ -1,4 +1,4 @@
-// src/lib/docs/schemaUtils.ts
+// packages/shared/lib/docs/schemaUtils.ts
 //
 // Utilities for extracting documentation-friendly information from Zod schemas.
 //

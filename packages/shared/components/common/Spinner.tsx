@@ -1,4 +1,4 @@
-// src/components/common/Spinner.tsx
+// packages/shared/components/common/Spinner.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 

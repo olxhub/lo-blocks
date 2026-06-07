@@ -1,4 +1,4 @@
-// src/components/blocks/layout/NextReveal/_NextReveal.jsx
+// packages/shared/components/blocks/scenario/NextReveal/_NextReveal.jsx
 'use client';
 
 import React, { useEffect, useRef } from 'react';

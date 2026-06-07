@@ -1,4 +1,4 @@
-// src/lib/blocks/namespaces.js
+// packages/shared/lib/blocks/namespaces.ts
 //
 // Block namespaces - organizational system for grouping blocks by domain/author.
 //

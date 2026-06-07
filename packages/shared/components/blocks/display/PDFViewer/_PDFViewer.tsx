@@ -1,4 +1,4 @@
-// src/components/blocks/display/PDFViewer/_PDFViewer.tsx
+// packages/shared/components/blocks/display/PDFViewer/_PDFViewer.tsx
 //
 // Uses the browser's built-in PDF viewer via <iframe>.
 // Path resolution follows the same conventions as Image (see Image block docs).

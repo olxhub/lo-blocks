@@ -1,4 +1,4 @@
-// src/components/blocks/TabularMCQ/TabularMCQGrader.ts
+// packages/shared/components/blocks/input/TabularMCQ/TabularMCQGrader.ts
 //
 // Grader for TabularMCQ - checks selections against expected answers.
 //

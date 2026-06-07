@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/content/parseOLX.test.js
+// packages/shared/lib/content/parseOLX.test.ts
 import { parseOLX } from './parseOLX';
 import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';

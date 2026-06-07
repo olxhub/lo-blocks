@@ -1,4 +1,4 @@
-// components/common/EmojiSelector.tsx
+// packages/shared/components/common/avatar/EmojiSelector.tsx
 //
 // Emoji picker grid with skin tone modifiers.
 // Displays categorized emoji with optional Fitzpatrick skin tone selector.

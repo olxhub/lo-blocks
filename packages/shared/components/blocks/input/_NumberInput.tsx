@@ -1,4 +1,4 @@
-// src/components/blocks/_NumberInput.jsx
+// packages/shared/components/blocks/input/_NumberInput.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';

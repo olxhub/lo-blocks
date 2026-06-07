@@ -1,4 +1,4 @@
-// lib/attribution.ts
+// packages/shared/lib/attribution.ts
 //
 // Attribution helpers for licensed content (images, activities, etc.).
 //

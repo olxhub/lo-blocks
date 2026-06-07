@@ -1,4 +1,4 @@
-// src/lib/state/scopes.ts
+// packages/shared/lib/state/scopes.ts
 //
 // State scopes - defines the different levels of state management in Learning Observer.
 //

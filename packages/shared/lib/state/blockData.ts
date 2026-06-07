@@ -1,4 +1,4 @@
-// src/lib/state/blockData.ts
+// packages/shared/lib/state/blockData.ts
 //
 // Helpers for constructing BlockDataResult — the standard loading/error/ready
 // result shape used across useValue, useOlxJson, useBlock, and valueSelector.

@@ -1,4 +1,4 @@
-// src/components/blocks/Image/_Image.jsx
+// packages/shared/components/blocks/display/Image/_Image.tsx
 /*
  * Image Block Implementation
  *

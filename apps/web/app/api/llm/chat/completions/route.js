@@ -1,4 +1,4 @@
-// src/app/api/llm/chat/completions/route.js
+// apps/web/app/api/llm/chat/completions/route.js
 //
 // POST /api/llm/chat/completions
 //

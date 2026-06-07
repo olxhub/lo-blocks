@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// src/lib/cast.integration.test.ts
+// packages/shared/lib/avatar/cast.integration.test.ts
 //
 // Integration tests for the cast-of-characters system.
 //

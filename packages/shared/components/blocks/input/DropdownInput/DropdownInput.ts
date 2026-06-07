@@ -1,4 +1,4 @@
-// src/components/blocks/input/DropdownInput/DropdownInput.js
+// packages/shared/components/blocks/input/DropdownInput/DropdownInput.ts
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';

@@ -1,4 +1,4 @@
-// src/app/api/files/route.ts
+// apps/web/app/api/files/route.ts
 //
 // File listing and glob API.
 //

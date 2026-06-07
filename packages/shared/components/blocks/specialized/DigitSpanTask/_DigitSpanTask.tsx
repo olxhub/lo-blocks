@@ -1,4 +1,4 @@
-// src/components/blocks/DigitSpanTask/_DigitSpanTask.jsx
+// packages/shared/components/blocks/specialized/DigitSpanTask/_DigitSpanTask.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

@@ -1,4 +1,4 @@
-// src/components/blocks/LLMAction.js
+// packages/shared/components/blocks/action/LLMAction.ts
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';

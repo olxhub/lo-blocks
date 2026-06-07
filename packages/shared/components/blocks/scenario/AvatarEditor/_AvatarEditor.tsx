@@ -1,4 +1,4 @@
-// AvatarEditor/_AvatarEditor.tsx
+// packages/shared/components/blocks/scenario/AvatarEditor/_AvatarEditor.tsx
 //
 // Standalone avatar editor — thin wrapper around OpenPeepsSelector.
 // Lets authors build a single cast member's appearance + metadata,

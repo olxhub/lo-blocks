@@ -1,4 +1,4 @@
-// src/components/blocks/Correctness.jsx
+// packages/shared/components/blocks/grading/Correctness.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';

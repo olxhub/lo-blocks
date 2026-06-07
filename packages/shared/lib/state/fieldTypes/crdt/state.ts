@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/state.ts
+// packages/shared/lib/state/fieldTypes/crdt/state.ts
 //
 // State field — the default field type for block state, with LWW conflict resolution.
 //

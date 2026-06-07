@@ -1,4 +1,4 @@
-// src/lib/llm/serverCall.ts
+// packages/shared/lib/llm/serverCall.ts
 //
 // Server-side LLM call: (profile, messages) → text string.
 //

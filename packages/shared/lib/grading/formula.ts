@@ -1,4 +1,4 @@
-// lib/grading/formula.ts — Thin glue: maps grader framework ↔ calc/ for formula grading.
+// packages/shared/lib/grading/formula.ts — Thin glue: maps grader framework ↔ calc/ for formula grading.
 //
 // Match function is a pure predicate. Validators compose calc/ primitives.
 

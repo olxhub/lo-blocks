@@ -1,4 +1,4 @@
-// src/components/blocks/display/TextSlot/TextSlot.js
+// packages/shared/components/blocks/display/TextSlot/TextSlot.ts
 //
 // TextSlot block - a slot that receives text from other blocks (e.g., LLMAction).
 // Used inside IntakeGate for dynamic content generation.

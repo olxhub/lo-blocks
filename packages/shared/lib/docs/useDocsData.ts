@@ -1,4 +1,4 @@
-// src/lib/docs/useDocsData.ts
+// packages/shared/lib/docs/useDocsData.ts
 //
 // Shared hook for fetching block and grammar documentation.
 // Used by both /docs page and Studio sidebar.

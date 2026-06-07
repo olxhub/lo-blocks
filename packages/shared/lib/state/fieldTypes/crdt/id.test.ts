@@ -1,5 +1,5 @@
 // @vitest-environment node
-// lib/state/fieldTypes/crdt/id.test.ts
+// packages/shared/lib/state/fieldTypes/crdt/id.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { idField, __shortActor } from './id';
 

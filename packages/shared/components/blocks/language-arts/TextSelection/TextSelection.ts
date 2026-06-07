@@ -1,4 +1,4 @@
-// src/components/blocks/TextSelection/TextSelection.ts
+// packages/shared/components/blocks/language-arts/TextSelection/TextSelection.ts
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';

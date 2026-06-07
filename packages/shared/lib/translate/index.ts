@@ -1,4 +1,4 @@
-// src/lib/translate/index.ts
+// packages/shared/lib/translate/index.ts
 //
 // Core translation module. Translates content files (OLX, PEG-based formats)
 // via LLM, with continuation on truncation, validation, and retry.

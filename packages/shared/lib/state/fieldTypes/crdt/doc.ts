@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/doc.ts
+// packages/shared/lib/state/fieldTypes/crdt/doc.ts
 //
 // Document field — collaborative text via RGA CRDT.
 //

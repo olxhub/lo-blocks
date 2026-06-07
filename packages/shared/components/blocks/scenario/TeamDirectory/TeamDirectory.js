@@ -1,4 +1,4 @@
-// src/components/blocks/scenario/TeamDirectory/TeamDirectory.js
+// packages/shared/components/blocks/scenario/TeamDirectory/TeamDirectory.js
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';

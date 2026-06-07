@@ -1,4 +1,4 @@
-// src/components/blocks/_TextBlock.jsx
+// packages/shared/components/blocks/display/_TextBlock.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';

@@ -1,4 +1,4 @@
-// src/lib/state/store.ts
+// packages/shared/lib/state/store.ts
 //
 // Redux store configuration - sets up the Learning Observer state management system.
 //

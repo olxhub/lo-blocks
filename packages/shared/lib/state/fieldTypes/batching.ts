@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/batching.ts
+// packages/shared/lib/state/fieldTypes/batching.ts
 //
 // STATUS: Prototype — API is a first attempt, implementations are
 // placeholders.  The built-in factories (immediate, debounce,

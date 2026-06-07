@@ -1,4 +1,4 @@
-// CharacterBuilder/_helpers.ts
+// packages/shared/components/blocks/scenario/CharacterBuilder/_helpers.ts
 //
 // Shared helpers for CharacterBuilder sub-components.
 // Scoping, formatting, and unit conversion.

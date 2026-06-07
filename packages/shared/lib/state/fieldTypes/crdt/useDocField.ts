@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/useDocField.ts
+// packages/shared/lib/state/fieldTypes/crdt/useDocField.ts
 //
 // CRDT useDocField — thin wrapper around useFieldState.
 //

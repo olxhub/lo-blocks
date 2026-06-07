@@ -1,4 +1,4 @@
-// src/components/blocks/grading/RulesGrader/RulesGrader.ts
+// packages/shared/components/blocks/grading/RulesGrader/RulesGrader.ts
 //
 // RulesGrader - Grader that evaluates Match rules top-to-bottom.
 //

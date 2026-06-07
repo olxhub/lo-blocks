@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/components/blocks/Chat/chatUtils.test.ts
+// packages/shared/components/blocks/scenario/Chat/chatUtils.test.ts
 
 import { describe, it, expect } from 'vitest';
 import { clip, section, byId, listSections, listIds } from './chatUtils';

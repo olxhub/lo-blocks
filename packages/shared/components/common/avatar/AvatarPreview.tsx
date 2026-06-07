@@ -1,4 +1,4 @@
-// components/common/AvatarPreview.tsx
+// packages/shared/components/common/avatar/AvatarPreview.tsx
 //
 // Small avatar thumbnail button that shows the current avatar state
 // (illustrated / image / emoji). Used in headers and member lists.

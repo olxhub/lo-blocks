@@ -1,4 +1,4 @@
-// src/components/blocks/_LineInput.jsx
+// packages/shared/components/blocks/input/_LineInput.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

@@ -1,4 +1,4 @@
-// src/lib/grading/index.ts
+// packages/shared/lib/grading/index.ts
 //
 // Grading subsystem - aggregation, scoring, and progress tracking.
 //

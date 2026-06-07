@@ -1,4 +1,4 @@
-// src/lib/lofs/fileTypes.ts
+// packages/shared/lib/lofs/fileTypes.ts
 //
 // File type constants - enum definitions for Learning Observer content formats.
 //

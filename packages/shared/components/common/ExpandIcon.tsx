@@ -1,4 +1,4 @@
-// src/components/common/ExpandIcon.tsx
+// packages/shared/components/common/ExpandIcon.tsx
 //
 // RTL-aware expand/collapse indicator.
 // Renders a triangle pointing inline-end when collapsed, down when expanded.

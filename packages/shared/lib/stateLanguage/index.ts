@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/index.ts
+// packages/shared/lib/stateLanguage/index.ts
 //
 // Public API for the state language module.
 //

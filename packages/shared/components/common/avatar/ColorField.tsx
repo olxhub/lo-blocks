@@ -1,4 +1,4 @@
-// components/common/ColorField.tsx
+// packages/shared/components/common/avatar/ColorField.tsx
 //
 // Color swatch grid with hex input, used by avatar pickers.
 // Renders a row of preset color buttons + a hex text input.

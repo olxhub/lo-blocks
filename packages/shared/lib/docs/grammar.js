@@ -1,4 +1,4 @@
-// src/lib/docs/grammar.js
+// packages/shared/lib/docs/grammar.js
 //
 // Grammar documentation: metadata, examples, READMEs.
 // Used by API routes and directly by tools/LLMs.

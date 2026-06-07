@@ -1,4 +1,4 @@
-// src/app/studio/panels/SearchPanel.tsx
+// apps/web/app/studio/panels/SearchPanel.tsx
 'use client';
 
 import { useState } from 'react';

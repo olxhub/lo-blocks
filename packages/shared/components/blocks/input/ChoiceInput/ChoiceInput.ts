@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/ChoiceInput.ts
+// packages/shared/components/blocks/input/ChoiceInput/ChoiceInput.ts
 //
 // Single-select (radio button) input. Value is stored as a string.
 // For multi-select (checkboxes), use CheckboxInput instead.

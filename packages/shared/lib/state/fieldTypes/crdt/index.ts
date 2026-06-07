@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/index.ts
+// packages/shared/lib/state/fieldTypes/crdt/index.ts
 //
 // CRDT field types — LWW/RGA conflict resolution, delta encoding, field-level reducers.
 //

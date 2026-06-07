@@ -1,4 +1,4 @@
-// src/components/common/PEGPreviewPane.tsx
+// packages/shared/components/common/PEGPreviewPane.tsx
 // Preview pane for PEG content files (.chatpeg, .sortpeg, etc.)
 'use client';
 

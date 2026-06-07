@@ -1,4 +1,4 @@
-// lib/grading/numerical.ts — Thin glue: maps grader framework ↔ calc/ for numerical grading.
+// packages/shared/lib/grading/numerical.ts — Thin glue: maps grader framework ↔ calc/ for numerical grading.
 //
 // Match functions are pure predicates: (input, answer, options?) → boolean.
 // Validators compose general-purpose calc/ validators into the shapes

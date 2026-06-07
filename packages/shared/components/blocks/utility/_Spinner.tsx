@@ -1,4 +1,4 @@
-// src/components/blocks/_Spinner.jsx
+// packages/shared/components/blocks/utility/_Spinner.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';

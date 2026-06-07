@@ -1,4 +1,4 @@
-// src/app/graph/[ns]/[id]/page.tsx
+// apps/web/app/graph/[ns]/[id]/page.tsx
 //
 // Server component wrapper. Renders the client-side GraphPage component.
 //

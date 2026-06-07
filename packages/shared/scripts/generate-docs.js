@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// src/scripts/generate-docs.js
+// packages/shared/scripts/generate-docs.js
 import fs from 'fs';
 import path from 'path';
 import stringify from 'json-stable-stringify';

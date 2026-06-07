@@ -1,4 +1,4 @@
-// src/components/blocks/display/DemandHints/Hint.js
+// packages/shared/components/blocks/display/DemandHints/Hint.ts
 //
 // Individual hint content - used inside DemandHints.
 //

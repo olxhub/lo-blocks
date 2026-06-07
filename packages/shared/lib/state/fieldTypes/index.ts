@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/index.ts
+// packages/shared/lib/state/fieldTypes/index.ts
 //
 // Switch between classic (main-branch) and CRDT field implementations.
 //

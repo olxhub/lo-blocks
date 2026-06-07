@@ -1,4 +1,4 @@
-// src/components/blocks/UseDynamic.js
+// packages/shared/components/blocks/reference/UseDynamic.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';

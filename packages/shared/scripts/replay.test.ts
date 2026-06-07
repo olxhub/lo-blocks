@@ -1,4 +1,4 @@
-// src/scripts/replay.test.ts
+// packages/shared/scripts/replay.test.ts
 //
 // Tests for event replay functionality.
 //

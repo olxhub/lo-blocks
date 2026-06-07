@@ -1,4 +1,4 @@
-// components/common/OpenPeepsSelector.tsx
+// packages/shared/components/common/avatar/OpenPeepsSelector.tsx
 //
 // Tabbed DiceBear Open Peeps avatar picker.
 // Renders a preview + seed input on the left, tabbed option grid on the right.

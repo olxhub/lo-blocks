@@ -1,4 +1,4 @@
-// src/lib/state/index.ts
+// packages/shared/lib/state/index.ts
 //
 // Learning Observer state management - unified exports for Redux-based state system.
 //

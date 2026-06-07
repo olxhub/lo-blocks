@@ -1,4 +1,4 @@
-// src/components/blocks/grading/DefaultGrader.ts
+// packages/shared/components/blocks/grading/DefaultGrader.ts
 //
 // Catch-all grader that accepts any answer with specified score/feedback.
 //

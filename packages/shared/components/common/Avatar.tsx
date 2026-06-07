@@ -1,4 +1,4 @@
-// src/components/common/Avatar.tsx
+// packages/shared/components/common/Avatar.tsx
 //
 // Shared avatar component used by ChatComponent, TalkBubble, and
 // any future component that needs to display a speaker/participant.

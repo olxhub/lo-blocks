@@ -1,4 +1,4 @@
-// src/components/blocks/UseHistory.js
+// packages/shared/components/blocks/reference/UseHistory/UseHistory.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';

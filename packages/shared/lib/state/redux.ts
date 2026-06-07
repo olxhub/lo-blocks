@@ -1,4 +1,4 @@
-// src/lib/state/redux.ts
+// packages/shared/lib/state/redux.ts
 //
 // Redux integration layer - React hooks and utilities for accessing Learning Observer state.
 //

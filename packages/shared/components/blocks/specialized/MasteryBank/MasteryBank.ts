@@ -1,4 +1,4 @@
-// src/components/blocks/specialized/MasteryBank/MasteryBank.js
+// packages/shared/components/blocks/specialized/MasteryBank/MasteryBank.ts
 //
 // A mastery-based practice block that presents problems from a bank
 // until the student achieves a streak of correct answers.

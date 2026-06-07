@@ -1,4 +1,4 @@
-// src/components/blocks/TextArea.js
+// packages/shared/components/blocks/input/TextArea.ts
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';

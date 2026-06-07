@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/blocks/factory.test.ts
+// packages/shared/lib/blocks/factory.test.ts
 //
 // Tests for the block factory's mixin composition. The factory accepts
 // `parserMixin`, `inputMixin`, and `graderMixin` keys and composes them

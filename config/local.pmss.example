@@ -1,4 +1,4 @@
-/* config/local.pmss
+/* config/local.pmss.example
  *
  * Deploy-specific overrides. Copy to local.pmss and edit.
  * This file is gitignored — safe for secrets and local tweaks.

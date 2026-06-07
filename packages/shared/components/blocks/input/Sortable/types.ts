@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/types.ts
+// packages/shared/components/blocks/input/Sortable/types.ts
 
 /**
  * Core data types for the Sortable system

@@ -1,4 +1,4 @@
-// src/components/blocks/reference/AggregatedInputs.js
+// packages/shared/components/blocks/reference/AggregatedInputs/AggregatedInputs.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';

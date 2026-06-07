@@ -1,4 +1,4 @@
-// src/components/blocks/grading/StringGrader.ts
+// packages/shared/components/blocks/grading/StringGrader.ts
 //
 // Grader for text string answers - supports exact match and regexp.
 //

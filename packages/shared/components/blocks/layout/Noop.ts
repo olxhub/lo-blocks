@@ -1,4 +1,4 @@
-// src/components/blocks/Noop.js
+// packages/shared/components/blocks/layout/Noop.ts
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import _Noop from './_Noop';

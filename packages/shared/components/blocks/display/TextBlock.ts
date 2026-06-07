@@ -1,4 +1,4 @@
-// src/components/blocks/TextBlock.jsx
+// packages/shared/components/blocks/display/TextBlock.ts
 
 import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';

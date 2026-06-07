@@ -1,4 +1,4 @@
-// src/components/common/BlockList.tsx
+// packages/shared/components/common/BlockList.tsx
 //
 // Shared block list component used by /docs page and Studio sidebar.
 // Displays blocks grouped by category with collapsible sections.

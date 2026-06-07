@@ -1,4 +1,4 @@
-// src/app/preview/[id]/page.tsx
+// apps/web/app/preview/[ns]/[id]/page.tsx
 //
 // Server component wrapper. Renders the client-side PreviewPage component.
 //

@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/gradingUtils.js
+// packages/shared/components/blocks/input/Sortable/gradingUtils.ts
 
 /**
  * Grade a sortable arrangement

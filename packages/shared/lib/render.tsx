@@ -1,4 +1,4 @@
-// src/lib/render.tsx
+// packages/shared/lib/render.tsx
 //
 // Rendering engine - transforms static OLX structure into dynamic rendered tree.
 //

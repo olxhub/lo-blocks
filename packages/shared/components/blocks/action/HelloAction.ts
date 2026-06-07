@@ -1,4 +1,4 @@
-// src/components/blocks/HelloAction.js
+// packages/shared/components/blocks/action/HelloAction.ts
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import _Noop from '@/components/blocks/layout/_Noop';

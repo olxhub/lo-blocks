@@ -1,4 +1,4 @@
-// src/components/blocks/specialized/Chat/waitConditions.ts
+// packages/shared/components/blocks/scenario/Chat/waitConditions.ts
 //
 // Wait condition evaluation using the state language.
 

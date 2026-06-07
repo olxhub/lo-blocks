@@ -1,4 +1,4 @@
-// src/components/blocks/ErrorNode/ErrorNode.js
+// packages/shared/components/blocks/utility/ErrorNode/ErrorNode.ts
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { _ErrorNode } from './_ErrorNode';

@@ -1,4 +1,4 @@
-// src/components/blocks/specialized/TeamDirectory/_TeamDirectory.jsx
+// packages/shared/components/blocks/scenario/TeamDirectory/_TeamDirectory.jsx
 'use client';
 
 import React from 'react';

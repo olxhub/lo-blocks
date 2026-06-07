@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/cast.test.ts
+// packages/shared/lib/avatar/cast.test.ts
 //
 // Literate tests for the cast-of-characters library.
 //

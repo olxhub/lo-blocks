@@ -1,4 +1,4 @@
-// src/components/blocks/authoring/CodeInput/_CodeInput.tsx
+// packages/shared/components/blocks/authoring/CodeInput/_CodeInput.tsx
 //
 // EXPERIMENTAL / PROTOTYPE
 //

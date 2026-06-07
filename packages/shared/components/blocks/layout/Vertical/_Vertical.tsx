@@ -1,4 +1,4 @@
-// src/components/blocks/Vertical/_Vertical.jsx
+// packages/shared/components/blocks/layout/Vertical/_Vertical.tsx
 import React from 'react';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';

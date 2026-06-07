@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/Key.js
+// packages/shared/components/blocks/input/ChoiceInput/Key.ts
 //
 // Correct answer option inside ChoiceInput.
 //

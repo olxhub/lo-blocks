@@ -1,4 +1,4 @@
-// src/lib/render.test.js
+// packages/shared/lib/render.test.ts
 //
 // Unit tests for render utilities. Integration tests for rendering
 // are in demo-render.test.js which tests all .olx files.

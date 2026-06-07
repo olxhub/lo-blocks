@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/SortableGrader.js
+// packages/shared/components/blocks/input/Sortable/SortableGrader.ts
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';

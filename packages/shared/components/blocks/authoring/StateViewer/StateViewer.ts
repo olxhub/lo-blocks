@@ -1,4 +1,4 @@
-// src/components/blocks/reference/StateViewer/StateViewer.js
+// packages/shared/components/blocks/authoring/StateViewer/StateViewer.ts
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';

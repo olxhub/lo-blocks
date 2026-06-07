@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/keywords.ts
+// packages/shared/lib/stateLanguage/keywords.ts
 //
 // Reserved keyword registry for the expression language.
 //

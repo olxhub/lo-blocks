@@ -1,4 +1,4 @@
-// src/components/blocks/SplitPanel/SplitPanel.jsx
+// packages/shared/components/blocks/layout/SplitPanel/SplitPanel.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';

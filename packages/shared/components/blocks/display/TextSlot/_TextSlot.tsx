@@ -1,4 +1,4 @@
-// src/components/blocks/display/TextSlot/_TextSlot.jsx
+// packages/shared/components/blocks/display/TextSlot/_TextSlot.tsx
 //
 // A slot that receives text from other blocks (e.g., LLMAction).
 // Minimal display - just a span.

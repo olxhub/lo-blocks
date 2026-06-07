@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/components/blocks/TextSelection/textSelection.test.ts
+// packages/shared/components/blocks/language-arts/TextSelection/textSelection.test.ts
 import { test, expect } from 'vitest';
 import { parseTextSelection } from './textSelectionUtils';
 

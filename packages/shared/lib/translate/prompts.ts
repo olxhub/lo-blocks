@@ -1,4 +1,4 @@
-// src/lib/translate/prompts.ts
+// packages/shared/lib/translate/prompts.ts
 //
 // File-type-specific translation prompts for LLM translation.
 

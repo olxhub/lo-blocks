@@ -1,4 +1,4 @@
-// src/components/blocks/grading/Rule.ts
+// packages/shared/components/blocks/grading/Rule.ts
 //
 // Rule block for RulesGrader - evaluates DSL expressions for matching.
 //

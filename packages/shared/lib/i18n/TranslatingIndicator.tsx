@@ -1,4 +1,4 @@
-// src/lib/i18n/TranslatingIndicator.tsx
+// packages/shared/lib/i18n/TranslatingIndicator.tsx
 //
 // Visual indicator wrapping block content during translation.
 //

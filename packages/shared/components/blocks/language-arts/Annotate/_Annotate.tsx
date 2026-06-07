@@ -1,4 +1,4 @@
-// Annotate/_Annotate.tsx
+// packages/shared/components/blocks/language-arts/Annotate/_Annotate.tsx
 //
 // Text annotation component — students select text from a passage, creating
 // highlighted quotes with a note-taking sidebar.
