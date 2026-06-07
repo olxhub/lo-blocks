@@ -1,5 +1,4 @@
 // src/components/blocks/_UseDynamic.tsx
-import React from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';
 import type { RuntimeProps, StateRef } from '@/lib/types';

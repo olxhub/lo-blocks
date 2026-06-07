@@ -1,4 +1,3 @@
-import React from 'react';
 import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react';
 
@@ -9,7 +8,7 @@ import { useFieldState, useAggregate, updateField } from './redux';
 import { scopes } from './scopes';
 import { store } from './store';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
+import { testKey, mockRuntime } from '@/lib/test-utils';
 
 const testFields = fields(['input']);
 const settingFields = fields([{ name: 'speed', event: 'SET_SPEED', scope: scopes.componentSetting }]);

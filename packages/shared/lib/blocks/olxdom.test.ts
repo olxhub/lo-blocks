@@ -1,6 +1,6 @@
 // src/lib/blocks/olxdom.test.js
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
-import { TEST_NS, testKey, mockRuntime as createMockRuntime } from '../test-utils';
+import { testKey, mockRuntime as createMockRuntime } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;
 

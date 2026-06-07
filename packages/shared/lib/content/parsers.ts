@@ -22,7 +22,7 @@
 import { z } from 'zod';
 import yaml from 'js-yaml';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey, LofsDependencies } from '@/lib/types';
+import type { OLXLoadingError, DefinitionKey, RuntimeProps, StateKey, LofsDependencies } from '@/lib/types';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';

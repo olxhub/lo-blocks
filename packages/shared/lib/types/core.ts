@@ -150,12 +150,7 @@ export type {
 } from './id-grammar';
 
 // Local imports for use within this file.
-import type {
-  DefinitionRef, DefinitionKey,
-  StateRef, StateKey,
-  IdPrefix, ScopeMarker,
-  ReactKey, HtmlId, OLXTag,
-} from './id-grammar';
+import type { DefinitionRef, DefinitionKey, StateKey, IdPrefix, OLXTag } from './id-grammar';
 import { asOLXTag } from './id-grammar';
 
 // Zod schemas re-exported for use by MCP tools and other schema consumers.

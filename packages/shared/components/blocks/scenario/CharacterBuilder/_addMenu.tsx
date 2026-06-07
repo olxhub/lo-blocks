@@ -4,7 +4,6 @@
 // stats preset selection.
 'use client';
 
-import React from 'react';
 import { Plus } from 'lucide-react';
 import type { Dimension, DimensionCategory, StatPreset } from '@/lib/avatar/traits';
 

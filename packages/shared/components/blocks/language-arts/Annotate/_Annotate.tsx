@@ -19,7 +19,7 @@
 //
 'use client';
 
-import type { RuntimeProps, DefinitionRef } from '@/lib/types';
+import type { RuntimeProps } from '@/lib/types';
 
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';

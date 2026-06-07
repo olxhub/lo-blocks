@@ -9,12 +9,8 @@ import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { parseXmlFragment } from '@/lib/content/parseOLX';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
-import { advanceFrom } from '@/lib/advance';
-import {
-  selectReferences, createContext, extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  parse as parseExpr, evaluate,
-} from '@/lib/stateLanguage';
-import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
+import { selectReferences, createContext, extractStructuredRefs, mergeReferences, EMPTY_REFS } from '@/lib/stateLanguage';
+import type { ConversationEntry, ParsedConversation } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';

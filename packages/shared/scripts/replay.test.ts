@@ -6,7 +6,7 @@
 // and reconstruct state correctly - the foundation for analytics,
 // debugging, and test infrastructure.
 //
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 

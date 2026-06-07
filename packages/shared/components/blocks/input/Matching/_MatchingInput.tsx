@@ -6,7 +6,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
-import { definitionKeyForRef, extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';

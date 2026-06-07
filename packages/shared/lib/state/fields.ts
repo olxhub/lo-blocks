@@ -19,8 +19,8 @@
 // storage types (plain string vs RgaDoc). The global registry is for convenience
 // lookups only (fieldByName), not for enforcement.
 //
-import { Scope, scopes } from '../state/scopes';
-import { Fields, FieldInfoByEvent, FieldInfo, FieldName, FieldEvent } from '../types';
+import { Scope } from '../state/scopes';
+import { Fields, FieldInfoByEvent, FieldInfo, FieldEvent } from '../types';
 import { commonFields } from './commonFields';
 import { stateField, fieldNameToDefaultEventName } from './fieldTypes';
 import { assertNotReserved } from '../stateLanguage/keywords';

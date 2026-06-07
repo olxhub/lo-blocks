@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import NextImage from 'next/image';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 

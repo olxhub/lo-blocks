@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import { useBlock } from '@/lib/render';
 
 function ReadingContent({ props, blockId }) {

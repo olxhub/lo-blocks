@@ -14,9 +14,8 @@
  * - getSetting(props: SettingsProps, key, attrs?) - Direct access for non-React code
  */
 
-import { useSelector } from 'react-redux';
 import type { Store } from 'redux';
-import type { RuntimeProps, BaselineProps, FieldInfo } from '@/lib/types';
+import type { BaselineProps, FieldInfo } from '@/lib/types';
 import { useFieldState } from './redux';
 
 /**

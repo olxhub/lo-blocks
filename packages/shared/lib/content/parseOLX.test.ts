@@ -1,10 +1,10 @@
 // @vitest-environment node
 // src/lib/content/parseOLX.test.js
 import { parseOLX } from './parseOLX';
-import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
+import type { IdMap, OlxJson, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 import { TEST_NS, testKey } from '../test-utils';
-import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, PLACEHOLDER_NS, joinNs } from '../types/id-grammar';
+import { qualifyDefinitionRef, parseDefinitionRef, PLACEHOLDER_NS } from '../types/id-grammar';
 
 const PROV = [toMemoryRef('test.xml')];
 

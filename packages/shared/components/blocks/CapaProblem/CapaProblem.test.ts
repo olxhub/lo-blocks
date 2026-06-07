@@ -5,8 +5,7 @@
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { getOlxJson, TEST_NS, testKey } from '@/lib/test-utils';
-import { asDefinitionKey } from '@/lib/types/id-grammar';
+import { getOlxJson, testKey } from '@/lib/test-utils';
 
 it('wires inputs and graders with explicit targeting', async () => {
   const { idMap } = await syncContentFromStorage(new FileStorageProvider('packages/shared/components/blocks/CapaProblem'));

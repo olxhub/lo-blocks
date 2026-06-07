@@ -1,6 +1,6 @@
 // src/components/common/Spinner.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 // Spinner styles live in primitives/spinner.css, loaded globally via globals.css.
 // The block wrapper (blocks/utility/_Spinner.tsx) imports CssSpinner from here.

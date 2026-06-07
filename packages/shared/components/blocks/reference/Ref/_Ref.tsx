@@ -2,7 +2,6 @@
 import type { RuntimeProps } from '@/lib/types';
 
 // src/components/blocks/_Ref.tsx
-import React from 'react';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';

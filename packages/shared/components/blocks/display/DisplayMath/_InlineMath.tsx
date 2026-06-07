@@ -1,5 +1,4 @@
 'use client';
-import React from 'react';
 import katex from 'katex';
 import type { RuntimeProps } from '@/lib/types';
 if (typeof window !== 'undefined') {

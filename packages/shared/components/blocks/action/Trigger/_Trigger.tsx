@@ -7,7 +7,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { useReferences } from '@/lib/stateLanguage/hooks';
 import { extractStructuredRefs } from '@/lib/stateLanguage/references';

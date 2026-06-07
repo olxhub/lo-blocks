@@ -10,7 +10,6 @@
 //
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React from 'react';
 import { renderBlock } from '@/lib/render';
 import {
   getButtonLabel,

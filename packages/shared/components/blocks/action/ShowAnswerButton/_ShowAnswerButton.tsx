@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';

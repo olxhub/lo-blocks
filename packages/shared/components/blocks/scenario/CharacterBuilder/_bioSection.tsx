@@ -3,7 +3,6 @@
 // Freeform bio card editor — custom question + freeform text response.
 'use client';
 
-import React from 'react';
 import { useInputField } from '@/lib/state';
 import { scopedCardProps } from './_helpers';
 import { fields } from './CharacterBuilder';

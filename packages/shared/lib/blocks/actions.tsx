@@ -22,15 +22,13 @@
 //
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
-import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector } from '@/lib/state/redux';
 import { isZodCompatible, describeZodType } from './zodCompat';
 import { inputAttributes, graderAttributes } from './attributeSchemas';
-import type { RuntimeProps, DefinitionKey, DefinitionRef, StateKey, LoBlock, ValueSelectorFn } from '@/lib/types';
-import type { Store } from 'redux';
+import type { RuntimeProps, StateKey, LoBlock, ValueSelectorFn } from '@/lib/types';
 
 // Grader parameter types - each grader receives exactly one of these
 export type SingleParam = { input: unknown; inputApi: object };

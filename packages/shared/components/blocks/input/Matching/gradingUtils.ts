@@ -3,7 +3,7 @@
  */
 
 import { correctness } from '@/lib/blocks/correctness';
-import type { MatchingArrangement, MatchingGradingResult } from './types';
+import type { MatchingArrangement } from './types';
 
 /**
  * Grade a matching arrangement

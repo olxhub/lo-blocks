@@ -17,7 +17,7 @@
 //
 'use client';
 
-import React, { useState, useId } from 'react';
+import { useState, useId } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import { parseStateKey } from '@/lib/types/id-grammar';
 

@@ -1,6 +1,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import mermaid from 'mermaid';
 import { useFieldState, useTextContent } from '@/lib/state/redux';
 import { DisplayError } from '@/lib/util/debug';

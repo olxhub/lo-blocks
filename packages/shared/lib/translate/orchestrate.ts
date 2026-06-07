@@ -11,13 +11,7 @@
 // migration).
 
 import path from 'path';
-import {
-  syncContentFromStorage,
-  getSourceFile,
-  getBlocksForFiles,
-  getBlockVariant,
-  getOriginalVariant,
-} from '@/lib/content/syncContentFromStorage';
+import { syncContentFromStorage, getBlocksForFiles, getBlockVariant, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { translateContent } from '@/lib/translate';
 import type { StorageProvider } from '@/lib/types/storage';
 import type {

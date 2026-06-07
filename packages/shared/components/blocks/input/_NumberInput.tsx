@@ -1,7 +1,6 @@
 // src/components/blocks/_NumberInput.jsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React from 'react';
 import { useReduxInput } from '@/lib/state';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 

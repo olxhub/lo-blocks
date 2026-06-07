@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import Split from 'react-split';
 import { useKids } from '@/lib/render';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';

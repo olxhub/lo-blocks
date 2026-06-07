@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 
 import { useFieldSelector } from '@/lib/state';

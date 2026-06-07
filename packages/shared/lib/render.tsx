@@ -28,7 +28,6 @@ import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { getGrader, getEventContext } from '@/lib/blocks/olxdom';
 import { definitionKeyForRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
-import type { Store } from 'redux';
 
 /**
  * Assigns unique React keys to an array of children.

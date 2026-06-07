@@ -7,7 +7,6 @@
  * nothing appears on screen.
  */
 
-import React from 'react';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
 

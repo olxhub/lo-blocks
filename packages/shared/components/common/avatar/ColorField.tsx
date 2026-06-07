@@ -4,7 +4,6 @@
 // Renders a row of preset color buttons + a hex text input.
 'use client';
 
-import React from 'react';
 import { useInputField, updateField } from '@/lib/state';
 import { isValidHexInput } from '@/lib/avatar/types';
 import type { RuntimeProps, FieldInfo } from '@/lib/types';

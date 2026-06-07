@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { useOlxJson } from '@/lib/blocks/useOlxJson';

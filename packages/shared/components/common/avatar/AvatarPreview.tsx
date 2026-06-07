@@ -4,7 +4,7 @@
 // (illustrated / image / emoji). Used in headers and member lists.
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { User } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
 import { renderAvatar } from '@/lib/avatar/render';

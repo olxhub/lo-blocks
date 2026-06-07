@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
 import { stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByStateKey } from '@/lib/state';

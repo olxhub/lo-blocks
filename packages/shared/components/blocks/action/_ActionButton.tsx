@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 import {

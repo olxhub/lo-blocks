@@ -10,7 +10,6 @@
 //                 with filtering, pagination, and selectable detail.
 
 import fs from 'fs/promises';
-import path from 'path';
 import { z } from 'zod';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractAttributes, AttributeDocSchema } from '@/lib/docs/schemaUtils';

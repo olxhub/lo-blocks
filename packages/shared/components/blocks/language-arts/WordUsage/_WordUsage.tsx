@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useValue } from '@/lib/state';
 import type { RuntimeProps } from '@/lib/types';
 import { DisplayError } from '@/lib/util/debug';

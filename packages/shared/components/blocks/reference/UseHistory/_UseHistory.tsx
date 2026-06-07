@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';
 import type { StateRef } from '@/lib/types';

@@ -5,7 +5,6 @@
 // In RTL mode, the collapsed arrow points left instead of right.
 'use client';
 
-import React from 'react';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 
 interface ExpandIconProps {

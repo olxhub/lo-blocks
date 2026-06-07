@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';

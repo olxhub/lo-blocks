@@ -4,7 +4,7 @@
 // and currency formatting.
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Dices } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
 import { scopedCardProps, resolveUnit, convertUnit, ALL_CURRENCIES } from './_helpers';

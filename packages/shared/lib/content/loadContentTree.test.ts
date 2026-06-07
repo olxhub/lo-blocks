@@ -6,8 +6,7 @@ import path from 'path';
 import { fileTypes } from '../lofs';
 import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
-import { getOlxJson, TEST_NS, testKey } from '../test-utils';
-import { asDefinitionKey } from '../types/id-grammar';
+import { getOlxJson, testKey } from '../test-utils';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));

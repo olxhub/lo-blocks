@@ -9,7 +9,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import * as state from '@/lib/state';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';

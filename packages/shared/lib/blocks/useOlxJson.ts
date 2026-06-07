@@ -22,8 +22,7 @@ import {
 import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
-import type { LogEventFn } from '@/lib/render';
+import type { OlxJson, DefinitionKey, DefinitionRef, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 
 export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };

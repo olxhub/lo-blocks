@@ -25,7 +25,6 @@ import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { appendEvent } from './eventLog.js';
 import type { KVStore } from './kvs.js';
-import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
 
