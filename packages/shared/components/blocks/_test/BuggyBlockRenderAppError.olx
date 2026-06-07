@@ -1,0 +1,5 @@
+<!-- Render-time failure that throws an AppError-shaped object (not a native
+     Error): has a message but no native stack. Exercises toAppError's
+     object/pass-through branch. -->
+<BuggyBlock id="BuggyBlockRenderAppError" throws="render" kind="apperror"
+            message="BuggyBlock: deliberate render-time failure (AppError-shaped)"/>

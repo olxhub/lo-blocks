@@ -1,0 +1,4 @@
+<!-- Parse-time failure via a raw TypeError (calling an undefined member) inside
+     the parser — the "something random blew up while parsing" case. Downgraded
+     to a recoverable ErrorNode (the file still parses). -->
+<BuggyBlock id="BuggyBlockParseUndefined" throws="parse" kind="undefined"/>

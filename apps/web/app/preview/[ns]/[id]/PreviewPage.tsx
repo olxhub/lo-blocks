@@ -6,7 +6,7 @@ import StatusBar from '@/components/common/StatusBar';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useFieldState, system, commonFields, useLoaded } from '@/lib/state';
+import { useFieldState, system, useLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { parseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
@@ -30,12 +30,8 @@ export default function PreviewPage() {
   // Currently only loads the leaf — works for top-level renders but breaks for
   // scoped state keys.
   const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(stateKey));
-  const [renderError, setRenderError] = useFieldState(
-    null,
-    commonFields.renderError,
-    null,
-    { stateKey }
-  );
+  // Render errors are owned by RenderOLX's ErrorBoundary (displayed there and
+  // recorded as a derived-key ErrorNode event) — no gate/field needed here.
   const localeAttrs = useLocaleAttributes();
 
   if (error) {
@@ -81,22 +77,11 @@ export default function PreviewPage() {
       <StatusBar />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
-          {renderError ? (
-            <DisplayError
-              props={{ id: stateKey, tag: 'preview' }}
-              title="Render Error"
-              message={`Failed to render content: ${stateKey}`}
-              technical={renderError}
-              id={`${stateKey}_render_error`}
-            />
-          ) : (
-            <RenderOLX
-              id={stateKey}
-              baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
-              eventContext="preview"
-              onError={(err) => setRenderError(err.message)}
-            />
-          )}
+          <RenderOLX
+            id={stateKey}
+            baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
+            eventContext="preview"
+          />
         </div>
 
         {debug && (

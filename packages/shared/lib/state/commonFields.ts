@@ -51,9 +51,6 @@ export const commonFields = {
 
   /** Popout expanded state - tracks whether a block's popout overlay is open */
   popoutExpanded: stateField('popoutExpanded'),
-
-  /** Render error - captures component render failures for display and debug visibility. */
-  renderError: stateField('renderError'),
 } as const;
 
 // Named exports for convenient destructuring

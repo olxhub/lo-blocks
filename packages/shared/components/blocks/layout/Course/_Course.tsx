@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useBlock } from '@/lib/render';
+import { useBlock, useKidsJson } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
@@ -16,19 +16,27 @@ function CourseContent({ props, selectedChild }) {
   return <>{block}</>;
 }
 
-// Compute the first selectable ID from sections
-function firstSelectableId(sections: any[]): string | null {
+// Compute the first selectable (and currently-visible) ID from sections
+function firstSelectableId(sections: any[], isVisible: (id: string) => boolean): string | null {
   for (const section of sections) {
-    if (section.type === 'block' && section.id) return section.id;
-    if (section.type === 'chapter' && section.children?.[0]?.id) return section.children[0].id;
+    if (section.type === 'block' && section.id && isVisible(section.id)) return section.id;
+    if (section.type === 'chapter') {
+      const child = (section.children || []).find((c: any) => c.id && isVisible(c.id));
+      if (child) return child.id;
+    }
   }
   return null;
 }
 
-// Find the first chapter ID
-function firstChapterId(sections: any[]): string | null {
+// Find the first chapter that has a currently-visible child, so the default
+// expanded chapter isn't one whose children are all hidden by when= (which
+// would render nothing and force an extra click). Mirrors firstSelectableId.
+function firstChapterId(sections: any[], isVisible: (id: string) => boolean): string | null {
   for (const section of sections) {
-    if (section.type === 'chapter') return section.id;
+    if (section.type === 'chapter'
+        && (section.children || []).some((c: any) => c.id && isVisible(c.id))) {
+      return section.id;
+    }
   }
   return null;
 }
@@ -40,10 +48,30 @@ function _Course(props: RuntimeProps) {
   assertNamedObject(kids, ['sections']);
   const sections = (kids.sections || []) as any[];
 
+  // Honor `when=` on course children, the same way Vertical/Sequential do:
+  // run the flat list of child ids through the shared when= filter (useKidsJson)
+  // and treat only the survivors as visible — both in the nav and as valid
+  // selections. Memoized so the synthetic kid array is stable across renders.
+  const childKids = React.useMemo(() => {
+    const ids: string[] = [];
+    for (const section of sections) {
+      if (section.type === 'chapter') {
+        for (const child of (section.children || [])) if (child.id) ids.push(child.id);
+      } else if (section.id) {
+        ids.push(section.id);
+      }
+    }
+    return ids.map(id => ({ type: 'block', id }));
+  }, [sections]);
+  const visibleIds = new Set<string>(
+    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.id)
+  );
+  const isVisible = (id: string) => visibleIds.has(id);
+
   const [selectedChild, setSelectedChild] = useFieldState(props, fields.selectedChild,
-    firstSelectableId(sections));
+    firstSelectableId(sections, isVisible));
   const [expandedChapter, setExpandedChapter] = useFieldState(props, fields.expandedChapter,
-    firstChapterId(sections));
+    firstChapterId(sections, isVisible));
   const [navCollapsed, setNavCollapsed] = useFieldState(props, fields.navCollapsed, false);
 
   const handleChapterClick = (chapterId) => {
@@ -54,18 +82,12 @@ function _Course(props: RuntimeProps) {
     setSelectedChild(childId);
   };
 
-  // Check if selectedChild is valid (exists in any chapter's children or as a loose block)
-  let hasValidSelection = false;
-  for (const section of sections) {
-    if (section.type === 'block' && section.id === selectedChild) {
-      hasValidSelection = true;
-      break;
-    }
-    if (section.type === 'chapter' && section.children.find(child => child.id === selectedChild)) {
-      hasValidSelection = true;
-      break;
-    }
-  }
+  // Valid only if the selected child exists AND is currently visible (its
+  // when= condition holds). A child hidden by when= falls back to empty state.
+  const hasValidSelection = !!selectedChild && isVisible(selectedChild) && sections.some(section =>
+    (section.type === 'block' && section.id === selectedChild) ||
+    (section.type === 'chapter' && (section.children || []).some((child: any) => child.id === selectedChild))
+  );
 
   return (
     <div className="course-container">
@@ -87,6 +109,10 @@ function _Course(props: RuntimeProps) {
         <div>
           {sections.map((section) => {
             if (section.type === 'chapter') {
+              // Drop children filtered out by when=, and the whole chapter if
+              // none remain visible.
+              const visibleChildren = (section.children || []).filter((child: any) => child.id && isVisible(child.id));
+              if (visibleChildren.length === 0) return null;
               return (
                 <div key={section.id}>
                   {/* Chapter Header */}
@@ -103,7 +129,7 @@ function _Course(props: RuntimeProps) {
                   {/* Chapter Children */}
                   {expandedChapter === section.id && (
                     <div className="course-chapter-children">
-                      {section.children.map((child) => {
+                      {visibleChildren.map((child) => {
                         const childId = child.id;
                         const childEntry = getBlockByOLXId(props, childId);
                         const title = childEntry?.attributes?.title || childEntry?.tag || childId;
@@ -123,8 +149,9 @@ function _Course(props: RuntimeProps) {
               );
             }
 
-            // Loose block at top level
+            // Loose block at top level — hidden when its when= condition fails.
             const blockId = section.id;
+            if (!isVisible(blockId)) return null;
             const blockEntry = getBlockByOLXId(props, blockId);
             const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockId;
             return (

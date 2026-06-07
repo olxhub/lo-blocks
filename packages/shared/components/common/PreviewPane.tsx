@@ -13,6 +13,7 @@ import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/li
 import { NetworkStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
+import type { AppError } from '@/lib/types/errors';
 import { stateKeyFromFilename } from '@/lib/types/id-grammar';
 import { CONTENT_NAMESPACE } from '@/lib/types';
 
@@ -25,8 +26,8 @@ export interface PreviewPaneProps {
   idMap?: IdMap | null;
   /** Provider for resolving src="" references (OLX only) */
   resolveProvider?: StorageProvider;
-  /** Called when parsing/rendering errors occur */
-  onError?: (err: any) => void;
+  /** Called with a canonical AppError when parsing/rendering fails */
+  onError?: (error: AppError) => void;
   /** Called after parsing completes with merged idMap (OLX only) */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Ref to expose the root OlxDomNode for external tree inspection (OLX only) */

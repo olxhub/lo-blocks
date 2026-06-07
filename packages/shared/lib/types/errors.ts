@@ -76,6 +76,41 @@ export const z_appError = z.object({
 
 export type AppError = z.infer<typeof z_appError>;
 
+/**
+ * Convert any thrown value into the canonical {@link AppError}.
+ *
+ * Use this at the ONE boundary where a native Error (or unknown throw) enters
+ * the app. After that, AppError flows by spread — `<DisplayError {...error} />`,
+ * `setRenderError(appError)` — with no per-field copying and no scattered `?.`.
+ *
+ * A native Error's `message`/`stack` are non-enumerable, so a plain `{...err}`
+ * silently loses them; that's exactly the class of bug this avoids by
+ * extracting them explicitly here, in one place.
+ */
+export function toAppError(err: unknown, overrides: Partial<AppError> = {}): AppError {
+  if (err instanceof Error) {
+    return { message: err.message, stack: err.stack, ...overrides };
+  }
+  if (typeof err === 'object' && err !== null) {
+    // Already an AppError-shaped value (e.g. a restored one) — carry it through.
+    // Guarantee a message: a plain object throw (e.g. `{ code: 500 }`) has none,
+    // which violates z_appError and renders a blank DisplayError.
+    const o = err as Partial<AppError>;
+    return { ...(o as AppError), message: o.message ?? safeStringify(err), ...overrides };
+  }
+  return { message: String(err), ...overrides };
+}
+
+/** JSON-stringify a value as a last-resort error message; never throws. */
+function safeStringify(value: unknown): string {
+  try {
+    const s = JSON.stringify(value);
+    return s && s !== '{}' ? s : 'Unknown error';
+  } catch {
+    return 'Unknown error';
+  }
+}
+
 export const z_olxSourceLocation = z.object({
   provenance: z_lofsDependencies.optional(),
   line: z.number().optional(),
