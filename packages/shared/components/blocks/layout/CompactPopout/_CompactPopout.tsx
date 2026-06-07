@@ -24,12 +24,12 @@
 // Defaults to false so standalone usage starts collapsed.
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
 import { useFieldState, updateField } from '@/lib/state';
 import { fieldByName } from '@/lib/state/fields';
-import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps, StateRef } from '@/lib/types';

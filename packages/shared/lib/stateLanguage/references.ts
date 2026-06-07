@@ -7,7 +7,7 @@
 // regex - proper AST traversal.
 
 
-import { parse, tryParse } from './parser';
+import { tryParse } from './parser';
 import type { ASTNode, SigilRef } from './parser';
 
 /**

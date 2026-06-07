@@ -9,7 +9,6 @@
 //   - CastEditor block (per-member avatar editing)
 'use client';
 
-import React from 'react';
 import { useFieldState, useInputField, updateField } from '@/lib/state';
 import OpenPeepsSelector from './OpenPeepsSelector';
 import EmojiSelector from './EmojiSelector';

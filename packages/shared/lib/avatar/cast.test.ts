@@ -18,17 +18,12 @@ import {
   updateCast,
 } from './cast';
 
-import {
-  CastSchema,
-  CastMemberSchema,
-  OpenPeepsSchema,
-} from './types';
+import { CastSchema, OpenPeepsSchema } from './types';
 
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
-import { TEST_NS, testKey } from '@/lib/test-utils';
-import { asDefinitionKey } from '@/lib/types/id-grammar';
+import { testKey } from '@/lib/test-utils';
 
 // =============================================================================
 // parseCastYaml — parse YAML text into a validated Cast object

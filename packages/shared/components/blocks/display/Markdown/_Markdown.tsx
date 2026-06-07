@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import RenderMarkdown, { markdownComponents } from '@/components/common/RenderMarkdown';
 import type { RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';

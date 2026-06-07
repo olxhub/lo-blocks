@@ -12,16 +12,7 @@
 // grammar.
 
 import { describe, it, expect } from 'vitest';
-import {
-  VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
-  isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
-  PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef,
-  definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
-  asIdPrefix, asStateRef, asDefinitionRef, asLeafId,
-  parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
-  parseAnyDefinitionRef, parseAnyStateRef,
-  validateAnyDefinitionRef, validateAnyStateRef,
-} from './id-grammar';
+import { VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId, isNamespaceQualified, isSourceQualifiedRef, defaultNamespace, PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef, definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey, asIdPrefix, asStateRef, asDefinitionRef, parseLeafId, parseStateKey, joinDefinitionRef, parseAnyDefinitionRef, parseAnyStateRef, validateAnyDefinitionRef, validateAnyStateRef } from './id-grammar';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // leafId — A single block or component identifier

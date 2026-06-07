@@ -1,7 +1,7 @@
 // src/app/graph/[ns]/[id]/GraphPage.tsx
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
@@ -19,7 +19,6 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import dagre from 'dagre';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { GraphNode, GraphEdge, ParseError } from '@/lib/types';
 

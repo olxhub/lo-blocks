@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { parse, parseResult } from './parser';
+import { parseResult } from './parser';
 import { extractReferences } from './references';
 
 interface DocTest {

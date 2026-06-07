@@ -5,7 +5,7 @@
 // Used by AvatarEditor (standalone) and AvatarBuilder (inside CharacterBuilder).
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useFieldState, updateField } from '@/lib/state';
 import {
   renderAvatar, CATEGORIES, TABS,

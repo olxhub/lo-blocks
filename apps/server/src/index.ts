@@ -7,7 +7,7 @@
 import fs from 'fs';
 import { loadServerConfig, getConfig } from '@/lib/config';
 import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
-import { startServer, type ServerHandle } from './server.js';
+import { startServer } from './server.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';

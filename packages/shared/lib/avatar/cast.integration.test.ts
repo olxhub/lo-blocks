@@ -14,8 +14,7 @@ import { describe, test, expect, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
-import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
-import { asDefinitionKey } from '@/lib/types/id-grammar';
+import { testKey, mockRuntime } from '@/lib/test-utils';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';

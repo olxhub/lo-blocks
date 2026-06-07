@@ -35,7 +35,7 @@ function createArrayLogger() {
   return logEvent;
 }
 import { websocketLogger } from 'lo_event/websocket';
-import { scopes, Scope } from './scopes';
+import { scopes } from './scopes';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields } from '../types';
 import {

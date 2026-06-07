@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/scenario/Chat/_Chat.tsx
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useFieldState, settings } from '@/lib/state';
 import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';

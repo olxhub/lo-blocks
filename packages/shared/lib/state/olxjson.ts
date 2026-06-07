@@ -16,7 +16,6 @@
 'use client';
 
 import { useSelector } from 'react-redux';
-import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, IdMap, UserLocale, VariantMap } from '../types';
 import type { LogEventFn } from '../render';

@@ -12,7 +12,7 @@
 // component resolves all its state from props.idPrefix.
 'use client';
 
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import yaml from 'js-yaml';
 import { Plus, X } from 'lucide-react';

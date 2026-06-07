@@ -1,6 +1,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
 import { useTextContent } from '@/lib/state/redux';

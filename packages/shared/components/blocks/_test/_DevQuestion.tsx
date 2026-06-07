@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 // DebugWrapper handles debug output
 
 import { useFieldState } from '@/lib/state';

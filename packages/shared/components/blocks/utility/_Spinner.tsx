@@ -1,7 +1,6 @@
 // src/components/blocks/_Spinner.jsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React from 'react';
 import { CssSpinner } from '@/components/common/Spinner';
 
 /**

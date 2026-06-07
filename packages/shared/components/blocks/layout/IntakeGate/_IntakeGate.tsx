@@ -13,7 +13,6 @@
 'use client';
 import type { RuntimeProps, StateRef } from '@/lib/types';
 
-import React from 'react';
 import { assertKidArray } from '@/lib/util/kids';
 import { useKids } from '@/lib/render';
 import { parse, useDSLExpression } from '@/lib/stateLanguage';

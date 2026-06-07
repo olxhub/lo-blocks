@@ -10,7 +10,6 @@
  * - Raising exceptions if passed children / unexpected attributes?
  */
 
-import React from 'react';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
 

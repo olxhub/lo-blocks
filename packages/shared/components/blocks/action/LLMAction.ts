@@ -1,6 +1,5 @@
 // src/components/blocks/LLMAction.js
 import { z } from 'zod';
-import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';

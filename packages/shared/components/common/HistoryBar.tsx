@@ -1,7 +1,6 @@
 // src/components/common/HistoryBar.jsx
 'use client';
 
-import React from 'react';
 import NavArrow from '@/components/common/NavArrow';
 
 export default function HistoryBar({

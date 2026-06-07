@@ -1,6 +1,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import * as Plot from '@observablehq/plot';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';

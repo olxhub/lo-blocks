@@ -1,7 +1,6 @@
 'use client';
 import type { RuntimeProps, StateRef } from '@/lib/types';
 
-import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { useKids, useKidsJson } from '@/lib/render';

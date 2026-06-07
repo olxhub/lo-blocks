@@ -8,7 +8,7 @@ import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef }
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
 import _Ref from './_Ref';
-import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/lib/types';
+import type { RuntimeProps, StateKey, BlockDataResult } from '@/lib/types';
 
 /**
  * Convert any value to a string representation for display.

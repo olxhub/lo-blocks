@@ -1,7 +1,6 @@
 // src/components/blocks/display/Explanation/_Explanation.jsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { correctness, computeVisibility } from '@/lib/blocks';

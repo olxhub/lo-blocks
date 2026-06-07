@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { getAllNodes } from '@/lib/blocks/olxdom';

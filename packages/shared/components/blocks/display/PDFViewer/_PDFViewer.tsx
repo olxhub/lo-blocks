@@ -5,7 +5,6 @@
 
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React from 'react';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
 function _PDFViewer(props: RuntimeProps) {

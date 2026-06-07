@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import katex from 'katex';
 import { useReduxInput } from '@/lib/state';
 import { useKids } from '@/lib/render';

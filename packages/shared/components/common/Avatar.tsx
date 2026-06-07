@@ -12,12 +12,12 @@
 //
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import * as openPeeps from '@dicebear/open-peeps';
 import { resolveContentPath } from '@/lib/content/contentPaths';
 import { toDiceBear } from '@/lib/avatar/render';
-import type { OpenPeeps, AvatarStyleValue } from '@/lib/avatar/types';
+import type { OpenPeeps } from '@/lib/avatar/types';
 
 interface AvatarProps {
   name?: string;

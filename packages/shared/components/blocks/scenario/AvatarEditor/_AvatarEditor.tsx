@@ -8,7 +8,6 @@
 // components/common/AvatarBuilder.tsx.
 'use client';
 
-import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useInputField, fieldSelector } from '@/lib/state';
 import { isValidCastIdInput, isValidGroupInput } from '@/lib/avatar/types';

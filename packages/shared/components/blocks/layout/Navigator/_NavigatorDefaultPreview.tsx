@@ -1,5 +1,4 @@
 // src/components/blocks/layout/Navigator/_NavigatorDefaultPreview.jsx
-import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function _NavigatorDefaultPreview(props: RuntimeProps) {

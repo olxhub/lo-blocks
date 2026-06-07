@@ -9,7 +9,6 @@
 //
 'use client';
 
-import React from 'react';
 import { useKids } from '@/lib/render';
 import { updateCast } from '@/lib/avatar/cast';
 import type { RuntimeProps } from '@/lib/types';

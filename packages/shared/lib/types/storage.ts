@@ -9,11 +9,7 @@ import type {
   FileLofsRef, MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
-import {
-  type LofsRef, type LofsCanonical,
-  makeAddress, addressPath, scheme, withVersion,
-  toLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
-} from './address';
+import { type LofsRef, type LofsCanonical, makeAddress, addressPath, scheme, toLofsRef, toLofsOrigin, toLofsContentPath } from './address';
 import { FileType } from '../lofs/fileTypes';
 
 /**

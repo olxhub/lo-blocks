@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { useKids } from '@/lib/render';

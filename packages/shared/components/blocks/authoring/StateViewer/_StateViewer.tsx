@@ -1,7 +1,6 @@
 'use client';
 import type { RuntimeProps, FieldInfo } from '@/lib/types';
 
-import React from 'react';
 import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';

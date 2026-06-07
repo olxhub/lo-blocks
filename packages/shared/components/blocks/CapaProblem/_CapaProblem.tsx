@@ -1,7 +1,7 @@
 // src/components/blocks/CapaProblem/_CapaProblem.jsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';

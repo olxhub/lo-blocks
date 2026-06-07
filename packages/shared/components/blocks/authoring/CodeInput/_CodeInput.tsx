@@ -7,7 +7,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useFieldState, useValue } from '@/lib/state';
 import CodeEditor from '@/components/common/CodeEditor';
 

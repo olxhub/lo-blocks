@@ -1,13 +1,7 @@
 // @vitest-environment node
 // Tests for numerical grading: calc/ parsers + lib/grading/ match functions.
 import type { Tolerance } from '@/lib/util/calc/tolerance';
-import {
-  parseComplex,
-  parseTolerance,
-  parseRange,
-  inRange,
-  compareAbsolute,
-} from '@/lib/util/calc/index.js';
+import { parseComplex, parseRange, inRange, compareAbsolute } from '@/lib/util/calc/index.js';
 import {
   numericalMatch,
   validateNumericalInput,

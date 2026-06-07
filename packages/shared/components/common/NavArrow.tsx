@@ -5,7 +5,6 @@
 // "back" points opposite to the reading direction.
 'use client';
 
-import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 

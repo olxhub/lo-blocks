@@ -6,7 +6,7 @@
 // - Component registration issues
 // - Parser/loader bugs that only manifest at render time
 //
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { toMemoryRef } from '@/lib/types/storage';
 

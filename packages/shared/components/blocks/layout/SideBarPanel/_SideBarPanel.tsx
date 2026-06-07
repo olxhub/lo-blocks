@@ -2,7 +2,6 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/util/kids';

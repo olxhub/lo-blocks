@@ -4,7 +4,7 @@
 // Used by AvatarEditor, CharacterBuilder, and CastEditor.
 'use client';
 
-import React, { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { useFieldState } from '@/lib/state';
 import type { RuntimeProps, FieldInfo } from '@/lib/types';

@@ -3,7 +3,6 @@
 // Shared footer for all card types: Done + Remove buttons.
 'use client';
 
-import React from 'react';
 
 export default function SectionFooter({ onDone, onRemove, hasContent }: {
   onDone: () => void; onRemove: () => void; hasContent: boolean;
