@@ -1,4 +1,4 @@
-// src/lib/avatar/types.ts
+// packages/shared/lib/avatar/types.ts
 //
 // Zod schemas and TypeScript types for the cast-of-characters system.
 //

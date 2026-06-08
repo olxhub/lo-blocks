@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/CheckboxInput.ts
+// packages/shared/components/blocks/input/ChoiceInput/CheckboxInput.ts
 //
 // Multi-select checkbox input. Value is stored as an array of selected values.
 // For single-select (radio buttons), use ChoiceInput instead.

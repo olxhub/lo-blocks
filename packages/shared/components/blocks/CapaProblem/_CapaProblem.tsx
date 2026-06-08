@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/_CapaProblem.jsx
+// packages/shared/components/blocks/CapaProblem/_CapaProblem.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect } from 'react';

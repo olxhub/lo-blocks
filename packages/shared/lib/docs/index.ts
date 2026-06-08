@@ -1,4 +1,4 @@
-// src/lib/docs/index.ts
+// packages/shared/lib/docs/index.ts
 //
 // Documentation utilities - shared logic for docs page and Studio.
 //

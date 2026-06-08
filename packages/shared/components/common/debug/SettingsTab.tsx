@@ -1,4 +1,4 @@
-// src/components/common/debug/SettingsTab.tsx
+// packages/shared/components/common/debug/SettingsTab.tsx
 //
 // Settings tab for the debug panel.
 // Includes block overlays toggle and theme controls.

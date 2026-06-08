@@ -1,4 +1,4 @@
-// src/components/blocks/StubBlock.jsx
+// packages/shared/components/blocks/utility/StubBlock.tsx
 import * as parsers from '@/lib/content/parsers';
 
 import { dev } from '@/lib/blocks';

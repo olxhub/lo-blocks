@@ -1,4 +1,4 @@
-// src/components/blocks/display/DemandHints/DemandHints.js
+// packages/shared/components/blocks/display/DemandHints/DemandHints.ts
 //
 // Sequential hint display - reveals hints one at a time as user requests them.
 //

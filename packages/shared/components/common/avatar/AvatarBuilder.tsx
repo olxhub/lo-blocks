@@ -1,4 +1,4 @@
-// components/common/AvatarBuilder.tsx
+// packages/shared/components/common/avatar/AvatarBuilder.tsx
 //
 // Multi-mode avatar editor: illustrated (Open Peeps), image URL, or emoji.
 // Composes OpenPeepsSelector + EmojiSelector.

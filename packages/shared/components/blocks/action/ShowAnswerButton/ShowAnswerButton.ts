@@ -1,4 +1,4 @@
-// src/components/blocks/action/ShowAnswerButton/ShowAnswerButton.js
+// packages/shared/components/blocks/action/ShowAnswerButton/ShowAnswerButton.ts
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

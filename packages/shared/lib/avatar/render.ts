@@ -1,4 +1,4 @@
-// lib/avatar/render.ts
+// packages/shared/lib/avatar/render.ts
 //
 // Pure avatar rendering helpers — DiceBear data URI generation,
 // option categories derived from Zod schemas, and color presets.

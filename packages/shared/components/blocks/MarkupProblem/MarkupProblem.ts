@@ -1,4 +1,4 @@
-// src/components/blocks/MarkupProblem/MarkupProblem.js
+// packages/shared/components/blocks/MarkupProblem/MarkupProblem.ts
 //
 // MarkupProblem - Simple markup language for authoring problems
 //

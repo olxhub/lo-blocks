@@ -1,4 +1,4 @@
-// src/components/blocks/_UseDynamic.tsx
+// packages/shared/components/blocks/reference/_UseDynamic.tsx
 import React from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';

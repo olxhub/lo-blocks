@@ -1,4 +1,4 @@
-// src/components/blocks/display/TalkBubble/_TalkBubble.jsx
+// packages/shared/components/blocks/scenario/TalkBubble/_TalkBubble.jsx
 'use client';
 
 import React from 'react';

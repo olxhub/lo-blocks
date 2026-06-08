@@ -1,4 +1,4 @@
-// src/components/blocks/authoring/OlxSlot/_OlxSlot.tsx
+// packages/shared/components/blocks/authoring/OlxSlot/_OlxSlot.tsx
 //
 // EXPERIMENTAL / PROTOTYPE
 //

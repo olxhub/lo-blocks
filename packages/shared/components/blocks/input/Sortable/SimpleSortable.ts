@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/SimpleSortable.js
+// packages/shared/components/blocks/input/Sortable/SimpleSortable.ts
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';

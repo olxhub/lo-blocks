@@ -1,4 +1,4 @@
-// src/lib/state/debugSettings.tsx
+// packages/shared/lib/state/debugSettings.tsx
 //
 // Debug settings context and hook.
 //

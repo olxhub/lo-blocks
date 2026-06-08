@@ -1,4 +1,4 @@
-// src/components/blocks/_LLMFeedback.jsx
+// packages/shared/components/blocks/action/_LLMFeedback.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

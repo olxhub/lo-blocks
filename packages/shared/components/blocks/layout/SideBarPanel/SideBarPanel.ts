@@ -1,4 +1,4 @@
-// src/components/blocks/SideBarPanel/SideBarPanel.jsx
+// packages/shared/components/blocks/layout/SideBarPanel/SideBarPanel.ts
 /*
   SideBarPanel Block (Dev)
 

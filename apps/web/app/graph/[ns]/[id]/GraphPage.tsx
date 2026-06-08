@@ -1,4 +1,4 @@
-// src/app/graph/[ns]/[id]/GraphPage.tsx
+// apps/web/app/graph/[ns]/[id]/GraphPage.tsx
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';

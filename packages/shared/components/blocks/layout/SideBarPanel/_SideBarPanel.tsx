@@ -1,4 +1,4 @@
-// src/components/blocks/SideBarPanel/_SideBarPanel.jsx
+// packages/shared/components/blocks/layout/SideBarPanel/_SideBarPanel.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

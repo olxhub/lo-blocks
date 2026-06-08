@@ -1,4 +1,4 @@
-// src/lib/translate/metadata.ts
+// packages/shared/lib/translate/metadata.ts
 //
 // Helpers for processing LLM translation output:
 // code fence stripping, frontmatter extraction, and metadata assembly.

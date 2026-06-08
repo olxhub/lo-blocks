@@ -1,4 +1,4 @@
-// src/components/blocks/display/DemandHints/_DemandHints.jsx
+// packages/shared/components/blocks/display/DemandHints/_DemandHints.tsx
 'use client';
 import type { RuntimeProps, KidEntry } from '@/lib/types';
 

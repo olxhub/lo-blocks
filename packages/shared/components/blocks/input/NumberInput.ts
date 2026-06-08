@@ -1,4 +1,4 @@
-// src/components/blocks/NumberInput.js
+// packages/shared/components/blocks/input/NumberInput.ts
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';

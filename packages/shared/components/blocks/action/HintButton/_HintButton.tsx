@@ -1,4 +1,4 @@
-// src/components/blocks/action/HintButton/_HintButton.jsx
+// packages/shared/components/blocks/action/HintButton/_HintButton.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

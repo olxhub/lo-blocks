@@ -1,4 +1,4 @@
-// src/lib/llm/profiles.ts
+// packages/shared/lib/llm/profiles.ts
 //
 // LLM profile resolution via PMSS — single source of truth.
 //

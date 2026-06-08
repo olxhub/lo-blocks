@@ -1,4 +1,4 @@
-// src/components/blocks/grading/NumericalGrader.ts
+// packages/shared/components/blocks/grading/NumericalGrader.ts
 //
 // Grader for numeric answers with tolerance for rounding and formatting variations.
 //

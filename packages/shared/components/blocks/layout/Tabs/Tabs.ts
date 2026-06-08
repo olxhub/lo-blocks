@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Tabs/Tabs.js
+// packages/shared/components/blocks/layout/Tabs/Tabs.ts
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';

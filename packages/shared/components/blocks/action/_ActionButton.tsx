@@ -1,4 +1,4 @@
-// src/components/blocks/_ActionButton.tsx
+// packages/shared/components/blocks/action/_ActionButton.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

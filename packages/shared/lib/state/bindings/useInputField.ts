@@ -1,4 +1,4 @@
-// lib/state/bindings/useInputField.ts
+// packages/shared/lib/state/bindings/useInputField.ts
 //
 // Input field binding — wires a field data structure to an <input> or <textarea>.
 //

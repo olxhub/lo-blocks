@@ -1,4 +1,4 @@
-// src/lib/replay.ts
+// packages/shared/lib/replay.ts
 //
 // Pure replay utilities for event log analysis.
 //

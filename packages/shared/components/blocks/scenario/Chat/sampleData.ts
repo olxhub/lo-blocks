@@ -1,4 +1,4 @@
-// src/components/blocks/Chat/sampleData.js
+// packages/shared/components/blocks/scenario/Chat/sampleData.ts
 // Mock data for testing
 const sampleConversation = [
   {

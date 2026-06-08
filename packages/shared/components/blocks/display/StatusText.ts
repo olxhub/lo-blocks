@@ -1,4 +1,4 @@
-// src/components/blocks/StatusText.jsx
+// packages/shared/components/blocks/display/StatusText.ts
 //
 // StatusText displays field values from OTHER components (typically graders).
 //

@@ -1,4 +1,4 @@
-// src/components/common/HistoryBar.jsx
+// packages/shared/components/common/HistoryBar.tsx
 'use client';
 
 import React from 'react';

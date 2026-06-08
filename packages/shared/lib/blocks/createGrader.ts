@@ -1,4 +1,4 @@
-// src/lib/blocks/createGrader.ts
+// packages/shared/lib/blocks/createGrader.ts
 //
 // Factory function for creating grader blocks with minimal boilerplate.
 //

@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/evaluate.ts
+// packages/shared/lib/stateLanguage/evaluate.ts
 //
 // Pure AST interpreter for the state language.
 // No React, no Redux - just takes an AST and a context object.

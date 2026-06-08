@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/useSet.ts
+// packages/shared/lib/state/fieldTypes/classic/useSet.ts
 //
 // Classic useSet — thin wrapper around useFieldState.
 //

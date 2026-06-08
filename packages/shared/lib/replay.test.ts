@@ -1,4 +1,4 @@
-// src/lib/replay.test.ts
+// packages/shared/lib/replay.test.ts
 //
 // Tests for pure replay utilities.
 //

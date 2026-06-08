@@ -1,4 +1,4 @@
-// src/lib/state/commonFields.ts
+// packages/shared/lib/state/commonFields.ts
 //
 // Common field constants - typed FieldInfo objects for widely-used fields.
 //

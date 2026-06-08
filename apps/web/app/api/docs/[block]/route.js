@@ -1,4 +1,4 @@
-// src/app/api/docs/[block]/route.js
+// apps/web/app/api/docs/[block]/route.js
 //
 // Individual block documentation API - serves detailed docs for a specific block.
 // Reads readme and example file contents from paths stored on the block object.

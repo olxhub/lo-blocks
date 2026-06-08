@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/setConstructor.ts
+// packages/shared/lib/state/fieldTypes/crdt/setConstructor.ts
 //
 // Set field constructor — no React, no Redux. Separated from set.ts to
 // break the circular dependency: fieldTypes/index → redux → fields → fieldTypes.

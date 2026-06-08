@@ -1,4 +1,4 @@
-// src/components/blocks/test/DevQuestion.jsx
+// packages/shared/components/blocks/_test/DevQuestion.ts
 import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';

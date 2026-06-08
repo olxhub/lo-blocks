@@ -1,4 +1,4 @@
-// CharacterBuilder/_bioSection.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_bioSection.tsx
 //
 // Freeform bio card editor — custom question + freeform text response.
 'use client';

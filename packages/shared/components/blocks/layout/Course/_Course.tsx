@@ -1,4 +1,4 @@
-// src/components/blocks/Course/_Course.tsx
+// packages/shared/components/blocks/layout/Course/_Course.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

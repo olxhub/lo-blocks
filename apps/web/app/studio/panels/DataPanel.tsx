@@ -1,4 +1,4 @@
-// src/app/studio/panels/DataPanel.tsx
+// apps/web/app/studio/panels/DataPanel.tsx
 'use client';
 
 export function DataPanel() {

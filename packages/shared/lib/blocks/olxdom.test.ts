@@ -1,4 +1,4 @@
-// src/lib/blocks/olxdom.test.js
+// packages/shared/lib/blocks/olxdom.test.ts
 import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
 import { TEST_NS, testKey, mockRuntime as createMockRuntime } from '../test-utils';
 

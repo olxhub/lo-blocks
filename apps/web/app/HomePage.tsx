@@ -1,4 +1,4 @@
-// src/app/HomePage.tsx
+// apps/web/app/HomePage.tsx
 'use client';
 
 import { useState, useEffect } from 'react';

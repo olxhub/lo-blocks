@@ -1,4 +1,4 @@
-// src/lib/i18n/useTranslation.ts
+// packages/shared/lib/i18n/useTranslation.ts
 //
 // Client-side hook for reactive translanguaging.
 //

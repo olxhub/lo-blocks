@@ -1,4 +1,4 @@
-// src/components/common/debug/DebugPanel.tsx
+// packages/shared/components/common/debug/DebugPanel.tsx
 //
 // Debug panel for inspecting events, state, and content during development.
 // Toggle with Ctrl+` (backtick) or ⌘`

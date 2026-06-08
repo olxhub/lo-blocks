@@ -1,4 +1,4 @@
-// src/components/blocks/TextSelection/textSelectionUtils.ts
+// packages/shared/components/blocks/language-arts/TextSelection/textSelectionUtils.ts
 import * as parserModule from './_textSelectionParser';
 const parser = (parserModule as any).default || parserModule;
 

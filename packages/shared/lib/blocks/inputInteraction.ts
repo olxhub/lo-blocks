@@ -1,4 +1,4 @@
-// src/lib/blocks/inputInteraction.js
+// packages/shared/lib/blocks/inputInteraction.ts
 //
 // Input interaction state management - determines when inputs should be read-only
 //

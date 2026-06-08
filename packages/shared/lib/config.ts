@@ -1,4 +1,4 @@
-// lib/config.ts
+// packages/shared/lib/config.ts
 //
 // Application configuration via PMSS (Preference Management Style Sheets).
 //

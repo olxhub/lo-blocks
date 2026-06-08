@@ -1,4 +1,4 @@
-// src/lib/state/editorFields.ts
+// packages/shared/lib/state/editorFields.ts
 // Editor state field definitions - used by Studio, docs, and other editing contexts
 import { fields, scopes } from '@/lib/state';
 

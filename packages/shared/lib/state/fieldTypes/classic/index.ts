@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/index.ts
+// packages/shared/lib/state/fieldTypes/classic/index.ts
 //
 // Classic field types — the pre-CRDT behavior from main.
 //

@@ -1,4 +1,4 @@
-// src/components/blocks/Course/Course.jsx
+// packages/shared/components/blocks/layout/Course/Course.ts
 /*
   Course Block (Dev)
 

@@ -1,4 +1,4 @@
-// src/lib/grading/aggregators.ts
+// packages/shared/lib/grading/aggregators.ts
 //
 // Correctness aggregation strategies for combining results from multiple graders.
 //

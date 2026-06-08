@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/state/fields.test.tsx
+// packages/shared/lib/state/fields.test.tsx
 import * as fields from './fields';
 import { commonFields } from './commonFields';
 

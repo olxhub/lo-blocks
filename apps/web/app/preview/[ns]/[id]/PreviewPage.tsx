@@ -1,4 +1,4 @@
-// src/app/preview/[ns]/[id]/PreviewPage.tsx
+// apps/web/app/preview/[ns]/[id]/PreviewPage.tsx
 'use client';
 
 import { useParams } from 'next/navigation';

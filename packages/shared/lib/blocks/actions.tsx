@@ -1,4 +1,4 @@
-// src/lib/blocks/actions.tsx
+// packages/shared/lib/blocks/actions.tsx
 //
 // Block actions system - enables blocks to perform behaviors beyond rendering.
 //

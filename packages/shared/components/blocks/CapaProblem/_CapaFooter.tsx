@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/_CapaFooter.tsx
+// packages/shared/components/blocks/CapaProblem/_CapaFooter.tsx
 //
 // Footer component for CapaProblem containing action buttons and status display.
 // Renders: Check/Submit button, Show Answer button, Hint button, correctness icon, status text.

@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Navigator/_NavigatorDefaultDetail.jsx
+// packages/shared/components/blocks/layout/Navigator/_NavigatorDefaultDetail.tsx
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
 

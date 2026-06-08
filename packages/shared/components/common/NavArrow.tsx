@@ -1,4 +1,4 @@
-// src/components/common/NavArrow.tsx
+// packages/shared/components/common/NavArrow.tsx
 //
 // RTL-aware directional arrow for prev/next navigation.
 // "forward" points in the reading direction (right in LTR, left in RTL).

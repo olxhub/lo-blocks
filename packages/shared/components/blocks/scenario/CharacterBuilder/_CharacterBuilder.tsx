@@ -1,4 +1,4 @@
-// CharacterBuilder/_CharacterBuilder.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_CharacterBuilder.tsx
 //
 // Character sheet builder — authors construct rich characters by adding,
 // editing, and reordering typed cards (traits, bio, stats) alongside a

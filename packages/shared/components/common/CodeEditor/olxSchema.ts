@@ -1,4 +1,4 @@
-// src/components/common/CodeEditor/olxSchema.ts
+// packages/shared/components/common/CodeEditor/olxSchema.ts
 //
 // Generates CodeMirror XML schema (ElementSpec[] + AttrSpec[]) from the block
 // registry, enabling schema-based autocompletion in the OLX editor.

@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/state.ts
+// packages/shared/lib/state/fieldTypes/classic/state.ts
 //
 // Classic state field — direct value storage, no timestamps, no conflict resolution.
 //

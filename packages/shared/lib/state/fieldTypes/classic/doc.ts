@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/doc.ts
+// packages/shared/lib/state/fieldTypes/classic/doc.ts
 //
 // Classic document field — plain string storage, no CRDT.
 //

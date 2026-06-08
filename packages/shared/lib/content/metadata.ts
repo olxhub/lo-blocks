@@ -1,4 +1,4 @@
-// src/lib/content/metadata.ts
+// packages/shared/lib/content/metadata.ts
 //
 // Content Metadata Schemas - shared base + format-specific extensions (OLX, chatpeg)
 //

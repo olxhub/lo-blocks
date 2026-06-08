@@ -1,4 +1,4 @@
-// src/lib/blocks/factory.tsx
+// packages/shared/lib/blocks/factory.tsx
 //
 // Block factory - the core mechanism for creating Learning Observer blocks.
 //

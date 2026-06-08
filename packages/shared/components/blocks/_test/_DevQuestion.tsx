@@ -1,4 +1,4 @@
-// src/components/blocks/test/_DevQuestion.jsx
+// packages/shared/components/blocks/_test/_DevQuestion.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

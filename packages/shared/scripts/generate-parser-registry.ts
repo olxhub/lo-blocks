@@ -1,4 +1,4 @@
-// src/scripts/generate-parser-registry.js
+// packages/shared/scripts/generate-parser-registry.ts
 // Generates a registry mapping PEG content extensions to their compiled parsers,
 // grammar metadata (.pegjs.yaml), and content templates (.pegjs.template.{ext}).
 import { promises as fs } from 'fs';

@@ -1,4 +1,4 @@
-// src/lib/blocks/useRenderedBlock.tsx
+// packages/shared/lib/blocks/useRenderedBlock.tsx
 //
 // Hooks for rendering OLX blocks to React elements.
 //

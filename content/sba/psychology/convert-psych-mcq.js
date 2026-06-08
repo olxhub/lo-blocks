@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// src/scripts/convert-psych-mcq.js
+// content/sba/psychology/convert-psych-mcq.js
 //
 // Converts psychology multiple-choice questions from JSON to OLX format.
 //

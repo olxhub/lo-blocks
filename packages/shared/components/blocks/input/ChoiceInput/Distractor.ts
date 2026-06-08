@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/Distractor.js
+// packages/shared/components/blocks/input/ChoiceInput/Distractor.ts
 //
 // Incorrect answer option inside ChoiceInput.
 //

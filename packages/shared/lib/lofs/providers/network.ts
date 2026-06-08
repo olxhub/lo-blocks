@@ -1,4 +1,4 @@
-// src/lib/lofs/providers/network.ts
+// packages/shared/lib/lofs/providers/network.ts
 //
 // Network storage provider - HTTP-based content access for Learning Observer.
 //

@@ -1,4 +1,4 @@
-// lib/state/urlFields.tsx
+// packages/shared/lib/state/urlFields.tsx
 //
 // URL field sync — bidirectional sync between URL search params and block fields.
 //

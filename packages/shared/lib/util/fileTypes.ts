@@ -1,4 +1,4 @@
-// src/lib/util/fileTypes.ts
+// packages/shared/lib/util/fileTypes.ts
 //
 // Centralized file type detection and categorization.
 //

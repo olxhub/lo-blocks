@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/content/loadContentTree.test.js
+// packages/shared/lib/content/loadContentTree.test.ts
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';

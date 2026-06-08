@@ -1,4 +1,4 @@
-// src/lib/template/template.js
+// packages/shared/lib/template/template.ts
 //
 // Template system - simple placeholder substitution using PEG grammar.
 //

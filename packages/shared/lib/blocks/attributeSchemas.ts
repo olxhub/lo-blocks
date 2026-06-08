@@ -1,4 +1,4 @@
-// src/lib/blocks/attributeSchemas.ts
+// packages/shared/lib/blocks/attributeSchemas.ts
 //
 // Attribute schemas for block validation.
 //

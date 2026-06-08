@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/id.ts
+// packages/shared/lib/state/fieldTypes/crdt/id.ts
 //
 // CRDT ID field — per-actor monotonic counters for unique ID generation.
 //

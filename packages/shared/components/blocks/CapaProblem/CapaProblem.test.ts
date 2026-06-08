@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/CapaProblem.test.js
+// packages/shared/components/blocks/CapaProblem/CapaProblem.test.ts
 //
 // Unit tests for CapaProblem parser behavior.
 // Render tests are covered by demo-render.test.js which tests all .olx files.

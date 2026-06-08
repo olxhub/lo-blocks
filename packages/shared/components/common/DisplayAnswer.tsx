@@ -1,4 +1,4 @@
-// src/components/common/DisplayAnswer.jsx
+// packages/shared/components/common/DisplayAnswer.tsx
 //
 // Displays the correct answer when a grader's "Show Answer" is active.
 // Calls useGraderAnswer internally - just pass the component props.

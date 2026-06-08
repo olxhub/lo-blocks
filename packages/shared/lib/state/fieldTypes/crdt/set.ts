@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/crdt/set.ts
+// packages/shared/lib/state/fieldTypes/crdt/set.ts
 //
 // CRDT set field — constructor + useSet hook.
 //

@@ -1,4 +1,4 @@
-// src/instrumentation.ts
+// apps/web/instrumentation.ts
 //
 // Next.js instrumentation hook - runs once on server startup.
 // Initializes PMSS config and validates LLM provider.

@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Cast/Cast.ts
+// packages/shared/components/blocks/scenario/Cast/Cast.ts
 //
 // Cast block — transparent wrapper that propthreads a cast-of-characters
 // to its children via runtime.cast.

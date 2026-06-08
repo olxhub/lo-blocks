@@ -1,4 +1,4 @@
-// src/components/blocks/display/TalkBubble/TalkBubble.js
+// packages/shared/components/blocks/scenario/TalkBubble/TalkBubble.js
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { cast, character } from '@/lib/blocks/attributeSchemas';

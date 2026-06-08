@@ -1,4 +1,4 @@
-// src/lib/content/staticAssetSync.ts
+// packages/shared/lib/content/staticAssetSync.ts
 //
 // Static asset synchronization - copies content assets to Next.js public directory.
 //

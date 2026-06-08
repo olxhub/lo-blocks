@@ -1,5 +1,5 @@
 #!/usr/bin/env npx tsx
-// src/scripts/event-server.ts
+// packages/shared/scripts/event-server.ts
 //
 // Lightweight WebSocket server for capturing lo_event streams in dev.
 //

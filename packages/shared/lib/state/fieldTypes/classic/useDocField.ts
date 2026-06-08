@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/useDocField.ts
+// packages/shared/lib/state/fieldTypes/classic/useDocField.ts
 //
 // Classic useDocField — thin wrapper around useFieldState.
 //

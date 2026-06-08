@@ -1,4 +1,4 @@
-// lib/avatar/emoji.ts
+// packages/shared/lib/avatar/emoji.ts
 //
 // Emoji avatar catalog for the CharacterBuilder emoji mode.
 // Pure data — no runtime dependencies.

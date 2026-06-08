@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Tabs/_Tabs.jsx
+// packages/shared/components/blocks/layout/Tabs/_Tabs.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

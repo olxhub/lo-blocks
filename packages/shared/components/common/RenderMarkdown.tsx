@@ -1,4 +1,4 @@
-// src/components/common/RenderMarkdown.tsx
+// packages/shared/components/common/RenderMarkdown.tsx
 //
 // Shared Markdown renderer with consistent GFM, math, and KaTeX support.
 // Use this component for all Markdown rendering to ensure consistency.

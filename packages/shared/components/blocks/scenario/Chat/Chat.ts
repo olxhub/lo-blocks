@@ -1,4 +1,4 @@
-// src/components/blocks/Chat/Chat.ts
+// packages/shared/components/blocks/scenario/Chat/Chat.ts
 
 import { z } from 'zod';
 import yaml from 'js-yaml';

@@ -1,4 +1,4 @@
-// src/components/blocks/specialized/MasteryBank/_MasteryBank.tsx
+// packages/shared/components/blocks/specialized/MasteryBank/_MasteryBank.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

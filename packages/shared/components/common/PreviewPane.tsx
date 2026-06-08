@@ -1,4 +1,4 @@
-// src/components/common/PreviewPane.tsx
+// packages/shared/components/common/PreviewPane.tsx
 //
 // Unified preview component for all content types.
 // Handles OLX, PEG (chatpeg, sortpeg, etc.), and future formats.

@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/set.ts
+// packages/shared/lib/state/fieldTypes/classic/set.ts
 //
 // Classic set field — plain value storage, no CRDT.
 //

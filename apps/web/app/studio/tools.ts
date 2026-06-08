@@ -1,4 +1,4 @@
-// src/lib/editor/tools.ts
+// apps/web/app/studio/tools.ts
 //
 // LLM tools for the editor assistant.
 //

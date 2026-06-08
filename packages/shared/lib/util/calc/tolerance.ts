@@ -1,4 +1,4 @@
-// calc/tolerance.ts — Tolerance parsing, validation, and comparison.
+// packages/shared/lib/util/calc/tolerance.ts — Tolerance parsing, validation, and comparison.
 //
 // Groups all tolerance-related logic:
 // - Tolerance: branded type for validated tolerance strings

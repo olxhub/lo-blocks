@@ -1,4 +1,4 @@
-// src/app/api/grep/route.ts
+// apps/web/app/api/grep/route.ts
 //
 // Content search API.
 //

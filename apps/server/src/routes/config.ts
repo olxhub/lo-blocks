@@ -1,4 +1,4 @@
-// routes/config.ts
+// apps/server/src/routes/config.ts
 //
 // GET /api/config — serve PMSS configuration with per-namespace context.
 //

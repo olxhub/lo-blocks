@@ -1,4 +1,4 @@
-// src/components/blocks/grading/CustomGrader.ts
+// packages/shared/components/blocks/grading/CustomGrader.ts
 //
 // Grader that executes author-provided JavaScript code for custom grading logic.
 //

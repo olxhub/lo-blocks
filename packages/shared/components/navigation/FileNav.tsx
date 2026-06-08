@@ -1,4 +1,4 @@
-// src/components/navigation/FileNav.tsx
+// packages/shared/components/navigation/FileNav.tsx
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';

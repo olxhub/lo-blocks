@@ -1,4 +1,4 @@
-// src/lib/docs/categoryUtils.ts
+// packages/shared/lib/docs/categoryUtils.ts
 //
 // Shared utilities for categorizing blocks and grammars.
 // Used by both /docs page and Studio sidebar.

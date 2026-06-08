@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/lib/content/stripIndent.test.js
+// packages/shared/lib/content/stripIndent.test.ts
 import { stripIndent } from './stripIndent';
 
 describe('stripIndent', () => {

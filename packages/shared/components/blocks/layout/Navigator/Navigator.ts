@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Navigator/Navigator.js
+// packages/shared/components/blocks/layout/Navigator/Navigator.ts
 //
 // PROTOTYPE: Two-pane navigator with list on left and detail on right.
 // Uses YAML text content for item data, references blocks for preview/detail templates.

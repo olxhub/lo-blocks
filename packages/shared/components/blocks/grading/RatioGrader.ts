@@ -1,4 +1,4 @@
-// src/components/blocks/grading/RatioGrader.ts
+// packages/shared/components/blocks/grading/RatioGrader.ts
 //
 // Grader for ratio and fraction answers.
 //

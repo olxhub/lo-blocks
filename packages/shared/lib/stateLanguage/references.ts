@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/references.ts
+// packages/shared/lib/stateLanguage/references.ts
 //
 // HACK: redux-react plugins were a little complex when we were
 // developing this, so we just do a regexp for {{ }} before rendering.

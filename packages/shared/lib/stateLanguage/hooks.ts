@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/hooks.ts
+// packages/shared/lib/stateLanguage/hooks.ts
 //
 // React hooks for the state language.
 // These bridge the pure evaluation layer with Redux state.

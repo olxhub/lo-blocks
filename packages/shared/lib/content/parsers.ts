@@ -1,4 +1,4 @@
-// src/lib/content/parsers.ts
+// packages/shared/lib/content/parsers.ts
 //
 // OLX content parsers - composable utilities for processing Learning Observer XML content.
 //

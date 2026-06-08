@@ -1,4 +1,4 @@
-// lib/crdt/computeSplice.test.ts
+// packages/shared/lib/crdt/computeSplice.test.ts
 //
 // Tests for splice computation, with emphasis on Unicode correctness.
 //

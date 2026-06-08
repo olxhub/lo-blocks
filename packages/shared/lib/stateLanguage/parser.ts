@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/parser.ts
+// packages/shared/lib/stateLanguage/parser.ts
 //
 // State language expression parser.
 // Wraps the PEG-generated parser and provides TypeScript types.

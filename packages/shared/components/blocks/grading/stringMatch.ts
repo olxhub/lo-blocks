@@ -1,4 +1,4 @@
-// src/components/blocks/grading/stringMatch.ts
+// packages/shared/components/blocks/grading/stringMatch.ts
 //
 // Pure string matching function - no block system dependencies.
 //

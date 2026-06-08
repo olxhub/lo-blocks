@@ -1,4 +1,4 @@
-// src/components/blocks/display/DemandHints/_Hint.jsx
+// packages/shared/components/blocks/display/DemandHints/_Hint.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

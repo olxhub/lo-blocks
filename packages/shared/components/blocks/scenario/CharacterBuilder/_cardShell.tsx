@@ -1,4 +1,4 @@
-// CharacterBuilder/_cardShell.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_cardShell.tsx
 //
 // Card wrapper: drag handle + expand/collapse + content routing.
 // Each card is either expanded (showing the appropriate section editor)

@@ -1,4 +1,4 @@
-// src/components/blocks/CapaProblem/CapaFooter.ts
+// packages/shared/components/blocks/CapaProblem/CapaFooter.ts
 import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';

@@ -1,4 +1,4 @@
-// lib/state/bindings/index.ts
+// packages/shared/lib/state/bindings/index.ts
 //
 // UI binding hooks — wire data structure hooks to DOM elements.
 //

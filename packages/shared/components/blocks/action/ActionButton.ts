@@ -1,4 +1,4 @@
-// src/components/blocks/ActionButton.js
+// packages/shared/components/blocks/action/ActionButton.ts
 import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

@@ -1,4 +1,4 @@
-// calc/parse.ts — General-purpose parsers and validators for numeric values,
+// packages/shared/lib/util/calc/parse.ts — General-purpose parsers and validators for numeric values,
 // ranges, and expressions.
 //
 // Grouped by concept:

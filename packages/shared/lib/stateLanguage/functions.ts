@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/functions.ts
+// packages/shared/lib/stateLanguage/functions.ts
 //
 // Registry for functions available in the state language DSL.
 //

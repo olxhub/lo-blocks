@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Collapsible/Collapsible.js
+// packages/shared/components/blocks/layout/Collapsible/Collapsible.ts
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';

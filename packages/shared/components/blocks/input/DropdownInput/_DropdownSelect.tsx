@@ -1,4 +1,4 @@
-// src/components/blocks/input/DropdownInput/_DropdownSelect.jsx
+// packages/shared/components/blocks/input/DropdownInput/_DropdownSelect.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

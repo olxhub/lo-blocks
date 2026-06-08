@@ -1,4 +1,4 @@
-// src/lib/i18n/languages.ts
+// packages/shared/lib/i18n/languages.ts
 //
 // BCP 47 language list utilities using CLDR data.
 // Provides comprehensive language code -> label mapping with support

@@ -1,4 +1,4 @@
-/* src/components/common/debug/ReplayModeIndicator.css */
+/* packages/shared/components/common/debug/ReplayModeIndicator.css */
 /* Visual indicator and scrubber for replay mode — always-dark, uses --lo-debug-* tokens */
 
 .replay-mode-indicator {

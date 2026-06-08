@@ -1,4 +1,4 @@
-// src/components/blocks/display/Explanation/Explanation.js
+// packages/shared/components/blocks/display/Explanation/Explanation.ts
 //
 // Explanation block - displays content conditionally based on grader state.
 //

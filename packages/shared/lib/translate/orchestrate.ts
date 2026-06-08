@@ -1,4 +1,4 @@
-// lib/translate/orchestrate.ts
+// packages/shared/lib/translate/orchestrate.ts
 //
 // Translation orchestration: the layer between "I have a blockId and
 // targetLocale" and the core translateContent() call.

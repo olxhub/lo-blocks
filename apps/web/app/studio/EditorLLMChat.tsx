@@ -1,4 +1,4 @@
-// src/components/chat/EditorLLMChat.jsx
+// apps/web/app/studio/EditorLLMChat.tsx
 'use client';
 
 import { useCallback } from 'react';

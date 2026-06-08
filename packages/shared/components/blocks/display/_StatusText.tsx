@@ -1,4 +1,4 @@
-// src/components/blocks/_StatusText.jsx
+// packages/shared/components/blocks/display/_StatusText.tsx
 //
 // Displays field values from related graders.
 // Note: requiresGrader=true in block definition means graderId is injected by render.

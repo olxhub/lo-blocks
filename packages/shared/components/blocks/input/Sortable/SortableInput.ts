@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/SortableInput.js
+// packages/shared/components/blocks/input/Sortable/SortableInput.ts
 
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';

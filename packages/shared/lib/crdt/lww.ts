@@ -1,4 +1,4 @@
-// lib/crdt/lww.ts
+// packages/shared/lib/crdt/lww.ts
 //
 // Last-Writer-Wins Register — the simplest useful CRDT.
 //

@@ -1,4 +1,4 @@
-// src/app/api/translate/route.ts
+// apps/web/app/api/translate/route.ts
 //
 // HTTP endpoint for content translation (Next.js API route).
 //

@@ -1,4 +1,4 @@
-// src/lib/content/fetchOlxJson.ts
+// packages/shared/lib/content/fetchOlxJson.ts
 //
 // Centralized content fetching. All client-side content requests go through
 // here so there is a single place to swap the transport (e.g. for static

@@ -1,4 +1,4 @@
-// src/components/blocks/TabularMCQ/_TabularMCQ.jsx
+// packages/shared/components/blocks/input/TabularMCQ/_TabularMCQ.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

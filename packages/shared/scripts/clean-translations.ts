@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// src/scripts/clean-translations.ts
+// packages/shared/scripts/clean-translations.ts
 //
 // Remove all machine-translated files from the content directory.
 //

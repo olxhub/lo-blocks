@@ -1,5 +1,5 @@
 // @vitest-environment node
-// src/integration/server-smoke.test.js
+// apps/web/integration/server-smoke.test.ts
 /*
  * Basic smoke test: Does the server start and serve pages without 500
  * errors.

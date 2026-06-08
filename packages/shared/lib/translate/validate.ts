@@ -1,4 +1,4 @@
-// src/lib/translate/validate.ts
+// packages/shared/lib/translate/validate.ts
 //
 // Validation for translated content. Ensures the output is well-formed
 // and structurally matches the source before it gets saved.

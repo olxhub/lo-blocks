@@ -1,4 +1,4 @@
-// src/app/studio/StudioPage.tsx
+// apps/web/app/studio/StudioPage.tsx
 // Prototype editor - exploring layout and interaction patterns
 'use client';
 

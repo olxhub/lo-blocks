@@ -1,4 +1,4 @@
-// src/lib/blocks/olxdom.ts
+// packages/shared/lib/blocks/olxdom.ts
 //
 // OLX DOM traversal - navigation utilities for the Learning Observer
 // dynamic content DAG.

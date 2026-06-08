@@ -1,4 +1,4 @@
-// components/common/CopyableYaml.tsx
+// packages/shared/components/common/avatar/CopyableYaml.tsx
 //
 // Read-only YAML display with a copy-to-clipboard button.
 // Used by AvatarEditor, CharacterBuilder, and CastEditor.

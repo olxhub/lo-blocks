@@ -1,4 +1,4 @@
-// src/lib/content/useContentLoader.ts
+// packages/shared/lib/content/useContentLoader.ts
 import { useState, useEffect } from 'react';
 import { IdMap, ComponentError, DefinitionKey } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';

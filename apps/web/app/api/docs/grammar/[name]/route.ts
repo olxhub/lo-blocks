@@ -1,4 +1,4 @@
-// src/app/api/docs/grammar/[name]/route.js
+// apps/web/app/api/docs/grammar/[name]/route.ts
 //
 // Individual grammar API - thin wrapper over lib/docs/grammar.
 // See ../DESIGN.md for architectural decisions.

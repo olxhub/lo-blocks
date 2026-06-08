@@ -1,4 +1,4 @@
-// lib/crdt/set.ts
+// packages/shared/lib/crdt/set.ts
 //
 // LWW-Element Set — an add/remove set with per-element conflict resolution.
 //

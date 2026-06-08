@@ -1,4 +1,4 @@
-// src/lib/template/previewTemplate.js
+// packages/shared/lib/template/previewTemplate.ts
 //
 // Shared logic for injecting content into preview templates.
 // Used by both PEGPreviewPane and tests.

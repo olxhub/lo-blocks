@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// src/scripts/xml2graph.js
+// packages/shared/scripts/xml2graph.js
 import stringify from 'json-stable-stringify';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';

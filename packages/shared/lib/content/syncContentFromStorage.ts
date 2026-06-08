@@ -1,4 +1,4 @@
-// src/lib/content/syncContentFromStorage.ts
+// packages/shared/lib/content/syncContentFromStorage.ts
 //
 // Content synchronization - loads OLX content from storage into memory.
 //

@@ -1,4 +1,4 @@
-// src/lib/state/replayContext.tsx
+// packages/shared/lib/state/replayContext.tsx
 //
 // DEPRECATED: Replay state has been moved to Redux via useDebugSettings.
 //

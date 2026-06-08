@@ -1,4 +1,4 @@
-// routes/llm.ts
+// apps/server/src/routes/llm.ts
 //
 // LLM proxy endpoint: POST /api/llm/chat/completions
 //

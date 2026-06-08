@@ -1,4 +1,4 @@
-// lib/crdt/computeSplice.ts
+// packages/shared/lib/crdt/computeSplice.ts
 //
 // Minimal splice computation — diff two strings into a single splice operation.
 //

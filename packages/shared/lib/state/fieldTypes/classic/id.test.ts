@@ -1,5 +1,5 @@
 // @vitest-environment node
-// lib/state/fieldTypes/classic/id.test.ts
+// packages/shared/lib/state/fieldTypes/classic/id.test.ts
 import { describe, it, expect } from 'vitest';
 import { idField } from './id';
 

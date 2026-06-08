@@ -1,4 +1,4 @@
-// CastEditor/_CastEditor.tsx
+// packages/shared/components/blocks/scenario/CastEditor/_CastEditor.tsx
 //
 // Cast-of-characters editor UI.
 //

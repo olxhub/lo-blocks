@@ -1,5 +1,5 @@
 // @vitest-environment node
-// lib/state/fieldTypes/crdt/set.test.ts
+// packages/shared/lib/state/fieldTypes/crdt/set.test.ts
 import { setField } from './set';
 
 describe('setField', () => {

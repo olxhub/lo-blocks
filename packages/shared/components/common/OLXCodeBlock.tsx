@@ -1,4 +1,4 @@
-// src/components/common/OLXCodeBlock.jsx
+// packages/shared/components/common/OLXCodeBlock.tsx
 //
 // Renders OLX code blocks embedded in Markdown.
 //

@@ -1,4 +1,4 @@
-// src/app/storeWrapper.tsx
+// apps/web/app/storeWrapper.tsx
 //
 // Root wrapper that provides Redux store and debug infrastructure.
 //

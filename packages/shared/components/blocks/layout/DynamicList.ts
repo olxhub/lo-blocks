@@ -1,4 +1,4 @@
-// src/components/blocks/DynamicList.js
+// packages/shared/components/blocks/layout/DynamicList.ts
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as state from '@/lib/state';

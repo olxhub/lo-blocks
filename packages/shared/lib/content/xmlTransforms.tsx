@@ -1,4 +1,4 @@
-// src/lib/content/xmlTransforms.jsx
+// packages/shared/lib/content/xmlTransforms.tsx
 //
 // XML tag transformations - preprocessing layer for OLX parsing.
 //

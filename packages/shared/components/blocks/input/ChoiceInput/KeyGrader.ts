@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/KeyGrader.ts
+// packages/shared/components/blocks/input/ChoiceInput/KeyGrader.ts
 //
 // Grader for single-select (radio button) multiple choice questions.
 // For multi-select (checkbox) questions, use CheckboxGrader instead.

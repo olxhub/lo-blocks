@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Navigator/NavigatorDefaultDetail.js
+// packages/shared/components/blocks/layout/Navigator/NavigatorDefaultDetail.ts
 
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

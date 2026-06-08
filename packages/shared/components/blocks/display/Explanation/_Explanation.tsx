@@ -1,4 +1,4 @@
-// src/components/blocks/display/Explanation/_Explanation.jsx
+// packages/shared/components/blocks/display/Explanation/_Explanation.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';

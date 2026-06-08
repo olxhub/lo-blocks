@@ -1,4 +1,4 @@
-// src/components/common/debug/ReplayModeIndicator.tsx
+// packages/shared/components/common/debug/ReplayModeIndicator.tsx
 //
 // Visual indicator and scrubber for replay mode.
 // Displays a banner at the top of the page with:

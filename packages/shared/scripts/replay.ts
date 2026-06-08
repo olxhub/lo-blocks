@@ -1,5 +1,5 @@
 #!/usr/bin/env npx tsx
-// src/scripts/replay.ts
+// packages/shared/scripts/replay.ts
 //
 // Replay event logs through Redux reducers — pure, no side effects.
 //

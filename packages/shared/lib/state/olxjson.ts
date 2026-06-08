@@ -1,4 +1,4 @@
-// src/lib/state/olxjson.ts
+// packages/shared/lib/state/olxjson.ts
 //
 // OLX JSON content state - Redux state for parsed OLX content.
 //

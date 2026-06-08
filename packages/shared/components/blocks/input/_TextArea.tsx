@@ -1,4 +1,4 @@
-// src/components/blocks/_TextArea.jsx
+// packages/shared/components/blocks/input/_TextArea.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

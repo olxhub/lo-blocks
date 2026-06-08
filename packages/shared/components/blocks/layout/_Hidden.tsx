@@ -1,4 +1,4 @@
-// src/components/blocks/_Hidden.jsx
+// packages/shared/components/blocks/layout/_Hidden.tsx
 /*
  * This is a block that renders its children in the OLX DOM but does not
  * display them visually. Unlike Noop, which shows its rendered children,

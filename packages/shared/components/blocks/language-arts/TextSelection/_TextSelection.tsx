@@ -1,4 +1,4 @@
-// src/components/blocks/TextSelection/_TextSelection.tsx
+// packages/shared/components/blocks/language-arts/TextSelection/_TextSelection.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

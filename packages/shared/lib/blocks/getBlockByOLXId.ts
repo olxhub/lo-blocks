@@ -1,4 +1,4 @@
-// src/lib/blocks/getBlockByOLXId.ts
+// packages/shared/lib/blocks/getBlockByOLXId.ts
 //
 // Synchronous accessors for blocks by OLX ID.
 //

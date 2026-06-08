@@ -1,4 +1,4 @@
-// src/lib/state/settings.ts
+// packages/shared/lib/state/settings.ts
 //
 // System-scope fields — global application state shared across the entire
 // Learning Observer application.

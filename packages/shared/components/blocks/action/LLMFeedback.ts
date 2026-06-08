@@ -1,4 +1,4 @@
-// src/components/blocks/LLMFeedback.jsx
+// packages/shared/components/blocks/action/LLMFeedback.ts
 // This component renders output from an LLM call (typically triggered by a <LLMButton>).
 // It displays a 🤖 icon, shows a spinner while waiting, and then renders the feedback.
 

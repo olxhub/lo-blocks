@@ -1,4 +1,4 @@
-// CharacterBuilder/_addMenu.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_addMenu.tsx
 //
 // Multi-step add-section menu: type selection → dimension picker or
 // stats preset selection.

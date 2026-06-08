@@ -1,4 +1,4 @@
-// src/components/blocks/PEGDevBlock/_PEGDevBlock.jsx
+// packages/shared/components/blocks/specialized/PEGDevBlock/_PEGDevBlock.tsx
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
 import { assertNamedObject } from '@/lib/util/kids';

@@ -1,4 +1,4 @@
-// src/app/api/docs/route.js
+// apps/web/app/api/docs/route.js
 //
 // Block documentation API - serves metadata for all registered blocks.
 // Uses BLOCK_REGISTRY which includes runtime metadata (description, fields, etc.)

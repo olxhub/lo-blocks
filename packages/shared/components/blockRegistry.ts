@@ -1,4 +1,4 @@
-// src/components/blockRegistry.ts
+// packages/shared/components/blockRegistry.ts
 //
 // Block Registry - the authoritative map of OLX tag names to block definitions.
 //

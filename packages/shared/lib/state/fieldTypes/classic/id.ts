@@ -1,4 +1,4 @@
-// lib/state/fieldTypes/classic/id.ts
+// packages/shared/lib/state/fieldTypes/classic/id.ts
 //
 // Classic ID field — monotonic counter that generates unique, stable IDs.
 //

@@ -1,4 +1,4 @@
-// src/components/blocks/Image/Image.js
+// packages/shared/components/blocks/display/Image/Image.ts
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

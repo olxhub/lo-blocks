@@ -1,4 +1,4 @@
-// src/lib/state/fields.ts
+// packages/shared/lib/state/fields.ts
 //
 // Field definition system - declarative state management for Learning Observer blocks.
 //

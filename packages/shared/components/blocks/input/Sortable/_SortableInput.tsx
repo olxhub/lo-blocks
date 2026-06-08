@@ -1,4 +1,4 @@
-// src/components/blocks/Sortable/_SortableInput.jsx
+// packages/shared/components/blocks/input/Sortable/_SortableInput.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Navigator/_NavigatorTeamDetail.jsx
+// packages/shared/components/blocks/layout/Navigator/_NavigatorTeamDetail.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

@@ -1,4 +1,4 @@
-// src/lib/stateLanguage/syntax.test.ts
+// packages/shared/lib/stateLanguage/syntax.test.ts
 //
 // Doctest-style tests from syntax.md
 // Parses >>> lines as expressions, compares to expected AST if provided.

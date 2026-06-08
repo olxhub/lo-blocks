@@ -1,4 +1,4 @@
-// src/components/common/CodeEditor/CodeEditor.tsx
+// packages/shared/components/common/CodeEditor/CodeEditor.tsx
 'use client';
 
 import { useMemo, useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';

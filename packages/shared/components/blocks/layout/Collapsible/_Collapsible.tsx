@@ -1,4 +1,4 @@
-// src/components/blocks/layout/Collapsible/_Collapsible.jsx
+// packages/shared/components/blocks/layout/Collapsible/_Collapsible.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 

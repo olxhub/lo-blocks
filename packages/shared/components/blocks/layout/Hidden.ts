@@ -1,4 +1,4 @@
-// src/components/blocks/Hidden.js
+// packages/shared/components/blocks/layout/Hidden.ts
 import * as parsers from '@/lib/content/parsers';
 import { core } from '@/lib/blocks';
 import _Hidden from './_Hidden';

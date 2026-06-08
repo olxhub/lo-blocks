@@ -1,4 +1,4 @@
-// src/app/fonts.js
+// apps/web/app/fonts.ts
 import localFont from "next/font/local";
 
 // Geist Sans: 100-900, normal style

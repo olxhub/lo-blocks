@@ -1,4 +1,4 @@
-// src/app/api/file/route.js
+// apps/web/app/api/file/route.js
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { VersionConflictError } from '@/lib/types/storage';
 import { validateContentPath } from '@/lib/lofs/contentPaths';

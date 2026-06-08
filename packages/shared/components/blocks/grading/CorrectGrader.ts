@@ -1,4 +1,4 @@
-// src/components/blocks/grading/CorrectGrader.ts
+// packages/shared/components/blocks/grading/CorrectGrader.ts
 //
 // Always-correct grader for surveys and ungraded activities.
 // Marks any submission as correct regardless of input.

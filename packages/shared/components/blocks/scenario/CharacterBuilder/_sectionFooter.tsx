@@ -1,4 +1,4 @@
-// CharacterBuilder/_sectionFooter.tsx
+// packages/shared/components/blocks/scenario/CharacterBuilder/_sectionFooter.tsx
 //
 // Shared footer for all card types: Done + Remove buttons.
 'use client';

@@ -1,4 +1,4 @@
-// src/components/blocks/ChoiceInput/_ChoiceItem.jsx
+// packages/shared/components/blocks/input/ChoiceInput/_ChoiceItem.tsx
 //
 // Shared UI component for Key and Distractor elements.
 // Renders as radio button under ChoiceInput, checkbox under CheckboxInput.

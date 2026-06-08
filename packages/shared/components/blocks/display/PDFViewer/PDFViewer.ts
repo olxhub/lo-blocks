@@ -1,4 +1,4 @@
-// src/components/blocks/display/PDFViewer/PDFViewer.ts
+// packages/shared/components/blocks/display/PDFViewer/PDFViewer.ts
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';

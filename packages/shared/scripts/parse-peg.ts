@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// src/scripts/parse-peg.js
+// packages/shared/scripts/parse-peg.ts
 import { promises as fs } from 'fs';
 import path from 'path';
 import stringify from 'json-stable-stringify';
