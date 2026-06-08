@@ -1,4 +1,4 @@
 <!-- Render-time failure via a raw TypeError (calling an undefined member).
      Exercises toAppError on a non-AppError throw — the "something random"
      case that often reports an unhelpful message/stack. -->
-<BuggyBlock id="BuggyBlockRenderUndefined" throws="render" kind="undefined"/>
+<BadBlock id="BadBlockRenderUndefined" throws="render" kind="undefined"/>

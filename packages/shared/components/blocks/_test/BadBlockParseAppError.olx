@@ -2,5 +2,5 @@
      (OLXLoadingError-ish: type/title/message/location) — the "proper, typed
      error" path rather than a random throw. Downgraded to a recoverable
      ErrorNode (the file still parses). -->
-<BuggyBlock id="BuggyBlockParseAppError" throws="parse" kind="apperror"
-            message="BuggyBlock: deliberate parse-time failure (typed parse error)"/>
+<BadBlock id="BadBlockParseAppError" throws="parse" kind="apperror"
+            message="BadBlock: deliberate parse-time failure (typed parse error)"/>

@@ -1,4 +1,4 @@
-// packages/shared/components/blocks/_test/BuggyBlock.ts
+// packages/shared/components/blocks/_test/BadBlock.ts
 //
 // Internal test block that deliberately fails, so we can exercise — and, in the
 // test suite, PROVE we actually detect — the error pipeline end to end:
@@ -9,7 +9,7 @@
 //   - render-time exceptions   (real app: RenderOLX's ErrorBoundary →
 //                               DisplayError + render-error ErrorNode)
 //
-// Pairs with the BuggyBlock*.olx fixtures and the canary assertions in
+// Pairs with the BadBlock*.olx fixtures and the canary assertions in
 // demo-render.test.ts that confirm each failure mode actually surfaces (a bad
 // test that silently passes when rendering breaks is itself a bug).
 //
@@ -18,7 +18,7 @@ import { test } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import type { OLXLoadingError } from '@/lib/types/errors';
-import { _BuggyBlock } from './_BuggyBlock';
+import { _BadBlock } from './_BadBlock';
 
 // throws: when (if ever) to blow up.  kind: what to throw.
 //   kind="native"    → new Error(message)             (well-formed)
@@ -40,7 +40,7 @@ const buggyParser = childParser(async function buggyParser(ctx: any) {
   const { throws = 'render', kind = 'native', warn, message } = attrs;
   const msg = typeof message === 'string' && message
     ? message
-    : `BuggyBlock: deliberate parse-time ${throws === 'parse' ? 'failure' : 'warning'}`;
+    : `BadBlock: deliberate parse-time ${throws === 'parse' ? 'failure' : 'warning'}`;
 
   if (warn) {
     // Non-fatal: collected into result.errors and shown in the warnings panel,
@@ -48,7 +48,7 @@ const buggyParser = childParser(async function buggyParser(ctx: any) {
     // shape so it's enforced, not a stray object literal.
     const warning: OLXLoadingError = {
       type: 'attribute_validation',
-      title: 'BuggyBlock parse-time warning',
+      title: 'BadBlock parse-time warning',
       message: msg,
       location: { provenance },
       technical: { kind, synthetic: true },
@@ -65,7 +65,7 @@ const buggyParser = childParser(async function buggyParser(ctx: any) {
       // Throw our canonical parse-error shape, typed (not a stray literal).
       const parseError: OLXLoadingError = {
         type: 'parse_error',
-        title: 'BuggyBlock parse failure',
+        title: 'BadBlock parse failure',
         message: msg,
         location: { provenance },
         technical: { kind, synthetic: true },
@@ -80,13 +80,13 @@ const buggyParser = childParser(async function buggyParser(ctx: any) {
 buggyParser.childMode = 'none';
 buggyParser.staticKids = () => [];
 
-const BuggyBlock = test({
+const BadBlock = test({
   ...buggyParser(),
-  name: 'BuggyBlock',
+  name: 'BadBlock',
   description: 'Internal test block that deliberately fails (parse/render) to exercise and verify the error-handling pipeline',
-  component: _BuggyBlock,
+  component: _BadBlock,
   attributes,
   internal: true,
 });
 
-export default BuggyBlock;
+export default BadBlock;

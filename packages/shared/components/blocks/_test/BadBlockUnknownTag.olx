@@ -6,4 +6,4 @@
      NOTE: this means collectErrors (which scans the tree) does NOT see it.
      render-time validation / missing-component errors are a channel the in-tree
      query doesn't cover — see docs/error-handling-design.md. -->
-<BuggyBloke/>
+<BadBloke/>

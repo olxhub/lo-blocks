@@ -121,10 +121,10 @@ describe('Demo OLX files render without errors', () => {
       const relativePath = path.relative(process.cwd(), filePath);
       const fileName = path.basename(filePath);
 
-      // BuggyBlock fixtures fail on purpose (parse/render). They are asserted
+      // BadBlock fixtures fail on purpose (parse/render). They are asserted
       // separately in the "error-pipeline canary" suite below, which proves the
       // detection channels THIS test relies on actually fire.
-      if (fileName.startsWith('BuggyBlock')) continue;
+      if (fileName.startsWith('BadBlock')) continue;
 
       // Skip files that are meant to demonstrate errors
       const isIntentionalError = intentionalErrorFiles.some(f => fileName === f);
@@ -250,7 +250,7 @@ describe('Demo OLX files render without errors', () => {
 //
 // The suite above asserts that no real block surfaces an error. But that test
 // is only trustworthy if its detection channels actually fire — otherwise it is
-// a "bad test" that silently passes even when rendering breaks. The BuggyBlock
+// a "bad test" that silently passes even when rendering breaks. The BadBlock
 // fixtures fail on purpose, one failure mode each, so we can assert that each
 // channel is detected:
 //
@@ -267,7 +267,7 @@ describe('Demo OLX files render without errors', () => {
 // If any of these STOP failing, the "all blocks render clean" test can no
 // longer be trusted — that's what this canary catches.
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
+describe('Error-pipeline canary (BadBlock fixtures)', () => {
   const buggyDir = path.resolve('./packages/shared/components/blocks/_test');
 
   async function parseFixture(name: string) {
@@ -294,17 +294,17 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     return rtlRender(React.createElement(Provider, { store: reduxStore }, element));
   }
 
-  it('found BuggyBlock fixtures', async () => {
+  it('found BadBlock fixtures', async () => {
     const files = (await findOlxFiles(buggyDir))
       .map(f => path.basename(f))
-      .filter(f => f.startsWith('BuggyBlock'));
+      .filter(f => f.startsWith('BadBlock'));
     expect(files.length).toBeGreaterThan(0);
   });
 
   it.each([
-    'BuggyBlockParse.olx',
-    'BuggyBlockParseUndefined.olx',
-    'BuggyBlockParseAppError.olx',
+    'BadBlockParse.olx',
+    'BadBlockParseUndefined.olx',
+    'BadBlockParseAppError.olx',
   ])('parse-time throw → downgraded ErrorNode, surfaced by collectErrors: %s', async (name) => {
     // A throwing parser no longer aborts the whole file; it becomes a
     // recoverable ErrorNode in the tree, which collectErrors returns.
@@ -315,8 +315,8 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     expect(errs.find(e => e.id.endsWith(id))?.type).toBe('parse_error');
   });
 
-  it('parse-time warning is surfaced (now fatal in the main suite): BuggyBlockWarning.olx', async () => {
-    const parsed = await parseFixture('BuggyBlockWarning.olx');
+  it('parse-time warning is surfaced (now fatal in the main suite): BadBlockWarning.olx', async () => {
+    const parsed = await parseFixture('BadBlockWarning.olx');
     expect(parsed.errors?.length ?? 0).toBeGreaterThan(0); // warning recorded
     expect(parsed.root).toBeTruthy();                       // and it still parsed
     // A non-downgrading warning keeps the block, so it is NOT in the tree —
@@ -328,8 +328,8 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     cleanup();
   });
 
-  it('parse error → collectErrors AND the .lo-display-error detector fire: BuggyBlockBadAttribute.olx', async () => {
-    const parsed = await parseFixture('BuggyBlockBadAttribute.olx');
+  it('parse error → collectErrors AND the .lo-display-error detector fire: BadBlockBadAttribute.olx', async () => {
+    const parsed = await parseFixture('BadBlockBadAttribute.olx');
     // Representation channel: the in-tree query sees it…
     expect(collectErrors(parsed.idMap).length).toBeGreaterThan(0);
     // …and the display channel renders it as a DisplayError.
@@ -339,20 +339,20 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     cleanup();
   });
 
-  it('malformed XML is a whole-file fatal (no tree to downgrade): BuggyBlockUnclosed.olx', async () => {
+  it('malformed XML is a whole-file fatal (no tree to downgrade): BadBlockUnclosed.olx', async () => {
     // XMLValidator rejects before any tree exists, so parseOLX throws rather
     // than producing a per-block ErrorNode.
-    await expect(parseFixture('BuggyBlockUnclosed.olx')).rejects.toBeTruthy();
+    await expect(parseFixture('BadBlockUnclosed.olx')).rejects.toBeTruthy();
   });
 
-  it('invalid attribute VALUE → attribute_validation ErrorNode (collectErrors): BuggyBlockBadEnum.olx', async () => {
-    const parsed = await parseFixture('BuggyBlockBadEnum.olx');
+  it('invalid attribute VALUE → attribute_validation ErrorNode (collectErrors): BadBlockBadEnum.olx', async () => {
+    const parsed = await parseFixture('BadBlockBadEnum.olx');
     const errs = collectErrors(parsed.idMap);
     expect(errs.some(e => e.type === 'attribute_validation')).toBe(true);
   });
 
-  it('unknown tag → RENDER-time DisplayError, NOT a tree ErrorNode (gap collectErrors misses): BuggyBlockUnknownTag.olx', async () => {
-    const parsed = await parseFixture('BuggyBlockUnknownTag.olx');
+  it('unknown tag → RENDER-time DisplayError, NOT a tree ErrorNode (gap collectErrors misses): BadBlockUnknownTag.olx', async () => {
+    const parsed = await parseFixture('BadBlockUnknownTag.olx');
     expect(parsed.root).toBeTruthy();
     // Parses clean — unknown tags fall through to the default blocks parser, so
     // there is NO ErrorNode in the tree…
@@ -365,8 +365,8 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     cleanup();
   });
 
-  it('a Vertical renders fully with every parse failure downgraded inline: BuggyBlockVertical.olx', async () => {
-    const parsed = await parseFixture('BuggyBlockVertical.olx');
+  it('a Vertical renders fully with every parse failure downgraded inline: BadBlockVertical.olx', async () => {
+    const parsed = await parseFixture('BadBlockVertical.olx');
     expect(parsed.root).toBeTruthy();
     // Four blocks fail to parse (native, undefined, typed, bad-attribute) → four
     // inline ErrorNodes; the warning + healthy + Markdown blocks stay clean.
@@ -381,9 +381,9 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
   });
 
   it.each([
-    'BuggyBlockRender.olx',
-    'BuggyBlockRenderUndefined.olx',
-    'BuggyBlockRenderAppError.olx',
+    'BadBlockRender.olx',
+    'BadBlockRenderUndefined.olx',
+    'BadBlockRenderAppError.olx',
   ])('render-time throw is detected: %s (parses clean, mounting throws)', async (name) => {
     const parsed = await parseFixture(name);
     expect(parsed.root).toBeTruthy(); // parsing succeeds…

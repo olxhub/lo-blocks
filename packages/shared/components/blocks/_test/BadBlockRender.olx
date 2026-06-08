@@ -1,5 +1,5 @@
 <!-- Render-time failure (native Error). In the app: caught by RenderOLX's
      ErrorBoundary → DisplayError + a render-error ErrorNode in the event log.
      In demo-render.test.ts (no boundary): mounting throws. -->
-<BuggyBlock id="BuggyBlockRender" throws="render" kind="native"
-            message="BuggyBlock: deliberate render-time failure (native Error)"/>
+<BadBlock id="BadBlockRender" throws="render" kind="native"
+            message="BadBlock: deliberate render-time failure (native Error)"/>

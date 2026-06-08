@@ -6,12 +6,12 @@
      Render-time throws are deliberately excluded: there is a single ErrorBoundary
      at the RenderOLX root (no per-block boundary), so one render throw would
      replace the whole subtree, not just its own block. Render errors are covered
-     in isolation by BuggyBlockRender*.olx; showing them inline here would require
+     in isolation by BadBlockRender*.olx; showing them inline here would require
      per-block boundaries (see docs/error-handling-design.md). -->
-<Vertical id="BuggyBlockVertical" title="BuggyBlock — all parse error modes">
+<Vertical id="BadBlockVertical" title="BadBlock — all parse error modes">
 
   <Markdown id="bbv_intro">
-## BuggyBlock parse-error gallery
+## BadBlock parse-error gallery
 
 Each block below fails to parse a different way. The whole Vertical still
 renders — every failure is downgraded to an inline error in place, and the
@@ -19,24 +19,24 @@ healthy blocks render normally.
   </Markdown>
 
   <Markdown id="bbv_native_label">**Native `Error` thrown from the parser:**</Markdown>
-  <BuggyBlock id="bbv_native" throws="parse" kind="native"
+  <BadBlock id="bbv_native" throws="parse" kind="native"
               message="parse failure (native Error)"/>
 
   <Markdown id="bbv_undefined_label">**Raw `TypeError` (undefined call) in the parser:**</Markdown>
-  <BuggyBlock id="bbv_undefined" throws="parse" kind="undefined"/>
+  <BadBlock id="bbv_undefined" throws="parse" kind="undefined"/>
 
   <Markdown id="bbv_apperror_label">**Typed parse error (`OLXLoadingError`):**</Markdown>
-  <BuggyBlock id="bbv_apperror" throws="parse" kind="apperror"
+  <BadBlock id="bbv_apperror" throws="parse" kind="apperror"
               message="parse failure (typed OLXLoadingError)"/>
 
   <Markdown id="bbv_badattr_label">**Invalid attribute (schema rejection → ErrorNode):**</Markdown>
-  <BuggyBlock id="bbv_badattr" throws="none" bogusAttribute="nope"/>
+  <BadBlock id="bbv_badattr" throws="none" bogusAttribute="nope"/>
 
   <Markdown id="bbv_warn_label">**Non-fatal warning (renders fine, warns):**</Markdown>
-  <BuggyBlock id="bbv_warn" throws="none" warn="true"
+  <BadBlock id="bbv_warn" throws="none" warn="true"
               message="non-fatal parse warning"/>
 
-  <Markdown id="bbv_ok_label">**Healthy BuggyBlock (no failure):**</Markdown>
-  <BuggyBlock id="bbv_ok" throws="none"/>
+  <Markdown id="bbv_ok_label">**Healthy BadBlock (no failure):**</Markdown>
+  <BadBlock id="bbv_ok" throws="none"/>
 
 </Vertical>
