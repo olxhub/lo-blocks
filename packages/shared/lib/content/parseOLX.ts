@@ -34,6 +34,7 @@ import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
+import { toAppError } from '@/lib/types/errors';
 
 const defaultParser = parsers.blocks().parser;
 
@@ -680,6 +681,11 @@ export async function parseOLX(
     // in the ID map. A single node may generate multiple entries this way.
     // The return value of `parseNode` simply exposes the block's primary id
     // and is only used when determining the document's root.
+    //
+    // A parser that THROWS is downgraded to a recoverable ErrorNode for this
+    // block (below), mirroring the invalid-id / bad-attribute downgrades — so
+    // one bad block can't abort parsing the whole file.
+    try {
     await parser({
       id,
       rawParsed: node,
@@ -815,6 +821,36 @@ export async function parseOLX(
       // Pass errors array to parsers so they can accumulate errors too
       errors
     });
+    } catch (parserError: any) {
+      // The block's parser threw. Downgrade to a recoverable ErrorNode (same
+      // shape/handling as the invalid-id and bad-attribute paths above) so the
+      // rest of the file still parses and the failure is visible in the tree.
+      const appError = toAppError(parserError);
+      const errorObj = {
+        type: 'parse_error' as const,
+        title: `Parser error in <${tag}> in ${provenance.join(', ')}`,
+        message: appError.message,
+        location: { provenance, ...offsetToLineCol(xml, sourceOffset) },
+        // Keep technical JSON-safe (idMap is dispatched as olxjson / saved).
+        technical: {
+          tag,
+          id,
+          ...(appError.stack ? { stack: appError.stack } : {}),
+        },
+      };
+      errors.push(errorObj);
+      const lang = resolveElementLanguage(parsedAttributes, currentLang, metadataLang);
+      if (!idMap[id]) idMap[id] = {};
+      idMap[id][lang] = {
+        id, tag: 'ErrorNode', attributes: errorObj, provenance,
+        rawParsed: node, kids: [], parseError: true,
+        lang,
+        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
+        ...(metadata || {})
+      };
+      parsedIds.push(id);
+      return { type: 'block', id };
+    }
 
     // Structural validation: check children after they are parsed
     if (Component?.validateChildren) {

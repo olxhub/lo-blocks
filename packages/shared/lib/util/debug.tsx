@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { LofsRef } from '@/lib/types';
 import type { AppError } from '@/lib/types/errors';
 import { getExtension } from '@/lib/util/fileTypes';
+import { safeStringify } from '@/lib/util';
 import { useFieldState, settings } from '@/lib/state';
 
 interface TraceProps {
@@ -149,15 +150,8 @@ export function DisplayError({ props = {}, title = 'Error', message, technical, 
   // Log raw data for dev console inspection
   debugLog(`[${title}] ${message}`, { technical, stack, data });
 
-  // Helper: stringify safely
-  const safe = (value) => {
-    if (typeof value === 'string' || typeof value === 'number') return value;
-    try {
-      return JSON.stringify(value, null, 2);
-    } catch {
-      return '[Unserializable]';
-    }
-  };
+  // Stringify safely for display (pretty-printed).
+  const safe = (value: unknown) => safeStringify(value, { pretty: true });
 
   const [debug] = useFieldState(props, settings.debug, false);
 

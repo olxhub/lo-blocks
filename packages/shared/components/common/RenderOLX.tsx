@@ -49,11 +49,14 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { toAppError, type AppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
-import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
+import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
+import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
 import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
@@ -110,7 +113,7 @@ function useParseContent(
   source?: string,
   logEvent?: any,
   sideEffectFree?: boolean,
-  onError?: (err: any) => void,
+  onError?: (error: AppError) => void,
   ns?: ContentNamespace
 ) {
   const [parsed, setParsed] = useState<any>(null);
@@ -208,7 +211,7 @@ function useParseContent(
       } catch (err) {
         if (!cancelled) {
           setFatalError(err.message || String(err));
-          onError?.(err);
+          onError?.(toAppError(err));
         }
       }
     }
@@ -272,8 +275,9 @@ interface RenderOLXProps {
   resolveProvider?: any;
   /** Source identifier for debugging/tracking (e.g., 'file:content://path/to.olx') */
   provenance?: string;
-  /** Called when parsing or rendering errors occur */
-  onError?: (err: any) => void;
+  /** Called with a canonical AppError when parsing or rendering fails. For
+   *  render errors, `technical` carries React's component stack (which block). */
+  onError?: (error: AppError) => void;
   /** Called after parsing completes with the merged idMap and root ID */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom block registry (defaults to BLOCK_REGISTRY) */
@@ -419,13 +423,16 @@ export default function RenderOLX({
     return <Spinner>Loading language settings...</Spinner>;
   }
 
-  // Parse error (from inline/files parsing)
+  // Fatal parse error (e.g. malformed XML — no tree to render). Route through
+  // the same DisplayError surface as every other error rather than a bespoke
+  // div, so display stays uniform.
   if (fatalError) {
     return (
-      <div className="text-error p-2 border border-error rounded bg-error-subtle">
-        <div className="font-semibold">Error rendering OLX</div>
-        <pre className="text-sm mt-1 whitespace-pre-wrap">{fatalError}</pre>
-      </div>
+      <DisplayError
+        title="Error rendering OLX"
+        message={fatalError}
+        id={`${renderIdToQuery}_fatal_error`}
+      />
     );
   }
 
@@ -446,10 +453,38 @@ export default function RenderOLX({
   // useBlock handles spinner/error display - just wrap in ErrorBoundary
   return (
     <ErrorBoundary
-      resetKey={parsed}
-      handler={(err) => {
-        onError?.(err);
+      // Reset when content identity changes OR on re-parse. On preview pages
+      // `parsed` stays null, so renderIdToQuery is what changes when navigating
+      // between blocks; without it the boundary stays stuck on a stale fallback.
+      // (Array compared shallowly by ErrorBoundary, so a fresh literal is fine.)
+      resetKey={[renderIdToQuery, parsed]}
+      handler={(err, info) => {
+        // Canonical AppError carrying the JS stack (err.stack) and React's
+        // component stack (info.componentStack — which block actually threw).
+        const error = toAppError(err, { technical: info.componentStack || undefined });
+        // Record it as a derived-key ErrorNode in olxjson: keyed, in the event
+        // log/replay, NOT persisted (so it reconstructs away once the bug is
+        // fixed). This dispatch IS the keyed event — no manual logEvent needed.
+        //
+        // No try/catch (fail fast): toAppError is total and renderErrorKey
+        // normalizes scoped keys so it won't throw; if dispatch or a caller's
+        // onError throws, that's a real bug we want surfaced, not swallowed.
+        if (runtime.store) {
+          const node = renderErrorOlxJson(String(renderIdToQuery), error);
+          dispatchOlxJsonSync(runtime.store, source, {
+            [node.id]: { [runtime.locale?.code ?? 'base']: node },
+          });
+        }
+        onError?.(error);
       }}
+      fallbackRender={(err, info) => (
+        <DisplayError
+          {...toAppError(err, { technical: info?.componentStack || undefined })}
+          // Same derived key as the dispatched node, so the on-screen id and the
+          // event-log node agree.
+          id={String(renderErrorKey(String(renderIdToQuery)))}
+        />
+      )}
     >
       {warnings.length > 0 && (
         <div className="text-warning p-3 border border-warning rounded bg-warning-subtle mb-2 text-sm">

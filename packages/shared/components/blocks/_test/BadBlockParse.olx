@@ -1,0 +1,5 @@
+<!-- Parse-time failure (native Error thrown from the block's parser). The throw
+     is downgraded to a recoverable ErrorNode for this block (the file still
+     parses); surfaced by collectErrors and rendered as a DisplayError. -->
+<BadBlock id="BadBlockParse" throws="parse" kind="native"
+            message="BadBlock: deliberate parse-time failure (native Error)"/>

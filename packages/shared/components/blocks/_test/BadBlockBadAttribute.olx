@@ -1,0 +1,6 @@
+<!-- Invalid attribute against the strict schema. parseOLX does NOT throw; it
+     records an attribute_validation error AND replaces the block with an
+     ErrorNode entry, which renders as a DisplayError. This is the channel the
+     demo-render `.lo-display-error` DOM check is meant to catch — the canary
+     asserts that detector actually fires. -->
+<BadBlock id="BadBlockBadAttribute" throws="none" bogusAttribute="nope"/>

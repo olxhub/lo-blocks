@@ -1,0 +1,6 @@
+<!-- Parse-time failure that throws our canonical parse-error shape
+     (OLXLoadingError-ish: type/title/message/location) — the "proper, typed
+     error" path rather than a random throw. Downgraded to a recoverable
+     ErrorNode (the file still parses). -->
+<BadBlock id="BadBlockParseAppError" throws="parse" kind="apperror"
+            message="BadBlock: deliberate parse-time failure (typed parse error)"/>

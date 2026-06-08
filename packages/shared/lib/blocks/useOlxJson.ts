@@ -19,10 +19,12 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { AppError } from '@/lib/types/errors';
+import { safeStringify } from '@/lib/util';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
@@ -307,6 +309,49 @@ function errorOlxJson(id: string, message: string): OlxJson {
     id: sentinelKey(id, '_error_'),
     tag: 'ErrorNode' as any,
     attributes: { message },
+    kids: [],
+    provenance: [],
+  };
+}
+
+/**
+ * Derived DefinitionKey for a block's RENDER error. Uses a distinct
+ * `_renderError_` prefix (load errors use `_error_`) so the two never clobber
+ * each other under one key — and so the dispatched node and the on-screen
+ * DisplayError can share exactly one key. Reduces a scoped StateKey
+ * (e.g. "CONTENT/list:#0:answer") to its leaf definition first, because
+ * sentinelKey → parseDefinitionKey throws on a scope marker.
+ */
+export function renderErrorKey(id: string): DefinitionKey {
+  return sentinelKey(leafDefinitionKeyFromStateKey(asStateKey(id)), '_renderError_');
+}
+
+/**
+ * Construct an ErrorNode OlxJson carrying a full AppError, at the
+ * `_renderError_` derived DefinitionKey for `id` ({@link renderErrorKey}). Used
+ * by the render-error path: a render failure of block `id` becomes an ErrorNode
+ * here (AppError as attributes), dispatched into olxjson — keyed + in the event
+ * log, and NOT persisted (so it reconstructs away when the underlying bug is
+ * fixed).
+ *
+ * This node is serialized (save_blob JSON, BroadcastChannel structured clone),
+ * so its attributes MUST be JSON-safe. `AppError.technical` is `any`, so we
+ * coerce it to a string — a non-JSON value (Error, React element, function,
+ * circular) would otherwise throw DataCloneError on tab-sync. Rich/non-JSON
+ * error detail belongs in the boundary's live DisplayError, never in the node.
+ */
+export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
+  // Only include defined, JSON-safe string fields (no `undefined` keys).
+  const attributes: Record<string, string> = { message: error.message };
+  if (error.title) attributes.title = error.title;
+  if (error.stack) attributes.stack = error.stack;
+  if (error.technical != null) {
+    attributes.technical = safeStringify(error.technical);
+  }
+  return {
+    id: renderErrorKey(id),
+    tag: 'ErrorNode' as any,
+    attributes,
     kids: [],
     provenance: [],
   };

@@ -1,0 +1,6 @@
+<!-- Parse-time WARNING: the block parses and renders fine, but pushes an
+     OLXLoadingError into result.errors (the warnings panel). The canary asserts
+     the warning is recorded; the main demo-render suite now treats any such
+     warning on a real fixture as fatal, so warnings can't be silently lost. -->
+<BadBlock id="BadBlockWarning" throws="none" warn="true"
+            message="BadBlock: deliberate non-fatal parse-time warning"/>
