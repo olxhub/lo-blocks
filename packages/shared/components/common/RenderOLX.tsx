@@ -459,37 +459,32 @@ export default function RenderOLX({
       // (Array compared shallowly by ErrorBoundary, so a fresh literal is fine.)
       resetKey={[renderIdToQuery, parsed]}
       handler={(err, info) => {
-        // A boundary's job is to contain failure, not widen it — a throw here
-        // re-throws to the next boundary up. Guard the whole body.
-        try {
-          // Canonical AppError carrying the JS stack (err.stack) and React's
-          // component stack (info.componentStack — which block actually threw).
-          const error = toAppError(err, { technical: info.componentStack || undefined });
-          // Record it as a derived-key ErrorNode in olxjson: keyed, in the event
-          // log/replay, NOT persisted (so it reconstructs away once the bug is
-          // fixed). This dispatch IS the keyed event — no manual logEvent needed.
-          if (runtime.store) {
-            const node = renderErrorOlxJson(String(renderIdToQuery), error);
-            dispatchOlxJsonSync(runtime.store, source, {
-              [node.id]: { [runtime.locale?.code ?? 'base']: node },
-            });
-          }
-          onError?.(error);
-        } catch (handlerError) {
-          console.error('RenderOLX render-error handler failed:', handlerError);
+        // Canonical AppError carrying the JS stack (err.stack) and React's
+        // component stack (info.componentStack — which block actually threw).
+        const error = toAppError(err, { technical: info.componentStack || undefined });
+        // Record it as a derived-key ErrorNode in olxjson: keyed, in the event
+        // log/replay, NOT persisted (so it reconstructs away once the bug is
+        // fixed). This dispatch IS the keyed event — no manual logEvent needed.
+        //
+        // No try/catch (fail fast): toAppError is total and renderErrorKey
+        // normalizes scoped keys so it won't throw; if dispatch or a caller's
+        // onError throws, that's a real bug we want surfaced, not swallowed.
+        if (runtime.store) {
+          const node = renderErrorOlxJson(String(renderIdToQuery), error);
+          dispatchOlxJsonSync(runtime.store, source, {
+            [node.id]: { [runtime.locale?.code ?? 'base']: node },
+          });
         }
+        onError?.(error);
       }}
-      fallbackRender={(err, info) => {
-        const error = toAppError(err, { technical: info?.componentStack || undefined });
-        // Same key as the dispatched node, so on-screen id and event node agree.
-        let id: string;
-        try {
-          id = String(renderErrorKey(String(renderIdToQuery)));
-        } catch {
-          id = `${renderIdToQuery}_render_error`;
-        }
-        return <DisplayError {...error} id={id} />;
-      }}
+      fallbackRender={(err, info) => (
+        <DisplayError
+          {...toAppError(err, { technical: info?.componentStack || undefined })}
+          // Same derived key as the dispatched node, so the on-screen id and the
+          // event-log node agree.
+          id={String(renderErrorKey(String(renderIdToQuery)))}
+        />
+      )}
     >
       {warnings.length > 0 && (
         <div className="text-warning p-3 border border-warning rounded bg-warning-subtle mb-2 text-sm">

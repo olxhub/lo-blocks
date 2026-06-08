@@ -24,6 +24,7 @@ import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { AppError } from '@/lib/types/errors';
+import { safeStringify } from '@/lib/util';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
 
@@ -345,9 +346,7 @@ export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
   if (error.title) attributes.title = error.title;
   if (error.stack) attributes.stack = error.stack;
   if (error.technical != null) {
-    attributes.technical = typeof error.technical === 'string'
-      ? error.technical
-      : safeStringifyTechnical(error.technical);
+    attributes.technical = safeStringify(error.technical);
   }
   return {
     id: renderErrorKey(id),
@@ -356,17 +355,6 @@ export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
     kids: [],
     provenance: [],
   };
-}
-
-function safeStringifyTechnical(value: unknown): string {
-  try {
-    const s = JSON.stringify(value);
-    // JSON.stringify(Error) is "{}" (message/stack are non-enumerable); fall
-    // back to String() so we keep something legible rather than an empty object.
-    return s && s !== '{}' ? s : String(value);
-  } catch {
-    return String(value);
-  }
 }
 
 // =============================================================================

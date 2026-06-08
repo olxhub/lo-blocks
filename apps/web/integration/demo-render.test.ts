@@ -339,6 +339,47 @@ describe('Error-pipeline canary (BuggyBlock fixtures)', () => {
     cleanup();
   });
 
+  it('malformed XML is a whole-file fatal (no tree to downgrade): BuggyBlockUnclosed.olx', async () => {
+    // XMLValidator rejects before any tree exists, so parseOLX throws rather
+    // than producing a per-block ErrorNode.
+    await expect(parseFixture('BuggyBlockUnclosed.olx')).rejects.toBeTruthy();
+  });
+
+  it('invalid attribute VALUE → attribute_validation ErrorNode (collectErrors): BuggyBlockBadEnum.olx', async () => {
+    const parsed = await parseFixture('BuggyBlockBadEnum.olx');
+    const errs = collectErrors(parsed.idMap);
+    expect(errs.some(e => e.type === 'attribute_validation')).toBe(true);
+  });
+
+  it('unknown tag → RENDER-time DisplayError, NOT a tree ErrorNode (gap collectErrors misses): BuggyBlockUnknownTag.olx', async () => {
+    const parsed = await parseFixture('BuggyBlockUnknownTag.olx');
+    expect(parsed.root).toBeTruthy();
+    // Parses clean — unknown tags fall through to the default blocks parser, so
+    // there is NO ErrorNode in the tree…
+    expect(collectErrors(parsed.idMap).length).toBe(0);
+    // …the failure shows only at render time (render.tsx "No component found"),
+    // as inline DisplayError JSX — not in olxjson, so collectErrors can't see it.
+    const { container, unmount } = mountRoot(parsed);
+    expect(container.querySelectorAll('.lo-display-error').length).toBeGreaterThan(0);
+    unmount();
+    cleanup();
+  });
+
+  it('a Vertical renders fully with every parse failure downgraded inline: BuggyBlockVertical.olx', async () => {
+    const parsed = await parseFixture('BuggyBlockVertical.olx');
+    expect(parsed.root).toBeTruthy();
+    // Four blocks fail to parse (native, undefined, typed, bad-attribute) → four
+    // inline ErrorNodes; the warning + healthy + Markdown blocks stay clean.
+    const errs = collectErrors(parsed.idMap);
+    expect(errs.length).toBeGreaterThanOrEqual(4);
+    // Crucially, the whole Vertical still mounts (parse errors are per-block) —
+    // each failure shows inline rather than taking down the subtree.
+    const { container, unmount } = mountRoot(parsed);
+    expect(container.querySelectorAll('.lo-display-error').length).toBeGreaterThanOrEqual(4);
+    unmount();
+    cleanup();
+  });
+
   it.each([
     'BuggyBlockRender.olx',
     'BuggyBlockRenderUndefined.olx',

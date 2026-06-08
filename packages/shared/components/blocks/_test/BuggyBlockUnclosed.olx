@@ -1,0 +1,5 @@
+<!-- Malformed XML (unclosed tag). XMLValidator rejects it before any tree
+     exists, so parseOLX THROWS (whole-file fatal) rather than downgrading a
+     block — there is no node to attach an ErrorNode to. In the app, RenderOLX
+     shows this via the fatal-parse DisplayError path. -->
+<BuggyBlock>

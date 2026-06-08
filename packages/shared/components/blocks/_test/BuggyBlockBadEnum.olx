@@ -1,0 +1,5 @@
+<!-- Valid attribute, invalid value: `kind`'s enum is native|apperror|undefined.
+     parseOLX validates against the (strict) schema, the enum check fails, and the
+     block is downgraded to an attribute_validation ErrorNode — a distinct trigger
+     from BuggyBlockBadAttribute's unknown-key rejection, same error type. -->
+<BuggyBlock kind="bad-attribute"/>

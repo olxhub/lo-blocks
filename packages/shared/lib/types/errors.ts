@@ -46,6 +46,7 @@
 
 import { z } from 'zod';
 import type { LofsDependencies } from './core';
+import { safeStringify } from '@/lib/util';
 
 // TODO(type-system-audit/lofs): replace this with a real z_lofsCanonical
 // schema once LOFS address types are refactored. This currently validates
@@ -99,16 +100,6 @@ export function toAppError(err: unknown, overrides: Partial<AppError> = {}): App
     return { ...(o as AppError), message: o.message ?? safeStringify(err), ...overrides };
   }
   return { message: String(err), ...overrides };
-}
-
-/** JSON-stringify a value as a last-resort error message; never throws. */
-function safeStringify(value: unknown): string {
-  try {
-    const s = JSON.stringify(value);
-    return s && s !== '{}' ? s : 'Unknown error';
-  } catch {
-    return 'Unknown error';
-  }
 }
 
 export const z_olxSourceLocation = z.object({

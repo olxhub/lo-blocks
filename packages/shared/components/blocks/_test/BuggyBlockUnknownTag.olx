@@ -1,0 +1,9 @@
+<!-- Unknown / typo'd tag. Unknown tags fall through to the default blocks parser
+     (parseOLX), so parsing SUCCEEDS with no ErrorNode in the tree. The failure
+     surfaces only at RENDER time as render.tsx's "No component found"
+     DisplayError — inline JSX, NOT an olxjson ErrorNode.
+
+     NOTE: this means collectErrors (which scans the tree) does NOT see it.
+     render-time validation / missing-component errors are a channel the in-tree
+     query doesn't cover — see docs/error-handling-design.md. -->
+<BuggyBloke/>

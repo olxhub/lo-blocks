@@ -25,6 +25,27 @@ export function stableStringify(v: unknown): string {
 }
 
 /**
+ * Coerce any value to a legible string without throwing — for error messages,
+ * `technical` details, debug panels, etc. (NOT for equality; use
+ * {@link stableStringify} for that.)
+ *
+ * - strings pass through unchanged;
+ * - otherwise JSON, compact or `pretty` (2-space) per options;
+ * - `JSON.stringify(error)` is `"{}"` (message/stack are non-enumerable) and
+ *   `undefined` for unsupported values, so we fall back to `String(value)`
+ *   (e.g. `"Error: boom"`) rather than emitting an empty/blank result.
+ */
+export function safeStringify(value: unknown, { pretty = false }: { pretty?: boolean } = {}): string {
+  if (typeof value === 'string') return value;
+  try {
+    const s = JSON.stringify(value, null, pretty ? 2 : undefined);
+    return s && s !== '{}' ? s : String(value);
+  } catch {
+    return String(value);
+  }
+}
+
+/**
  * Hash content (file body) for replicability in learning analytics.
  * Used to identify files across sessions and enable download restoration.
  * Returns 16-char hex string (64 bits of SHA256).
