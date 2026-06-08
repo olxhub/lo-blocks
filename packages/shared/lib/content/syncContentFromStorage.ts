@@ -2,16 +2,21 @@
 //
 // Content synchronization - loads OLX content from storage into memory.
 //
-// This module maintains two indexes:
-// 1. parsedFiles: Maps file URIs to their parsed block IDs and metadata
-// 2. blockIndex: Maps block IDs to their parsed block data
+// Maintains two indexes:
+// 1. parsedFiles: file URIs -> block IDs parsed from that file + scan metadata
+// 2. blockIndex:  block IDs -> language variant map (the idMap)
 //
 // The sync process:
 // 1. Scan storage for added/changed/unchanged/deleted files
-// 2. Detect when auxiliary files (e.g., .chatpeg) change, requiring re-parse of dependent OLX
+// 2. Detect when auxiliary files (e.g., .chatpeg) change, requiring re-parse
+//    of dependent OLX
 // 3. Remove stale blocks from the index
 // 4. Parse new/changed files and update indexes
 //
+// The core logic lives in applyFileChanges(), which takes a previous snapshot
+// and scan result and returns a new snapshot without mutating the old one.
+// syncContentFromStorage() is a thin wrapper that manages the module-level
+// snapshot and backward-compatible return shape.
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
@@ -19,6 +24,7 @@ import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, Definitio
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
+import { toAppError } from '@/lib/types/errors';
 import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -28,38 +34,50 @@ import { stableStringify } from '@/lib/util';
 // Types
 // =============================================================================
 
-/**
- * A parsed file's entry in the parsedFiles index.
- * Extends XmlFileInfo with parsing results.
- */
+/** A parsed file's entry in the parsedFiles index. */
 interface ParsedFileEntry extends XmlFileInfo {
-  blockIds: DefinitionKey[];  // IDs of blocks parsed from this file
-  error?: string;      // Set if parsing failed
+  blockIds: DefinitionKey[];
+  error?: string;
 }
 
+export interface ContentSnapshot {
+  readonly parsedFiles: Record<LofsRef, ParsedFileEntry>;
+  readonly blockIndex: Record<DefinitionKey, VariantMap>;
+  readonly errors: OLXLoadingError[];
+}
+
+export const EMPTY_SNAPSHOT: ContentSnapshot = {
+  parsedFiles: {},
+  blockIndex: {},
+  errors: [],
+};
 
 // =============================================================================
-// Block Lookup (used by translate endpoint to find source files)
+// Module State
+// =============================================================================
+
+let _snapshot: ContentSnapshot = EMPTY_SNAPSHOT;
+
+// =============================================================================
+// Query Functions (read from _snapshot)
 // =============================================================================
 
 /**
  * Find the source OLX file for a block in a given locale.
  *
  * Walks the block's provenance chain and returns the first entry that
- * is a parsed OLX/XML file. This avoids depending on provenance ordering —
+ * is a parsed OLX/XML file. This avoids depending on provenance ordering -
  * the check is "which provenance entry is an OLX file we parsed?"
- *
- * Returns a file:// URI, or null if the block/locale doesn't exist.
  */
 export function getSourceFile(blockId: DefinitionKey, locale: ContentVariant): LofsRef | null {
-  const variantMap = contentStore.blockIndex[blockId];
+  const variantMap = _snapshot.blockIndex[blockId];
   if (!variantMap?.[locale]?.provenance) return null;
 
   for (const prov of variantMap[locale].provenance) {
-    // Provenance entries are LofsCanonical (may have @version); parsedFiles is keyed
-    // by unversioned LofsRef. Strip version for lookup.
+    // Provenance entries are LofsCanonical (may have @version); parsedFiles
+    // is keyed by unversioned LofsRef. Strip version for lookup.
     const key = withoutVersion(prov);
-    const entry = contentStore.parsedFiles[key];
+    const entry = _snapshot.parsedFiles[key];
     if (entry && (entry.type === fileTypes.olx || entry.type === fileTypes.xml)) {
       return key;
     }
@@ -67,22 +85,14 @@ export function getSourceFile(blockId: DefinitionKey, locale: ContentVariant): L
   return null;
 }
 
-/**
- * Return the OlxJson for a specific block + locale from the content store.
- * Returns null if the block or locale variant doesn't exist.
- */
 export function getBlockVariant(blockId: DefinitionKey, locale: ContentVariant): OlxJson | null {
-  const variantMap = contentStore.blockIndex[blockId];
+  const variantMap = _snapshot.blockIndex[blockId];
   return variantMap?.[locale] || null;
 }
 
-/**
- * Return the first human-authored (non-generated) variant for a block.
- * Used to find the original source variant when starting from a translation.
- * Returns null if no variants exist or all are generated.
- */
+/** Return the first human-authored (non-generated) variant for a block. */
 export function getOriginalVariant(blockId: DefinitionKey): OlxJson | null {
-  const variantMap = contentStore.blockIndex[blockId];
+  const variantMap = _snapshot.blockIndex[blockId];
   if (!variantMap) return null;
   for (const olxJson of Object.values(variantMap)) {
     if (!olxJson.generated) return olxJson;
@@ -93,7 +103,7 @@ export function getOriginalVariant(blockId: DefinitionKey): OlxJson | null {
 /**
  * Return the full variant map for every block parsed from the given file(s).
  *
- * Accepts multiple URIs to cover both source and translated files — they
+ * Accepts multiple URIs to cover both source and translated files - they
  * have different auto-generated child IDs, and the client needs both sets
  * so that whichever variant extractLocalizedVariant picks, its children
  * are available.
@@ -101,11 +111,11 @@ export function getOriginalVariant(blockId: DefinitionKey): OlxJson | null {
 export function getBlocksForFiles(...fileUris: LofsRef[]): Record<DefinitionKey, VariantMap> {
   const result: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
   for (const fileUri of fileUris) {
-    const entry = contentStore.parsedFiles[fileUri];
+    const entry = _snapshot.parsedFiles[fileUri];
     if (!entry) continue;
     for (const blockId of entry.blockIds) {
-      if (contentStore.blockIndex[blockId]) {
-        result[blockId] = contentStore.blockIndex[blockId];
+      if (_snapshot.blockIndex[blockId]) {
+        result[blockId] = _snapshot.blockIndex[blockId];
       }
     }
   }
@@ -113,114 +123,138 @@ export function getBlocksForFiles(...fileUris: LofsRef[]): Record<DefinitionKey,
 }
 
 // =============================================================================
-// Internal Types and Helpers
+// Internal Helpers
 // =============================================================================
 
-/** Typed iteration over IdMap entries (Object.entries loses branded key types) */
 function* entriesIdMap(idMap: IdMap): Generator<[DefinitionKey, IdMap[DefinitionKey]]> {
   for (const [id, variants] of Object.entries(idMap)) {
     yield [id as DefinitionKey, variants];
   }
 }
 
-/** Typed iteration over variant map entries */
 function* entriesVariantMap(variantMap: IdMap[DefinitionKey]): Generator<[ContentVariant, OlxJson]> {
   yield* variantMapEntries(variantMap);
 }
 
-/** The in-memory content store */
-interface ContentStore {
-  /** Maps file URI -> parsed file entry (what blocks came from this file) */
-  parsedFiles: Record<LofsRef, ParsedFileEntry>;
-  /** Maps block ID -> language variant map (the actual parsed content) */
-  blockIndex: Record<DefinitionKey, VariantMap>;
+/** Shallow equality check for VariantMaps: same keys, same value references. */
+function variantMapsEqual(a: VariantMap, b: VariantMap): boolean {
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const k of keysA) {
+    if (a[k as ContentVariant] !== b[k as ContentVariant]) return false;
+  }
+  return true;
 }
 
 // =============================================================================
-// Module State
+// Core: apply a set of file changes to produce a new snapshot
 // =============================================================================
 
-const contentStore: ContentStore = {
-  parsedFiles: {},
-  blockIndex: {}
-};
+export async function applyFileChanges(
+  prev: ContentSnapshot,
+  scan: XmlScanResult,
+  provider: StorageProvider,
+): Promise<ContentSnapshot> {
+  // Step 1: Scan results come in via `scan` parameter
+
+  // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
+  const promoted = promoteFilesWithChangedDependencies(scan, prev.blockIndex);
+
+  // Step 3: Remove blocks from files that are deleted or about to be re-parsed
+  const filesToRemove = [
+    ...Object.keys(promoted.deleted),
+    ...Object.keys(promoted.changed),
+  ] as LofsRef[];
+  const cleaned = removeBlocksFromFiles(filesToRemove, prev.parsedFiles, prev.blockIndex);
+
+  // Step 4: Parse all new and changed files
+  const filesToParse = { ...promoted.added, ...promoted.changed };
+  const parsed = await parseAndIndexFiles(filesToParse, cleaned.blockIndex, provider);
+
+  return {
+    parsedFiles: { ...cleaned.parsedFiles, ...parsed.parsedFiles },
+    blockIndex: { ...cleaned.blockIndex, ...parsed.blockIndex },
+    errors: parsed.errors,
+  };
+}
 
 // =============================================================================
-// Main Entry Point
+// Main Entry Point (backward-compatible wrapper)
 // =============================================================================
 
 export async function syncContentFromStorage(
   provider: StorageProvider = new FileStorageProvider('./content')
 ) {
-  // Step 1: Get file change sets from storage
-  const changeSets = await provider.loadXmlFilesWithStats(
-    contentStore.parsedFiles as Record<LofsRef, XmlFileInfo>
+  const scan = await provider.loadXmlFilesWithStats(
+    _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>
   );
 
-  // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
-  promoteFilesWithChangedDependencies(changeSets, contentStore.blockIndex);
-
-  // Step 3: Remove blocks from files that are deleted or about to be re-parsed
-  const filesToRemove = [
-    ...Object.keys(changeSets.deleted),
-    ...Object.keys(changeSets.changed)
-  ] as LofsRef[];
-  removeBlocksFromFiles(filesToRemove, contentStore);
-
-  // Step 4: Parse all new and changed files
-  const filesToParse = { ...changeSets.added, ...changeSets.changed };
-  const errors = await parseAndIndexFiles(filesToParse, contentStore, provider);
+  // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
+  _snapshot = await applyFileChanges(_snapshot, scan, provider);
 
   // Step 5: Sync static assets
   await copyAssetsToPublic(provider);
 
-  // Return with legacy property names for backward compatibility
-  // Internally we use: parsedFiles/blockIds, externally: parsed/nodes/idMap
-  const parsed = Object.fromEntries(
-    Object.entries(contentStore.parsedFiles).map(([uri, entry]) => [
-      uri,
-      { ...entry, nodes: entry.blockIds }  // Alias blockIds as nodes
-    ])
-  );
-
   return {
-    parsed,
-    idMap: contentStore.blockIndex,
-    errors
+    parsed: _snapshot.parsedFiles,
+    idMap: _snapshot.blockIndex,
+    errors: [..._snapshot.errors],
   };
 }
 
 // =============================================================================
-// Step 2: Dependency Detection
+// Dependency Detection
 // =============================================================================
 
 /**
  * When an auxiliary file (e.g., .chatpeg) changes, any OLX file that references
- * it must be re-parsed. This function finds such OLX files in the "unchanged"
- * set and moves them to "changed".
+ * it must be re-parsed. Finds such OLX files in the "unchanged" set and returns
+ * a new XmlScanResult with them moved to "changed".
  */
 function promoteFilesWithChangedDependencies(
   changeSets: XmlScanResult,
   blockIndex: Record<DefinitionKey, VariantMap>,
-): void {
+): XmlScanResult {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
-  if (changedAuxiliaryFiles.size === 0) return;
+  if (changedAuxiliaryFiles.size === 0) return changeSets;
 
   const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
+  if (olxFilesToReparse.size === 0) return changeSets;
+
+  const changed = { ...changeSets.changed };
+  const unchanged = { ...changeSets.unchanged };
 
   for (const olxUri of olxFilesToReparse) {
-    moveUnchangedToChanged(olxUri, changeSets);
+    const existingEntry = unchanged[olxUri];
+    if (!existingEntry) continue;
+
+    // Copy only XmlFileInfo fields. The old entry may carry blockIds from a
+    // previous parse; those would be stale after re-parsing.
+    changed[olxUri] = {
+      id: existingEntry.id,
+      type: existingEntry.type,
+      content: existingEntry.content,
+      _metadata: existingEntry._metadata,
+    };
+    delete unchanged[olxUri];
   }
+
+  return {
+    added: changeSets.added,
+    changed,
+    unchanged,
+    deleted: changeSets.deleted,
+  };
 }
 
-/** Returns URIs of non-OLX/XML files that were added, changed, or deleted */
 function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {
   const auxiliaryFiles = new Set<LofsRef>();
 
   const allChangedFiles = [
     ...Object.entries(changeSets.added),
     ...Object.entries(changeSets.changed),
-    ...Object.entries(changeSets.deleted)
+    ...Object.entries(changeSets.deleted),
   ];
 
   for (const [uri, fileRecord] of allChangedFiles) {
@@ -233,11 +267,6 @@ function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {
   return auxiliaryFiles;
 }
 
-/**
- * Finds OLX files that depend on any of the changed auxiliary files.
- * A dependency is detected by checking if any block's provenance chain
- * includes the auxiliary file.
- */
 function findOlxFilesDependingOn(
   changedAuxiliaryFiles: Set<LofsRef>,
   blockIndex: Record<DefinitionKey, VariantMap>,
@@ -246,22 +275,15 @@ function findOlxFilesDependingOn(
   const olxFilesToReparse = new Set<LofsRef>();
 
   for (const variantMap of Object.values(blockIndex)) {
-    // blockIndex stores nested structure { variant: OlxJson }
-    // Check ALL variants for dependencies on changed auxiliary files
-    // (e.g., Arabic variant might include src="aux.ar.png" that English doesn't)
     for (const olxJson of Object.values(variantMap)) {
       if (!olxJson?.provenance || !Array.isArray(olxJson.provenance)) continue;
 
-      // Check if this variant's provenance includes a changed auxiliary file.
-      // Provenance entries are LofsCanonical (may have @version); auxiliary file keys
-      // are unversioned LofsRef. Strip version for comparison.
       const dependsOnChangedFile = olxJson.provenance.some(
         (prov) => changedAuxiliaryFiles.has(withoutVersion(prov))
       );
 
       if (dependsOnChangedFile) {
-        // The root OLX file is the first element in the provenance list.
-        // Strip version to match against unversioned Record keys.
+        // provenance[0] is the root OLX file by convention (see parseOLX).
         const rootOlxFile = withoutVersion(olxJson.provenance[0]);
         if (rootOlxFile && unchangedFiles[rootOlxFile]) {
           olxFilesToReparse.add(rootOlxFile);
@@ -273,81 +295,70 @@ function findOlxFilesDependingOn(
   return olxFilesToReparse;
 }
 
-/**
- * Moves a file from unchanged to changed for re-parsing.
- *
- * The file itself hasn't changed (it's in "unchanged"), but a dependency
- * (e.g., a .chatpeg it references) changed, so the OLX needs re-parsing.
- * Content comes from the previous scan — no re-read needed.
- *
- * IMPORTANT: We copy only the metadata, not the old blockIds.
- * The old entry may have blockIds from a previous parse, but we don't
- * want those carried into the changed set - fresh blockIds will be
- * set after re-parsing.
- */
-function moveUnchangedToChanged(
-  fileUri: LofsRef,
-  changeSets: XmlScanResult,
-): void {
-  const existingEntry = changeSets.unchanged[fileUri];
-  if (!existingEntry) return;
-
-  // Copy only XmlFileInfo fields — strip blockIds from previous parse
-  const fileRecord: XmlFileInfo = {
-    id: existingEntry.id,
-    type: existingEntry.type,
-    content: existingEntry.content,
-    _metadata: existingEntry._metadata
-  };
-
-  changeSets.changed[fileUri] = fileRecord;
-  delete changeSets.unchanged[fileUri];
-}
-
 // =============================================================================
-// Step 3: Block Removal
+// Block Removal
 // =============================================================================
 
-/**
- * Removes all blocks that were parsed from the given files.
- * This cleans up the blockIndex before re-parsing.
- */
+/** Remove all blocks that were parsed from the given files. */
 function removeBlocksFromFiles(
   fileUris: LofsRef[],
-  store: ContentStore
-): void {
+  parsedFiles: Record<LofsRef, ParsedFileEntry>,
+  blockIndex: Record<DefinitionKey, VariantMap>,
+): { parsedFiles: Record<LofsRef, ParsedFileEntry>; blockIndex: Record<DefinitionKey, VariantMap> } {
+  const idsToRemove = new Set<DefinitionKey>();
+  const urisToRemove = new Set<LofsRef>(fileUris);
+
   for (const fileUri of fileUris) {
-    const parsedFile = store.parsedFiles[fileUri];
+    const parsedFile = parsedFiles[fileUri];
     if (parsedFile?.blockIds) {
       for (const blockId of parsedFile.blockIds) {
-        delete store.blockIndex[blockId];
+        idsToRemove.add(blockId);
       }
     }
-    delete store.parsedFiles[fileUri];
   }
+
+  const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
+  for (const [id, variants] of Object.entries(blockIndex)) {
+    if (!idsToRemove.has(id as DefinitionKey)) {
+      newBlockIndex[id as DefinitionKey] = variants;
+    }
+  }
+
+  const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
+  for (const [uri, entry] of Object.entries(parsedFiles)) {
+    if (!urisToRemove.has(uri as LofsRef)) {
+      newParsedFiles[uri as LofsRef] = entry;
+    }
+  }
+
+  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex };
 }
 
 // =============================================================================
-// Step 4: Parsing
+// Parsing
 // =============================================================================
 
-/**
- * Parses all files and updates the content store.
- * Returns any errors encountered during parsing.
- */
 async function parseAndIndexFiles(
   filesToParse: Record<LofsRef, XmlFileInfo>,
-  store: ContentStore,
-  provider: StorageProvider
-): Promise<OLXLoadingError[]> {
+  existingBlockIndex: Record<DefinitionKey, VariantMap>,
+  provider: StorageProvider,
+): Promise<{
+  parsedFiles: Record<LofsRef, ParsedFileEntry>;
+  blockIndex: Record<DefinitionKey, VariantMap>;
+  errors: OLXLoadingError[];
+}> {
   const errors: OLXLoadingError[] = [];
+  const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
+  // Accumulator for new/merged blocks — starts empty, merges into existingBlockIndex at return
+  const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
 
   for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [LofsRef, XmlFileInfo][]) {
-    // Non-OLX files (auxiliary files) are stored but not parsed for blocks
+    // Non-OLX files (auxiliary files like .chatpeg) are tracked for change
+    // detection but not parsed for blocks.
     if (fileRecord.type !== fileTypes.olx && fileRecord.type !== fileTypes.xml) {
-      store.parsedFiles[fileUri] = {
+      newParsedFiles[fileUri] = {
         ...fileRecord,
-        blockIds: []
+        blockIds: [],
       };
       continue;
     }
@@ -356,15 +367,24 @@ async function parseAndIndexFiles(
       const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider);
 
       collectParseErrors(parseResult.errors, errors);
-      indexParsedBlocks(parseResult.idMap, store.blockIndex, fileRecord.id, errors);
 
-      // IMPORTANT: Spread fileRecord FIRST, then set blockIds.
-      // This ensures fresh blockIds from parsing overwrite any stale
-      // blockIds that might exist in fileRecord (when an unchanged file
-      // was promoted to changed due to auxiliary file changes).
-      store.parsedFiles[fileUri] = {
+      // Build a combined view for duplicate detection. Deep-copy VariantMaps
+      // so indexParsedBlocks mutations don't leak back to existingBlockIndex.
+      const mergedView: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
+      for (const [id, vm] of Object.entries({ ...existingBlockIndex, ...newBlockIndex })) {
+        mergedView[id as DefinitionKey] = { ...vm };
+      }
+      indexParsedBlocks(parseResult.idMap, mergedView, fileRecord.id, errors);
+      for (const [id, variants] of Object.entries(mergedView)) {
+        const key = id as DefinitionKey;
+        if (!(key in existingBlockIndex) || !variantMapsEqual(variants, existingBlockIndex[key])) {
+          newBlockIndex[key] = variants;
+        }
+      }
+
+      newParsedFiles[fileUri] = {
         ...fileRecord,
-        blockIds: parseResult.ids  // Must come AFTER spread to win
+        blockIds: parseResult.ids,
       };
 
     } catch (fatalError: any) {
@@ -377,22 +397,21 @@ async function parseAndIndexFiles(
         title: `${fileUri} could not be loaded`,
         message: `Failed to parse file: ${fatalError.message}`,
         location: { provenance: [fileRecord.id] },
-        technical: fatalError,
-        stack: fatalError.stack
+        technical: toAppError(fatalError),
+        stack: fatalError.stack,
       });
 
-      store.parsedFiles[fileUri] = {
+      newParsedFiles[fileUri] = {
         ...fileRecord,
         blockIds: [],
-        error: fatalError.message
+        error: fatalError.message,
       };
     }
   }
 
-  return errors;
+  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex, errors };
 }
 
-/** Adds parse errors to the error collection */
 function collectParseErrors(
   parseErrors: OLXLoadingError[] | undefined,
   allErrors: OLXLoadingError[]
@@ -403,12 +422,13 @@ function collectParseErrors(
 }
 
 /**
- * Adds parsed blocks to the block index, merging language variants.
+ * Merge parsed blocks into the block index, merging language variants.
  *
  * Same block ID across files is allowed if they have different languages.
- * Different languages are merged into nested structure: { id: { lang: OlxJson } }
+ * Duplicate error only if: same ID + same language in different files,
+ * UNLESS the block is stateless (requiresUniqueId: false) and content-identical.
  *
- * Duplicate error only if: same ID + same language in different files.
+ * Mutates blockIndex (caller provides a working copy).
  */
 function indexParsedBlocks(
   newBlocks: IdMap,
@@ -420,22 +440,12 @@ function indexParsedBlocks(
     const existingBlock = blockIndex[blockId];
 
     if (!existingBlock) {
-      // First time seeing this ID - store the entire language map
       blockIndex[blockId] = newVariantMap;
       continue;
     }
 
-    // Block exists - merge language variants
     for (const [lang, newOlxJson] of entriesVariantMap(newVariantMap)) {
       if (existingBlock[lang]) {
-        // Same ID + same language in different files.
-        // Auto-generated hash IDs (prefix "_") from blocks with
-        // requiresUniqueId: false will collide when content is identical
-        // across files. The within-file parser already allowed the
-        // duplicate; we should do the same here — but only for blocks
-        // that don't require unique IDs (stateless blocks like Markdown,
-        // Explanation). Stateful blocks (e.g. TextArea) must always
-        // have unique IDs, even if their content is identical.
         const existingOlxJson = existingBlock[lang];
         const requiresUnique = blockRequiresUniqueId(BLOCK_REGISTRY[newOlxJson.tag]);
         if (!requiresUnique) {
@@ -443,11 +453,11 @@ function indexParsedBlocks(
           const sameKids = stableStringify(existingOlxJson.kids) === stableStringify(newOlxJson.kids);
           const sameAttrs = stableStringify(existingOlxJson.attributes) === stableStringify(newOlxJson.attributes);
           if (sameTag && sameKids && sameAttrs) {
-            continue;  // Identical stateless block across files — not an error
+            continue;  // Identical stateless block across files - not an error
           }
         }
         errors.push(createDuplicateIdError(blockId, existingOlxJson, newOlxJson, sourceFile));
-        continue;  // Skip this language variant, keep the first one
+        continue;  // Keep the first one
       }
 
       // New language for this ID - merge it in
@@ -456,19 +466,15 @@ function indexParsedBlocks(
   }
 }
 
-/** Creates a detailed error message for duplicate block IDs */
 function createDuplicateIdError(
   blockId: DefinitionKey,
   existingBlock: OlxJson,
   duplicateBlock: OlxJson,
   sourceFile: LofsCanonical
 ): OLXLoadingError {
-  // TODO: We'd love to print line/column for both entries, but OlxJson only
-  // carries `_sourceOffset` (a byte offset into the leaf source file), and
-  // converting that to line/col requires the original XML text in scope —
-  // which we don't have here. See the "OPEN QUESTION" comment on
-  // `_sourceOffset` in lib/types.ts. For now we print the byte offset and
-  // the leaf provenance URI; that's enough to grep for.
+  // TODO: We'd love to print line/column, but OlxJson only carries
+  // _sourceOffset (byte offset) which needs the original XML to convert.
+  // See the OPEN QUESTION on _sourceOffset in lib/types/core.ts.
   const existingFile = existingBlock.provenance?.at(-1) ?? 'unknown';
   const existingOffset = existingBlock._sourceOffset ?? '?';
   const duplicateOffset = duplicateBlock._sourceOffset ?? '?';
