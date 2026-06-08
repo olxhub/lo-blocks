@@ -46,7 +46,7 @@ async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
 }
 
 // Custom parser that handles mixed text and block content
-const llmActionParser = async function({ id, rawParsed, tag, attributes, provenance, provider, parseNode, storeEntry }) {
+const llmActionParser = async function({ id, rawParsed, tag, attributes, source, parseDeps, provider, parseNode, storeEntry }) {
   const kids: any[] = [];
 
   // Process each child node in the raw parsed XML
@@ -73,7 +73,8 @@ const llmActionParser = async function({ id, rawParsed, tag, attributes, provena
     tag,
     attributes,
     kids,
-    provenance
+    source,
+    parseDeps
   });
 };
 

@@ -26,13 +26,12 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
   return results;
 }
 
-// Extract relative path from provenance URI.
+// Extract relative path from source URI.
 // Uses the address parser to handle all URI schemes correctly.
-function getRelPath(prov?: string[]): string | null {
-  if (!prov || prov.length === 0) return null;
-  const fileProv = prov.find(p => p.startsWith('file:'));
-  if (!fileProv) return null;
-  return fileProvenancePath(fileProv);
+function getRelPath(source?: string): string | null {
+  if (!source) return null;
+  if (!source.startsWith('file:')) return null;
+  return fileProvenancePath(source);
 }
 
 export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrollToId, onNotify }: SearchPanelProps) {
@@ -76,7 +75,7 @@ export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrol
               <div className="search-hint">No matching IDs found</div>
             ) : (
               searchResults.map(([id, entry]) => {
-                const relPath = getRelPath(entry.provenance);
+                const relPath = getRelPath(entry.source);
                 const title = (entry.attributes.title as string) || id;
                 return (
                   <div

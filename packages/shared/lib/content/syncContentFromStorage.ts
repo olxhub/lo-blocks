@@ -65,24 +65,14 @@ let _snapshot: ContentSnapshot = EMPTY_SNAPSHOT;
 /**
  * Find the source OLX file for a block in a given locale.
  *
- * Walks the block's provenance chain and returns the first entry that
- * is a parsed OLX/XML file. This avoids depending on provenance ordering -
- * the check is "which provenance entry is an OLX file we parsed?"
+ * Returns the block's `source` field (the OLX file it was parsed from),
+ * stripped of its version tag.
  */
 export function getSourceFile(blockId: DefinitionKey, locale: ContentVariant): LofsRef | null {
   const variantMap = _snapshot.blockIndex[blockId];
-  if (!variantMap?.[locale]?.provenance) return null;
+  if (!variantMap?.[locale]?.source) return null;
 
-  for (const prov of variantMap[locale].provenance) {
-    // Provenance entries are LofsCanonical (may have @version); parsedFiles
-    // is keyed by unversioned LofsRef. Strip version for lookup.
-    const key = withoutVersion(prov);
-    const entry = _snapshot.parsedFiles[key];
-    if (entry && (entry.type === fileTypes.olx || entry.type === fileTypes.xml)) {
-      return key;
-    }
-  }
-  return null;
+  return withoutVersion(variantMap[locale].source);
 }
 
 export function getBlockVariant(blockId: DefinitionKey, locale: ContentVariant): OlxJson | null {
@@ -276,15 +266,14 @@ function findOlxFilesDependingOn(
 
   for (const variantMap of Object.values(blockIndex)) {
     for (const olxJson of Object.values(variantMap)) {
-      if (!olxJson?.provenance || !Array.isArray(olxJson.provenance)) continue;
+      if (!olxJson?.source) continue;
 
-      const dependsOnChangedFile = olxJson.provenance.some(
-        (prov) => changedAuxiliaryFiles.has(withoutVersion(prov))
+      const dependsOnChangedFile = olxJson.parseDeps?.some(
+        (dep) => changedAuxiliaryFiles.has(withoutVersion(dep))
       );
 
       if (dependsOnChangedFile) {
-        // provenance[0] is the root OLX file by convention (see parseOLX).
-        const rootOlxFile = withoutVersion(olxJson.provenance[0]);
+        const rootOlxFile = withoutVersion(olxJson.source);
         if (rootOlxFile && unchangedFiles[rootOlxFile]) {
           olxFilesToReparse.add(rootOlxFile);
         }
@@ -475,7 +464,7 @@ function createDuplicateIdError(
   // TODO: We'd love to print line/column, but OlxJson only carries
   // _sourceOffset (byte offset) which needs the original XML to convert.
   // See the OPEN QUESTION on _sourceOffset in lib/types/core.ts.
-  const existingFile = existingBlock.provenance?.at(-1) ?? 'unknown';
+  const existingFile = existingBlock.source ?? 'unknown';
   const existingOffset = existingBlock._sourceOffset ?? '?';
   const duplicateOffset = duplicateBlock._sourceOffset ?? '?';
   return {

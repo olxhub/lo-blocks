@@ -8,6 +8,7 @@ import { FileStorageProvider } from '../lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
 import { getOlxJson, TEST_NS, testKey } from '../test-utils';
 import { asDefinitionKey } from '../types/id-grammar';
+import { withoutVersion } from '../types/address';
 
 it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));
@@ -75,12 +76,13 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
     const first = await syncContentFromStorage(provider);
     expect(getOlxJson(first.idMap, 'test_chat_dep')).toBeDefined();
 
-    // The Chat block's provenance should include both the OLX and chatpeg files
+    // The Chat block's source should be the OLX file and parseDeps should include the chatpeg
     const chatEntry = getOlxJson(first.idMap, 'test_chat_dep');
-    expect(chatEntry.provenance).toBeDefined();
-    expect(chatEntry.provenance.length).toBe(2);
-    expect(chatEntry.provenance[0]).toContain('test.olx');
-    expect(chatEntry.provenance[1]).toContain('dialogue.chatpeg');
+    expect(chatEntry.source).toBeDefined();
+    expect(chatEntry.source).toContain('test.olx');
+    expect(chatEntry.parseDeps).toBeDefined();
+    expect(chatEntry.parseDeps.length).toBe(1);
+    expect(chatEntry.parseDeps[0]).toContain('dialogue.chatpeg');
 
     // Verify the first parse has the original title from the chatpeg header
     expect(chatEntry.kids.parsed.header.Title).toBe('Test');
@@ -126,7 +128,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     const first = await syncContentFromStorage(provider);
     expect(getOlxJson(first.idMap, 'chat_main')).toBeDefined();
 
-    // Get the OLX file's provenance URI
+    // Get the OLX file's URI
     const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
     expect(olxUri).toBeDefined();
 
@@ -161,7 +163,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     // Every ID in idMap that came from this file should be in blockIds
     for (const [id, variantMap] of Object.entries(second.idMap) as [DefinitionKey, IdMap[DefinitionKey]][]) {
       const entry = variantMap['*' as ContentVariant];
-      if (entry?.provenance && entry.provenance[0] === olxUri) {
+      if (entry?.source && withoutVersion(entry.source) === olxUri) {
         expect(secondNodes).toContain(id);
       }
     }

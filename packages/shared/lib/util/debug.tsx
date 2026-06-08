@@ -76,7 +76,10 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
 
   const tag = props?.nodeInfo?.olxJson?.tag ?? 'N/A';
   const id = props?.nodeInfo?.olxJson?.id ?? props.id ?? 'n/a';
-  const provenance = props?.nodeInfo?.olxJson?.provenance ?? [];
+  const olxJson = props?.nodeInfo?.olxJson;
+  const provenance = olxJson?.source
+    ? [olxJson.source, ...(olxJson.parseDeps ?? [])]
+    : [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
   /** Extract scheme and path from a LofsRef (e.g., "file:content://foo" → ["file:content", "foo"]) */

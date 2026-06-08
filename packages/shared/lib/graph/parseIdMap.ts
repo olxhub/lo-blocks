@@ -89,7 +89,8 @@ export function parseIdMap(idMap: IdMap, locale: string = 'en-Latn-US'): ParseRe
         label: `${node.tag}\n(${id})`,
         attributes: node.attributes ?? {},
         tag: node.tag,
-        provenance: node.provenance
+        source: node.source,
+        parseDeps: node.parseDeps
       },
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       type: 'custom'

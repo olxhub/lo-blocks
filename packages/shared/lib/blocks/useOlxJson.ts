@@ -299,7 +299,8 @@ function spinnerOlxJson(id: string): OlxJson {
     id: sentinelKey(id, '_spinner_'),
     tag: 'Spinner' as any,
     attributes: {},
-    provenance: [],
+    source: '' as any,
+    parseDeps: [],
   };
 }
 
@@ -310,7 +311,8 @@ function errorOlxJson(id: string, message: string): OlxJson {
     tag: 'ErrorNode' as any,
     attributes: { message },
     kids: [],
-    provenance: [],
+    source: '' as any,
+    parseDeps: [],
   };
 }
 
@@ -353,7 +355,8 @@ export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
     tag: 'ErrorNode' as any,
     attributes,
     kids: [],
-    provenance: [],
+    source: '' as any,
+    parseDeps: [],
   };
 }
 

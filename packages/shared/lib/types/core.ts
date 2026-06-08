@@ -176,13 +176,18 @@ export type BlockGitStatus = z.infer<typeof BlockGitStatusSchema>;
  * Provenance (LofsRef)
  * ═══════════════════
  *
- * Every piece of parsed content carries a provenance list — all source files
- * that contributed to it. If any change, the OlxJson should be invalidated.
- * For a block in foo.olx that includes quiz.chatpeg and characters.castpeg:
- *   ["file:content://demos/foo.olx", "file:content://demos/quiz.chatpeg",
- *    "file:content://demos/characters.castpeg"]
+ * Every piece of parsed content tracks where it came from:
  *
- * This enables:
+ *   source:    The OLX file this block was parsed from (e.g., foo.olx).
+ *              Used for save-back, error messages, and re-parse targeting.
+ *
+ *   parseDeps: Auxiliary files loaded during parsing that affect the output
+ *              (e.g., quiz.chatpeg, characters.castpeg). If any change,
+ *              the source file must be re-parsed. Also includes assets
+ *              processed at parse time (e.g., a video whose metadata is
+ *              extracted into OlxJson).
+ *
+ * Together these enable:
  * - Precise error messages ("syntax error in demos/foo.olx:42")
  * - Dependency tracking (if quiz.chatpeg changes, re-parse foo.olx)
  * - Authoring workflows (knowing which file to save edits back to)
@@ -211,9 +216,9 @@ export type FileLofsRef = LofsRef & { readonly __scheme: 'file' };
 export type MemoryLofsRef = LofsRef & { readonly __scheme: 'memory' };
 
 /**
- * All source files that contributed to this content — invalidate if any change.
- * LofsCanonical (not LofsRef) because these record what was actually read.
- * Providers produce canonical refs by including version info (mtime, hash, etc.).
+ * A list of source files involved in an error or operation.
+ * Used in OLXLoadingError.location.provenance where a flat list of involved
+ * files is the right shape. NOT used on OlxJson — blocks use source + parseDeps.
  */
 export type LofsDependencies = LofsCanonical[];
 
@@ -1121,7 +1126,12 @@ export interface OlxJson {
   tag: OLXTag;
   attributes: Record<string, JSONValue>;  // Always present, defaults to {} in parsing
   kids?: JSONValue;  // Child nodes, or a string from text parsers
-  provenance: LofsDependencies;
+  /** The OLX file this block was parsed from. */
+  source: LofsCanonical;
+  /** Auxiliary files loaded during parsing that affect this block's output
+   *  (e.g., .chatpeg grammars, assets processed at parse time). If any
+   *  change, the source file must be re-parsed. */
+  parseDeps: LofsCanonical[];
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
   /** Brief description of this content block (for search, activity cards, etc.) */
@@ -1171,8 +1181,6 @@ export interface OlxJson {
    *      to a hypothetical IDE-jump consumer.
    */
   _sourceOffset?: number;
-
-  [key: string]: JSONValue | undefined;
 }
 
 /**
@@ -1228,7 +1236,8 @@ export interface GraphNode {
     label: string;
     attributes: Record<string, JSONValue>;
     tag: OLXTag;
-    provenance?: any;
+    source?: any;
+    parseDeps?: any;
   };
   position: { x: number; y: number };
   type: string;
