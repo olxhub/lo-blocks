@@ -23,7 +23,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
 import * as parsers from '@/lib/content/parsers';
-import { LofsDependencies, IdMap, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
+import { LofsDependencies, IdMap, OlxJson, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
 import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef, LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
@@ -148,6 +148,22 @@ function offsetToLineCol(
 export function blockRequiresUniqueId(Component): boolean {
   if (!Component) return true;
   return Component.requiresUniqueId ?? true;
+}
+
+/**
+ * Check whether two OlxJson entries with the same ID and language are
+ * an acceptable duplicate (stateless block with identical content) or
+ * a real conflict. Used by both within-file and cross-file duplicate
+ * detection.
+ */
+export function isAcceptableDuplicate(existing: OlxJson, incoming: OlxJson): boolean {
+  const Component = BLOCK_REGISTRY[incoming.tag];
+  if (blockRequiresUniqueId(Component)) return false;
+  return (
+    (existing.tag || '') === (incoming.tag || '') &&
+    stableStringify(existing.kids) === stableStringify(incoming.kids) &&
+    stableStringify(existing.attributes) === stableStringify(incoming.attributes)
+  );
 }
 
 // TODO: Future requiresUniqueId modes to consider:
@@ -769,24 +785,11 @@ export async function parseOLX(
         }
 
         if (idMap[storeId]?.[lang]) {
-          const requiresUnique = blockRequiresUniqueId(Component);
-
-          if (!requiresUnique) {
-            // Allow duplicate IDs when content and attributes are identical
-            // (e.g. same Markdown repeated in multiple tabs). Flag as error
-            // when they differ — that's a real authoring mistake where one
-            // instance silently overwrites the other.
-            const existing = idMap[storeId][lang];
-            const sameTag = (existing.tag || tag) === (entry.tag || tag);
-            const sameKids = stableStringify(existing.kids) === stableStringify(entry.kids);
-            const sameAttrs = stableStringify(existing.attributes) === stableStringify(entry.attributes);
-            if (sameTag && sameKids && sameAttrs) {
-              // Identical block — no problem.
-              // TODO: Lint suggestion to use <Use ref="..."/> instead of
-              // repeating the same block. Requires a linter framework.
-              return;
-            }
-            // Different content/attributes with same ID — fall through to duplicate error
+          const existing = idMap[storeId][lang];
+          if (isAcceptableDuplicate(existing, entry)) {
+            // Identical stateless block (e.g. same Markdown in multiple tabs).
+            // TODO: Lint suggestion to use <Use ref="..."/> instead.
+            return;
           }
 
           // Get detailed information about both the existing and duplicate entries

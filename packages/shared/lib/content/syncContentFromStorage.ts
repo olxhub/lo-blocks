@@ -25,10 +25,8 @@ import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
-import { parseOLX, blockRequiresUniqueId } from '@/lib/content/parseOLX';
+import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { stableStringify } from '@/lib/util';
 
 // =============================================================================
 // Types
@@ -469,17 +467,10 @@ function indexParsedBlocks(
 
     for (const [lang, newOlxJson] of entriesVariantMap(newVariantMap)) {
       if (existingBlock[lang]) {
-        const existingOlxJson = existingBlock[lang];
-        const requiresUnique = blockRequiresUniqueId(BLOCK_REGISTRY[newOlxJson.tag]);
-        if (!requiresUnique) {
-          const sameTag = existingOlxJson.tag === newOlxJson.tag;
-          const sameKids = stableStringify(existingOlxJson.kids) === stableStringify(newOlxJson.kids);
-          const sameAttrs = stableStringify(existingOlxJson.attributes) === stableStringify(newOlxJson.attributes);
-          if (sameTag && sameKids && sameAttrs) {
-            continue;  // Identical stateless block across files - not an error
-          }
+        if (isAcceptableDuplicate(existingBlock[lang], newOlxJson)) {
+          continue;  // Identical stateless block across files
         }
-        errors.push(createDuplicateIdError(blockId, existingOlxJson, newOlxJson, sourceFile));
+        errors.push(createDuplicateIdError(blockId, existingBlock[lang], newOlxJson, sourceFile));
         continue;  // Keep the first one
       }
 
