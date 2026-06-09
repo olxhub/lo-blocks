@@ -37,20 +37,30 @@ import { stableStringify } from '@/lib/util';
 /** A parsed file's entry in the parsedFiles index. */
 interface ParsedFileEntry extends XmlFileInfo {
   blockIds: DefinitionKey[];
-  error?: string;
+  /** Parse errors from this file (persists until the file is re-parsed or deleted). */
+  errors: OLXLoadingError[];
 }
 
 export interface ContentSnapshot {
   readonly parsedFiles: Record<LofsRef, ParsedFileEntry>;
   readonly blockIndex: Record<DefinitionKey, VariantMap>;
-  readonly errors: OLXLoadingError[];
 }
 
 export const EMPTY_SNAPSHOT: ContentSnapshot = {
   parsedFiles: {},
   blockIndex: {},
-  errors: [],
 };
+
+/** Collect all errors from all parsed files in the snapshot. */
+function collectSnapshotErrors(snapshot: ContentSnapshot): OLXLoadingError[] {
+  const errors: OLXLoadingError[] = [];
+  for (const entry of Object.values(snapshot.parsedFiles)) {
+    if (entry.errors.length > 0) {
+      errors.push(...entry.errors);
+    }
+  }
+  return errors;
+}
 
 // =============================================================================
 // Module State
@@ -149,7 +159,7 @@ export async function applyFileChanges(
   // Step 1: Scan results come in via `scan` parameter
 
   // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
-  const promoted = promoteFilesWithChangedDependencies(scan, prev.blockIndex);
+  const promoted = promoteFilesWithChangedDependencies(scan, prev.blockIndex, prev.parsedFiles);
 
   // Step 3: Remove blocks from files that are deleted or about to be re-parsed
   const filesToRemove = [
@@ -165,7 +175,6 @@ export async function applyFileChanges(
   return {
     parsedFiles: { ...cleaned.parsedFiles, ...parsed.parsedFiles },
     blockIndex: { ...cleaned.blockIndex, ...parsed.blockIndex },
-    errors: parsed.errors,
   };
 }
 
@@ -187,9 +196,9 @@ export async function syncContentFromStorage(
   await copyAssetsToPublic(provider);
 
   return {
-    parsed: _snapshot.parsedFiles,
-    idMap: _snapshot.blockIndex,
-    errors: [..._snapshot.errors],
+    parsed: { ..._snapshot.parsedFiles },
+    idMap: { ..._snapshot.blockIndex },
+    errors: collectSnapshotErrors(_snapshot),
   };
 }
 
@@ -205,11 +214,25 @@ export async function syncContentFromStorage(
 function promoteFilesWithChangedDependencies(
   changeSets: XmlScanResult,
   blockIndex: Record<DefinitionKey, VariantMap>,
+  parsedFiles: Record<LofsRef, ParsedFileEntry>,
 ): XmlScanResult {
   const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
   if (changedAuxiliaryFiles.size === 0) return changeSets;
 
   const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
+
+  // Also re-parse any unchanged OLX that previously failed — the auxiliary
+  // change might fix the missing dependency. Cheap if it fails again.
+  if (changedAuxiliaryFiles.size > 0) {
+    for (const [uri, fileInfo] of Object.entries(changeSets.unchanged)) {
+      const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
+      const prevEntry = parsedFiles[uri as LofsRef];
+      if (isOlx && prevEntry?.errors?.length > 0) {
+        olxFilesToReparse.add(uri as LofsRef);
+      }
+    }
+  }
+
   if (olxFilesToReparse.size === 0) return changeSets;
 
   const changed = { ...changeSets.changed };
@@ -288,28 +311,52 @@ function findOlxFilesDependingOn(
 // Block Removal
 // =============================================================================
 
-/** Remove all blocks that were parsed from the given files. */
+/**
+ * Remove variants that came from the given files.
+ *
+ * Variant-aware: if foo.en.olx and foo.es.olx both define activity_1,
+ * removing foo.en.olx drops only the English variant, not the Spanish one.
+ * A block is deleted entirely only when no variants remain.
+ */
 function removeBlocksFromFiles(
   fileUris: LofsRef[],
   parsedFiles: Record<LofsRef, ParsedFileEntry>,
   blockIndex: Record<DefinitionKey, VariantMap>,
 ): { parsedFiles: Record<LofsRef, ParsedFileEntry>; blockIndex: Record<DefinitionKey, VariantMap> } {
-  const idsToRemove = new Set<DefinitionKey>();
   const urisToRemove = new Set<LofsRef>(fileUris);
 
+  // Collect block IDs that MIGHT need variants removed
+  const candidateIds = new Set<DefinitionKey>();
   for (const fileUri of fileUris) {
     const parsedFile = parsedFiles[fileUri];
     if (parsedFile?.blockIds) {
       for (const blockId of parsedFile.blockIds) {
-        idsToRemove.add(blockId);
+        candidateIds.add(blockId);
       }
     }
   }
 
   const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
   for (const [id, variants] of Object.entries(blockIndex)) {
-    if (!idsToRemove.has(id as DefinitionKey)) {
-      newBlockIndex[id as DefinitionKey] = variants;
+    const key = id as DefinitionKey;
+    if (!candidateIds.has(key)) {
+      // Block not from any removed file — keep as-is
+      newBlockIndex[key] = variants;
+      continue;
+    }
+
+    // Filter out variants whose source matches a removed file
+    const kept: VariantMap = {} as VariantMap;
+    for (const [lang, olxJson] of entriesVariantMap(variants)) {
+      const variantSource = withoutVersion(olxJson.source);
+      if (!urisToRemove.has(variantSource)) {
+        kept[lang] = olxJson;
+      }
+    }
+
+    // Keep the block only if it still has variants
+    if (Object.keys(kept).length > 0) {
+      newBlockIndex[key] = kept;
     }
   }
 
@@ -334,11 +381,8 @@ async function parseAndIndexFiles(
 ): Promise<{
   parsedFiles: Record<LofsRef, ParsedFileEntry>;
   blockIndex: Record<DefinitionKey, VariantMap>;
-  errors: OLXLoadingError[];
 }> {
-  const errors: OLXLoadingError[] = [];
   const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
-  // Accumulator for new/merged blocks — starts empty, merges into existingBlockIndex at return
   const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
 
   for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [LofsRef, XmlFileInfo][]) {
@@ -348,14 +392,14 @@ async function parseAndIndexFiles(
       newParsedFiles[fileUri] = {
         ...fileRecord,
         blockIds: [],
+        errors: [],
       };
       continue;
     }
 
     try {
       const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider);
-
-      collectParseErrors(parseResult.errors, errors);
+      const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Build a combined view for duplicate detection. Deep-copy VariantMaps
       // so indexParsedBlocks mutations don't leak back to existingBlockIndex.
@@ -363,7 +407,7 @@ async function parseAndIndexFiles(
       for (const [id, vm] of Object.entries({ ...existingBlockIndex, ...newBlockIndex })) {
         mergedView[id as DefinitionKey] = { ...vm };
       }
-      indexParsedBlocks(parseResult.idMap, mergedView, fileRecord.id, errors);
+      indexParsedBlocks(parseResult.idMap, mergedView, fileRecord.id, fileErrors);
       for (const [id, variants] of Object.entries(mergedView)) {
         const key = id as DefinitionKey;
         if (!(key in existingBlockIndex) || !variantMapsEqual(variants, existingBlockIndex[key])) {
@@ -374,6 +418,7 @@ async function parseAndIndexFiles(
       newParsedFiles[fileUri] = {
         ...fileRecord,
         blockIds: parseResult.ids,
+        errors: fileErrors,
       };
 
     } catch (fatalError: any) {
@@ -381,33 +426,22 @@ async function parseAndIndexFiles(
       console.error('Message:', fatalError.message);
       console.error('Stack trace:', fatalError.stack);
 
-      errors.push({
-        type: 'file_error',
-        title: `${fileUri} could not be loaded`,
-        message: `Failed to parse file: ${fatalError.message}`,
-        location: { provenance: [fileRecord.id] },
-        technical: toAppError(fatalError),
-        stack: fatalError.stack,
-      });
-
       newParsedFiles[fileUri] = {
         ...fileRecord,
         blockIds: [],
-        error: fatalError.message,
+        errors: [{
+          type: 'file_error',
+          title: `${fileUri} could not be loaded`,
+          message: `Failed to parse file: ${fatalError.message}`,
+          location: { provenance: [fileRecord.id] },
+          technical: toAppError(fatalError),
+          stack: fatalError.stack,
+        }],
       };
     }
   }
 
-  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex, errors };
-}
-
-function collectParseErrors(
-  parseErrors: OLXLoadingError[] | undefined,
-  allErrors: OLXLoadingError[]
-): void {
-  if (parseErrors && parseErrors.length > 0) {
-    allErrors.push(...parseErrors);
-  }
+  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex };
 }
 
 /**
