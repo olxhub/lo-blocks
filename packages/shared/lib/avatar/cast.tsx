@@ -416,6 +416,7 @@ export function withCastSupport(
         ctx = {
           ...ctx,
           attributes: { ...ctx.attributes, cast: parsedCast },
+          parseDeps: [...(ctx.parseDeps || []), castProvenance],
         };
       }
       return parserConfig.parser(ctx);

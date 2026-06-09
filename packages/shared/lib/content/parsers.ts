@@ -217,17 +217,21 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 
   const factory = function childParserFactory(options = {}) {
     const wrapped = async function wrappedParser(ctx) {
-      const { id, tag, attributes, source, parseDeps, rawParsed, storeEntry, metadata } = ctx;
+      const { id, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata } = ctx;
       const tagParsed = rawParsed[tag];
       const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+      // Mutable accumulator so inner parsers (textParser etc.) can record
+      // deps from loadExternalSource. Passed to fn via ctx override.
+      const deps = [...parseDepsIn];
+      const fnKids = await fn({ ...ctx, parseDeps: deps, rawKids: kids, rawParsed: tagParsed, ...options });
       const entry = {
         id,
         tag,
         attributes,
         source,
-        parseDeps,
-        kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed, ...options }),
-        ...(metadata || {})  // Spread metadata fields flat into entry
+        parseDeps: deps,
+        kids: fnKids,
+        ...(metadata || {})
       };
       storeEntry(id, entry);
       return id;
@@ -443,7 +447,7 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
   if (attributes?.src) {
     const loaded = await loadExternalSource({ src: attributes.src, provider, source, parseDeps });
     textContent = loaded.text;
-    parseDeps = [...parseDeps, loaded.dep];
+    parseDeps.push(loaded.dep);
   } else {
     const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: postprocess === 'stripIndent' || postprocess === 'raw' });
     textContent = extractString(extracted);
