@@ -81,24 +81,42 @@ export class InMemoryStorageProvider implements StorageProvider {
     previous: Record<LofsRef, XmlFileInfo> = {}
   ): Promise<XmlScanResult> {
     const added: Record<LofsRef, XmlFileInfo> = {};
+    const changed: Record<LofsRef, XmlFileInfo> = {};
     const unchanged: Record<LofsRef, XmlFileInfo> = {};
+    const found = new Set<LofsRef>();
 
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
 
       const ref = toMemoryRef(filename);
       const ext = getExtension(filename);
+      found.add(ref);
 
-      if (previous[ref]) {
-        unchanged[ref] = previous[ref];
-      } else {
-        const ver = toLofsVersion(await hashContent(content));
-        const id = toLofsCanonical(withVersion(ref, ver));
+      const ver = toLofsVersion(await hashContent(content));
+      const id = toLofsCanonical(withVersion(ref, ver));
+
+      const prev = previous[ref];
+      if (!prev) {
         added[ref] = { id, type: ext, _metadata: {}, content };
+      } else if (prev.id !== id) {
+        // Content hash changed — re-read needed
+        changed[ref] = { id, type: ext, _metadata: {}, content };
+      } else {
+        unchanged[ref] = prev;
       }
     }
 
-    return { added, changed: {}, unchanged, deleted: {} };
+    // Files in previous but no longer in this.files. Only check memory: refs —
+    // in a StackedStorageProvider, previous contains refs from all providers,
+    // and reporting file: refs as deleted would mask the file provider's results.
+    const deleted: Record<LofsRef, XmlFileInfo> = {};
+    for (const ref of Object.keys(previous) as LofsRef[]) {
+      if (!found.has(ref) && scheme(brandLofsRef(ref)) === 'memory') {
+        deleted[ref] = previous[ref];
+      }
+    }
+
+    return { added, changed, unchanged, deleted };
   }
 
   resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
