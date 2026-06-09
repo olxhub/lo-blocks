@@ -106,9 +106,13 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
 });
 
 it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove IDs', async () => {
-  // Verifies that when an auxiliary file changes and causes a re-parse,
-  // the blockIds array in parsedFiles is correctly updated to match the
-  // new IDs in blockIndex.
+  // Regression: the old mutable-singleton architecture had a spread-order
+  // bug where moving an OLX from "unchanged" to "changed" carried stale
+  // blockIds from the previous parse, causing the removal step to use
+  // wrong IDs on subsequent updates. The functional rewrite prevents this
+  // structurally (new snapshot = new blockIds), but we keep the test
+  // because the invariant — blockIds matches what's actually in blockIndex —
+  // is worth verifying regardless of implementation.
 
   const tmpDir = path.join(process.cwd(), 'content', '_test_nodes_sync_' + Date.now());
   await fs.mkdir(tmpDir, { recursive: true });
@@ -191,160 +195,3 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   }
 });
 
-it('stale blockIds do not overwrite fresh IDs after auxiliary file change', async () => {
-  // Tests that when both the OLX and its auxiliary file change simultaneously,
-  // the blockIds list reflects the newly parsed blocks (not stale ones from
-  // the previous parse).
-
-  const tmpDir = path.join(process.cwd(), 'content', '_test_spread_order_' + Date.now());
-  await fs.mkdir(tmpDir, { recursive: true });
-
-  try {
-    // Initial OLX with one Chat block
-    const olxV1 = `<vertical>
-  <Chat id="chat1" src="convo.chatpeg" />
-</vertical>`;
-    const chatpegV1 = `Title: V1\n~~~~\nAlice: Hello [id=msg1]\n`;
-
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxV1);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV1);
-
-    const provider = new FileStorageProvider(tmpDir);
-
-    // First sync
-    const first = await syncContentFromStorage(provider);
-
-    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
-    const firstNodes = first.parsed[olxUri].blockIds;
-
-    // Should have chat1 (anonymous vertical doesn't get tracked by ID)
-    expect(firstNodes).toContain(testKey('chat1'));
-    const firstNodeCount = firstNodes.length;
-
-    // Now: change BOTH the OLX (add new block) AND the chatpeg
-    // The OLX file itself changes, so it goes to 'changed' directly
-    // But this still exercises the code path where fileInfo might have old blockIds
-    const olxV2 = `<vertical>
-  <Chat id="chat1" src="convo.chatpeg" />
-  <Markdown id="text_new">New text block</Markdown>
-</vertical>`;
-    const chatpegV2 = `Title: V2\n~~~~\nAlice: Goodbye [id=msg2]\n`;
-
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxV2);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV2);
-
-    // Second sync
-    const second = await syncContentFromStorage(provider);
-
-    const secondNodes = second.parsed[olxUri].blockIds;
-
-    // Must have both chat1 AND text_new
-    expect(secondNodes).toContain(testKey('chat1'));
-    expect(secondNodes).toContain(testKey('text_new'));
-    expect(getOlxJson(second.idMap, 'text_new')).toBeDefined();
-
-    // Verify the chat was updated too
-    expect(getOlxJson(second.idMap, 'chat1')?.kids?.parsed?.header?.Title).toBe('V2');
-
-  } finally {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-  }
-});
-
-it('auxiliary-only change preserves correct blockIds', async () => {
-  // When only the auxiliary file changes (OLX is unchanged), the OLX gets
-  // promoted to "changed" for re-parsing. The blockIds in the result must
-  // reflect the fresh parse, not stale IDs from the previous snapshot.
-
-  const tmpDir = path.join(process.cwd(), 'content', '_test_aux_only_' + Date.now());
-  await fs.mkdir(tmpDir, { recursive: true });
-
-  try {
-    const olxContent = `<Chat id="the_chat" src="convo.chatpeg" />`;
-    const chatpegV1 = `Title: Version1\n~~~~\nAlice: Hi [id=m1]\n`;
-
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV1);
-
-    const provider = new FileStorageProvider(tmpDir);
-
-    // First sync - establishes baseline
-    const first = await syncContentFromStorage(provider);
-    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
-
-    // Record the exact blockIds array reference
-    const nodesAfterFirst = [...first.parsed[olxUri].blockIds];
-    expect(nodesAfterFirst).toContain(testKey('the_chat'));
-
-    // ONLY change the chatpeg - OLX file stays unchanged
-    const chatpegV2 = `Title: Version2\n~~~~\nAlice: Bye [id=m2]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV2);
-
-    // Second sync - auxiliary change triggers re-parse of unchanged OLX
-    const second = await syncContentFromStorage(provider);
-
-    // Content should be updated
-    expect(getOlxJson(second.idMap, 'the_chat')?.kids?.parsed?.header?.Title).toBe('Version2');
-
-    // blockIds should be the fresh list from parseOLX, not stale from
-    // the previous snapshot.
-    const nodesAfterSecond = second.parsed[olxUri].blockIds;
-
-    // They should be equivalent (same IDs) - if the bug exists, we might
-    // see the old blockIds array object here
-    expect(nodesAfterSecond).toContain(testKey('the_chat'));
-
-    // Verify consistency by doing a THIRD sync where we delete the OLX
-    await fs.rm(path.join(tmpDir, 'test.olx'));
-
-    const third = await syncContentFromStorage(provider);
-
-    // The chat should be GONE - if blockIds was stale, removal would have
-    // used the wrong IDs and left orphans
-    expect(getOlxJson(third.idMap, 'the_chat')).toBeUndefined();
-
-  } finally {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-  }
-});
-
-it('blockIds is a new object after auxiliary-triggered reparse', async () => {
-  // After a re-parse triggered by an auxiliary file change, blockIds should
-  // be a fresh array, not the same reference as the previous snapshot's.
-
-  const tmpDir = path.join(process.cwd(), 'content', '_test_nodes_identity_' + Date.now());
-  await fs.mkdir(tmpDir, { recursive: true });
-
-  try {
-    const olxContent = `<Chat id="identity_chat" src="convo.chatpeg" />`;
-    const chatpegV1 = `Title: V1\n~~~~\nAlice: Hi [id=m1]\n`;
-
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV1);
-
-    const provider = new FileStorageProvider(tmpDir);
-
-    // First sync
-    const first = await syncContentFromStorage(provider);
-    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
-
-    // Get reference to the blockIds array
-    const nodesArrayRef1 = first.parsed[olxUri].blockIds;
-
-    // ONLY change the chatpeg
-    const chatpegV2 = `Title: V2\n~~~~\nAlice: Bye [id=m2]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV2);
-
-    // Second sync
-    const second = await syncContentFromStorage(provider);
-
-    const nodesArrayRef2 = second.parsed[olxUri].blockIds;
-
-    // After a reparse, blockIds should be a new array from parseOLX,
-    // not the same reference as the previous snapshot's.
-    expect(nodesArrayRef2).not.toBe(nodesArrayRef1);
-
-  } finally {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-  }
-});

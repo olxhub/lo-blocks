@@ -19,8 +19,6 @@ export interface ActivityCard {
   title: Record<ContentVariant, string>;
   description: Record<ContentVariant, string>;
   availableVariants: Record<ContentVariant, ContentTier>;
-  source: string;
-  parseDeps: string[];
 }
 
 /**
@@ -74,8 +72,6 @@ export function buildActivityCards(
             title,
             description,
             availableVariants: availableVariantsMap,
-            source: bestEntry.source,
-            parseDeps: bestEntry.parseDeps,
           }
         ];
       })
