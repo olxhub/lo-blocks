@@ -106,10 +106,12 @@ export class InMemoryStorageProvider implements StorageProvider {
       }
     }
 
-    // Files in previous but no longer in this.files
+    // Files in previous but no longer in this.files. Only check memory: refs —
+    // in a StackedStorageProvider, previous contains refs from all providers,
+    // and reporting file: refs as deleted would mask the file provider's results.
     const deleted: Record<LofsRef, XmlFileInfo> = {};
     for (const ref of Object.keys(previous) as LofsRef[]) {
-      if (!found.has(ref)) {
+      if (!found.has(ref) && scheme(brandLofsRef(ref)) === 'memory') {
         deleted[ref] = previous[ref];
       }
     }
