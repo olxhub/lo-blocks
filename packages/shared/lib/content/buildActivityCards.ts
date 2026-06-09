@@ -19,7 +19,6 @@ export interface ActivityCard {
   title: Record<ContentVariant, string>;
   description: Record<ContentVariant, string>;
   availableVariants: Record<ContentVariant, ContentTier>;
-  provenance: string[];
 }
 
 /**
@@ -59,7 +58,7 @@ export function buildActivityCards(
 
         const bestVariant = pickVariant(availableVariants);
         const bestEntry = variantMap[bestVariant];
-        const editPathResult = getEditPathFromProvenance(bestEntry.provenance);
+        const editPathResult = getEditPathFromProvenance([bestEntry.source]);
         const editPath = editPathResult.valid ? editPathResult.relativePath ?? null : null;
 
         return [
@@ -73,7 +72,6 @@ export function buildActivityCards(
             title,
             description,
             availableVariants: availableVariantsMap,
-            provenance: bestEntry.provenance
           }
         ];
       })

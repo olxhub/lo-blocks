@@ -27,6 +27,16 @@ import type { AppError } from '@/lib/types/errors';
 import { safeStringify } from '@/lib/util';
 import type { LogEventFn } from '@/lib/render';
 import { blockData } from '@/lib/state/redux';
+import type { LofsCanonical } from '@/lib/types/address';
+
+/**
+ * Source value for synthetic OlxJson nodes (spinners, error placeholders,
+ * render-error nodes) that don't come from a real file.
+ *
+ * Future: render-error nodes could carry the failing block's real source
+ * here, enabling "clear error when source file is re-parsed" workflows.
+ */
+const SYNTHETIC_SOURCE = '' as LofsCanonical;
 
 export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 
@@ -299,7 +309,8 @@ function spinnerOlxJson(id: string): OlxJson {
     id: sentinelKey(id, '_spinner_'),
     tag: 'Spinner' as any,
     attributes: {},
-    provenance: [],
+    source: SYNTHETIC_SOURCE,
+    parseDeps: [],
   };
 }
 
@@ -310,7 +321,8 @@ function errorOlxJson(id: string, message: string): OlxJson {
     tag: 'ErrorNode' as any,
     attributes: { message },
     kids: [],
-    provenance: [],
+    source: SYNTHETIC_SOURCE,
+    parseDeps: [],
   };
 }
 
@@ -353,7 +365,8 @@ export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
     tag: 'ErrorNode' as any,
     attributes,
     kids: [],
-    provenance: [],
+    source: SYNTHETIC_SOURCE,
+    parseDeps: [],
   };
 }
 

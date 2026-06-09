@@ -14,7 +14,7 @@
 // - `xml`: Reconstructs XML as a string (lossy - use sparingly)
 // - `ignore`: Returns empty kids array (for blocks that don't need child parsing)
 //
-// Preserves provenance (file/line info) for debugging and authoring.
+// Preserves source/parseDeps (file/line info) for debugging and authoring.
 //
 // Future: An `xmljson` parser could pass through raw fast-xml-parser JSON for blocks
 // that need to do their own XML processing. Not currently implemented.
@@ -22,7 +22,8 @@
 import { z } from 'zod';
 import yaml from 'js-yaml';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey, LofsDependencies } from '@/lib/types';
+import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey } from '@/lib/types';
+import type { LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
@@ -52,46 +53,39 @@ const prod = false;
 // === Utilities ===
 
 /**
- * Resolves and loads content from an external file via the `src` attribute.
+ * Load an external file referenced by a src= attribute.
  *
- * Handles file:// provenance resolution and returns both the loaded content
- * and updated provenance chain.
- *
- * @param options.src - The src attribute value (relative path)
- * @param options.provider - Storage provider for reading files
- * @param options.provenance - Current provenance chain
- * @returns { text, provenance } - Loaded content and updated provenance
+ * Resolves `src` relative to the most recent file in the dependency chain
+ * (the last parseDep, or the source file if no deps yet). Returns the
+ * loaded text and the canonical ref of the loaded file (to append to
+ * parseDeps).
  */
 async function loadExternalSource({
   src,
   provider,
-  provenance
+  source,
+  parseDeps,
 }: {
   src: string;
   provider: any;
-  provenance: string[];
-}): Promise<{ text: string; provenance: string[] }> {
+  source: LofsCanonical;
+  parseDeps: LofsCanonical[];
+}): Promise<{ text: string; dep: LofsCanonical }> {
   if (!provider) {
     throw new Error('No storage provider supplied for src attribute');
   }
 
-  // Validate file extension before loading (defense-in-depth)
   if (!isContentFile(src)) {
     const allowed = extensionsWithDots(CATEGORY.content).join(', ');
     throw new Error(`Invalid src file type: "${src}". Allowed extensions: ${allowed}`);
   }
 
-  const lastProv = provenance?.[provenance.length - 1];
+  // Resolve relative to the most recent file in the chain
+  const resolveBase = parseDeps.length > 0 ? parseDeps[parseDeps.length - 1] : source;
+  const resolved = provider.resolveRelativePath(resolveBase, src);
 
-  // Resolve src against the current file's location to get a canonical
-  // SafeRelativePath — same idea as DefinitionRef → DefinitionKey for block IDs.
-  const resolved = provider.resolveRelativePath(lastProv, src);
-
-  // Read first, then use the canonical provenance from the read result.
-  // ReadResult.provenance is LofsCanonical — it records what was actually read.
   const readResult = await provider.read(resolved);
-  const newProvenance: LofsDependencies = [...provenance, readResult.provenance];
-  return { text: readResult.content, provenance: newProvenance };
+  return { text: readResult.content, dep: readResult.provenance };
 }
 
 /**
@@ -223,16 +217,21 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 
   const factory = function childParserFactory(options = {}) {
     const wrapped = async function wrappedParser(ctx) {
-      const { id, tag, attributes, provenance, rawParsed, storeEntry, metadata } = ctx;
+      const { id, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata } = ctx;
       const tagParsed = rawParsed[tag];
       const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+      // Mutable accumulator so inner parsers (textParser etc.) can record
+      // deps from loadExternalSource. Passed to fn via ctx override.
+      const deps = [...parseDepsIn];
+      const fnKids = await fn({ ...ctx, parseDeps: deps, rawKids: kids, rawParsed: tagParsed, ...options });
       const entry = {
         id,
         tag,
         attributes,
-        provenance,
-        kids: await fn({ ...ctx, rawKids: kids, rawParsed: tagParsed, ...options }),
-        ...(metadata || {})  // Spread metadata fields flat into entry
+        source,
+        parseDeps: deps,
+        kids: fnKids,
+        ...(metadata || {})
       };
       storeEntry(id, entry);
       return id;
@@ -275,11 +274,11 @@ export const ignore = ignoreFactory;
 // more robust version.
 export const xml = {
   parser: function xmlParser(ctx) {
-    const { id, tag, attributes, provenance, rawParsed, storeEntry } = ctx;
+    const { id, tag, attributes, source, parseDeps, rawParsed, storeEntry } = ctx;
     return [
       {
         type: 'xml', xml: builder.build(rawParsed),
-        id, tag, attributes, provenance
+        id, tag, attributes, source, parseDeps
       }
     ];
   },
@@ -439,15 +438,16 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 //   ...parsers.text({ postprocess: fn })  - custom function
 type TextPostprocess = 'trim' | 'raw' | 'stripIndent' | ((text: string) => string);
 
-const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, provenance, postprocess = 'trim' }: {
-  rawParsed: any; attributes: any; provider: any; provenance: any;
+const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, source, parseDeps, postprocess = 'trim' }: {
+  rawParsed: any; attributes: any; provider: any; source: LofsCanonical; parseDeps: LofsCanonical[];
   postprocess?: TextPostprocess;
 }) {
   let textContent: string;
 
   if (attributes?.src) {
-    const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+    const loaded = await loadExternalSource({ src: attributes.src, provider, source, parseDeps });
     textContent = loaded.text;
+    parseDeps.push(loaded.dep);
   } else {
     const extracted = extractTextFromXmlNodes(rawParsed, { preserveWhitespace: postprocess === 'stripIndent' || postprocess === 'raw' });
     textContent = extractString(extracted);
@@ -578,14 +578,16 @@ export const text = Object.assign(textFactory, {
 //
 export function textToAttribute(attrName: string) {
   async function textToAttributeParser(ctx) {
-    const { id, tag, attributes, provenance, rawParsed, storeEntry, metadata, provider } = ctx;
+    const { id, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata, provider } = ctx;
     const tagParsed = rawParsed[tag];
+    let parseDeps = parseDepsIn;
 
     // Extract text content (same mechanism as text parser)
     let textContent: string;
     if (attributes?.src) {
-      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      const loaded = await loadExternalSource({ src: attributes.src, provider, source, parseDeps });
       textContent = loaded.text.trim();
+      parseDeps = [...parseDeps, loaded.dep];
     } else {
       const extracted = extractTextFromXmlNodes(tagParsed, { preserveWhitespace: false });
       textContent = extractString(extracted).trim();
@@ -609,7 +611,8 @@ export function textToAttribute(attrName: string) {
       id,
       tag,
       attributes: finalAttributes,
-      provenance,
+      source,
+      parseDeps,
       kids: [],
       ...(metadata || {})
     };
@@ -652,7 +655,8 @@ export function peggyParser(
     rawParsed,
     tag,
     attributes,
-    provenance,
+    source,
+    parseDeps: parseDepsIn,
     provider,
     parseNode,
     storeEntry,
@@ -663,11 +667,11 @@ export function peggyParser(
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
 
     let extracted;
-    let prov = provenance;
+    let parseDeps = parseDepsIn;
     if (attributes?.src) {
-      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      const loaded = await loadExternalSource({ src: attributes.src, provider, source, parseDeps });
       extracted = { type: 'text', text: loaded.text };
-      prov = loaded.provenance;
+      parseDeps = [...parseDeps, loaded.dep];
     } else {
       extracted = extractTextFromXmlNodes(kids);
     }
@@ -693,18 +697,20 @@ export function peggyParser(
         id,
         tag,
         attributes,
-        provenance: prov,
+        source,
+        parseDeps,
         rawParsed,
         kids: processedKids,
         ...(metadata || {})  // Spread metadata fields flat into entry
       };
     } catch (parseError) {
+      const provenance = [source, ...parseDeps];
       const errorObj: OLXLoadingError = {
         type: 'peg_error' as const,
-        title: `Dialogue parsing error in ${prov.join(' → ')}`,
+        title: `Dialogue parsing error in ${provenance.join(' → ')}`,
         message: parseError.message,
         location: {
-          provenance: prov,
+          provenance,
           line: parseError.location?.start?.line,
           column: parseError.location?.start?.column,
           offset: parseError.location?.start?.offset
@@ -723,7 +729,8 @@ export function peggyParser(
         id,
         tag: 'ErrorNode',
         attributes: errorObj,
-        provenance: prov,
+        source,
+        parseDeps,
         rawParsed,
         kids: [],
         parseError: true,
@@ -778,7 +785,8 @@ export function yamlParser(schema: z.ZodType) {
     rawParsed,
     tag,
     attributes,
-    provenance,
+    source,
+    parseDeps: parseDepsIn,
     provider,
     storeEntry,
     errors,
@@ -787,12 +795,12 @@ export function yamlParser(schema: z.ZodType) {
     const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
 
-    let prov = provenance;
+    let parseDeps = parseDepsIn;
     let textContent: string;
     if (attributes?.src) {
-      const loaded = await loadExternalSource({ src: attributes.src, provider, provenance });
+      const loaded = await loadExternalSource({ src: attributes.src, provider, source, parseDeps });
       textContent = loaded.text;
-      prov = loaded.provenance;
+      parseDeps = [...parseDeps, loaded.dep];
     } else {
       const extracted = extractTextFromXmlNodes(kids, { preserveWhitespace: true });
       textContent = typeof extracted === 'string' ? extracted : extracted.text;
@@ -807,7 +815,8 @@ export function yamlParser(schema: z.ZodType) {
         id,
         tag,
         attributes,
-        provenance: prov,
+        source,
+        parseDeps,
         rawParsed,
         kids: { type: 'parsed', parsed },
         ...(metadata || {})
@@ -819,12 +828,13 @@ export function yamlParser(schema: z.ZodType) {
         ? parseError.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
         : (parseError.message || String(parseError));
 
+      const provenance = [source, ...parseDeps];
       const errorObj: OLXLoadingError = {
         type: 'parse_error' as const,
-        title: `YAML parse error in ${prov.join(' → ')}`,
+        title: `YAML parse error in ${provenance.join(' → ')}`,
         message,
         location: {
-          provenance: prov,
+          provenance,
           line: parseError.mark?.line != null ? parseError.mark.line + 1 : undefined,
           column: parseError.mark?.column != null ? parseError.mark.column + 1 : undefined,
         },
@@ -841,7 +851,8 @@ export function yamlParser(schema: z.ZodType) {
         id,
         tag: 'ErrorNode',
         attributes: errorObj,
-        provenance: prov,
+        source,
+        parseDeps,
         rawParsed,
         kids: [],
         parseError: true,
@@ -884,33 +895,29 @@ export function yamlParser(schema: z.ZodType) {
  *   const Image = core({ ...parsers.assetSrc(), ... });
  */
 const assetSrcFactory = function assetSrc() {
-  function assetSrcParser({ id, tag, attributes, provenance, storeEntry, provider }) {
+  function assetSrcParser({ id, tag, attributes, source, parseDeps, storeEntry, provider }) {
     const { src, ...otherAttributes } = attributes;
 
     let resolvedSrc = src;
-    let updatedProvenance = provenance;
+    let updatedParseDeps = parseDeps;
 
     // Resolve relative paths and track the asset as a dependency
     if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('//') && !src.startsWith('/')) {
-      if (provenance && provenance.length > 0 && provider?.resolveRelativePath) {
-        if (provenance.length !== 1) {
-          throw new Error(`assetSrc parser expects exactly one provenance entry (the OLX file), got ${provenance.length}: ${JSON.stringify(provenance)}`);
-        }
-        const olxProvenance = provenance[0];
-        resolvedSrc = provider.resolveRelativePath(olxProvenance, src);
+      if (source && provider?.resolveRelativePath) {
+        resolvedSrc = provider.resolveRelativePath(source, src);
 
         // HACK: This ref has no real version because the parser is synchronous
         // and can't call provider.read(). We use a placeholder version so it's
         // structurally valid as LofsCanonical. Making the parser async would
-        // let us get real canonical provenance (mtime, content hash) here.
+        // let us get real canonical source/parseDeps (mtime, content hash) here.
         if (provider.toLofsRef) {
           const assetRef = withVersion(provider.toLofsRef(resolvedSrc), toLofsVersion('unresolved'));
-          updatedProvenance = [...provenance, toLofsCanonical(assetRef)];
+          updatedParseDeps = [...parseDeps, toLofsCanonical(assetRef)];
         }
       }
     }
 
-    storeEntry(id, { id, tag, attributes: { ...otherAttributes, src: resolvedSrc }, provenance: updatedProvenance, kids: [] });
+    storeEntry(id, { id, tag, attributes: { ...otherAttributes, src: resolvedSrc }, source, parseDeps: updatedParseDeps, kids: [] });
     return id;
   }
 

@@ -36,7 +36,8 @@ const attributes = z.object({
 // at parse time. Otherwise it stores a normal (childless) entry so the render
 // path runs — and, for throws="render", fails there instead.
 const buggyParser = childParser(async function buggyParser(ctx: any) {
-  const { attributes: attrs = {}, provenance, errors } = ctx;
+  const { attributes: attrs = {}, source, parseDeps, errors } = ctx;
+  const provenance = [source, ...(parseDeps ?? [])];
   const { throws = 'render', kind = 'native', warn, message } = attrs;
   const msg = typeof message === 'string' && message
     ? message

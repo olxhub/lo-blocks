@@ -73,7 +73,8 @@ const ROOT_OLXJSON: OlxJson = Object.freeze({
   id: 'root' as DefinitionKey,
   tag: 'Root' as any,
   attributes: {},
-  provenance: [] as any,
+  source: '' as any,
+  parseDeps: [] as any,
 });
 
 /**

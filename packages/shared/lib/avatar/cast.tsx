@@ -388,15 +388,18 @@ export function withCastSupport(
           throw new Error('withCastSupport: no storage provider for resolving cast file');
         }
         const castPath = ctx.attributes.cast;
-        const lastProv = ctx.provenance?.[ctx.provenance.length - 1];
+        // Resolve relative to the most recent file in the dependency chain
+        const resolveBase = ctx.parseDeps?.length > 0
+          ? ctx.parseDeps[ctx.parseDeps.length - 1]
+          : ctx.source;
         let resolved, castProvenance, content;
         try {
-          resolved = ctx.provider.resolveRelativePath(lastProv, castPath);
+          resolved = ctx.provider.resolveRelativePath(resolveBase, castPath);
           const readResult = await ctx.provider.read(resolved);
           content = readResult.content;
           castProvenance = readResult.provenance;
         } catch (e: any) {
-          throw new Error(`Cast file not found: "${castPath}" (resolved from ${lastProv})\n${e.message}`);
+          throw new Error(`Cast file not found: "${castPath}" (resolved from ${resolveBase})\n${e.message}`);
         }
         const parsedCast = parseCastYaml(content);
 
@@ -413,6 +416,7 @@ export function withCastSupport(
         ctx = {
           ...ctx,
           attributes: { ...ctx.attributes, cast: parsedCast },
+          parseDeps: [...(ctx.parseDeps || []), castProvenance],
         };
       }
       return parserConfig.parser(ctx);
