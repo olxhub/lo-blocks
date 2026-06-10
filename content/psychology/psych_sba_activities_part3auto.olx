@@ -1189,7 +1189,7 @@ Your email will be evaluated on:
 <Key id="fba2_part_3auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<IntakeGate id="fba2_completion_gate" ready="'fba2_part_3auto_finished' in @fba2_completion_checkbox.value">
+<IntakeGate id="fba2_completion_gate" ready="id('fba2_part_3auto_finished') in @fba2_completion_checkbox.value">
 <Markdown id="fba2_completion_spacer"> </Markdown>
 <Markdown id="fba2_completion_summary">
 - In this activity, you learned about the **function of behavior** (attention, escape,

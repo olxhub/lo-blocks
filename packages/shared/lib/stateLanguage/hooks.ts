@@ -17,9 +17,14 @@ import { extractStructuredRefs } from './references';
 import { evaluate, createContext } from './evaluate';
 import type { ContextData } from './evaluate';
 
-// Two-level shallow equality for ContextData: shallowEqual on each namespace
+// Two-level shallow equality for ContextData: shallowEqual on each namespace,
+// plus the content namespace itself — ns feeds the id() helper, so a context
+// that differs only by ns must still be treated as changed (otherwise id()
+// would qualify against a stale namespace). Equal in the common stable-ns case,
+// so this doesn't churn subscribers.
 function contextDataEqual(a: ContextData, b: ContextData): boolean {
-  return shallowEqual(a.componentState, b.componentState) &&
+  return a.ns === b.ns &&
+         shallowEqual(a.componentState, b.componentState) &&
          shallowEqual(a.olxContent, b.olxContent) &&
          shallowEqual(a.globalVar, b.globalVar);
 }
@@ -138,9 +143,9 @@ export function selectReferences(
   const ns = props.runtime.ns;
 
   // Fast path when no refs. ns still rides along — `id('foo') in ['a','b']`
-  // references no state but needs the namespace. contextDataEqual compares
-  // only the three reference namespaces, so the fresh wrapper object
-  // doesn't churn useReferences subscribers.
+  // references no state but needs the namespace. contextDataEqual compares the
+  // three reference namespaces plus ns; with a stable ns the fresh wrapper
+  // object doesn't churn useReferences subscribers.
   if (
     refs.componentState.length === 0 &&
     refs.olxContent.length === 0 &&

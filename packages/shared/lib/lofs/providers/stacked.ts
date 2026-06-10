@@ -19,6 +19,7 @@
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
+  NamespaceResolutionError,
   type StorageProvider,
   type NamespaceResolution,
   type XmlFileInfo,
@@ -231,14 +232,20 @@ export class StackedStorageProvider implements StorageProvider {
     throw new Error(`Cannot resolve relative path in any provider for: ${uri}`);
   }
 
-  // Resolve namespace via the provider that owns the ref (mount mismatch
-  // throws, falling through to the next provider — same routing as read).
+  // Resolve namespace via the provider that owns the ref. A non-owning
+  // provider throws a plain Error (mount mismatch / wrong scheme), so we fall
+  // through to the next one — same routing as read. But a NamespaceResolutionError
+  // means the OWNING provider found the ref and still couldn't resolve a
+  // namespace (e.g. an OLX file at the content root): that's the authoritative,
+  // author-facing answer, so propagate it instead of masking it with the next
+  // provider's mount-mismatch error.
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     let lastError: Error | null = null;
     for (const provider of this.providers) {
       try {
         return await provider.namespaceFor(ref);
       } catch (err) {
+        if (err instanceof NamespaceResolutionError) throw err;
         lastError = err as Error;
       }
     }

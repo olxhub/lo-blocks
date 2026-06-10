@@ -286,6 +286,7 @@ function StudioPageContent() {
         fileStateRef.current.set(name, {
           content,
           metadata: result.metadata,
+          ns: result.ns,
         });
         setFilePath(name);
         updateUrl(name);
@@ -312,6 +313,7 @@ function StudioPageContent() {
       fileStateRef.current.set(filePath, {
         content,
         metadata: result.metadata,
+        ns: result.ns,
       });
       notify('success', `Saved ${filePath}`);
     } catch (err) {

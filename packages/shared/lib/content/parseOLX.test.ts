@@ -5,7 +5,6 @@ import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 import { TEST_NS, testKey } from '../test-utils';
 import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, joinNs } from '../types/id-grammar';
-import { TEST_NS } from '../test-utils';
 
 const PROV = [toMemoryRef('test.xml')];
 

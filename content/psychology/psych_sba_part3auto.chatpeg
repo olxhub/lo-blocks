@@ -441,7 +441,7 @@ Lin: I think so too. Let's check back in a couple of weeks to see how it goes.
 
 ::fba2_completion_page [display=target:psych_sba_sidebar3auto label="Complete Exercise"]
 
---- wait 'CONTENT/fba2_part_3auto_finished' in @fba2_completion_checkbox.value ---
+--- wait id('fba2_part_3auto_finished') in @fba2_completion_checkbox.value ---
 
 ::psych_sba_activities_part3auto  [display=target:psych_sba_sidebar3auto label="Review your work"]
 

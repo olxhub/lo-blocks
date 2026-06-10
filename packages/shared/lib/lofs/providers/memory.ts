@@ -51,7 +51,15 @@ export class InMemoryStorageProvider implements StorageProvider {
     this.ns = ns;
   }
 
-  async namespaceFor(_ref: LofsRef): Promise<NamespaceResolution> {
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
+    // Only own memory: refs — same scheme guard as resolveRelativePath, so a
+    // StackedStorageProvider with this provider ahead of a file provider falls
+    // through for file: refs instead of mislabeling them with this.ns.
+    if (scheme(brandLofsRef(String(ref))) !== 'memory') {
+      throw new Error(
+        `InMemoryStorageProvider does not own ref (not a memory: scheme): ${ref}`
+      );
+    }
     return { ns: this.ns };
   }
 
