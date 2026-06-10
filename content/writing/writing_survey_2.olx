@@ -7,7 +7,7 @@ license: AGPL
 lang: en-Latn-US
 ---
 -->
-<!-- content/sba/writing/writing_survey_2.olx -->
+<!-- content/writing/writing_survey_2.olx -->
 <Sequential id="writing_survey_2" title="Writing Survey 2" launchable="true">
     <Markdown id="ws2_intro">
             # Writing Survey 2

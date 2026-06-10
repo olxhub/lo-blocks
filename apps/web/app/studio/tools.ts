@@ -160,7 +160,7 @@ export function createEditorTools({
           properties: {
             file_path: {
               type: "string",
-              description: "Path to the file, e.g. 'sba/psychology/psychology_sba.olx'"
+              description: "Path to the file, e.g. 'psychology/psychology_sba.olx'"
             }
           },
           required: ["file_path"]
@@ -189,7 +189,7 @@ export function createEditorTools({
           properties: {
             pattern: {
               type: "string",
-              description: "Glob pattern, e.g. '**/*.olx', 'sba/**/*psychology*'"
+              description: "Glob pattern, e.g. '**/*.olx', 'psychology/**/*psychology*'"
             },
             path: {
               type: "string",

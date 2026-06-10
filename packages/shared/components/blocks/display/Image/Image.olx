@@ -1,4 +1,4 @@
 <Image id="ImageDemo" title="Image Example"
-       src="/sba/psychology/images/sleep-refusal-llm.png"
+       src="/psychology/images/sleep-refusal-llm.png"
        alt="LLM response about sleep deprivation"
        width="50%" />

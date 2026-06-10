@@ -4,7 +4,7 @@
 // Serve a previously-built static site.
 //
 // Usage:
-//   tsx scripts/serve-static.ts --manifest content/sba/psychology/manifest.yaml
+//   tsx scripts/serve-static.ts --manifest content/psychology/manifest.yaml
 //
 // Reads the manifest to determine the output directory, then launches
 // `npx serve` on that directory.

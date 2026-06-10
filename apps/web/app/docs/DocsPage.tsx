@@ -1,4 +1,4 @@
-// apps/web/app/docs/DocsPage.jsx
+// apps/web/app/docs/DocsPage.tsx
 //
 // Block and Grammar documentation page.
 //

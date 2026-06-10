@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// content/sba/psychology/convert-psych-mcq.js
+// content/psychology/convert-psych-mcq.js
 //
 // Converts psychology multiple-choice questions from JSON to OLX format.
 //
 // Usage:
-//   npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json
-//   npx tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/function-questions.json
+//   npx tsx content/psychology/convert-psych-mcq.js content/psychology/operant-questions.json
+//   npx tsx content/psychology/convert-psych-mcq.js content/psychology/function-questions.json
 //
 // Output:
 //   - Creates an .auto.olx file with CapaProblems wrapped in a Vertical.
@@ -126,7 +126,7 @@ ${problemsXml}
 // Main
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.log('Usage: npx tsx content/sba/psychology/convert-psych-mcq.js <json-file>');
+  console.log('Usage: npx tsx content/psychology/convert-psych-mcq.js <json-file>');
   process.exit(1);
 }
 

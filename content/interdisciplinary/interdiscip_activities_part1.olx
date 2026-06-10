@@ -39,13 +39,13 @@ Comm360's services can be developed to address the problem.
           </Markdown>
       </LeftPane>
       <RightPane>
-          <Image id="interdisciplinary_image" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
-          <Image id="interdisciplinary_image2" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
+          <Image id="interdisciplinary_image" src="images/nonprofit.png" alt="Nonprofit" />
+          <Image id="interdisciplinary_image2" src="images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
       </RightPane>
     </SplitPanel>
 
     <Image id="interdisciplinary_gsu_plaza_image"
-         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg"
+         src="images/GSU_Library_Plaza.jpg"
          alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0"
          height="400px"
     />
@@ -65,7 +65,7 @@ research process.
     </Markdown>
 
     <Image id="cause_brainstorming"
-         src="/sba/interdisciplinary/images/team_workshop.jpg"
+         src="images/team_workshop.jpg"
          height="400px"
          alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
 
@@ -261,7 +261,7 @@ _Select the causes you think are most important to research._
     <Markdown> </Markdown>
       <Vertical>
         <Image id="task_set_3_intro"
-           src="/sba/interdisciplinary/images/the_thinker.jpg"
+           src="images/the_thinker.jpg"
            height="400px"
            alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SS 2.0 Generic." />
 

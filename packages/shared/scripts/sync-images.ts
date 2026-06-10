@@ -4,7 +4,7 @@
  *
  * Usage:
  *   tsx sync-images.ts                          # default: ./content → apps/web/public/content
- *   tsx sync-images.ts --source content/sba/psychology --target dist/psych/content
+ *   tsx sync-images.ts --source content/psychology --target dist/psych/content
  */
 
 import { FileStorageProvider } from '../lib/lofs/providers/file.js';

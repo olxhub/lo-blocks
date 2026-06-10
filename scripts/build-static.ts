@@ -4,8 +4,8 @@
 // Manifest-driven static site builder.
 //
 // Usage:
-//   tsx scripts/build-static.ts --manifest content/sba/psychology/manifest.yaml
-//   tsx scripts/build-static.ts --manifest content/sba/psychology/manifest.yaml --serve
+//   tsx scripts/build-static.ts --manifest content/psychology/manifest.yaml
+//   tsx scripts/build-static.ts --manifest content/psychology/manifest.yaml --serve
 //
 // The manifest YAML is the single entry point. It declares title, routes,
 // classes, and optional overrides. The script orchestrates:
