@@ -1,4 +1,4 @@
-<Vertical id="MarkdownMadLibsDemo" title="Mad Libs (Markdown)" launchable="true">
+<Vertical id="MarkdownMadLibsDemo" title="Mad Libs (Markdown)">
 
   <Markdown id="intro">
 ## Mad Libs - Markdown Edition

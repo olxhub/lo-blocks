@@ -6,7 +6,7 @@ lang: en-Latn-US
 ---
 -->
 
-<Vertical id="style_comparison" title="Writing Style Comparison" launchable="true">
+<Vertical id="style_comparison" title="Writing Style Comparison">
   <Markdown id="comparison_intro">
 ## Comparing Writing Styles
 
