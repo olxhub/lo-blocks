@@ -8,8 +8,10 @@
 //
 import path from 'path';
 import { glob as globLib } from 'glob';
+import YAML from 'yaml';
 import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
+import { type ContentNamespace, validateContentNamespace, asContentNamespace } from '../../types/id-grammar';
 import { EXT, isMediaFile } from '@/lib/util/fileTypes';
 import {
   type StorageProvider,
@@ -21,7 +23,9 @@ import {
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
+  type NamespaceResolution,
   VersionConflictError,
+  NamespaceResolutionError,
   toFileRef,
   fileProvenancePath,
 } from '../../types/storage';
@@ -340,6 +344,7 @@ async function listFileTree(
 export class FileStorageProvider implements StorageProvider {
   readonly baseDir: string;
   readonly mountPoint: string;
+  readonly ns?: ContentNamespace;
 
   /**
    * @param baseDir - Filesystem directory to serve files from (default: './content')
@@ -347,14 +352,21 @@ export class FileStorageProvider implements StorageProvider {
    *   Must be unique across stacked providers — two providers with the same mount point
    *   produce indistinguishable provenance URIs. Pass explicitly when basename doesn't
    *   match the desired mount (e.g., OLX_CONTENT_DIR=/data/courses → mountPoint='content').
+   * @param options.ns - Special-case namespace override: ALL files in this
+   *   provider resolve to it, ignoring manifests and directory structure.
+   *   The API wins over content declarations because reaching for this means
+   *   you're doing something wonky — a test fixture, a scratch mount. Normal
+   *   content sources omit it and let namespaceFor resolve per file
+   *   (manifest override, then top-level directory).
    */
-  constructor(baseDir = './content', mountPoint?: string) {
+  constructor(baseDir = './content', mountPoint?: string, { ns }: { ns?: ContentNamespace } = {}) {
     this.baseDir = path.resolve(baseDir);
     const mp = mountPoint ?? path.basename(this.baseDir);
     if (!mp || mp.startsWith('/') || mp.includes('\0') || mp.split('/').some(s => s === '..')) {
       throw new Error(`Invalid mount point: "${mp}"`);
     }
     this.mountPoint = mp;
+    this.ns = ns;
   }
 
   /**
@@ -388,11 +400,21 @@ export class FileStorageProvider implements StorageProvider {
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const fs = await import('fs/promises');
 
+    // Only diff against refs this provider owns. In a stacked scan, `previous`
+    // contains other mounts' files — without this filter they would all be
+    // reported as deleted (they're never "found" by walking this baseDir).
+    const expectedSource = `file:${this.mountPoint}`;
+    previous = Object.fromEntries(
+      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === expectedSource)
+    ) as Record<LofsRef, XmlFileInfo>;
+
     function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
       return (
         entry.isFile() &&
-        CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) &&
+        // manifest.yaml files are scanned as auxiliary files so the sync
+        // can re-parse a manifest's subtree when its namespace changes.
+        (CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) || fileName === 'manifest.yaml') &&
         !fileName.includes('~') &&
         !fileName.includes('#') &&
         !fileName.startsWith('.')
@@ -465,10 +487,21 @@ export class FileStorageProvider implements StorageProvider {
         fs.stat(full),
       ]);
       const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, full));
+      // Resolve the file's namespace so clients (e.g. studio) can render the
+      // content where it actually lives. A file outside any namespace (root
+      // configs, etc.) is still readable — it just has no content identity,
+      // so ns stays undefined. Anything else (I/O failure, bug) propagates.
+      let ns: ContentNamespace | undefined;
+      try {
+        ns = (await this.namespaceFor(ref)).ns;
+      } catch (err) {
+        if (!(err instanceof NamespaceResolutionError)) throw err;
+      }
       return {
         content,
         metadata: { mtime: stat.mtimeMs, size: stat.size },
         provenance: toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs)))),
+        ns,
       };
     } catch (err: any) {
       if (err.code === 'ENOENT') {
@@ -580,6 +613,90 @@ export class FileStorageProvider implements StorageProvider {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Resolve the content namespace for a file in this provider.
+   *
+   * Resolution order:
+   *   1. Nearest ancestor manifest.yaml with a `namespace:` field, walking
+   *      from the file's directory up to the provider root. The result
+   *      carries the manifest as versioned provenance (NamespaceResolution.manifest).
+   *   2. The file's top-level directory name ("demos/foo.olx" → "demos").
+   *
+   * Throws NamespaceResolutionError when neither yields a valid namespace:
+   * a file at the provider root with no manifest, or a directory name the
+   * namespace grammar rejects (e.g. "lo-blocks" — hyphens are not allowed).
+   *
+   * Change tracking: manifest.yaml files are included in loadXmlFilesWithStats
+   * scans as auxiliary files, and the content sync re-parses the mount's
+   * OLX when a manifest is added, changed, or deleted (see
+   * promoteFilesAffectedByManifests in syncContentFromStorage.ts). No
+   * caching here — every call re-reads manifests, so results are always
+   * current within a sync.
+   */
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
+    const relPath = this.extractRelativePath(withoutVersion(brandLofsRef(String(ref))));
+
+    // Constructor override: the whole provider is one namespace, manifests
+    // ignored (see constructor docs). relPath is still extracted above so
+    // mount mismatches throw — that's how StackedStorageProvider routes to
+    // the owning provider.
+    if (this.ns) return { ns: this.ns };
+
+    const fs = await import('fs/promises');
+
+    // 1. Manifest override: nearest manifest.yaml from the file's directory up.
+    for (let dir = path.dirname(relPath); ; dir = path.dirname(dir)) {
+      const atRoot = dir === '.' || dir === '';
+      const manifestRel = atRoot ? 'manifest.yaml' : path.join(dir, 'manifest.yaml');
+      let raw: string | null = null;
+      let mtimeMs: number | null = null;
+      try {
+        const full = await resolveSafeReadPath(this.baseDir, manifestRel);
+        [raw, mtimeMs] = await Promise.all([
+          fs.readFile(full, 'utf-8'),
+          fs.stat(full).then(s => s.mtimeMs),
+        ]);
+      } catch {
+        // No manifest at this level — keep walking up.
+      }
+      if (raw !== null) {
+        const declared = YAML.parse(raw)?.namespace;
+        if (declared !== undefined) {
+          const valid = validateContentNamespace(String(declared));
+          if (valid !== true) {
+            throw new NamespaceResolutionError(`${manifestRel}: ${valid}`);
+          }
+          const manifestRef = toFileRef(this.mountPoint, manifestRel);
+          return {
+            ns: asContentNamespace(String(declared)),
+            manifest: toLofsCanonical(withVersion(manifestRef, toLofsVersion(String(mtimeMs)))),
+          };
+        }
+        // Manifest without a namespace field — an ancestor manifest may declare one.
+      }
+      if (atRoot) break;
+    }
+
+    // 2. Directory fallback: the first path segment is the namespace.
+    const sep = relPath.indexOf('/');
+    if (sep < 0) {
+      throw new NamespaceResolutionError(
+        `"${relPath}" sits at the top level of the content directory, so it has no namespace. ` +
+        `Move it into a namespace directory (e.g. "demos/${relPath}") or add a manifest.yaml ` +
+        `with a "namespace:" field.`
+      );
+    }
+    const dirName = relPath.slice(0, sep);
+    const valid = validateContentNamespace(dirName);
+    if (valid !== true) {
+      throw new NamespaceResolutionError(
+        `Directory "${dirName}" cannot be used as a content namespace: ${valid}. ` +
+        `Rename the directory or add a manifest.yaml with an explicit "namespace:" field.`
+      );
+    }
+    return { ns: asContentNamespace(dirName) };
   }
 
   /**

@@ -7,7 +7,7 @@ index: 1
 lang: en-Latn-US
 ---
 -->
-<!-- content/sba/writing/writing_survey_1.olx -->
+<!-- content/writing/writing_survey_1.olx -->
 <Sequential id="writing_survey_1" title="Writing Survey 1" launchable="true">
     <Markdown id="ws1_intro">
             # Writing Survey 1

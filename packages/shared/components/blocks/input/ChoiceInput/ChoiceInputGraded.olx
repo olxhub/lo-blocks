@@ -1,4 +1,4 @@
-<CapaProblem id="ChoiceInputDemo" title="Children's Houses">
+<CapaProblem id="ChoiceInputGraded" title="Children's Houses">
   <KeyGrader>
     <Markdown>Who wrote the 1909 book subtitled "Scientific Pedagogy as Applied to Child Education in 'The Children's Houses'"?</Markdown>
     <ChoiceInput>

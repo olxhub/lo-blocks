@@ -7,7 +7,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getCategory, sortCategories } from '@/lib/docs';
-import type { AttributeDoc, BlockDoc } from '@/lib/docs';
+import type { AttributeDoc, BlockDoc, DocItem } from '@/lib/docs';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import './BlockList.css';
 
@@ -24,7 +24,7 @@ interface DetailedDocs {
 
 interface ExpandableBlockDocProps {
   name: string;
-  block?: BlockDoc;
+  block?: DocItem;
   onInsert?: (olx: string) => void;
   isGrammar?: boolean;
   extension?: string;
@@ -66,7 +66,8 @@ function ExpandableBlockDoc({ name, block, onInsert, isGrammar, extension }: Exp
   }, [expanded, name, isGrammar, detailedDocs, loadingDocs]);
 
   // Use attributes from detailed docs if available, fall back to block.attributes
-  const attributes = detailedDocs?.attributes ?? block?.attributes;
+  // attributes live on BlockDoc only (grammars have none) — narrow before access.
+  const attributes = detailedDocs?.attributes ?? (block && 'attributes' in block ? block.attributes : undefined);
   const customAttrs = attributes?.filter(attr => attr.description) || [];
   // BlockList is the Studio sidebar — always use template (bare block).
   // template is a key into examples dict; look up the content.
@@ -198,7 +199,7 @@ export function ElementsInFile({ elements, blockDocs, onInsert, className = '' }
 // =============================================================================
 
 interface BlockListProps {
-  blocks: BlockDoc[];
+  blocks: DocItem[];
   selectedBlock?: string | null;
   onSelectBlock?: (name: string, isGrammar?: boolean) => void;
   onInsert?: (olx: string) => void;
@@ -228,7 +229,7 @@ export function BlockList({
 
   // Group blocks by category
   const categorizedBlocks = useMemo(() => {
-    const groups: Record<string, BlockDoc[]> = {};
+    const groups: Record<string, DocItem[]> = {};
     blocks.forEach(block => {
       const category = getCategory(block);
       if (!groups[category]) groups[category] = [];
@@ -241,7 +242,7 @@ export function BlockList({
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return categorizedBlocks;
     const query = searchQuery.toLowerCase();
-    const filtered: Record<string, BlockDoc[]> = {};
+    const filtered: Record<string, DocItem[]> = {};
     Object.entries(categorizedBlocks).forEach(([category, items]) => {
       const matching = items.filter(item =>
         item.name.toLowerCase().includes(query) ||

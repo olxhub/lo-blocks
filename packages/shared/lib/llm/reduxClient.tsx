@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { hashContent } from '@/lib/util/index';
@@ -13,6 +13,15 @@ import {
   CHAT_ADD_MESSAGES,
   CHAT_SET_STATUS,
 } from '@/lib/state/store';
+import type {
+  ChatMessage,
+  ChatLineMessage,
+  ApiMessage,
+  LlmTool,
+  ToolCall,
+  ToolResult,
+  ChatCompletionResponse,
+} from './types';
 
 const LLM_ENDPOINT = '/api/llm/chat/completions';
 
@@ -28,11 +37,11 @@ export const LLM_STATUS = {
 // Execute tool calls sequentially and return canonical results.
 // Tools run in order so each sees the effects of previous tools.
 // Caller derives API and display formats as needed.
-async function handleToolCalls(toolCalls, tools) {
-  const results = [];
+async function handleToolCalls(toolCalls: ToolCall[], tools: LlmTool[]): Promise<ToolResult[]> {
+  const results: ToolResult[] = [];
   for (const call of toolCalls) {
     const tool = findToolByName(tools, call.function.name);
-    let args = {};
+    let args: Record<string, unknown> = {};
     try { args = JSON.parse(call.function.arguments || '{}'); } catch {}
     const result = tool ? await tool.callback(args) : '';
 
@@ -43,7 +52,7 @@ async function handleToolCalls(toolCalls, tools) {
 }
 
 // Small helper to find tool in a list of tools
-function findToolByName(tools, name) {
+function findToolByName(tools: LlmTool[], name: string): LlmTool | undefined {
   return tools?.find(t => t.function.name === name);
 }
 
@@ -52,7 +61,19 @@ function findToolByName(tools, name) {
 // TODO: Do we want to replace this with a standard library?
 // TODO: Add a 'profile' parameter that selects server-side presets
 //       (model, system prompt, rate limits, etc.)
-export async function callLLM(params) {
+export interface CallLLMParams {
+  history?: ApiMessage[];
+  prompt?: string;
+  tools?: LlmTool[];
+  statusCallback?: (status: string) => void;
+}
+
+export interface CallLLMResult {
+  messages: ChatMessage[];
+  error: boolean;
+}
+
+export async function callLLM(params: CallLLMParams): Promise<CallLLMResult> {
   const {
     history,
     prompt,
@@ -66,11 +87,11 @@ export async function callLLM(params) {
   }
 
   // Convert prompt to history if needed
-  const messages = history || [{ role: 'user', content: prompt }];
+  const messages: ApiMessage[] = history ?? [{ role: 'user', content: prompt ?? '' }];
 
   let loopCount = 0;
-  let newMessages = [];
-  let displayMessagesAccum = [];  // Tool calls to show in chat
+  let newMessages: ApiMessage[] = [];
+  let displayMessagesAccum: ChatMessage[] = [];  // Tool calls to show in chat
   while (loopCount++ < 10) {
     try {
       const res = await fetch(LLM_ENDPOINT, {
@@ -81,7 +102,7 @@ export async function callLLM(params) {
           tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
         }),
       });
-      const json = (await res.json()).choices?.[0];
+      const json = ((await res.json()) as ChatCompletionResponse).choices?.[0];
       const content = json?.message?.content;
       const toolCalls = json?.message?.tool_calls;
 
@@ -94,13 +115,13 @@ export async function callLLM(params) {
         newMessages = [
           ...newMessages,
           json.message,
-          ...toolResults.map(r => ({ role: 'tool', content: r.result, tool_call_id: r.id }))
+          ...toolResults.map(r => ({ role: 'tool' as const, content: r.result, tool_call_id: r.id }))
         ];
 
         // Add to display messages
         displayMessagesAccum = [
           ...displayMessagesAccum,
-          ...toolResults.map(r => ({ type: 'ToolCall', name: r.name, args: r.args, result: r.result }))
+          ...toolResults.map(r => ({ type: 'ToolCall' as const, name: r.name, args: r.args, result: r.result }))
         ];
 
         // If there's also content, return it (some models send both)
@@ -154,7 +175,26 @@ export async function callLLM(params) {
 // @param {array} params.tools - Default tool definitions (can be overridden per-call)
 // @param {string} params.systemPrompt - Default system prompt (can be overridden per-call)
 // @param {string} params.initialMessage - Initial message to show (default: 'Ask the LLM a question.')
-export function useChat(params = {}) {
+export interface UseChatParams {
+  chatId?: string;
+  tools?: LlmTool[];
+  systemPrompt?: string;
+  initialMessage?: string;
+}
+
+/** A file picked in the UI before it's hashed and stored as a MessageAttachment. */
+export interface AttachmentInput {
+  name: string;
+  content: string;
+}
+
+export interface SendMessageOptions {
+  attachments?: AttachmentInput[];
+  tools?: LlmTool[];
+  systemPrompt?: string;
+}
+
+export function useChat(params: UseChatParams = {}) {
   const {
     chatId = 'default',
     tools: defaultTools = [],
@@ -162,23 +202,25 @@ export function useChat(params = {}) {
     initialMessage = 'Ask the LLM a question.'
   } = params;
 
-  // Read from Redux
+  // Read from Redux.
+  // TODO: type `state` as RootState once the store exports one (store.ts has
+  // no RootState type today). Until then this selector is unavoidably `any`.
   const chatState = useSelector(
-    (state) => state?.application_state?.chat?.[chatId]
+    (state: any) => state?.application_state?.chat?.[chatId]
   );
-  const messages = chatState?.messages ?? [];
-  const status = chatState?.status ?? LLM_STATUS.INIT;
+  const messages: ChatMessage[] = chatState?.messages ?? [];
+  const status: string = chatState?.status ?? LLM_STATUS.INIT;
 
   // Dispatch helpers
-  const addMessage = useCallback((message) => {
+  const addMessage = useCallback((message: ChatMessage) => {
     lo_event.logEvent(CHAT_ADD_MESSAGE, { chatId, message });
   }, [chatId]);
 
-  const addMessages = useCallback((msgs) => {
+  const addMessages = useCallback((msgs: ChatMessage[]) => {
     lo_event.logEvent(CHAT_ADD_MESSAGES, { chatId, messages: msgs });
   }, [chatId]);
 
-  const setStatus = useCallback((newStatus) => {
+  const setStatus = useCallback((newStatus: string) => {
     lo_event.logEvent(CHAT_SET_STATUS, { chatId, status: newStatus });
   }, [chatId]);
 
@@ -191,7 +233,7 @@ export function useChat(params = {}) {
 
   // sendMessage accepts per-call overrides for tools and systemPrompt
   // This allows building fresh tools with current values at call time
-  const sendMessage = useCallback(async (text, options = {}) => {
+  const sendMessage = useCallback(async (text: string, options: SendMessageOptions = {}) => {
     const {
       attachments = [],
       tools = defaultTools,
@@ -225,7 +267,7 @@ export function useChat(params = {}) {
     // Store message with attachments so they persist across follow-ups
     // User messages store: { name, hash, body } for full replicability
     // This allows follow-up questions to reference the same files
-    const userMessage = {
+    const userMessage: ChatLineMessage = {
       type: 'Line',
       speaker: 'You',
       text: displayText,
@@ -236,22 +278,24 @@ export function useChat(params = {}) {
     // Build history from messages (reconstructing apiText for LLM context)
     // This ensures follow-up questions include full file content in history
     // Note: messages here is the snapshot at time of call
-    let history = [...messages, { type: 'Line', speaker: 'You', text: apiText }]
-      .filter((msg) => msg.type === 'Line')
-      .map((msg) => {
-        // Reconstruct apiText for user messages with attachments
-        let content = msg.text;
-        if (msg.attachments && msg.attachments.length > 0) {
-          const attachmentContent = msg.attachments
-            .map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``)
-            .join('\n\n');
-          content = msg.text.replace(/\n\n📎.*$/s, '') + '\n\n' + attachmentContent;
-        }
-        return {
-          role: msg.speaker === 'You' ? 'user' : 'assistant',
-          content,
-        };
-      });
+    const lineMessages = [
+      ...messages,
+      { type: 'Line', speaker: 'You', text: apiText } as ChatLineMessage,
+    ].filter((msg): msg is ChatLineMessage => msg.type === 'Line');
+    let history: ApiMessage[] = lineMessages.map((msg) => {
+      // Reconstruct apiText for user messages with attachments
+      let content = msg.text;
+      if (msg.attachments && msg.attachments.length > 0) {
+        const attachmentContent = msg.attachments
+          .map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``)
+          .join('\n\n');
+        content = msg.text.replace(/\n\n📎[\s\S]*$/, '') + '\n\n' + attachmentContent;
+      }
+      return {
+        role: msg.speaker === 'You' ? 'user' : 'assistant',
+        content,
+      };
+    });
 
     // Prepend system prompt if provided
     if (systemPrompt) {
@@ -273,16 +317,20 @@ export function useChat(params = {}) {
 }
 
 // Simple wrapper that returns just the text content
-export async function callLLMSimple(prompt) {
+export async function callLLMSimple(prompt: string): Promise<string> {
   const { messages, error } = await callLLM({
     prompt,
     statusCallback: () => {}, // No status needed for simple calls
   });
 
   if (error) {
-    throw new Error(messages[0]?.text || 'LLM call failed');
+    const first = messages[0];
+    const detail = first && 'text' in first ? first.text : undefined;
+    throw new Error(detail || 'LLM call failed');
   }
 
   // Extract just the text content
-  return messages.find(m => m.type === 'Line' && m.speaker === 'LLM')?.text || 'No response';
+  return messages.find(
+    (m): m is ChatLineMessage => m.type === 'Line' && m.speaker === 'LLM'
+  )?.text || 'No response';
 }

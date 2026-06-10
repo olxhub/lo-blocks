@@ -13,7 +13,7 @@
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
-import { provenancePath } from '../../types/storage';
+import { provenancePath, type NamespaceResolution } from '../../types/storage';
 import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
 import {
@@ -141,6 +141,16 @@ export class NetworkStorageProvider implements StorageProvider {
     return provenancePath(uri) as OlxRelativePath;
   }
 
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
+    // Content namespaces are resolved server-side during content sync;
+    // qualified DefinitionKeys arrive over the wire. Client-side parses
+    // (editor, inline) get their namespace from the caller, not the provider.
+    throw new Error(
+      `NetworkStorageProvider cannot resolve content namespaces (asked about: ${ref}). ` +
+      `The server resolves namespaces when syncing content.`
+    );
+  }
+
   /**
    * Check if an asset file exists via HEAD request.
    */
@@ -205,6 +215,8 @@ export class NetworkStorageProvider implements StorageProvider {
       content,
       metadata: json.metadata,
       provenance: toLofsCanonical(withVersion(ref, ver)),
+      // Server-resolved content namespace (see api/file GET).
+      ns: json.ns,
     };
   }
 

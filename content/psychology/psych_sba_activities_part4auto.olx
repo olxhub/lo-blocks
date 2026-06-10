@@ -573,7 +573,7 @@ You have determined that the modified intervention was a success! Write a brief 
 <Key id="fba3_part_4auto_finished">I don't need to make any more changes</Key>
 </CheckboxInput>
 
-<Markdown when="'CONTENT/fba3_part_4auto_finished' in @fba3_completion_checkbox.value">
+<Markdown when="id('fba3_part_4auto_finished') in @fba3_completion_checkbox.value">
 - In this activity, you learned about **progress monitoring** and **implementation fidelity**.
   You identified that Annie's roommate was struggling with **adherence** and used AI to
   brainstorm modifications to improve plan implementation.

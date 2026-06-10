@@ -250,6 +250,7 @@ export function _Chat(props: RuntimeProps) {
       <ChatComponent
         id={`${id}_component`}
         messages={visibleMessages}
+        ns={props.runtime.ns}
         participants={participants}
         subtitle={sectionHeader}
         footer={footer}

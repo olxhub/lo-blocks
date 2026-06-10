@@ -199,6 +199,7 @@ export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
             ) : previewWithContent && 'olx' in previewWithContent ? (
               <RenderOLX
                 id={stateKeyFromFilename(`preview.${ext}`, toContentNamespace('pegPreview'))}
+                ns={toContentNamespace('pegPreview')}
                 inline={previewWithContent.olx}
               />
             ) : (

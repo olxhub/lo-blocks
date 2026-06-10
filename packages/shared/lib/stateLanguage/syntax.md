@@ -150,6 +150,25 @@ More function calls (parse only):
 >>> Math.min(@a, @b)
 >>> Math.max(@a, @b)
 
+### id() — namespace-qualify a content id
+
+Stored values that contain content ids (e.g. a checkbox group's list of
+selected option ids) are namespace-qualified keys like
+`psych/Part_3_finished`. For exact-match comparisons, `id()` qualifies a
+bare name against the expression's own content namespace, so authors never
+write the namespace by hand:
+
+>>> id('Part_3_finished') in @completion.value
+
+Already-qualified names pass through unchanged — a cross-namespace
+comparison can use `id('ee101/hw1')` or simply the plain string literal
+`'ee101/hw1'`.
+
+(parse only):
+
+>>> id('Part_3_finished') in @completion.value
+>>> id(@picker.value) === @answer.value
+
 ## Array Aggregation
 
 Member access on arrays (e.g., caller-provided target lists):

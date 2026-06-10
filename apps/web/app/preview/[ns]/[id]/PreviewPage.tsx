@@ -8,7 +8,7 @@ import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, system, useLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
-import { parseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { parseStateKey, leafDefinitionKeyFromStateKey, splitNs } from '@/lib/types/id-grammar';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 
 export default function PreviewPage() {
@@ -79,6 +79,7 @@ export default function PreviewPage() {
         <div className="space-y-4">
           <RenderOLX
             id={stateKey}
+            ns={splitNs(stateKey).ns}
             baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
             eventContext="preview"
           />

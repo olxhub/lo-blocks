@@ -25,7 +25,7 @@ function _LLMFeedback(props: RuntimeProps) {
       case 'markdown':
         return (
           <div className="llm-feedback-markdown">
-            <RenderMarkdown>{feedback}</RenderMarkdown>
+            <RenderMarkdown ns={props.runtime.ns}>{feedback}</RenderMarkdown>
           </div>
         );
       case 'code':

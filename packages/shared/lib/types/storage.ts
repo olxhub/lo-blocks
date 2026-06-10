@@ -9,6 +9,7 @@ import type {
   FileLofsRef, MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
+import type { ContentNamespace } from './id-grammar';
 import {
   type LofsRef, type LofsCanonical,
   makeAddress, addressPath, scheme, withVersion,
@@ -70,6 +71,13 @@ export interface ReadResult {
    * memory); this tells you which one the content actually came from.
    */
   provenance: LofsCanonical;
+  /**
+   * The file's content namespace, as resolved by the provider
+   * (see namespaceFor). Lets clients (e.g. the studio editor) render
+   * fetched content in its real namespace. Absent when the file resolves
+   * to no namespace (e.g. a config file at the content root).
+   */
+  ns?: ContentNamespace;
 }
 
 /**
@@ -80,6 +88,38 @@ export interface WriteOptions {
   previousMetadata?: unknown;
   /** Force write even if metadata mismatch */
   force?: boolean;
+}
+
+/**
+ * Thrown by namespaceFor when a file resolves to NO content namespace.
+ * I/O failures and bugs stay plain errors — this class marks exactly the
+ * "the rules produced no answer" outcomes, so callers can distinguish them.
+ *
+ * WHO THROWS (the concrete cases):
+ * - FileStorageProvider.namespaceFor:
+ *   1. File at the content root with no manifest — e.g. content/static.config.json,
+ *      or an author dropping foo.olx directly into content/.
+ *   2. Top-level directory name the namespace grammar rejects (e.g. "my-course",
+ *      hyphens are forbidden) with no manifest override.
+ *   3. A manifest.yaml whose namespace: field is itself grammar-invalid.
+ * - DocsStorageProvider.namespaceFor: a file matching no registered block
+ *   name AND sitting at the docs root (no containing directory to fall
+ *   back to).
+ *
+ * WHO CATCHES:
+ * - FileStorageProvider.read: a namespace-less file is still readable
+ *   (studio opens static.config.json) — it catches exactly this class,
+ *   leaves ReadResult.ns undefined, and rethrows everything else.
+ * - The content sync (parseAndIndexFiles) deliberately does NOT catch it:
+ *   OLX without a namespace can't be indexed, so it surfaces as a per-file
+ *   error whose message tells the author what to do (move the file or add
+ *   a manifest).
+ */
+export class NamespaceResolutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NamespaceResolutionError';
+  }
 }
 
 /**
@@ -350,4 +390,40 @@ export interface StorageProvider {
    * @returns Promise<boolean>
    */
   validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
+
+  /**
+   * Resolve the content namespace for a file in this provider.
+   *
+   * The namespace identifies WHAT content collection a file belongs to
+   * (logical identity), independent of WHERE it lives (this provider).
+   * See ContentNamespace in id-grammar.ts.
+   *
+   * Resolution is provider-specific. A manifest.yaml `namespace:` field
+   * overrides where the provider supports manifests; otherwise each
+   * provider has its own fallback:
+   * - FileStorageProvider:     nearest ancestor manifest.yaml, else the
+   *                            file's top-level directory ("demos/foo.olx" → "demos")
+   * - GitStorageProvider:      repo manifest, else defaultNamespace(origin) (repo name)
+   * - InMemoryStorageProvider: constructor option
+   * - StackedStorageProvider:  delegates to the provider that owns the ref
+   *
+   * Throws NamespaceResolutionError (with an author-friendly message) when
+   * no namespace can be determined — e.g., a file at the root of a
+   * multi-namespace content directory with no manifest.
+   */
+  namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+}
+
+/**
+ * Result of namespaceFor — the namespace plus where it came from.
+ *
+ * `manifest` is the manifest.yaml that DECLARED the namespace, as read
+ * (versioned, so it's comparable for staleness). Absent when the namespace
+ * came from a non-manifest rule: directory name, constructor override,
+ * provider constant. The content sync stamps it onto each parsed block
+ * (OlxJson.manifest) — namespace provenance, alongside source/parseDeps.
+ */
+export interface NamespaceResolution {
+  ns: ContentNamespace;
+  manifest?: LofsCanonical;
 }

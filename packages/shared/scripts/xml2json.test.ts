@@ -48,17 +48,19 @@ test('xml2json error accumulation with PEG errors', async () => {
   const testContentDir = path.resolve('./test-content-errors');
 
   try {
-    // Create test content directory and files
-    await fs.mkdir(testContentDir, { recursive: true });
+    // Create test content directory and files. Files go in a namespace
+    // directory (testns/) — the top-level directory is the content namespace.
+    const nsDir = path.join(testContentDir, 'testns');
+    await fs.mkdir(nsDir, { recursive: true });
 
     // Copy our test error files from test data directory
     await fs.copyFile(
       path.resolve('./packages/shared/scripts/xml2json-testdata/test_error.xml'),
-      path.join(testContentDir, 'test_error.xml')
+      path.join(nsDir, 'test_error.xml')
     );
     await fs.copyFile(
       path.resolve('./packages/shared/scripts/xml2json-testdata/broken.chatpeg'),
-      path.join(testContentDir, 'broken.chatpeg')
+      path.join(nsDir, 'broken.chatpeg')
     );
 
     // Run xml2json with test content directory
@@ -99,3 +101,50 @@ test('xml2json error accumulation with PEG errors', async () => {
     } catch {}
   }
 }, 30000);
+
+test('xml2json --ns handles single-course roots with root-level files', async () => {
+  // Regression: static builds mount a single course directory directly, so
+  // OLX files at its root have no namespace directory and (for manifests
+  // without a namespace: field) no manifest to declare one. build-static.ts
+  // resolves the namespace itself and passes it via --ns; without --ns the
+  // root-level file must surface as an error, not silently disappear.
+  const testContentDir = path.resolve('./test-content-singlecourse');
+
+  try {
+    await fs.mkdir(testContentDir, { recursive: true });
+    await fs.writeFile(
+      path.join(testContentDir, 'course.olx'),
+      '<Markdown id="welcome">Hello</Markdown>'
+    );
+
+    const runXml2json = (extraArgs: string[]) => new Promise<{ exitCode: number; output: string }>((resolve) => {
+      const proc = spawn('npx', [
+        'tsx', 'packages/shared/scripts/xml2json.ts',
+        '--content', testContentDir,
+        '--out', OUTPUT_FILE,
+        ...extraArgs,
+      ], {
+        env: { ...process.env, OLX_CONTENT_DIR: testContentDir },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      let output = '';
+      proc.stdout.on('data', d => { output += d.toString(); });
+      proc.stderr.on('data', d => { output += d.toString(); });
+      proc.on('exit', (exitCode) => resolve({ exitCode: exitCode ?? 1, output }));
+    });
+
+    // Without --ns: the root-level file has no resolvable namespace → error
+    const without = await runXml2json([]);
+    expect(without.exitCode).toBe(1);
+    expect(without.output).toMatch(/no namespace|namespace directory/);
+
+    // With --ns: the whole mount is one namespace; keys are qualified
+    const withNs = await runXml2json(['--ns', 'mycourse']);
+    expect(withNs.exitCode).toBe(0);
+    const parsed = JSON.parse(await fs.readFile(OUTPUT_FILE, 'utf8'));
+    expect(parsed.idMap['mycourse/welcome']).toBeDefined();
+    expect(parsed.hasErrors).toBe(false);
+  } finally {
+    try { await fs.rm(testContentDir, { recursive: true, force: true }); } catch {}
+  }
+}, 60000);

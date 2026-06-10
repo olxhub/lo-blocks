@@ -8,51 +8,33 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 import type { Cast, FaceExpression } from '@/lib/avatar/types';
+import type { ContentNamespace } from '@/lib/types';
+// The conversation model lives in the LLM domain layer (lib/llm/types), which
+// owns it. The chat UI consumes those types; it must not define its own copy.
+import type {
+  ChatMessage,
+  ChatLineMessage,
+  SystemMessageEntry,
+  DateSeparatorEntry,
+  ToolCallEntry,
+  ElementEntry,
+  MessageAttachment,
+} from '@/lib/llm/types';
 
 /* ----------------------------------------------------------------
  * Types
  * -------------------------------------------------------------- */
 
-/** A chat line from a speaker (chatpeg Line, LLM response, etc.) */
-export interface ChatLineMessage {
-  type: 'Line';
-  speaker: string;
-  text: string;
-  metadata?: Record<string, string>;
-}
-
-/** A system-level notification in the conversation */
-export interface SystemMessageEntry {
-  type: 'SystemMessage';
-  text: string;
-}
-
-/** A date divider between messages */
-export interface DateSeparatorEntry {
-  type: 'DateSeparator';
-  date: string;
-}
-
-/** An LLM tool call (Studio) */
-export interface ToolCallEntry {
-  type: 'ToolCall';
-  name: string;
-  args: Record<string, unknown>;
-  result: string;
-}
-
-/** A pre-rendered React element (embedded blocks, custom content) */
-export interface ElementEntry {
-  type: 'Element';
-  element: React.ReactNode;
-}
-
-export type ChatMessage =
-  | ChatLineMessage
-  | SystemMessageEntry
-  | DateSeparatorEntry
-  | ToolCallEntry
-  | ElementEntry;
+// Re-exported for back-compat with existing importers (e.g. blocks/scenario/Chat).
+export type {
+  ChatMessage,
+  ChatLineMessage,
+  SystemMessageEntry,
+  DateSeparatorEntry,
+  ToolCallEntry,
+  ElementEntry,
+  MessageAttachment,
+};
 
 export interface FileAttachment {
   name: string;
@@ -78,6 +60,10 @@ export interface AdvanceFooterProps {
 export interface ChatComponentProps {
   id: string;
   messages: ChatMessage[];
+  /** Content namespace for markdown in messages (embedded ```olx fences
+   *  parse here). The Chat block passes its runtime ns; the studio LLM
+   *  sidebar passes the studio namespace. */
+  ns: ContentNamespace;
   participants?: Cast | null;
   initialScrollPosition?: 'bottom' | 'top' | number;
   subtitle?: string | null;
@@ -119,10 +105,11 @@ const t = {
  * Internal message renderers
  * -------------------------------------------------------------- */
 
-function ChatLine({ message, isSequential, participants }: {
+function ChatLine({ message, isSequential, participants, ns }: {
   message: ChatLineMessage;
   isSequential: boolean;
   participants: Cast | null;
+  ns: ContentNamespace;
 }) {
   const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
@@ -144,7 +131,7 @@ function ChatLine({ message, isSequential, participants }: {
           <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
-          <RenderMarkdown>{message.text || ''}</RenderMarkdown>
+          <RenderMarkdown ns={ns}>{message.text || ''}</RenderMarkdown>
         </div>
       </div>
     </div>
@@ -360,6 +347,7 @@ export const AdvanceFooter: React.FC<AdvanceFooterProps> = ({
 export function ChatComponent({
   id,
   messages,
+  ns,
   participants = null,
   initialScrollPosition = 'bottom',
   subtitle = null,
@@ -399,7 +387,7 @@ export function ChatComponent({
       case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatLine message={message} isSequential={isSequential} participants={participants ?? null} />
+            <ChatLine message={message} isSequential={isSequential} participants={participants ?? null} ns={ns} />
           </div>
         );
       case 'SystemMessage':

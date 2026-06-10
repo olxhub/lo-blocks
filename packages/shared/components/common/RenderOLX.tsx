@@ -60,7 +60,6 @@ import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
 import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
-import { PLACEHOLDER_NS } from '@/lib/types/id-grammar';
 import { toLofsRef } from '@/lib/types/address';
 
 
@@ -106,6 +105,7 @@ function useBuildProviderStack(
  * Returns parsed result with idMap and root, or null if nothing to parse.
  */
 function useParseContent(
+  ns: ContentNamespace,
   inline?: string,
   files?: Record<string, string>,
   effectiveProvider?: any,
@@ -113,8 +113,7 @@ function useParseContent(
   source?: string,
   logEvent?: any,
   sideEffectFree?: boolean,
-  onError?: (error: AppError) => void,
-  ns?: ContentNamespace
+  onError?: (error: AppError) => void
 ) {
   const [parsed, setParsed] = useState<any>(null);
   const [fatalError, setFatalError] = useState<string | null>(null);     // content can't render
@@ -256,8 +255,11 @@ function updatePropsLogEvent(props: any, logEvent: any) {
  *   4. baseIdMap - pre-parsed content, used as fallback
  */
 interface RenderOLXProps {
-  /** Content namespace — identifies the logical content source (e.g. 'docs', 'ee101'). */
-  ns?: ContentNamespace;
+  /** Content namespace — identifies the logical content source (e.g.
+   *  'psych', 'docs.ActionButton'). Required: every render pathway must
+   *  say what namespace its content lives in. Scratch contexts use named
+   *  synthetic namespaces ('olxEmbed', 'pegPreview', ...). */
+  ns: ContentNamespace;
   /** The ID to render from the merged idMap. StateKey because it names a
    *  runtime instance (which may include scope markers for nested contexts). */
   id: StateKey;
@@ -333,6 +335,7 @@ export default function RenderOLX({
 
   // Parse inline/files content
   const { parsed, fatalError, warnings, isPending } = useParseContent(
+    ns,
     inline,
     files,
     effectiveProvider,
@@ -340,8 +343,7 @@ export default function RenderOLX({
     source,
     runtimeContext.logEvent,
     runtimeContext.sideEffectFree,
-    onError,
-    ns
+    onError
   );
 
   // Merge parsed content into runtime context
@@ -363,7 +365,7 @@ export default function RenderOLX({
     sideEffectFree: renderProps.sideEffectFree,
     olxJsonSources: [source],
     idPrefix: '' as IdPrefix,
-    ns: ns ?? PLACEHOLDER_NS,
+    ns,
     locale: renderProps.locale,
     cast: {},
   };

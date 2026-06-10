@@ -1,6 +1,7 @@
 'use client';
 
 import RenderMarkdown from './RenderMarkdown';
+import { SYSTEM_NS } from '@/lib/blocks/baselineRuntime';
 
 /**
  * Renders a notice line. With no props, shows the platform notice.
@@ -13,7 +14,9 @@ export default function Notice({ content }: { content?: string } = {}) {
   if (content) {
     return (
       <div className="lo-notice lo-notice-content">
-        <RenderMarkdown>{content}</RenderMarkdown>
+        {/* ns: notices are system chrome (licensing, platform info) —
+            no content identity of their own. */}
+        <RenderMarkdown ns={SYSTEM_NS}>{content}</RenderMarkdown>
       </div>
     );
   }

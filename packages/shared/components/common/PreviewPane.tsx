@@ -15,13 +15,16 @@ import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
 import type { AppError } from '@/lib/types/errors';
 import { stateKeyFromFilename } from '@/lib/types/id-grammar';
-import { CONTENT_NAMESPACE } from '@/lib/types';
+import type { ContentNamespace } from '@/lib/types';
 
 export interface PreviewPaneProps {
   /** File path - used for file type detection and provenance */
   path: string;
   /** Content to preview */
   content: string;
+  /** Content namespace for the previewed OLX (e.g. docs.ActionButton for a
+   *  block example, or the file's provider-resolved namespace in studio). */
+  ns: ContentNamespace;
   /** Base ID map for cross-file references (OLX only) */
   idMap?: IdMap | null;
   /** Provider for resolving src="" references (OLX only) */
@@ -44,6 +47,7 @@ export interface PreviewPaneProps {
 export default function PreviewPane({
   path,
   content,
+  ns,
   idMap,
   resolveProvider,
   onError,
@@ -60,11 +64,12 @@ export default function PreviewPane({
     return <PEGPreviewPane path={path} content={content} />;
   }
 
-  // Markdown files render directly
+  // Markdown files render directly (ns: embedded ```olx fences parse in
+  // the previewed file's namespace)
   if (isMarkdownFile(path)) {
     return (
       <div className="markdown-preview">
-        <RenderMarkdown>{content}</RenderMarkdown>
+        <RenderMarkdown ns={ns}>{content}</RenderMarkdown>
       </div>
     );
   }
@@ -79,7 +84,8 @@ export default function PreviewPane({
     }
     return (
       <RenderOLX
-        id={stateKeyFromFilename(path || '_preview.olx', CONTENT_NAMESPACE)}
+        id={stateKeyFromFilename(path || '_preview.olx', ns)}
+        ns={ns}
         inline={`<${wrapperBlock}><![CDATA[\n${content}\n]]></${wrapperBlock}>`}
       />
     );
@@ -94,7 +100,8 @@ export default function PreviewPane({
   // OLX files use RenderOLX with full props
   return (
     <RenderOLX
-      id={stateKeyFromFilename(path || '_preview.olx', CONTENT_NAMESPACE)}
+      id={stateKeyFromFilename(path || '_preview.olx', ns)}
+      ns={ns}
       inline={content}
       baseIdMap={idMap ?? undefined}
       resolveProvider={provider}

@@ -74,7 +74,7 @@ carol:
  */
 async function parseAndRender(olx: string, providerFiles?: Record<string, string>, renderRoot?: string) {
   const provider = providerFiles ? new InMemoryStorageProvider(providerFiles) : undefined;
-  const { idMap, root } = await parseOLX(olx, [toMemoryRef('test.olx')], provider);
+  const { idMap, root } = await parseOLX(olx, [toMemoryRef('test.olx')], provider, TEST_NS);
 
   if (!root) throw new Error('No root element found after parsing');
   const renderId = renderRoot ?? root;

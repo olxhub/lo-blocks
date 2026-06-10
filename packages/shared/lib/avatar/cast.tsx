@@ -221,10 +221,13 @@ function updateRuntimeCast(
  * @param member - The cast member definition
  * @returns Props suitable for <Avatar name= seed= style= src= options= />
  */
+// Props accepted by <Avatar>. style reuses the domain enum (AvatarStyleValue,
+// which includes 'image') so this type and Avatar's own props share the single
+// source of truth — these props spread into <Avatar> without a cast.
 export interface AvatarBaseProps {
   name: string;
   seed: string;
-  style?: 'illustrated' | 'initials' | 'emoji' | 'image';
+  style?: AvatarStyleValue;
   src?: string;
   emoji?: string;
   options?: OpenPeeps;
@@ -405,7 +408,7 @@ export function withCastSupport(
 
         // Resolve member src paths relative to the cast file's location,
         // so images like "images/anne.png" become content-relative paths
-        // (e.g. "sba/interdisciplinary/images/anne.png") that resolveContentPath
+        // (e.g. "interdisciplinary/images/anne.png") that resolveContentPath
         // can map to a serveable URL at render time.
         for (const [id, member] of Object.entries(parsedCast)) {
           if (member.src && !member.src.startsWith('http://') && !member.src.startsWith('https://') && !member.src.startsWith('//') && !member.src.startsWith('/')) {

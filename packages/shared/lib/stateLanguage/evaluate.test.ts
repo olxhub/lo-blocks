@@ -3,6 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { parse } from './parser';
 import { evaluate, createContext, wordcount } from './evaluate';
+import { asContentNamespace } from '@/lib/types/id-grammar';
 
 // Import match functions from their pure modules (avoid circular imports)
 import { stringMatch } from '@/components/blocks/grading/stringMatch';
@@ -488,5 +489,43 @@ describe('DSL match functions', () => {
         ctx
       )).toBe(true);
     });
+  });
+});
+
+describe('id() helper', () => {
+  // id() qualifies a content id against the host block's namespace —
+  // an ordinary context-bound function, injected by createContext when
+  // the context carries ns (selectReferences supplies props.runtime.ns).
+  const ctx = (extra = {}) => createContext({ ns: asContentNamespace('psych'), ...extra });
+
+  it('qualifies a bare id against the context namespace', () => {
+    expect(evaluate(parse("id('Part_3_finished')"), ctx())).toBe('psych/Part_3_finished');
+  });
+
+  it('passes already-qualified ids through', () => {
+    expect(evaluate(parse("id('ee101/hw1')"), ctx())).toBe('ee101/hw1');
+  });
+
+  it('composes with the in operator (the motivating case)', () => {
+    const c = ctx({
+      componentState: { completion: { value: ['psych/Part_3_finished'] } },
+    });
+    expect(evaluate(parse("id('Part_3_finished') in @completion.value"), c)).toBe(true);
+    expect(evaluate(parse("id('Part_4_finished') in @completion.value"), c)).toBe(false);
+  });
+
+  it('accepts dynamic (expression) arguments', () => {
+    const c = ctx({
+      componentState: { picker: { value: 'chosen_option' } },
+    });
+    expect(evaluate(parse('id(@picker.value)'), c)).toBe('psych/chosen_option');
+  });
+
+  it('rejects non-string arguments', () => {
+    expect(() => evaluate(parse('id(42)'), ctx())).toThrow(/needs an id string/);
+  });
+
+  it('explains itself when the context has no namespace', () => {
+    expect(() => evaluate(parse("id('foo')"), createContext())).toThrow(/no content namespace/);
   });
 });

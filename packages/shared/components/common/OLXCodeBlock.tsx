@@ -20,6 +20,7 @@
 import React, { useState, useId } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
 import { parseStateKey } from '@/lib/types/id-grammar';
+import type { ContentNamespace } from '@/lib/types';
 
 // TODO: Add CodeMirror support once Turbopack dynamic import issue is resolved
 // For now, using textarea to avoid Turbopack crash
@@ -61,12 +62,15 @@ function OLXCodeView({ code }) {
 /**
  * Live rendered OLX component.
  * Renders inline without extra wrapper chrome - let the OLX provide its own styling.
+ *
+ * Embeds share the namespace of the context hosting them (e.g. docs.ActionButton
+ * for a block README), so snippets can <Use ref> the block's shared fixtures
+ * with bare refs.
  */
-function OLXRenderView({ code }) {
+function OLXRenderView({ code, ns }: { code: string; ns: ContentNamespace }) {
   const uniqueId = useId();
   const bareId = `_embed_${uniqueId.replace(/:/g, '_')}`;
-  // TODO(propthread-ns): Namespace should come from runtime context.
-  const rootId = `olxEmbed/${bareId}`;
+  const rootId = `${ns}/${bareId}`;
 
   // Wrap in a root element with known ID
   const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
@@ -74,6 +78,7 @@ function OLXRenderView({ code }) {
   return (
     <RenderOLX
       id={parseStateKey(rootId)}
+      ns={ns}
       inline={wrappedOLX}
       provenance="markdown-embed://"
     />
@@ -84,12 +89,12 @@ function OLXRenderView({ code }) {
  * Playground view - code + live preview side-by-side with editing.
  * TODO: Use CodeMirror once Turbopack dynamic import issue is resolved.
  */
-function OLXPlaygroundView({ code: initialCode }) {
+function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns: ContentNamespace }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
   const bareId = `_playground_${uniqueId.replace(/:/g, '_')}`;
-  // TODO(propthread-ns): Namespace should come from runtime context.
-  const rootId = `olxEmbed/${bareId}`;
+  // See OLXRenderView for namespace semantics.
+  const rootId = `${ns}/${bareId}`;
 
   const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
 
@@ -109,6 +114,7 @@ function OLXPlaygroundView({ code: initialCode }) {
         <div className="olx-playground-content">
           <RenderOLX
             id={parseStateKey(rootId)}
+            ns={ns}
             inline={wrappedOLX}
             provenance="markdown-playground://"
           />
@@ -121,8 +127,17 @@ function OLXPlaygroundView({ code: initialCode }) {
 /**
  * Main OLX code block component.
  * Dispatches to appropriate view based on mode.
+ *
+ * `ns` is the content namespace for rendered/playground snippets — the
+ * hosting context's namespace (e.g. docs.ActionButton for a block README) so
+ * snippet refs resolve against that namespace's content. Always provided by
+ * RenderMarkdown's PreRenderer, which requires it from its own caller.
  */
-export function OLXCodeBlock({ language, children }) {
+export function OLXCodeBlock({ language, children, ns }: {
+  language: string | null;
+  children: React.ReactNode;
+  ns: ContentNamespace;
+}) {
   const parsed = parseOLXLanguage(language);
 
   // Not an OLX block - return null to fall through to default rendering
@@ -134,10 +149,10 @@ export function OLXCodeBlock({ language, children }) {
     case 'code':
       return <OLXCodeView code={code} />;
     case 'playground':
-      return <OLXPlaygroundView code={code} />;
+      return <OLXPlaygroundView code={code} ns={ns} />;
     case 'render':
     default:
-      return <OLXRenderView code={code} />;
+      return <OLXRenderView code={code} ns={ns} />;
   }
 }
 

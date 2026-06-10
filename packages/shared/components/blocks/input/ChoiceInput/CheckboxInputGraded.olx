@@ -1,4 +1,4 @@
-<CapaProblem id="CheckboxInputDemo" title="Gas Giants">
+<CapaProblem id="CheckboxInputGraded" title="Gas Giants">
   <CheckboxGrader>
     Select all the gas giants in our solar system:
     <CheckboxInput>

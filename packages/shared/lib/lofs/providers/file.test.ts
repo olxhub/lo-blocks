@@ -11,7 +11,7 @@
 
 import { FileStorageProvider } from './file';
 import { toOlxRelativePath } from '../../types/storage';
-import type { OlxRelativePath } from '../../types';
+import type { OlxRelativePath, SafeRelativePath, LofsRef, ContentNamespace } from '../../types';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
@@ -118,5 +118,85 @@ describe('FileStorageProvider security', () => {
     ])('rejects %s', async (_label, attackPath) => {
       await expect(provider.read(attackPath)).rejects.toThrow();
     });
+  });
+});
+
+describe('FileStorageProvider.namespaceFor', () => {
+  let nsDir: string;
+  let provider: FileStorageProvider;
+
+  const ref = (p: string) => provider.toLofsRef(p as SafeRelativePath);
+
+  beforeAll(async () => {
+    nsDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-ns-test-'));
+    process.env.OLX_CONTENT_DIR = nsDir;
+    provider = new FileStorageProvider(nsDir, 'content');
+
+    // Directory-fallback namespace
+    await fs.mkdir(path.join(nsDir, 'demos'), { recursive: true });
+    await fs.writeFile(path.join(nsDir, 'demos', 'foo.olx'), '<Test/>');
+
+    // Manifest-governed subtree (namespace differs from directory name)
+    await fs.mkdir(path.join(nsDir, 'psychology', 'unit1'), { recursive: true });
+    await fs.writeFile(path.join(nsDir, 'psychology', 'manifest.yaml'), 'namespace: psych\n');
+    await fs.writeFile(path.join(nsDir, 'psychology', 'unit1', 'lesson.olx'), '<Test/>');
+
+    // Manifest WITHOUT a namespace field — falls through to directory name
+    await fs.mkdir(path.join(nsDir, 'writing'), { recursive: true });
+    await fs.writeFile(path.join(nsDir, 'writing', 'manifest.yaml'), 'title: Writing\n');
+    await fs.writeFile(path.join(nsDir, 'writing', 'essay.olx'), '<Test/>');
+
+    // Invalid directory name (hyphen is not allowed in namespaces)
+    await fs.mkdir(path.join(nsDir, 'bad-name'), { recursive: true });
+    await fs.writeFile(path.join(nsDir, 'bad-name', 'foo.olx'), '<Test/>');
+
+    // File at the provider root — no namespace
+    await fs.writeFile(path.join(nsDir, 'root.olx'), '<Test/>');
+  });
+
+  afterAll(async () => {
+    delete process.env.OLX_CONTENT_DIR;
+    await fs.rm(nsDir, { recursive: true, force: true });
+  });
+
+  test('falls back to the top-level directory name', async () => {
+    expect((await provider.namespaceFor(ref('demos/foo.olx'))).ns).toBe('demos');
+  });
+
+  test('manifest.yaml namespace overrides the directory, including nested files', async () => {
+    const resolved = await provider.namespaceFor(ref('psychology/unit1/lesson.olx'));
+    expect(resolved.ns).toBe('psych');
+    // Namespace provenance: the declaring manifest, versioned.
+    expect(String(resolved.manifest)).toMatch(/psychology\/manifest\.yaml#/);
+  });
+
+  test('directory-derived namespaces carry no manifest provenance', async () => {
+    expect((await provider.namespaceFor(ref('demos/foo.olx'))).manifest).toBeUndefined();
+  });
+
+  test('constructor ns override wins over manifests and directories', async () => {
+    // Special-case API for tests and other wonky mounts — see constructor docs.
+    const overridden = new FileStorageProvider(nsDir, 'content', { ns: 'scratch' as ContentNamespace });
+    expect((await overridden.namespaceFor(ref('psychology/unit1/lesson.olx'))).ns).toBe('scratch');
+    expect((await overridden.namespaceFor(ref('root.olx'))).ns).toBe('scratch');
+  });
+
+  test('manifest without a namespace field falls through to the directory name', async () => {
+    expect((await provider.namespaceFor(ref('writing/essay.olx'))).ns).toBe('writing');
+  });
+
+  test('versioned refs resolve the same as unversioned', async () => {
+    const versioned = `${ref('demos/foo.olx')}#12345-99` as LofsRef;
+    expect((await provider.namespaceFor(versioned)).ns).toBe('demos');
+  });
+
+  test('rejects files at the provider root with a move-it message', async () => {
+    await expect(provider.namespaceFor(ref('root.olx')))
+      .rejects.toThrow(/namespace directory|manifest\.yaml/);
+  });
+
+  test('rejects directory names the namespace grammar forbids', async () => {
+    await expect(provider.namespaceFor(ref('bad-name/foo.olx')))
+      .rejects.toThrow(/cannot be used as a content namespace/);
   });
 });

@@ -7,8 +7,14 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import type { LofsRef } from '@/lib/types/address';
 import { toLofsRef } from '@/lib/types/address';
 import type { StorageProvider } from '@/lib/types/storage';
+import { asContentNamespace } from '@/lib/types/id-grammar';
 import { getParserForExtension } from '@/generated/parserRegistry';
 import { extractLeadingComments } from '@/lib/translate/metadata';
+
+/** Synthetic namespace for validation parses. Source and translation are
+ *  parsed with the SAME namespace so their qualified ids compare 1:1;
+ *  nothing from these parses is stored or rendered. */
+const VALIDATION_NS = asContentNamespace('translationValidation');
 
 /** Validate translated content against its source.
  *  Returns null on success, or an error message describing the problem.
@@ -45,7 +51,7 @@ async function validateOlx(
   const provenance = sourceProvenance || [toLofsRef(`translation:${label}`)];
   let translatedResult;
   try {
-    translatedResult = await parseOLX(translatedContent, provenance, provider);
+    translatedResult = await parseOLX(translatedContent, provenance, provider, VALIDATION_NS);
   } catch (err: any) {
     return `Translated OLX failed to parse: ${err.message}`;
   }
@@ -60,7 +66,7 @@ async function validateOlx(
   // dependent SHA1 hashes that will naturally differ after translation.
   let sourceResult;
   try {
-    sourceResult = await parseOLX(sourceContent, [toLofsRef('source')], provider);
+    sourceResult = await parseOLX(sourceContent, [toLofsRef('source')], provider, VALIDATION_NS);
   } catch {
     // If the source itself doesn't parse, skip the ID comparison —
     // that's a pre-existing problem, not a translation problem.

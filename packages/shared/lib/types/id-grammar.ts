@@ -787,9 +787,7 @@ export function defaultNamespace(origin: string): ContentNamespace {
 //   2. Authored target (global): an authored target="answer" attribute resolves
 //      globally — no caller idPrefix. Uses stateKeyForGlobalRef.
 //
-// Do NOT conflate these. See namespace-migration.md for rationale.
-
-export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
+// Do NOT conflate these. See the NAMESPACE QUALIFICATION section above.
 
 /**
  * Build a block's scoped StateKey from its props.
@@ -798,17 +796,26 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  * The id is a DefinitionRef — validated by the grammar. No path prefix
  * stripping; if props.id contains "./" that's a bug upstream.
  *
- *   scopedStateKeyForBlock({ id: 'answer', idPrefix: 'list:#0' as IdPrefix })
- *   → "CONTENT/list:#0:answer"
+ *   scopedStateKeyForBlock({ id: 'answer', ns: 'ee101', idPrefix: 'list:#0' as IdPrefix })
+ *   → "ee101/list:#0:answer"
  *
- *   scopedStateKeyForBlock({ id: 'answer' })
- *   → "CONTENT/answer"  (no scope)
+ *   scopedStateKeyForBlock({ id: 'answer', runtime: { ns: 'ee101' } })
+ *   → "ee101/answer"  (no scope)
  *
+ * The namespace comes from props.ns or props.runtime.ns — there is no
+ * fallback. A missing namespace means a render pathway failed to thread
+ * it; fail fast rather than silently qualifying into the wrong namespace.
  */
 export function scopedStateKeyForBlock(
   props: { id: DefinitionRef; ns?: ContentNamespace; runtime?: { ns: ContentNamespace }; idPrefix?: IdPrefix;[key: string]: unknown }
 ): StateKey {
-  const ns = props.ns ?? props.runtime?.ns ?? PLACEHOLDER_NS;
+  const ns = props.ns ?? props.runtime?.ns;
+  if (!ns) {
+    throw new Error(
+      `scopedStateKeyForBlock: no content namespace for id "${props.id}". ` +
+      `Every render pathway must supply ns (via RenderOLX's ns prop / runtime context).`
+    );
+  }
   const defKey = qualifyDefinitionRef(props.id, ns);
   return addScope(defKey, props.idPrefix);
 }
@@ -849,27 +856,18 @@ export function scopedStateKeyForBlock(
 //
 // The local -> global problem complicates!
 
+// NOTE: currently identical to qualifyStateRef, and kept deliberately:
+// the TODO above describes a planned divergence (local-then-global fallback)
+// that qualifyStateRef must never grow — qualification stays a pure namespace
+// prepend. Call sites that mean "resolve an authored target" use this name so
+// they pick up the new behavior when it lands. (Its definition-side sibling,
+// definitionKeyForRef, had no pending divergence and was removed — use
+// qualifyDefinitionRef.)
 export function stateKeyForGlobalRef(
   ref: StateRef,
   ns: ContentNamespace
 ): StateKey {
   return qualifyStateRef(ref, ns);
-}
-
-/**
- * Resolve a DefinitionRef to a DefinitionKey for idMap lookup.
- *
- * Validates and qualifies with namespace.
- *
- *   definitionKeyForRef('answer')            → "CONTENT/answer"
- *   definitionKeyForRef('calculus/hw1')      → "calculus/hw1"  (pass-through)
- *
- */
-export function definitionKeyForRef(
-  ref: DefinitionRef,
-  ns: ContentNamespace
-): DefinitionKey {
-  return qualifyDefinitionRef(ref, ns);
 }
 
 /**

@@ -24,7 +24,7 @@
     "build:client": "./sandbox.sh npx vite build apps/client",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build",
     "_comment_build_content": "HACK: build:content runs content generation scripts. This should be replaced with a proper templated build system.",
-    "build:content": "./sandbox.sh ./node_modules/.bin/tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/operant-questions.json && ./sandbox.sh ./node_modules/.bin/tsx content/sba/psychology/convert-psych-mcq.js content/sba/psychology/function-questions.json",
+    "build:content": "./sandbox.sh ./node_modules/.bin/tsx content/psychology/convert-psych-mcq.js content/psychology/operant-questions.json && ./sandbox.sh ./node_modules/.bin/tsx content/psychology/convert-psych-mcq.js content/psychology/function-questions.json",
     "build:generate-docs": "./sandbox.sh node packages/shared/scripts/generate-docs.js",
     "build:gen-block-registry": "./sandbox.sh node packages/shared/scripts/generateBlockRegistry.js",
     "build:grammars": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/compile-grammars.ts",

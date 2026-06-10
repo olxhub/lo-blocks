@@ -58,7 +58,7 @@ export type JSONValue =
  * │                        CONVERSION PATHWAYS                           │
  * │  (all functions live in id-grammar.ts)                               │
  * │                                                                      │
- * │  DefinitionRef ──definitionKeyForRef()──> DefinitionKey              │
+ * │  DefinitionRef ──qualifyDefinitionRef()──> DefinitionKey             │
  * │      │                                  │                            │
  * │      │                                  │  Content lookup in Redux   │
  * │      │                                  │  (selectBlock, ensureBlock)│
@@ -134,8 +134,6 @@ export function toContentNamespace(s: string): ContentNamespace {
   return s as ContentNamespace;
 }
 
-/** The transitional namespace for single-repo content. Will eventually be repo-derived. */
-export { PLACEHOLDER_NS as CONTENT_NAMESPACE } from './id-grammar';
 
 // ═══════════════���═══════════════════════════════════════════════��═══════════════
 // ID TYPES
@@ -836,6 +834,10 @@ export interface LoBlock {
   demo?: string;
   /** Example OLX files keyed by filename. template/demo are keys into this dict. */
   examples?: Record<string, { path: string; gitStatus?: BlockGitStatus }>;
+  /** Shared fixtures (*.includes.olx) reused by examples via <Use ref>.
+   *  Synced as docs content in the block's namespace, but not listed as
+   *  runnable examples. */
+  includes?: Record<string, { path: string; gitStatus?: BlockGitStatus }>;
   /** Git status of the block source file */
   gitStatus?: BlockGitStatus;
   /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
@@ -1132,6 +1134,12 @@ export interface OlxJson {
    *  (e.g., .chatpeg grammars, assets processed at parse time). If any
    *  change, the source file must be re-parsed. */
   parseDeps: LofsCanonical[];
+  /** The manifest.yaml that declared this block's namespace, as read
+   *  (versioned). Absent when the namespace came from a non-manifest rule
+   *  (directory name, provider constant). Namespace provenance — invalidation
+   *  is handled separately (a manifest ADD affects files that recorded no
+   *  pointer; see promoteFilesAffectedByManifests). */
+  manifest?: LofsCanonical;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
   /** Brief description of this content block (for search, activity cards, etc.) */

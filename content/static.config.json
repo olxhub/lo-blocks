@@ -3,6 +3,6 @@
   "eventServerUrl": false,
   "classes": ["no-translanguaging"],
   "routes": {
-    "/": "CONTENT/psych_course"
+    "/": "psych/psych_course"
   }
 }

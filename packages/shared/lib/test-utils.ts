@@ -5,11 +5,13 @@
 
 import { variantMapKeys } from './types/i18n';
 import type { IdMap, OlxJson, DefinitionKey, LoBlockRuntimeContext } from './types';
-import { PLACEHOLDER_NS, qualifyDefinitionRef, parseDefinitionRef } from './types/id-grammar';
+import { asContentNamespace, qualifyDefinitionRef, parseDefinitionRef } from './types/id-grammar';
 import { DEFAULT_RUNTIME } from './blocks/baselineRuntime';
 
-// Re-export the placeholder namespace for use in test assertions.
-export { PLACEHOLDER_NS as TEST_NS } from './types/id-grammar';
+/** The namespace tests qualify against. Historic value "CONTENT" — kept so
+ *  existing fixtures and assertions don't churn. Purely a test convention;
+ *  production namespaces come from storage providers. */
+export const TEST_NS = asContentNamespace('CONTENT');
 
 /**
  * Build a namespace-qualified DefinitionKey from a bare leaf ID.
@@ -20,7 +22,7 @@ export { PLACEHOLDER_NS as TEST_NS } from './types/id-grammar';
  * delimiter strings.
  */
 export const testKey = (leafId: string): DefinitionKey =>
-  qualifyDefinitionRef(parseDefinitionRef(leafId), PLACEHOLDER_NS);
+  qualifyDefinitionRef(parseDefinitionRef(leafId), TEST_NS);
 
 /**
  * Extract the first available variant from idMap for a given block ID.
@@ -28,7 +30,7 @@ export const testKey = (leafId: string): DefinitionKey =>
  * refs pass through, bare refs get the placeholder namespace.
  */
 export const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
-  const key = qualifyDefinitionRef(parseDefinitionRef(id), PLACEHOLDER_NS);
+  const key = qualifyDefinitionRef(parseDefinitionRef(id), TEST_NS);
   const variantMap = idMap[key];
   if (!variantMap) return undefined;
   const variants = variantMapKeys(variantMap);
@@ -45,5 +47,5 @@ export const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined => {
  *   mockRuntime({ ns: myTestNamespace })   // override namespace
  */
 export function mockRuntime(overrides?: Partial<LoBlockRuntimeContext>): LoBlockRuntimeContext {
-  return { ...DEFAULT_RUNTIME, sideEffectFree: true, ...overrides };
+  return { ...DEFAULT_RUNTIME, sideEffectFree: true, ns: TEST_NS, ...overrides };
 }

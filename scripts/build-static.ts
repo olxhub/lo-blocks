@@ -4,8 +4,8 @@
 // Manifest-driven static site builder.
 //
 // Usage:
-//   tsx scripts/build-static.ts --manifest content/sba/psychology/manifest.yaml
-//   tsx scripts/build-static.ts --manifest content/sba/psychology/manifest.yaml --serve
+//   tsx scripts/build-static.ts --manifest content/psychology/manifest.yaml
+//   tsx scripts/build-static.ts --manifest content/psychology/manifest.yaml --serve
 //
 // The manifest YAML is the single entry point. It declares title, routes,
 // classes, and optional overrides. The script orchestrates:
@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import YAML from 'yaml';
+import { validateContentNamespace } from '../packages/shared/lib/types/id-grammar';
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -84,11 +85,22 @@ if (!manifest.routes || Object.keys(manifest.routes).length === 0) {
   process.exit(1);
 }
 
-// Namespace: explicit or derived from manifest directory name
+// Namespace: explicit or derived from manifest directory name.
+// Passed to xml2json via --ns: the static build treats its whole content
+// root as ONE namespace. (Per-file resolution can't be relied on here —
+// root-level OLX files have no namespace directory, and when content_root
+// points away from the manifest, the manifest isn't even in the provider's
+// tree for namespaceFor's walk to find.)
 const namespace = manifest.namespace
   || path.basename(manifestDir);
 if (!manifest.namespace) {
   console.warn(`  Warning: no 'namespace' in manifest. Defaulting to '${namespace}' from directory name.`);
+}
+const namespaceValid = validateContentNamespace(namespace);
+if (namespaceValid !== true) {
+  console.error(`  Namespace '${namespace}' is invalid: ${namespaceValid}`);
+  console.error(`  Add a valid 'namespace:' field to the manifest.`);
+  process.exit(1);
 }
 
 const contentRoot = path.resolve(manifestDir, manifest.content_root || '.');
@@ -154,6 +166,7 @@ run('xml2json', sandboxSh, [
   tsxBin,
   'packages/shared/scripts/xml2json.ts',
   '--content', contentRoot,
+  '--ns', namespace,
   '--manifest', tmpStaticConfig,
   '--static-dir', staticContentDir,
 ]);

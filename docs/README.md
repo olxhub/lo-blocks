@@ -438,7 +438,7 @@ creates an instance of that block. The OLX is the archival format-of-record for 
 }
 ```
 
-This is `OlxJson` in types.ts.
+This is `OlxJson` in `types/core.ts`.
 
 ## Instantiating Blocks -- Part 2: Dynamic DOM
 
@@ -454,7 +454,7 @@ For example, a `MasteryBank` will pull in kids from a bank of items. A DynamicLi
 
 If the `helloblock` was something with state, and we pulled up redux developer tools, we would see `list:#0:helloblock`, `list:#1:helloblock`, etc. as IDs for the specific child nodes. The `:` separates scope segments, and `#` prefixes numeric indices to distinguish them from named blocks.
 
-This is `OlxDomNode` in types.ts.
+This is `OlxDomNode` in `types/core.ts`.
 
 # DAG Structure
 
@@ -470,7 +470,7 @@ The content is structured as a DAG, not a tree (I structured Open edX the same w
 
 There are many ways to have this work. The <Use ref="id"> tag is handled during parsing and creates a DAG (it does not take its own ID, since it is not itself added to the DAG). Attributes on <Use> override those on the referenced block, so `<Use ref="foo" clip="[8,12]"/>` will render the block "foo" with a different clip. The <UseDynamic target="id"> is its own block, and renders a subnode.
 
-We can the DAG in two ways:
+We can traverse the DAG in two ways:
 
 * The graph API generates a static OLX DAG, based on the kid nodes in the system.
 * The render function generates a dynamic DAG (renderedKids), as the system renders them. For reasons, it collapses multiple kids into one node if identical.
@@ -492,7 +492,7 @@ Don't confuse the two.
 
 React has `children`. In React, `children` are required to be React components. That doesn't always work for us, since child nodes often have semantic meaning. We might want to demark them in some way other than order. Passing that via `children` raises exceptions. Ergo, in OLX, we use the `kids` property to refer to child nodes.
 
-Be very mindful if you mean `children` or `kid
+Be very mindful of whether you mean `children` or `kids`.
 
 # IDs
 
@@ -505,7 +505,7 @@ IDs are hard. We have internal ID types (static OLX, dynamic OLX, etc.). We inte
 * HTML `name` (HTML/DOM Attribute): Names an element (typically form controls for form data submission)
 * `displayName` (React-Specific): Human-readable name for a React component, useful for debugging
 
-We are mixing React concepts, OLX concepts, and others. This leads to a rather complex system. It took a while to figure out, and we're moving detailed documentation from here to `packages/shared/lib/types.ts` now that it appears to be mostly figured-out.
+We are mixing React concepts, OLX concepts, and others. This leads to a rather complex system. It took a while to figure out, and the detailed documentation now lives with the types: `packages/shared/lib/types/core.ts` (the conversion-pathway map) and `packages/shared/lib/types/id-grammar.ts` (the formal grammar and every conversion function).
 
 A few rules:
 
@@ -601,7 +601,9 @@ Note that we favor semantic ids:
 
 Note: LLMs can generate very decent semantic IDs.
 
-See `id-grammar.ts` and `add-reduxkey-namespace.md` for the namespace model.
+See `id-grammar.ts` for the namespace grammar and conversion functions. For
+ID style in authored content (alignment, semantic naming, which blocks need
+explicit ids), see `literate-xml.md` in the repository root.
 
 ## Content Addressing and the Naming Hierarchy
 
@@ -684,7 +686,7 @@ LofsOrigin:  git@github.com:olxhub/lo-blocks.git
 
 More examples: `file:/home/user/content`, `pg://school.edu/cs101`, `memory:session-42`.
 
-This was originally intended to be used for namespacing redux and OLX keys. This turned out to be a **bad idea**. 95+% of the time, there is a 1:1 mapping between LofsOrigin and namespace. By default, we derive namespace from LofsOrigin via `defaultNamespace()`. Note that not all repo names are valid namespaces — `lo-blocks` contains a hyphen, which the namespace grammar forbids. Such repos must provide an explicit namespace via `manifest.yaml`. A repo like `git@github.com:other/ee101.git` derives cleanly to namespace `ee101`.
+This was originally intended to be used for namespacing redux and OLX keys. This turned out to be a **bad idea**. 95+% of the time, there is a 1:1 mapping between LofsOrigin and namespace — but the mapping is owned by the storage provider, not derived mechanically from the origin (see "How namespaces are assigned" below). Note that not all repo names are valid namespaces — `lo-blocks` contains a hyphen, which the namespace grammar forbids. Such sources must provide an explicit namespace via `manifest.yaml`. A repo like `git@github.com:other/ee101.git` derives cleanly to namespace `ee101`.
 
 However, we want to maintain the same key for:
 
@@ -693,7 +695,7 @@ However, we want to maintain the same key for:
 
 This is the "identity" dimension — it doesn't change when you switch branches or update files. If a student starts homework on `#ae1f` and the instructor pushes to `#main`, the origin is the same and the student's Redux state survives. Fixing a typo in a piece of content shouldn't cause the student to lose state.
 
-Not, as well, that the same file might be referred to as:
+Note, as well, that the same file might be referred to as:
 
 ```
 git@github.com:other/ee101.git://hw1.olx#main         (mutable branch)
@@ -708,11 +710,107 @@ All three may refer to the same namespace, `ee101`, and will have the same keys.
 DefinitionKeys are namespace-qualified, so cross-source references are unambiguous. A bare ref like `hw1` is qualified against the current namespace at parse time; an explicit cross-namespace ref keeps its prefix:
 
 ```
-analogForDummies://hw1            (cross-namespace reference)
+analogForDummies/hw1              (cross-namespace reference)
 hw1                               (bare — qualified at parse time)
 ```
 
-The namespace is a short logical name for a content collection (e.g., `analogForDummies`, `calculusForDummies`), derived from the LOFS origin by default but decoupled from it — forks, memory overlays, and local checkouts of the same course share a namespace. See `id-grammar.ts` for the namespace grammar and `add-reduxkey-namespace.md` for the full design.
+The namespace is a short logical name for a content collection (e.g., `analogForDummies`, `calculusForDummies`), decoupled from physical location — forks, memory overlays, and local checkouts of the same course share a namespace. See `id-grammar.ts` for the namespace grammar.
+
+(`/` separates namespace from id in Keys; `://` is different — it marks
+source-qualified refs, raw storage locators that need LOFS resolution
+before they can be used as Keys at all.)
+
+### How namespaces are assigned
+
+The storage provider owns namespace resolution: the `StorageProvider`
+interface has `namespaceFor(ref) → { ns, manifest? }` (see
+`types/storage.ts`, `NamespaceResolution`). This is the single mapping
+point between the LOFS scoping system (mounts, paths) and the OLX key
+namespace — the two are deliberately distinct scoping systems.
+
+`FileStorageProvider` resolves, in order:
+
+1. **Manifest override**: the nearest ancestor `manifest.yaml` with a
+   `namespace:` field, walking from the file's directory up to the
+   provider root. This is how `content/psychology/` publishes under
+   `psych/` — its manifest declares `namespace: psych`.
+2. **Directory convention**: the file's top-level directory name.
+   `content/demos/foo.olx` → namespace `demos`.
+
+A file that resolves to neither — a root-level file, or a directory name
+the grammar rejects (hyphens, leading digits) — throws
+`NamespaceResolutionError` with an author-facing fix-it message. The
+content sync surfaces that as a per-file error; `read()` tolerates it
+(a root-level config file is readable, it just has no content identity).
+
+A constructor override (`new FileStorageProvider(dir, mount, { ns })`)
+declares a whole mount single-namespace, ignoring manifests — a
+special-case API for tests and other wonky mounts.
+
+**Manifest changes are tracked.** `manifest.yaml` files join the file
+scan, and any manifest add/change/delete re-parses the mount's OLX (a
+per-block dependency pointer can't do this: *adding* a manifest affects
+files that recorded no pointer). Each parsed block records the manifest
+that declared its namespace as `OlxJson.manifest` — versioned namespace
+provenance, alongside `source` and `parseDeps`.
+
+### Documentation namespaces (docs.*)
+
+Block documentation examples are themselves a content source.
+`DocsStorageProvider` (a translation layer over `FileStorageProvider`,
+mounted at `docs://`) serves the block source tree with **per-block**
+namespaces: an example file belongs to the block whose name is the
+longest prefix of its basename — the same convention the block registry
+uses — so `ActionButtonLLM.olx` lands in `docs.ActionButton`.
+
+Per-block granularity is what keeps example ids readable. Every block's
+docs can use `id="essay"` without colliding with any other author's
+`essay` — the namespace absorbs the collision instead of forcing names
+like `essayForActionButtonDocs`. Within one block's namespace, uniqueness
+is the block author's job, and the sync's duplicate detection acts as a
+lint.
+
+Consequences:
+
+* **Docs embed anywhere.** The default content sync stacks the content
+  directory and the docs source into one index, so any course can write
+  `<Use ref="docs.ActionButton/essay"/>`.
+* **Shared fixtures**: `BlockName*.includes.olx` files sync into the
+  block's namespace but are not listed as runnable examples — examples
+  reference their content with bare refs. Prefer inlining small content;
+  includes are for substantial shared material.
+* `_test/` fixtures (intentionally-broken OLX) and `*.pegjs.preview.olx`
+  grammar templates (which contain uninjected `{{CONTENT}}` placeholders)
+  are excluded from the scan.
+
+### Synthetic namespaces
+
+Content rendered outside any real content source still declares where it
+lives — there is no placeholder fallback (a missing namespace throws).
+The conventions:
+
+* `system` — system chrome: settings access, notices, UI text
+  (`SYSTEM_NS` in `baselineRuntime.ts`)
+* `studio` — studio scratch: unsaved demo content, the editor's LLM chat
+* `pegPreview` — grammar preview renders
+* `memory` — `InMemoryStorageProvider` default for transient files
+* `CONTENT` — the test suite's convention (`TEST_NS` in `test-utils.ts`);
+  purely historical, has no production meaning
+
+### Namespaces in expressions: id()
+
+Stored values that contain content ids (e.g. a checkbox's list of
+selected option ids) are namespace-qualified keys. The state language's
+`id()` helper qualifies a bare name against the expression's own
+namespace, so authors never write namespaces by hand for same-namespace
+comparisons:
+
+```
+<Markdown when="id('Part_3_finished') in @completion.value">
+```
+
+Already-qualified names pass through, so cross-namespace comparisons use
+a plain literal (`'ee101/hw1'`). See `lib/stateLanguage/syntax.md`.
 
 ## Kid nodes
 
@@ -772,7 +870,7 @@ But to continue to use `config` rather than `parsed`, or to only use `parsed` fo
 
 Short story:
 
-* Internal code: Mostly use pure JavaScript, except for what's in types.ts:
+* Internal code: Mostly use pure JavaScript, except for what's in `lib/types/`:
   - Major types
   - Branded IDs
 * Interface code: Support TypeScript for the benefit of downstream TypeScript projects, and do additional validation

@@ -1,4 +1,4 @@
-// apps/web/app/docs/DocsPage.jsx
+// apps/web/app/docs/DocsPage.tsx
 //
 // Block and Grammar documentation page.
 //
@@ -31,6 +31,17 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
+import { parseContentNamespace, stateKeyFromFilename } from '@/lib/types/id-grammar';
+import type {
+  BlockDocumentation,
+  GrammarDocumentation,
+  BlockDetail,
+  GrammarDetail,
+} from '@/lib/docs';
+
+// Per-block docs namespace: examples, includes, and README snippets for a
+// block all live in docs.<BlockName> (see lib/lofs/providers/docs.ts).
+const docsNamespace = (blockName) => parseContentNamespace(`docs.${blockName}`);
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -40,15 +51,20 @@ const SHARED_ATTRIBUTE_SETS = [
   { label: 'Base attributes', names: Object.keys(baseAttributes.shape), blockProp: null },
 ];
 
-// Hook for docs example editing - uses Redux state with docs-specific provenance
-function useDocsExampleState(blockName, exampleFilename, originalContent) {
-  const provenance = `docs://${blockName}/${exampleFilename}`;
+// Hook for docs example editing — Redux state keyed in the block's docs
+// namespace, the same namespace the example renders in:
+//   ('CodeMirror', 'CodeMirrorPEGSyntaxDemo.olx') → "docs.CodeMirror/codeMirrorPEGSyntaxDemo"
+// stateKeyFromFilename produces a grammar-valid StateKey; the old
+// "docs://..." provenance string was an unchecked cast of a value the
+// grammar classifies as source-qualified (not a brandable Key).
+function useDocsExampleState(blockName: string, exampleFilename: string, originalContent: string) {
+  const stateKey = stateKeyFromFilename(exampleFilename, docsNamespace(blockName));
   const baselineProps = useBaselineProps();
   return useFieldState(
     baselineProps,
     editorFields.editedContent,
     originalContent,
-    { stateKey: provenance }
+    { stateKey }
   );
 }
 
@@ -58,7 +74,7 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
 
 /** Look up an example by numeric index from a Record<filename, data>. */
 function getExampleByIndex(examples, index) {
-  const entries = Object.entries(examples ?? {});
+  const entries = Object.entries<any>(examples ?? {});
   if (index < 0 || index >= entries.length) return null;
   const [filename, data] = entries[index];
   return { filename, ...data };
@@ -125,7 +141,7 @@ function BlockSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-2">
-        {Object.entries(categories).map(([category, blocks]) => (
+        {Object.entries<any>(categories).map(([category, blocks]) => (
           <div key={category} className="mb-2">
             <button
               onClick={() => onToggleCategory(category)}
@@ -144,7 +160,7 @@ function BlockSidebar({
                   // Determine if block or its docs are uncommitted
                   const blockUncommitted = block.gitStatus && block.gitStatus !== 'committed';
                   const docsUncommitted = block.readmeGitStatus && block.readmeGitStatus !== 'committed';
-                  const examplesUncommitted = Object.values(block.examples ?? {}).some(e => e.gitStatus && e.gitStatus !== 'committed');
+                  const examplesUncommitted = Object.values<any>(block.examples ?? {}).some(e => e.gitStatus && e.gitStatus !== 'committed');
                   const anyUncommitted = blockUncommitted || docsUncommitted || examplesUncommitted;
 
                   // Git status indicator styling
@@ -524,6 +540,7 @@ function GrammarExamplePreview({ example, grammarName, extension }) {
         <PreviewPane
           path={`example.${extension}`}
           content={editedContent}
+          ns={docsNamespace(grammarName)}
         />
       </div>
     </section>
@@ -601,6 +618,7 @@ function GrammarExampleTab({ example, grammarName, extension }) {
         <PreviewPane
           path={`example.${extension}`}
           content={editedContent}
+          ns={docsNamespace(grammarName)}
         />
       </section>
     </div>
@@ -629,7 +647,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-background">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -676,7 +694,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
 }
 
 function OverviewTab({ block, details }) {
-  const exampleEntries = Object.entries(details?.examples ?? {});
+  const exampleEntries = Object.entries<any>(details?.examples ?? {});
   const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
   const moreExamplesCount = exampleEntries.length - 1;
 
@@ -690,7 +708,7 @@ function OverviewTab({ block, details }) {
   );
 }
 
-function ReadmeTab({ content, path }) {
+function ReadmeTab({ content, path, ns }) {
   return (
     <div className="bg-background rounded-lg border overflow-hidden">
       <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
@@ -698,7 +716,7 @@ function ReadmeTab({ content, path }) {
         <code className="text-xs text-dimmed">{path}</code>
       </div>
       <div className="p-6 prose max-w-none">
-        <RenderMarkdown>{content}</RenderMarkdown>
+        <RenderMarkdown ns={ns}>{content}</RenderMarkdown>
       </div>
     </div>
   );
@@ -725,7 +743,7 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-dimmed">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
         </div>
         <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>
@@ -764,7 +782,7 @@ function ExampleTab({ example, blockName }) {
 }
 
 function GrammarOverviewTab({ grammar, details }) {
-  const exampleEntries = Object.entries(details?.examples ?? {});
+  const exampleEntries = Object.entries<any>(details?.examples ?? {});
   const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
   const moreExamplesCount = exampleEntries.length - 1;
 
@@ -803,7 +821,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
     }
 
     if (activeTab === 'readme' && details?.readme?.content) {
-      return <ReadmeTab content={details.readme.content} path={details.readme.path} />;
+      return <ReadmeTab content={details.readme.content} path={details.readme.path} ns={docsNamespace(block.name)} />;
     }
 
     if (activeTab === 'grammar-source' && details?.grammar) {
@@ -833,7 +851,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
   }
 
   if (activeTab === 'readme' && details?.readme?.content) {
-    return <ReadmeTab content={details.readme.content} path={details.readme.path} />;
+    return <ReadmeTab content={details.readme.content} path={details.readme.path} ns={docsNamespace(block.name)} />;
   }
 
   if (activeTab.startsWith('example-')) {
@@ -853,13 +871,16 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 
 export default function DocsPage() {
   const localeAttrs = useLocaleAttributes();
-  const [docs, setDocs] = useState(null);
-  const [grammars, setGrammars] = useState(null);
+  // The /api/docs endpoints serve data derived from the validated block
+  // registry, so the branded values (OLXTag, ContentNamespace, …) on these
+  // shapes are valid by construction. The fetch boundary below trusts that.
+  const [docs, setDocs] = useState<BlockDocumentation | null>(null);
+  const [grammars, setGrammars] = useState<GrammarDocumentation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [selectedIsGrammar, setSelectedIsGrammar] = useState(false);
-  const [blockDetails, setBlockDetails] = useState(null);
+  const [blockDetails, setBlockDetails] = useState<BlockDetail | GrammarDetail | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -979,7 +1000,7 @@ export default function DocsPage() {
     if (!searchQuery.trim()) return categorizedBlocks;
     const query = searchQuery.toLowerCase();
     const filtered = {};
-    Object.entries(categorizedBlocks).forEach(([category, items]) => {
+    Object.entries<any>(categorizedBlocks).forEach(([category, items]) => {
       const matching = items.filter(item =>
         item.name.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||
@@ -1026,6 +1047,10 @@ export default function DocsPage() {
     );
   }
 
+  // Not loading and no error, but the block list never arrived — render nothing
+  // rather than dereferencing a null documentation payload below.
+  if (!docs) return null;
+
   return (
     <div {...localeAttrs} suppressHydrationWarning className="min-h-screen bg-surface flex flex-col">
       <header className="bg-background border-b px-6 py-4 flex justify-between items-start">
@@ -1035,7 +1060,7 @@ export default function DocsPage() {
           </Link>
           <p className="text-sm text-dimmed">
             {docs.totalBlocks} blocks
-            {grammars?.totalGrammars > 0 && ` • ${grammars.totalGrammars} grammars`}
+            {(grammars?.totalGrammars ?? 0) > 0 && ` • ${grammars?.totalGrammars} grammars`}
             {' • '}Generated {new Date(docs.generated).toLocaleDateString()}
           </p>
         </div>

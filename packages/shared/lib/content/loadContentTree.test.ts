@@ -14,11 +14,11 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));
 
   try {
-    // Seed with files from content/demos and content/sba/psychology
+    // Seed with files from content/demos and content/psychology
     const seedFiles = [
       { src: 'content/demos/text-changer-demo.olx', dest: 'text-changer-demo.olx' },
       { src: 'content/demos/ref-demo.xml', dest: 'ref-demo.xml' },
-      { src: 'content/sba/psychology/psychology_sba_part1.olx', dest: 'psychology_sba_part1.olx' },
+      { src: 'content/psychology/psychology_sba_part1.olx', dest: 'psychology_sba_part1.olx' },
     ];
     for (const { src, dest } of seedFiles) {
       await fs.copyFile(src, path.join(tmpDir, dest));
@@ -33,9 +33,9 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
 
     // Mutate: modify text-changer-demo.olx
     await fs.appendFile(path.join(tmpDir, 'text-changer-demo.olx'), ' ');
-    // Add learning-observer-course.olx from content root
+    // Add learning-observer-course.olx
     await fs.copyFile(
-      'content/learning-observer-course.olx',
+      'content/demos/learning-observer-course.olx',
       path.join(tmpDir, 'learning-observer-course.olx')
     );
     // Delete ref-demo.xml
@@ -62,13 +62,18 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
   await fs.mkdir(tmpDir, { recursive: true });
 
   try {
-    // Create a simple OLX file that references a .chatpeg file
+    // Create a simple OLX file that references a .chatpeg file.
+    // Files live in a CONTENT/ subdirectory: the top-level directory name is
+    // the content namespace, and "CONTENT" matches TEST_NS so the unqualified
+    // getOlxJson/testKey helpers line up.
+    const olxDir = path.join(tmpDir, 'CONTENT');
+    await fs.mkdir(olxDir, { recursive: true });
     const olxContent = `<Chat id="test_chat_dep" src="dialogue.chatpeg" />`;
     // Note: chatpeg grammar requires trailing newline
     const chatpegContent = `Title: Test\n~~~~\nBob: Hello [id=msg1]\n`;
 
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'dialogue.chatpeg'), chatpegContent);
+    await fs.writeFile(path.join(olxDir, 'test.olx'), olxContent);
+    await fs.writeFile(path.join(olxDir, 'dialogue.chatpeg'), chatpegContent);
 
     const provider = new FileStorageProvider(tmpDir);
 
@@ -89,7 +94,7 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
 
     // Modify the .chatpeg file with different content
     const updatedChatpeg = `Title: Updated\n~~~~\nBob: Goodbye [id=msg2]\n`;
-    await fs.writeFile(path.join(tmpDir, 'dialogue.chatpeg'), updatedChatpeg);
+    await fs.writeFile(path.join(olxDir, 'dialogue.chatpeg'), updatedChatpeg);
 
     // Second sync - should detect chatpeg change and re-parse the OLX
     const second = await syncContentFromStorage(provider);
@@ -118,13 +123,19 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   await fs.mkdir(tmpDir, { recursive: true });
 
   try {
-    // Create OLX with a Chat that has an id defined in the chatpeg
+    // Create OLX with a Chat that has an id defined in the chatpeg.
+    // CONTENT/ subdirectory = namespace, matching TEST_NS (see above).
+    // The filename is unique to THIS test: the sync singleton accumulates
+    // parsedFiles across tests in this file, so an endsWith() lookup on a
+    // shared name like "test.olx" would match an earlier test's entry.
+    const olxDir = path.join(tmpDir, 'CONTENT');
+    await fs.mkdir(olxDir, { recursive: true });
     const olxContent = `<Chat id="chat_main" src="convo.chatpeg" />`;
     // Initial chatpeg has one message with id "original_msg"
     const chatpegV1 = `Title: V1\n~~~~\nAlice: First message [id=original_msg]\n`;
 
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV1);
+    await fs.writeFile(path.join(olxDir, 'nodes_sync_test.olx'), olxContent);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV1);
 
     const provider = new FileStorageProvider(tmpDir);
 
@@ -133,7 +144,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     expect(getOlxJson(first.idMap, 'chat_main')).toBeDefined();
 
     // Get the OLX file's URI
-    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
+    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('nodes_sync_test.olx'));
     expect(olxUri).toBeDefined();
 
     // Verify blockIds contains the correct IDs after first parse
@@ -143,7 +154,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     // Now update the chatpeg to have a DIFFERENT message id
     // This simulates adding/removing block IDs via auxiliary file changes
     const chatpegV2 = `Title: V2\n~~~~\nAlice: Different message [id=new_msg]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV2);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV2);
 
     // Second sync - chatpeg changed, OLX should be re-parsed
     const second = await syncContentFromStorage(provider);
@@ -174,7 +185,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
 
     // Now do a THIRD sync with another chatpeg change to verify cleanup works
     const chatpegV3 = `Title: V3\n~~~~\nAlice: Third version [id=third_msg]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV3);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV3);
 
     const third = await syncContentFromStorage(provider);
 
@@ -195,3 +206,52 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   }
 });
 
+
+it('re-parses a manifest\'s subtree when the manifest is added, changed, or deleted', async () => {
+  // Manifest invalidation: editing manifest.yaml `namespace:` changes the
+  // DefinitionKey of every block beneath it. The sync must re-parse the
+  // subtree — including the ADD case (no per-block pointer exists yet) and
+  // the DELETE case (namespace reverts to the directory fallback).
+  const tmpDir = path.join(process.cwd(), 'content', '_test_manifest_' + Date.now());
+  await fs.mkdir(tmpDir, { recursive: true });
+
+  try {
+    const courseDir = path.join(tmpDir, 'mycourse');
+    await fs.mkdir(courseDir, { recursive: true });
+    await fs.writeFile(path.join(courseDir, 'lesson.olx'), '<Markdown id="hello">Hi</Markdown>');
+
+    const provider = new FileStorageProvider(tmpDir);
+
+    // No manifest: namespace = directory name
+    const first = await syncContentFromStorage(provider);
+    expect(first.idMap[asDefinitionKey('mycourse/hello')]).toBeDefined();
+
+    // ADD a manifest declaring a different namespace → subtree re-parses
+    await fs.writeFile(path.join(courseDir, 'manifest.yaml'), 'namespace: renamed\n');
+    const second = await syncContentFromStorage(provider);
+    expect(second.idMap[asDefinitionKey('renamed/hello')]).toBeDefined();
+    expect(second.idMap[asDefinitionKey('mycourse/hello')]).toBeUndefined();
+
+    // Namespace provenance is stamped on the parsed block
+    const variants = second.idMap[asDefinitionKey('renamed/hello')];
+    const olxJson = Object.values(variants)[0] as any;
+    expect(String(olxJson.manifest)).toMatch(/manifest\.yaml#/);
+
+    // CHANGE the manifest's namespace → keys move again.
+    // (mtime granularity can be coarse; nudge the clock to guarantee the
+    // scan sees a change.)
+    await new Promise(r => setTimeout(r, 20));
+    await fs.writeFile(path.join(courseDir, 'manifest.yaml'), 'namespace: renamedAgain\n');
+    const third = await syncContentFromStorage(provider);
+    expect(third.idMap[asDefinitionKey('renamedAgain/hello')]).toBeDefined();
+    expect(third.idMap[asDefinitionKey('renamed/hello')]).toBeUndefined();
+
+    // DELETE the manifest → namespace reverts to the directory fallback
+    await fs.rm(path.join(courseDir, 'manifest.yaml'));
+    const fourth = await syncContentFromStorage(provider);
+    expect(fourth.idMap[asDefinitionKey('mycourse/hello')]).toBeDefined();
+    expect(fourth.idMap[asDefinitionKey('renamedAgain/hello')]).toBeUndefined();
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+});

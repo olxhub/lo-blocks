@@ -22,7 +22,7 @@ import {
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateBlock } from '@/lib/translate/orchestrate';
 import type { ContentVariant } from '@/lib/types';
-import { definitionKeyForRef, parseDefinitionRef, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { validateDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
@@ -56,7 +56,15 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
-    const blockId = definitionKeyForRef(parseDefinitionRef(body.blockId), PLACEHOLDER_NS);
+    // Clients send namespace-qualified keys (they come from idMap keys).
+    const blockIdValid = validateDefinitionKey(String(body.blockId));
+    if (blockIdValid !== true) {
+      return c.json(
+        { ok: false, error: `blockId must be a namespace-qualified DefinitionKey: ${blockIdValid}` },
+        400,
+      );
+    }
+    const blockId = parseDefinitionKey(body.blockId);
 
     const llmConfig = resolveLLMConfigWithFallback('translation');
     if (llmConfig.provider === 'stub') {

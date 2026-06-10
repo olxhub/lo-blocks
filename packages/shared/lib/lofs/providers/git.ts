@@ -11,6 +11,7 @@
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import type {
   StorageProvider,
+  NamespaceResolution,
   XmlFileInfo,
   XmlScanResult,
   FileSelection,
@@ -55,6 +56,12 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   toRelativePath(_uri: LofsRef): OlxRelativePath {
+    throw new Error('git storage not implemented');
+  }
+
+  // When implemented: repo manifest.yaml `namespace:` override, else
+  // defaultNamespace(origin) — the repo name (see types/id-grammar.ts).
+  async namespaceFor(_ref: LofsRef): Promise<NamespaceResolution> {
     throw new Error('git storage not implemented');
   }
 

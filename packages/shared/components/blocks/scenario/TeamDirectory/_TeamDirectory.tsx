@@ -1,18 +1,27 @@
 // packages/shared/components/blocks/scenario/TeamDirectory/_TeamDirectory.jsx
 'use client';
 
-import React from 'react';
 import { useFieldState } from '@/lib/state';
 import Avatar from '@/components/common/Avatar';
 import { useCast, mergeCasts, castMemberToAvatarProps } from '@/lib/avatar/cast';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
+import type { RuntimeProps } from '@/lib/types';
+import type { Cast, CastMember } from '@/lib/avatar/types';
 
-function _TeamDirectory(props) {
+/** A cast member with its id folded in (the cast map key). */
+type TeamMember = CastMember & { id: string };
+
+/** Block translation function (from useBlockTranslation). */
+type TFn = (key: string, vars?: Record<string, unknown>) => string;
+
+function _TeamDirectory(props: RuntimeProps) {
   const { fields, group, title, kids } = props;
   const { t } = useBlockTranslation(props);
   const resolvedTitle = title || t('teamDirectoryTitle');
-  // Merge: runtime.cast ← cast= attribute ← body YAML (kids)
-  const cast = mergeCasts(useCast(props), kids);
+  // Merge: runtime.cast ← cast= attribute ← body YAML (kids). kids is inline
+  // cast-shaped content; the parse boundary (validateCast) covers schema
+  // checking, so treating it as a Cast layer here is a deliberate trust cast.
+  const cast = mergeCasts(useCast(props), kids as unknown as Cast);
 
   const [selectedMember, setSelectedMember] = useFieldState(props, fields.selectedMember, null);
   const [viewMode, setViewMode] = useFieldState(props, fields.viewMode, 'grid');
@@ -25,7 +34,7 @@ function _TeamDirectory(props) {
     })
     .map(([id, member]) => ({ id, ...member }));
 
-  const handleMemberClick = (memberId) => {
+  const handleMemberClick = (memberId: string) => {
     if (selectedMember === memberId) {
       setSelectedMember(null);
       setViewMode('grid');
@@ -92,14 +101,14 @@ function _TeamDirectory(props) {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-foreground">{member.name ?? member.id}</h4>
-                    {member.profile?.role && (
+                    {member.profile?.role ? (
                       <p className="text-sm text-secondary">{String(member.profile.role)}</p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
-                {member.profile?.bio && (
+                {member.profile?.bio ? (
                   <p className="mt-2 text-sm text-secondary line-clamp-2">{String(member.profile.bio)}</p>
-                )}
+                ) : null}
               </div>
             );
           })}
@@ -123,7 +132,11 @@ function _TeamDirectory(props) {
   );
 }
 
-function MemberDetail({ member, onClose, t }) {
+function MemberDetail({ member, onClose, t }: {
+  member: TeamMember;
+  onClose: () => void;
+  t: TFn;
+}) {
   const avatarProps = castMemberToAvatarProps(member.id, member);
   const skills = Array.isArray(member.profile?.skills) ? member.profile.skills : [];
 
@@ -138,10 +151,10 @@ function MemberDetail({ member, onClose, t }) {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h4 className="text-xl font-semibold text-foreground">{member.name ?? member.id}</h4>
-              {member.profile?.role && (
+              {!!member.profile?.role && (
                 <p className="text-lg text-accent font-medium">{String(member.profile.role)}</p>
               )}
-              {member.profile?.experience && (
+              {!!member.profile?.experience && (
                 <p className="text-sm text-secondary mt-1">{String(member.profile.experience)}</p>
               )}
             </div>
@@ -154,7 +167,7 @@ function MemberDetail({ member, onClose, t }) {
           </div>
 
           <div className="space-y-4">
-            {member.profile?.bio && (
+            {!!member.profile?.bio && (
               <div>
                 <h5 className="font-medium text-foreground mb-2">{t('profileBackground')}</h5>
                 <p className="text-secondary">{String(member.profile.bio)}</p>

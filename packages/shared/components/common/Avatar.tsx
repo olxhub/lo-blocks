@@ -24,7 +24,10 @@ interface AvatarProps {
   src?: string;
   emoji?: string;
   seed?: string;
-  style?: 'illustrated' | 'initials' | 'emoji';
+  // The domain enum is the source of truth (includes 'image'). An 'image'
+  // avatar is rendered from `src`; passing style: 'image' with no src is
+  // invalid data (validateCast rejects it) and throws below.
+  style?: AvatarStyleValue;
   options?: OpenPeeps;
   size?: number;
 }
@@ -55,7 +58,7 @@ function getInitials(name: string | undefined) {
 
 export default function Avatar({ name, src, emoji, seed, style = 'illustrated', options, size = 32 }: AvatarProps) {
   const generatedSvg = useMemo(() => {
-    if (src || emoji || style === 'initials' || style === 'emoji') return undefined;
+    if (src || emoji || style === 'initials' || style === 'emoji' || style === 'image') return undefined;
     const avatar = createAvatar(openPeeps, {
       seed: seed || name || 'unknown',
       size,
@@ -75,6 +78,13 @@ export default function Avatar({ name, src, emoji, seed, style = 'illustrated', 
         {emoji || '?'}
       </div>
     );
+  }
+
+  // An explicit 'image' style with no src is incomplete data — the content
+  // file declared an image avatar but provided no source. validateCast rejects
+  // this upstream; fail loudly here too rather than silently falling through.
+  if (style === 'image' && !src) {
+    throw new Error("Avatar: style 'image' requires a src, but none was provided");
   }
 
   // Explicit image URL — highest priority

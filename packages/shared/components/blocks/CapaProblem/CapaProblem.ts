@@ -27,7 +27,7 @@
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
-import { splitNs, definitionKeyForRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
@@ -103,7 +103,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
       } else {
         blockRef = parseDefinitionRef(childAttrs.id);
       }
-      const blockId = definitionKeyForRef(blockRef, ns);
+      const blockId = qualifyDefinitionRef(blockRef, ns);
 
       let mapping = currentGrader;
       if (blockType.isGrader) {

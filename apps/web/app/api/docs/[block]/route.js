@@ -47,6 +47,7 @@ export async function GET(request, { params }) {
       demo: block.demo ?? null,           // Key into examples
       readme: null,
       examples: {},
+      includes: {},                       // Shared fixtures (*.includes.olx)
     };
 
     // Read readme content if path exists
@@ -71,6 +72,23 @@ export async function GET(request, { params }) {
         }),
       );
       blockDocs.examples = Object.fromEntries(entries.filter(Boolean));
+    }
+
+    // Read shared-fixture contents (dict keyed by filename) — same shape as
+    // examples, but not runnable examples themselves.
+    if (block.includes) {
+      const entries = await Promise.all(
+        Object.entries(block.includes).map(async ([filename, include]) => {
+          const content = await safeRead(include.path);
+          if (content === null) return null;
+          return [filename, {
+            path: include.path,
+            content,
+            gitStatus: include.gitStatus ?? null,
+          }];
+        }),
+      );
+      blockDocs.includes = Object.fromEntries(entries.filter(Boolean));
     }
 
     return Response.json({

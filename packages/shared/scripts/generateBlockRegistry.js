@@ -219,6 +219,9 @@ function walkDirectories(dirs, filePattern, ignorePatterns, excludePattern) {
  * For a block named "Chat", discovers:
  *   - docs:     Chat.md (exact match)
  *   - examples: Chat*.olx or Chat*.xml (prefix match)
+ *   - includes: Chat*.includes.olx — shared fixtures reused by the block's
+ *               examples via <Use ref>. Synced as docs content (same
+ *               docs.Chat namespace) but NOT listed as runnable examples.
  *   - i18n:     i18n/*.json (locale code derived from filename)
  */
 
@@ -234,6 +237,7 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
     template: null,       // Key into examples dict (editor insert template)
     demo: null,           // Key into examples dict (docs marquee example)
     examples: {},         // Dict keyed by filename
+    includes: {},         // Shared fixtures (*.includes.olx) — not examples
     i18n: {},
     blockGitStatus: getFileGitStatus(blockRelPath, gitStatusMap)
   };
@@ -249,6 +253,12 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
     if (entry.name === `${blockName}.md`) {
       assets.docs = entryPath;
       assets.docsGitStatus = getFileGitStatus(entryPath, gitStatusMap);
+    }
+    else if (entry.name.startsWith(blockName) && entry.name.endsWith('.includes.olx')) {
+      assets.includes[entry.name] = {
+        path: entryPath,
+        gitStatus: getFileGitStatus(entryPath, gitStatusMap)
+      };
     }
     else if (
       (entry.name.startsWith(blockName) && (entry.name.endsWith('.olx') || entry.name.endsWith('.xml')))
@@ -331,6 +341,9 @@ function reduceBlockRegistry(files, outputFile, gitStatusMap) {
     if (assets.demo) blockMeta.demo = assets.demo;
     if (Object.keys(assets.examples).length > 0) {
       blockMeta.examples = assets.examples;
+    }
+    if (Object.keys(assets.includes).length > 0) {
+      blockMeta.includes = assets.includes;
     }
     if (Object.keys(assets.i18n).length > 0) {
       blockMeta.i18n = assets.i18n;

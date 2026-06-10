@@ -1,4 +1,4 @@
-<Vertical id="freewriteChain" title="Freewrite Chain Demo" launchable="true">
+<Vertical id="freewriteChain" title="Freewrite Chain Demo">
 
 <Markdown>
 ## SBA Design Sprint
@@ -12,21 +12,21 @@ review everything at the end.
 <TimedContainer id="r1" duration="30 seconds" start="render" hideuntilstart="true"
                 when="!@r1.expired">
   <Markdown>**Round 1 — The World.** Brainstorm a setting for a scenario-based assessment. What domain? What's happening? What makes it interesting?</Markdown>
-  <Freewrite id="fw1" invisible="true" nodelete="true" counter="true" />
+  <Freewrite id="fwWorld" invisible="true" nodelete="true" counter="true" />
 </TimedContainer>
 
 <!-- Round 2: appears when round 1 expires, disappears when it expires -->
 <TimedContainer id="r2" duration="30 seconds" start="render" hideuntilstart="true"
                 when="@r1.expired &amp;&amp; !@r2.expired">
   <Markdown>**Round 2 — The Cast.** Who's in this world? Brainstorm characters the student might play, interact with, or advise.</Markdown>
-  <Freewrite id="fw2" invisible="true" nodelete="true" counter="true" />
+  <Freewrite id="fwCast" invisible="true" nodelete="true" counter="true" />
 </TimedContainer>
 
 <!-- Round 3: appears when round 2 expires -->
 <TimedContainer id="r3" duration="30 seconds" start="render" hideuntilstart="true"
                 when="@r2.expired &amp;&amp; !@r3.expired">
   <Markdown>**Round 3 — Learning Objectives.** What should students learn or practice in this scenario? What decisions will they face?</Markdown>
-  <Freewrite id="fw3" invisible="true" nodelete="true" counter="true" />
+  <Freewrite id="fwObjectives" invisible="true" nodelete="true" counter="true" />
 </TimedContainer>
 
 <!-- Results: shown after all three rounds -->
@@ -35,19 +35,19 @@ review everything at the end.
 
 **The World:**
 
-{{text2markdown(@fw1.value)}}
+{{text2markdown(@fwWorld.value)}}
 
 ---
 
 **The Cast:**
 
-{{text2markdown(@fw2.value)}}
+{{text2markdown(@fwCast.value)}}
 
 ---
 
 **Learning Objectives:**
 
-{{text2markdown(@fw3.value)}}
+{{text2markdown(@fwObjectives.value)}}
 </Markdown>
 
 </Vertical>

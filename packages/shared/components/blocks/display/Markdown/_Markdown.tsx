@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo } from 'react';
-import RenderMarkdown, { markdownComponents } from '@/components/common/RenderMarkdown';
+import RenderMarkdown from '@/components/common/RenderMarkdown';
 import type { RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
 import { useTextContent } from '@/lib/state/redux';
@@ -13,9 +13,6 @@ import {
   evaluate,
   createContext,
 } from '@/lib/stateLanguage';
-
-// Re-export for backwards compatibility
-export { markdownComponents };
 
 export function _Markdown(props: RuntimeProps) {
   let { text: content, loading } = useTextContent(props);
@@ -74,5 +71,7 @@ export function _Markdown(props: RuntimeProps) {
     return <Spinner />;
   }
 
-  return <RenderMarkdown>{resolvedContent as string}</RenderMarkdown>;
+  // ns: embedded ```olx fences parse in this block's own namespace, so
+  // they can reference sibling content with bare refs.
+  return <RenderMarkdown ns={props.runtime.ns}>{resolvedContent as string}</RenderMarkdown>;
 }

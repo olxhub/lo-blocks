@@ -12,7 +12,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useFieldState, system, useLoaded } from '@/lib/state';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { leafDefinitionKeyFromStateKey, splitNs } from '@/lib/types/id-grammar';
 import type { StateKey } from '@/lib/types';
 
 // TODO: Audit disconnect/reconnect behavior before trusting offline operation.
@@ -81,6 +81,7 @@ export default function PreviewPage({ id }: { id: StateKey }) {
         <div className="space-y-4">
           <RenderOLX
             id={id}
+            ns={splitNs(id).ns}
             baseIdMap={idMap ?? undefined /* TS workaround; always defined by the time we're here */}
             eventContext="preview"
           />

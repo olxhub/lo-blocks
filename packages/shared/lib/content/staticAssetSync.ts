@@ -19,9 +19,18 @@ const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 export async function copyAssetsToPublic(provider, targetDir = './apps/web/public/content') {
   const publicContentDir = targetDir;
 
+  // A StackedStorageProvider exposes `providers`; copy assets from every
+  // stacked source that has a filesystem directory (e.g. content + docs).
+  // Non-filesystem sources (memory, network) have no baseDir and are skipped.
+  const sources = Array.isArray(provider.providers) ? provider.providers : [provider];
+
   try {
     await fs.mkdir(publicContentDir, { recursive: true });
-    await copyAssetsRecursive(provider.baseDir, publicContentDir);
+    for (const source of sources) {
+      if (source?.baseDir) {
+        await copyAssetsRecursive(source.baseDir, publicContentDir);
+      }
+    }
     console.log(`\u2705 Assets copied to ${publicContentDir}`);
   } catch (error) {
     console.warn('\u26a0\ufe0f  Failed to copy assets to public directory:', error.message);

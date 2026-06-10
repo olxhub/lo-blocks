@@ -1,7 +1,10 @@
-# content/sba/psychology/manifest.yaml
+# content/psychology/manifest.yaml
 #
 # Manifest for the Psychology Study Group static site.
 # Used by: scripts/build-static.ts --manifest <this file>
+# The `namespace:` field also governs content sync — every block under
+# this directory gets keys in the `psych/` namespace (see
+# FileStorageProvider.namespaceFor).
 #
 title: Psychology Study Group
 namespace: psych
@@ -12,6 +15,6 @@ content_notice: >
   Emily N Srisarajivakul, and Kara Watkins, with contributions from Piotr Mitros
   and Paul Deane. Licensed under
   [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html). Source available on
-  [GitHub](https://github.com/olxhub/lo-blocks/tree/main/content/sba/psychology).
+  [GitHub](https://github.com/olxhub/lo-blocks/tree/main/content/psychology).
 routes:
-  /: CONTENT/psych_course
+  /: psych/psych_course

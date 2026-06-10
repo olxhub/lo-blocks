@@ -17,8 +17,9 @@ import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import type { UriNode } from '@/lib/types/storage';
-import type { IdMap } from '@/lib/types';
-import { useNotifications, ToastNotifications } from '@/lib/util/debug';
+import type { IdMap, ContentNamespace } from '@/lib/types';
+import { STUDIO_NS } from './studioNs';
+import { useNotifications, ToastNotifications, DisplayError } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
 import Notice from '@/components/common/Notice';
 
@@ -125,13 +126,31 @@ function StudioPageContent() {
   const startContainerSizeRef = useRef(1000);
 
   // Track per-file saved state for dirty detection and conflict detection
-  // Maps filePath -> { content, metadata } for files we've loaded
+  // Maps filePath -> { content, metadata, ns } for files we've loaded
   // TODO: Move file metadata tracking to redux (enables cross-component dirty detection)
-  const fileStateRef = useRef<Map<string, { content: string; metadata: unknown }>>(new Map());
+  const fileStateRef = useRef<Map<string, { content: string; metadata: unknown; ns?: ContentNamespace }>>(new Map());
 
   // Get current file's saved state (for dirty detection)
   const savedState = fileStateRef.current.get(filePath);
   const isDirty = savedState ? content !== savedState.content : false;
+
+  // Namespace the preview renders in. undefined means the loaded file has
+  // no content namespace — that's an author-facing problem (the content
+  // sync will reject the file), so the preview shows an explanation
+  // instead of silently rendering under a wrong namespace.
+  let previewNs: ContentNamespace | undefined;
+  if (!filePath) {
+    // No file open — previewing the built-in demo content.
+    previewNs = STUDIO_NS;
+  } else if (!savedState) {
+    // File selected but the read hasn't returned yet.
+    previewNs = STUDIO_NS;
+  } else {
+    // File loaded — the server resolved its namespace during read
+    // (manifest-aware; see FileStorageProvider.read). undefined when the
+    // file is outside any namespace (see NamespaceResolutionError).
+    previewNs = savedState.ns;
+  }
 
   // Compute all dirty files (for beforeunload and file tree indicators)
   const getDirtyFiles = useCallback((): Set<string> => {
@@ -195,6 +214,7 @@ function StudioPageContent() {
         fileStateRef.current.set(filePath, {
           content: result.content,
           metadata: result.metadata,
+          ns: result.ns,
         });
       })
       .catch(err => {
@@ -266,6 +286,7 @@ function StudioPageContent() {
         fileStateRef.current.set(name, {
           content,
           metadata: result.metadata,
+          ns: result.ns,
         });
         setFilePath(name);
         updateUrl(name);
@@ -292,6 +313,7 @@ function StudioPageContent() {
       fileStateRef.current.set(filePath, {
         content,
         metadata: result.metadata,
+        ns: result.ns,
       });
       notify('success', `Saved ${filePath}`);
     } catch (err) {
@@ -596,7 +618,19 @@ function StudioPageContent() {
                       the purpose. Studio preview should disable translanguaging or pin locale
                       to the file's language. LanguageSwitcher already has a translanguaging
                       prop — need to thread it through RenderOLX/PreviewPane. */}
-                  <PreviewPane path={filePath} content={content} idMap={idMap} />
+                  {previewNs === undefined ? (
+                    <DisplayError
+                      title="File has no content namespace"
+                      message={
+                        `"${filePath}" is outside any content namespace, so the ` +
+                        `content sync will reject it and it cannot be previewed. ` +
+                        `Move it into a namespace directory (content/<namespace>/...) ` +
+                        `or add a manifest.yaml with a "namespace:" field.`
+                      }
+                    />
+                  ) : (
+                    <PreviewPane path={filePath} content={content} ns={previewNs} idMap={idMap} />
+                  )}
                 </div>
               </div>
             </>

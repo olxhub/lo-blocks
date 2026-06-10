@@ -22,17 +22,45 @@ import type {
   GrepMatch,
 } from '../../types/storage';
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
-import { toMemoryRef, provenancePath } from '../../types/storage';
+import { type ContentNamespace, asContentNamespace } from '../../types/id-grammar';
+
+/** Default namespace for in-memory scratch content (tests, inline parses,
+ *  editor buffers) when the caller doesn't declare one. */
+const MEMORY_NS = asContentNamespace('memory');
+import { toMemoryRef, provenancePath, type NamespaceResolution } from '../../types/storage';
 import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
   basePath: string;
+  ns: ContentNamespace;
 
-  constructor(files: Record<string, string>, basePath = '') {
+  /**
+   * @param files - Virtual filesystem: { 'path.olx': '<OLX>...' }
+   * @param basePath - Optional prefix tried when resolving reads
+   * @param options.ns - Content namespace for all files in this provider.
+   *   Memory sources hold transient content (editor buffers, tests, inline
+   *   parses), so the whole provider is one namespace. Defaults to the
+   *   synthetic "memory" namespace; callers syncing real content through a
+   *   memory provider should declare the actual namespace.
+   */
+  constructor(files: Record<string, string>, basePath = '', { ns = MEMORY_NS }: { ns?: ContentNamespace } = {}) {
     this.files = files;
     this.basePath = basePath;
+    this.ns = ns;
+  }
+
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
+    // Only own memory: refs — same scheme guard as resolveRelativePath, so a
+    // StackedStorageProvider with this provider ahead of a file provider falls
+    // through for file: refs instead of mislabeling them with this.ns.
+    if (scheme(brandLofsRef(String(ref))) !== 'memory') {
+      throw new Error(
+        `InMemoryStorageProvider does not own ref (not a memory: scheme): ${ref}`
+      );
+    }
+    return { ns: this.ns };
   }
 
   async read(path: OlxRelativePath): Promise<ReadResult> {

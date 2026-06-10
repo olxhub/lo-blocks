@@ -11,6 +11,7 @@
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import type {
   StorageProvider,
+  NamespaceResolution,
   XmlFileInfo,
   XmlScanResult,
   FileSelection,
@@ -75,6 +76,10 @@ export class PostgresStorageProvider implements StorageProvider {
   }
 
   async rename(_oldPath: OlxRelativePath, _newPath: OlxRelativePath): Promise<void> {
+    throw new Error('postgres storage not implemented');
+  }
+
+  async namespaceFor(_ref: LofsRef): Promise<NamespaceResolution> {
     throw new Error('postgres storage not implemented');
   }
 }

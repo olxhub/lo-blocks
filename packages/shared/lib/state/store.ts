@@ -38,6 +38,7 @@ import { websocketLogger } from 'lo_event/websocket';
 import { scopes, Scope } from './scopes';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields } from '../types';
+import type { ChatMessage } from '../llm/types';
 import {
   olxjsonReducer,
   initialOlxJsonState,
@@ -159,7 +160,7 @@ const initialState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {} as Record<string, { messages: any[]; status: string }>,
+  chat: {} as Record<string, { messages: ChatMessage[]; status: string }>,
 };
 
 // Event types for olxjson state
