@@ -64,7 +64,7 @@ Sam: Like using flashcards?
 
 Alex: Exactly! And spacing practice over time beats cramming.
 
-sidebar -> follow_up_activity
+responseSidebar -> follow_up_activity
 
 Alex: Now, how might you apply this?
 
@@ -72,7 +72,7 @@ Alex: Now, how might you apply this?
 
 Alex: Great plan! The key is making it a habit.
 
-sidebar -> spacing_goal_activity
+responseSidebar -> spacing_goal_activity
 
 Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'll spread across this week.
 
@@ -80,7 +80,7 @@ Alex: Let's set a quick spaced-practice goal. Enter how many short sessions you'
 
 Alex: Planning at least three sessions is a solid start.
 
-sidebar -> confidence_check_activity
+responseSidebar -> confidence_check_activity
 
 Alex: Finally, rate your confidence in sticking with the plan and note one thing that would make it even easier.
 
@@ -93,7 +93,7 @@ Sam: Thanks for the tips!
     </LeftPane>
     <RightPane>
       <Markdown>### Your Responses</Markdown>
-      <UseHistory id="sidebar" initial="initial_thoughts_activity" />
+      <UseHistory id="responseSidebar" initial="initial_thoughts_activity" />
     </RightPane>
   </SplitPanel>
 

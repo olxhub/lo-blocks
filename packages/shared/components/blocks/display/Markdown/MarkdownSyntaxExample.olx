@@ -1,4 +1,4 @@
-<Vertical id="MarkdownDemo" title="Markdown Block Demo">
+<Vertical id="MarkdownSyntaxExample" title="Markdown Block Demo">
 
   <!-- Basic markdown formatting -->
   <Markdown id="basic_markdown">

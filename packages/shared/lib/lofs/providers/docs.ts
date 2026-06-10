@@ -76,12 +76,22 @@ export class DocsStorageProvider extends FileStorageProvider {
     );
   }
 
+  /** Is this file documentation content the sync should index?
+   *  Excludes:
+   *  - _test/ — intentionally-broken parser-error fixtures
+   *  - *.pegjs.preview.olx — grammar preview TEMPLATES with {{CONTENT}}
+   *    placeholders; only renderable after injectPreviewContent. The grammar
+   *    docs UI renders them with injected samples, never raw. */
+  private isDocsContent(relPath: string): boolean {
+    return !relPath.startsWith('_test/') && !relPath.endsWith('.pegjs.preview.olx');
+  }
+
   async loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult> {
     const scan = await super.loadXmlFilesWithStats(previous);
     const strip = (rec: Record<LofsRef, XmlFileInfo>) =>
       Object.fromEntries(
         Object.entries(rec).filter(
-          ([uri]) => !this.toRelativePath(withoutVersion(uri as LofsRef)).startsWith('_test/')
+          ([uri]) => this.isDocsContent(this.toRelativePath(withoutVersion(uri as LofsRef)))
         )
       ) as Record<LofsRef, XmlFileInfo>;
     return {

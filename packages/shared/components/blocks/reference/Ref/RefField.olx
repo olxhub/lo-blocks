@@ -30,11 +30,11 @@ The LLMFeedback component has both `value` (the feedback text) and `state` (load
 You can access either field:
   </Markdown>
 
-  <TextArea id="essay" rows="2" placeholder="Write something for feedback..." />
+  <TextArea id="feedbackResponse" rows="2" placeholder="Write something for feedback..." />
   <LLMFeedback id="feedback_demo" />
   <ActionButton label="Get Feedback">
     <LLMAction target="feedback_demo">
-      Give brief feedback on: <Ref target="essay" />
+      Give brief feedback on: <Ref target="feedbackResponse" />
     </LLMAction>
   </ActionButton>
 

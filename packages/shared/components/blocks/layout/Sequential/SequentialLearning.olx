@@ -1,4 +1,4 @@
-<Vertical id="SequentialDemo">
+<Vertical id="SequentialLearning">
   <Sequential id="LearningSequence">
     <Vertical id="Step1">
       <TextBlock>Welcome to the first step of our learning sequence!</TextBlock>

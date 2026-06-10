@@ -1,6 +1,6 @@
 <Vertical id="MadLibsDemo" title="Mad Libs">
 
-  <Markdown id="intro">
+  <Markdown id="madLibsIntro">
 ## Mad Libs
 
 Fill in the blanks below, then read your silly story!
