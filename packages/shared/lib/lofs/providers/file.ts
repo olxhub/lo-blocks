@@ -398,6 +398,14 @@ export class FileStorageProvider implements StorageProvider {
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const fs = await import('fs/promises');
 
+    // Only diff against refs this provider owns. In a stacked scan, `previous`
+    // contains other mounts' files — without this filter they would all be
+    // reported as deleted (they're never "found" by walking this baseDir).
+    const expectedSource = `file:${this.mountPoint}`;
+    previous = Object.fromEntries(
+      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === expectedSource)
+    ) as Record<LofsRef, XmlFileInfo>;
+
     function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
       return (

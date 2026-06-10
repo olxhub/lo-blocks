@@ -125,13 +125,16 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   try {
     // Create OLX with a Chat that has an id defined in the chatpeg.
     // CONTENT/ subdirectory = namespace, matching TEST_NS (see above).
+    // The filename is unique to THIS test: the sync singleton accumulates
+    // parsedFiles across tests in this file, so an endsWith() lookup on a
+    // shared name like "test.olx" would match an earlier test's entry.
     const olxDir = path.join(tmpDir, 'CONTENT');
     await fs.mkdir(olxDir, { recursive: true });
     const olxContent = `<Chat id="chat_main" src="convo.chatpeg" />`;
     // Initial chatpeg has one message with id "original_msg"
     const chatpegV1 = `Title: V1\n~~~~\nAlice: First message [id=original_msg]\n`;
 
-    await fs.writeFile(path.join(olxDir, 'test.olx'), olxContent);
+    await fs.writeFile(path.join(olxDir, 'nodes_sync_test.olx'), olxContent);
     await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV1);
 
     const provider = new FileStorageProvider(tmpDir);
@@ -141,7 +144,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     expect(getOlxJson(first.idMap, 'chat_main')).toBeDefined();
 
     // Get the OLX file's URI
-    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('test.olx'));
+    const olxUri = Object.keys(first.parsed).find(k => k.endsWith('nodes_sync_test.olx'));
     expect(olxUri).toBeDefined();
 
     // Verify blockIds contains the correct IDs after first parse

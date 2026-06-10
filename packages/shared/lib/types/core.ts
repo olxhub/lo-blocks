@@ -836,6 +836,10 @@ export interface LoBlock {
   demo?: string;
   /** Example OLX files keyed by filename. template/demo are keys into this dict. */
   examples?: Record<string, { path: string; gitStatus?: BlockGitStatus }>;
+  /** Shared fixtures (*.includes.olx) reused by examples via <Use ref>.
+   *  Synced as docs content in the block's namespace, but not listed as
+   *  runnable examples. */
+  includes?: Record<string, { path: string; gitStatus?: BlockGitStatus }>;
   /** Git status of the block source file */
   gitStatus?: BlockGitStatus;
   /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */

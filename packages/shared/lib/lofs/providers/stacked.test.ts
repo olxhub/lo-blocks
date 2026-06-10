@@ -53,3 +53,47 @@ describe('StackedStorageProvider path resolution', () => {
     });
   });
 });
+
+describe('StackedStorageProvider multi-mount scan', () => {
+  // Regression: each provider receives the FULL previous snapshot, which
+  // contains other mounts' files. Providers must only diff against their
+  // own refs — otherwise every provider reports the other mounts' files
+  // as deleted and the merge destroys the index.
+  it('does not report other mounts’ files as deleted on re-scan', async () => {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const os = await import('os');
+
+    const dirA = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-stacked-a-'));
+    const dirB = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-stacked-b-'));
+    try {
+      await fs.writeFile(path.join(dirA, 'a.olx'), '<A/>');
+      await fs.writeFile(path.join(dirB, 'b.olx'), '<B/>');
+
+      const stacked = new StackedStorageProvider([
+        new FileStorageProvider(dirA, 'mountA'),
+        new FileStorageProvider(dirB, 'mountB'),
+      ]);
+
+      const first = await stacked.loadXmlFilesWithStats();
+      expect(Object.keys(first.added).sort()).toEqual([
+        'file:mountA://a.olx',
+        'file:mountB://b.olx',
+      ]);
+
+      // Re-scan with the merged previous snapshot: nothing changed,
+      // so nothing may be added, changed, or deleted.
+      const second = await stacked.loadXmlFilesWithStats(first.added);
+      expect(Object.keys(second.deleted)).toEqual([]);
+      expect(Object.keys(second.added)).toEqual([]);
+      expect(Object.keys(second.changed)).toEqual([]);
+      expect(Object.keys(second.unchanged).sort()).toEqual([
+        'file:mountA://a.olx',
+        'file:mountB://b.olx',
+      ]);
+    } finally {
+      await fs.rm(dirA, { recursive: true, force: true });
+      await fs.rm(dirB, { recursive: true, force: true });
+    }
+  });
+});
