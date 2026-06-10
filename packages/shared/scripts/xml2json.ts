@@ -8,6 +8,10 @@
 //
 // Flags:
 //   --content <dir>        Content directory (default: $OLX_CONTENT_DIR or ./content)
+//   --ns <namespace>       Treat the whole content directory as ONE namespace
+//                          (single-course builds). Without it, namespaces
+//                          resolve per file (manifest.yaml, else top-level
+//                          directory) — and root-level files are errors.
 //   --out <file>           Write idMap JSON to file (default: stdout)
 //   --activities <file>    Write activities JSON to file
 //   --manifest <file>      Source manifest to validate (default: <contentDir>/static.config.json)
@@ -27,6 +31,8 @@ import path from 'path';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { buildActivityCards } from '../lib/content/buildActivityCards';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
+import { parseContentNamespace } from '../lib/types/id-grammar';
+import type { ContentNamespace } from '../lib/types/id-grammar';
 
 // Optional: Include graph validation to catch component registration issues
 // This can be safely removed if graph parsing is not needed or changes significantly
@@ -44,6 +50,10 @@ function getArgOptional(flag: string): string | null {
 }
 
 const contentDir = path.resolve(getArg('--content', process.env.OLX_CONTENT_DIR || './content'));
+// Single-namespace override for single-course builds (see flag docs above).
+// parseContentNamespace fails fast with the grammar's message on bad input.
+const nsArg = getArgOptional('--ns');
+const ns: ContentNamespace | undefined = nsArg ? parseContentNamespace(nsArg) : undefined;
 const staticDir = getArgOptional('--static-dir');
 const outFile = getArgOptional('--out') || (staticDir ? path.join(staticDir, 'all.json') : null);
 const activitiesFile = getArgOptional('--activities') || (staticDir ? path.join(staticDir, 'activities.json') : null);
@@ -188,7 +198,8 @@ function writeManifest(idMap: any, activities: Record<string, any>) {
 async function main() {
   try {
     console.log(`Content directory: ${contentDir}`);
-    const provider = new FileStorageProvider(contentDir, 'content');
+    if (ns) console.log(`Namespace: ${ns} (--ns override)`);
+    const provider = new FileStorageProvider(contentDir, 'content', { ns });
     const { idMap, errors: parseErrors } = await syncContentFromStorage(provider);
 
     const blockCount = Object.keys(idMap).length;
