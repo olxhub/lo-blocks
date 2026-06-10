@@ -31,7 +31,7 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
-import { parseContentNamespace } from '@/lib/types/id-grammar';
+import { parseContentNamespace, asStateKey } from '@/lib/types/id-grammar';
 
 // Per-block docs namespace: examples, includes, and README snippets for a
 // block all live in docs.<BlockName> (see lib/lofs/providers/docs.ts).
@@ -53,7 +53,7 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
     baselineProps,
     editorFields.editedContent,
     originalContent,
-    { stateKey: provenance }
+    { stateKey: asStateKey(provenance) }
   );
 }
 
@@ -63,7 +63,7 @@ function useDocsExampleState(blockName, exampleFilename, originalContent) {
 
 /** Look up an example by numeric index from a Record<filename, data>. */
 function getExampleByIndex(examples, index) {
-  const entries = Object.entries(examples ?? {});
+  const entries = Object.entries<any>(examples ?? {});
   if (index < 0 || index >= entries.length) return null;
   const [filename, data] = entries[index];
   return { filename, ...data };
@@ -130,7 +130,7 @@ function BlockSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-2">
-        {Object.entries(categories).map(([category, blocks]) => (
+        {Object.entries<any>(categories).map(([category, blocks]) => (
           <div key={category} className="mb-2">
             <button
               onClick={() => onToggleCategory(category)}
@@ -149,7 +149,7 @@ function BlockSidebar({
                   // Determine if block or its docs are uncommitted
                   const blockUncommitted = block.gitStatus && block.gitStatus !== 'committed';
                   const docsUncommitted = block.readmeGitStatus && block.readmeGitStatus !== 'committed';
-                  const examplesUncommitted = Object.values(block.examples ?? {}).some(e => e.gitStatus && e.gitStatus !== 'committed');
+                  const examplesUncommitted = Object.values<any>(block.examples ?? {}).some(e => e.gitStatus && e.gitStatus !== 'committed');
                   const anyUncommitted = blockUncommitted || docsUncommitted || examplesUncommitted;
 
                   // Git status indicator styling
@@ -683,7 +683,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
 }
 
 function OverviewTab({ block, details }) {
-  const exampleEntries = Object.entries(details?.examples ?? {});
+  const exampleEntries = Object.entries<any>(details?.examples ?? {});
   const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
   const moreExamplesCount = exampleEntries.length - 1;
 
@@ -771,7 +771,7 @@ function ExampleTab({ example, blockName }) {
 }
 
 function GrammarOverviewTab({ grammar, details }) {
-  const exampleEntries = Object.entries(details?.examples ?? {});
+  const exampleEntries = Object.entries<any>(details?.examples ?? {});
   const firstExample = exampleEntries.length > 0 ? { filename: exampleEntries[0][0], ...exampleEntries[0][1] } : null;
   const moreExamplesCount = exampleEntries.length - 1;
 
@@ -860,13 +860,13 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 
 export default function DocsPage() {
   const localeAttrs = useLocaleAttributes();
-  const [docs, setDocs] = useState(null);
-  const [grammars, setGrammars] = useState(null);
+  const [docs, setDocs] = useState<any>(null);
+  const [grammars, setGrammars] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [error, setError] = useState<any>(null);
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [selectedIsGrammar, setSelectedIsGrammar] = useState(false);
-  const [blockDetails, setBlockDetails] = useState(null);
+  const [blockDetails, setBlockDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -986,7 +986,7 @@ export default function DocsPage() {
     if (!searchQuery.trim()) return categorizedBlocks;
     const query = searchQuery.toLowerCase();
     const filtered = {};
-    Object.entries(categorizedBlocks).forEach(([category, items]) => {
+    Object.entries<any>(categorizedBlocks).forEach(([category, items]) => {
       const matching = items.filter(item =>
         item.name.toLowerCase().includes(query) ||
         item.description?.toLowerCase().includes(query) ||

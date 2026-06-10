@@ -29,7 +29,7 @@ export const LLM_STATUS = {
 // Tools run in order so each sees the effects of previous tools.
 // Caller derives API and display formats as needed.
 async function handleToolCalls(toolCalls, tools) {
-  const results = [];
+  const results: any[] = [];
   for (const call of toolCalls) {
     const tool = findToolByName(tools, call.function.name);
     let args = {};
@@ -69,8 +69,8 @@ export async function callLLM(params) {
   const messages = history || [{ role: 'user', content: prompt }];
 
   let loopCount = 0;
-  let newMessages = [];
-  let displayMessagesAccum = [];  // Tool calls to show in chat
+  let newMessages: any[] = [];
+  let displayMessagesAccum: any[] = [];  // Tool calls to show in chat
   while (loopCount++ < 10) {
     try {
       const res = await fetch(LLM_ENDPOINT, {
@@ -81,7 +81,7 @@ export async function callLLM(params) {
           tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
         }),
       });
-      const json = (await res.json()).choices?.[0];
+      const json = ((await res.json()) as any).choices?.[0];
       const content = json?.message?.content;
       const toolCalls = json?.message?.tool_calls;
 
@@ -154,7 +154,7 @@ export async function callLLM(params) {
 // @param {array} params.tools - Default tool definitions (can be overridden per-call)
 // @param {string} params.systemPrompt - Default system prompt (can be overridden per-call)
 // @param {string} params.initialMessage - Initial message to show (default: 'Ask the LLM a question.')
-export function useChat(params = {}) {
+export function useChat(params: any = {}) {
   const {
     chatId = 'default',
     tools: defaultTools = [],
@@ -164,7 +164,7 @@ export function useChat(params = {}) {
 
   // Read from Redux
   const chatState = useSelector(
-    (state) => state?.application_state?.chat?.[chatId]
+    (state: any) => state?.application_state?.chat?.[chatId]
   );
   const messages = chatState?.messages ?? [];
   const status = chatState?.status ?? LLM_STATUS.INIT;
@@ -191,7 +191,7 @@ export function useChat(params = {}) {
 
   // sendMessage accepts per-call overrides for tools and systemPrompt
   // This allows building fresh tools with current values at call time
-  const sendMessage = useCallback(async (text, options = {}) => {
+  const sendMessage = useCallback(async (text, options: any = {}) => {
     const {
       attachments = [],
       tools = defaultTools,
@@ -245,7 +245,7 @@ export function useChat(params = {}) {
           const attachmentContent = msg.attachments
             .map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``)
             .join('\n\n');
-          content = msg.text.replace(/\n\n📎.*$/s, '') + '\n\n' + attachmentContent;
+          content = msg.text.replace(/\n\n📎[\s\S]*$/, '') + '\n\n' + attachmentContent;
         }
         return {
           role: msg.speaker === 'You' ? 'user' : 'assistant',
@@ -284,5 +284,5 @@ export async function callLLMSimple(prompt) {
   }
 
   // Extract just the text content
-  return messages.find(m => m.type === 'Line' && m.speaker === 'LLM')?.text || 'No response';
+  return messages.find((m: any) => m.type === 'Line' && m.speaker === 'LLM')?.text || 'No response';
 }

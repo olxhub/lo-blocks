@@ -88,18 +88,18 @@ function _TeamDirectory(props) {
               >
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <Avatar {...avatarProps} size={48} />
+                    <Avatar {...(avatarProps as React.ComponentProps<typeof Avatar>)} size={48} />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-foreground">{member.name ?? member.id}</h4>
-                    {member.profile?.role && (
+                    {(member.profile?.role && (
                       <p className="text-sm text-secondary">{String(member.profile.role)}</p>
-                    )}
+                    )) as React.ReactNode}
                   </div>
                 </div>
-                {member.profile?.bio && (
+                {(member.profile?.bio && (
                   <p className="mt-2 text-sm text-secondary line-clamp-2">{String(member.profile.bio)}</p>
-                )}
+                )) as React.ReactNode}
               </div>
             );
           })}
@@ -131,7 +131,7 @@ function MemberDetail({ member, onClose, t }) {
     <div className="team-member-detail bg-surface p-6 rounded-lg">
       <div className="flex items-start space-x-6">
         <div className="flex-shrink-0">
-          <Avatar {...avatarProps} size={96} />
+          <Avatar {...(avatarProps as React.ComponentProps<typeof Avatar>)} size={96} />
         </div>
 
         <div className="flex-1">

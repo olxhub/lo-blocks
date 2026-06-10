@@ -17,7 +17,7 @@ export default function _NextReveal(props) {
     1  // Start with first item revealed
   );
 
-  const bottomRef = useRef(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const allKids = useKidsJson(props);
   const numItems = allKids.length;
