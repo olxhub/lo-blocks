@@ -810,7 +810,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
     }
 
     if (activeTab === 'readme' && details?.readme?.content) {
-      return <ReadmeTab content={details.readme.content} path={details.readme.path} />;
+      return <ReadmeTab content={details.readme.content} path={details.readme.path} ns={docsNamespace(block.name)} />;
     }
 
     if (activeTab === 'grammar-source' && details?.grammar) {
