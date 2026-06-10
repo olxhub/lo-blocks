@@ -160,7 +160,23 @@ describe('Demo OLX files render without errors', () => {
 
         // Parse the OLX
         const parseResult = await parseOLX(content, [toMemoryRef(filePath)]);
-        const { idMap, root } = parseResult;
+        let { idMap } = parseResult;
+        const { root } = parseResult;
+
+        // Examples may <Use ref> shared fixtures from sibling *.includes.olx
+        // files (see lib/lofs/providers/docs.ts). In production those resolve
+        // through the synced docs index; here, merge same-directory includes
+        // as base content (the example's own blocks take priority).
+        if (!fileName.endsWith('.includes.olx')) {
+          const dir = path.dirname(filePath);
+          const siblings = await fs.readdir(dir);
+          for (const sibling of siblings.filter(f => f.endsWith('.includes.olx'))) {
+            const includePath = path.join(dir, sibling);
+            const includeContent = await fs.readFile(includePath, 'utf-8');
+            const includeResult = await parseOLX(includeContent, [toMemoryRef(includePath)]);
+            idMap = { ...includeResult.idMap, ...idMap };
+          }
+        }
 
         if (!root || !idMap[root]) {
           errors.push({

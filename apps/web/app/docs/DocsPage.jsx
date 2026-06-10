@@ -31,6 +31,11 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
+import { parseContentNamespace } from '@/lib/types/id-grammar';
+
+// Per-block docs namespace: examples, includes, and README snippets for a
+// block all live in docs.<BlockName> (see lib/lofs/providers/docs.ts).
+const docsNamespace = (blockName) => parseContentNamespace(`docs.${blockName}`);
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -629,7 +634,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-background">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -690,7 +695,7 @@ function OverviewTab({ block, details }) {
   );
 }
 
-function ReadmeTab({ content, path }) {
+function ReadmeTab({ content, path, ns }) {
   return (
     <div className="bg-background rounded-lg border overflow-hidden">
       <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
@@ -698,7 +703,7 @@ function ReadmeTab({ content, path }) {
         <code className="text-xs text-dimmed">{path}</code>
       </div>
       <div className="p-6 prose max-w-none">
-        <RenderMarkdown>{content}</RenderMarkdown>
+        <RenderMarkdown ns={ns}>{content}</RenderMarkdown>
       </div>
     </div>
   );
@@ -725,7 +730,7 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-dimmed">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
         </div>
         <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>
@@ -833,7 +838,7 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
   }
 
   if (activeTab === 'readme' && details?.readme?.content) {
-    return <ReadmeTab content={details.readme.content} path={details.readme.path} />;
+    return <ReadmeTab content={details.readme.content} path={details.readme.path} ns={docsNamespace(block.name)} />;
   }
 
   if (activeTab.startsWith('example-')) {

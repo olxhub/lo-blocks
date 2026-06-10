@@ -7,34 +7,43 @@
 //
 'use client';
 
+import { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 // Note: katex.min.css is loaded via globals.css
 import { OLXCodeBlock, isOLXLanguage } from '@/components/common/OLXCodeBlock';
+import type { ContentNamespace } from '@/lib/types';
 
 /**
- * Custom pre renderer - intercepts fenced code blocks for OLX handling.
+ * Build a pre renderer that intercepts fenced code blocks for OLX handling.
  * This avoids hydration errors from <pre> inside <p>.
+ *
+ * `ns` is forwarded to OLXCodeBlock so rendered/playground snippets parse
+ * in the hosting page's content namespace (e.g. docs.ActionButton).
  */
-function PreRenderer({ children, node, ...props }) {
-  // For fenced code blocks, children is a <code> element
-  // Check the node's first child for the language class
-  const codeNode = node?.children?.[0];
-  const className = codeNode?.properties?.className?.[0] || '';
-  const match = /language-(\S+)/.exec(className);
-  const language = match ? match[1] : null;
+function makePreRenderer(ns?: ContentNamespace) {
+  return function PreRenderer({ children, node, ...props }) {
+    // For fenced code blocks, children is a <code> element
+    // Check the node's first child for the language class
+    const codeNode = node?.children?.[0];
+    const className = codeNode?.properties?.className?.[0] || '';
+    const match = /language-(\S+)/.exec(className);
+    const language = match ? match[1] : null;
 
-  if (isOLXLanguage(language)) {
-    // Extract text content from the code node
-    const text = codeNode?.children?.[0]?.value || '';
-    return <OLXCodeBlock language={language}>{text}</OLXCodeBlock>;
-  }
+    if (isOLXLanguage(language)) {
+      // Extract text content from the code node
+      const text = codeNode?.children?.[0]?.value || '';
+      return <OLXCodeBlock language={language} ns={ns}>{text}</OLXCodeBlock>;
+    }
 
-  // Default pre rendering
-  return <pre {...props}>{children}</pre>;
+    // Default pre rendering
+    return <pre {...props}>{children}</pre>;
+  };
 }
+
+const PreRenderer = makePreRenderer();
 
 /**
  * Custom code renderer - handles inline code only.
@@ -65,6 +74,10 @@ export interface RenderMarkdownProps {
   className?: string;
   /** Additional component overrides (merged with defaults) */
   components?: Record<string, React.ComponentType<any>>;
+  /** Content namespace for embedded OLX snippets (```olx:render / :playground).
+   *  Pass the hosting page's namespace (e.g. docs.ActionButton for a block
+   *  README) so snippet refs resolve against that namespace's content. */
+  ns?: ContentNamespace;
 }
 
 /**
@@ -79,10 +92,13 @@ export default function RenderMarkdown({
   children,
   className,
   components,
+  ns,
 }: RenderMarkdownProps) {
-  const mergedComponents = components
-    ? { ...markdownComponents, ...components }
-    : markdownComponents;
+  const mergedComponents = useMemo(() => ({
+    ...markdownComponents,
+    ...(ns ? { pre: makePreRenderer(ns) } : {}),
+    ...components,
+  }), [components, ns]);
 
   const content = (
     <ReactMarkdown
