@@ -15,7 +15,6 @@ import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
 import type { AppError } from '@/lib/types/errors';
 import { stateKeyFromFilename } from '@/lib/types/id-grammar';
-import { CONTENT_NAMESPACE } from '@/lib/types';
 import type { ContentNamespace } from '@/lib/types';
 
 export interface PreviewPaneProps {
@@ -24,8 +23,8 @@ export interface PreviewPaneProps {
   /** Content to preview */
   content: string;
   /** Content namespace for the previewed OLX (e.g. docs.ActionButton for a
-   *  block example). Defaults to the transitional placeholder namespace. */
-  ns?: ContentNamespace;
+   *  block example, or the file's provider-resolved namespace in studio). */
+  ns: ContentNamespace;
   /** Base ID map for cross-file references (OLX only) */
   idMap?: IdMap | null;
   /** Provider for resolving src="" references (OLX only) */
@@ -84,7 +83,7 @@ export default function PreviewPane({
     }
     return (
       <RenderOLX
-        id={stateKeyFromFilename(path || '_preview.olx', ns ?? CONTENT_NAMESPACE)}
+        id={stateKeyFromFilename(path || '_preview.olx', ns)}
         ns={ns}
         inline={`<${wrapperBlock}><![CDATA[\n${content}\n]]></${wrapperBlock}>`}
       />
@@ -100,7 +99,7 @@ export default function PreviewPane({
   // OLX files use RenderOLX with full props
   return (
     <RenderOLX
-      id={stateKeyFromFilename(path || '_preview.olx', ns ?? CONTENT_NAMESPACE)}
+      id={stateKeyFromFilename(path || '_preview.olx', ns)}
       ns={ns}
       inline={content}
       baseIdMap={idMap ?? undefined}

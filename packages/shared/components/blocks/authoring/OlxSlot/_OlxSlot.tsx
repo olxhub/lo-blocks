@@ -103,7 +103,7 @@ function _OlxSlot(props: RuntimeProps) {
 
     async function validate() {
       try {
-        const result = await parseOLX(candidate, [toLofsRef('validate://')]);
+        const result = await parseOLX(candidate, [toLofsRef('validate://')], undefined, props.runtime.ns);
         if (cancelled) return;
 
         if (result.root && result.errors.length === 0) {
@@ -130,7 +130,7 @@ function _OlxSlot(props: RuntimeProps) {
       cancelled = true;
       if (errorTimer.current) clearTimeout(errorTimer.current);
     };
-  }, [candidate, setValidOlx, setStale, setParseError]);
+  }, [candidate, setValidOlx, setStale, setParseError, props.runtime.ns]);
 
   const olxString = target ? validOlx : debouncedOlx;
 
@@ -168,6 +168,7 @@ function _OlxSlot(props: RuntimeProps) {
         {label}
         <RenderOLX
           id={stateKey}
+          ns={props.runtime.ns}
           inline={parseError}
           source={`olxslot:${id}`}
           eventContext={`olxslot:${id}`}
@@ -197,6 +198,7 @@ function _OlxSlot(props: RuntimeProps) {
       {stale && parseError && (
         <RenderOLX
           id={stateKey}
+          ns={props.runtime.ns}
           inline={parseError}
           source={`olxslot:${id}:error`}
           eventContext={`olxslot:${id}`}
@@ -205,6 +207,7 @@ function _OlxSlot(props: RuntimeProps) {
       )}
       <RenderOLX
         id={stateKey}
+        ns={props.runtime.ns}
         inline={olxString}
         source={`olxslot:${id}`}
         eventContext={`olxslot:${id}`}

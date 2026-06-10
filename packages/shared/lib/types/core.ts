@@ -134,8 +134,6 @@ export function toContentNamespace(s: string): ContentNamespace {
   return s as ContentNamespace;
 }
 
-/** The transitional namespace for single-repo content. Will eventually be repo-derived. */
-export { PLACEHOLDER_NS as CONTENT_NAMESPACE } from './id-grammar';
 
 // ═══════════════���═══════════════════════════════════════════════��═══════════════
 // ID TYPES

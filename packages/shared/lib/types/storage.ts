@@ -71,6 +71,13 @@ export interface ReadResult {
    * memory); this tells you which one the content actually came from.
    */
   provenance: LofsCanonical;
+  /**
+   * The file's content namespace, as resolved by the provider
+   * (see namespaceFor). Lets clients (e.g. the studio editor) render
+   * fetched content in its real namespace. Absent when the file resolves
+   * to no namespace (e.g. a config file at the content root).
+   */
+  ns?: ContentNamespace;
 }
 
 /**

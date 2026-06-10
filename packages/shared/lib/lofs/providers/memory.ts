@@ -22,7 +22,11 @@ import type {
   GrepMatch,
 } from '../../types/storage';
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
-import { type ContentNamespace, PLACEHOLDER_NS } from '../../types/id-grammar';
+import { type ContentNamespace, asContentNamespace } from '../../types/id-grammar';
+
+/** Default namespace for in-memory scratch content (tests, inline parses,
+ *  editor buffers) when the caller doesn't declare one. */
+const MEMORY_NS = asContentNamespace('memory');
 import { toMemoryRef, provenancePath } from '../../types/storage';
 import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
@@ -37,11 +41,11 @@ export class InMemoryStorageProvider implements StorageProvider {
    * @param basePath - Optional prefix tried when resolving reads
    * @param options.ns - Content namespace for all files in this provider.
    *   Memory sources hold transient content (editor buffers, tests, inline
-   *   parses), so the whole provider is one namespace. Defaults to
-   *   PLACEHOLDER_NS until callers (editor, RenderOLX) thread real
-   *   namespaces through.
+   *   parses), so the whole provider is one namespace. Defaults to the
+   *   synthetic "memory" namespace; callers syncing real content through a
+   *   memory provider should declare the actual namespace.
    */
-  constructor(files: Record<string, string>, basePath = '', { ns = PLACEHOLDER_NS }: { ns?: ContentNamespace } = {}) {
+  constructor(files: Record<string, string>, basePath = '', { ns = MEMORY_NS }: { ns?: ContentNamespace } = {}) {
     this.files = files;
     this.basePath = basePath;
     this.ns = ns;

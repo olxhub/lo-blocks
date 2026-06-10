@@ -16,13 +16,14 @@ import StatusBar from '@/components/common/StatusBar';
 import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
-import { definitionKeyForRef, parseDefinitionRef, addScope, PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { parseDefinitionKey, addScope, splitNs } from '@/lib/types/id-grammar';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
 export default function StaticPage({ definitionKey, title, contentNotice }: { definitionKey: string; title?: string; contentNotice?: string }) {
   const { idMap } = useStaticContent();
-  const key = definitionKeyForRef(parseDefinitionRef(definitionKey), PLACEHOLDER_NS);
+  // Manifest routes are namespace-qualified DefinitionKeys ("psych/psych_course").
+  const key = parseDefinitionKey(definitionKey);
 
   // Sync <html> lang and dir for accessibility and RTL
   const localeAttrs = useLocaleAttributes();
@@ -49,6 +50,7 @@ export default function StaticPage({ definitionKey, title, contentNotice }: { de
       <div className="p-6 flex-1 overflow-auto">
         <RenderOLX
           id={addScope(key)}
+          ns={splitNs(key).ns}
           baseIdMap={idMap}
           eventContext="static"
         />

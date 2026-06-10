@@ -17,7 +17,12 @@ import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import type { UriNode } from '@/lib/types/storage';
-import type { IdMap } from '@/lib/types';
+import type { IdMap, ContentNamespace } from '@/lib/types';
+import { asContentNamespace } from '@/lib/types/id-grammar';
+
+/** Synthetic namespace for studio scratch content — used when the server
+ *  can't resolve a namespace for the open file (e.g. unsaved demo content). */
+const STUDIO_NS = asContentNamespace('studio');
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
 import Notice from '@/components/common/Notice';
@@ -125,9 +130,9 @@ function StudioPageContent() {
   const startContainerSizeRef = useRef(1000);
 
   // Track per-file saved state for dirty detection and conflict detection
-  // Maps filePath -> { content, metadata } for files we've loaded
+  // Maps filePath -> { content, metadata, ns } for files we've loaded
   // TODO: Move file metadata tracking to redux (enables cross-component dirty detection)
-  const fileStateRef = useRef<Map<string, { content: string; metadata: unknown }>>(new Map());
+  const fileStateRef = useRef<Map<string, { content: string; metadata: unknown; ns?: ContentNamespace }>>(new Map());
 
   // Get current file's saved state (for dirty detection)
   const savedState = fileStateRef.current.get(filePath);
@@ -195,6 +200,7 @@ function StudioPageContent() {
         fileStateRef.current.set(filePath, {
           content: result.content,
           metadata: result.metadata,
+          ns: result.ns,
         });
       })
       .catch(err => {
@@ -596,7 +602,7 @@ function StudioPageContent() {
                       the purpose. Studio preview should disable translanguaging or pin locale
                       to the file's language. LanguageSwitcher already has a translanguaging
                       prop — need to thread it through RenderOLX/PreviewPane. */}
-                  <PreviewPane path={filePath} content={content} idMap={idMap} />
+                  <PreviewPane path={filePath} content={content} ns={savedState?.ns ?? STUDIO_NS} idMap={idMap} />
                 </div>
               </div>
             </>

@@ -15,13 +15,17 @@ import { describe, it, expect } from 'vitest';
 import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
-  PLACEHOLDER_NS, scopedStateKeyForBlock, stateKeyForGlobalRef,
+  scopedStateKeyForBlock, stateKeyForGlobalRef,
   definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
-  asIdPrefix, asStateRef, asDefinitionRef, asLeafId,
+  asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
   validateAnyDefinitionRef, validateAnyStateRef,
 } from './id-grammar';
+
+// Namespace used by these tests. Production namespaces come from storage
+// providers; "CONTENT" is just this suite's convention.
+const TEST_NS = asContentNamespace('CONTENT');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // leafId — A single block or component identifier
@@ -574,54 +578,59 @@ describe("defaultNamespace", () => {
 // qualification into the functions call sites actually use. Two distinct
 // operations: own-state (scoped) vs authored-target (global).
 
-describe("PLACEHOLDER_NS", () => {
-  it("is 'CONTENT'", () => {
-    expect(String(PLACEHOLDER_NS)).toBe("CONTENT");
-  });
-});
-
 describe("scopedStateKeyForBlock", () => {
   it("bare id, no scope", () => {
-    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer') })))
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), ns: TEST_NS })))
       .toBe("CONTENT/answer");
   });
 
   it("bare id + idPrefix", () => {
-    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), idPrefix: asIdPrefix('list:#0') })))
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), ns: TEST_NS, idPrefix: asIdPrefix('list:#0') })))
       .toBe("CONTENT/list:#0:answer");
   });
 
+  it("takes namespace from runtime context", () => {
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('answer'), runtime: { ns: TEST_NS } })))
+      .toBe("CONTENT/answer");
+  });
+
   it("already-namespaced id passes through", () => {
-    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('calculus/answer') })))
+    expect(String(scopedStateKeyForBlock({ id: asDefinitionRef('calculus/answer'), ns: TEST_NS })))
       .toBe("calculus/answer");
   });
 
   it("nested scope", () => {
     expect(String(scopedStateKeyForBlock({
       id: asDefinitionRef('answer'),
+      ns: TEST_NS,
       idPrefix: asIdPrefix('outer:#0:inner:#1')
     }))).toBe("CONTENT/outer:#0:inner:#1:answer");
+  });
+
+  it("throws when no namespace is supplied — there is no fallback", () => {
+    expect(() => scopedStateKeyForBlock({ id: asDefinitionRef('answer') }))
+      .toThrow(/no content namespace/);
   });
 });
 
 describe("stateKeyForGlobalRef", () => {
   it("bare ref", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('answer'), PLACEHOLDER_NS)))
+    expect(String(stateKeyForGlobalRef(asStateRef('answer'), TEST_NS)))
       .toBe("CONTENT/answer");
   });
 
   it("scoped ref", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'), PLACEHOLDER_NS)))
+    expect(String(stateKeyForGlobalRef(asStateRef('problems:#0:answer'), TEST_NS)))
       .toBe("CONTENT/problems:#0:answer");
   });
 
   it("already-namespaced ref passes through", () => {
-    expect(String(stateKeyForGlobalRef(asStateRef('calculus/answer'), PLACEHOLDER_NS)))
+    expect(String(stateKeyForGlobalRef(asStateRef('calculus/answer'), TEST_NS)))
       .toBe("calculus/answer");
   });
 
   it("custom namespace", () => {
-    const ns = PLACEHOLDER_NS;
+    const ns = TEST_NS;
     expect(String(stateKeyForGlobalRef(asStateRef('answer'), ns)))
       .toBe("CONTENT/answer");
   });
@@ -629,11 +638,11 @@ describe("stateKeyForGlobalRef", () => {
 
 describe("definitionKeyForRef", () => {
   it("bare ref", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('answer'), PLACEHOLDER_NS))).toBe("CONTENT/answer");
+    expect(String(definitionKeyForRef(asDefinitionRef('answer'), TEST_NS))).toBe("CONTENT/answer");
   });
 
   it("already-namespaced passes through", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1'), PLACEHOLDER_NS))).toBe("calculus/hw1");
+    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1'), TEST_NS))).toBe("calculus/hw1");
   });
 });
 

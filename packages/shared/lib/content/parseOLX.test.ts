@@ -4,14 +4,15 @@ import { parseOLX } from './parseOLX';
 import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 import { TEST_NS, testKey } from '../test-utils';
-import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, PLACEHOLDER_NS, joinNs } from '../types/id-grammar';
+import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, joinNs } from '../types/id-grammar';
+import { TEST_NS } from '../test-utils';
 
 const PROV = [toMemoryRef('test.xml')];
 
 // Helper: extract the '*' (language-agnostic) variant for a block ID.
 // Accepts bare or qualified IDs — qualified pass through.
 const getOlxJson = (idMap: IdMap, id: string): OlxJson | undefined =>
-  idMap[qualifyDefinitionRef(parseDefinitionRef(id), PLACEHOLDER_NS)]?.['*' as ContentVariant];
+  idMap[qualifyDefinitionRef(parseDefinitionRef(id), TEST_NS)]?.['*' as ContentVariant];
 
 // Helper: get all blocks with a given tag (across all IDs, language-agnostic variant).
 const getBlocksByTag = (idMap: IdMap, tag: string): OlxJson[] =>
@@ -21,14 +22,14 @@ const getBlocksByTag = (idMap: IdMap, tag: string): OlxJson[] =>
 
 test('returns root id of single element', async () => {
   const xml = '<Vertical id="root"><TextBlock id="child"/></Vertical>';
-  const { root, idMap } = await parseOLX(xml, PROV);
+  const { root, idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(root).toBe(testKey('root'));
   expect(idMap[root]).toBeDefined();
 });
 
 test('returns first element id when multiple roots', async () => {
   const xml = '<Vertical id="one"/><Vertical id="two"/>';
-  const { root } = await parseOLX(xml, PROV);
+  const { root } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(root).toBe(testKey('one'));
 });
 
@@ -38,7 +39,7 @@ test('CRITICAL: _sourceOffset is the byte offset of `<` from fast-xml-parser cap
   // version bump. If this test fails after an upgrade, check parseOLX.ts for
   // the `captureMetaData: true` option and the XML_META symbol indexing.
   const xml = '<!-- Hi! --><Vertical id="foo"></Vertical>';
-  const { idMap } = await parseOLX(xml, PROV);
+  const { idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(getOlxJson(idMap, 'foo')?._sourceOffset).toBe(12); // position of `<` in `<Vertical>`
 });
 
@@ -48,14 +49,14 @@ test('error location populates line/column/offset from _sourceOffset', async () 
   // sits at column 3. Catches regressions in either the helper or the
   // entry._sourceOffset plumbing.
   const xml = '<Vertical>\n  <TextArea id="dup"/>\n  <TextArea id="dup"/>\n</Vertical>';
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors[0]?.type).toBe('duplicate_id');
   expect(errors[0]?.location).toMatchObject({ line: 3, column: 3, offset: 36 });
 });
 
 test('parses <Use> with attribute overrides', async () => {
   const xml = '<Vertical id="L"><Chat id="C" clip="[1,2]"/><Use ref="C" clip="[3,4]"/></Vertical>';
-  const { idMap, root } = await parseOLX(xml, PROV);
+  const { idMap, root } = await parseOLX(xml, PROV, undefined, TEST_NS);
   const lesson = getOlxJson(idMap, root);
   const useKid = lesson.kids[1];
   expect(useKid).toEqual({ type: 'block', id: testKey('C'), overrides: { clip: '[3,4]' } });
@@ -79,7 +80,7 @@ test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.tri
     </CapaProblem>
   `;
 
-  const result = await parseOLX(xml, PROV);
+  const result = await parseOLX(xml, PROV, undefined, TEST_NS);
 
   // Find TextBlock nodes in the parsed result
   const textBlocks = getBlocksByTag(result.idMap, 'TextBlock');
@@ -123,7 +124,7 @@ test('auto-generated IDs are namespace-qualified with underscore-prefixed hash',
   // Blocks without explicit id= get SHA1-based IDs via makeSystemDefinitionRef:
   // "_" prefix reserves them from author use, then namespace-qualified.
   const xml = '<Vertical id="root"><TextBlock>Some content</TextBlock></Vertical>';
-  const { idMap } = await parseOLX(xml, PROV);
+  const { idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   const ids = Object.keys(idMap);
   const autoIds = ids.filter(id => id !== testKey('root'));
   expect(autoIds.length).toBeGreaterThan(0);
@@ -136,14 +137,14 @@ test('auto-generated IDs are namespace-qualified with underscore-prefixed hash',
 
 test('TextArea blocks with duplicate IDs should fail (default behavior)', async () => {
   const xml = '<Vertical><TextArea/><TextArea/></Vertical>';
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBeGreaterThan(0);
   expect(errors[0].type).toBe('duplicate_id');
 });
 
 test('TextArea blocks with explicit duplicate IDs should fail', async () => {
   const xml = '<Vertical><TextArea id="test"/><TextArea id="test"/></Vertical>';
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBeGreaterThan(0);
   expect(errors[0].type).toBe('duplicate_id');
   expect(errors[0].message).toContain('Duplicate ID');
@@ -151,7 +152,7 @@ test('TextArea blocks with explicit duplicate IDs should fail', async () => {
 
 test('TextBlock elements with same content should allow duplicates', async () => {
   const xml = '<Vertical><TextBlock>Hello World!</TextBlock><TextBlock>Hello World!</TextBlock></Vertical>';
-  const { errors, idMap } = await parseOLX(xml, PROV);
+  const { errors, idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 
   // Both should be stored in idMap (latest overwrites)
@@ -161,7 +162,7 @@ test('TextBlock elements with same content should allow duplicates', async () =>
 
 test('Markdown elements with same content should allow duplicates', async () => {
   const xml = '<Vertical><Markdown>## Hello</Markdown><Markdown>## Hello</Markdown></Vertical>';
-  const { errors, idMap } = await parseOLX(xml, PROV);
+  const { errors, idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 
   const markdownBlocks = getBlocksByTag(idMap, 'Markdown');
@@ -177,7 +178,7 @@ test('Mixed block types: TextBlock allows duplicates, TextArea does not', async 
       <TextArea/>
     </Vertical>
   `;
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
 
   // Should have exactly one error for the duplicate TextArea IDs
   expect(errors.length).toBe(1);
@@ -189,7 +190,7 @@ test('Function-based requiresUniqueId should work', async () => {
   // This test would require a custom test block with a function-based requiresUniqueId
   // For now, we'll test the error handling path
   const xml = '<Vertical><UnknownBlock id="test1"/><UnknownBlock id="test1"/></Vertical>';
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
 
   // Unknown blocks should default to requiring unique IDs
   expect(errors.length).toBe(1);
@@ -198,7 +199,7 @@ test('Function-based requiresUniqueId should work', async () => {
 
 test('Explicit IDs should still be enforced for blocks that require uniqueness', async () => {
   const xml = '<Vertical><TextArea id="explicit"/><TextArea id="explicit"/></Vertical>';
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(1);
   expect(errors[0].type).toBe('duplicate_id');
   expect(errors[0].message).toContain(String(testKey('explicit')));
@@ -213,7 +214,7 @@ test('Explicit different IDs should work for all block types', async () => {
       <TextArea id="area2"/>
     </Vertical>
   `;
-  const { errors } = await parseOLX(xml, PROV);
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 });
 
@@ -232,7 +233,7 @@ test('parses valid metadata and ignores regular comments', async () => {
       <TextBlock>Content</TextBlock>
     </Vertical>
   `;
-  const { idMap, errors } = await parseOLX(xml, PROV);
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
   expect(getOlxJson(idMap, 'test').description).toBe('Test description');
   expect(getOlxJson(idMap, 'test').category).toBe('psychology');
@@ -248,7 +249,7 @@ test('parses index from metadata (positive, negative, fractional)', async () => 
     <Vertical id="test"><TextBlock>Content</TextBlock></Vertical>
   `;
   for (const val of [0, 3, -1, 9.5, -2.5]) {
-    const { idMap, errors } = await parseOLX(makeXml(val), PROV);
+    const { idMap, errors } = await parseOLX(makeXml(val), PROV, undefined, TEST_NS);
     expect(errors.length).toBe(0);
     expect(getOlxJson(idMap, 'test').index).toBe(val);
   }
@@ -266,7 +267,7 @@ test('reports teacher-friendly error for invalid YAML metadata', async () => {
       <TextBlock>Content</TextBlock>
     </Vertical>
   `;
-  const { errors, idMap } = await parseOLX(xml, PROV);
+  const { errors, idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(1);
   expect(errors[0].type).toBe('metadata_error');
   expect(errors[0].message).toContain('📝');
@@ -278,7 +279,7 @@ test('empty comment produces empty string (documents parser behavior)', async ()
   // This test documents what fast-xml-parser produces for empty comments
   // If this test passes, we know empty comments produce empty strings, not undefined
   const xml = `<!----><Vertical id="test"><TextBlock>Content</TextBlock></Vertical>`;
-  const { errors, idMap } = await parseOLX(xml, PROV);
+  const { errors, idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   // Empty comment should not cause parser errors (it's just an empty string)
   expect(errors.filter(e => e.type === 'parse_error').length).toBe(0);
   // And should not extract any metadata
@@ -293,7 +294,7 @@ test('child elements inherit parent language when no lang attribute', async () =
       <TextBlock>Arabic content</TextBlock>
     </Vertical>
   `;
-  const { idMap, errors } = await parseOLX(xml, PROV);
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 
   // Both elements should be stored under ar-Arab-SA language
@@ -308,7 +309,7 @@ test('child can override parent language with own lang attribute', async () => {
   // level are not necessarily siblings of the first element - they might be
   // separate nodes. Let's test with inline metadata that's clearly associated.
   const xml = `<Vertical id="parent" lang="ar-Arab-SA"><TextBlock lang="pl-Latn-PL">Polish content</TextBlock></Vertical>`;
-  const { idMap, errors } = await parseOLX(xml, PROV);
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 
   // Parent should be stored under ar-Arab-SA (explicit lang attribute)
@@ -328,7 +329,7 @@ test('language cascade: element > parent > file metadata > default', async () =>
       <TextBlock id="inherit_parent">Spanish from parent</TextBlock>
     </Vertical>
   `;
-  const { idMap, errors } = await parseOLX(xml, PROV);
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
   expect(errors.length).toBe(0);
 
   // Root has explicit lang, should use that (es-Latn-ES, not file metadata de-Latn-DE)

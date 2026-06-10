@@ -19,8 +19,12 @@
 
 import React, { useState, useId } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
-import { parseStateKey } from '@/lib/types/id-grammar';
+import { parseStateKey, asContentNamespace } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types';
+
+/** Synthetic namespace for markdown-embedded OLX snippets that have no
+ *  hosting content namespace (e.g. markdown rendered outside block docs). */
+const OLX_EMBED_NS = asContentNamespace('olxEmbed');
 
 // TODO: Add CodeMirror support once Turbopack dynamic import issue is resolved
 // For now, using textarea to avoid Turbopack crash
@@ -67,10 +71,10 @@ function OLXCodeView({ code }) {
  * for a block README), so snippets can <Use ref> the block's shared fixtures
  * with bare refs. Without a namespace, falls back to a synthetic one.
  */
-function OLXRenderView({ code, ns }: { code: string; ns?: ContentNamespace }) {
+function OLXRenderView({ code, ns = OLX_EMBED_NS }: { code: string; ns?: ContentNamespace }) {
   const uniqueId = useId();
   const bareId = `_embed_${uniqueId.replace(/:/g, '_')}`;
-  const rootId = `${ns ?? 'olxEmbed'}/${bareId}`;
+  const rootId = `${ns}/${bareId}`;
 
   // Wrap in a root element with known ID
   const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
@@ -89,12 +93,12 @@ function OLXRenderView({ code, ns }: { code: string; ns?: ContentNamespace }) {
  * Playground view - code + live preview side-by-side with editing.
  * TODO: Use CodeMirror once Turbopack dynamic import issue is resolved.
  */
-function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns?: ContentNamespace }) {
+function OLXPlaygroundView({ code: initialCode, ns = OLX_EMBED_NS }: { code: string; ns?: ContentNamespace }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
   const bareId = `_playground_${uniqueId.replace(/:/g, '_')}`;
   // See OLXRenderView for namespace semantics.
-  const rootId = `${ns ?? 'olxEmbed'}/${bareId}`;
+  const rootId = `${ns}/${bareId}`;
 
   const wrappedOLX = `<Vertical id="${bareId}">${code}</Vertical>`;
 

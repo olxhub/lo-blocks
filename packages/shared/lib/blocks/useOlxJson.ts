@@ -19,7 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
-import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyRef, PLACEHOLDER_NS, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
+import { definitionKeyForRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
@@ -296,10 +296,11 @@ export function useOlxJson(
 // TODO: Build these from actual OLX parsing rather than hardcoding the data structure.
 
 /** Build a namespace-qualified sentinel DefinitionKey: ns/_prefix_bareId.
- *  Handles both bare DefinitionRefs and namespace-qualified keys. */
+ *  Requires a qualified key — render flows always deal in qualified keys
+ *  by the time placeholders are constructed; a bare id here means a caller
+ *  skipped namespace resolution. */
 function sentinelKey(id: string, prefix: string): DefinitionKey {
-  const qualified = isNamespaceQualified(id) ? id : qualifyRef(id, PLACEHOLDER_NS);
-  const { ns, path } = splitNs(parseDefinitionKey(qualified));
+  const { ns, path } = splitNs(parseDefinitionKey(id));
   return asDefinitionKey(joinNs(ns, `${prefix}${path}`));
 }
 

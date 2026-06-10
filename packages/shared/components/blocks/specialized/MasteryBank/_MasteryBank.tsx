@@ -106,7 +106,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Needs design work: scoped idPrefix, grader naming convention, and field selector
   // options all need to compose correctly. Would benefit all grader-aware components.
   const graderField = commonFields.correct;
-  const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, idPrefix: scopedIdPrefix });
+  const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,

@@ -22,7 +22,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import { getTextDirection } from '@/lib/i18n/getTextDirection';
-import { mockRuntime } from '@/lib/test-utils';
+import { mockRuntime, TEST_NS } from '@/lib/test-utils';
 
 if (typeof window !== 'undefined' && !window.matchMedia) {
   // NOTE: Temporary compatibility shim for jsdom in CI.
@@ -159,7 +159,7 @@ describe('Demo OLX files render without errors', () => {
         }
 
         // Parse the OLX
-        const parseResult = await parseOLX(content, [toMemoryRef(filePath)]);
+        const parseResult = await parseOLX(content, [toMemoryRef(filePath)], undefined, TEST_NS);
         let { idMap } = parseResult;
         const { root } = parseResult;
 
@@ -173,7 +173,7 @@ describe('Demo OLX files render without errors', () => {
           for (const sibling of siblings.filter(f => f.endsWith('.includes.olx'))) {
             const includePath = path.join(dir, sibling);
             const includeContent = await fs.readFile(includePath, 'utf-8');
-            const includeResult = await parseOLX(includeContent, [toMemoryRef(includePath)]);
+            const includeResult = await parseOLX(includeContent, [toMemoryRef(includePath)], undefined, TEST_NS);
             idMap = { ...includeResult.idMap, ...idMap };
           }
         }
@@ -289,7 +289,7 @@ describe('Error-pipeline canary (BadBlock fixtures)', () => {
   async function parseFixture(name: string) {
     const filePath = path.join(buggyDir, name);
     const content = await fs.readFile(filePath, 'utf-8');
-    return parseOLX(content, [toMemoryRef(filePath)]);
+    return parseOLX(content, [toMemoryRef(filePath)], undefined, TEST_NS);
   }
 
   function mountRoot(parsed: { idMap: any; root: string | null }) {

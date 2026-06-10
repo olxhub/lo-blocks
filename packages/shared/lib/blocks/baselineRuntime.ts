@@ -17,8 +17,17 @@ import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
 import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
-import { PLACEHOLDER_NS } from '@/lib/types/id-grammar';
+import { asContentNamespace } from '@/lib/types/id-grammar';
 import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale } from '@/lib/types';
+
+/**
+ * Namespace for system-level context — settings access, LanguageSwitcher,
+ * and other machinery that runs OUTSIDE any content render. Content renders
+ * always get a real namespace via RenderOLX's ns prop; this exists so the
+ * baseline runtime has an honest, named answer rather than a placeholder
+ * masquerading as content.
+ */
+export const SYSTEM_NS = asContentNamespace('system');
 
 const noopLogEvent = () => {};
 
@@ -39,7 +48,7 @@ export const DEFAULT_RUNTIME: LoBlockRuntimeContext = {
   store: null as any,
   logEvent: noopLogEvent,
   sideEffectFree: false,
-  ns: PLACEHOLDER_NS,
+  ns: SYSTEM_NS,
   idPrefix: '' as IdPrefix,
   locale: { code: '' as UserLocale, dir: 'ltr' },
   cast: {},

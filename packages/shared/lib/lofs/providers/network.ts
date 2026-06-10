@@ -215,6 +215,8 @@ export class NetworkStorageProvider implements StorageProvider {
       content,
       metadata: json.metadata,
       provenance: toLofsCanonical(withVersion(ref, ver)),
+      // Server-resolved content namespace (see api/file GET).
+      ns: json.ns,
     };
   }
 

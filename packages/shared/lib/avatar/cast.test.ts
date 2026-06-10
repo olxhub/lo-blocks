@@ -505,7 +505,7 @@ describe('Integration: withCastSupport parse-time loading', () => {
       </Cast>
     `;
     const provider = new InMemoryStorageProvider({ 'test.cast': CAST_YAML });
-    const { idMap } = await parseOLX(olx, [toMemoryRef('test.olx')], provider);
+    const { idMap } = await parseOLX(olx, [toMemoryRef('test.olx')], provider, TEST_NS);
 
     // The Cast block should have the parsed cast object (not a string) in its attributes
     const castEntry = idMap[testKey('test_cast')];

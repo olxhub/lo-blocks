@@ -483,10 +483,20 @@ export class FileStorageProvider implements StorageProvider {
         fs.stat(full),
       ]);
       const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, full));
+      // Resolve the file's namespace so clients (e.g. studio) can render the
+      // content where it actually lives. Files outside any namespace (root
+      // configs, etc.) simply omit it.
+      let ns: ContentNamespace | undefined;
+      try {
+        ns = await this.namespaceFor(ref);
+      } catch {
+        ns = undefined;
+      }
       return {
         content,
         metadata: { mtime: stat.mtimeMs, size: stat.size },
         provenance: toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs)))),
+        ns,
       };
     } catch (err: any) {
       if (err.code === 'ENOENT') {

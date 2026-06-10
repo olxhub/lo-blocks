@@ -789,8 +789,6 @@ export function defaultNamespace(origin: string): ContentNamespace {
 //
 // Do NOT conflate these. See namespace-migration.md for rationale.
 
-export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
-
 /**
  * Build a block's scoped StateKey from its props.
  *
@@ -798,17 +796,26 @@ export const PLACEHOLDER_NS = asContentNamespace('CONTENT');
  * The id is a DefinitionRef — validated by the grammar. No path prefix
  * stripping; if props.id contains "./" that's a bug upstream.
  *
- *   scopedStateKeyForBlock({ id: 'answer', idPrefix: 'list:#0' as IdPrefix })
- *   → "CONTENT/list:#0:answer"
+ *   scopedStateKeyForBlock({ id: 'answer', ns: 'ee101', idPrefix: 'list:#0' as IdPrefix })
+ *   → "ee101/list:#0:answer"
  *
- *   scopedStateKeyForBlock({ id: 'answer' })
- *   → "CONTENT/answer"  (no scope)
+ *   scopedStateKeyForBlock({ id: 'answer', runtime: { ns: 'ee101' } })
+ *   → "ee101/answer"  (no scope)
  *
+ * The namespace comes from props.ns or props.runtime.ns — there is no
+ * fallback. A missing namespace means a render pathway failed to thread
+ * it; fail fast rather than silently qualifying into the wrong namespace.
  */
 export function scopedStateKeyForBlock(
   props: { id: DefinitionRef; ns?: ContentNamespace; runtime?: { ns: ContentNamespace }; idPrefix?: IdPrefix;[key: string]: unknown }
 ): StateKey {
-  const ns = props.ns ?? props.runtime?.ns ?? PLACEHOLDER_NS;
+  const ns = props.ns ?? props.runtime?.ns;
+  if (!ns) {
+    throw new Error(
+      `scopedStateKeyForBlock: no content namespace for id "${props.id}". ` +
+      `Every render pathway must supply ns (via RenderOLX's ns prop / runtime context).`
+    );
+  }
   const defKey = qualifyDefinitionRef(props.id, ns);
   return addScope(defKey, props.idPrefix);
 }

@@ -529,6 +529,7 @@ function GrammarExamplePreview({ example, grammarName, extension }) {
         <PreviewPane
           path={`example.${extension}`}
           content={editedContent}
+          ns={docsNamespace(grammarName)}
         />
       </div>
     </section>
@@ -606,6 +607,7 @@ function GrammarExampleTab({ example, grammarName, extension }) {
         <PreviewPane
           path={`example.${extension}`}
           content={editedContent}
+          ns={docsNamespace(grammarName)}
         />
       </section>
     </div>

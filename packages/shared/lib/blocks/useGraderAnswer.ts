@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, definitionKeyForRef, scopedStateKeyForBlock, PLACEHOLDER_NS } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';

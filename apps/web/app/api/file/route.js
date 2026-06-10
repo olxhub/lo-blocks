@@ -17,7 +17,7 @@ export async function GET(request) {
 
   try {
     const result = await provider.read(validation.relativePath);
-    return Response.json({ ok: true, content: result.content, metadata: result.metadata });
+    return Response.json({ ok: true, content: result.content, metadata: result.metadata, ns: result.ns });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
     const status = isNotFound ? 404 : 500;

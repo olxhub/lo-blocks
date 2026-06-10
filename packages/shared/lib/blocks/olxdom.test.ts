@@ -100,17 +100,17 @@ describe('getParents', () => {
 
 describe('inferRelatedNodes', () => {
   it("normalizeTargetIds basic cases", () => {
-    expect(normalizeTargetIds(false)).toEqual(false);
-    expect(normalizeTargetIds(undefined)).toEqual(false);
-    expect(normalizeTargetIds(null)).toEqual(false);
-    expect(() => normalizeTargetIds(true)).toThrow();
+    expect(normalizeTargetIds(false, TEST_NS)).toEqual(false);
+    expect(normalizeTargetIds(undefined, TEST_NS)).toEqual(false);
+    expect(normalizeTargetIds(null, TEST_NS)).toEqual(false);
+    expect(() => normalizeTargetIds(true, TEST_NS)).toThrow();
     // normalizeTargetIds parses targets as StateRef then resolves to
-    // StateKey — results are namespace-qualified with PLACEHOLDER_NS.
-    expect(normalizeTargetIds("foo, bar, baz")).toEqual(["CONTENT/foo", "CONTENT/bar", "CONTENT/baz"]);
-    expect(normalizeTargetIds("foo")).toEqual(["CONTENT/foo"]);
-    expect(normalizeTargetIds(["foo", "bar"])).toEqual(["CONTENT/foo", "CONTENT/bar"]);
-    expect(() => normalizeTargetIds(123)).toThrow();
-    expect(() => normalizeTargetIds({})).toThrow();
+    // StateKey — results are namespace-qualified with the test namespace.
+    expect(normalizeTargetIds("foo, bar, baz", TEST_NS)).toEqual(["CONTENT/foo", "CONTENT/bar", "CONTENT/baz"]);
+    expect(normalizeTargetIds("foo", TEST_NS)).toEqual(["CONTENT/foo"]);
+    expect(normalizeTargetIds(["foo", "bar"], TEST_NS)).toEqual(["CONTENT/foo", "CONTENT/bar"]);
+    expect(() => normalizeTargetIds(123, TEST_NS)).toThrow();
+    expect(() => normalizeTargetIds({}, TEST_NS)).toThrow();
   });
   it("normalizeInfer clean version with validation", () => {
     expect(normalizeInfer(null, ['parents'])).toEqual(['parents']);

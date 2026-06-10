@@ -21,6 +21,11 @@ import { isPEGContentExtension, getParserForExtension } from '@/generated/parser
 import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
 import { type StorageProvider, toOlxRelativePath } from '@/lib/types/storage';
 import { toLofsRef } from '@/lib/types/address';
+import { asContentNamespace } from '@/lib/types/id-grammar';
+
+/** Synthetic namespace for validation-only parses of editor buffers —
+ *  nothing from these parses is stored or rendered. */
+const EDITOR_VALIDATION_NS = asContentNamespace('studio');
 
 // Default storage provider for client-side use
 const defaultStorage = new NetworkStorageProvider();
@@ -111,7 +116,7 @@ export function createEditorTools({
         // Validate content by parsing it
         if (fileType === 'olx' || fileType === 'xml') {
           try {
-            const { errors } = await parseOLX(newContent, [toLofsRef('editor://')]);
+            const { errors } = await parseOLX(newContent, [toLofsRef('editor://')], undefined, EDITOR_VALIDATION_NS);
             if (errors.length > 0) {
               const messages = errors.map(e => e.message).join('\n\n---\n\n');
               return `Error (${errors.length} issue${errors.length > 1 ? 's' : ''}):\n\n${messages}`;
