@@ -8,7 +8,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCategory, sortCategories } from './categoryUtils';
 import type { AttributeDoc } from './schemaUtils';
-import type { BlockGitStatus } from '@/lib/types';
+import type { BlockGitStatus, OLXTag, ContentNamespace, FieldName } from '@/lib/types';
 
 /**
  * Block documentation metadata — the display/API-layer representation of a
@@ -23,7 +23,10 @@ import type { BlockGitStatus } from '@/lib/types';
  * are included so the same type covers both blocks and grammars in combined lists.
  */
 export interface BlockDoc {
-  name: string;
+  // Branded to mirror LoBlock (name: OLXTag, fields keyed by FieldName) and the
+  // ID grammar (namespace: ContentNamespace). These values originate from the
+  // validated block registry, so they are valid by construction.
+  name: OLXTag;
   description?: string | null;
   category?: string | null;
   source?: string;
@@ -32,9 +35,9 @@ export interface BlockDoc {
   gitStatus?: BlockGitStatus;
   readmeGitStatus?: BlockGitStatus;
   internal?: boolean;
-  fields?: string[];
+  fields?: FieldName[];
   attributes?: AttributeDoc[] | null;
-  namespace?: string;
+  namespace?: ContentNamespace;
   exportName?: string;
   /** PEG grammar extensions used by this block (e.g. ['chatpeg']) */
   grammars?: string[];
@@ -56,6 +59,72 @@ export interface GrammarDoc {
   _isGrammar?: boolean;
   category?: string;
 }
+
+/**
+ * One example/include file with its loaded content. Returned by the block and
+ * grammar *detail* endpoints (unlike BlockDoc.examples, content is populated).
+ */
+export interface ExampleDetail {
+  path?: string;
+  content: string;
+  gitStatus?: BlockGitStatus | null;
+}
+
+/**
+ * Detailed view of a single block — GET /api/docs/[block].
+ * Richer than BlockDoc: readme and examples carry loaded file content.
+ */
+export interface BlockDetail {
+  name: OLXTag;
+  description?: string | null;
+  namespace?: ContentNamespace;
+  source?: string | null;
+  fields?: FieldName[];
+  hasAction?: boolean;
+  hasParser?: boolean;
+  template?: string | null;   // key into examples
+  demo?: string | null;       // key into examples
+  readme?: { path: string; content: string } | null;
+  examples?: Record<string, ExampleDetail>;
+  includes?: Record<string, ExampleDetail>;
+}
+
+/**
+ * Detailed view of a single grammar — GET /api/docs/grammar/[name].
+ *
+ * Grammar identifiers (name, extension — e.g. "chatpeg") are lowercase and have
+ * no branded type in the ID grammar yet; left as string pending grammar-type work.
+ */
+export interface GrammarDetail {
+  name: string;
+  extension?: string;
+  source?: string;
+  grammarDir?: string;
+  description?: string | null;
+  /** Grammar source text. */
+  grammar?: string | null;
+  /** Preview OLX wrapper. */
+  preview?: string | null;
+  examples?: Record<string, ExampleDetail>;
+}
+
+/** The `documentation` payload of GET /api/docs (block list). */
+export interface BlockDocumentation {
+  generated: string;
+  totalBlocks: number;
+  blocks: BlockDoc[];
+}
+
+/** The `documentation` payload of GET /api/docs/grammars (grammar list). */
+export interface GrammarDocumentation {
+  generated: string;
+  totalGrammars: number;
+  grammars: GrammarDoc[];
+}
+
+/** A documentation list item — either a block or a grammar. Lists and sidebars
+ *  that show both (BlockList, the /docs sidebar) hold these. */
+export type DocItem = BlockDoc | GrammarDoc;
 
 export interface DocsData {
   blocks: BlockDoc[];

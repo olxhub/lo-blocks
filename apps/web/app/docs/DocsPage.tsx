@@ -31,7 +31,13 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
-import { parseContentNamespace, asStateKey } from '@/lib/types/id-grammar';
+import { parseContentNamespace, stateKeyFromFilename } from '@/lib/types/id-grammar';
+import type {
+  BlockDocumentation,
+  GrammarDocumentation,
+  BlockDetail,
+  GrammarDetail,
+} from '@/lib/docs';
 
 // Per-block docs namespace: examples, includes, and README snippets for a
 // block all live in docs.<BlockName> (see lib/lofs/providers/docs.ts).
@@ -45,15 +51,20 @@ const SHARED_ATTRIBUTE_SETS = [
   { label: 'Base attributes', names: Object.keys(baseAttributes.shape), blockProp: null },
 ];
 
-// Hook for docs example editing - uses Redux state with docs-specific provenance
-function useDocsExampleState(blockName, exampleFilename, originalContent) {
-  const provenance = `docs://${blockName}/${exampleFilename}`;
+// Hook for docs example editing — Redux state keyed in the block's docs
+// namespace, the same namespace the example renders in:
+//   ('CodeMirror', 'CodeMirrorPEGSyntaxDemo.olx') → "docs.CodeMirror/codeMirrorPEGSyntaxDemo"
+// stateKeyFromFilename produces a grammar-valid StateKey; the old
+// "docs://..." provenance string was an unchecked cast of a value the
+// grammar classifies as source-qualified (not a brandable Key).
+function useDocsExampleState(blockName: string, exampleFilename: string, originalContent: string) {
+  const stateKey = stateKeyFromFilename(exampleFilename, docsNamespace(blockName));
   const baselineProps = useBaselineProps();
   return useFieldState(
     baselineProps,
     editorFields.editedContent,
     originalContent,
-    { stateKey: asStateKey(provenance) }
+    { stateKey }
   );
 }
 
@@ -860,13 +871,16 @@ function BlockContent({ block, details, activeTab, loading, isGrammar = false })
 
 export default function DocsPage() {
   const localeAttrs = useLocaleAttributes();
-  const [docs, setDocs] = useState<any>(null);
-  const [grammars, setGrammars] = useState<any>(null);
+  // The /api/docs endpoints serve data derived from the validated block
+  // registry, so the branded values (OLXTag, ContentNamespace, …) on these
+  // shapes are valid by construction. The fetch boundary below trusts that.
+  const [docs, setDocs] = useState<BlockDocumentation | null>(null);
+  const [grammars, setGrammars] = useState<GrammarDocumentation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [selectedIsGrammar, setSelectedIsGrammar] = useState(false);
-  const [blockDetails, setBlockDetails] = useState<any>(null);
+  const [blockDetails, setBlockDetails] = useState<BlockDetail | GrammarDetail | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -1033,6 +1047,10 @@ export default function DocsPage() {
     );
   }
 
+  // Not loading and no error, but the block list never arrived — render nothing
+  // rather than dereferencing a null documentation payload below.
+  if (!docs) return null;
+
   return (
     <div {...localeAttrs} suppressHydrationWarning className="min-h-screen bg-surface flex flex-col">
       <header className="bg-background border-b px-6 py-4 flex justify-between items-start">
@@ -1042,7 +1060,7 @@ export default function DocsPage() {
           </Link>
           <p className="text-sm text-dimmed">
             {docs.totalBlocks} blocks
-            {grammars?.totalGrammars > 0 && ` • ${grammars.totalGrammars} grammars`}
+            {(grammars?.totalGrammars ?? 0) > 0 && ` • ${grammars?.totalGrammars} grammars`}
             {' • '}Generated {new Date(docs.generated).toLocaleDateString()}
           </p>
         </div>

@@ -221,10 +221,13 @@ function updateRuntimeCast(
  * @param member - The cast member definition
  * @returns Props suitable for <Avatar name= seed= style= src= options= />
  */
+// Props accepted by <Avatar>. style reuses the domain enum (AvatarStyleValue,
+// which includes 'image') so this type and Avatar's own props share the single
+// source of truth — these props spread into <Avatar> without a cast.
 export interface AvatarBaseProps {
   name: string;
   seed: string;
-  style?: 'illustrated' | 'initials' | 'emoji' | 'image';
+  style?: AvatarStyleValue;
   src?: string;
   emoji?: string;
   options?: OpenPeeps;
