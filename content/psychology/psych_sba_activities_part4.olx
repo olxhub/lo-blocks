@@ -511,7 +511,7 @@ Write a brief reflection of your experience, noting:
     <Markdown id="psych_sba_part4_confirmation">**Confirm that you are done with this exercise.**</Markdown>
     <Key id="Part_4_finished">I don't need to make any more changes</Key>
   </CheckboxInput>
-  <Markdown when="'CONTENT/Part_4_finished' in @psych_sba_part_4_completion_page.value">
+  <Markdown when="id('Part_4_finished') in @psych_sba_part_4_completion_page.value">
 ## Module Complete!
 
 ### What You've Learned:

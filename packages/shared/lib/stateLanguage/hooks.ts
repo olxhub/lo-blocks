@@ -133,13 +133,20 @@ export function selectReferences(
   props: any,
   refs: References
 ): ContextData {
-  // Fast path: return stable empty context when no refs
+  // The host block's namespace rides along for the id() helper.
+  // runtime.ns is guaranteed on every render path — no fallback.
+  const ns = props.runtime.ns;
+
+  // Fast path when no refs. ns still rides along — `id('foo') in ['a','b']`
+  // references no state but needs the namespace. contextDataEqual compares
+  // only the three reference namespaces, so the fresh wrapper object
+  // doesn't churn useReferences subscribers.
   if (
     refs.componentState.length === 0 &&
     refs.olxContent.length === 0 &&
     refs.globalVar.length === 0
   ) {
-    return EMPTY_CONTEXT;
+    return { ...EMPTY_CONTEXT, ns };
   }
 
   const componentState: Record<string, any> = {};
@@ -177,7 +184,8 @@ export function selectReferences(
   return {
     componentState,
     olxContent,
-    globalVar
+    globalVar,
+    ns,
   };
 }
 

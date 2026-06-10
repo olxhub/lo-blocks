@@ -41,6 +41,8 @@ function matchRule(props: RuntimeProps, context: { input?: any; inputs?: any[] }
     const evalContext = createContext({
       input: context.input,
       inputs: context.inputs ?? [],
+      // For id() in match expressions — qualify against the rule's namespace
+      ns: props.runtime.ns,
     });
 
     const result = evaluate(match.ast, evalContext);

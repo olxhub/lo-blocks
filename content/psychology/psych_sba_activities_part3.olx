@@ -1163,7 +1163,7 @@ Evaluate the email using the following criteria:
     <Markdown id="psych_sba_part3_confirmation">**Confirm that you are done with this exercise.**</Markdown>
     <Key id="Part_3_finished">I don't need to make any more changes</Key>
   </CheckboxInput>
-  <Markdown when="'CONTENT/Part_3_finished' in @psych_sba_part_3_completion_page.value">
+  <Markdown when="id('Part_3_finished') in @psych_sba_part_3_completion_page.value">
   - In this activity, you learned about **the functions of behavior**, how they
     relate to positive and negative reinforcement, and continued to learn about the **strengths
     and weaknesses of AI**. You also continued applying information you have learned

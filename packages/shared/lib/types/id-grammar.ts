@@ -787,7 +787,7 @@ export function defaultNamespace(origin: string): ContentNamespace {
 //   2. Authored target (global): an authored target="answer" attribute resolves
 //      globally — no caller idPrefix. Uses stateKeyForGlobalRef.
 //
-// Do NOT conflate these. See namespace-migration.md for rationale.
+// Do NOT conflate these. See the NAMESPACE QUALIFICATION section above.
 
 /**
  * Build a block's scoped StateKey from its props.

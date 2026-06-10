@@ -602,7 +602,7 @@ the screen time, remove a misused toy, or give a brief time-out._
 
   &nbsp;
   </Markdown>
-  <Markdown when="'CONTENT/Part_1_finished' in @psych_sba_part_1_completion_page.value">
+  <Markdown when="id('Part_1_finished') in @psych_sba_part_1_completion_page.value">
 - In this activity, you learned about **parenting techniques** and the **strengths
   and weaknesses of AI**. You also practiced applying information you have learned
   from the textbook and scientific research to a **real-life scenario**, a child

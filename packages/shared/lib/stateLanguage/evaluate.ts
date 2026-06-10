@@ -7,6 +7,8 @@ import type { ASTNode } from './parser';
 import { dslFunctions } from './functions';
 import { correctness, completion } from '@/lib/blocks/correctness';
 import { ACTIVE_METHODS } from './keywords';
+import { qualifyRef } from '@/lib/types/id-grammar';
+import type { ContentNamespace } from '@/lib/types/id-grammar';
 
 /**
  * Context data for evaluation.
@@ -16,6 +18,10 @@ export interface ContextData {
   componentState: Record<string, any>;
   olxContent: Record<string, string>;
   globalVar: Record<string, any>;
+  /** Content namespace of the expression's host block. When present,
+   *  createContext binds the id() helper to it. Supplied by
+   *  selectReferences from props.runtime.ns. */
+  ns?: ContentNamespace;
   [binding: string]: any;  // Caller-provided bindings
 }
 
@@ -315,6 +321,36 @@ export function isFilled(value: any): boolean {
 }
 
 /**
+ * Qualify a content id against the host block's namespace.
+ *
+ * Stored values (e.g. a checkbox's list of selected option ids) are
+ * namespace-qualified keys; authors shouldn't have to write the namespace
+ * out by hand for same-namespace comparisons:
+ *
+ *   id('Part_3_finished') in @completion.value    // → "psych/Part_3_finished"
+ *
+ * Already-qualified names pass through (id('ee101/hw1') → 'ee101/hw1'), so
+ * cross-namespace comparisons can also drop the helper and use a plain
+ * string literal. An ordinary function bound per-context by createContext —
+ * not a parser special form.
+ *
+ * Render-path contexts always have a namespace (selectReferences supplies
+ * props.runtime.ns). A context built without one — hand-rolled in a test,
+ * say — gets an id() that explains itself when called.
+ */
+function makeIdHelper(ns?: ContentNamespace) {
+  return (ref: unknown): string => {
+    if (!ns) {
+      throw new Error('id(): no content namespace in this evaluation context');
+    }
+    if (typeof ref !== 'string' || !ref) {
+      throw new Error(`id() needs an id string, got ${JSON.stringify(ref)}`);
+    }
+    return qualifyRef(ref, ns);
+  };
+}
+
+/**
  * Create a context with built-in helpers pre-populated.
  * Caller should spread their data on top of this.
  */
@@ -324,6 +360,7 @@ export function createContext(data: Partial<ContextData> = {}): ContextData {
     olxContent: {},
     globalVar: {},
     wordcount,
+    id: makeIdHelper(data.ns),
     ...data
   };
 }
