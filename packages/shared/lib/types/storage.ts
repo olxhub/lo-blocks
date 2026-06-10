@@ -9,6 +9,7 @@ import type {
   FileLofsRef, MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
+import type { ContentNamespace } from './id-grammar';
 import {
   type LofsRef, type LofsCanonical,
   makeAddress, addressPath, scheme, withVersion,
@@ -350,4 +351,26 @@ export interface StorageProvider {
    * @returns Promise<boolean>
    */
   validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
+
+  /**
+   * Resolve the content namespace for a file in this provider.
+   *
+   * The namespace identifies WHAT content collection a file belongs to
+   * (logical identity), independent of WHERE it lives (this provider).
+   * See ContentNamespace in id-grammar.ts.
+   *
+   * Resolution is provider-specific. A manifest.yaml `namespace:` field
+   * overrides where the provider supports manifests; otherwise each
+   * provider has its own fallback:
+   * - FileStorageProvider:     nearest ancestor manifest.yaml, else the
+   *                            file's top-level directory ("demos/foo.olx" → "demos")
+   * - GitStorageProvider:      repo manifest, else defaultNamespace(origin) (repo name)
+   * - InMemoryStorageProvider: constructor option
+   * - StackedStorageProvider:  delegates to the provider that owns the ref
+   *
+   * Throws (with an author-friendly message) when no namespace can be
+   * determined — e.g., a file at the root of a multi-namespace content
+   * directory with no manifest.
+   */
+  namespaceFor(ref: LofsRef): Promise<ContentNamespace>;
 }

@@ -48,17 +48,19 @@ test('xml2json error accumulation with PEG errors', async () => {
   const testContentDir = path.resolve('./test-content-errors');
 
   try {
-    // Create test content directory and files
-    await fs.mkdir(testContentDir, { recursive: true });
+    // Create test content directory and files. Files go in a namespace
+    // directory (testns/) — the top-level directory is the content namespace.
+    const nsDir = path.join(testContentDir, 'testns');
+    await fs.mkdir(nsDir, { recursive: true });
 
     // Copy our test error files from test data directory
     await fs.copyFile(
       path.resolve('./packages/shared/scripts/xml2json-testdata/test_error.xml'),
-      path.join(testContentDir, 'test_error.xml')
+      path.join(nsDir, 'test_error.xml')
     );
     await fs.copyFile(
       path.resolve('./packages/shared/scripts/xml2json-testdata/broken.chatpeg'),
-      path.join(testContentDir, 'broken.chatpeg')
+      path.join(nsDir, 'broken.chatpeg')
     );
 
     // Run xml2json with test content directory

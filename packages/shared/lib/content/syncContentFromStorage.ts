@@ -396,7 +396,13 @@ async function parseAndIndexFiles(
     }
 
     try {
-      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider);
+      // The provider owns namespace resolution (manifest override, then a
+      // provider-specific fallback like the top-level directory). A file
+      // with no resolvable namespace throws here and becomes a file_error.
+      // NOTE: manifest edits do NOT invalidate previously-parsed files —
+      // see TODO(namespace-invalidation) in lofs/providers/file.ts.
+      const ns = await provider.namespaceFor(fileRecord.id);
+      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider, ns);
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Build a combined view for duplicate detection. Deep-copy VariantMaps

@@ -22,6 +22,7 @@ import type {
   GrepMatch,
 } from '../../types/storage';
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import { type ContentNamespace, PLACEHOLDER_NS } from '../../types/id-grammar';
 import { toMemoryRef, provenancePath } from '../../types/storage';
 import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
@@ -29,10 +30,25 @@ import { hashContent } from '../../util';
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
   basePath: string;
+  ns: ContentNamespace;
 
-  constructor(files: Record<string, string>, basePath = '') {
+  /**
+   * @param files - Virtual filesystem: { 'path.olx': '<OLX>...' }
+   * @param basePath - Optional prefix tried when resolving reads
+   * @param options.ns - Content namespace for all files in this provider.
+   *   Memory sources hold transient content (editor buffers, tests, inline
+   *   parses), so the whole provider is one namespace. Defaults to
+   *   PLACEHOLDER_NS until callers (editor, RenderOLX) thread real
+   *   namespaces through.
+   */
+  constructor(files: Record<string, string>, basePath = '', { ns = PLACEHOLDER_NS }: { ns?: ContentNamespace } = {}) {
     this.files = files;
     this.basePath = basePath;
+    this.ns = ns;
+  }
+
+  async namespaceFor(_ref: LofsRef): Promise<ContentNamespace> {
+    return this.ns;
   }
 
   async read(path: OlxRelativePath): Promise<ReadResult> {

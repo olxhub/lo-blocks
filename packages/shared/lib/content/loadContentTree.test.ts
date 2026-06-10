@@ -14,11 +14,11 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));
 
   try {
-    // Seed with files from content/demos and content/sba/psychology
+    // Seed with files from content/demos and content/psychology
     const seedFiles = [
       { src: 'content/demos/text-changer-demo.olx', dest: 'text-changer-demo.olx' },
       { src: 'content/demos/ref-demo.xml', dest: 'ref-demo.xml' },
-      { src: 'content/sba/psychology/psychology_sba_part1.olx', dest: 'psychology_sba_part1.olx' },
+      { src: 'content/psychology/psychology_sba_part1.olx', dest: 'psychology_sba_part1.olx' },
     ];
     for (const { src, dest } of seedFiles) {
       await fs.copyFile(src, path.join(tmpDir, dest));
@@ -33,9 +33,9 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
 
     // Mutate: modify text-changer-demo.olx
     await fs.appendFile(path.join(tmpDir, 'text-changer-demo.olx'), ' ');
-    // Add learning-observer-course.olx from content root
+    // Add learning-observer-course.olx
     await fs.copyFile(
-      'content/learning-observer-course.olx',
+      'content/demos/learning-observer-course.olx',
       path.join(tmpDir, 'learning-observer-course.olx')
     );
     // Delete ref-demo.xml
@@ -62,13 +62,18 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
   await fs.mkdir(tmpDir, { recursive: true });
 
   try {
-    // Create a simple OLX file that references a .chatpeg file
+    // Create a simple OLX file that references a .chatpeg file.
+    // Files live in a CONTENT/ subdirectory: the top-level directory name is
+    // the content namespace, and "CONTENT" matches TEST_NS so the unqualified
+    // getOlxJson/testKey helpers line up.
+    const olxDir = path.join(tmpDir, 'CONTENT');
+    await fs.mkdir(olxDir, { recursive: true });
     const olxContent = `<Chat id="test_chat_dep" src="dialogue.chatpeg" />`;
     // Note: chatpeg grammar requires trailing newline
     const chatpegContent = `Title: Test\n~~~~\nBob: Hello [id=msg1]\n`;
 
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'dialogue.chatpeg'), chatpegContent);
+    await fs.writeFile(path.join(olxDir, 'test.olx'), olxContent);
+    await fs.writeFile(path.join(olxDir, 'dialogue.chatpeg'), chatpegContent);
 
     const provider = new FileStorageProvider(tmpDir);
 
@@ -89,7 +94,7 @@ it('re-parses OLX files when their auxiliary dependencies change', async () => {
 
     // Modify the .chatpeg file with different content
     const updatedChatpeg = `Title: Updated\n~~~~\nBob: Goodbye [id=msg2]\n`;
-    await fs.writeFile(path.join(tmpDir, 'dialogue.chatpeg'), updatedChatpeg);
+    await fs.writeFile(path.join(olxDir, 'dialogue.chatpeg'), updatedChatpeg);
 
     // Second sync - should detect chatpeg change and re-parse the OLX
     const second = await syncContentFromStorage(provider);
@@ -118,13 +123,16 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   await fs.mkdir(tmpDir, { recursive: true });
 
   try {
-    // Create OLX with a Chat that has an id defined in the chatpeg
+    // Create OLX with a Chat that has an id defined in the chatpeg.
+    // CONTENT/ subdirectory = namespace, matching TEST_NS (see above).
+    const olxDir = path.join(tmpDir, 'CONTENT');
+    await fs.mkdir(olxDir, { recursive: true });
     const olxContent = `<Chat id="chat_main" src="convo.chatpeg" />`;
     // Initial chatpeg has one message with id "original_msg"
     const chatpegV1 = `Title: V1\n~~~~\nAlice: First message [id=original_msg]\n`;
 
-    await fs.writeFile(path.join(tmpDir, 'test.olx'), olxContent);
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV1);
+    await fs.writeFile(path.join(olxDir, 'test.olx'), olxContent);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV1);
 
     const provider = new FileStorageProvider(tmpDir);
 
@@ -143,7 +151,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
     // Now update the chatpeg to have a DIFFERENT message id
     // This simulates adding/removing block IDs via auxiliary file changes
     const chatpegV2 = `Title: V2\n~~~~\nAlice: Different message [id=new_msg]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV2);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV2);
 
     // Second sync - chatpeg changed, OLX should be re-parsed
     const second = await syncContentFromStorage(provider);
@@ -174,7 +182,7 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
 
     // Now do a THIRD sync with another chatpeg change to verify cleanup works
     const chatpegV3 = `Title: V3\n~~~~\nAlice: Third version [id=third_msg]\n`;
-    await fs.writeFile(path.join(tmpDir, 'convo.chatpeg'), chatpegV3);
+    await fs.writeFile(path.join(olxDir, 'convo.chatpeg'), chatpegV3);
 
     const third = await syncContentFromStorage(provider);
 

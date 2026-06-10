@@ -11,7 +11,7 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath, ContentNamespace } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
 import { provenancePath } from '../../types/storage';
 import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
@@ -139,6 +139,16 @@ export class NetworkStorageProvider implements StorageProvider {
 
   toRelativePath(uri: LofsRef): OlxRelativePath {
     return provenancePath(uri) as OlxRelativePath;
+  }
+
+  async namespaceFor(ref: LofsRef): Promise<ContentNamespace> {
+    // Content namespaces are resolved server-side during content sync;
+    // qualified DefinitionKeys arrive over the wire. Client-side parses
+    // (editor, inline) get their namespace from the caller, not the provider.
+    throw new Error(
+      `NetworkStorageProvider cannot resolve content namespaces (asked about: ${ref}). ` +
+      `The server resolves namespaces when syncing content.`
+    );
   }
 
   /**
