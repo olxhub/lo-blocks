@@ -25,7 +25,7 @@ import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
-import { withoutVersion } from '@/lib/types/address';
+import { withoutVersion, addressPath, source } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
@@ -159,8 +159,11 @@ export async function applyFileChanges(
 ): Promise<ContentSnapshot> {
   // Step 1: Scan results come in via `scan` parameter
 
-  // Step 2: Find OLX files that need re-parsing due to auxiliary file changes
-  const promoted = promoteFilesWithChangedDependencies(scan, prev.blockIndex, prev.parsedFiles);
+  // Step 2a: A manifest change re-namespaces its whole directory subtree
+  const manifestPromoted = promoteFilesAffectedByManifests(scan);
+
+  // Step 2b: Find OLX files that need re-parsing due to auxiliary file changes
+  const promoted = promoteFilesWithChangedDependencies(manifestPromoted, prev.blockIndex, prev.parsedFiles);
 
   // Step 3: Remove blocks from files that are deleted or about to be re-parsed
   const filesToRemove = [
@@ -224,6 +227,62 @@ export async function syncContentFromStorage(
 // =============================================================================
 // Dependency Detection
 // =============================================================================
+
+/** Is this scan entry a namespace manifest (manifest.yaml)? */
+function isManifestUri(uri: LofsRef): boolean {
+  return String(addressPath(uri)).split('/').pop() === 'manifest.yaml';
+}
+
+/**
+ * When a manifest.yaml is added, changed, or deleted, namespaces may change
+ * for content beneath it, so affected OLX must re-parse.
+ *
+ * Why not dependency pointers (OlxJson.manifest), like parseDeps? A pointer
+ * can only invalidate content that recorded it. ADDING a manifest — or
+ * adding a `namespace:` field to one that declared nothing — affects files
+ * that point at nothing: the dependency is on the ABSENCE of a nearer
+ * manifest, which a pointer can't express. OlxJson.manifest is provenance,
+ * not the invalidation mechanism.
+ *
+ * The rule is deliberately blunt: any manifest change re-parses every
+ * unchanged OLX file in the same mount. Manifest edits are rare and
+ * re-parsing is safe; if this is ever too slow, narrow it to the
+ * manifest's directory subtree.
+ *
+ * Returns a new XmlScanResult with affected unchanged OLX moved to "changed".
+ */
+function promoteFilesAffectedByManifests(changeSets: XmlScanResult): XmlScanResult {
+  const touched = [
+    ...Object.keys(changeSets.added),
+    ...Object.keys(changeSets.changed),
+    ...Object.keys(changeSets.deleted),
+  ] as LofsRef[];
+  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
+  if (mounts.size === 0) return changeSets;
+
+  const changed = { ...changeSets.changed };
+  const unchanged = { ...changeSets.unchanged };
+  for (const [uriStr, fileInfo] of Object.entries(changeSets.unchanged)) {
+    const uri = uriStr as LofsRef;
+    const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
+    if (!isOlx || !mounts.has(String(source(uri)))) continue;
+    // Copy only XmlFileInfo fields (the entry may carry stale blockIds).
+    changed[uri] = {
+      id: fileInfo.id,
+      type: fileInfo.type,
+      content: fileInfo.content,
+      _metadata: fileInfo._metadata,
+    };
+    delete unchanged[uri];
+  }
+
+  return {
+    added: changeSets.added,
+    changed,
+    unchanged,
+    deleted: changeSets.deleted,
+  };
+}
 
 /**
  * When an auxiliary file (e.g., .chatpeg) changes, any OLX file that references
@@ -420,11 +479,22 @@ async function parseAndIndexFiles(
       // The provider owns namespace resolution (manifest override, then a
       // provider-specific fallback like the top-level directory). A file
       // with no resolvable namespace throws here and becomes a file_error.
-      // NOTE: manifest edits do NOT invalidate previously-parsed files —
-      // see TODO(namespace-invalidation) in lofs/providers/file.ts.
-      const ns = await provider.namespaceFor(fileRecord.id);
+      // Manifest edits invalidate their subtree via
+      // promoteFilesAffectedByManifests (step 2a in applyFileChanges).
+      const { ns, manifest } = await provider.namespaceFor(fileRecord.id);
       const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider, ns);
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
+
+      // Namespace provenance: record which manifest declared this content's
+      // namespace. (Stamped here, not in parseOLX — only the provider knows
+      // where the namespace came from.)
+      if (manifest) {
+        for (const variants of Object.values(parseResult.idMap)) {
+          for (const olxJson of Object.values(variants) as OlxJson[]) {
+            olxJson.manifest = manifest;
+          }
+        }
+      }
 
       // Build a combined view for duplicate detection. Deep-copy VariantMaps
       // so indexParsedBlocks mutations don't leak back to existingBlockIndex.

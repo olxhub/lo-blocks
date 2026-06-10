@@ -160,27 +160,34 @@ describe('FileStorageProvider.namespaceFor', () => {
   });
 
   test('falls back to the top-level directory name', async () => {
-    expect(await provider.namespaceFor(ref('demos/foo.olx'))).toBe('demos');
+    expect((await provider.namespaceFor(ref('demos/foo.olx'))).ns).toBe('demos');
   });
 
   test('manifest.yaml namespace overrides the directory, including nested files', async () => {
-    expect(await provider.namespaceFor(ref('psychology/unit1/lesson.olx'))).toBe('psych');
+    const resolved = await provider.namespaceFor(ref('psychology/unit1/lesson.olx'));
+    expect(resolved.ns).toBe('psych');
+    // Namespace provenance: the declaring manifest, versioned.
+    expect(String(resolved.manifest)).toMatch(/psychology\/manifest\.yaml#/);
+  });
+
+  test('directory-derived namespaces carry no manifest provenance', async () => {
+    expect((await provider.namespaceFor(ref('demos/foo.olx'))).manifest).toBeUndefined();
   });
 
   test('constructor ns override wins over manifests and directories', async () => {
     // Special-case API for tests and other wonky mounts — see constructor docs.
     const overridden = new FileStorageProvider(nsDir, 'content', { ns: 'scratch' as ContentNamespace });
-    expect(await overridden.namespaceFor(ref('psychology/unit1/lesson.olx'))).toBe('scratch');
-    expect(await overridden.namespaceFor(ref('root.olx'))).toBe('scratch');
+    expect((await overridden.namespaceFor(ref('psychology/unit1/lesson.olx'))).ns).toBe('scratch');
+    expect((await overridden.namespaceFor(ref('root.olx'))).ns).toBe('scratch');
   });
 
   test('manifest without a namespace field falls through to the directory name', async () => {
-    expect(await provider.namespaceFor(ref('writing/essay.olx'))).toBe('writing');
+    expect((await provider.namespaceFor(ref('writing/essay.olx'))).ns).toBe('writing');
   });
 
   test('versioned refs resolve the same as unversioned', async () => {
     const versioned = `${ref('demos/foo.olx')}#12345-99` as LofsRef;
-    expect(await provider.namespaceFor(versioned)).toBe('demos');
+    expect((await provider.namespaceFor(versioned)).ns).toBe('demos');
   });
 
   test('rejects files at the provider root with a move-it message', async () => {

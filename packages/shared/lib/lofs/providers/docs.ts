@@ -38,7 +38,7 @@ import { FileStorageProvider } from './file';
 import { withoutVersion } from '../../types/address';
 import { parseContentNamespace } from '../../types/id-grammar';
 import type { ContentNamespace, LofsRef } from '../../types';
-import { NamespaceResolutionError, type XmlFileInfo, type XmlScanResult } from '../../types/storage';
+import { NamespaceResolutionError, type NamespaceResolution, type XmlFileInfo, type XmlScanResult } from '../../types/storage';
 
 export class DocsStorageProvider extends FileStorageProvider {
   /** Registered block names, longest first, for prefix matching. */
@@ -62,13 +62,13 @@ export class DocsStorageProvider extends FileStorageProvider {
     return this.blockNames.find(name => base.startsWith(name)) ?? null;
   }
 
-  async namespaceFor(ref: LofsRef): Promise<ContentNamespace> {
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     const relPath = this.toRelativePath(withoutVersion(ref));
     const block = this.blockForFile(relPath);
-    if (block) return parseContentNamespace(`docs.${block}`);
+    if (block) return { ns: parseContentNamespace(`docs.${block}`) };
 
     const dir = path.basename(path.dirname(relPath));
-    if (dir && dir !== '.') return parseContentNamespace(`docs.${dir}`);
+    if (dir && dir !== '.') return { ns: parseContentNamespace(`docs.${dir}`) };
 
     throw new NamespaceResolutionError(
       `"${relPath}" matches no registered block name and has no containing ` +

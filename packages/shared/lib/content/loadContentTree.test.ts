@@ -206,3 +206,52 @@ it('parsed blockIds stay in sync with blockIndex when auxiliary files add/remove
   }
 });
 
+
+it('re-parses a manifest\'s subtree when the manifest is added, changed, or deleted', async () => {
+  // Manifest invalidation: editing manifest.yaml `namespace:` changes the
+  // DefinitionKey of every block beneath it. The sync must re-parse the
+  // subtree — including the ADD case (no per-block pointer exists yet) and
+  // the DELETE case (namespace reverts to the directory fallback).
+  const tmpDir = path.join(process.cwd(), 'content', '_test_manifest_' + Date.now());
+  await fs.mkdir(tmpDir, { recursive: true });
+
+  try {
+    const courseDir = path.join(tmpDir, 'mycourse');
+    await fs.mkdir(courseDir, { recursive: true });
+    await fs.writeFile(path.join(courseDir, 'lesson.olx'), '<Markdown id="hello">Hi</Markdown>');
+
+    const provider = new FileStorageProvider(tmpDir);
+
+    // No manifest: namespace = directory name
+    const first = await syncContentFromStorage(provider);
+    expect(first.idMap[asDefinitionKey('mycourse/hello')]).toBeDefined();
+
+    // ADD a manifest declaring a different namespace → subtree re-parses
+    await fs.writeFile(path.join(courseDir, 'manifest.yaml'), 'namespace: renamed\n');
+    const second = await syncContentFromStorage(provider);
+    expect(second.idMap[asDefinitionKey('renamed/hello')]).toBeDefined();
+    expect(second.idMap[asDefinitionKey('mycourse/hello')]).toBeUndefined();
+
+    // Namespace provenance is stamped on the parsed block
+    const variants = second.idMap[asDefinitionKey('renamed/hello')];
+    const olxJson = Object.values(variants)[0] as any;
+    expect(String(olxJson.manifest)).toMatch(/manifest\.yaml#/);
+
+    // CHANGE the manifest's namespace → keys move again.
+    // (mtime granularity can be coarse; nudge the clock to guarantee the
+    // scan sees a change.)
+    await new Promise(r => setTimeout(r, 20));
+    await fs.writeFile(path.join(courseDir, 'manifest.yaml'), 'namespace: renamedAgain\n');
+    const third = await syncContentFromStorage(provider);
+    expect(third.idMap[asDefinitionKey('renamedAgain/hello')]).toBeDefined();
+    expect(third.idMap[asDefinitionKey('renamed/hello')]).toBeUndefined();
+
+    // DELETE the manifest → namespace reverts to the directory fallback
+    await fs.rm(path.join(courseDir, 'manifest.yaml'));
+    const fourth = await syncContentFromStorage(provider);
+    expect(fourth.idMap[asDefinitionKey('mycourse/hello')]).toBeDefined();
+    expect(fourth.idMap[asDefinitionKey('renamedAgain/hello')]).toBeUndefined();
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+});

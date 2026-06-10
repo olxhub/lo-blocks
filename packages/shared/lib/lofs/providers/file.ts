@@ -23,6 +23,7 @@ import {
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
+  type NamespaceResolution,
   VersionConflictError,
   NamespaceResolutionError,
   toFileRef,
@@ -411,7 +412,9 @@ export class FileStorageProvider implements StorageProvider {
       const fileName = entry.name || fullPath.split('/').pop();
       return (
         entry.isFile() &&
-        CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) &&
+        // manifest.yaml files are scanned as auxiliary files so the sync
+        // can re-parse a manifest's subtree when its namespace changes.
+        (CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) || fileName === 'manifest.yaml') &&
         !fileName.includes('~') &&
         !fileName.includes('#') &&
         !fileName.startsWith('.')
@@ -490,7 +493,7 @@ export class FileStorageProvider implements StorageProvider {
       // so ns stays undefined. Anything else (I/O failure, bug) propagates.
       let ns: ContentNamespace | undefined;
       try {
-        ns = await this.namespaceFor(ref);
+        ns = (await this.namespaceFor(ref)).ns;
       } catch (err) {
         if (!(err instanceof NamespaceResolutionError)) throw err;
       }
@@ -617,30 +620,29 @@ export class FileStorageProvider implements StorageProvider {
    *
    * Resolution order:
    *   1. Nearest ancestor manifest.yaml with a `namespace:` field, walking
-   *      from the file's directory up to the provider root.
+   *      from the file's directory up to the provider root. The result
+   *      carries the manifest as versioned provenance (NamespaceResolution.manifest).
    *   2. The file's top-level directory name ("demos/foo.olx" → "demos").
    *
-   * Throws an author-friendly error when neither yields a valid namespace:
+   * Throws NamespaceResolutionError when neither yields a valid namespace:
    * a file at the provider root with no manifest, or a directory name the
    * namespace grammar rejects (e.g. "lo-blocks" — hyphens are not allowed).
    *
-   * TODO(namespace-invalidation): ⚠️ NO CHANGE TRACKING ON MANIFESTS ⚠️
-   * Nothing records manifest.yaml as a dependency of the content parsed
-   * under it. Editing `namespace:` changes the DefinitionKey of EVERY block
-   * in that subtree, but an already-synced snapshot keeps the stale keys —
-   * syncContentFromStorage will NOT re-parse until the process restarts.
-   * Before manifests become editable through any UI, manifest.yaml must
-   * join the scan as an auxiliary dependency (like .chatpeg files) so a
-   * change promotes the whole subtree for re-parse.
+   * Change tracking: manifest.yaml files are included in loadXmlFilesWithStats
+   * scans as auxiliary files, and the content sync re-parses the mount's
+   * OLX when a manifest is added, changed, or deleted (see
+   * promoteFilesAffectedByManifests in syncContentFromStorage.ts). No
+   * caching here — every call re-reads manifests, so results are always
+   * current within a sync.
    */
-  async namespaceFor(ref: LofsRef): Promise<ContentNamespace> {
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     const relPath = this.extractRelativePath(withoutVersion(brandLofsRef(String(ref))));
 
     // Constructor override: the whole provider is one namespace, manifests
     // ignored (see constructor docs). relPath is still extracted above so
     // mount mismatches throw — that's how StackedStorageProvider routes to
     // the owning provider.
-    if (this.ns) return this.ns;
+    if (this.ns) return { ns: this.ns };
 
     const fs = await import('fs/promises');
 
@@ -649,9 +651,13 @@ export class FileStorageProvider implements StorageProvider {
       const atRoot = dir === '.' || dir === '';
       const manifestRel = atRoot ? 'manifest.yaml' : path.join(dir, 'manifest.yaml');
       let raw: string | null = null;
+      let mtimeMs: number | null = null;
       try {
         const full = await resolveSafeReadPath(this.baseDir, manifestRel);
-        raw = await fs.readFile(full, 'utf-8');
+        [raw, mtimeMs] = await Promise.all([
+          fs.readFile(full, 'utf-8'),
+          fs.stat(full).then(s => s.mtimeMs),
+        ]);
       } catch {
         // No manifest at this level — keep walking up.
       }
@@ -662,7 +668,11 @@ export class FileStorageProvider implements StorageProvider {
           if (valid !== true) {
             throw new NamespaceResolutionError(`${manifestRel}: ${valid}`);
           }
-          return asContentNamespace(String(declared));
+          const manifestRef = toFileRef(this.mountPoint, manifestRel);
+          return {
+            ns: asContentNamespace(String(declared)),
+            manifest: toLofsCanonical(withVersion(manifestRef, toLofsVersion(String(mtimeMs)))),
+          };
         }
         // Manifest without a namespace field — an ancestor manifest may declare one.
       }
@@ -686,7 +696,7 @@ export class FileStorageProvider implements StorageProvider {
         `Rename the directory or add a manifest.yaml with an explicit "namespace:" field.`
       );
     }
-    return asContentNamespace(dirName);
+    return { ns: asContentNamespace(dirName) };
   }
 
   /**

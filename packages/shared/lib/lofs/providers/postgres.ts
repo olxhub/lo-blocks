@@ -8,9 +8,10 @@
 // - Integration with existing LMS databases
 // - Content versioning and audit trails
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath, ContentNamespace } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import type {
   StorageProvider,
+  NamespaceResolution,
   XmlFileInfo,
   XmlScanResult,
   FileSelection,
@@ -78,7 +79,7 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
-  async namespaceFor(_ref: LofsRef): Promise<ContentNamespace> {
+  async namespaceFor(_ref: LofsRef): Promise<NamespaceResolution> {
     throw new Error('postgres storage not implemented');
   }
 }

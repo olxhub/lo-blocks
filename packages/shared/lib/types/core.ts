@@ -1134,6 +1134,12 @@ export interface OlxJson {
    *  (e.g., .chatpeg grammars, assets processed at parse time). If any
    *  change, the source file must be re-parsed. */
   parseDeps: LofsCanonical[];
+  /** The manifest.yaml that declared this block's namespace, as read
+   *  (versioned). Absent when the namespace came from a non-manifest rule
+   *  (directory name, provider constant). Namespace provenance — invalidation
+   *  is handled separately (a manifest ADD affects files that recorded no
+   *  pointer; see promoteFilesAffectedByManifests). */
+  manifest?: LofsCanonical;
 
   // Optional metadata (from YAML frontmatter or parsed attributes)
   /** Brief description of this content block (for search, activity cards, etc.) */

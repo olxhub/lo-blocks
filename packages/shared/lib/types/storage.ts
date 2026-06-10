@@ -407,9 +407,23 @@ export interface StorageProvider {
    * - InMemoryStorageProvider: constructor option
    * - StackedStorageProvider:  delegates to the provider that owns the ref
    *
-   * Throws (with an author-friendly message) when no namespace can be
-   * determined — e.g., a file at the root of a multi-namespace content
-   * directory with no manifest.
+   * Throws NamespaceResolutionError (with an author-friendly message) when
+   * no namespace can be determined — e.g., a file at the root of a
+   * multi-namespace content directory with no manifest.
    */
-  namespaceFor(ref: LofsRef): Promise<ContentNamespace>;
+  namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+}
+
+/**
+ * Result of namespaceFor — the namespace plus where it came from.
+ *
+ * `manifest` is the manifest.yaml that DECLARED the namespace, as read
+ * (versioned, so it's comparable for staleness). Absent when the namespace
+ * came from a non-manifest rule: directory name, constructor override,
+ * provider constant. The content sync stamps it onto each parsed block
+ * (OlxJson.manifest) — namespace provenance, alongside source/parseDeps.
+ */
+export interface NamespaceResolution {
+  ns: ContentNamespace;
+  manifest?: LofsCanonical;
 }

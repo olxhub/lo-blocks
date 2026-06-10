@@ -32,21 +32,21 @@ describe('DocsStorageProvider', () => {
   });
 
   test('namespace is docs.<Block> by basename prefix match', async () => {
-    expect(await provider.namespaceFor(ref('action/ActionButton.olx'))).toBe('docs.ActionButton');
-    expect(await provider.namespaceFor(ref('action/ActionButtonLLM.olx'))).toBe('docs.ActionButton');
+    expect((await provider.namespaceFor(ref('action/ActionButton.olx'))).ns).toBe('docs.ActionButton');
+    expect((await provider.namespaceFor(ref('action/ActionButtonLLM.olx'))).ns).toBe('docs.ActionButton');
   });
 
   test('includes files share the block namespace', async () => {
-    expect(await provider.namespaceFor(ref('action/ActionButtonEssays.includes.olx'))).toBe('docs.ActionButton');
+    expect((await provider.namespaceFor(ref('action/ActionButtonEssays.includes.olx'))).ns).toBe('docs.ActionButton');
   });
 
   test('longest block-name prefix wins (Foo vs FooGrader)', async () => {
-    expect(await provider.namespaceFor(ref('grading/FooGrader.olx'))).toBe('docs.FooGrader');
-    expect(await provider.namespaceFor(ref('grading/FooExtra.olx'))).toBe('docs.Foo');
+    expect((await provider.namespaceFor(ref('grading/FooGrader.olx'))).ns).toBe('docs.FooGrader');
+    expect((await provider.namespaceFor(ref('grading/FooExtra.olx'))).ns).toBe('docs.Foo');
   });
 
   test('unmatched files fall back to the containing directory', async () => {
-    expect(await provider.namespaceFor(ref('input/Matching/matching.pegjs.preview.olx'))).toBe('docs.Matching');
+    expect((await provider.namespaceFor(ref('input/Matching/matching.pegjs.preview.olx'))).ns).toBe('docs.Matching');
   });
 
   test('unmatched files at the provider root are rejected', async () => {

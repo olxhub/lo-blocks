@@ -27,7 +27,7 @@ import { type ContentNamespace, asContentNamespace } from '../../types/id-gramma
 /** Default namespace for in-memory scratch content (tests, inline parses,
  *  editor buffers) when the caller doesn't declare one. */
 const MEMORY_NS = asContentNamespace('memory');
-import { toMemoryRef, provenancePath } from '../../types/storage';
+import { toMemoryRef, provenancePath, type NamespaceResolution } from '../../types/storage';
 import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
 import { hashContent } from '../../util';
 
@@ -51,8 +51,8 @@ export class InMemoryStorageProvider implements StorageProvider {
     this.ns = ns;
   }
 
-  async namespaceFor(_ref: LofsRef): Promise<ContentNamespace> {
-    return this.ns;
+  async namespaceFor(_ref: LofsRef): Promise<NamespaceResolution> {
+    return { ns: this.ns };
   }
 
   async read(path: OlxRelativePath): Promise<ReadResult> {

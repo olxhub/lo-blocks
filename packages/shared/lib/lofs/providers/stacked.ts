@@ -17,9 +17,10 @@
 // - loadXmlFilesWithStats(): Merged scan, higher priority files shadow lower
 // - validateAssetPath(): True if exists in any provider
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath, ContentNamespace } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
+  type NamespaceResolution,
   type XmlFileInfo,
   type XmlScanResult,
   type FileSelection,
@@ -232,7 +233,7 @@ export class StackedStorageProvider implements StorageProvider {
 
   // Resolve namespace via the provider that owns the ref (mount mismatch
   // throws, falling through to the next provider — same routing as read).
-  async namespaceFor(ref: LofsRef): Promise<ContentNamespace> {
+  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     let lastError: Error | null = null;
     for (const provider of this.providers) {
       try {
