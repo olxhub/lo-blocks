@@ -222,7 +222,7 @@ function _TimedContainer(props: RuntimeProps) {
         <div className="text-center py-8 px-4">
           {before && (
             <div className="text-secondary mb-4 max-w-prose mx-auto">
-              <RenderMarkdown>{before}</RenderMarkdown>
+              <RenderMarkdown ns={props.runtime.ns}>{before}</RenderMarkdown>
             </div>
           )}
           <div className="text-3xl font-light text-dimmed mb-6">
@@ -257,7 +257,7 @@ function _TimedContainer(props: RuntimeProps) {
           </div>
           {after && (
             <div className="text-dimmed text-sm mt-1">
-              <RenderMarkdown>{after}</RenderMarkdown>
+              <RenderMarkdown ns={props.runtime.ns}>{after}</RenderMarkdown>
             </div>
           )}
         </div>

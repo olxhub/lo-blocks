@@ -21,7 +21,8 @@ export async function copyAssetsToPublic(provider, targetDir = './apps/web/publi
 
   // A StackedStorageProvider exposes `providers`; copy assets from every
   // stacked source that has a filesystem directory (e.g. content + docs).
-  const sources = Array.isArray(provider?.providers) ? provider.providers : [provider];
+  // Non-filesystem sources (memory, network) have no baseDir and are skipped.
+  const sources = Array.isArray(provider.providers) ? provider.providers : [provider];
 
   try {
     await fs.mkdir(publicContentDir, { recursive: true });

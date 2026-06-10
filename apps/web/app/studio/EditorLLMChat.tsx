@@ -6,6 +6,7 @@ import { ChatComponent, InputFooter } from '@/components/common/ChatComponent';
 import { useChat } from '@/lib/llm/reduxClient';
 import { buildSystemPrompt, getFileType } from './context';
 import { createEditorTools } from './tools';
+import { STUDIO_NS } from './studioNs';
 
 /**
  * LLM chat for the editor pane.
@@ -49,6 +50,7 @@ export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFil
     <ChatComponent
       id="editor_llm_chat"
       messages={messages}
+      ns={STUDIO_NS}
       footer={footer}
       height="flex-1"
     />

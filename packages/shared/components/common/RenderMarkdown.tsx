@@ -21,9 +21,9 @@ import type { ContentNamespace } from '@/lib/types';
  * This avoids hydration errors from <pre> inside <p>.
  *
  * `ns` is forwarded to OLXCodeBlock so rendered/playground snippets parse
- * in the hosting page's content namespace (e.g. docs.ActionButton).
+ * in the hosting context's content namespace (e.g. docs.ActionButton).
  */
-function makePreRenderer(ns?: ContentNamespace) {
+function makePreRenderer(ns: ContentNamespace) {
   return function PreRenderer({ children, node, ...props }) {
     // For fenced code blocks, children is a <code> element
     // Check the node's first child for the language class
@@ -43,8 +43,6 @@ function makePreRenderer(ns?: ContentNamespace) {
   };
 }
 
-const PreRenderer = makePreRenderer();
-
 /**
  * Custom code renderer - handles inline code only.
  * Fenced code blocks are handled by PreRenderer.
@@ -58,15 +56,6 @@ function CodeRenderer({ inline, className, children, ...props }) {
   return <code className={className} {...props}>{children}</code>;
 }
 
-/**
- * Component overrides for ReactMarkdown.
- * Exported for cases where custom components need to be merged.
- */
-export const markdownComponents = {
-  pre: PreRenderer,
-  code: CodeRenderer,
-};
-
 export interface RenderMarkdownProps {
   /** Markdown content to render */
   children: string;
@@ -75,9 +64,12 @@ export interface RenderMarkdownProps {
   /** Additional component overrides (merged with defaults) */
   components?: Record<string, React.ComponentType<any>>;
   /** Content namespace for embedded OLX snippets (```olx:render / :playground).
-   *  Pass the hosting page's namespace (e.g. docs.ActionButton for a block
-   *  README) so snippet refs resolve against that namespace's content. */
-  ns?: ContentNamespace;
+   *  Required — the caller always knows its context:
+   *  - block components: props.runtime.ns
+   *  - block READMEs in docs: docs.<Block>
+   *  - previewed files: the file's provider-resolved namespace
+   *  - system chrome (notices, UI text): SYSTEM_NS */
+  ns: ContentNamespace;
 }
 
 /**
@@ -95,8 +87,8 @@ export default function RenderMarkdown({
   ns,
 }: RenderMarkdownProps) {
   const mergedComponents = useMemo(() => ({
-    ...markdownComponents,
-    ...(ns ? { pre: makePreRenderer(ns) } : {}),
+    pre: makePreRenderer(ns),
+    code: CodeRenderer,
     ...components,
   }), [components, ns]);
 

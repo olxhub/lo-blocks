@@ -19,12 +19,8 @@
 
 import React, { useState, useId } from 'react';
 import RenderOLX from '@/components/common/RenderOLX';
-import { parseStateKey, asContentNamespace } from '@/lib/types/id-grammar';
+import { parseStateKey } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types';
-
-/** Synthetic namespace for markdown-embedded OLX snippets that have no
- *  hosting content namespace (e.g. markdown rendered outside block docs). */
-const OLX_EMBED_NS = asContentNamespace('olxEmbed');
 
 // TODO: Add CodeMirror support once Turbopack dynamic import issue is resolved
 // For now, using textarea to avoid Turbopack crash
@@ -67,11 +63,11 @@ function OLXCodeView({ code }) {
  * Live rendered OLX component.
  * Renders inline without extra wrapper chrome - let the OLX provide its own styling.
  *
- * Embeds share the namespace of the page hosting them (e.g. docs.ActionButton
+ * Embeds share the namespace of the context hosting them (e.g. docs.ActionButton
  * for a block README), so snippets can <Use ref> the block's shared fixtures
- * with bare refs. Without a namespace, falls back to a synthetic one.
+ * with bare refs.
  */
-function OLXRenderView({ code, ns = OLX_EMBED_NS }: { code: string; ns?: ContentNamespace }) {
+function OLXRenderView({ code, ns }: { code: string; ns: ContentNamespace }) {
   const uniqueId = useId();
   const bareId = `_embed_${uniqueId.replace(/:/g, '_')}`;
   const rootId = `${ns}/${bareId}`;
@@ -93,7 +89,7 @@ function OLXRenderView({ code, ns = OLX_EMBED_NS }: { code: string; ns?: Content
  * Playground view - code + live preview side-by-side with editing.
  * TODO: Use CodeMirror once Turbopack dynamic import issue is resolved.
  */
-function OLXPlaygroundView({ code: initialCode, ns = OLX_EMBED_NS }: { code: string; ns?: ContentNamespace }) {
+function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns: ContentNamespace }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
   const bareId = `_playground_${uniqueId.replace(/:/g, '_')}`;
@@ -132,14 +128,15 @@ function OLXPlaygroundView({ code: initialCode, ns = OLX_EMBED_NS }: { code: str
  * Main OLX code block component.
  * Dispatches to appropriate view based on mode.
  *
- * `ns` is the content namespace for rendered/playground snippets — pass the
- * hosting page's namespace (e.g. docs.ActionButton for a block README) so
- * snippet refs resolve against that block's docs content.
+ * `ns` is the content namespace for rendered/playground snippets — the
+ * hosting context's namespace (e.g. docs.ActionButton for a block README) so
+ * snippet refs resolve against that namespace's content. Always provided by
+ * RenderMarkdown's PreRenderer, which requires it from its own caller.
  */
 export function OLXCodeBlock({ language, children, ns }: {
   language: string | null;
   children: React.ReactNode;
-  ns?: ContentNamespace;
+  ns: ContentNamespace;
 }) {
   const parsed = parseOLXLanguage(language);
 

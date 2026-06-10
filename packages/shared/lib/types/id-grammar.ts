@@ -856,27 +856,18 @@ export function scopedStateKeyForBlock(
 //
 // The local -> global problem complicates!
 
+// NOTE: currently identical to qualifyStateRef, and kept deliberately:
+// the TODO above describes a planned divergence (local-then-global fallback)
+// that qualifyStateRef must never grow — qualification stays a pure namespace
+// prepend. Call sites that mean "resolve an authored target" use this name so
+// they pick up the new behavior when it lands. (Its definition-side sibling,
+// definitionKeyForRef, had no pending divergence and was removed — use
+// qualifyDefinitionRef.)
 export function stateKeyForGlobalRef(
   ref: StateRef,
   ns: ContentNamespace
 ): StateKey {
   return qualifyStateRef(ref, ns);
-}
-
-/**
- * Resolve a DefinitionRef to a DefinitionKey for idMap lookup.
- *
- * Validates and qualifies with namespace.
- *
- *   definitionKeyForRef('answer')            → "CONTENT/answer"
- *   definitionKeyForRef('calculus/hw1')      → "calculus/hw1"  (pass-through)
- *
- */
-export function definitionKeyForRef(
-  ref: DefinitionRef,
-  ns: ContentNamespace
-): DefinitionKey {
-  return qualifyDefinitionRef(ref, ns);
 }
 
 /**

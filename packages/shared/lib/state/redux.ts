@@ -43,7 +43,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, definitionKeyForRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyDefinitionRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';

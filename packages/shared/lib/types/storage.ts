@@ -91,6 +91,38 @@ export interface WriteOptions {
 }
 
 /**
+ * Thrown by namespaceFor when a file resolves to NO content namespace.
+ * I/O failures and bugs stay plain errors — this class marks exactly the
+ * "the rules produced no answer" outcomes, so callers can distinguish them.
+ *
+ * WHO THROWS (the concrete cases):
+ * - FileStorageProvider.namespaceFor:
+ *   1. File at the content root with no manifest — e.g. content/static.config.json,
+ *      or an author dropping foo.olx directly into content/.
+ *   2. Top-level directory name the namespace grammar rejects (e.g. "my-course",
+ *      hyphens are forbidden) with no manifest override.
+ *   3. A manifest.yaml whose namespace: field is itself grammar-invalid.
+ * - DocsStorageProvider.namespaceFor: a file matching no registered block
+ *   name AND sitting at the docs root (no containing directory to fall
+ *   back to).
+ *
+ * WHO CATCHES:
+ * - FileStorageProvider.read: a namespace-less file is still readable
+ *   (studio opens static.config.json) — it catches exactly this class,
+ *   leaves ReadResult.ns undefined, and rethrows everything else.
+ * - The content sync (parseAndIndexFiles) deliberately does NOT catch it:
+ *   OLX without a namespace can't be indexed, so it surfaces as a per-file
+ *   error whose message tells the author what to do (move the file or add
+ *   a manifest).
+ */
+export class NamespaceResolutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NamespaceResolutionError';
+  }
+}
+
+/**
  * Error thrown when write conflicts with changed file
  */
 export class VersionConflictError extends Error {

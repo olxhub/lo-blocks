@@ -101,7 +101,7 @@ export default function DimensionSection({
       </div>
 
       <div className="text-sm text-gray-500 italic">
-        <RenderMarkdown>{dimension.prompt}</RenderMarkdown>
+        <RenderMarkdown ns={props.runtime.ns}>{dimension.prompt}</RenderMarkdown>
       </div>
 
       <textarea
@@ -117,7 +117,7 @@ export default function DimensionSection({
             Guidance
           </summary>
           <div className="mt-1 text-sm text-gray-600">
-            <RenderMarkdown>{dimension.guidance}</RenderMarkdown>
+            <RenderMarkdown ns={props.runtime.ns}>{dimension.guidance}</RenderMarkdown>
           </div>
         </details>
       )}

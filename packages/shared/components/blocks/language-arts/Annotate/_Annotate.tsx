@@ -194,7 +194,7 @@ function DefaultEditor({
   // adjacent margins collapse naturally, and trailing margins disappear.
   return (
     <div className="text-sm text-secondary leading-relaxed prose prose-sm max-w-none" style={{ '--lo-space-lg': '0px' } as React.CSSProperties}>
-      <RenderMarkdown>{value}</RenderMarkdown>
+      <RenderMarkdown ns={props.runtime.ns}>{value}</RenderMarkdown>
     </div>
   );
 }

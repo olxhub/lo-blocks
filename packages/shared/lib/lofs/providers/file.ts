@@ -24,6 +24,7 @@ import {
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
+  NamespaceResolutionError,
   toFileRef,
   fileProvenancePath,
 } from '../../types/storage';
@@ -484,13 +485,14 @@ export class FileStorageProvider implements StorageProvider {
       ]);
       const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, full));
       // Resolve the file's namespace so clients (e.g. studio) can render the
-      // content where it actually lives. Files outside any namespace (root
-      // configs, etc.) simply omit it.
+      // content where it actually lives. A file outside any namespace (root
+      // configs, etc.) is still readable — it just has no content identity,
+      // so ns stays undefined. Anything else (I/O failure, bug) propagates.
       let ns: ContentNamespace | undefined;
       try {
         ns = await this.namespaceFor(ref);
-      } catch {
-        ns = undefined;
+      } catch (err) {
+        if (!(err instanceof NamespaceResolutionError)) throw err;
       }
       return {
         content,
@@ -658,7 +660,7 @@ export class FileStorageProvider implements StorageProvider {
         if (declared !== undefined) {
           const valid = validateContentNamespace(String(declared));
           if (valid !== true) {
-            throw new Error(`${manifestRel}: ${valid}`);
+            throw new NamespaceResolutionError(`${manifestRel}: ${valid}`);
           }
           return asContentNamespace(String(declared));
         }
@@ -670,7 +672,7 @@ export class FileStorageProvider implements StorageProvider {
     // 2. Directory fallback: the first path segment is the namespace.
     const sep = relPath.indexOf('/');
     if (sep < 0) {
-      throw new Error(
+      throw new NamespaceResolutionError(
         `"${relPath}" sits at the top level of the content directory, so it has no namespace. ` +
         `Move it into a namespace directory (e.g. "demos/${relPath}") or add a manifest.yaml ` +
         `with a "namespace:" field.`
@@ -679,7 +681,7 @@ export class FileStorageProvider implements StorageProvider {
     const dirName = relPath.slice(0, sep);
     const valid = validateContentNamespace(dirName);
     if (valid !== true) {
-      throw new Error(
+      throw new NamespaceResolutionError(
         `Directory "${dirName}" cannot be used as a content namespace: ${valid}. ` +
         `Rename the directory or add a manifest.yaml with an explicit "namespace:" field.`
       );

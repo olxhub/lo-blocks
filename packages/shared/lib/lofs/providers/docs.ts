@@ -38,7 +38,7 @@ import { FileStorageProvider } from './file';
 import { withoutVersion } from '../../types/address';
 import { parseContentNamespace } from '../../types/id-grammar';
 import type { ContentNamespace, LofsRef } from '../../types';
-import type { XmlFileInfo, XmlScanResult } from '../../types/storage';
+import { NamespaceResolutionError, type XmlFileInfo, type XmlScanResult } from '../../types/storage';
 
 export class DocsStorageProvider extends FileStorageProvider {
   /** Registered block names, longest first, for prefix matching. */
@@ -70,7 +70,7 @@ export class DocsStorageProvider extends FileStorageProvider {
     const dir = path.basename(path.dirname(relPath));
     if (dir && dir !== '.') return parseContentNamespace(`docs.${dir}`);
 
-    throw new Error(
+    throw new NamespaceResolutionError(
       `"${relPath}" matches no registered block name and has no containing ` +
       `directory — cannot derive a docs namespace for it.`
     );

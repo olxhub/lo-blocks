@@ -8,6 +8,7 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 import type { Cast, FaceExpression } from '@/lib/avatar/types';
+import type { ContentNamespace } from '@/lib/types';
 
 /* ----------------------------------------------------------------
  * Types
@@ -78,6 +79,10 @@ export interface AdvanceFooterProps {
 export interface ChatComponentProps {
   id: string;
   messages: ChatMessage[];
+  /** Content namespace for markdown in messages (embedded ```olx fences
+   *  parse here). The Chat block passes its runtime ns; the studio LLM
+   *  sidebar passes the studio namespace. */
+  ns: ContentNamespace;
   participants?: Cast | null;
   initialScrollPosition?: 'bottom' | 'top' | number;
   subtitle?: string | null;
@@ -119,10 +124,11 @@ const t = {
  * Internal message renderers
  * -------------------------------------------------------------- */
 
-function ChatLine({ message, isSequential, participants }: {
+function ChatLine({ message, isSequential, participants, ns }: {
   message: ChatLineMessage;
   isSequential: boolean;
   participants: Cast | null;
+  ns: ContentNamespace;
 }) {
   const { avatar, name } = cast.avatar({}, {
     who: message.speaker,
@@ -144,7 +150,7 @@ function ChatLine({ message, isSequential, participants }: {
           <span className={`text-sm font-semibold mb-1 ${t.headerText}`}>{name}</span>
         )}
         <div className={`${t.message} ${t.messageText} p-2 px-3 rounded-lg max-w-md`}>
-          <RenderMarkdown>{message.text || ''}</RenderMarkdown>
+          <RenderMarkdown ns={ns}>{message.text || ''}</RenderMarkdown>
         </div>
       </div>
     </div>
@@ -360,6 +366,7 @@ export const AdvanceFooter: React.FC<AdvanceFooterProps> = ({
 export function ChatComponent({
   id,
   messages,
+  ns,
   participants = null,
   initialScrollPosition = 'bottom',
   subtitle = null,
@@ -399,7 +406,7 @@ export function ChatComponent({
       case 'Line':
         return (
           <div key={index} className="message-item">
-            <ChatLine message={message} isSequential={isSequential} participants={participants ?? null} />
+            <ChatLine message={message} isSequential={isSequential} participants={participants ?? null} ns={ns} />
           </div>
         );
       case 'SystemMessage':

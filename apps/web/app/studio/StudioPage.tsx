@@ -18,12 +18,8 @@ import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import type { UriNode } from '@/lib/types/storage';
 import type { IdMap, ContentNamespace } from '@/lib/types';
-import { asContentNamespace } from '@/lib/types/id-grammar';
-
-/** Synthetic namespace for studio scratch content — used when the server
- *  can't resolve a namespace for the open file (e.g. unsaved demo content). */
-const STUDIO_NS = asContentNamespace('studio');
-import { useNotifications, ToastNotifications } from '@/lib/util/debug';
+import { STUDIO_NS } from './studioNs';
+import { useNotifications, ToastNotifications, DisplayError } from '@/lib/util/debug';
 import { useFieldState, getReduxState, settings } from '@/lib/state';
 import Notice from '@/components/common/Notice';
 
@@ -137,6 +133,24 @@ function StudioPageContent() {
   // Get current file's saved state (for dirty detection)
   const savedState = fileStateRef.current.get(filePath);
   const isDirty = savedState ? content !== savedState.content : false;
+
+  // Namespace the preview renders in. undefined means the loaded file has
+  // no content namespace — that's an author-facing problem (the content
+  // sync will reject the file), so the preview shows an explanation
+  // instead of silently rendering under a wrong namespace.
+  let previewNs: ContentNamespace | undefined;
+  if (!filePath) {
+    // No file open — previewing the built-in demo content.
+    previewNs = STUDIO_NS;
+  } else if (!savedState) {
+    // File selected but the read hasn't returned yet.
+    previewNs = STUDIO_NS;
+  } else {
+    // File loaded — the server resolved its namespace during read
+    // (manifest-aware; see FileStorageProvider.read). undefined when the
+    // file is outside any namespace (see NamespaceResolutionError).
+    previewNs = savedState.ns;
+  }
 
   // Compute all dirty files (for beforeunload and file tree indicators)
   const getDirtyFiles = useCallback((): Set<string> => {
@@ -602,7 +616,19 @@ function StudioPageContent() {
                       the purpose. Studio preview should disable translanguaging or pin locale
                       to the file's language. LanguageSwitcher already has a translanguaging
                       prop — need to thread it through RenderOLX/PreviewPane. */}
-                  <PreviewPane path={filePath} content={content} ns={savedState?.ns ?? STUDIO_NS} idMap={idMap} />
+                  {previewNs === undefined ? (
+                    <DisplayError
+                      title="File has no content namespace"
+                      message={
+                        `"${filePath}" is outside any content namespace, so the ` +
+                        `content sync will reject it and it cannot be previewed. ` +
+                        `Move it into a namespace directory (content/<namespace>/...) ` +
+                        `or add a manifest.yaml with a "namespace:" field.`
+                      }
+                    />
+                  ) : (
+                    <PreviewPane path={filePath} content={content} ns={previewNs} idMap={idMap} />
+                  )}
                 </div>
               </div>
             </>

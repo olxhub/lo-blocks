@@ -58,7 +58,7 @@ export type JSONValue =
  * │                        CONVERSION PATHWAYS                           │
  * │  (all functions live in id-grammar.ts)                               │
  * │                                                                      │
- * │  DefinitionRef ──definitionKeyForRef()──> DefinitionKey              │
+ * │  DefinitionRef ──qualifyDefinitionRef()──> DefinitionKey             │
  * │      │                                  │                            │
  * │      │                                  │  Content lookup in Redux   │
  * │      │                                  │  (selectBlock, ensureBlock)│

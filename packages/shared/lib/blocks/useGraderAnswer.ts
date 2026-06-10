@@ -21,7 +21,7 @@ import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
 import { useOlxJson } from './useOlxJson';
-import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, definitionKeyForRef, scopedStateKeyForBlock } from '../types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, qualifyDefinitionRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
@@ -43,7 +43,7 @@ function findTargetingGrader(props: RuntimeProps): StateKey | null {
   });
 
   const ns = props.runtime.ns;
-  const normalizedId = definitionKeyForRef(id, ns);
+  const normalizedId = qualifyDefinitionRef(id, ns);
 
   for (const graderNodeInfo of graderNodes) {
     const targetAttr = graderNodeInfo.olxJson.attributes.target;
@@ -132,7 +132,7 @@ function resolveInputSlot(
   }
 
   // Find position of this input in the list
-  const normalizedId = definitionKeyForRef(inputId, props.runtime.ns);
+  const normalizedId = qualifyDefinitionRef(inputId, props.runtime.ns);
   const position = inputIds.findIndex(id => leafDefinitionKeyFromStateKey(id) === normalizedId);
 
   if (position >= 0 && position < slots.length) {

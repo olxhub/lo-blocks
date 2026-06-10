@@ -16,7 +16,7 @@ import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   scopedStateKeyForBlock, stateKeyForGlobalRef,
-  definitionKeyForRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+  qualifyDefinitionRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
   asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
@@ -636,13 +636,13 @@ describe("stateKeyForGlobalRef", () => {
   });
 });
 
-describe("definitionKeyForRef", () => {
+describe("qualifyDefinitionRef", () => {
   it("bare ref", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('answer'), TEST_NS))).toBe("CONTENT/answer");
+    expect(String(qualifyDefinitionRef(asDefinitionRef('answer'), TEST_NS))).toBe("CONTENT/answer");
   });
 
   it("already-namespaced passes through", () => {
-    expect(String(definitionKeyForRef(asDefinitionRef('calculus/hw1'), TEST_NS))).toBe("calculus/hw1");
+    expect(String(qualifyDefinitionRef(asDefinitionRef('calculus/hw1'), TEST_NS))).toBe("calculus/hw1");
   });
 });
 

@@ -64,11 +64,12 @@ export default function PreviewPane({
     return <PEGPreviewPane path={path} content={content} />;
   }
 
-  // Markdown files render directly
+  // Markdown files render directly (ns: embedded ```olx fences parse in
+  // the previewed file's namespace)
   if (isMarkdownFile(path)) {
     return (
       <div className="markdown-preview">
-        <RenderMarkdown>{content}</RenderMarkdown>
+        <RenderMarkdown ns={ns}>{content}</RenderMarkdown>
       </div>
     );
   }
