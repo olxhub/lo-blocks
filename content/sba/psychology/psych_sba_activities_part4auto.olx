@@ -332,13 +332,32 @@ _Based on AI suggestions and course materials, here are some modifications that 
 Of these modifications, which ones do you think we should add to help Annie's roommate improve her adherence? **Pick up to 2.**
 </Markdown>
 
-<CheckboxInput id="fba3_modification_problem">
+<HH>
+There is something funky about this.
+
+(a) This is basically a survey question, which means that correct/incorrect grading is
+not really appropriate. Thus, the language "Check" on the button and the green check mark next to
+it after it's pushed don't make much sense, and neither does the green highlighting and
+check mark that appear on the problem title.
+
+(b) You suggested that one solution would be to rename the button "submit" in certain cases.
+That might work, but wouldn't resolve the weirdness of the checkmark and green highlighting
+on the title, which people are going to interpret as correctness feedback I'm pretty sure regardless.
+
+(c) Would it be possible instead perhaps to create a SurveyGrader that suppresses these behaviors and has
+a submit button instead of a check button?
+</HH>
+<CapaProblem id="fba3_modification_problem" title="Choose Modifications" showanswer="never">
+<CorrectGrader>
+<CheckboxInput id="fba3_modification_choices">
 <Key  id="fba3_mod_simplify"> Simplify the plan using a step-by-step guide              </Key>
 <Key  id="fba3_mod_training"> Provide direct training using in-person or video modeling </Key>
 <Key id="fba3_mod_checklist"> Use simple yes/no fidelity checklists for key steps       </Key>
 <Key  id="fba3_mod_coaching"> Provide coaching and feedback                             </Key>
 <Key id="fba3_mod_reminders"> Set reminders and visual prompts on the roommate's phone  </Key>
 </CheckboxInput>
+</CorrectGrader>
+</CapaProblem>
 
 <Markdown>**Why did you choose these modifications? How will they help with adherence?**</Markdown>
 <TextArea id="fba3_modification_explanation" rows="3" placeholder="Explain why you chose these modifications..." />
@@ -419,6 +438,12 @@ could give.
 
 Based on your selected modifications, here is the updated plan:
 </Markdown>
+<HH>
+In the action button and collapsible that follow I repeat the same textual content
+twice. That is because I couldn't figure out how to create a text as XML content
+and then convert it into raw text for LLM use (or vice versa). There must be a function that does that?
+I hope? Please fix!
+</HH>
 <ActionButton id="fba3_generate_plan_btn" label="Generate Updated Plan">
 <LLMAction id="fba3_generate_plan_action" target="fba3_updated_plan_response"><![CDATA[
 You are helping a group of psychology students update a behavior modification plan for a child named Johnny who has escape-maintained bedtime behavior. His babysitter has been struggling with adherence to the original plan.
