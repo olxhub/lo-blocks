@@ -17,7 +17,9 @@ async function generateParserRegistry() {
   // Use a Map to dedupe by extension (first found wins)
   const entriesMap = new Map();
 
-  for (const parserFile of parserFiles) {
+  for (let parserFile of parserFiles) {
+    // Globs return OS-native separators; import specifiers must be POSIX.
+    parserFile = parserFile.replace(/\\/g, '/');
     // Extract grammar name from _fooParser.js -> foo
     const basename = path.basename(parserFile);
     const match = basename.match(/^_(.+)Parser\.js$/);
