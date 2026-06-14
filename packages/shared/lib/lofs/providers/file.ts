@@ -13,6 +13,7 @@ import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json
 import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace } from '../../types/id-grammar';
 import { EXT, isMediaFile } from '@/lib/util/fileTypes';
+import { windowsToPosix } from '@/lib/util/posixPath';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -321,7 +322,8 @@ async function listFileTree(
     const children: UriNode[] = [];
     for (const entry of entries) {
       if (entry.name.startsWith('.')) continue;
-      const relPath = path.join(rel, entry.name);
+      // URIs are POSIX; windowsToPosix undoes path.join's backslashes on Windows.
+      const relPath = windowsToPosix(path.join(rel, entry.name));
       if (entry.isDirectory()) {
         children.push(await walk(relPath));
       } else if (entry.isFile()) {
@@ -390,7 +392,8 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
     const rel = fileProvenancePath(uri);
-    const normalized = path.normalize(rel);
+    // path.normalize emits backslashes on Windows; refs stay POSIX.
+    const normalized = windowsToPosix(path.normalize(rel));
     if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
       throw new Error(`Path traversal in provenance URI: ${uri}`);
     }
@@ -442,7 +445,8 @@ export class FileStorageProvider implements StorageProvider {
         if (entry.isDirectory()) {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
-          const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, fullPath));
+          // path.relative returns OS-native separators; refs must be POSIX.
+          const ref = toFileRef(this.mountPoint, windowsToPosix(path.relative(this.baseDir, fullPath)));
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
@@ -486,7 +490,8 @@ export class FileStorageProvider implements StorageProvider {
         fs.readFile(full, 'utf-8'),
         fs.stat(full),
       ]);
-      const ref = toFileRef(this.mountPoint, path.relative(this.baseDir, full));
+      // path.relative returns OS-native separators; refs must be POSIX.
+      const ref = toFileRef(this.mountPoint, windowsToPosix(path.relative(this.baseDir, full)));
       // Resolve the file's namespace so clients (e.g. studio) can render the
       // content where it actually lives. A file outside any namespace (root
       // configs, etc.) is still readable — it just has no content identity,
@@ -585,7 +590,8 @@ export class FileStorageProvider implements StorageProvider {
     // routes to the correct provider.
     const baseRelPath = this.extractRelativePath(baseProvenance);
     const baseDir = path.dirname(baseRelPath);
-    const resolved = path.normalize(path.join(baseDir, relativePath));
+    // Refs are POSIX; path.normalize/join emit backslashes on Windows.
+    const resolved = windowsToPosix(path.normalize(path.join(baseDir, relativePath)));
 
     // Security: validate resolved result stays within base directory.
     // Without this, a relativePath like "../../../../etc/passwd" could escape.
@@ -649,7 +655,8 @@ export class FileStorageProvider implements StorageProvider {
     // 1. Manifest override: nearest manifest.yaml from the file's directory up.
     for (let dir = path.dirname(relPath); ; dir = path.dirname(dir)) {
       const atRoot = dir === '.' || dir === '';
-      const manifestRel = atRoot ? 'manifest.yaml' : path.join(dir, 'manifest.yaml');
+      // manifestRel becomes a ref below, so keep it POSIX (path.join → backslashes on Windows).
+      const manifestRel = atRoot ? 'manifest.yaml' : windowsToPosix(path.join(dir, 'manifest.yaml'));
       let raw: string | null = null;
       let mtimeMs: number | null = null;
       try {
@@ -717,8 +724,10 @@ export class FileStorageProvider implements StorageProvider {
       dot: false,   // Don't match dotfiles
     });
 
-    // Return paths relative to baseDir (not searchDir)
-    return matches.map(m => (basePath ? path.join(basePath, m) : m) as OlxRelativePath);
+    // Return paths relative to baseDir (not searchDir), POSIX separators.
+    return matches.map(m =>
+      windowsToPosix(basePath ? path.join(basePath, m) : m) as OlxRelativePath
+    );
   }
 
   /**
