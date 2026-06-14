@@ -119,15 +119,20 @@ export function getEditPathFromProvenance(provenance: string[] | undefined): Pat
     return { valid: false, error: 'Malformed file provenance URI' };
   }
 
-  // Only accept files from the content mount
-  // In the new format, the mount point is in the source locator: file:content://path
+  // Only accept files from the content mount (or a mounted content source:
+  // file:content/<mount>://path — see MountRouterProvider)
   const src = source(toLofsRef(fileProv)) as string;
   if (src !== 'file:content' && !src.startsWith('file:content/')) {
     return { valid: false, error: 'File is not in the content mount' };
   }
 
-  // logicalPath is already relative to the mount (e.g. 'demos/foo.xml')
-  const normalized = path.normalize(logicalPath);
+  // logicalPath is relative to the mount. For mounted sources, the client-
+  // visible path includes the mount prefix: file:content/psychology://a.olx
+  // edits at "psychology/a.olx".
+  const mountSuffix = src === 'file:content' ? '' : src.slice('file:content/'.length);
+  const normalized = path.normalize(
+    mountSuffix ? `${mountSuffix}/${logicalPath}` : logicalPath
+  );
 
   // Security: reject paths that escape via traversal
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {

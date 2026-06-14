@@ -95,3 +95,8 @@ lofs/runtime/
 /apps/static/out/
 apps/static/dist/
 apps/client/dist/
+/dist/
+
+# Deployment-specific content source overrides (committed default is
+# config/content-sources.yaml; see docs/content-in-git.md)
+config/content-sources.local.yaml

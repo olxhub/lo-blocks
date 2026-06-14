@@ -15,9 +15,9 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import type { Context } from 'hono';
+import { loadContentSourcesConfig } from '@/lib/lofs/contentSources';
 
 const SYSTEM_PMSS_PATH = 'config/system.pmss';
-const CONTENT_DIR = process.env.OLX_CONTENT_DIR || './content';
 
 // --- Namespace context from manifests ---------------------------------------
 
@@ -30,12 +30,21 @@ interface NamespaceContext {
 // Cache invalidation: server restart. Manifests don't change at runtime.
 let nsContextMap: Map<string, NamespaceContext> | null = null;
 
-function getNsContextMap(): Map<string, NamespaceContext> {
+async function getNsContextMap(): Promise<Map<string, NamespaceContext>> {
   if (nsContextMap) return nsContextMap;
   nsContextMap = new Map();
 
   try {
-    scanManifests(CONTENT_DIR, nsContextMap);
+    // Scan every configured content source (content-sources.yaml; defaults
+    // to ./content) plus the fallback directory.
+    // TODO(repo-sources): directory-form sources only. Repo-form sources
+    // keep their manifest in git — namespace context (classes/attributes)
+    // for those needs provider-based manifest reading, not an fs scan.
+    const config = await loadContentSourcesConfig();
+    const dirs = Object.values(config.sources).filter((s): s is string => typeof s === 'string');
+    for (const dir of [...dirs, config.fallback]) {
+      scanManifests(dir, nsContextMap);
+    }
   } catch (err) {
     console.warn('[config] Failed to scan manifests:', err);
   }
@@ -94,13 +103,13 @@ function getPmss(): string {
 
 // --- Handler ----------------------------------------------------------------
 
-export function handleConfig(c: Context): Response {
+export async function handleConfig(c: Context): Promise<Response> {
   const pmss = getPmss();
   const ns = c.req.query('ns');
 
   let ctx: NamespaceContext | null = null;
   if (ns) {
-    ctx = getNsContextMap().get(ns) ?? null;
+    ctx = (await getNsContextMap()).get(ns) ?? null;
     if (!ctx) {
       console.warn(`[config] Unknown namespace: ${ns}`);
     }

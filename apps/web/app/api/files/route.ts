@@ -5,10 +5,11 @@
 // GET /api/files           - Returns file tree
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
-const provider = new FileStorageProvider('./content');
+// Configured content sources (content-sources.yaml; defaults to ./content).
+const providerPromise = contentProvider();
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -33,11 +34,11 @@ export async function GET(request: Request) {
   try {
     if (pattern) {
       // Glob mode - return array of matching files
-      const files = await provider.glob(pattern, basePath);
+      const files = await (await providerPromise).glob(pattern, basePath);
       return Response.json({ ok: true, files });
     } else {
       // Tree mode - return full file tree
-      const tree = await provider.listFiles();
+      const tree = await (await providerPromise).listFiles();
       return Response.json({ ok: true, tree });
     }
   } catch (err: any) {

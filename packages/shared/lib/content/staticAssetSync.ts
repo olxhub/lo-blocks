@@ -16,20 +16,40 @@ import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 
+/**
+ * Filesystem roots to copy assets from, with their URL prefixes.
+ *
+ * - StackedStorageProvider: flatten to its children.
+ * - MountRouterProvider: fallback copies to the target root; each mounted
+ *   source copies under its mount name, so asset URLs match content paths
+ *   ("psychology/images/foo.png" \u2192 /content/psychology/images/foo.png).
+ * - Plain filesystem provider: its baseDir at the root.
+ * - Non-filesystem sources (memory, network): no baseDir, skipped.
+ */
+function assetRoots(provider): { dir: string; prefix: string }[] {
+  const roots: { dir: string; prefix: string }[] = [];
+  const flat = Array.isArray(provider.providers) ? provider.providers : [provider];
+  for (const p of flat) {
+    if (Array.isArray(p?.mounts) && p?.fallback) {
+      // MountRouterProvider
+      if (p.fallback?.baseDir) roots.push({ dir: p.fallback.baseDir, prefix: '' });
+      for (const m of p.mounts) {
+        if (m.baseDir) roots.push({ dir: m.baseDir, prefix: m.mount });
+      }
+    } else if (p?.baseDir) {
+      roots.push({ dir: p.baseDir, prefix: '' });
+    }
+  }
+  return roots;
+}
+
 export async function copyAssetsToPublic(provider, targetDir = './apps/web/public/content') {
   const publicContentDir = targetDir;
 
-  // A StackedStorageProvider exposes `providers`; copy assets from every
-  // stacked source that has a filesystem directory (e.g. content + docs).
-  // Non-filesystem sources (memory, network) have no baseDir and are skipped.
-  const sources = Array.isArray(provider.providers) ? provider.providers : [provider];
-
   try {
     await fs.mkdir(publicContentDir, { recursive: true });
-    for (const source of sources) {
-      if (source?.baseDir) {
-        await copyAssetsRecursive(source.baseDir, publicContentDir);
-      }
+    for (const { dir, prefix } of assetRoots(provider)) {
+      await copyAssetsRecursive(dir, path.join(publicContentDir, prefix));
     }
     console.log(`\u2705 Assets copied to ${publicContentDir}`);
   } catch (error) {

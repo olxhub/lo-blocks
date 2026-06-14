@@ -31,6 +31,7 @@ import {
   fileProvenancePath,
 } from '../../types/storage';
 import { source, scheme, withVersion, withoutVersion, toLofsRef as brandLofsRef, toLofsVersion, toLofsCanonical } from '../../types/address';
+import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
 
@@ -115,9 +116,10 @@ function getAllowedReadDirs(): string[] {
     path.join(PROJECT_ROOT, 'packages/shared/lib/stateLanguage'),  // For expression grammar
     path.join(PROJECT_ROOT, 'packages/shared/lib/util/calc'),  // For calc grammar
     path.join(PROJECT_ROOT, 'content'),
+    // Content checkouts configured in content-sources.yaml (see contentSources.ts)
+    ...registeredContentDirs(),
   ];
-  // Support custom content directory via environment variable
-  // This is used by tests and will eventually be replaced by provider config
+  // Support custom content directory via environment variable (tests)
   if (process.env.OLX_CONTENT_DIR) {
     dirs.push(path.resolve(process.env.OLX_CONTENT_DIR));
   }
@@ -131,6 +133,8 @@ function getAllowedReadDirs(): string[] {
 function getAllowedWriteDirs(): string[] {
   const dirs = [
     path.join(PROJECT_ROOT, 'content'),
+    // Content checkouts configured in content-sources.yaml (see contentSources.ts)
+    ...registeredContentDirs(),
   ];
   if (process.env.OLX_CONTENT_DIR) {
     dirs.push(path.resolve(process.env.OLX_CONTENT_DIR));

@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { translateBlock } from '@/lib/translate/orchestrate';
@@ -22,7 +22,9 @@ import { toContentVariant } from '@/lib/types/i18n';
 
 const contentDir = process.env.OLX_CONTENT_DIR || './content';
 const logsDir = path.resolve(contentDir, '..', 'logs');
-const provider = new FileStorageProvider(contentDir, 'content');
+// Configured content sources (content-sources.yaml). Translations write
+// next to their source files, so writes route to the owning checkout.
+const providerPromise = contentProvider();
 
 const inFlightTranslations = new Map<string, Promise<any>>();
 const TRANSLATION_TIMEOUT_MS = 600_000; // 10 minutes
@@ -72,6 +74,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const provider = await providerPromise;
     await syncContentFromStorage(provider);
 
     const originalVariant = getOriginalVariant(blockId);

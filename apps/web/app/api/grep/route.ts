@@ -5,10 +5,11 @@
 // GET /api/grep?pattern=    - Search file contents for pattern
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
-const provider = new FileStorageProvider('./content');
+// Configured content sources (content-sources.yaml; defaults to ./content).
+const providerPromise = contentProvider();
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const matches = await provider.grep(pattern, { basePath, include, limit });
+    const matches = await (await providerPromise).grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {
     console.error(`[API /grep] ${err.message}`);

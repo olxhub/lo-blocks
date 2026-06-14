@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 
 const args = process.argv.slice(2);
-const contentDir = path.resolve('./content');
+const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
 
 // TODO: profile / understand speed.
 //

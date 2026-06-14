@@ -19,9 +19,9 @@
 // snapshot and backward-compatible return shape.
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
 import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
@@ -188,16 +188,18 @@ export async function applyFileChanges(
 
 /**
  * Default system content sources:
- *   - ./content — course content (per-directory / manifest namespaces)
+ *   - the deployment's configured content sources (content-sources.yaml:
+ *     per-repo checkouts mounted at path prefixes, plus a fallback
+ *     directory — see lib/lofs/contentSources.ts; defaults to ./content)
  *   - block documentation examples (per-block docs.* namespaces)
  *
  * Stacked so the whole system content index — including docs — is one
  * sync. This is what lets courses embed documentation content via
  * <Use ref="docs.ActionButton/..."/>.
  */
-export function defaultContentProviders(): StorageProvider {
+export async function defaultContentProviders(): Promise<StorageProvider> {
   return new StackedStorageProvider([
-    new FileStorageProvider('./content'),
+    await contentProvider(),
     new DocsStorageProvider(
       Object.values(BLOCK_REGISTRY).filter(b => b?._isBlock).map(b => b.name)
     ),
@@ -205,8 +207,9 @@ export function defaultContentProviders(): StorageProvider {
 }
 
 export async function syncContentFromStorage(
-  provider: StorageProvider = defaultContentProviders()
+  provider?: StorageProvider
 ) {
+  provider ??= await defaultContentProviders();
   const scan = await provider.loadXmlFilesWithStats(
     _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>
   );
