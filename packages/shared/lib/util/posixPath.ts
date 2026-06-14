@@ -10,9 +10,12 @@
 //
 // On Linux — our native, CI-tested platform — path.sep is already '/', so
 // this is a no-op and costs nothing. We do NOT run CI on Windows, so Windows
-// is best-effort: this keeps the filesystem→ref seams honest, but the
-// principled fix is to make the ref layer normalize internally rather than
-// rely on every caller remembering to convert. Until then: caveat emptor. :)
+// is best-effort: this keeps the filesystem→ref seams honest
+//
+// lo-blocks works fine under WSL, and we were a bit surprised from an
+// external PR that it works fine on Windows **without** WSL, so we're
+// applying this fix, but Windows-native support is caveat emptor. :)
+
 import path from 'path';
 
 /**
