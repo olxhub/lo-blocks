@@ -6,6 +6,7 @@ import path from 'path';
 import { glob } from 'glob';
 import yaml from 'js-yaml';
 import { GRAMMAR_DIRS } from '../lib/grammarDirs';
+import { windowsToPosix } from '../lib/util/posixPath';
 
 const outputFile = 'packages/shared/generated/parserRegistry.ts';
 
@@ -18,8 +19,8 @@ async function generateParserRegistry() {
   const entriesMap = new Map();
 
   for (let parserFile of parserFiles) {
-    // Globs return OS-native separators; import specifiers must be POSIX.
-    parserFile = parserFile.replace(/\\/g, '/');
+    // Globs return OS-native separators on Windows; import specifiers must be POSIX.
+    parserFile = windowsToPosix(parserFile);
     // Extract grammar name from _fooParser.js -> foo
     const basename = path.basename(parserFile);
     const match = basename.match(/^_(.+)Parser\.js$/);
