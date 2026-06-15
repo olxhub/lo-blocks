@@ -119,7 +119,8 @@ export class MountRouterProvider implements StorageProvider {
       const results = await entry.provider.glob(pattern);
       all.push(...results.map(r => `${entry.mount}/${r}` as OlxRelativePath));
     }
-    all.push(...await this.fallback.glob(pattern));
+    // Drop fallback hits under a mount prefix — the mount shadows them.
+    all.push(...(await this.fallback.glob(pattern)).filter(p => !this.pathHeadIsMount(String(p))));
     return all;
   }
 
@@ -135,31 +136,60 @@ export class MountRouterProvider implements StorageProvider {
       const matches = await entry.provider.grep(pattern, options);
       all.push(...matches.map(m => ({ ...m, path: `${entry.mount}/${m.path}` as OlxRelativePath })));
     }
-    all.push(...await this.fallback.grep(pattern, options));
+    // Drop fallback hits under a mount prefix — the mount shadows them.
+    all.push(...(await this.fallback.grep(pattern, options)).filter(m => !this.pathHeadIsMount(String(m.path))));
     return all;
   }
 
   // Union scan. Each child filters `previous` to its own mount (see
   // FileStorageProvider.loadXmlFilesWithStats), so passing the full previous
   // snapshot to every child is safe — the same contract StackedStorageProvider
-  // relies on. Paths are disjoint by construction (distinct mounts), so a
-  // plain merge needs no shadowing logic.
+  // relies on. Mounts are disjoint from each other by construction (distinct
+  // mount names); the FALLBACK, however, can physically still contain a
+  // "<mount>/..." subtree (mid-migration, or a stale copy). Reads shadow that
+  // via route(), so the scan must too — otherwise the same router path is
+  // indexed twice under different refs (file:content/<mount>://x and
+  // file:content://<mount>/x), double-counting blocks. Drop fallback entries
+  // that fall under a mount prefix.
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const merged: XmlScanResult = { added: {}, changed: {}, unchanged: {}, deleted: {} };
-    for (const provider of [...this.mounts.map(m => m.provider), this.fallback]) {
-      const scan = await provider.loadXmlFilesWithStats(previous);
+    for (const entry of this.mounts) {
+      const scan = await entry.provider.loadXmlFilesWithStats(previous);
       Object.assign(merged.added, scan.added);
       Object.assign(merged.changed, scan.changed);
       Object.assign(merged.unchanged, scan.unchanged);
       Object.assign(merged.deleted, scan.deleted);
     }
+    const fb = await this.fallback.loadXmlFilesWithStats(previous);
+    for (const bucket of ['added', 'changed', 'unchanged', 'deleted'] as const) {
+      for (const [ref, info] of Object.entries(fb[bucket])) {
+        if (!this.shadowedByMount(ref as LofsRef)) merged[bucket][ref as LofsRef] = info;
+      }
+    }
     return merged;
+  }
+
+  /** Does a fallback ref's router path fall under a mount prefix? */
+  private shadowedByMount(ref: LofsRef): boolean {
+    let rel: string;
+    try { rel = String(this.fallback.toRelativePath(ref)); }
+    catch { return false; }
+    return this.pathHeadIsMount(rel);
+  }
+
+  /** Is the first path segment a mount name? */
+  private pathHeadIsMount(p: string): boolean {
+    const sep = p.indexOf('/');
+    const head = sep < 0 ? p : p.slice(0, sep);
+    return this.mounts.some(m => m.mount === head);
   }
 
   async listFiles(selection: FileSelection = {}): Promise<UriNode> {
     // Fallback tree is the base; each mount appears as a top-level directory.
+    // Drop any fallback child that collides with a mount name — the mount
+    // owns that prefix, so a stale ./content/<mount> copy must not double-list.
     const root = await this.fallback.listFiles(selection);
-    const children = [...(root.children ?? [])];
+    const children = (root.children ?? []).filter(c => !this.pathHeadIsMount(c.uri));
     for (const entry of this.mounts) {
       const tree = await entry.provider.listFiles(selection);
       children.push({

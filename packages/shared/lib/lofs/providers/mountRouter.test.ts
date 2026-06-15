@@ -24,19 +24,32 @@ describe('MountRouterProvider', () => {
 
     // Simulated layout after the repo split:
     //   psych-repo/      — own checkout, manifest declares namespace
+    //   writing-repo/    — own checkout, NO manifest (relies on mount default)
     //   fallback/demos/  — baseline content remaining in ./content
     await fs.mkdir(path.join(base, 'psych-repo'), { recursive: true });
     await fs.writeFile(path.join(base, 'psych-repo', 'manifest.yaml'), 'namespace: psych\n');
     await fs.writeFile(path.join(base, 'psych-repo', 'lesson1.olx'), '<Markdown id="hello">Hi</Markdown>');
+    // No manifest here: a root file and a subdir file must both resolve to the
+    // mount namespace ("writing"), not throw and not take an inner dir name.
+    await fs.mkdir(path.join(base, 'writing-repo', 'unit1'), { recursive: true });
+    await fs.writeFile(path.join(base, 'writing-repo', 'intro.olx'), '<Markdown id="w_intro">Write</Markdown>');
+    await fs.writeFile(path.join(base, 'writing-repo', 'unit1', 'essay.olx'), '<Markdown id="w_essay">Essay</Markdown>');
     await fs.mkdir(path.join(base, 'fallback', 'demos'), { recursive: true });
     await fs.writeFile(path.join(base, 'fallback', 'demos', 'demo.olx'), '<Markdown id="demo_intro">Demo</Markdown>');
 
     router = new MountRouterProvider(
-      [{
-        mount: 'psychology',
-        provider: new FileStorageProvider(path.join(base, 'psych-repo'), 'content/psychology'),
-        baseDir: path.join(base, 'psych-repo'),
-      }],
+      [
+        {
+          mount: 'psychology',
+          provider: new FileStorageProvider(path.join(base, 'psych-repo'), 'content/psychology'),
+          baseDir: path.join(base, 'psych-repo'),
+        },
+        {
+          mount: 'writing',
+          provider: new FileStorageProvider(path.join(base, 'writing-repo'), 'content/writing', { defaultNs: 'writing' }),
+          baseDir: path.join(base, 'writing-repo'),
+        },
+      ],
       new FileStorageProvider(path.join(base, 'fallback'), 'content'),
     );
   });
@@ -100,5 +113,52 @@ describe('MountRouterProvider', () => {
     await expect(
       router.rename('psychology/new.olx' as OlxRelativePath, 'demos/new.olx' as OlxRelativePath)
     ).rejects.toThrow(/across content sources/);
+  });
+
+  // Finding 1: a collection that moved out of ./content/<dir> into its own
+  // manifest-less checkout keeps <dir> as its namespace — for root files AND
+  // subdir files — instead of throwing or taking an inner directory name.
+  it('falls back to the mount name as namespace when there is no manifest', async () => {
+    const root = await router.read('writing/intro.olx' as OlxRelativePath);
+    expect(root.ns).toBe('writing');
+    const nested = await router.read('writing/unit1/essay.olx' as OlxRelativePath);
+    expect(nested.ns).toBe('writing'); // NOT "unit1"
+
+    const { idMap, errors } = await syncContentFromStorage(router);
+    expect(errors).toEqual([]);
+    expect(idMap[asDefinitionKey('writing/w_intro')]).toBeDefined();
+    expect(idMap[asDefinitionKey('writing/w_essay')]).toBeDefined();
+  });
+
+  // Finding 2: a stale ./content/<mount> copy in the fallback must not
+  // double-index the same router path under a second ref.
+  it('shadows fallback content that overlaps a mount prefix', async () => {
+    const stale = path.join(base, 'fallback', 'psychology');
+    await fs.mkdir(stale, { recursive: true });
+    await fs.writeFile(path.join(stale, 'lesson1.olx'), '<Markdown id="hello">Stale</Markdown>');
+    try {
+      // Scan must not report the overlapping path from both the mount and the
+      // fallback (distinct refs, same router path → duplicate blocks).
+      const scan = await router.loadXmlFilesWithStats();
+      const all = { ...scan.added, ...scan.changed, ...scan.unchanged };
+      const fromFallback = Object.keys(all).filter(r => r === 'file:content://psychology/lesson1.olx');
+      expect(fromFallback).toEqual([]);
+      expect(all['file:content/psychology://lesson1.olx' as keyof typeof all]).toBeDefined();
+
+      // glob/listFiles likewise list the mount, not the shadowed fallback copy.
+      const hits = await router.glob('**/lesson1.olx');
+      expect(hits).toContain('psychology/lesson1.olx');
+      expect(hits.filter(h => h === 'psychology/lesson1.olx')).toHaveLength(1);
+
+      const tree = await router.listFiles();
+      const psychDirs = (tree.children ?? []).filter(c => c.uri === 'psychology');
+      expect(psychDirs).toHaveLength(1);
+
+      // The mount, not the stale copy, serves the content.
+      const result = await router.read('psychology/lesson1.olx' as OlxRelativePath);
+      expect(result.content).toContain('Hi'); // mount's version, not "Stale"
+    } finally {
+      await fs.rm(stale, { recursive: true, force: true });
+    }
   });
 });

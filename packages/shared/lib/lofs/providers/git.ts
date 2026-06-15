@@ -273,6 +273,13 @@ export class GitStorageProvider implements StorageProvider {
   async read(p: OlxRelativePath): Promise<ReadResult> {
     await this.ensureFresh();
     const relPath = this.guardPath(String(p).replace(/^\.?\//, ''));
+    // Honor the configured subtree(s): a path outside `dir` is not served,
+    // even though the whole repo is in memfs. Scan/glob/grep already filter
+    // via included(); the direct-blob fallback below must too, or a read
+    // could reach repo content the operator chose not to serve.
+    if (!this.included(relPath)) {
+      throw new Error(`File not found: ${p} (outside served subtree of ${this.url}#${this.ref})`);
+    }
     const entry = this.tree.get(relPath);
     if (!entry) {
       // Tree only indexes content files; for other reads, try the blob directly.
@@ -435,9 +442,11 @@ export class GitStorageProvider implements StorageProvider {
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     if (!isMediaFile(assetPath)) return false;
     await this.ensureFresh();
+    const relPath = this.guardPath(String(assetPath));
+    if (!this.included(relPath)) return false;  // outside the served subtree
     // Media isn't in the content-file tree; check the blob directly.
     try {
-      await this.readBlob(this.guardPath(String(assetPath)));
+      await this.readBlob(relPath);
       return true;
     } catch {
       return false;

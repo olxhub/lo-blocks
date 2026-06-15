@@ -133,11 +133,14 @@ export async function contentProvider(): Promise<StorageProvider> {
   const mounts: MountEntry[] = [];
   for (const [mount, entry] of entries) {
     if (typeof entry === 'string') {
-      // Directory form: a checkout on disk.
+      // Directory form: a checkout on disk. defaultNs = the mount name, so a
+      // collection that moved out of ./content/<mount> keeps its namespace
+      // even with files at the checkout root and no manifest (manifests still
+      // override). See FileStorageProvider.namespaceFor.
       registerAllowedContentDir(path.resolve(entry));
       mounts.push({
         mount,
-        provider: new FileStorageProvider(entry, `content/${mount}`),
+        provider: new FileStorageProvider(entry, `content/${mount}`, { defaultNs: mount }),
         baseDir: path.resolve(entry),
       });
     } else {

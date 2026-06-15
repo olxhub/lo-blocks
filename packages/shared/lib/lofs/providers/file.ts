@@ -351,6 +351,7 @@ export class FileStorageProvider implements StorageProvider {
   readonly baseDir: string;
   readonly mountPoint: string;
   readonly ns?: ContentNamespace;
+  readonly defaultNs?: string;
 
   /**
    * @param baseDir - Filesystem directory to serve files from (default: './content')
@@ -364,8 +365,20 @@ export class FileStorageProvider implements StorageProvider {
    *   you're doing something wonky — a test fixture, a scratch mount. Normal
    *   content sources omit it and let namespaceFor resolve per file
    *   (manifest override, then top-level directory).
+   * @param options.defaultNs - Fallback namespace when no manifest declares
+   *   one, REPLACING the top-level-directory rule. This is what a mounted
+   *   single-collection source (content-sources.yaml) passes — its mount name
+   *   — so that files at the checkout root, and files in subdirectories,
+   *   resolve to the collection's namespace instead of an inner directory
+   *   name. Mirrors GitStorageProvider's repo-name fallback. Manifests still
+   *   override. Differs from `ns`: manifests and (absent a manifest) this
+   *   default both apply per file; `ns` short-circuits everything.
    */
-  constructor(baseDir = './content', mountPoint?: string, { ns }: { ns?: ContentNamespace } = {}) {
+  constructor(
+    baseDir = './content',
+    mountPoint?: string,
+    { ns, defaultNs }: { ns?: ContentNamespace; defaultNs?: string } = {},
+  ) {
     this.baseDir = path.resolve(baseDir);
     const mp = mountPoint ?? path.basename(this.baseDir);
     if (!mp || mp.startsWith('/') || mp.includes('\0') || mp.split('/').some(s => s === '..')) {
@@ -373,6 +386,7 @@ export class FileStorageProvider implements StorageProvider {
     }
     this.mountPoint = mp;
     this.ns = ns;
+    this.defaultNs = defaultNs;
   }
 
   /**
@@ -690,7 +704,24 @@ export class FileStorageProvider implements StorageProvider {
       if (atRoot) break;
     }
 
-    // 2. Directory fallback: the first path segment is the namespace.
+    // 2. Mount default (set by mounted single-collection sources): the mount
+    // name is the namespace, mirroring GitStorageProvider's repo-name
+    // fallback. Set only for named mounts (contentSources.ts); the shared
+    // ./content fallback leaves it unset and uses the directory rule below.
+    // This is what preserves namespaces when a "<dir>/..." collection moves
+    // out of ./content into its own checkout mounted at "<dir>".
+    if (this.defaultNs !== undefined) {
+      const valid = validateContentNamespace(this.defaultNs);
+      if (valid !== true) {
+        throw new NamespaceResolutionError(
+          `Mount default namespace "${this.defaultNs}" is invalid: ${valid}. ` +
+          `Rename the mount or add a manifest.yaml with an explicit "namespace:" field.`
+        );
+      }
+      return { ns: asContentNamespace(this.defaultNs) };
+    }
+
+    // 3. Directory fallback: the first path segment is the namespace.
     const sep = relPath.indexOf('/');
     if (sep < 0) {
       throw new NamespaceResolutionError(

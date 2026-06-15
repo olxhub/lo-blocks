@@ -144,6 +144,9 @@ describe('GitStorageProvider', () => {
     // Path is repo-relative — NOT stripped to "lesson2.olx".
     const result = await sub.read('unit2/lesson2.olx' as OlxRelativePath);
     expect(result.content).toContain('Part two');
+    // A read outside the configured subtree is denied, even though the whole
+    // repo is in memfs and lesson1.olx exists at the root (Finding 3).
+    await expect(sub.read('lesson1.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
   });
 
   it('accepts a list of subtrees and excludes the rest', async () => {
