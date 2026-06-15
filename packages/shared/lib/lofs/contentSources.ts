@@ -28,8 +28,16 @@
 //   fallback: ./content
 //
 // Without a config file, behavior is exactly the historical default: one
-// FileStorageProvider over ./content. Config is read once per process —
-// changing it requires a restart.
+// FileStorageProvider over ./content.
+//
+// The config is re-read on every contentProvider() call, and the connected-
+// source SET is assembled per call — deliberately NOT a process singleton,
+// because that set is heading toward dynamic and user-specific (config now;
+// postgres + dashboard "add repo" actions + forge repo-listing later). What
+// IS cached across calls is each expensive per-repo git clone, keyed by repo
+// identity (see gitSourceProvider below). Net effect today: adding a source takes
+// effect on the next sync without a restart; removing one needs a restart to
+// drop already-indexed content (the sync snapshot retains it).
 //
 // Namespaces are NOT declared here — each source declares its own, via
 // manifest.yaml at its root or the directory convention (namespaceFor).
@@ -39,6 +47,7 @@ import path from 'path';
 import { FileStorageProvider } from './providers/file';
 import { MountRouterProvider, type MountEntry } from './providers/mountRouter';
 import { registerAllowedContentDir } from './allowedDirs';
+import { memoize } from '../util/async';
 import type { StorageProvider } from '../types/storage';
 
 const DEFAULT_CONFIG_PATH = 'config/content-sources.yaml';
@@ -110,6 +119,46 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   };
 }
 
+// Live git provider instances, memoized by repo identity. A GitStorageProvider
+// holds an in-memory clone + head cache + cooldown; building one per request
+// (as contentProvider used to) re-cloned the repo every request — the cache
+// lived on the instance that was then discarded.
+//
+// Keyed by SOURCE (repo url + ref + normalized dir filter), NOT by the
+// assembled set: two contexts connected to the same repo should share its
+// clone (content is identity, not audience), and the connected-source set will
+// become dynamic and user-specific. So instances are memoized here and the set
+// is reassembled per call. No global "the content provider" singleton.
+//
+// memoize never caches a rejection (a failed construction retries) and has no
+// TTL yet. TODO(dynamic-sources): add an LRU/TTL cap when sources churn
+// (postgres-backed, per-user).
+const gitSourceProvider = memoize(
+  async (entry: RepoSource): Promise<StorageProvider> => {
+    // Dynamic import keeps isomorphic-git/memfs out of client bundles.
+    const { GitStorageProvider } = await import('./providers/git');
+    return new GitStorageProvider({
+      url: entry.repo,
+      ref: entry.branch ?? 'main',
+      dir: entry.dir,
+      cooldownMs: entry.cooldownSeconds !== undefined ? entry.cooldownSeconds * 1000 : undefined,
+    });
+  },
+  { keyOf: repoKey },
+);
+
+/** Stable memo key for a repo source. Normalizes `dir` (strip slashes, drop
+ *  empties, sort) so "psych", "/psych/", and ["psych"] — and lists in any
+ *  order — all map to one clone of the same served content. (Until the
+ *  config-type tightening lands, `dir` is still string | string[].) */
+function repoKey(entry: RepoSource): string {
+  const dirs = (Array.isArray(entry.dir) ? entry.dir : entry.dir == null ? [] : [entry.dir])
+    .map(d => d.replace(/^\/+|\/+$/g, ''))
+    .filter(Boolean)
+    .sort();
+  return `${entry.repo}|${entry.branch ?? 'main'}|${JSON.stringify(dirs)}`;
+}
+
 /**
  * Build the deployment's content provider from configuration.
  *
@@ -144,20 +193,10 @@ export async function contentProvider(): Promise<StorageProvider> {
         baseDir: path.resolve(entry),
       });
     } else {
-      // Repo form: served directly from the git remote, in memory.
-      // Dynamic import keeps isomorphic-git/memfs out of client bundles.
-      const { GitStorageProvider } = await import('./providers/git');
-      mounts.push({
-        mount,
-        provider: new GitStorageProvider({
-          url: entry.repo,
-          ref: entry.branch,
-          dir: entry.dir,
-          cooldownMs: entry.cooldownSeconds !== undefined ? entry.cooldownSeconds * 1000 : undefined,
-        }),
-        // No baseDir: nothing on disk; assets not yet served for repo
-        // sources (deferred — raw forge URLs or blob route later).
-      });
+      // Repo form: served directly from the git remote, in memory (cached by
+      // repo identity, see gitSourceProvider). No baseDir: nothing on disk;
+      // assets not yet served for repo sources (deferred — forge URLs / blob route).
+      mounts.push({ mount, provider: await gitSourceProvider(entry) });
     }
   }
 

@@ -130,6 +130,31 @@ describe('MountRouterProvider', () => {
     expect(idMap[asDefinitionKey('writing/w_essay')]).toBeDefined();
   });
 
+  // Failure isolation: one source failing to scan must not blank the index.
+  it('isolates a failing source — the rest of the index still loads', async () => {
+    const boom = {
+      loadXmlFilesWithStats: async () => { throw new Error('network down'); },
+      toRelativePath: () => { throw new Error('n/a'); },
+    } as any;
+    const isolated = new MountRouterProvider(
+      [
+        { mount: 'broken', provider: boom },
+        {
+          mount: 'psychology',
+          provider: new FileStorageProvider(path.join(base, 'psych-repo'), 'content/psychology'),
+          baseDir: path.join(base, 'psych-repo'),
+        },
+      ],
+      new FileStorageProvider(path.join(base, 'fallback'), 'content'),
+    );
+    // Does not throw despite the broken source...
+    const scan = await isolated.loadXmlFilesWithStats();
+    const refs = Object.keys({ ...scan.added, ...scan.changed, ...scan.unchanged });
+    // ...and the healthy mount + fallback still contribute.
+    expect(refs.some(r => r.startsWith('file:content/psychology://'))).toBe(true);
+    expect(refs.some(r => r.startsWith('file:content://demos/'))).toBe(true);
+  });
+
   // Finding 2: a stale ./content/<mount> copy in the fallback must not
   // double-index the same router path under a second ref.
   it('shadows fallback content that overlaps a mount prefix', async () => {

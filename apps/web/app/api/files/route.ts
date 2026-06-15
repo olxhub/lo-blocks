@@ -8,8 +8,7 @@
 import { contentProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
-// Configured content sources (content-sources.yaml; defaults to ./content).
-const providerPromise = contentProvider();
+// Provider resolved per request (re-reads config, caches git clones).
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -34,11 +33,11 @@ export async function GET(request: Request) {
   try {
     if (pattern) {
       // Glob mode - return array of matching files
-      const files = await (await providerPromise).glob(pattern, basePath);
+      const files = await (await contentProvider()).glob(pattern, basePath);
       return Response.json({ ok: true, files });
     } else {
       // Tree mode - return full file tree
-      const tree = await (await providerPromise).listFiles();
+      const tree = await (await contentProvider()).listFiles();
       return Response.json({ ok: true, tree });
     }
   } catch (err: any) {

@@ -57,8 +57,14 @@ import {
 } from '../../types/address';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../types/id-grammar';
 import { fileTypes } from '../fileTypes';
+import { withRetry, throttle, singleFlight, type RetryPolicy } from '../../util/async';
 
 const REPO_DIR = '/repo';
+
+// Retry transient git transport failures (network blips, a flaky forge). A
+// persistently failing remote is then backed off by the throttle in the
+// refresh gate, so this never storms a down host.
+const GIT_RETRY: RetryPolicy = { attempts: 3, baseMs: 200, maxMs: 2000 };
 
 export interface GitProviderOptions {
   /** Remote URL (https smart-HTTP; any forge or bare repo). */
@@ -90,11 +96,17 @@ export class GitStorageProvider implements StorageProvider {
 
   private vol = new Volume();
   private head: string | null = null;
-  private lastCheck = 0;
   /** repo-relative path → blob oid, for the current head. */
   private tree = new Map<string, TreeFile>();
-  /** Serialize refreshes — concurrent syncs must not race the re-clone. */
-  private refreshing: Promise<void> | null = null;
+  /** The refresh, gated by composed wrappers (outer→inner):
+   *   - throttle: ≤ one attempt per cooldown; caches the result (success OR
+   *     failure) for the window, so a down remote isn't re-hit every call.
+   *   - singleFlight: only ONE refresh runs at a time, independent of the
+   *     cooldown — refresh() mutates shared state (vol/head/tree), so a slow
+   *     refresh outlasting the cooldown must not race a second one.
+   *   - withRetry: retry transient blips within a single attempt.
+   *  Built here so it closes over the instance. */
+  private readonly refreshGate: () => Promise<void>;
 
   constructor({ url, ref = 'main', dir, cooldownMs = 60_000 }: GitProviderOptions) {
     this.url = url.replace(/\/$/, '');
@@ -103,6 +115,7 @@ export class GitStorageProvider implements StorageProvider {
       .map(d => d.replace(/^\/+|\/+$/g, ''))
       .filter(d => d !== '');  // "" and "/" both mean the whole repo → no filter
     this.cooldownMs = cooldownMs;
+    this.refreshGate = throttle(singleFlight(withRetry(() => this.refresh(), GIT_RETRY)), this.cooldownMs);
   }
 
   /** Is this repo-relative path within the served subtree(s)? */
@@ -129,11 +142,13 @@ export class GitStorageProvider implements StorageProvider {
     return match.oid;
   }
 
-  /** Clone the remote at the current head into a fresh volume. */
-  protected async cloneRemote(): Promise<void> {
-    this.vol = new Volume();
+  /** Clone the remote at the current head into a FRESH volume and return it.
+   *  Returns the volume (rather than assigning this.vol) so refresh() can swap
+   *  instance state atomically — a failed clone must not replace a good one. */
+  protected async cloneRemote(): Promise<Volume> {
+    const vol = new Volume();
     await git.clone({
-      fs: { promises: this.vol.promises } as any,
+      fs: { promises: vol.promises } as any,
       http,
       dir: REPO_DIR,
       url: this.url,
@@ -143,38 +158,43 @@ export class GitStorageProvider implements StorageProvider {
       noCheckout: true,
       noTags: true,
     });
+    return vol;
   }
 
-  /** Ensure the in-memory repo reflects the remote, within the cooldown. */
-  private async ensureFresh(): Promise<void> {
-    // Within cooldown and already loaded: serve what we have.
-    if (this.head && Date.now() - this.lastCheck < this.cooldownMs) return;
-    // Single-flight: concurrent callers share one refresh.
-    this.refreshing ??= this.refresh().finally(() => { this.refreshing = null; });
-    await this.refreshing;
+  /** Ensure the in-memory repo reflects the remote. Timing (one attempt per
+   *  cooldown), concurrent-call coalescing, transient-failure retry, and
+   *  down-remote backoff all live in refreshGate (see the field). */
+  private ensureFresh(): Promise<void> {
+    return this.refreshGate();
   }
 
   private async refresh(): Promise<void> {
     const remoteHead = await this.fetchRemoteHead();
-    this.lastCheck = Date.now();
     if (remoteHead === this.head) return;
 
-    await this.cloneRemote();
-    this.head = await git.resolveRef({
-      fs: { promises: this.vol.promises } as any,
+    // Build the new state in locals; commit to instance fields only after the
+    // whole refresh succeeds. A failed clone/walk then leaves the previous good
+    // vol/head/tree intact — and since this.head is unchanged, the next refresh
+    // retries instead of serving a half-built volume.
+    const nextVol = await this.cloneRemote();
+    const head = await git.resolveRef({
+      fs: { promises: nextVol.promises } as any,
       dir: REPO_DIR,
       ref: this.ref,
     });
-    this.tree = await this.walkTree();
+    const tree = await this.walkTree(nextVol, head);
+    this.vol = nextVol;
+    this.head = head;
+    this.tree = tree;
   }
 
-  /** Enumerate content files (path → blob oid) under contentDir at head. */
-  private async walkTree(): Promise<Map<string, TreeFile>> {
+  /** Enumerate content files (path → blob oid) under contentDir at `head`. */
+  private async walkTree(vol: Volume, head: string): Promise<Map<string, TreeFile>> {
     const files = new Map<string, TreeFile>();
     await git.walk({
-      fs: { promises: this.vol.promises } as any,
+      fs: { promises: vol.promises } as any,
       dir: REPO_DIR,
-      trees: [git.TREE({ ref: this.head! })],
+      trees: [git.TREE({ ref: head })],
       map: async (filepath, [entry]) => {
         if (!entry || filepath === '.') return;
         if ((await entry.type()) !== 'blob') return;
@@ -271,6 +291,11 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   async read(p: OlxRelativePath): Promise<ReadResult> {
+    // TODO(stale-read): ensureFresh throws if a head re-check fails within the
+    // cooldown, even when this.tree still holds the blob. A studio read during
+    // a transient remote blip would degrade more gracefully by serving the
+    // last-known content than by throwing. Safe as-is: the sync path tolerates
+    // it (mount-router isolation + snapshot retention).
     await this.ensureFresh();
     const relPath = this.guardPath(String(p).replace(/^\.?\//, ''));
     // Honor the configured subtree(s): a path outside `dir` is not served,

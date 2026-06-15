@@ -153,17 +153,41 @@ export class MountRouterProvider implements StorageProvider {
   // that fall under a mount prefix.
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const merged: XmlScanResult = { added: {}, changed: {}, unchanged: {}, deleted: {} };
+
+    // Failure isolation: one source failing to scan (network blip, bad branch,
+    // unreadable dir) must NOT blank the whole index. Skip the failed source
+    // and keep going. Its previously-parsed content persists — a file in
+    // `previous` that lands in no scan bucket is neither re-parsed nor removed
+    // by applyFileChanges — and it re-syncs once the source recovers.
+    //
+    // The failure is logged, not returned: XmlScanResult has no error channel,
+    // and the consumer that would surface "repo X is down" (a teacher/ops
+    // dashboard) doesn't exist yet. Wire structured surfacing when it does.
     for (const entry of this.mounts) {
-      const scan = await entry.provider.loadXmlFilesWithStats(previous);
+      let scan: XmlScanResult;
+      try {
+        scan = await entry.provider.loadXmlFilesWithStats(previous);
+      } catch (err) {
+        console.error(`[content-sync] source "${entry.mount}" failed to scan; keeping last-known content:`, err);
+        continue;
+      }
       Object.assign(merged.added, scan.added);
       Object.assign(merged.changed, scan.changed);
       Object.assign(merged.unchanged, scan.unchanged);
       Object.assign(merged.deleted, scan.deleted);
     }
-    const fb = await this.fallback.loadXmlFilesWithStats(previous);
-    for (const bucket of ['added', 'changed', 'unchanged', 'deleted'] as const) {
-      for (const [ref, info] of Object.entries(fb[bucket])) {
-        if (!this.shadowedByMount(ref as LofsRef)) merged[bucket][ref as LofsRef] = info;
+
+    let fb: XmlScanResult | null = null;
+    try {
+      fb = await this.fallback.loadXmlFilesWithStats(previous);
+    } catch (err) {
+      console.error('[content-sync] fallback source failed to scan; keeping last-known content:', err);
+    }
+    if (fb) {
+      for (const bucket of ['added', 'changed', 'unchanged', 'deleted'] as const) {
+        for (const [ref, info] of Object.entries(fb[bucket])) {
+          if (!this.shadowedByMount(ref as LofsRef)) merged[bucket][ref as LofsRef] = info;
+        }
       }
     }
     return merged;

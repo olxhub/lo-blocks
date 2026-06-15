@@ -51,9 +51,9 @@ class LocalGitProvider extends GitStorageProvider {
     return git.resolveRef({ ...this.gitOpts, ref: this.ref });
   }
 
-  protected async cloneRemote(): Promise<void> {
+  protected async cloneRemote(): Promise<Volume> {
     // Share the local repo's object store directly.
-    (this as any).vol = this.repoVol;
+    return this.repoVol;
   }
 }
 
@@ -110,6 +110,25 @@ describe('GitStorageProvider', () => {
       `${URL}://unit2/lesson2.olx`,
     ]);
     expect(Object.keys(second.deleted)).toEqual([]);
+  });
+
+  it('single-flights concurrent refreshes regardless of cooldown', async () => {
+    // cooldownMs:0 disables throttle coalescing, so only the singleFlight layer
+    // prevents a second (state-mutating) refresh while the first is in flight.
+    // Concurrent scans must therefore share ONE refresh — without single-flight
+    // they would each clone into and swap this.vol, racing the shared state.
+    const concurrent = new LocalGitProvider({ url: URL, ref: 'main', cooldownMs: 0 });
+    concurrent.repoVol = provider.repoVol;
+    const [a, b, c] = await Promise.all([
+      concurrent.loadXmlFilesWithStats(),
+      concurrent.loadXmlFilesWithStats(),
+      concurrent.loadXmlFilesWithStats(),
+    ]);
+    expect(concurrent.headChecks).toBe(1);
+    // All three saw the same fully-built tree.
+    expect(Object.keys(a.added)).toEqual(Object.keys(b.added));
+    expect(Object.keys(b.added)).toEqual(Object.keys(c.added));
+    expect(Object.keys(a.added).length).toBeGreaterThan(0);
   });
 
   it('respects the cooldown between remote head checks', async () => {
