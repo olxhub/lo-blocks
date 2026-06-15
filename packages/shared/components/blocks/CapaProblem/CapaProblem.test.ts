@@ -4,7 +4,9 @@
 // Render tests are covered by demo-render.test.js which tests all .olx files.
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { parseOLX } from '@/lib/content/parseOLX';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { toMemoryRef } from '@/lib/types/storage';
 import { getOlxJson, TEST_NS, testKey } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';
 
@@ -52,4 +54,22 @@ it('auto-wires grader target from nested inputs', async () => {
   // The post-parse grader validation in parseOLX qualifies these for idMap lookup —
   // if we stored DefinitionKeys here, they'd get double-qualified to CONTENT/CONTENT/...
   expect(grader.attributes.target).toBe('CapaProblemDemo_input_0');
+});
+
+it('accepts and preserves the submitLabel button override', async () => {
+  // submitLabel overrides the footer's computed Check/Submit label. The strict
+  // attribute schema must accept it, and the parser must keep it on the node so
+  // _CapaProblem can forward it to CapaFooter's `label`.
+  const xml = `<CapaProblem id="q" title="Capital" submitLabel="Verify">
+    <KeyGrader>
+      <ChoiceInput>
+        <Key>Paris</Key>
+        <Distractor>Lyon</Distractor>
+      </ChoiceInput>
+    </KeyGrader>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  expect(getOlxJson(idMap, 'q')?.attributes.submitLabel).toBe('Verify');
 });

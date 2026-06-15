@@ -188,6 +188,7 @@ const CapaProblem = dev({
   attributes: z.object({
     ...problemAttributes.shape,
     displayName: z.string().optional().describe('Display name for the problem'),
+    submitLabel: z.string().optional().describe('Override the check/submit button label (e.g. "Verify", "Answer", "Done", "OK")'),
   }).strict(),
 });
 

@@ -259,6 +259,8 @@ export default function _CapaProblem(props: RuntimeProps) {
     id: `${id}_footer_controls`,
     target: childGraderIds.join(','),
     hintsTarget: hintsId,
+    // Author override for the button label; falls back to computed Check/Submit.
+    label: props.submitLabel,
     // Problem mode settings
     maxAttempts: props.maxAttempts,
     showanswer: props.showanswer,
