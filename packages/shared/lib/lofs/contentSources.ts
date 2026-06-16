@@ -23,6 +23,8 @@
 //       branch: main          # optional (default main)
 //       dir: psychology       # optional content subdir within the repo
 //       cooldownSeconds: 60   # optional remote head-check throttle
+//       tokenEnv: GITHUB_TOKEN # optional; env var with a PAT for private
+//                              # reads and pushes (writes)
 //   # Everything else (baseline demos, transitional content). Optional;
 //   # defaults to ./content (or $OLX_CONTENT_DIR).
 //   fallback: ./content
@@ -61,6 +63,10 @@ export interface RepoSource {
   /** Subtree(s) within the repo to serve (default: whole repo). String or list. */
   dir?: string | string[];
   cooldownSeconds?: number;
+  /** Name of the env var holding an access token (e.g. a GitHub PAT) for
+   *  private reads and pushes. The token stays out of the config file and the
+   *  repo. Omit for public, read-only repos. Changing it needs a restart. */
+  tokenEnv?: string;
 }
 
 export interface ContentSourcesConfig {
@@ -137,11 +143,18 @@ const gitSourceProvider = memoize(
   async (entry: RepoSource): Promise<StorageProvider> => {
     // Dynamic import keeps isomorphic-git/memfs out of client bundles.
     const { GitStorageProvider } = await import('./providers/git');
+    // Token resolved once at construction from the named env var. A
+    // deploy-level service token today (GitHub PAT); per-user OAuth later
+    // moves credentials to write time (the shared instance can't hold a
+    // per-user token). Anonymous when no tokenEnv / unset var → public reads.
+    const token = entry.tokenEnv ? process.env[entry.tokenEnv] : undefined;
     return new GitStorageProvider({
       url: entry.repo,
       ref: entry.branch ?? 'main',
       dir: entry.dir,
       cooldownMs: entry.cooldownSeconds !== undefined ? entry.cooldownSeconds * 1000 : undefined,
+      // GitHub PATs authenticate as the token in the username field.
+      auth: token ? () => ({ username: token, password: 'x-oauth-basic' }) : undefined,
     });
   },
   { keyOf: repoKey },

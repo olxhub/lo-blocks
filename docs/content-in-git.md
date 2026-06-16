@@ -133,40 +133,63 @@ managed on-disk clone:
 * Namespace = repo manifest, else the repo name (`defaultNamespace(url)`) —
   NO directory-name fallback (that's a filesystem-provider concept; a git
   repo's identity is its URL). Manifests override for multi-collection repos.
-* Read-only: writes throw. Committing back is the write path below.
 
 Validated live against `github.com/olxhub/edu.memphis.psych`: 2039 blocks,
 SHA-versioned provenance, manifest-derived namespace.
 
-### Layer 1 — server-managed git on one repo (write path)
+### Git write path ✅ (provider layer implemented)
 
-Teacher edits become commits. Still one content repo; no forge complexity.
+`GitStorageProvider.write/update/delete/rename` now commit-and-push, in
+memory, no working tree. Design decisions, captured:
 
-* **Write path**: `/api/file` POST → write to the managed clone → `git add
-  + commit` with teacher attribution. Commit message conventions carry the
-  edit context (file, studio vs MCP tool, session). Every save being a
-  commit is the simplest correct policy; squash/debounce is an optimization
-  to add only if history noise becomes a real complaint (revert UX prefers
-  fine-grained).
-* **Versioning maps onto existing types.** `LofsCanonical`'s `#version`
-  becomes the commit hash (the address design anticipated exactly this:
-  `repo.git://hw1.olx#3f41866`). `ReadResult.metadata` carries the blob/
-  commit; the studio's existing optimistic-concurrency check
-  (`previousMetadata` + `VersionConflictError` → HTTP 409) maps onto
-  "expected parent commit" — same UX, stronger guarantee.
-* **GitStorageProvider shape**: a thin layer over `FileStorageProvider` on
-  the working clone — reads, scans, `namespaceFor` all inherit; it adds
-  commit-on-write, pull/push, and version stamping. Use system git via
-  subprocess (battle-tested, LFS-capable) behind a small interface;
-  serialize mutations per-repo with a simple lock (one server process
-  writes a given clone).
-* **Sync triggers**: on-demand pull before scan (cheap if up to date),
-  plus optional webhook/poll for external pushes. The manifest-invalidation
-  and scan machinery from the namespace work applies unchanged — a pull is
-  just files changing under the provider.
-* **History UX for teachers**: "Saved versions" = `git log -- <file>`
-  filtered to attribution; "restore" = checkout of an old blob committed as
-  a new save. No git vocabulary in the UI.
+* **Commit by tree plumbing, not a checkout.** A write does
+  `writeBlob` → rebuild the touched tree path with `writeTree` from the
+  current commit's tree → `commit({ tree, parent: [head] })` → `push`. The
+  clone stays `noCheckout` (read efficiency preserved); no index/working
+  copy to materialize. Decision driver: keeps the read and write paths on
+  one shallow in-memory clone, and `commit({tree,parent})` is supported by
+  isomorphic-git.
+* **The platform commits on the teacher's behalf.** Commit *author* = the
+  teacher (`WriteOptions.author`, from `CurrentUser`); *committer* = the
+  platform identity. Author rides **per-write**, not per-provider, because
+  one provider instance is shared across users (the contentSources
+  memoization). This is the "account-less teachers" model: no teacher git
+  identity required, attribution still real.
+* **Two-layer conflict detection.** Optimistic: the blob oid the editor
+  read (`ReadResult.metadata.oid`, passed back as `previousMetadata`) must
+  still be current, else `VersionConflictError`. Authoritative: a
+  non-fast-forward push is rejected → `VersionConflictError`. Both map to
+  the studio's existing 409 path. `LofsCanonical#version` already carries
+  the blob SHA, exactly as the address design anticipated.
+* **Writes are serialized per provider** (`writeLock`): concurrent writes
+  to different files must not both fork a commit from the same head and then
+  collide at push.
+* **Auth via an injected resolver** (`GitProviderOptions.auth` →
+  isomorphic-git `onAuth`), threaded into listServerRefs / clone / push —
+  this is what enables private-repo reads AND pushes. Config:
+  `tokenEnv: <ENV_VAR>` on a repo source names the env var holding the
+  token (a GitHub PAT — isomorphic-git has no SSH yet), keeping it out of
+  files and the repo. The token is deploy-level (one service identity);
+  `--author` distinguishes teachers. **When per-user OAuth lands**, push
+  credentials become per-write (the writing teacher's token), resolved at
+  write time — the shared instance cannot hold a per-user token. Reads stay
+  deploy-level (audience-independent).
+
+**Not yet wired (needs deploy/UX decisions):**
+
+* **`/api/file` POST → author threading.** The route must pass
+  `WriteOptions.author` from the authenticated `CurrentUser`
+  (`safe_user_id` → a `name`/`email`; convention TBD, e.g.
+  `mchen@users.<deployment-domain>`). Until then writes commit under the
+  platform identity.
+* **Token deployment.** A repo a teacher can edit needs `tokenEnv` set and
+  the PAT present in that env var, with push rights. Private-repo *reads*
+  use the same mechanism (so this also unblocks them).
+* **History UX**: "Saved versions" = `git log -- <file>`; "restore" =
+  commit an old blob as a new save. No git vocabulary in the UI. (Provider
+  exposes the SHAs; the dashboard view doesn't exist yet.)
+* **Sync after external pushes**: cooldown re-check picks up others' commits
+  already; a webhook/poll for instant pickup is optional.
 
 ### Layer 2 — many repos
 

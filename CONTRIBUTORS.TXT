@@ -41,5 +41,23 @@ Everyone who contributed to this system holds copyright to portions of
 the platform, mutually cross-licensed under the AGPL.
 
 Please be mindful of the license. One organization has already had
-their rights under the AGPL revoked due to a pattern of egregious and
-wilful violations, continuing after notice.
+their rights under the AGPL revoked due to a pattern of egregious,
+wilful, and ongoing license violations, as of this writing, months
+after notice.
+
+AI development assistance
+=========================
+
+Development of this platform has included substantial assistance
+from AI coding systems, under human design direction, review, and
+integration.
+
+- **Claude (Anthropic)** -- rapidly translating architectures
+    developed over decades into code (plus a thought partner and code
+    review)
+- **Codex (OpenAI)** -- some implementation; substantial code review.
+- **Kimi (Moonshot AI)** -- code review over roughly one month.
+
+In essence, human-machine collaboration, in essense, allowed
+design blueprints from the past two decades to be implemented in
+a matter of months.

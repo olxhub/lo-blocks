@@ -12,6 +12,7 @@ import { Volume } from 'memfs';
 import { GitStorageProvider, type GitProviderOptions } from './git';
 import { syncContentFromStorage } from '../../content/syncContentFromStorage';
 import { asDefinitionKey } from '../../types/id-grammar';
+import { VersionConflictError } from '../../types/storage';
 import type { OlxRelativePath } from '../../types';
 
 const REPO_DIR = '/repo';
@@ -55,6 +56,11 @@ class LocalGitProvider extends GitStorageProvider {
     // Share the local repo's object store directly.
     return this.repoVol;
   }
+
+  // The "remote" IS repoVol, and commitChange already wrote the commit + moved
+  // the branch ref there — so push is a no-op. (Push rejection is exercised
+  // separately by overriding this to throw.)
+  protected async pushRemote(): Promise<void> {}
 }
 
 describe('GitStorageProvider', () => {
@@ -150,9 +156,122 @@ describe('GitStorageProvider', () => {
     expect(String(olx.manifest)).toMatch(/manifest\.yaml#[0-9a-f]{40}$/);
   });
 
-  it('is read-only', async () => {
-    await expect(provider.write('new.olx' as OlxRelativePath, '<X/>'))
-      .rejects.toThrow(/read-only/);
+  // --- Writes (commit-on-write) -----------------------------------------
+
+  // A fresh repo per write test, so commits don't perturb the shared `provider`.
+  async function writableRepo(opts: Partial<GitProviderOptions> = {}) {
+    const w = new LocalGitProvider({ url: URL, ref: 'main', cooldownMs: 0, ...opts });
+    await w.initRepo();
+    await w.commitFiles({
+      'manifest.yaml': 'namespace: gitcourse\n',
+      'a.olx': '<Markdown id="a">v1</Markdown>',
+    }, 'init');
+    return w;
+  }
+
+  /** The repo's current branch head, read straight from the in-memory store. */
+  async function headCommit(w: LocalGitProvider) {
+    const fs = { promises: w.repoVol.promises } as any;
+    const head = await git.resolveRef({ fs, dir: REPO_DIR, ref: 'main' });
+    return (await git.readCommit({ fs, dir: REPO_DIR, oid: head })).commit;
+  }
+
+  it('write commits with the given author and platform committer', async () => {
+    const w = await writableRepo();
+    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>', {
+      author: { name: 'Maggie Chen', email: 'mchen@example.edu' },
+      message: 'Edit a.olx',
+    });
+
+    const commit = await headCommit(w);
+    expect(commit.message.trim()).toBe('Edit a.olx');
+    expect(commit.author.name).toBe('Maggie Chen');       // the teacher
+    expect(commit.committer.name).toBe('Learning Observer'); // platform identity
+
+    // The provider serves the new content immediately (no re-clone needed).
+    expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v2');
+  });
+
+  it('write of a new nested path builds the intermediate trees', async () => {
+    const w = await writableRepo();
+    await w.write('unit3/deep/lesson.olx' as OlxRelativePath, '<Markdown id="d">deep</Markdown>');
+    expect((await w.read('unit3/deep/lesson.olx' as OlxRelativePath)).content).toContain('deep');
+    // Sibling untouched.
+    expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v1');
+  });
+
+  it('delete removes a file via a commit', async () => {
+    const w = await writableRepo();
+    await w.delete('a.olx' as OlxRelativePath);
+    await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    await expect(w.delete('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+  });
+
+  it('rename moves content in a single commit', async () => {
+    const w = await writableRepo();
+    await w.rename('a.olx' as OlxRelativePath, 'b.olx' as OlxRelativePath);
+    expect((await w.read('b.olx' as OlxRelativePath)).content).toContain('v1');
+    await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    // One commit for the move (parent is the pre-rename head).
+    const commit = await headCommit(w);
+    expect(commit.message).toMatch(/Rename a\.olx → b\.olx/);
+  });
+
+  it('rejects a stale write (optimistic conflict), unless forced', async () => {
+    const w = await writableRepo();
+    const before = await w.read('a.olx' as OlxRelativePath);  // captures the v1 blob oid
+    // Someone else edits the same path out-of-band.
+    await w.commitFiles({ 'a.olx': '<Markdown id="a">v2 external</Markdown>' }, 'external edit');
+
+    await expect(
+      w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v3 mine</Markdown>', { previousMetadata: before.metadata }),
+    ).rejects.toThrow(VersionConflictError);
+
+    // force overrides the optimistic check.
+    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v3 forced</Markdown>', {
+      previousMetadata: before.metadata, force: true,
+    });
+    expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v3 forced');
+  });
+
+  it('surfaces a rejected push as a VersionConflictError', async () => {
+    class RejectingPush extends LocalGitProvider {
+      protected async pushRemote(): Promise<void> {
+        const err: any = new Error('not a simple fast-forward');
+        err.code = 'PushRejectedError';
+        throw err;
+      }
+    }
+    const w = new RejectingPush({ url: URL, ref: 'main', cooldownMs: 0 });
+    await w.initRepo();
+    await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
+    await expect(w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>'))
+      .rejects.toThrow(VersionConflictError);
+  });
+
+  it('refuses to write outside the served subtree', async () => {
+    const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
+    sub.repoVol = provider.repoVol;  // shared main repo (unit2/, manifest, lesson1)
+    await expect(sub.write('lesson1.olx' as OlxRelativePath, '<X/>'))
+      .rejects.toThrow(/outside the served subtree/);
+  });
+
+  it('passes resolved credentials to the transport via onAuth', async () => {
+    const seen: any[] = [];
+    class AuthSpy extends LocalGitProvider {
+      protected async fetchRemoteHead(): Promise<string> {
+        seen.push(await (this as any).onAuth());
+        return super.fetchRemoteHead();
+      }
+    }
+    const w = new AuthSpy({
+      url: URL, ref: 'main', cooldownMs: 0,
+      auth: () => ({ username: 'ghp_testtoken', password: 'x-oauth-basic' }),
+    });
+    await w.initRepo();
+    await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
+    await w.loadXmlFilesWithStats();
+    expect(seen[0]).toEqual({ username: 'ghp_testtoken', password: 'x-oauth-basic' });
   });
 
   it('serves only the listed subtree, paths repo-relative (no stripping)', async () => {
