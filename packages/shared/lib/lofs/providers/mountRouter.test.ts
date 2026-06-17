@@ -9,7 +9,8 @@ import { MountRouterProvider } from './mountRouter';
 import { FileStorageProvider } from './file';
 import { syncContentFromStorage } from '../../content/syncContentFromStorage';
 import { asDefinitionKey } from '../../types/id-grammar';
-import type { OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { XmlFileInfo } from '../../types/storage';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
@@ -153,6 +154,97 @@ describe('MountRouterProvider', () => {
     // ...and the healthy mount + fallback still contribute.
     expect(refs.some(r => r.startsWith('file:content/psychology://'))).toBe(true);
     expect(refs.some(r => r.startsWith('file:content://demos/'))).toBe(true);
+  });
+
+  // Ownership reconciliation: a fallback ref from a prior snapshot whose router
+  // path now falls under a mounted source must be retired. If the mounted
+  // replacement is already in the snapshot and scans as unchanged, the router
+  // must promote it to changed so applyFileChanges removes the old owner and
+  // reparses the mounted owner in the same cycle.
+  it('retires stale fallback refs and promotes unchanged mounted replacements', async () => {
+    const mount = 'migration';
+    const fallbackDir = path.join(base, 'fallback', mount);
+    const mountDir = path.join(base, 'migration-repo');
+    try {
+      await fs.mkdir(fallbackDir, { recursive: true });
+      await fs.writeFile(path.join(fallbackDir, 'manifest.yaml'), 'namespace: mig\n');
+      await fs.writeFile(path.join(fallbackDir, 'handoff.olx'), '<Markdown id="handoff">fallback</Markdown>');
+
+      await fs.mkdir(mountDir, { recursive: true });
+      await fs.writeFile(path.join(mountDir, 'manifest.yaml'), 'namespace: mig\n');
+      await fs.writeFile(path.join(mountDir, 'handoff.olx'), '<Markdown id="handoff">mounted</Markdown>');
+
+      const fallback = new FileStorageProvider(path.join(base, 'fallback'), 'content');
+      const mountProvider = new FileStorageProvider(mountDir, `content/${mount}`);
+      const fallbackRef = fallback.toLofsRef(`${mount}/handoff.olx` as SafeRelativePath);
+      const mountRef = mountProvider.toLofsRef('handoff.olx' as SafeRelativePath);
+
+      const fallbackFirst = await fallback.loadXmlFilesWithStats();
+      const mountFirst = await mountProvider.loadXmlFilesWithStats();
+      const fallbackInfo = fallbackFirst.added[fallbackRef];
+      const mountInfo = mountFirst.added[mountRef];
+      expect(fallbackInfo).toBeDefined();
+      expect(mountInfo).toBeDefined();
+
+      const previous: Record<LofsRef, XmlFileInfo> = {
+        [fallbackRef]: fallbackInfo,
+        [mountRef]: mountInfo,
+      };
+      const routerWithPreviousMountedRef = new MountRouterProvider(
+        [{ mount, provider: mountProvider, baseDir: mountDir }],
+        fallback,
+      );
+
+      const scan = await routerWithPreviousMountedRef.loadXmlFilesWithStats(previous);
+
+      expect(scan.deleted[fallbackRef]).toBe(fallbackInfo);
+      expect(scan.changed[mountRef]).toBe(mountInfo);
+      expect(scan.unchanged[mountRef]).toBeUndefined();
+      expect(scan.added[mountRef]).toBeUndefined();
+      expect(scan.added[fallbackRef]).toBeUndefined();
+      expect(scan.changed[fallbackRef]).toBeUndefined();
+      expect(scan.unchanged[fallbackRef]).toBeUndefined();
+    } finally {
+      await fs.rm(fallbackDir, { recursive: true, force: true });
+      await fs.rm(mountDir, { recursive: true, force: true });
+    }
+  });
+
+  // Failure isolation must NOT reconcile refs under a mount that failed to scan.
+  // The stale fallback ref should be kept (not retired) because the mount's
+  // scan failure means we can't confirm the mount owns the content.
+  it('does not retire fallback refs under a mount that failed to scan', async () => {
+    const mount = 'broken';
+    const fallbackDir = path.join(base, 'fallback', mount);
+    try {
+      await fs.mkdir(fallbackDir, { recursive: true });
+      await fs.writeFile(path.join(fallbackDir, 'manifest.yaml'), 'namespace: brk\n');
+      await fs.writeFile(path.join(fallbackDir, 'safe.olx'), '<Markdown id="keep_me">safe</Markdown>');
+
+      const fallback = new FileStorageProvider(path.join(base, 'fallback'), 'content');
+      const fallbackRef = fallback.toLofsRef(`${mount}/safe.olx` as SafeRelativePath);
+      const fallbackFirst = await fallback.loadXmlFilesWithStats();
+      const fallbackInfo = fallbackFirst.added[fallbackRef];
+      expect(fallbackInfo).toBeDefined();
+
+      const boom = {
+        loadXmlFilesWithStats: async () => { throw new Error('network down'); },
+        toRelativePath: () => { throw new Error('n/a'); },
+        toLofsRef: () => { throw new Error('n/a'); },
+      } as any;
+      const withBrokenMount = new MountRouterProvider(
+        [{ mount, provider: boom }],
+        fallback,
+      );
+      const scan = await withBrokenMount.loadXmlFilesWithStats({ [fallbackRef]: fallbackInfo });
+
+      expect(scan.deleted[fallbackRef]).toBeUndefined();
+      expect(scan.added[fallbackRef]).toBeUndefined();
+      expect(scan.changed[fallbackRef]).toBeUndefined();
+      expect(scan.unchanged[fallbackRef]).toBeUndefined();
+    } finally {
+      await fs.rm(fallbackDir, { recursive: true, force: true });
+    }
   });
 
   // Finding 2: a stale ./content/<mount> copy in the fallback must not

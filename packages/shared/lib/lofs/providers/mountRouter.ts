@@ -46,17 +46,18 @@ export interface MountEntry {
 export class MountRouterProvider implements StorageProvider {
   readonly mounts: MountEntry[];
   readonly fallback: StorageProvider;
+  private readonly mountMap: Map<string, MountEntry>;
 
   constructor(mounts: MountEntry[], fallback: StorageProvider) {
-    const seen = new Set<string>();
-    for (const { mount } of mounts) {
-      if (!mount || mount.includes('/')) {
-        throw new Error(`Mount names must be single path segments: "${mount}"`);
+    this.mountMap = new Map();
+    for (const entry of mounts) {
+      if (!entry.mount || entry.mount.includes('/')) {
+        throw new Error(`Mount names must be single path segments: "${entry.mount}"`);
       }
-      if (seen.has(mount)) {
-        throw new Error(`Duplicate mount: "${mount}"`);
+      if (this.mountMap.has(entry.mount)) {
+        throw new Error(`Duplicate mount: "${entry.mount}"`);
       }
-      seen.add(mount);
+      this.mountMap.set(entry.mount, entry);
     }
     this.mounts = mounts;
     this.fallback = fallback;
@@ -66,7 +67,7 @@ export class MountRouterProvider implements StorageProvider {
   private route(p: string): { provider: StorageProvider; rest: string } {
     const sep = p.indexOf('/');
     const head = sep < 0 ? p : p.slice(0, sep);
-    const entry = this.mounts.find(m => m.mount === head);
+    const entry = this.mountMap.get(head);
     if (entry) {
       return { provider: entry.provider, rest: sep < 0 ? '' : p.slice(sep + 1) };
     }
@@ -153,6 +154,7 @@ export class MountRouterProvider implements StorageProvider {
   // that fall under a mount prefix.
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     const merged: XmlScanResult = { added: {}, changed: {}, unchanged: {}, deleted: {} };
+    const successfulMounts = new Set<string>();
 
     // Failure isolation: one source failing to scan (network blip, bad branch,
     // unreadable dir) must NOT blank the whole index. Skip the failed source
@@ -167,6 +169,7 @@ export class MountRouterProvider implements StorageProvider {
       let scan: XmlScanResult;
       try {
         scan = await entry.provider.loadXmlFilesWithStats(previous);
+        successfulMounts.add(entry.mount);
       } catch (err) {
         console.error(`[content-sync] source "${entry.mount}" failed to scan; keeping last-known content:`, err);
         continue;
@@ -190,7 +193,66 @@ export class MountRouterProvider implements StorageProvider {
         }
       }
     }
+
+    // Ownership reconciliation: previous refs parsed from the fallback whose
+    // router path now falls under a successfully scanned mount must be retired.
+    // Without this, the shadow filter suppresses the fallback scan's report of
+    // these refs, they land in no scan bucket, and applyFileChanges keeps the
+    // stale fallback-sourced blocks indefinitely. See docs/content-in-git.md.
+    this.reconcileRetiredFallbackRefs(previous, successfulMounts, merged);
+
     return merged;
+  }
+
+  /**
+   * Retire fallback refs whose router path now falls under a successfully
+   * scanned mount. For each retired ref:
+   *
+   * 1. Inject into `deleted` so applyFileChanges removes its blocks.
+   * 2. If the mounted replacement is in `unchanged`, promote it to `changed`
+   *    so it's reparsed in the same sync cycle — otherwise the block vanishes
+   *    (the old source is removed but the new one isn't reparsed).
+   *
+   * Mounts that failed to scan are skipped — "missing from scan" means
+   * failure isolation, not ownership transfer.
+   */
+  private reconcileRetiredFallbackRefs(
+    previous: Record<LofsRef, XmlFileInfo>,
+    successfulMounts: Set<string>,
+    merged: XmlScanResult,
+  ): void {
+    for (const [refStr, info] of Object.entries(previous)) {
+      const ref = refStr as LofsRef;
+      // Is this a fallback ref?
+      let rel: string;
+      try { rel = String(this.fallback.toRelativePath(ref)); }
+      catch { continue; }
+      // Does its router path fall under a successfully scanned mount?
+      const sep = rel.indexOf('/');
+      const head = sep < 0 ? rel : rel.slice(0, sep);
+      if (!successfulMounts.has(head)) continue;
+      // Already accounted for in a scan bucket? (Defensive — the shadow filter
+      // should suppress these, but don't inject a duplicate deletion.)
+      if (ref in merged.added || ref in merged.changed ||
+          ref in merged.unchanged || ref in merged.deleted) continue;
+      // Retire: tell applyFileChanges to remove the old fallback-sourced blocks.
+      merged.deleted[ref] = info;
+      // Promote the mounted replacement from unchanged → changed so it's
+      // reparsed in the same cycle. If it's already in added or changed, the
+      // reparse happens anyway — only unchanged needs promotion.
+      const rest = sep < 0 ? '' : rel.slice(sep + 1);
+      if (!rest) continue;  // no subpath → no corresponding mount file
+      const mountEntry = this.mountMap.get(head);
+      if (!mountEntry) continue;
+      try {
+        const mountRef = mountEntry.provider.toLofsRef(rest as SafeRelativePath);
+        const mountRefStr = String(mountRef) as LofsRef;
+        if (mountRefStr in merged.unchanged) {
+          merged.changed[mountRefStr] = merged.unchanged[mountRefStr];
+          delete merged.unchanged[mountRefStr];
+        }
+      } catch { /* mount provider can't construct this ref — skip promotion */ }
+    }
   }
 
   /** Does a fallback ref's router path fall under a mount prefix? */
@@ -205,7 +267,7 @@ export class MountRouterProvider implements StorageProvider {
   private pathHeadIsMount(p: string): boolean {
     const sep = p.indexOf('/');
     const head = sep < 0 ? p : p.slice(0, sep);
-    return this.mounts.some(m => m.mount === head);
+    return this.mountMap.has(head);
   }
 
   async listFiles(selection: FileSelection = {}): Promise<UriNode> {

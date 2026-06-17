@@ -18,7 +18,8 @@ export async function GET(request) {
   }
 
   try {
-    const result = await (await contentProvider()).read(validation.relativePath);
+    const provider = await contentProvider();
+    const result = await provider.read(validation.relativePath);
     return Response.json({ ok: true, content: result.content, metadata: result.metadata, ns: result.ns });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
@@ -42,7 +43,8 @@ export async function POST(request) {
   }
 
   try {
-    await (await contentProvider()).write(validation.relativePath, content, { previousMetadata, force });
+    const provider = await contentProvider();
+    await provider.write(validation.relativePath, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
     // Handle version conflict specially
@@ -70,7 +72,8 @@ export async function DELETE(request) {
   }
 
   try {
-    await (await contentProvider()).delete(validation.relativePath);
+    const provider = await contentProvider();
+    await provider.delete(validation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');
@@ -95,7 +98,8 @@ export async function PUT(request) {
   }
 
   try {
-    await (await contentProvider()).rename(srcValidation.relativePath, dstValidation.relativePath);
+    const provider = await contentProvider();
+    await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
     const isNotFound = err.code === 'ENOENT' || err.message?.includes('not found');

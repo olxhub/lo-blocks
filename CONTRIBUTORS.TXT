@@ -58,6 +58,6 @@ integration.
 - **Codex (OpenAI)** -- some implementation; substantial code review.
 - **Kimi (Moonshot AI)** -- code review over roughly one month.
 
-In essence, human-machine collaboration, in essense, allowed
+In essence, human-machine collaboration allowed
 design blueprints from the past two decades to be implemented in
 a matter of months.

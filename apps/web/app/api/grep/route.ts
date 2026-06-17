@@ -56,7 +56,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const matches = await (await contentProvider()).grep(pattern, { basePath, include, limit });
+    const provider = await contentProvider();
+    const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {
     console.error(`[API /grep] ${err.message}`);

@@ -322,9 +322,10 @@ export class GitStorageProvider implements StorageProvider {
     const found = new Set<string>();
 
     for (const [relPath, { oid }] of this.tree) {
-      const key = String(this.toRef(relPath));
+      const ref = this.toRef(relPath);
+      const key = String(ref);
       found.add(key);
-      const id = toLofsCanonical(withVersion(brandLofsRef(key), toLofsVersion(oid)));
+      const id = toLofsCanonical(withVersion(ref, toLofsVersion(oid)));
       const ext = getExtension(relPath) || relPath.split('.').pop() || '';
       const type = (fileTypes as any)[ext] ?? ext;
       const prev = mine[key];

@@ -31,13 +31,14 @@ export async function GET(request: Request) {
   }
 
   try {
+    const provider = await contentProvider();
     if (pattern) {
       // Glob mode - return array of matching files
-      const files = await (await contentProvider()).glob(pattern, basePath);
+      const files = await provider.glob(pattern, basePath);
       return Response.json({ ok: true, files });
     } else {
       // Tree mode - return full file tree
-      const tree = await (await contentProvider()).listFiles();
+      const tree = await provider.listFiles();
       return Response.json({ ok: true, tree });
     }
   } catch (err: any) {
