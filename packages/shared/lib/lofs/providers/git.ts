@@ -94,6 +94,17 @@ const GIT_RETRY: RetryPolicy = { attempts: 3, baseMs: 200, maxMs: 2000 };
  *  Also the author fallback when a write supplies none. */
 const PLATFORM_IDENTITY = { name: 'Learning Observer', email: 'noreply@learning-observer.org' };
 
+/** Strip a leading "./" or "/" so a client path becomes repo-relative. */
+function stripLeadingSlash(p: string): string {
+  return p.replace(/^\.?\//, '');
+}
+
+/** Normalize a basePath into a clean directory prefix ("a/b/"), or "" for no
+ *  filter. Strips a leading "./" or "/" and ensures a single trailing slash. */
+function basePrefix(basePath?: OlxRelativePath): string {
+  return basePath ? stripLeadingSlash(String(basePath)).replace(/\/$/, '') + '/' : '';
+}
+
 /** isomorphic-git onAuth return shape (subset we use). */
 export type GitCredentials = { username?: string; password?: string; headers?: Record<string, string> };
 
@@ -379,7 +390,7 @@ export class GitStorageProvider implements StorageProvider {
     // it (mount-router isolation + snapshot retention).
     await this.ensureFresh();
     const s = this.requireState();
-    const relPath = this.guardPath(String(p).replace(/^\.?\//, ''));
+    const relPath = this.guardPath(stripLeadingSlash(String(p)));
     // Honor the configured subtree(s): a path outside `dir` is not served,
     // even though the whole repo is in memfs. Scan/glob/grep already filter
     // via included(); the direct-blob fallback below must too, or a read
@@ -491,7 +502,7 @@ export class GitStorageProvider implements StorageProvider {
   async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     await this.ensureFresh();
     const s = this.requireState();
-    const base = basePath ? String(basePath).replace(/^\.?\//, '').replace(/\/$/, '') + '/' : '';
+    const base = basePrefix(basePath);
     const out: OlxRelativePath[] = [];
     for (const relPath of s.tree.keys()) {
       if (base && !relPath.startsWith(base)) continue;
@@ -506,7 +517,7 @@ export class GitStorageProvider implements StorageProvider {
     await this.ensureFresh();
     const s = this.requireState();
     const { basePath, include, limit = 1000 } = options;
-    const base = basePath ? String(basePath).replace(/^\.?\//, '').replace(/\/$/, '') + '/' : '';
+    const base = basePrefix(basePath);
     const re = new RegExp(pattern);
     const matches: GrepMatch[] = [];
     for (const relPath of [...s.tree.keys()].sort()) {
@@ -622,7 +633,7 @@ export class GitStorageProvider implements StorageProvider {
 
   /** Validate a write target and return its repo-relative path. */
   private requireWritable(p: OlxRelativePath): string {
-    const relPath = this.guardPath(String(p).replace(/^\.?\//, ''));
+    const relPath = this.guardPath(stripLeadingSlash(String(p)));
     if (!this.included(relPath)) {
       throw new Error(`Cannot write outside the served subtree of ${this.url}: ${p}`);
     }

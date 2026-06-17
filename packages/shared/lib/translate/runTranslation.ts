@@ -2,8 +2,8 @@
 //
 // Shared in-flight dedupe + timeout around translateBlock.
 //
-// Both translate route handlers (apps/server Hono + apps/web Next.js) had an
-// identical copy of this policy. Extracted here so it lives once:
+// Shared by both translate route handlers (apps/server Hono + apps/web
+// Next.js), so the policy lives once:
 //   - singleFlight coalesces concurrent identical requests (same source file +
 //     target locale) onto one job — the second caller awaits the first's result
 //   - timeout caps each job's wall time

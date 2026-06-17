@@ -140,8 +140,8 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
 
 // Live git provider instances, memoized by repo identity. A GitStorageProvider
 // holds an in-memory clone + head cache + cooldown; building one per request
-// (as contentProvider used to) re-cloned the repo every request — the cache
-// lived on the instance that was then discarded.
+// would re-clone the repo every request, since that cache lives on the
+// instance.
 //
 // Keyed by SOURCE (repo url + ref + normalized dir filter), NOT by the
 // assembled set: two contexts connected to the same repo should share its

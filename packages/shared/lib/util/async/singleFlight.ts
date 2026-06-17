@@ -5,8 +5,9 @@
 // is still pending shares that same promise. Once it settles the entry clears,
 // so the next call runs fresh (no result caching — that's memoize).
 //
-// Replaces hand-rolled "is there already a request in flight for this id?"
-// maps (translation dedupe, the git provider's refresh guard).
+// Used by: translation dedupe and the git provider's refresh guard — anywhere
+// a hand-rolled "is there already a request in flight for this id?" map would
+// otherwise go.
 
 import type { AsyncFn } from './types';
 

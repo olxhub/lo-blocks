@@ -8,10 +8,6 @@
 // parameter (the dict-like object) rather than importing one — keeping this a
 // leaf module. Any `KvLike` works: apps/server's KVStore satisfies it
 // structurally; tests pass a Map-backed stub.
-//
-// Relocated verbatim from apps/server/src/rateLimit.ts; the non-atomic
-// read-modify-write (see the TODO) is preserved and fixed in the rate-limit
-// follow-up, not here.
 
 import { kvsKey, type SafeUserId, type KVSKey } from '@/lib/types/identity';
 

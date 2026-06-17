@@ -8,7 +8,6 @@
 //   - contentSources.ts registers each configured checkout at load time
 //   - standalone scripts register their --content dir
 //   - tests register their temp content dirs
-// This replaced the old OLX_CONTENT_DIR env override entirely.
 //
 // Tiny separate module so file.ts (consumer) and its registrars can import
 // it without a cycle.
