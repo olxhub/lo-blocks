@@ -23,8 +23,9 @@
 //       branch: main          # optional (default main)
 //       dir: psychology       # optional content subdir within the repo
 //       cooldownSeconds: 60   # optional remote head-check throttle
-//       tokenEnv: GITHUB_TOKEN # optional; env var with a PAT for private
-//                              # reads and pushes (writes)
+//       tokenEnv: REPO_PAT    # optional; env var with a PAT for private reads
+//                             # and pushes. Defaults to LO_GITHUB_TOKEN; set
+//                             # only to point a repo at a different PAT.
 //   # Everything else (baseline demos, transitional content). Optional;
 //   # defaults to ./content.
 //   fallback: ./content
@@ -55,6 +56,12 @@ import type { StorageProvider } from '../types/storage';
 const DEFAULT_CONFIG_PATH = 'config/content-sources.yaml';
 const LOCAL_CONFIG_PATH = 'config/content-sources.local.yaml';
 
+// Default env var for a repo source's access token. The common case is one
+// platform PAT for all private repos, so a source without an explicit
+// `tokenEnv` reads this. The multi-institution case (a different PAT per repo)
+// sets `tokenEnv` per source to override.
+const DEFAULT_TOKEN_ENV = 'LO_GITHUB_TOKEN';
+
 /** Repo-form source: served directly from a git remote. */
 export interface RepoSource {
   repo: string;
@@ -65,7 +72,10 @@ export interface RepoSource {
   cooldownSeconds?: number;
   /** Name of the env var holding an access token (e.g. a GitHub PAT) for
    *  private reads and pushes. The token stays out of the config file and the
-   *  repo. Omit for public, read-only repos. Changing it needs a restart. */
+   *  repo. Defaults to LO_GITHUB_TOKEN — set this only to point a specific repo
+   *  at a different PAT (e.g. a per-institution token). With neither the named
+   *  nor the default var set, access is anonymous (public repos). Changing it
+   *  needs a restart. */
   tokenEnv?: string;
 }
 
@@ -146,11 +156,13 @@ const gitSourceProvider = memoize(
   async (entry: RepoSource): Promise<StorageProvider> => {
     // Dynamic import keeps isomorphic-git/memfs out of client bundles.
     const { GitStorageProvider } = await import('./providers/git');
-    // Token resolved once at construction from the named env var. A
-    // deploy-level service token today (GitHub PAT); per-user OAuth later
-    // moves credentials to write time (the shared instance can't hold a
-    // per-user token). Anonymous when no tokenEnv / unset var → public reads.
-    const token = entry.tokenEnv ? process.env[entry.tokenEnv] : undefined;
+    // Token resolved once at construction from an env var: the source's own
+    // `tokenEnv` if set (per-institution PAT), else the platform default
+    // LO_GITHUB_TOKEN (the one-PAT common case). A deploy-level service token
+    // today (GitHub PAT); per-user OAuth later moves credentials to write time
+    // (the shared instance can't hold a per-user token). Anonymous when the
+    // resolved var is unset → public reads.
+    const token = process.env[entry.tokenEnv ?? DEFAULT_TOKEN_ENV];
     return new GitStorageProvider({
       url: entry.repo,
       ref: entry.branch ?? 'main',
