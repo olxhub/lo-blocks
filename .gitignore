@@ -92,9 +92,10 @@ lofs/runtime/
 /old/
 /obsolete/
 /local/
+/tmp/
 /apps/static/out/
-apps/static/dist/
-apps/client/dist/
+/apps/static/dist/
+/apps/client/dist/
 /dist/
 
 # Deployment-specific content source overrides (committed default is

@@ -256,6 +256,35 @@ describe('GitStorageProvider', () => {
       .rejects.toThrow(/outside the served subtree/);
   });
 
+  it('builds against its captured snapshot even if state is repointed mid-commit', async () => {
+    // A concurrent refresh repoints this.state while a write is between commit
+    // and push. The write must still build/commit against the snapshot it
+    // captured (not the swapped-in one), and must NOT clobber the new state.
+    let onPush: (() => void) | null = null;
+    class Racer extends LocalGitProvider {
+      protected async pushRemote(vol: Volume): Promise<void> {
+        onPush?.();                 // simulate a refresh landing mid-write
+        return super.pushRemote(vol);
+      }
+    }
+    const w = new Racer({ url: URL, ref: 'main', cooldownMs: 0 });
+    await w.initRepo();
+    await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
+    await w.loadXmlFilesWithStats();  // establish the captured snapshot
+
+    const foreign = { vol: new Volume(), head: 'deadbeef'.repeat(5), tree: new Map() };
+    onPush = () => { (w as any).state = foreign; };
+
+    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>');
+
+    // The commit landed in the snapshot's own volume (repoVol)...
+    const commit = await headCommit(w);
+    expect(commit.message).toMatch(/Update a\.olx/);
+    // ...and the local adopt was skipped (state !== captured snapshot), so the
+    // concurrent refresh's snapshot is left intact rather than clobbered.
+    expect((w as any).state).toBe(foreign);
+  });
+
   it('passes resolved credentials to the transport via onAuth', async () => {
     const seen: any[] = [];
     class AuthSpy extends LocalGitProvider {

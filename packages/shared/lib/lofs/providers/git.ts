@@ -124,6 +124,19 @@ interface TreeFile {
   oid: string;
 }
 
+/** An immutable snapshot of the in-memory repo, swapped as ONE reference and
+ *  never mutated field-by-field: the object store (vol), the branch head it
+ *  names, and the served-file index at that head. Because git objects are
+ *  content-addressed and immutable, an operation that captures `this.state`
+ *  once holds a fully consistent view no matter what a concurrent refresh
+ *  does — git's own model (immutable objects + atomic ref repoint) applied to
+ *  the provider's local state. */
+interface RepoState {
+  vol: Volume;
+  head: string;
+  tree: Map<string, TreeFile>;
+}
+
 export class GitStorageProvider implements StorageProvider {
   readonly url: string;
   readonly ref: string;
@@ -132,16 +145,16 @@ export class GitStorageProvider implements StorageProvider {
   readonly contentDirs: string[];
   readonly cooldownMs: number;
 
-  private vol = new Volume();
-  private head: string | null = null;
-  /** repo-relative path → blob oid, for the current head. */
-  private tree = new Map<string, TreeFile>();
+  /** The current repo snapshot, or null until the first successful refresh.
+   *  The ONE mutable pointer on this provider; refresh and commit publish by
+   *  repointing it to a new RepoState (a single assignment), never by mutating
+   *  the existing one in place. Every operation captures it once
+   *  (requireState) and works against that stable value. */
+  private state: RepoState | null = null;
   /** The refresh, gated by composed wrappers (outer→inner):
    *   - throttle: ≤ one attempt per cooldown; caches the result (success OR
    *     failure) for the window, so a down remote isn't re-hit every call.
-   *   - singleFlight: only ONE refresh runs at a time, independent of the
-   *     cooldown — refresh() mutates shared state (vol/head/tree), so a slow
-   *     refresh outlasting the cooldown must not race a second one.
+   *   - singleFlight: only ONE refresh runs at a time, independent of cooldown.
    *   - withRetry: retry transient blips within a single attempt.
    *  Built here so it closes over the instance. */
   private readonly refreshGate: () => Promise<void>;
@@ -175,6 +188,14 @@ export class GitStorageProvider implements StorageProvider {
     return run;
   }
 
+  /** The loaded snapshot — ensureFresh() must have run first. Capture it ONCE
+   *  per operation (`const s = this.requireState()`) and read s.vol/head/tree
+   *  throughout, so a concurrent refresh repoint can't tear the view. */
+  private requireState(): RepoState {
+    if (!this.state) throw new Error(`${this.url}#${this.ref} is not loaded`);
+    return this.state;
+  }
+
   /** Is this repo-relative path within the served subtree(s)? */
   private included(repoPath: string): boolean {
     if (this.contentDirs.length === 0) return true;  // whole repo
@@ -201,8 +222,9 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   /** Clone the remote at the current head into a FRESH volume and return it.
-   *  Returns the volume (rather than assigning this.vol) so refresh() can swap
-   *  instance state atomically — a failed clone must not replace a good one. */
+   *  Returns the volume so refresh() can assemble a complete snapshot and
+   *  publish it by one atomic repoint — a failed clone never replaces the live
+   *  snapshot. */
   protected async cloneRemote(): Promise<Volume> {
     const vol = new Volume();
     await git.clone({
@@ -229,22 +251,20 @@ export class GitStorageProvider implements StorageProvider {
 
   private async refresh(): Promise<void> {
     const remoteHead = await this.fetchRemoteHead();
-    if (remoteHead === this.head) return;
+    if (remoteHead === this.state?.head) return;
 
-    // Build the new state in locals; commit to instance fields only after the
-    // whole refresh succeeds. A failed clone/walk then leaves the previous good
-    // vol/head/tree intact — and since this.head is unchanged, the next refresh
-    // retries instead of serving a half-built volume.
-    const nextVol = await this.cloneRemote();
+    // Build the whole snapshot in a local, then publish by a single atomic
+    // repoint. A failed clone/walk leaves the previous snapshot intact — and
+    // since head is unchanged, the next refresh retries rather than serving a
+    // half-built volume.
+    const vol = await this.cloneRemote();
     const head = await git.resolveRef({
-      fs: { promises: nextVol.promises } as any,
+      fs: { promises: vol.promises } as any,
       dir: REPO_DIR,
       ref: this.ref,
     });
-    const tree = await this.walkTree(nextVol, head);
-    this.vol = nextVol;
-    this.head = head;
-    this.tree = tree;
+    const tree = await this.walkTree(vol, head);
+    this.state = { vol, head, tree };
   }
 
   /** Enumerate content files (path → blob oid) under contentDir at `head`. */
@@ -267,12 +287,12 @@ export class GitStorageProvider implements StorageProvider {
     return files;
   }
 
-  /** Read a blob by repo-relative path at the current head. */
-  private async readBlob(repoPath: string): Promise<string> {
+  /** Read a blob by repo-relative path at the snapshot's head. */
+  private async readBlob(s: RepoState, repoPath: string): Promise<string> {
     const { blob } = await git.readBlob({
-      fs: { promises: this.vol.promises } as any,
+      fs: { promises: s.vol.promises } as any,
       dir: REPO_DIR,
-      oid: this.head!,
+      oid: s.head,
       filepath: repoPath,
     });
     return new TextDecoder('utf-8').decode(blob);
@@ -309,6 +329,7 @@ export class GitStorageProvider implements StorageProvider {
 
   async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
     await this.ensureFresh();
+    const s = this.requireState();
 
     // Only diff against our own refs (stacked/router scans pass everyone's).
     const mine: Record<string, XmlFileInfo> = {};
@@ -321,7 +342,7 @@ export class GitStorageProvider implements StorageProvider {
     const unchanged: Record<LofsRef, XmlFileInfo> = {};
     const found = new Set<string>();
 
-    for (const [relPath, { oid }] of this.tree) {
+    for (const [relPath, { oid }] of s.tree) {
       const ref = this.toRef(relPath);
       const key = String(ref);
       found.add(key);
@@ -335,8 +356,8 @@ export class GitStorageProvider implements StorageProvider {
         const record: XmlFileInfo = {
           id,
           type,
-          _metadata: { oid, head: this.head },
-          content: await this.readBlob(relPath),
+          _metadata: { oid, head: s.head },
+          content: await this.readBlob(s, relPath),
         };
         (prev ? changed : added)[key as LofsRef] = record;
       }
@@ -352,11 +373,12 @@ export class GitStorageProvider implements StorageProvider {
 
   async read(p: OlxRelativePath): Promise<ReadResult> {
     // TODO(stale-read): ensureFresh throws if a head re-check fails within the
-    // cooldown, even when this.tree still holds the blob. A studio read during
+    // cooldown, even when the snapshot's tree still holds the blob. A studio read during
     // a transient remote blip would degrade more gracefully by serving the
     // last-known content than by throwing. Safe as-is: the sync path tolerates
     // it (mount-router isolation + snapshot retention).
     await this.ensureFresh();
+    const s = this.requireState();
     const relPath = this.guardPath(String(p).replace(/^\.?\//, ''));
     // Honor the configured subtree(s): a path outside `dir` is not served,
     // even though the whole repo is in memfs. Scan/glob/grep already filter
@@ -365,15 +387,15 @@ export class GitStorageProvider implements StorageProvider {
     if (!this.included(relPath)) {
       throw new Error(`File not found: ${p} (outside served subtree of ${this.url}#${this.ref})`);
     }
-    const entry = this.tree.get(relPath);
+    const entry = s.tree.get(relPath);
     if (!entry) {
       // Tree only indexes content files; for other reads, try the blob directly.
       try {
-        const content = await this.readBlob(relPath);
+        const content = await this.readBlob(s, relPath);
         return {
           content,
-          metadata: { head: this.head },
-          provenance: toLofsCanonical(withVersion(this.toRef(relPath), toLofsVersion(this.head!))),
+          metadata: { head: s.head },
+          provenance: toLofsCanonical(withVersion(this.toRef(relPath), toLofsVersion(s.head))),
           ns: await this.tryNamespace(relPath),
         };
       } catch {
@@ -381,8 +403,8 @@ export class GitStorageProvider implements StorageProvider {
       }
     }
     return {
-      content: await this.readBlob(relPath),
-      metadata: { oid: entry.oid, head: this.head },
+      content: await this.readBlob(s, relPath),
+      metadata: { oid: entry.oid, head: s.head },
       provenance: toLofsCanonical(withVersion(this.toRef(relPath), toLofsVersion(entry.oid))),
       ns: await this.tryNamespace(relPath),
     };
@@ -412,14 +434,15 @@ export class GitStorageProvider implements StorageProvider {
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     const relPath = this.ownPath(ref);
     await this.ensureFresh();
+    const s = this.requireState();
 
     // 1. Manifest walk, nearest first.
     const segments = relPath.split('/').slice(0, -1);
     for (let i = segments.length; i >= 0; i--) {
       const manifestRel = [...segments.slice(0, i), 'manifest.yaml'].join('/');
-      const entry = this.tree.get(manifestRel);
+      const entry = s.tree.get(manifestRel);
       if (!entry) continue;
-      const declared = YAML.parse(await this.readBlob(manifestRel))?.namespace;
+      const declared = YAML.parse(await this.readBlob(s, manifestRel))?.namespace;
       if (declared === undefined) continue;
       const valid = validateContentNamespace(String(declared));
       if (valid !== true) {
@@ -445,6 +468,7 @@ export class GitStorageProvider implements StorageProvider {
 
   async listFiles(_selection: FileSelection = {}): Promise<UriNode> {
     await this.ensureFresh();
+    const s = this.requireState();
     // Flat path list → UriNode tree.
     const root: UriNode = { uri: '', children: [] };
     const dirs = new Map<string, UriNode>([['', root]]);
@@ -457,7 +481,7 @@ export class GitStorageProvider implements StorageProvider {
       dirs.set(dirPath, node);
       return node;
     };
-    for (const relPath of [...this.tree.keys()].sort()) {
+    for (const relPath of [...s.tree.keys()].sort()) {
       const dirPath = relPath.includes('/') ? relPath.slice(0, relPath.lastIndexOf('/')) : '';
       ensureDir(dirPath).children!.push({ uri: relPath });
     }
@@ -466,9 +490,10 @@ export class GitStorageProvider implements StorageProvider {
 
   async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
     await this.ensureFresh();
+    const s = this.requireState();
     const base = basePath ? String(basePath).replace(/^\.?\//, '').replace(/\/$/, '') + '/' : '';
     const out: OlxRelativePath[] = [];
-    for (const relPath of this.tree.keys()) {
+    for (const relPath of s.tree.keys()) {
       if (base && !relPath.startsWith(base)) continue;
       if (minimatch(base ? relPath.slice(base.length) : relPath, pattern, { dot: false })) {
         out.push(relPath as OlxRelativePath);
@@ -479,14 +504,15 @@ export class GitStorageProvider implements StorageProvider {
 
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
     await this.ensureFresh();
+    const s = this.requireState();
     const { basePath, include, limit = 1000 } = options;
     const base = basePath ? String(basePath).replace(/^\.?\//, '').replace(/\/$/, '') + '/' : '';
     const re = new RegExp(pattern);
     const matches: GrepMatch[] = [];
-    for (const relPath of [...this.tree.keys()].sort()) {
+    for (const relPath of [...s.tree.keys()].sort()) {
       if (base && !relPath.startsWith(base)) continue;
       if (include && !minimatch(relPath, include)) continue;
-      const lines = (await this.readBlob(relPath)).split('\n');
+      const lines = (await this.readBlob(s, relPath)).split('\n');
       for (let i = 0; i < lines.length && matches.length < limit; i++) {
         if (re.test(lines[i])) {
           matches.push({ path: relPath as OlxRelativePath, line: i + 1, content: lines[i] });
@@ -527,11 +553,12 @@ export class GitStorageProvider implements StorageProvider {
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
     if (!isMediaFile(assetPath)) return false;
     await this.ensureFresh();
+    const s = this.requireState();
     const relPath = this.guardPath(String(assetPath));
     if (!this.included(relPath)) return false;  // outside the served subtree
     // Media isn't in the content-file tree; check the blob directly.
     try {
-      await this.readBlob(relPath);
+      await this.readBlob(s, relPath);
       return true;
     } catch {
       return false;
@@ -546,14 +573,15 @@ export class GitStorageProvider implements StorageProvider {
   async write(p: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
+      const s = this.requireState();
       const relPath = this.requireWritable(p);
-      await this.checkConflict(relPath, options);
+      await this.checkConflict(s, relPath, options);
       const blobOid = await git.writeBlob({
-        fs: { promises: this.vol.promises } as any,
+        fs: { promises: s.vol.promises } as any,
         dir: REPO_DIR,
         blob: new TextEncoder().encode(content),
       });
-      await this.commitChange([{ path: relPath, blobOid }], options);
+      await this.commitChange(s, [{ path: relPath, blobOid }], options);
     });
   }
 
@@ -566,23 +594,26 @@ export class GitStorageProvider implements StorageProvider {
   async delete(p: OlxRelativePath): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
+      const s = this.requireState();
       const relPath = this.requireWritable(p);
-      if ((await this.currentBlobOid(relPath)) === null) {
+      if ((await this.currentBlobOid(s, relPath)) === null) {
         throw new Error(`File not found: ${p} (in ${this.url}#${this.ref})`);
       }
-      await this.commitChange([{ path: relPath, blobOid: null }], {});
+      await this.commitChange(s, [{ path: relPath, blobOid: null }], {});
     });
   }
 
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
+      const s = this.requireState();
       const from = this.requireWritable(oldPath);
       const to = this.requireWritable(newPath);
-      const oid = await this.currentBlobOid(from);
+      const oid = await this.currentBlobOid(s, from);
       if (oid === null) throw new Error(`File not found: ${oldPath} (in ${this.url}#${this.ref})`);
       // One commit: add the blob at the new path, remove the old.
       await this.commitChange(
+        s,
         [{ path: to, blobOid: oid }, { path: from, blobOid: null }],
         { message: `Rename ${from} → ${to}` },
       );
@@ -601,26 +632,26 @@ export class GitStorageProvider implements StorageProvider {
   /** Optimistic conflict: the blob oid the editor last read (in
    *  previousMetadata) must still be current. Skipped without it or with
    *  force. The authoritative check is the non-fast-forward push rejection. */
-  private async checkConflict(relPath: string, options: WriteOptions): Promise<void> {
+  private async checkConflict(s: RepoState, relPath: string, options: WriteOptions): Promise<void> {
     if (!options.previousMetadata || options.force) return;
     const prev = options.previousMetadata as { oid?: string };
     if (prev.oid === undefined) return;  // nothing to compare (e.g. a non-content read)
-    const current = await this.currentBlobOid(relPath);
+    const current = await this.currentBlobOid(s, relPath);
     if (prev.oid !== current) {
       throw new VersionConflictError(
         'File has been modified since last read',
-        { oid: current, head: this.head },
+        { oid: current, head: s.head },
       );
     }
   }
 
-  /** Blob oid at a repo-relative path under the current head, or null if absent. */
-  private async currentBlobOid(repoPath: string): Promise<string | null> {
+  /** Blob oid at a repo-relative path under the snapshot's head, or null if absent. */
+  private async currentBlobOid(s: RepoState, repoPath: string): Promise<string | null> {
     try {
       const { oid } = await git.readBlob({
-        fs: { promises: this.vol.promises } as any,
+        fs: { promises: s.vol.promises } as any,
         dir: REPO_DIR,
-        oid: this.head!,
+        oid: s.head,
         filepath: repoPath,
       });
       return oid;
@@ -629,31 +660,34 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Apply a set of path→blob changes (null blob = delete) as one commit,
-   *  push it, then adopt the new head locally. Built by tree plumbing — no
-   *  working tree or index, so the clone stays noCheckout. */
+  /** Apply a set of path→blob changes (null blob = delete) as one commit on
+   *  the captured snapshot `s`, push it, then publish a new snapshot locally.
+   *  Built by tree plumbing — no working tree or index, so the clone stays
+   *  noCheckout. All git reads/writes go through s.vol/s.head, so a concurrent
+   *  refresh repoint can't mix this commit across volumes. */
   private async commitChange(
+    s: RepoState,
     changes: Array<{ path: string; blobOid: string | null }>,
     options: WriteOptions,
   ): Promise<void> {
-    const fs = { promises: this.vol.promises } as any;
-    const { commit } = await git.readCommit({ fs, dir: REPO_DIR, oid: this.head! });
+    const fs = { promises: s.vol.promises } as any;
+    const { commit } = await git.readCommit({ fs, dir: REPO_DIR, oid: s.head });
     let treeOid = commit.tree;
     for (const c of changes) {
-      treeOid = await this.updateTree(treeOid, c.path.split('/'), c.blobOid);
+      treeOid = await this.updateTree(s, treeOid, c.path.split('/'), c.blobOid);
     }
     const newHead = await git.commit({
       fs,
       dir: REPO_DIR,
       message: options.message ?? defaultMessage(changes),
       tree: treeOid,
-      parent: [this.head!],
+      parent: [s.head],
       author: options.author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
       committer: PLATFORM_IDENTITY,                    // who physically committed
       ref: `refs/heads/${this.ref}`,
     });
     try {
-      await this.pushRemote();
+      await this.pushRemote(s.vol);
     } catch (err: any) {
       // A non-fast-forward rejection means the branch moved under this edit.
       if (err?.code === 'PushRejectedError' || /fast-forward|rejected/i.test(err?.message ?? '')) {
@@ -663,12 +697,21 @@ export class GitStorageProvider implements StorageProvider {
       }
       throw err;
     }
-    // Commit + push both succeeded — adopt the new state so reads within the
-    // cooldown window see the edit without waiting for the next re-clone.
-    this.head = newHead;
-    for (const c of changes) {
-      if (c.blobOid === null) this.tree.delete(c.path);
-      else if (this.servesPath(c.path)) this.tree.set(c.path, { oid: c.blobOid });
+    // Commit + push both succeeded — publish a NEW snapshot (built on s, whose
+    // vol now contains newHead) by an atomic repoint, so reads within the
+    // cooldown window see the edit without waiting for a re-clone. A new tree
+    // Map (not a mutation of s.tree) keeps any snapshot a concurrent reader
+    // still holds intact. Skip if a refresh repointed away from s meanwhile —
+    // that only happens when the remote moved, in which case the push above
+    // would already have been rejected; the guard is belt-and-suspenders, and
+    // the pushed commit is picked up by the next refresh regardless.
+    if (this.state === s) {
+      const tree = new Map(s.tree);
+      for (const c of changes) {
+        if (c.blobOid === null) tree.delete(c.path);
+        else if (this.servesPath(c.path)) tree.set(c.path, { oid: c.blobOid });
+      }
+      this.state = { vol: s.vol, head: newHead, tree };
     }
   }
 
@@ -682,8 +725,8 @@ export class GitStorageProvider implements StorageProvider {
   /** Build a new tree oid from `treeOid` with `segments` set to `blobOid`
    *  (or removed when null). Recurses, rebuilding only the touched path;
    *  prunes directories left empty by a delete. */
-  private async updateTree(treeOid: string, segments: string[], blobOid: string | null): Promise<string> {
-    const fs = { promises: this.vol.promises } as any;
+  private async updateTree(s: RepoState, treeOid: string, segments: string[], blobOid: string | null): Promise<string> {
+    const fs = { promises: s.vol.promises } as any;
     const { tree } = await git.readTree({ fs, dir: REPO_DIR, oid: treeOid });
     const [seg, ...rest] = segments;
     const others = tree.filter((e: any) => e.path !== seg);
@@ -700,7 +743,7 @@ export class GitStorageProvider implements StorageProvider {
     const subOid = existing
       ? existing.oid
       : await git.writeTree({ fs, dir: REPO_DIR, tree: [] });  // fresh empty subtree
-    const newSub = await this.updateTree(subOid, rest, blobOid);
+    const newSub = await this.updateTree(s, subOid, rest, blobOid);
     const newSubEntries = (await git.readTree({ fs, dir: REPO_DIR, oid: newSub })).tree;
     const next = newSubEntries.length === 0
       ? others  // prune the directory a delete just emptied
@@ -714,9 +757,9 @@ export class GitStorageProvider implements StorageProvider {
    *  which maps a thrown PushRejectedError → VersionConflictError; here we
    *  only normalize the "ok: false" result into that same thrown shape so the
    *  two push-failure forms map uniformly. */
-  protected async pushRemote(): Promise<void> {
+  protected async pushRemote(vol: Volume): Promise<void> {
     const result = await git.push({
-      fs: { promises: this.vol.promises } as any,
+      fs: { promises: vol.promises } as any,
       http,
       dir: REPO_DIR,
       url: this.url,
