@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { MountRouterProvider } from './mountRouter';
 import { FileStorageProvider } from './file';
+import { registerAllowedContentDir } from '../allowedDirs';
 import { syncContentFromStorage } from '../../content/syncContentFromStorage';
 import { asDefinitionKey } from '../../types/id-grammar';
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
@@ -21,7 +22,7 @@ describe('MountRouterProvider', () => {
 
   beforeAll(async () => {
     base = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-mounts-'));
-    process.env.OLX_CONTENT_DIR = base;
+    registerAllowedContentDir(base);  // whitelist temp checkouts for read/write checks
 
     // Simulated layout after the repo split:
     //   psych-repo/      — own checkout, manifest declares namespace
@@ -56,7 +57,6 @@ describe('MountRouterProvider', () => {
   });
 
   afterAll(async () => {
-    delete process.env.OLX_CONTENT_DIR;
     await fs.rm(base, { recursive: true, force: true });
   });
 

@@ -26,7 +26,7 @@
 //       tokenEnv: GITHUB_TOKEN # optional; env var with a PAT for private
 //                              # reads and pushes (writes)
 //   # Everything else (baseline demos, transitional content). Optional;
-//   # defaults to ./content (or $OLX_CONTENT_DIR).
+//   # defaults to ./content.
 //   fallback: ./content
 //
 // Without a config file, behavior is exactly the historical default: one
@@ -76,11 +76,11 @@ export interface ContentSourcesConfig {
   fallback: string;
 }
 
-/** The historical default — used when no config file exists. */
+/** The built-in default — used when no config file exists. */
 function defaultConfig(): ContentSourcesConfig {
   return {
     sources: {},
-    fallback: process.env.OLX_CONTENT_DIR || './content',
+    fallback: './content',
   };
 }
 
@@ -93,7 +93,10 @@ function defaultConfig(): ContentSourcesConfig {
  * shouldn't inherit the repo's stock sources). Precedence:
  *   1. config/content-sources.local.yaml  (gitignored, per-deployment)
  *   2. config/content-sources.yaml        (committed default)
- *   3. built-in: serve ./content (or $OLX_CONTENT_DIR), if neither exists
+ *   3. built-in: serve ./content, if neither file exists
+ *
+ * Content location is config-only — there is no environment override. A
+ * deployment serving from elsewhere sets `fallback:` in its local.yaml.
  *
  * fs and yaml are imported dynamically so this module can be pulled into
  * client bundles (via lib/lofs) without breaking; only server code calls it.
@@ -121,7 +124,7 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   }
   return {
     sources,
-    fallback: parsed.fallback || process.env.OLX_CONTENT_DIR || './content',
+    fallback: parsed.fallback || './content',
   };
 }
 

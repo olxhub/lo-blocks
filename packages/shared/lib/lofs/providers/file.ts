@@ -75,17 +75,15 @@ interface FileMetadata {
  * Content IDs resolve top-down (check provider 4, then 3, then 2, then 1).
  * Write permissions depend on the provider and user role.
  *
- * TEMPORARY WORKAROUND:
- * ---------------------
- * The OLX_CONTENT_DIR environment variable can override the content directory.
- * This is used by tests and as a stopgap until the config system exists.
+ * Content directories are declared via content-sources.yaml (contentSources.ts),
+ * which registers each configured checkout with the allow-list at load time
+ * (registerAllowedContentDir, see allowedDirs.ts). Callers outside that path —
+ * standalone scripts, tests — register their own content dir explicitly.
  *
- * When the config system is implemented:
- * - Move getAllowedReadDirs / getAllowedWriteDirs to provider configuration
- * - Each provider specifies its own allowed paths
- * - User-specific providers (like ~/lo-blocks-content/) are configured per-user
+ * Future work:
+ * - Move getAllowedReadDirs / getAllowedWriteDirs fully to provider config
+ * - User-specific providers (like ~/lo-blocks-content/) configured per-user
  * - Role-based write permissions for shared providers (institution content)
- * - Remove OLX_CONTENT_DIR workaround
  *
  * SECURITY MODEL:
  * ---------------
@@ -104,42 +102,36 @@ const PROJECT_ROOT = process.cwd();
 
 /**
  * Get allowed directories for read operations.
- * Includes OLX_CONTENT_DIR if set (used by tests and custom content locations).
+ *
+ * Beyond the built-in grammar/content dirs, this includes every directory
+ * registered via registerAllowedContentDir — the configured content checkouts
+ * (contentSources.ts) plus any a script or test registers explicitly.
  *
  * NOTE: Grammar directories here should match GRAMMAR_DIRS in packages/shared/lib/grammarDirs.ts
  * for the docs API to discover all grammars.
  */
 function getAllowedReadDirs(): string[] {
-  const dirs = [
+  return [
     path.join(PROJECT_ROOT, 'packages/shared/components/blocks'),
     path.join(PROJECT_ROOT, 'packages/shared/lib/template'),  // For template grammar
     path.join(PROJECT_ROOT, 'packages/shared/lib/stateLanguage'),  // For expression grammar
     path.join(PROJECT_ROOT, 'packages/shared/lib/util/calc'),  // For calc grammar
     path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts configured in content-sources.yaml (see contentSources.ts)
+    // Content checkouts registered by config or callers (see allowedDirs.ts)
     ...registeredContentDirs(),
   ];
-  // Support custom content directory via environment variable (tests)
-  if (process.env.OLX_CONTENT_DIR) {
-    dirs.push(path.resolve(process.env.OLX_CONTENT_DIR));
-  }
-  return dirs;
 }
 
 /**
- * Get allowed directories for write operations.
- * Includes OLX_CONTENT_DIR if set.
+ * Get allowed directories for write operations: ./content plus every directory
+ * registered via registerAllowedContentDir (configured checkouts + callers).
  */
 function getAllowedWriteDirs(): string[] {
-  const dirs = [
+  return [
     path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts configured in content-sources.yaml (see contentSources.ts)
+    // Content checkouts registered by config or callers (see allowedDirs.ts)
     ...registeredContentDirs(),
   ];
-  if (process.env.OLX_CONTENT_DIR) {
-    dirs.push(path.resolve(process.env.OLX_CONTENT_DIR));
-  }
-  return dirs;
 }
 
 /**
@@ -358,7 +350,7 @@ export class FileStorageProvider implements StorageProvider {
    * @param mountPoint - Logical mount point in the LOFS namespace (default: basename of baseDir).
    *   Must be unique across stacked providers — two providers with the same mount point
    *   produce indistinguishable provenance URIs. Pass explicitly when basename doesn't
-   *   match the desired mount (e.g., OLX_CONTENT_DIR=/data/courses → mountPoint='content').
+   *   match the desired mount (e.g., a checkout at /data/courses → mountPoint='content').
    * @param options.ns - Special-case namespace override: ALL files in this
    *   provider resolve to it, ignoring manifests and directory structure.
    *   The API wins over content declarations because reaching for this means

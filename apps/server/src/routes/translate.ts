@@ -25,8 +25,9 @@ import type { ContentVariant } from '@/lib/types';
 import { validateDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
-const contentDir = process.env.OLX_CONTENT_DIR || './content';
-const logsDir = path.resolve(contentDir, '..', 'logs');
+// Rejected-translation debug dumps (cwd-relative).
+// TODO(content-in-git): give logs a deliberate, configurable home.
+const logsDir = path.resolve('logs');
 
 export async function handleTranslate(c: Context): Promise<Response> {
   try {
