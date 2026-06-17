@@ -1,0 +1,25 @@
+# config/content-sources.yaml — default content sources (COMMITTED).
+#
+# This is the committed default. A gitignored config/content-sources.local.yaml,
+# IF PRESENT, replaces this file wholesale (not merged) — see contentSources.ts
+# and docs/content-in-git.md. The default below serves everything in ./content,
+# reproducing pre-multi-repo behavior, so a fresh clone runs with no local config.
+#
+# A source is mounted at its key (the path prefix it appears under). Two forms:
+#   <mount>: <dir>                                  # a checkout on disk
+#   <mount>:                                        # a git remote, in-memory
+#     repo: <url>
+#     branch: main            # optional, default main
+#     dir: psychology         # optional subtree(s); string or list; default whole repo
+#     cooldownSeconds: 60     # optional remote head-check throttle
+#     tokenEnv: REPO_PAT      # optional; env var holding a PAT for private
+#                             # reads and pushes. Defaults to LO_GITHUB_TOKEN
+#                             # (the one-PAT case); set only to use a different
+#                             # PAT for this repo. Anonymous if neither is set.
+# Each source declares its own namespace (manifest.yaml, or — for repo
+# sources — the repo name). This file is WHERE content lives, not WHAT it is.
+
+sources: {}
+
+# Unrouted paths (demos, transitional content).
+fallback: ./content

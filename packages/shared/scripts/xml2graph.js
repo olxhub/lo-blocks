@@ -3,12 +3,15 @@
 import stringify from 'json-stable-stringify';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
+import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
 import { parseIdMap } from '../lib/graph/parseIdMap';
 import fs from 'fs';
 import path from 'path';
 
 const args = process.argv.slice(2);
-const contentDir = path.resolve('./content');
+const contentArg = args.indexOf('--content');
+const contentDir = path.resolve(contentArg >= 0 && args[contentArg + 1] ? args[contentArg + 1] : './content');
+registerAllowedContentDir(contentDir);  // allow reads under the chosen dir
 
 // TODO: profile / understand speed.
 //

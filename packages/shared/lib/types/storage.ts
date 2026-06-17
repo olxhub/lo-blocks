@@ -88,6 +88,21 @@ export interface WriteOptions {
   previousMetadata?: unknown;
   /** Force write even if metadata mismatch */
   force?: boolean;
+  /**
+   * Commit author, for version-controlled providers (git). The platform
+   * commits ON THE AUTHOR'S BEHALF — the committer is the platform/service
+   * identity, the author is the teacher (from CurrentUser). Carried per-write,
+   * not per-provider: a git provider instance is shared across users.
+   * Ignored by providers without history (file, memory).
+   *
+   * TODO: these git-specific fields live on the shared WriteOptions because
+   * there is currently one versioning provider (git) and the overhead of a
+   * discriminated-union options type isn't justified. If more provider-specific
+   * options accumulate, split into a provider-keyed options type.
+   */
+  author?: { name: string; email: string };
+  /** Commit message. Versioning providers use it; others ignore it. */
+  message?: string;
 }
 
 /**

@@ -12,20 +12,17 @@
 
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
-import { translateBlock } from '@/lib/translate/orchestrate';
+import { runTranslation } from '@/lib/translate/runTranslation';
 import type { ContentVariant } from '@/lib/types';
 import { validateDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { toContentVariant } from '@/lib/types/i18n';
 
-const contentDir = process.env.OLX_CONTENT_DIR || './content';
-const logsDir = path.resolve(contentDir, '..', 'logs');
-const provider = new FileStorageProvider(contentDir, 'content');
-
-const inFlightTranslations = new Map<string, Promise<any>>();
-const TRANSLATION_TIMEOUT_MS = 600_000; // 10 minutes
+// Rejected-translation debug dumps (cwd-relative).
+// TODO(content-in-git): give logs a deliberate, configurable home.
+const logsDir = path.resolve('logs');
 
 export async function POST(request: Request) {
   try {
@@ -72,6 +69,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const provider = await contentProvider();
     await syncContentFromStorage(provider);
 
     const originalVariant = getOriginalVariant(blockId);
@@ -92,36 +90,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Dedup: if same file+locale is already in flight, await that instead
-    const dedupeKey = `${sourceFileUri}::${targetLocale}`;
-    if (inFlightTranslations.has(dedupeKey)) {
-      const result = await inFlightTranslations.get(dedupeKey);
-      return NextResponse.json(result, result.ok ? undefined : { status: 500 });
-    }
-
-    const promise = translateBlock({
+    // Dedupe concurrent identical requests + enforce a timeout (shared helper).
+    const result = await runTranslation({
       provider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
-    let timer: ReturnType<typeof setTimeout>;
-    const timedPromise = Promise.race([
-      promise,
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error('Translation timed out')), TRANSLATION_TIMEOUT_MS);
-      }),
-    ]);
-    inFlightTranslations.set(dedupeKey, timedPromise);
-
-    try {
-      const result = await timedPromise;
-      if (!result.ok) {
-        return NextResponse.json(result, { status: 500 });
-      }
-      return NextResponse.json(result);
-    } finally {
-      clearTimeout(timer!);
-      inFlightTranslations.delete(dedupeKey);
-    }
+    return NextResponse.json(result, result.ok ? undefined : { status: 500 });
   } catch (error: any) {
     console.error('[/api/translate] Error:', error);
     return NextResponse.json(

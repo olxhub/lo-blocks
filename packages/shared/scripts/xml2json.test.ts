@@ -64,8 +64,7 @@ test('xml2json error accumulation with PEG errors', async () => {
     );
 
     // Run xml2json with test content directory
-    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--out', OUTPUT_FILE], {
-      env: { ...process.env, OLX_CONTENT_DIR: testContentDir },
+    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--content', testContentDir, '--out', OUTPUT_FILE], {
       stdio: ['ignore', 'pipe', 'pipe']
     });
 
@@ -124,7 +123,6 @@ test('xml2json --ns handles single-course roots with root-level files', async ()
         '--out', OUTPUT_FILE,
         ...extraArgs,
       ], {
-        env: { ...process.env, OLX_CONTENT_DIR: testContentDir },
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       let output = '';

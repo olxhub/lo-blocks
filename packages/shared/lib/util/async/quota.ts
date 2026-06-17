@@ -1,18 +1,21 @@
-// rateLimit.ts
+// packages/shared/lib/util/async/quota.ts
 //
-// Per-user rate limiting for the LLM endpoint.
+// Per-user quota: request-rate (RPM) and token budget, backed by a key-value
+// store. The store-backed members of the async-call wrapper family.
 //
-// Two dimensions:
-//   1. Requests per minute (RPM) — sliding window counter in KVS
-//   2. Token budget — running total of LLM tokens in KVS, incremented after
-//      each response. Separate from any future dollar/Euro cost budgets.
-//
-// Both limits come from PMSS (resolved per profile), so different use cases
-// can have different limits.
+// Unlike the in-process wrappers here (retry/throttle/...), these manage call
+// admission ACROSS processes via a shared store, so they take the store as a
+// parameter (the dict-like object) rather than importing one — keeping this a
+// leaf module. Any `KvLike` works: apps/server's KVStore satisfies it
+// structurally; tests pass a Map-backed stub.
 
-import type { KVStore } from './kvs.js';
-import type { SafeUserId } from '@/lib/types/identity';
-import { kvsKey } from '@/lib/types/identity';
+import { kvsKey, type SafeUserId, type KVSKey } from '@/lib/types/identity';
+
+/** The slice of a key-value store these helpers need (string get/set). */
+export interface KvLike {
+  get(key: KVSKey): Promise<string | null>;
+  set(key: KVSKey, value: string): Promise<void>;
+}
 
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -39,14 +42,14 @@ type RPMRecord = {
  * get/parse/set. The same applies to recordTokenUsage below.
  */
 export async function checkRateLimit(
-  kvs: KVStore,
+  store: KvLike,
   userId: SafeUserId,
   rpm: number,
 ): Promise<{ ok: boolean; retryAfter?: number }> {
   const key = kvsKey.rateRpm(userId);
   const now = Date.now();
 
-  const raw = await kvs.get(key);
+  const raw = await store.get(key);
   let record: RPMRecord = raw ? JSON.parse(raw) : { count: 0, windowStart: now };
 
   // Window expired — reset
@@ -60,7 +63,7 @@ export async function checkRateLimit(
   }
 
   record.count++;
-  await kvs.set(key, JSON.stringify(record));
+  await store.set(key, JSON.stringify(record));
   return { ok: true };
 }
 
@@ -77,13 +80,13 @@ type TokenRecord = {
  * Read-only — does not modify the running total.
  */
 export async function checkTokenBudget(
-  kvs: KVStore,
+  store: KvLike,
   userId: SafeUserId,
   tokenBudget: number,
 ): Promise<{ ok: boolean; remaining: number }> {
   const key = kvsKey.rateTokens(userId);
 
-  const raw = await kvs.get(key);
+  const raw = await store.get(key);
   const record: TokenRecord = raw ? JSON.parse(raw) : { total: 0 };
 
   const remaining = Math.max(tokenBudget - record.total, 0);
@@ -98,15 +101,15 @@ export async function checkTokenBudget(
  * blocked by checkTokenBudget if the budget is now exhausted.
  */
 export async function recordTokenUsage(
-  kvs: KVStore,
+  store: KvLike,
   userId: SafeUserId,
   tokens: number,
 ): Promise<void> {
   const key = kvsKey.rateTokens(userId);
 
-  const raw = await kvs.get(key);
+  const raw = await store.get(key);
   const record: TokenRecord = raw ? JSON.parse(raw) : { total: 0 };
 
   record.total += tokens;
-  await kvs.set(key, JSON.stringify(record));
+  await store.set(key, JSON.stringify(record));
 }

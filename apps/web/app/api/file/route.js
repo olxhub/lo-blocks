@@ -1,9 +1,11 @@
 // apps/web/app/api/file/route.js
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { contentProvider } from '@/lib/lofs/contentSources';
 import { VersionConflictError } from '@/lib/types/storage';
 import { validateContentPath } from '@/lib/lofs/contentPaths';
 
-const provider = new FileStorageProvider('./content');
+// Resolved per request (not a module singleton): contentProvider() re-reads
+// content-sources.yaml and reassembles the source set, while caching the
+// expensive per-repo git clones. See contentSources.ts.
 
 export async function GET(request) {
   const url = new URL(request.url);
@@ -16,6 +18,7 @@ export async function GET(request) {
   }
 
   try {
+    const provider = await contentProvider();
     const result = await provider.read(validation.relativePath);
     return Response.json({ ok: true, content: result.content, metadata: result.metadata, ns: result.ns });
   } catch (err) {
@@ -40,6 +43,7 @@ export async function POST(request) {
   }
 
   try {
+    const provider = await contentProvider();
     await provider.write(validation.relativePath, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
@@ -68,6 +72,7 @@ export async function DELETE(request) {
   }
 
   try {
+    const provider = await contentProvider();
     await provider.delete(validation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
@@ -93,6 +98,7 @@ export async function PUT(request) {
   }
 
   try {
+    const provider = await contentProvider();
     await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {

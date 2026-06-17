@@ -7,7 +7,7 @@
 //   npx tsx packages/shared/scripts/xml2json.ts [flags]
 //
 // Flags:
-//   --content <dir>        Content directory (default: $OLX_CONTENT_DIR or ./content)
+//   --content <dir>        Content directory (default: ./content)
 //   --ns <namespace>       Treat the whole content directory as ONE namespace
 //                          (single-course builds). Without it, namespaces
 //                          resolve per file (manifest.yaml, else top-level
@@ -31,6 +31,7 @@ import path from 'path';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { buildActivityCards } from '../lib/content/buildActivityCards';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
+import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
 import { parseContentNamespace } from '../lib/types/id-grammar';
 import type { ContentNamespace } from '../lib/types/id-grammar';
 
@@ -49,7 +50,8 @@ function getArgOptional(flag: string): string | null {
   return idx >= 0 && args[idx + 1] ? args[idx + 1] : null;
 }
 
-const contentDir = path.resolve(getArg('--content', process.env.OLX_CONTENT_DIR || './content'));
+const contentDir = path.resolve(getArg('--content', './content'));
+registerAllowedContentDir(contentDir);  // allow reads/writes under the chosen dir
 // Single-namespace override for single-course builds (see flag docs above).
 // parseContentNamespace fails fast with the grammar's message on bad input.
 const nsArg = getArgOptional('--ns');

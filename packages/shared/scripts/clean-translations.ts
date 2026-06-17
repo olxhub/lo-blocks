@@ -8,17 +8,22 @@
 // and deletes via the storage provider (which enforces path safety).
 //
 // Usage:
-//   npm run clean-translations          # dry run (default)
-//   npm run clean-translations -- --rm  # actually delete files
+//   npm run clean-translations                        # dry run (default)
+//   npm run clean-translations -- --rm                # actually delete files
+//   npm run clean-translations -- --content <dir>     # custom content dir
 
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
+import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
 import { variantMapEntries } from '../lib/types/i18n';
 import path from 'path';
 import type { IdMap, DefinitionKey, LofsRef } from '../lib/types';
 
-const contentDir = path.resolve(process.env.OLX_CONTENT_DIR || './content');
-const dryRun = !process.argv.includes('--rm');
+const argv = process.argv.slice(2);
+const contentArg = argv.indexOf('--content');
+const contentDir = path.resolve(contentArg >= 0 && argv[contentArg + 1] ? argv[contentArg + 1] : './content');
+registerAllowedContentDir(contentDir);  // allow reads/deletes under the chosen dir
+const dryRun = !argv.includes('--rm');
 
 async function main() {
   const provider = new FileStorageProvider(contentDir, 'content');
