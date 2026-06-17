@@ -56,10 +56,12 @@ import type { StorageProvider } from '../types/storage';
 const DEFAULT_CONFIG_PATH = 'config/content-sources.yaml';
 const LOCAL_CONFIG_PATH = 'config/content-sources.local.yaml';
 
-// Default env var for a repo source's access token. The common case is one
-// platform PAT for all private repos, so a source without an explicit
-// `tokenEnv` reads this. The multi-institution case (a different PAT per repo)
-// sets `tokenEnv` per source to override.
+// Default places a repo source's access token (e.g. a GitHub PAT) is read from,
+// when a source doesn't name its own. File-first: a file is more contained than
+// an env var (which every child process inherits and logs/ps can leak). The
+// default file is gitignored (config/*.pat); the env var is the fallback for
+// deployments that inject secrets that way.
+const DEFAULT_TOKEN_FILE = 'config/github.pat';
 const DEFAULT_TOKEN_ENV = 'LO_GITHUB_TOKEN';
 
 /** Repo-form source: served directly from a git remote. */
@@ -70,13 +72,18 @@ export interface RepoSource {
   /** Subtree(s) within the repo to serve (default: whole repo). String or list. */
   dir?: string | string[];
   cooldownSeconds?: number;
-  /** Name of the env var holding an access token (e.g. a GitHub PAT) for
-   *  private reads and pushes. The token stays out of the config file and the
-   *  repo. Defaults to LO_GITHUB_TOKEN — set this only to point a specific repo
-   *  at a different PAT (e.g. a per-institution token). With neither the named
-   *  nor the default var set, access is anonymous (public repos). Changing it
-   *  needs a restart. */
+  /** Path to a file holding an access token (e.g. a GitHub PAT) for private
+   *  reads and pushes. Preferred over `tokenEnv` (a file is more contained than
+   *  an env var). Keep it gitignored. */
+  tokenFile?: string;
+  /** Name of the env var holding an access token. Alternative to `tokenFile`
+   *  for deployments that inject secrets via env. */
   tokenEnv?: string;
+  // Token resolution per source (see resolveRepoToken), first match wins:
+  //   tokenFile → tokenEnv → default file (config/github.pat) → default env
+  //   (LO_GITHUB_TOKEN) → anonymous (public). An explicit tokenFile/tokenEnv
+  //   does NOT fall through to the defaults. Token is read once at construction;
+  //   changing it needs a restart. The token is never logged.
 }
 
 export interface ContentSourcesConfig {
@@ -138,6 +145,27 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   };
 }
 
+/**
+ * Resolve a repo source's access token, file-first. First match wins:
+ *   tokenFile → tokenEnv → default file (config/github.pat) → default env
+ *   (LO_GITHUB_TOKEN) → undefined (anonymous).
+ *
+ * An EXPLICIT tokenFile/tokenEnv does not fall through to the defaults — if you
+ * named a source and it's empty/missing, that's anonymous, not a surprise
+ * pickup of the platform default. The token is read here and never logged.
+ */
+async function resolveRepoToken(entry: RepoSource): Promise<string | undefined> {
+  const fs = await import('fs/promises');
+  const fromFile = async (p: string): Promise<string | undefined> => {
+    try { return (await fs.readFile(p, 'utf-8')).trim() || undefined; } catch { return undefined; }
+  };
+  const fromEnv = (name: string): string | undefined => process.env[name]?.trim() || undefined;
+
+  if (entry.tokenFile) return fromFile(entry.tokenFile);
+  if (entry.tokenEnv) return fromEnv(entry.tokenEnv);
+  return (await fromFile(DEFAULT_TOKEN_FILE)) ?? fromEnv(DEFAULT_TOKEN_ENV);
+}
+
 // Live git provider instances, memoized by repo identity. A GitStorageProvider
 // holds an in-memory clone + head cache + cooldown; building one per request
 // would re-clone the repo every request, since that cache lives on the
@@ -156,13 +184,11 @@ const gitSourceProvider = memoize(
   async (entry: RepoSource): Promise<StorageProvider> => {
     // Dynamic import keeps isomorphic-git/memfs out of client bundles.
     const { GitStorageProvider } = await import('./providers/git');
-    // Token resolved once at construction from an env var: the source's own
-    // `tokenEnv` if set (per-institution PAT), else the platform default
-    // LO_GITHUB_TOKEN (the one-PAT common case). A deploy-level service token
-    // today (GitHub PAT); per-user OAuth later moves credentials to write time
-    // (the shared instance can't hold a per-user token). Anonymous when the
-    // resolved var is unset → public reads.
-    const token = process.env[entry.tokenEnv ?? DEFAULT_TOKEN_ENV];
+    // Token resolved once at construction (file-first; see resolveRepoToken).
+    // A deploy-level service token today (GitHub PAT); per-user OAuth later
+    // moves credentials to write time (the shared instance can't hold a
+    // per-user token). Anonymous when none resolves → public reads.
+    const token = await resolveRepoToken(entry);
     return new GitStorageProvider({
       url: entry.repo,
       ref: entry.branch ?? 'main',
