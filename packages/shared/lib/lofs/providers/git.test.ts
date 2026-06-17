@@ -312,8 +312,22 @@ describe('GitStorageProvider', () => {
     const result = await sub.read('unit2/lesson2.olx' as OlxRelativePath);
     expect(result.content).toContain('Part two');
     // A read outside the configured subtree is denied, even though the whole
-    // repo is in memfs and lesson1.olx exists at the root (Finding 3).
+    // repo is in memfs and lesson1.olx exists at the root.
     await expect(sub.read('lesson1.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+  });
+
+  it('inherits an ancestor (root) manifest namespace for a dir-scoped source', async () => {
+    // dir:'unit2' trims the index, but the ROOT manifest (namespace: gitcourse)
+    // still governs unit2/ content. It must be consulted even though it sits
+    // outside the served subtree — else the namespace silently falls back to the
+    // repo name, shifting DefinitionKeys/state keys.
+    const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
+    sub.repoVol = provider.repoVol;
+    const resolved = await sub.namespaceFor(sub.toLofsRef('unit2/lesson2.olx' as any));
+    expect(resolved.ns).toBe('gitcourse');                       // root manifest, not the repo name
+    expect(String(resolved.manifest)).toMatch(/manifest\.yaml#[0-9a-f]{40}$/);
+    // And it flows through read().
+    expect((await sub.read('unit2/lesson2.olx' as OlxRelativePath)).ns).toBe('gitcourse');
   });
 
   it('accepts a list of subtrees and excludes the rest', async () => {

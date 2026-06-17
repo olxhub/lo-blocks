@@ -447,21 +447,27 @@ export class GitStorageProvider implements StorageProvider {
     await this.ensureFresh();
     const s = this.requireState();
 
-    // 1. Manifest walk, nearest first.
+    // 1. Manifest walk, nearest first. Manifests are read by blob, not via
+    //    s.tree (the content-file index): a configured `dir` subtree trims the
+    //    index but not the cloned volume, so an ancestor manifest above the
+    //    served subtree still governs the content beneath it.
     const segments = relPath.split('/').slice(0, -1);
     for (let i = segments.length; i >= 0; i--) {
       const manifestRel = [...segments.slice(0, i), 'manifest.yaml'].join('/');
-      const entry = s.tree.get(manifestRel);
-      if (!entry) continue;
-      const declared = YAML.parse(await this.readBlob(s, manifestRel))?.namespace;
+      let raw: string;
+      try { raw = await this.readBlob(s, manifestRel); } catch { continue; }  // none at this level
+      const declared = YAML.parse(raw)?.namespace;
       if (declared === undefined) continue;
       const valid = validateContentNamespace(String(declared));
       if (valid !== true) {
         throw new NamespaceResolutionError(`${this.url}: ${manifestRel}: ${valid}`);
       }
+      const oid = await this.currentBlobOid(s, manifestRel);  // for versioned provenance
       return {
         ns: asContentNamespace(String(declared)),
-        manifest: toLofsCanonical(withVersion(this.toRef(manifestRel), toLofsVersion(entry.oid))),
+        manifest: oid
+          ? toLofsCanonical(withVersion(this.toRef(manifestRel), toLofsVersion(oid)))
+          : undefined,
       };
     }
 
