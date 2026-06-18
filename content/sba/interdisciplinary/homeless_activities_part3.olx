@@ -17,7 +17,7 @@ lang: en-Latn-US
        TASKSET 5: MAP DISCIPLINARY INSIGHTS
        ============================================================ -->
   <Vertical id="homeless_taskset5">
-
+    <Markdown id="homeless3_blank"> </Markdown>
     <!-- Recap: match insights to disciplines -->
     <Vertical id="homeless_insight_review">
       <Markdown>
@@ -25,14 +25,27 @@ lang: en-Latn-US
 
 For each disciplinary insight below, select the discipline it came from.
       </Markdown>
-      <TabularMCQ id="hl_insight_review">
+      <CapaProblem id="hl_insight_review" title="Classify Causes by Discipline">
+        <TabularMCQGrader>
+          <TabularMCQ id="hl_insight_review_tmcq">
         mode: radio
         cols: Economics, Public Policy, Psychology
-        rows: More job opportunities and labor-market flexibility are linked to lower homelessness, Greater access to TANF cash assistance is linked to lower family homelessness, Mental health disorders are highly prevalent among people experiencing homelessness
-      </TabularMCQ>
+        rows: More job opportunities and labor-market flexibility are linked to lower homelessness [Economics], Greater access to TANF cash assistance is linked to lower family homelessness [Public Policy], Mental health disorders are highly prevalent among people experiencing homelessness [Psychology]
+          </TabularMCQ>
+        </TabularMCQGrader>
+      </CapaProblem>
     </Vertical>
 
-   <IntakeGate ready="!@homeless_3_completion_page.value">
+   <IntakeGate ready="!@homeless_3_completion_page.value">  
+     <Markdown> </Markdown>
+     <Image id="homeless_plaza_image3"
+       src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg"
+       alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0"
+       height="400px"
+     />
+   </IntakeGate>
+
+   <IntakeGate ready="!@homeless_3_completion_page.value">  
     <Markdown> </Markdown>
     <!-- Multidisciplinary map -->
     <Vertical id="homeless_insight_map">
@@ -83,11 +96,11 @@ graph TD
 For each pair of insights, explain how they might interact or affect one another.
         </Markdown>
         <Markdown>**Economic opportunity &harr; Income support:**</Markdown>
-        <TextArea id="hl_conn_econ_income" placeholder="When economic opportunity is limited, access to income support matters more because..." />
+        <TextArea id="hl_conn1" placeholder="When economic opportunity is limited, access to income support matters more because..." />
         <Markdown>**Economic opportunity &harr; Mental health:**</Markdown>
-        <TextArea id="hl_conn_econ_mh" placeholder="Job loss and economic instability and mental health may affect each other because..." />
+        <TextArea id="hl_conn2" placeholder="Job loss and economic instability and mental health may affect each other because..." />
         <Markdown>**Income support &harr; Mental health:**</Markdown>
-        <TextArea id="hl_conn_income_mh" placeholder="Access to support programs and mental health may affect each other because..." />
+        <TextArea id="hl_conn3" placeholder="Access to support programs and mental health may affect each other because..." />
       </Vertical>
       <Vertical id="homeless_connections_t2" title="The Map">
         <Use ref="homeless_insight_map" />
@@ -191,8 +204,15 @@ Anne Hastings has asked the team to share its findings with the community.
         <Markdown>
 **Draft a short outline for the presentation that integrates the economics, public-policy,
 and psychology insights into one coherent story about the causes of homelessness.**
+
+Don't just repeat what is in the integrated outline. Put together an outline that tells the
+story of how these causes interact to cause homelessness as effectively as possible **for
+your target audience**.
         </Markdown>
         <TextArea id="hl_presentation_outline" rows="10" placeholder="Slide 1: The problem...&#10;Slide 2: What the community told us...&#10;Slide 3: What the research shows (economics, policy, mental health)...&#10;Slide 4: How the causes connect...&#10;Slide 5: What Comm360 can do..." />
+      </Vertical>
+      <Vertical id="homeless_presentation_outline_t2" title="Integrated Concept Map">
+        <Use ref="homeless_integrated_map" />
       </Vertical>
       <Vertical id="homeless_presentation_outline_t2" title="Integrated Summary">
         <Use ref="homeless_integration_summary" />

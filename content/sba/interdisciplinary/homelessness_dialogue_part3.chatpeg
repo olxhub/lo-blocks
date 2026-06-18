@@ -36,7 +36,7 @@ Lianne: Let's see how we can integrate these insights. Which insights do you thi
 
 ::homeless_connections [display=target:homeless_p3_sidebar_b label="Explain the connections"]
 
---- wait @hl_conn_econ_income.value && @hl_conn_econ_mh.value && @hl_conn_income_mh.value ---
+--- wait @hl_conn1.value && @hl_conn2.value && @hl_conn3.value ---
 
 Lacy: I'm done.
 

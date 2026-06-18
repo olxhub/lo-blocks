@@ -23,7 +23,7 @@ lang: en-Latn-US
       </LeftPane>
       <RightPane>
         <Vertical id="homeless_p3_activity_a" title="Current Activity">
-          <UseHistory id="homeless_p3_sidebar_a" initial="homeless_insight_review" />
+          <UseHistory id="homeless_p3_sidebar_a" initial="homeless_plaza_image3" />
         </Vertical>
       </RightPane>
     </SplitPanel>
@@ -37,7 +37,7 @@ lang: en-Latn-US
       </LeftPane>
       <RightPane>
         <Vertical id="homeless_p3_activity_b" title="Current Activity">
-          <UseHistory id="homeless_p3_sidebar_b" initial="homeless_connections" />
+          <UseHistory id="homeless_p3_sidebar_b" initial="homeless_insight_map" />
         </Vertical>
       </RightPane>
     </SplitPanel>
@@ -51,7 +51,7 @@ lang: en-Latn-US
       </LeftPane>
       <RightPane>
         <Vertical id="homeless_p3_activity_c" title="Current Activity">
-          <UseHistory id="homeless_p3_sidebar_c" initial="homeless_importance_unresolved" />
+          <UseHistory id="homeless_p3_sidebar_c" initial="homeless3_blank" />
         </Vertical>
       </RightPane>
     </SplitPanel>
