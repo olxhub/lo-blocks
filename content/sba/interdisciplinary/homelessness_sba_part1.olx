@@ -1,0 +1,144 @@
+<!-- content/sba/interdisciplinary/homelessness_sba_part1.olx -->
+<!-- Interdisciplinary Studies SBA, Part 1: Causes of Homelessness -->
+<Vertical id="homeless_sba_root">
+
+<!--
+---
+description: Investigate the causes of homelessness using interdisciplinary research methods (part 1 - brainstorm and review community focus group data)
+category: interdisciplinary
+index: 79
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_sba_demo_part1" title="Interdisciplinary Studies SBA, Part 1 - Causes of Homelessness" launchable="true">
+ <Tabs id="homeless_sba_tabs">
+  <Sequential id="homeless_seq_1" title="Current Activity">
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp1">
+      <LeftPane>
+        <Chat id="homeless_chat_orientation"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="orientation"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_a" title="Current Activity">
+          <UseHistory id="homeless_sidebar_a" initial="homeless_plaza_image" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp2">
+      <LeftPane>
+        <Chat id="homeless_chat_introduction"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="introduction"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_b" title="Current Activity">
+          <UseHistory id="homeless_sidebar_b" initial="homeless_orientation" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp3">
+      <LeftPane>
+        <Chat id="homeless_chat_team_intro"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="team_intro"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_c" title="Current Activity">
+          <UseHistory id="homeless_sidebar_c" initial="homeless_team_intro" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp4">
+      <LeftPane>
+        <Chat id="homeless_chat_task_list"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="task_list"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_d" title="Current Activity">
+          <UseHistory id="homeless_sidebar_d" initial="homeless_task_list" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp5">
+      <LeftPane>
+        <Chat id="homeless_chat_brainstorm"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="brainstorm_start"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_e" title="Current Activity">
+          <UseHistory id="homeless_sidebar_e" initial="homeless_brainstorming_image" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp6">
+      <LeftPane>
+        <Chat id="homeless_chat_focus_group"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="focus_group_start"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_f" title="Current Activity">
+          <UseHistory id="homeless_sidebar_f" initial="homeless_focus_group_transcript_pt1" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp7">
+      <LeftPane>
+        <Chat id="homeless_chat_focus_selection"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="focus_selection"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_g" title="Current Activity">
+          <UseHistory id="homeless_sidebar_g" initial="causes_list_full" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_1sp8">
+      <LeftPane>
+        <Chat id="homeless_chat_part_one_conclusion"
+            src="homelessness_dialogue_part1.chatpeg"
+            clip="part_one_conclusion"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_current_activity_h" title="Current Activity">
+          <UseHistory id="homeless_sidebar_h" initial="completion_homeless_1" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+   </Sequential>
+
+   <!-- Tab 2: Team Directory -->
+   <Vertical id="homeless_directory" title="Team">
+     <Use ref="homeless_team_members" />
+   </Vertical>
+  </Tabs>
+</Cast>
+
+<!-- ============================================================
+     REFERENCED CONTENT BLOCKS
+     ============================================================ -->
+
+<!-- Team Directory -->
+<TeamDirectory id="homeless_team_members" title="Comm360 Team"/>
+
+</Vertical>

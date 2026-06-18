@@ -1,0 +1,95 @@
+<!-- content/sba/interdisciplinary/homelessness_sba_part2.olx -->
+<!-- Interdisciplinary Studies SBA, Part 2: Reflect and Review the Literature (Homelessness) -->
+<Vertical id="homeless_sba_root_part2">
+
+<!--
+---
+description: Reflect on whether homelessness is an interdisciplinary problem and review research literature from economics, public policy, and psychology (part 2)
+category: interdisciplinary
+index: 82
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_sba_demo_part2" title="Interdisciplinary Studies SBA, Part 2 - Reflect and Review the Literature" launchable="true">
+ <Tabs id="homeless_sba_tabs_part2">
+  <Sequential id="homeless_seq_2" title="Current Activity">
+
+    <SplitPanel sizes="30, 70" id="homeless_2sp1">
+      <LeftPane>
+        <Chat id="homeless_chat_reflect"
+            src="homelessness_dialogue_part2.chatpeg"
+            clip="reflect_start"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p2_activity_a" title="Current Activity">
+          <UseHistory id="homeless_p2_sidebar_a" initial="homeless_task_set_3_intro" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_2sp2">
+      <LeftPane>
+        <Chat id="homeless_chat_lit_economics"
+            src="homelessness_dialogue_part2.chatpeg"
+            clip="literature_economics"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p2_activity_b" title="Current Activity">
+          <UseHistory id="homeless_p2_sidebar_b" initial="homeless_blank" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_2sp3">
+      <LeftPane>
+        <Chat id="homeless_chat_lit_income"
+            src="homelessness_dialogue_part2.chatpeg"
+            clip="literature_income"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p2_activity_c" title="Current Activity">
+          <UseHistory id="homeless_p2_sidebar_c" initial="homeless_blank" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_2sp4">
+      <LeftPane>
+        <Chat id="homeless_chat_lit_mental_health"
+            src="homelessness_dialogue_part2.chatpeg"
+            clip="literature_mental_health"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p2_activity_d" title="Current Activity">
+          <UseHistory id="homeless_p2_sidebar_d" initial="homeless_blank" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_2sp5">
+      <LeftPane>
+        <Chat id="homeless_chat_part_two_conclusion"
+            src="homelessness_dialogue_part2.chatpeg"
+            clip="part_two_conclusion"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p2_activity_e" title="Current Activity">
+          <UseHistory id="homeless_p2_sidebar_e" initial="completion_homeless_2" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+   </Sequential>
+
+   <!-- Tab 2: Team Directory -->
+   <Vertical id="homeless_directory_part2" title="Team">
+     <Use ref="homeless_team_members" />
+   </Vertical>
+  </Tabs>
+</Cast>
+
+</Vertical>

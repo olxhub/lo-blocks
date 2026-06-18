@@ -1,0 +1,229 @@
+<!--
+---
+description: Activity file for the Homelessness Interdisciplinary SBA, Part 3 - map disciplinary insights and develop a public-awareness presentation
+category: interdisciplinary
+index: 83
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_activities_part3" title="Activities for Part 3 of the Interdisciplinary Studies SBA on Homelessness" launchable="true">
+<Vertical>
+
+  <ActionButton id="print_homeless_part3_btn" label="Export as PDF">
+    <PrintAction id="print_homeless_part3" />
+  </ActionButton>
+
+  <!-- ============================================================
+       TASKSET 5: MAP DISCIPLINARY INSIGHTS
+       ============================================================ -->
+  <Vertical id="homeless_taskset5">
+
+    <!-- Recap: match insights to disciplines -->
+    <Vertical id="homeless_insight_review">
+      <Markdown>
+## Match Each Insight to Its Discipline
+
+For each disciplinary insight below, select the discipline it came from.
+      </Markdown>
+      <TabularMCQ id="hl_insight_review">
+        mode: radio
+        cols: Economics, Public Policy, Psychology
+        rows: More job opportunities and labor-market flexibility are linked to lower homelessness, Greater access to TANF cash assistance is linked to lower family homelessness, Mental health disorders are highly prevalent among people experiencing homelessness
+      </TabularMCQ>
+    </Vertical>
+
+   <IntakeGate ready="!@homeless_3_completion_page.value">
+    <Markdown> </Markdown>
+    <!-- Multidisciplinary map -->
+    <Vertical id="homeless_insight_map">
+      <Markdown>
+## A First Map of Our Insights
+
+Each insight explains one part of the problem.
+      </Markdown>
+      <Mermaid><![CDATA[
+graph TD
+    P[Homelessness]
+    I1[Economic opportunity<br/>and labor-market flexibility<br/>—Economics] --> P
+    I2[Access to income support<br/>—Public Policy] --> P
+    I3[Mental health disorders<br/>—Psychology] --> P
+
+    style P fill:#ffe1e1
+    style I1 fill:#fff4e1
+    style I2 fill:#fff4e1
+    style I3 fill:#fff4e1
+]]></Mermaid>
+    </Vertical>
+   </IntakeGate>
+
+    <!-- Classify the map: multidisciplinary vs interdisciplinary -->
+    <Tabs id="homeless_classify_map">
+      <Vertical id="homeless_classify_map_t1" title="Classify the Map">
+        <Markdown>
+**Is this a multidisciplinary map or an interdisciplinary map?**
+        </Markdown>
+        <ChoiceInput id="hl_map_type">
+          <Key>Multidisciplinary — each insight explains a separate part of the problem, with no links among them</Key>
+          <Distractor>Interdisciplinary — it already shows how the insights relate to one another</Distractor>
+        </ChoiceInput>
+        <Markdown>**Explain your choice:**</Markdown>
+        <TextArea id="hl_map_type_explanation" placeholder="I think this is a ... map because ..." />
+      </Vertical>
+      <Vertical id="homeless_classify_map_t2" title="The Map">
+        <Use ref="homeless_insight_map" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Explain the connections between insights -->
+    <Tabs id="homeless_connections">
+      <Vertical id="homeless_connections_t1" title="Explain the Connections">
+        <Markdown>
+## How Do the Insights Connect?
+
+For each pair of insights, explain how they might interact or affect one another.
+        </Markdown>
+        <Markdown>**Economic opportunity &harr; Income support:**</Markdown>
+        <TextArea id="hl_conn_econ_income" placeholder="When economic opportunity is limited, access to income support matters more because..." />
+        <Markdown>**Economic opportunity &harr; Mental health:**</Markdown>
+        <TextArea id="hl_conn_econ_mh" placeholder="Job loss and economic instability and mental health may affect each other because..." />
+        <Markdown>**Income support &harr; Mental health:**</Markdown>
+        <TextArea id="hl_conn_income_mh" placeholder="Access to support programs and mental health may affect each other because..." />
+      </Vertical>
+      <Vertical id="homeless_connections_t2" title="The Map">
+        <Use ref="homeless_insight_map" />
+      </Vertical>
+    </Tabs>
+
+   <IntakeGate ready="!@homeless_3_completion_page.value">
+    <Markdown> </Markdown>
+    <!-- Integrated (interdisciplinary) map -->
+    <Vertical id="homeless_integrated_map">
+      <Markdown>
+## An Integrated, Interdisciplinary Map
+
+Adding arrows between the insights shows how they influence one another.
+      </Markdown>
+      <Mermaid><![CDATA[
+graph TD
+    P[Homelessness]
+    I1[Economic opportunity<br/>—Economics]
+    I2[Access to income support<br/>—Public Policy]
+    I3[Mental health disorders<br/>—Psychology]
+
+    I1 --> P
+    I2 --> P
+    I3 --> P
+    I1 -->|fewer opportunities raise<br/>reliance on support| I2
+    I1 -->|instability and job loss<br/>add stress| I3
+    I2 -->|support buffers stress and<br/>stabilizes housing| I3
+
+    style P fill:#ffe1e1
+    style I1 fill:#fff4e1
+    style I2 fill:#fff4e1
+    style I3 fill:#fff4e1
+]]></Mermaid>
+    </Vertical>
+   </IntakeGate>
+
+   <IntakeGate ready="!@homeless_3_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="homeless_integration_summary">
+      <Markdown>
+## Summary of Interdisciplinary Connections
+
+Homelessness is a complex problem with many interacting causes. Three disciplinary
+insights help explain it, and they are connected:
+
+- **Economics** shows that when there are fewer job opportunities and less labor-market
+  flexibility, more people are at risk of losing housing.
+- When economic opportunity is scarce, **access to income support** (a public-policy
+  insight) becomes more important as a financial floor that keeps families housed.
+- Economic instability and the experience of homelessness add stress and trauma, which
+  connects to the **psychology** insight that mental health disorders are highly prevalent
+  among people experiencing homelessness — and access to support can buffer that stress.
+
+Taken together, these insights show that economic conditions, policy design, and mental
+health interact over time, so an effective community response must address all three.
+      </Markdown>
+    </Vertical>
+   </IntakeGate>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 6: DEVELOP A PRESENTATION
+       ============================================================ -->
+  <Vertical id="homeless_taskset6">
+
+   <IntakeGate ready="!@homeless_3_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="homeless_importance_unresolved">
+      <Markdown>
+## Is the Problem Important and Unresolved?
+
+Repko's criteria also ask whether the problem is **important** and **not yet resolved**.
+Draw on the community focus group and the studies you reviewed.
+      </Markdown>
+      <Markdown>**In your own words, explain why homelessness is an important problem that remains unresolved in this community:**</Markdown>
+      <TextArea id="hl_importance_explanation" rows="5" placeholder="This problem is important because... It remains unresolved because..." />
+    </Vertical>
+   </IntakeGate>
+
+    <!-- Presentation planning -->
+    <Vertical id="homeless_presentation_plan">
+      <Markdown>
+## Plan the Public-Awareness Presentation
+
+Anne Hastings has asked the team to share its findings with the community.
+      </Markdown>
+      <Markdown>**Who is the main audience for this presentation?**</Markdown>
+      <ChoiceInput id="hl_presentation_audience">
+        <Distractor>Academic researchers in a single discipline</Distractor>
+        <Key>Community members, local leaders, and potential partners</Key>
+        <Distractor>Only the Comm360 internal staff</Distractor>
+      </ChoiceInput>
+      <Markdown>**What are the key messages you want the audience to take away? (List two or three.)**</Markdown>
+      <TextArea id="hl_presentation_messages" rows="5" placeholder="1. Homelessness has multiple, interacting causes...&#10;2. ...&#10;3. ..." />
+    </Vertical>
+
+    <!-- Presentation outline -->
+    <Tabs id="homeless_presentation_outline">
+      <Vertical id="homeless_presentation_outline_t1" title="Draft the Outline">
+        <Markdown>
+**Draft a short outline for the presentation that integrates the economics, public-policy,
+and psychology insights into one coherent story about the causes of homelessness.**
+        </Markdown>
+        <TextArea id="hl_presentation_outline" rows="10" placeholder="Slide 1: The problem...&#10;Slide 2: What the community told us...&#10;Slide 3: What the research shows (economics, policy, mental health)...&#10;Slide 4: How the causes connect...&#10;Slide 5: What Comm360 can do..." />
+      </Vertical>
+      <Vertical id="homeless_presentation_outline_t2" title="Integrated Summary">
+        <Use ref="homeless_integration_summary" />
+      </Vertical>
+    </Tabs>
+  </Vertical>
+
+   <!-- Completion summary -->
+  <Vertical id="completion_homeless_3">
+  <CheckboxInput id="homeless_3_completion_page">
+    <Markdown id="homeless_3_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Homeless_Part_3_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Homeless_Part_3_finished' in @homeless_3_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
+## Part 3 Complete!
+
+### What you accomplished across the three parts:
+
+1. **Brainstormed** individual-level and structural causes of homelessness
+2. **Reviewed** community focus-group data and selected focus areas
+3. **Reflected** on whether homelessness is an interdisciplinary problem
+4. **Reviewed the literature** from economics, public policy, and psychology
+5. **Mapped and integrated** the disciplinary insights
+6. **Developed a presentation** to share the findings with the community
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
+
+</Vertical>
+</Cast>

@@ -1,0 +1,142 @@
+title: Interdisciplinary Reasoning SBA, Part 1 - Causes of Homelessness
+authors: Comm360 Assessment Module
+~~~~
+
+Orientation [id=orientation]
+-----------
+
+Lianne: Hi. This is the scenario-based activity on interdisciplinary research. There are three parts. Each part should take around 45 minutes to an hour, and you can break it up over several days if you'd like.
+
+Lianne: In this module, you'll complete Part 1 of a simulated project in which you'll apply what you've learned in class about interdisciplinary analysis. The module contains everything you need to complete the project.
+
+Lianne: There are instructions on the screen to help you navigate and give your answers. There are also a few links embedded in the text. You can use them for additional information, but that's optional.
+
+Lianne: Remember that I will be seeing these results, so please take it seriously and do your best work. I think you'll enjoy it.
+
+Introduction to Comm360 [id=introduction]
+------------------------
+
+You: So I'm starting my internship at Community 360, or Comm360 for short.
+
+Teammate: Their mission is to address community-based needs and issues through responsive programming — in areas like education and training, health and wellness, family and youth services, and community building and advocacy.
+
+You: Right. A community needs survey identified the high rate of housing insecurity, specifically homelessness, in the area as a serious issue.
+
+Teammate: We've been asked to work with the other interns to investigate the causes of homelessness, so that Comm360 can explore ways to address the problem.
+
+Meet the Team [id=team_intro]
+-------------
+
+Teammate: Before we dive in, we should figure out who's on our team. There's a team directory around here somewhere. Want to explore it and see who we'll be working with?
+
+Teammate: From the directory, it looks like our intern teammates are Ty, Peggy, and Lacy.
+
+You: Our supervisor and mentor is Lianne Park. She's been at Comm360 for five years and directs multiple programs. She'll present our findings to the Program Development and Evaluation committee.
+
+Teammate: And she reports to Anne Hastings, the CEO, who makes the ultimate decisions about programs and resources.
+
+Teammate: Now that we know the team, let's see what Lianne has for us to work on.
+
+Task Overview [id=task_list]
+-------------
+
+Lianne: Welcome to the team, everyone. We're glad you're here at Comm360 to help us work on this problem. Take a look at the handout. Over three parts of this activity, you'll work together to complete these tasks.
+
+Lianne: By the way, you can call me Lianne. We're pretty informal here.
+
+Lacy: Thanks, Lianne.
+
+Task 1: Brainstorm [id=brainstorm_start]
+-----------------------
+
+Lianne: Let's get started with the brainstorming task. When people experience homelessness — whether short-term or long-term — it can affect their health, safety, employment, and overall stability.
+
+Lianne: Why don't each of you start by reviewing what you already know about why people lose stable housing? It may be from personal experiences, things you've seen in your community, or stories you've heard.
+
+Lacy: Thanks, Lianne. I've heard stories about people losing housing after medical bills or job loss, but I've never really thought about all the different reasons it might happen.
+
+Peggy: Actually... this topic feels kind of personal to me. When I was in middle school, my mom lost her job unexpectedly. A few months later we were behind on rent. We didn't end up on the street, but we stayed with my aunt for almost six months. I didn't realize at the time how close we were to losing our housing completely.
+
+Lianne: Thank you for sharing that, Peggy. What you described is something researchers often refer to as housing instability — situations where families are temporarily doubled up or at risk of losing housing. Homelessness isn't always sudden or visible.
+
+Ty: What stands out to me is how it wasn't one dramatic event — it was a job loss, then falling behind on rent, then having to move in with family. Maybe we should add something like: "Unexpected job loss without financial savings can lead to housing instability."
+
+Lacy: I can add one. "Rising rent combined with wages that don't increase at the same rate can make it difficult for people to keep stable housing."
+
+Lianne: That's a good plan, but keep in mind — not all causes are structural or systemic. Some people may experience challenges that make it harder to maintain stable housing over time, like untreated mental health conditions, substance use, or difficulty maintaining steady employment. That's an example of an individual-level cause.
+
+::homeless_internal_and_structural_causes [display=target:homeless_sidebar_e label="View cause types"]
+
+Lianne: As we continue identifying causes, it's important to consider both sides — not just systems, but also individual factors that might contribute.
+
+Ty: Ah, I see. So why don't we each write one cause that focuses more on an individual situation and one that reflects a structural factor?
+
+Peggy: That makes sense. I'm not totally sure I get the difference yet, but I'll try.
+
+::homeless_cause_inputs [display=target:homeless_sidebar_e label="Enter your causes"]
+
+Peggy: So let's see if we can each write two causes.
+
+--- wait @hl_cause_individual.value && @hl_cause_structural.value ---
+
+You: I'm done.
+
+::homeless_causes_list [display=target:homeless_sidebar_e label="View all suggested causes"]
+
+Lacy: Here are all of our reasons, Lianne. What do you think?
+
+Lianne: This is a good list. It reflects a lot of what we heard in a focus group we conducted after we reviewed our community needs survey. We spoke to various stakeholders — people currently experiencing homelessness, service providers, business owners, and community members.
+
+Task 2: Review Focus Group Data [id=focus_group_start]
+---------------------------------------
+
+Lianne: Now let's move on to the next task. I'd like you to take a look at part of the transcript from that focus group to extract additional reasons, because this is an extremely complex problem, as you've already identified, with many interacting causes.
+
+::homeless_focus_group_transcript_pt1 [display=target:homeless_sidebar_f label="Highlight causes and take notes"]
+
+Lianne: Read the transcript before you go on. Highlight any reasons that participants gave for losing housing security, and add a note explaining why it describes a cause of homelessness. You'll be able to use these notes later.
+
+Ty: I hope we get to work on focus groups here, because that was really interesting. Here's what I highlighted.
+
+::homeless_focus_group_highlights_shown [display=target:homeless_sidebar_f label="View highlighted transcript"]
+
+Task 3: Select Focus Areas [id=focus_selection]
+---------------------
+
+Lacy: I studied focus groups in my research methods class last year. Ty, I'm taking your highlights and combining them with the reasons we already came up with. I re-worded some of them, but I think I've captured everything.
+
+::causes_list_full [display=target:homeless_sidebar_g label="View all reasons"]
+
+Lianne: Good work. This list reflects what we've heard in the community about this issue. Now we need to turn our attention to the research. I think we should focus on a subset of these reasons — ones that Comm360 might actually be able to address.
+
+Lacy: Which ones would you select to research? Pick at least three to start with, and no more than five.
+
+::homeless_reasons_checklist [display=target:homeless_sidebar_g label="Select focus areas"]
+
+--- wait @hl_reasons.value.length > 2 && @hl_reasons.value.length < 6 ---
+
+::homeless_reasons_shown [display=target:homeless_sidebar_g label="View your selections"]
+
+Lianne: I agree with you on some of your choices. Why did you select that set? Why do you think Comm360 would be able to address them?
+
+::homeless_reason_explanation_input [display=target:homeless_sidebar_g label="Explain your choices"]
+
+--- wait @hl_reason_explanation.value ---
+
+Lianne: I appreciate the thoughtfulness you've shown on this issue, both as individuals and as a team. I reviewed the reasons you put together with Ms. Hastings. We agree that this subset of causes are appropriate for us to consider as an organization to build programmatic outreach and solutions.
+
+::focus_areas_confirmed [display=target:homeless_sidebar_g label="View confirmed focus areas"]
+
+Conclusion to Part One [id=part_one_conclusion]
+--------------------
+
+Lianne: Good work! This ends Part 1 of the SBA. Let's recap what we've done so far.
+
+We brainstormed and reviewed causes of homelessness. That helped us understand that this is a complex problem with multiple parts. Next time, we'll reflect on whether this is an interdisciplinary problem and begin reviewing the research literature.
+
+::completion_homeless_1 [display=target:homeless_sidebar_h label="Mark Your Work Complete"]
+
+Lianne: Now that you've finished this task, please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.
+
+::homeless_activities_part1 [display=target:homeless_sidebar_h label="Review and Save Your Work"]
+

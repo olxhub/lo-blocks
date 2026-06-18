@@ -1,0 +1,18 @@
+<!-- content/sba/interdisciplinary/homelessness_sba_course.olx -->
+<!--
+---
+description: Comm360 interdisciplinary research project on the causes of homelessness, in three parts (brainstorm and review; reflect and review the literature; map insights and develop a presentation)
+category: interdisciplinary
+index: 78
+lang: en-Latn-US
+authors:
+  - Comm360 Assessment Module
+license: AGPL
+---
+-->
+
+<Course id="homeless_course" title="Comm360: Understanding the Causes of Homelessness" launchable="true">
+  <Use ref="homeless_sba_demo_part1" />
+  <Use ref="homeless_sba_demo_part2" />
+  <Use ref="homeless_sba_demo_part3" />
+</Course>

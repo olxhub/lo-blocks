@@ -1,0 +1,81 @@
+<!-- content/sba/interdisciplinary/homelessness_sba_part3.olx -->
+<!-- Interdisciplinary Studies SBA, Part 3: Map Disciplinary Insights and Develop a Presentation (Homelessness) -->
+<Vertical id="homeless_sba_root_part3">
+
+<!--
+---
+description: Map and integrate disciplinary insights about homelessness and develop a public-awareness presentation (part 3)
+category: interdisciplinary
+index: 84
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_sba_demo_part3" title="Interdisciplinary Studies SBA, Part 3 - Map Insights and Develop a Presentation" launchable="true">
+ <Tabs id="homeless_sba_tabs_part3">
+  <Sequential id="homeless_seq_3" title="Current Activity">
+
+    <SplitPanel sizes="30, 70" id="homeless_3sp1">
+      <LeftPane>
+        <Chat id="homeless_chat_map_start"
+            src="homelessness_dialogue_part3.chatpeg"
+            clip="map_start"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p3_activity_a" title="Current Activity">
+          <UseHistory id="homeless_p3_sidebar_a" initial="homeless_insight_review" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_3sp2">
+      <LeftPane>
+        <Chat id="homeless_chat_connections"
+            src="homelessness_dialogue_part3.chatpeg"
+            clip="connections"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p3_activity_b" title="Current Activity">
+          <UseHistory id="homeless_p3_sidebar_b" initial="homeless_connections" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_3sp3">
+      <LeftPane>
+        <Chat id="homeless_chat_presentation"
+            src="homelessness_dialogue_part3.chatpeg"
+            clip="presentation"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p3_activity_c" title="Current Activity">
+          <UseHistory id="homeless_p3_sidebar_c" initial="homeless_importance_unresolved" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+
+    <SplitPanel sizes="30, 70" id="homeless_3sp4">
+      <LeftPane>
+        <Chat id="homeless_chat_part_three_conclusion"
+            src="homelessness_dialogue_part3.chatpeg"
+            clip="part_three_conclusion"
+            height="400px" />
+      </LeftPane>
+      <RightPane>
+        <Vertical id="homeless_p3_activity_d" title="Current Activity">
+          <UseHistory id="homeless_p3_sidebar_d" initial="completion_homeless_3" />
+        </Vertical>
+      </RightPane>
+    </SplitPanel>
+   </Sequential>
+
+   <!-- Tab 2: Team Directory -->
+   <Vertical id="homeless_directory_part3" title="Team">
+     <Use ref="homeless_team_members" />
+   </Vertical>
+  </Tabs>
+</Cast>
+
+</Vertical>

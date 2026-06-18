@@ -1,0 +1,262 @@
+<!--
+---
+description: Activity file for the Homelessness Interdisciplinary SBA, Part 1 - causes of homelessness (brainstorm and focus group review)
+category: interdisciplinary
+index: 80
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_activities_part1" title="Activities for Part 1 of the Interdisciplinary Studies SBA on Homelessness" launchable="true">
+<Vertical>
+
+  <ActionButton id="print_homeless_part1_btn" label="Export as PDF">
+    <PrintAction id="print_homeless_part1" />
+  </ActionButton>
+
+  <IntakeGate ready="!@homeless_1_completion_page.value">
+   <Markdown> </Markdown>
+   <Vertical>
+  <!-- ORIENTATION -->
+    <SplitPanel id="homeless_orientation" title="Introduction" sizes="65,35">
+      <LeftPane>
+          <Markdown id="homeless_orientation_md">
+**Introduction**
+
+Imagine that as part of your degree requirements, you are completing an internship at a local
+nonprofit called **Community 360**, or **Comm360** for short.
+
+The mission of Comm360 is to address community-based needs and issues through responsive
+programming in multiple areas such as:
+ - Education and Training
+ - Health and Wellness
+ - Family and Youth Services
+ - Community Building and Advocacy
+
+A community needs survey conducted by Comm360 identified the high rate of housing insecurity,
+specifically homelessness, in the area as a serious issue. You have been asked to work with
+other interns to investigate the causes of homelessness to better understand the problem so
+that Comm360 can explore ways to address it.
+          </Markdown>
+      </LeftPane>
+      <RightPane>
+          <Image id="homeless_image_nonprofit" src="/sba/interdisciplinary/images/nonprofit.png" alt="Nonprofit" />
+          <Image id="homeless_image_wordcloud" src="/sba/interdisciplinary/images/wordcloud.png" alt="Helping, volunteer, community, donations ..." />
+      </RightPane>
+    </SplitPanel>
+
+    <Image id="homeless_plaza_image"
+         src="/sba/interdisciplinary/images/GSU_Library_Plaza.jpg"
+         alt="GSU Library Plaza. Photograph by Hwi Padam, CC by SA 4.0"
+         height="400px"
+    />
+
+    <Markdown id="homeless_task_list">
+## Task Outline
+
+Over three parts of this Scenario-based Activity (SBA), you will work with your teammates to
+complete the following tasks:
+ 1. _Brainstorm causes for homelessness._
+ 2. _Review community focus group data._
+ 3. _Select focus areas._
+ 4. _Reflect: Is this an interdisciplinary problem?_
+ 5. _Review the literature._
+ 6. _Integrate disciplinary insights and share the results._
+
+This is Part One. In Parts Two and Three you will complete the rest of the interdisciplinary
+research process.
+    </Markdown>
+
+    <Image id="homeless_brainstorming_image"
+         src="/sba/interdisciplinary/images/team_workshop.jpg"
+         height="400px"
+         alt="Talking about processes at a team brainstorming session. Source: UCT MOOC, CC by SA 4.0 International License" />
+
+    <Markdown id="homeless_internal_and_structural_causes">
+## Individual and Structural Causes
+
+ - **Individual-level causes** arise from **a person's own experiences or situation**;
+     for instance, an untreated mental health condition or a sudden job loss can make it
+     harder to maintain stable housing.
+ - **Structural causes** arise from **outside the individual**, from the way that
+     housing markets, the economy, and community institutions are organized; for
+     instance, when affordable-housing supply does not keep up with demand, even
+     people with stable jobs can be priced out.
+    </Markdown>
+
+  <!-- TEAM DIRECTORY -->
+    <Vertical id="homeless_team_intro">
+      <Use ref="homeless_team_members" />
+    </Vertical>
+   </Vertical>
+  </IntakeGate>
+
+  <!-- ============================================================
+       TASKSET 1: BRAINSTORM CAUSES
+       ============================================================ -->
+  <Vertical id="homeless_taskset1">
+
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+    <Markdown> </Markdown>
+    <!-- Input for student's causes -->
+    <Vertical id="homeless_cause_inputs">
+      <Markdown>
+**Think of two causes for homelessness:**
+      </Markdown>
+      <Markdown>**Your individual-level cause:** Type a cause that focuses on a person's own experiences or situation:</Markdown>
+      <TextArea id="hl_cause_individual" placeholder="..." />
+      <Markdown>**Your structural cause:** Type a cause that focuses on factors beyond the individual:</Markdown>
+      <TextArea id="hl_cause_structural" placeholder="..." />
+     </Vertical>
+    </IntakeGate>
+
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+    <Markdown> </Markdown>
+    <!-- Combined list of causes from team + student -->
+    <Vertical id="homeless_causes_list" popout="window">
+      <Markdown>
+**Combined Causes from Team Discussion:**
+
+**Ty's cause:**
+- Unexpected job loss without financial savings can lead to housing instability
+
+**Lacy's cause:**
+- Rising rent combined with wages that don't increase at the same rate can make it difficult to keep stable housing
+
+**Peggy's experience (housing instability):**
+- A family can be temporarily doubled up or at risk of losing housing after an unexpected loss of income
+
+**Lianne's example (individual-level):**
+- Untreated mental health conditions, substance use, or difficulty maintaining steady employment can make it harder to maintain stable housing
+
+**Your causes:**
+      </Markdown>
+      <Ref target="hl_cause_individual" />
+      <Ref target="hl_cause_structural" />
+    </Vertical>
+   </IntakeGate>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 2: REVIEW FOCUS GROUP DATA + SELECT FOCUS AREAS
+       ============================================================ -->
+  <Vertical id="homeless_taskset2">
+
+    <!-- Focus group transcript with highlighting -->
+    <Vertical id="homeless_focus_group_transcript_pt1">
+      <Markdown>
+**Highlight places in the text where a participant mentions a cause of homelessness,
+and add an annotation that says why this statement identifies a cause. You'll be able
+to use these notes later.**
+
+_You can expand the text to a full window by clicking on the square double-arrow icon below to the
+right of "Annotations"._
+      </Markdown>
+      <Annotate id="homeless_focus_group" title="Focus Group Transcript" popout="window">
+        <Markdown id="homeless_transcript_md1" src="readings/homeless_focus_group_transcript.md"/>
+      </Annotate>
+    </Vertical>
+
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+     <Markdown> </Markdown>
+     <!-- Display of focus group highlights -->
+     <Vertical id="homeless_focus_group_highlights_shown">
+       <Markdown id="homeless_transcript_md2" src="readings/homeless_focus_group_transcript_highlighted.md"/>
+     </Vertical>
+   </IntakeGate>
+
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+    <Markdown> </Markdown>
+     <Vertical id="causes_list_full">
+     <Markdown id="homeless_full_cause_list">
+## Why Do People Experience Homelessness?
+
+ - Trauma — domestic violence, family conflict, or untreated mental health conditions — can disrupt employment, relationships, and stability, leading to housing insecurity
+ - Records such as an eviction filing or minor charges often appear in tenant screening databases, and many landlords automatically deny applications with that history
+ - Limited economic opportunity, such as fewer jobs or restrictive labor-market conditions, can make it harder to find and keep stable employment
+ - In some cities, there is not enough affordable housing for low- and middle-income residents
+ - When people lose their jobs or have unstable employment and no savings, they may be unable to keep up with rent
+ - Substance use challenges can make it more difficult to maintain steady employment or manage housing responsibilities
+ - When wages remain low while rents continue to rise, even people working full time may struggle to afford housing
+ - Racial discrimination in housing and lending markets can limit access to stable, affordable housing for some groups
+ - Limited access to cash assistance or income-support programs can leave people without a financial safety net during crises
+ - People who are unsheltered may face increased risks from extreme heat or severe weather, which can worsen health and housing instability
+      </Markdown>
+     </Vertical>
+    </IntakeGate>
+
+    <!-- Checklist of reasons to research -->
+    <Vertical id="homeless_reasons_checklist">
+      <Markdown>
+_Select the causes you think are most important to research._
+
+**Choose at least three but no more than five.**
+      </Markdown>
+      <CheckboxInput id="hl_reasons">
+        <Key id="reason_trauma" value="Trauma and untreated mental health">Trauma — domestic violence, family conflict, or untreated mental health conditions — leading to housing insecurity</Key>
+        <Key id="reason_records" value="Eviction and criminal records">Eviction filings and minor charges in tenant screening databases that lead landlords to deny applications</Key>
+        <Key id="reason_economic" value="Limited economic opportunity">Limited economic opportunity and restrictive labor-market conditions</Key>
+        <Key id="reason_affordable" value="Lack of affordable housing">Not enough affordable housing for low- and middle-income residents</Key>
+        <Key id="reason_jobloss" value="Job loss without savings">Job loss or unstable employment without financial savings</Key>
+        <Key id="homeless_reason_substance" value="Substance use challenges">Substance use challenges that affect employment and housing responsibilities</Key>
+        <Key id="reason_wages" value="Low wages vs rising rents">Wages staying low while rents continue to rise</Key>
+        <Key id="reason_discrimination" value="Racial discrimination in housing/lending">Racial discrimination in housing and lending markets</Key>
+        <Key id="reason_assistance" value="Limited income support">Limited access to cash assistance or income-support programs</Key>
+        <Key id="reason_weather" value="Unsheltered exposure to weather">Unsheltered people facing increased risks from extreme heat or severe weather</Key>
+      </CheckboxInput>
+    </Vertical>
+
+    <!-- Display selected reasons -->
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+    <Markdown> </Markdown>
+     <Vertical id="homeless_reasons_shown">
+      <Markdown>
+**You selected these causes to focus on:**
+      </Markdown>
+      <Ref target="hl_reasons" />
+     </Vertical>
+    </IntakeGate>
+
+    <!-- Explanation input -->
+    <Vertical id="homeless_reason_explanation_input">
+      <Use id="homeless_reasons_shown2" ref="homeless_reasons_shown" />
+      <Markdown>**Explain why you selected these causes, and why Comm360 might be able to address them:**</Markdown>
+      <TextArea id="hl_reason_explanation" placeholder="I selected these causes because..." />
+    </Vertical>
+
+   <IntakeGate ready="!@homeless_1_completion_page.value">
+    <Markdown> </Markdown>
+     <!-- Focus areas confirmed by leadership -->
+     <Vertical id="focus_areas_confirmed">
+      <Markdown>
+## Confirmed Focus Areas
+
+After reviewing your work with CEO Anne Hastings, Comm360 will focus on this subset of causes:
+
+ - Trauma — domestic violence, family conflict, or untreated mental health conditions — leading to housing insecurity
+ - Limited economic opportunity and restrictive labor-market conditions
+ - Racial discrimination in housing and lending markets
+ - Limited access to cash assistance or income-support programs
+ - Unsheltered people facing increased risks from extreme heat or severe weather
+      </Markdown>
+     </Vertical>
+    </IntakeGate>
+  </Vertical>
+
+   <!-- Completion summary -->
+  <Vertical id="completion_homeless_1">
+  <CheckboxInput id="homeless_1_completion_page">
+    <Markdown id="homeless_1_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Homeless_Part_1_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Homeless_Part_1_finished' in @homeless_1_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
+## Part 1 Complete!
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
+
+</Vertical>
+</Cast>

@@ -1,0 +1,89 @@
+title: Interdisciplinary Reasoning SBA, Part 3 - Map Disciplinary Insights and Develop a Presentation
+authors: Comm360 Assessment Module
+~~~~
+
+Task 5: Map Disciplinary Insights [id=map_start]
+---------------------------------
+
+Lianne: You've done good work locating studies from different disciplines. Let's recap where we are. We derived a disciplinary **insight** from each study: one from **economics**, one from **public policy**, and one from **psychology**.
+
+Lianne: Let's see if you remember the discipline behind each insight. For each insight, select the discipline that fits best.
+
+::homeless_insight_review [display=target:homeless_p3_sidebar_a label="Match insights to disciplines"]
+
+--- wait @hl_insight_review.submitCount > 0 ---
+
+Lianne: If you remember from Repko and colleagues, we can use **mapping** to integrate insights from different disciplines, which helps us reach a more comprehensive understanding of the problem.
+
+::homeless_insight_map [display=target:homeless_p3_sidebar_a label="View insight map"]
+
+Lacy: I remember we talked about mapping in class, but is this a **multidisciplinary** map or an **interdisciplinary** map?
+
+Lianne: What do you think — and what's the difference?
+
+::homeless_classify_map [display=target:homeless_p3_sidebar_a label="Classify the map"]
+
+--- wait @hl_map_type.value && @hl_map_type_explanation.value ---
+
+Ty: Right — so far this is a **multidisciplinary** map. Each insight explains only a part of the problem, but it doesn't yet show how the insights relate to one another.
+
+Peggy: And showing how they relate is exactly what we need to do to gain a comprehensive, interdisciplinary understanding.
+
+Task 5: Identify Connections [id=connections]
+---------------------------
+
+Lianne: Let's see how we can integrate these insights. Which insights do you think interact with or affect one another? Explain each connection you see.
+
+::homeless_connections [display=target:homeless_p3_sidebar_b label="Explain the connections"]
+
+--- wait @hl_conn_econ_income.value && @hl_conn_econ_mh.value && @hl_conn_income_mh.value ---
+
+Lacy: I'm done.
+
+Peggy: So am I.
+
+Ty: Me too.
+
+Lianne: Good work. When we draw arrows between the insights, the map becomes **interdisciplinary** — it shows how economic opportunity, income-support policy, and mental health influence one another over time.
+
+::homeless_integrated_map [display=target:homeless_p3_sidebar_b label="View integrated map"]
+
+Lianne: Here's a short summary that integrates these connections into a more comprehensive understanding of homelessness.
+
+::homeless_integration_summary [display=target:homeless_p3_sidebar_b label="Read integrated summary"]
+
+Task 6: Develop a Presentation [id=presentation]
+-------------------------------
+
+Lianne: If I'm remembering Repko correctly, we also need to confirm that this is an **important** and as-yet **unresolved** issue — another criterion for interdisciplinary study.
+
+::homeless_importance_unresolved [display=target:homeless_p3_sidebar_c label="Importance and urgency"]
+
+--- wait @hl_importance_explanation.value ---
+
+Lianne: Anne Hastings has asked us to help share what we've learned through a public-awareness presentation. Let's plan it. Who is our audience, and what are the key messages?
+
+::homeless_presentation_plan [display=target:homeless_p3_sidebar_c label="Plan the presentation"]
+
+--- wait @hl_presentation_audience.value && @hl_presentation_messages.value ---
+
+Lianne: Great. Now draft a short outline for the presentation that integrates our disciplinary insights into one coherent story about the causes of homelessness.
+
+::homeless_presentation_outline [display=target:homeless_p3_sidebar_c label="Draft the outline"]
+
+--- wait @hl_presentation_outline.value ---
+
+Peggy: This pulls everything together — the economics, the policy, and the mental-health pieces — into one story.
+
+Conclusion to Part Three [id=part_three_conclusion]
+--------------------
+
+Lianne: Excellent work! Over three parts, you brainstormed causes of homelessness, reviewed community and research evidence, confirmed that this is a genuinely interdisciplinary problem, and integrated insights from several disciplines into a presentation for the community.
+
+::completion_homeless_3 [display=target:homeless_p3_sidebar_d label="Mark Your Work Complete"]
+
+Lianne: Please use the "Export as PDF" button to the right to save a copy of your answers and upload the resulting PDF to your class system to complete your assignment.
+
+::homeless_activities_part3 [display=target:homeless_p3_sidebar_d label="Review and Save Your Work"]
+
+Anne Hastings: On behalf of Comm360, thank you for your thoughtful work on this. This is exactly the kind of interdisciplinary thinking our community needs.

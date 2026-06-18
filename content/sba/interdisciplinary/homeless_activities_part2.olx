@@ -1,0 +1,419 @@
+<!--
+---
+description: Activity file for the Homelessness Interdisciplinary SBA, Part 2 - reflect on interdisciplinarity and review the research literature
+category: interdisciplinary
+index: 81
+lang: en-Latn-US
+---
+-->
+<Cast cast="characters.cast" id="homeless_activities_part2" title="Activities for Part 2 of the Interdisciplinary Studies SBA on Homelessness" launchable="true">
+<Vertical>
+
+  <ActionButton id="print_homeless_part2_btn" label="Export as PDF">
+    <PrintAction id="print_homeless_part2" />
+  </ActionButton>
+
+  <!-- ============================================================
+       TASKSET 3: REFLECT - IS THIS INTERDISCIPLINARY?
+       ============================================================ -->
+  <Vertical id="homeless_taskset3">
+
+   <IntakeGate ready="!@homeless_2_completion_page.value">
+    <Markdown> </Markdown>
+      <Vertical>
+        <Image id="homeless_task_set_3_intro"
+           src="/sba/interdisciplinary/images/the_thinker.jpg"
+           height="400px"
+           alt="Photograph of the Rodin sculpture, 'The Thinker' by Tammy Lo. CC by SA 2.0 Generic." />
+
+        <!-- Repko's Broad Model -->
+        <Vertical id="homeless_broad_model_display">
+          <Markdown id="homeless_repko_criteria" src="readings/repko_criteria.md" />
+        </Vertical>
+      </Vertical>
+    </IntakeGate>
+
+    <Tabs id="homeless_first_pass_on_criteria">
+      <Vertical id="homeless_first_pass_t1" title="My Evaluation">
+        <Markdown>
+**How well do you think the problem of homelessness fits Repko's criteria for an interdisciplinary study?**
+        </Markdown>
+        <TextArea id="hl_initial_repko_evaluation" placeholder="Your initial evaluation of how well homelessness fits Repko's criteria will go here ..." />
+      </Vertical>
+      <Vertical id="homeless_first_pass_t2" title="Repko's Criteria">
+        <Use id="homeless_broad_model_display2" ref="homeless_repko_criteria" />
+      </Vertical>
+    </Tabs>
+
+    <!-- Causes by disciplines mapping -->
+    <Vertical id="homeless_causes_by_disciplines">
+      <Markdown>
+## Map Each Cause to Relevant Disciplines
+
+**For each cause, select all disciplines that might study it.**
+      </Markdown>
+      <TabularMCQ id="hl_discipline_mapping">
+        mode: checkbox
+        cols: Biology, Psychology, Earth Science, Sociology, Economics, Political Science, Public Policy, Ethnography
+        rows: Trauma / untreated mental health, Limited economic opportunity, Racial discrimination in housing, Limited access to cash assistance, Unsheltered exposure to extreme weather
+      </TabularMCQ>
+    </Vertical>
+
+   <IntakeGate ready="!@homeless_2_completion_page.value">
+    <Markdown> </Markdown>
+      <!-- Display discipline mapping results -->
+      <Vertical id="homeless_causes_by_disciplines_answers">
+        <Markdown>
+## Discipline Mapping Summary
+
+Based on the team's analysis, here is how the causes map to disciplines:
+        </Markdown>
+        <Mermaid><![CDATA[
+graph LR
+    C1[Trauma /<br/>untreated mental health] --> D1[Psychology]
+    C1 --> D2[Health Sciences]
+
+    C2[Limited economic<br/>opportunity] --> D3[Economics]
+    C2 --> D4[Sociology]
+
+    C3[Racial discrimination<br/>in housing] --> D4
+    C3 --> D5[Political Science]
+
+    C4[Limited access to<br/>cash assistance] --> D5
+    C4 --> D6[Public Policy]
+
+    C5[Unsheltered exposure<br/>to extreme weather] --> D7[Earth Science]
+    C5 --> D2
+
+    style C1 fill:#e1f5ff
+    style C2 fill:#e1f5ff
+    style C3 fill:#e1f5ff
+    style C4 fill:#e1f5ff
+    style C5 fill:#e1f5ff
+    style D1 fill:#fff4e1
+    style D2 fill:#fff4e1
+    style D3 fill:#fff4e1
+    style D4 fill:#fff4e1
+    style D5 fill:#fff4e1
+    style D6 fill:#fff4e1
+    style D7 fill:#fff4e1
+]]></Mermaid>
+        <Markdown>
+This confirms that homelessness spans multiple disciplines, making it appropriate for interdisciplinary research.
+        </Markdown>
+      </Vertical>
+    </IntakeGate>
+  </Vertical>
+
+  <!-- ============================================================
+       TASKSET 4: REVIEW THE LITERATURE
+       ============================================================ -->
+  <Vertical id="homeless_taskset4">
+
+   <!-- ===== Study 1: Economics (Cebula & Saunoris) ===== -->
+   <IntakeGate ready="!@homeless_2_completion_page.value">
+    <Markdown id="homeless_blank"> </Markdown>
+    <Vertical id="homeless_econ_study_text" popout="window">
+      <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+      </Markdown>
+      <Annotate id="homeless_econ_annotate" title="Determinants of Homelessness (Economics)" popout="window">
+        <Markdown id="homeless_econ_study_md" src="readings/homeless_study_economics.md" />
+      </Annotate>
+    </Vertical>
+   </IntakeGate>
+
+    <Tabs id="homeless_econ_disciplines">
+      <Vertical id="homeless_econ_disciplines_t1" title="Identify Relevant Disciplines">
+        <Markdown>
+**Which discipline(s) do you think are represented in this study?**
+        </Markdown>
+        <CheckboxInput id="hl_econ_disciplines">
+          <Distractor id="hl_econ_bio">Biology</Distractor>
+          <Distractor id="hl_econ_psych">Psychology</Distractor>
+          <Distractor id="hl_econ_earth">Earth Science</Distractor>
+          <Distractor id="hl_econ_soc">Sociology</Distractor>
+          <Key id="hl_econ_econ">Economics</Key>
+          <Distractor id="hl_econ_polisci">Political Science</Distractor>
+          <Distractor id="hl_econ_policy">Public Policy</Distractor>
+          <Distractor id="hl_econ_ethno">Ethnography</Distractor>
+        </CheckboxInput>
+      </Vertical>
+      <Vertical id="homeless_econ_disciplines_t2" title="Economics Study">
+        <Use ref="homeless_econ_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_econ_explanation">
+      <Vertical id="homeless_econ_explanation_t1" title="Explain Discipline Clues">
+        <Markdown>
+**You selected the following disciplines:**
+        </Markdown>
+        <Use ref="hl_econ_disciplines" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="hl_econ_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="homeless_econ_explanation_t2" title="Economics Study">
+        <Use ref="homeless_econ_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_econ_insight_input">
+      <Vertical id="homeless_econ_insight_input_t1" title="Write Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source:**
+        </Markdown>
+        <TextArea id="hl_econ_insight_sentence" placeholder="The main disciplinary insight of this source is ..." />
+      </Vertical>
+      <Vertical id="homeless_econ_insight_input_t2" title="Economics Study">
+        <Use ref="homeless_econ_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_econ_insight_choice">
+      <Vertical id="homeless_econ_insight_choice_t1" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Which of these sentences best expresses the insight of this source?**
+        </Markdown>
+        <ChoiceInput id="hl_econ_insight_choice_input">
+          <Distractor>Homelessness is related to economic conditions like jobs and the labor market.</Distractor>
+          <Key>Economic systems that create more job opportunities and labor-market flexibility are associated with lower homelessness.</Key>
+          <Distractor>States should stop funding housing programs and promote entrepreneurship instead.</Distractor>
+          <Distractor><Ref target="hl_econ_insight_sentence" /></Distractor>
+        </ChoiceInput>
+      </Vertical>
+      <Vertical id="homeless_econ_insight_choice_t2" title="Economics Study">
+        <Use ref="homeless_econ_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_econ_insight_explanation">
+      <Vertical id="homeless_econ_insight_explanation_t1" title="Explain Your Choice">
+        <Markdown>
+**You chose the following sentence:**
+        </Markdown>
+        <Use ref="hl_econ_insight_choice_input" />
+        <Markdown>
+**Why did you select it? Explain.**
+        </Markdown>
+        <TextArea id="hl_econ_insight_explanation" placeholder="I chose this sentence because..." />
+      </Vertical>
+      <Vertical id="homeless_econ_insight_explanation_t2" title="Economics Study">
+        <Use ref="homeless_econ_study_text" />
+      </Vertical>
+    </Tabs>
+
+   <!-- ===== Study 2: Income Support (Parolin) ===== -->
+   <IntakeGate ready="!@homeless_2_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="homeless_income_study_text" popout="window">
+      <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+      </Markdown>
+      <Annotate id="homeless_income_annotate" title="Income Support Policies and Family Homelessness" popout="window">
+        <Markdown id="homeless_income_study_md" src="readings/homeless_study_income_support.md" />
+      </Annotate>
+    </Vertical>
+   </IntakeGate>
+
+    <Tabs id="homeless_income_disciplines">
+      <Vertical id="homeless_income_disciplines_t1" title="Identify Relevant Disciplines">
+        <Markdown>
+**Which discipline(s) do you think are represented in this study?**
+        </Markdown>
+        <CheckboxInput id="hl_income_disciplines">
+          <Distractor id="hl_income_bio">Biology</Distractor>
+          <Distractor id="hl_income_psych">Psychology</Distractor>
+          <Distractor id="hl_income_earth">Earth Science</Distractor>
+          <Key id="hl_income_soc">Sociology</Key>
+          <Key id="hl_income_econ">Economics</Key>
+          <Key id="hl_income_polisci">Political Science</Key>
+          <Key id="hl_income_policy">Public Policy</Key>
+          <Distractor id="hl_income_ethno">Ethnography</Distractor>
+        </CheckboxInput>
+      </Vertical>
+      <Vertical id="homeless_income_disciplines_t2" title="Income Support Study">
+        <Use ref="homeless_income_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_income_explanation">
+      <Vertical id="homeless_income_explanation_t1" title="Explain Discipline Clues">
+        <Markdown>
+**You selected the following disciplines:**
+        </Markdown>
+        <Use ref="hl_income_disciplines" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="hl_income_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="homeless_income_explanation_t2" title="Income Support Study">
+        <Use ref="homeless_income_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_income_insight_input">
+      <Vertical id="homeless_income_insight_input_t1" title="Write Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source:**
+        </Markdown>
+        <TextArea id="hl_income_insight_sentence" placeholder="The main disciplinary insight of this source is ..." />
+      </Vertical>
+      <Vertical id="homeless_income_insight_input_t2" title="Income Support Study">
+        <Use ref="homeless_income_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_income_insight_choice">
+      <Vertical id="homeless_income_insight_choice_t1" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Which of these sentences best expresses the insight of this source?**
+        </Markdown>
+        <ChoiceInput id="hl_income_insight_choice_input">
+          <Distractor>Income support programs reduce poverty.</Distractor>
+          <Key>Greater access to cash assistance through TANF is associated with lower rates of family homelessness, suggesting income-support policy design influences housing stability.</Key>
+          <Distractor>SNAP and EITC are the most effective programs for preventing homelessness.</Distractor>
+          <Distractor><Ref target="hl_income_insight_sentence" /></Distractor>
+        </ChoiceInput>
+      </Vertical>
+      <Vertical id="homeless_income_insight_choice_t2" title="Income Support Study">
+        <Use ref="homeless_income_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_income_insight_explanation">
+      <Vertical id="homeless_income_insight_explanation_t1" title="Explain Your Choice">
+        <Markdown>
+**You chose the following sentence:**
+        </Markdown>
+        <Use ref="hl_income_insight_choice_input" />
+        <Markdown>
+**Why did you select it? Explain.**
+        </Markdown>
+        <TextArea id="hl_income_insight_explanation" placeholder="I chose this sentence because..." />
+      </Vertical>
+      <Vertical id="homeless_income_insight_explanation_t2" title="Income Support Study">
+        <Use ref="homeless_income_study_text" />
+      </Vertical>
+    </Tabs>
+
+   <!-- ===== Study 3: Mental Health (Barry et al.) ===== -->
+   <IntakeGate ready="!@homeless_2_completion_page.value">
+    <Markdown> </Markdown>
+    <Vertical id="homeless_mh_study_text" popout="window">
+      <Markdown>
+_Highlight the clue words or phrases that show what discipline or disciplines are relevant to this article. Then
+click on the "Annotate" button and explain what discipline this clue suggests, and why._
+      </Markdown>
+      <Annotate id="homeless_mh_annotate" title="Mental Health Disorders Among People Experiencing Homelessness" popout="window">
+        <Markdown id="homeless_mh_study_md" src="readings/homeless_study_mental_health.md" />
+      </Annotate>
+    </Vertical>
+   </IntakeGate>
+
+    <Tabs id="homeless_mh_disciplines">
+      <Vertical id="homeless_mh_disciplines_t1" title="Identify Relevant Disciplines">
+        <Markdown>
+**Which discipline(s) do you think are represented in this study?**
+        </Markdown>
+        <CheckboxInput id="hl_mh_disciplines">
+          <Key id="hl_mh_bio">Biology</Key>
+          <Key id="hl_mh_psych">Psychology</Key>
+          <Distractor id="hl_mh_earth">Earth Science</Distractor>
+          <Distractor id="hl_mh_soc">Sociology</Distractor>
+          <Distractor id="hl_mh_econ">Economics</Distractor>
+          <Distractor id="hl_mh_polisci">Political Science</Distractor>
+          <Distractor id="hl_mh_policy">Public Policy</Distractor>
+          <Distractor id="hl_mh_ethno">Ethnography</Distractor>
+        </CheckboxInput>
+      </Vertical>
+      <Vertical id="homeless_mh_disciplines_t2" title="Mental Health Study">
+        <Use ref="homeless_mh_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_mh_explanation">
+      <Vertical id="homeless_mh_explanation_t1" title="Explain Discipline Clues">
+        <Markdown>
+**You selected the following disciplines:**
+        </Markdown>
+        <Use ref="hl_mh_disciplines" />
+        <Markdown>
+**Explain how the clues you highlighted indicate the disciplines you selected:**
+        </Markdown>
+        <TextArea id="hl_mh_classification_explanation" placeholder="The terms I highlighted indicate these disciplines because..." />
+      </Vertical>
+      <Vertical id="homeless_mh_explanation_t2" title="Mental Health Study">
+        <Use ref="homeless_mh_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_mh_insight_input">
+      <Vertical id="homeless_mh_insight_input_t1" title="Write Insight Sentence">
+        <Markdown>
+**Write your sentence for the insight of this source:**
+        </Markdown>
+        <TextArea id="hl_mh_insight_sentence" placeholder="The main disciplinary insight of this source is ..." />
+      </Vertical>
+      <Vertical id="homeless_mh_insight_input_t2" title="Mental Health Study">
+        <Use ref="homeless_mh_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_mh_insight_choice">
+      <Vertical id="homeless_mh_insight_choice_t1" title="Choose the Best Insight Sentence">
+        <Markdown>
+**Which of these sentences best expresses the insight of this source?**
+        </Markdown>
+        <ChoiceInput id="hl_mh_insight_choice_input">
+          <Distractor>Mental illness is the single cause of homelessness.</Distractor>
+          <Key>Mental health disorders are highly prevalent among people experiencing homelessness, so responses should integrate mental health and substance-use treatment with housing support.</Key>
+          <Distractor>Most people experiencing homelessness do not have a mental health disorder.</Distractor>
+          <Distractor><Ref target="hl_mh_insight_sentence" /></Distractor>
+        </ChoiceInput>
+      </Vertical>
+      <Vertical id="homeless_mh_insight_choice_t2" title="Mental Health Study">
+        <Use ref="homeless_mh_study_text" />
+      </Vertical>
+    </Tabs>
+
+    <Tabs id="homeless_mh_insight_explanation">
+      <Vertical id="homeless_mh_insight_explanation_t1" title="Explain Your Choice">
+        <Markdown>
+**You chose the following sentence:**
+        </Markdown>
+        <Use ref="hl_mh_insight_choice_input" />
+        <Markdown>
+**Why did you select it? Explain.**
+        </Markdown>
+        <TextArea id="hl_mh_insight_explanation" placeholder="I chose this sentence because..." />
+      </Vertical>
+      <Vertical id="homeless_mh_insight_explanation_t2" title="Mental Health Study">
+        <Use ref="homeless_mh_study_text" />
+      </Vertical>
+    </Tabs>
+  </Vertical>
+
+   <!-- Completion summary -->
+  <Vertical id="completion_homeless_2">
+  <CheckboxInput id="homeless_2_completion_page">
+    <Markdown id="homeless_2_confirmation">**Confirm that you are done with this exercise.**</Markdown>
+    <Key id="Homeless_Part_2_finished">I don't need to make any more changes</Key>
+  </CheckboxInput>
+  <IntakeGate ready="'Homeless_Part_2_finished' in @homeless_2_completion_page.value">
+   <Markdown> </Markdown>
+   <Markdown>
+## Part 2 Complete!
+
+## PLEASE CLICK CONTINUE TO REVIEW YOUR RESPONSES AND SAVE THEM TO A PDF. THEN UPLOAD THE PDF TO YOUR COURSE SYSTEM.
+     </Markdown>
+   </IntakeGate>
+  </Vertical>
+
+</Vertical>
+</Cast>
