@@ -75,8 +75,9 @@ import {
 } from '../../types/storage';
 import {
   source, addressPath, withVersion, withoutVersion,
-  makeAddress, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
+  makeAddress, gitOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
   toLofsRef as brandLofsRef,
+  type LofsOrigin, type LofsVersion,
 } from '../../types/address';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../types/id-grammar';
 import { fileTypes } from '../fileTypes';
@@ -155,6 +156,10 @@ export class GitStorageProvider implements StorageProvider {
    *  Empty = the whole repo (no filter). */
   readonly contentDirs: string[];
   readonly cooldownMs: number;
+  /** Canonical, ref-bearing origin (address.ts `gitOrigin`) — the identity for
+   *  this source's refs. Carries the branch, so two branches of one repo are
+   *  distinct origins. The raw `url` is just how we fetch/push. */
+  readonly origin: LofsOrigin;
 
   /** The current repo snapshot, or null until the first successful refresh.
    *  The ONE mutable pointer on this provider; refresh and commit publish by
@@ -185,6 +190,17 @@ export class GitStorageProvider implements StorageProvider {
       .filter(d => d !== '');  // "" and "/" both mean the whole repo → no filter
     this.cooldownMs = cooldownMs;
     this.auth = auth;
+    this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
+    // The grammar admits git+ssh and git: origins; this provider serves only
+    // git+https (isomorphic-git speaks smart-HTTP, not ssh, and local-repo
+    // backing is a later store). Fail fast with a clear message rather than an
+    // opaque clone error.
+    if (!this.url.startsWith('https://')) {
+      throw new Error(
+        `GitStorageProvider serves git+https only; "${this.url}" is a valid origin ` +
+        `but its transport isn't implemented yet.`
+      );
+    }
     this.refreshGate = throttle(singleFlight(withRetry(() => this.refresh(), GIT_RETRY)), this.cooldownMs);
   }
 
@@ -310,21 +326,33 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   // ---------------------------------------------------------------------
-  // Refs: <url>://<path-in-repo>#<sha>
+  // Refs: <canonical-git-origin>://<path-in-repo>#<blob-sha>
+  //   e.g. git+https:github.com/olxhub/lo-blocks.git@main://unit1/x.olx#<sha>
   // ---------------------------------------------------------------------
 
   private toRef(repoPath: string): LofsRef {
-    return makeAddress(toLofsOrigin(this.url), toLofsContentPath(repoPath));
+    return makeAddress(this.origin, toLofsContentPath(repoPath));
   }
 
   /** Repo-relative path from one of OUR refs. Throws on refs from another
-   *  repo — how the mount router's fallthrough finds the owning provider. */
+   *  origin — how the mount router's fallthrough finds the owning provider. */
   private ownPath(ref: LofsRef | string): string {
     const branded = brandLofsRef(String(ref));
-    if (String(source(branded)) !== this.url) {
-      throw new Error(`Not a ref of ${this.url}: ${ref}`);
+    if (String(source(branded)) !== String(this.origin)) {
+      throw new Error(`Not a ref of ${this.origin}: ${ref}`);
     }
     return String(addressPath(withoutVersion(branded)));
+  }
+
+  /** The #version stamped on a content file's ref: the blob SHA — object
+   *  identity, stable across commits, so unchanged files stay "unchanged" in
+   *  the scan. SINGLE FLIP SEAM for version policy: to stamp the commit SHA
+   *  instead (more lineage context), return the head here and thread it from
+   *  the call sites. Every file would then look changed each commit — the scan
+   *  re-parses the snapshot — which is acceptable, since a head move already
+   *  re-clones the whole repo. */
+  private contentVersion(blobOid: string): LofsVersion {
+    return toLofsVersion(blobOid);
   }
 
   private guardPath(p: string): string {
@@ -357,7 +385,7 @@ export class GitStorageProvider implements StorageProvider {
       const ref = this.toRef(relPath);
       const key = String(ref);
       found.add(key);
-      const id = toLofsCanonical(withVersion(ref, toLofsVersion(oid)));
+      const id = toLofsCanonical(withVersion(ref, this.contentVersion(oid)));
       const ext = getExtension(relPath) || relPath.split('.').pop() || '';
       const type = (fileTypes as any)[ext] ?? ext;
       const prev = mine[key];
@@ -416,7 +444,7 @@ export class GitStorageProvider implements StorageProvider {
     return {
       content: await this.readBlob(s, relPath),
       metadata: { oid: entry.oid, head: s.head },
-      provenance: toLofsCanonical(withVersion(this.toRef(relPath), toLofsVersion(entry.oid))),
+      provenance: toLofsCanonical(withVersion(this.toRef(relPath), this.contentVersion(entry.oid))),
       ns: await this.tryNamespace(relPath),
     };
   }
@@ -466,7 +494,7 @@ export class GitStorageProvider implements StorageProvider {
       return {
         ns: asContentNamespace(String(declared)),
         manifest: oid
-          ? toLofsCanonical(withVersion(this.toRef(manifestRel), toLofsVersion(oid)))
+          ? toLofsCanonical(withVersion(this.toRef(manifestRel), this.contentVersion(oid)))
           : undefined,
       };
     }

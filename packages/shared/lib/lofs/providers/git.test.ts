@@ -66,6 +66,9 @@ class LocalGitProvider extends GitStorageProvider {
 describe('GitStorageProvider', () => {
   let provider: LocalGitProvider;
   const URL = 'https://github.com/olxhub/edu.memphis.psych';
+  // Refs are keyed by the canonical, ref-bearing origin (address.ts gitOrigin):
+  // transport in the scheme, "//" dropped, branch after the last "@".
+  const ORIGIN = 'git+https:github.com/olxhub/edu.memphis.psych@main';
 
   beforeAll(async () => {
     provider = new LocalGitProvider({ url: URL, ref: 'main', cooldownMs: 0 });
@@ -80,11 +83,12 @@ describe('GitStorageProvider', () => {
   it('scans the tree with blob-SHA versions', async () => {
     const scan = await provider.loadXmlFilesWithStats();
     const keys = Object.keys(scan.added);
-    expect(keys).toContain(`${URL}://lesson1.olx`);
-    expect(keys).toContain(`${URL}://unit2/lesson2.olx`);
+    expect(keys).toContain(`${ORIGIN}://lesson1.olx`);
+    expect(keys).toContain(`${ORIGIN}://unit2/lesson2.olx`);
     // Versions are blob SHAs (40 hex chars)
-    const info = scan.added[`${URL}://lesson1.olx` as any];
-    expect(String(info.id)).toMatch(new RegExp(`^${URL}://lesson1\\.olx#[0-9a-f]{40}$`));
+    const info = scan.added[`${ORIGIN}://lesson1.olx` as any];
+    expect(String(info.id).startsWith(`${ORIGIN}://lesson1.olx#`)).toBe(true);
+    expect(String(info.id)).toMatch(/#[0-9a-f]{40}$/);
   });
 
   it('reads content with honest provenance', async () => {
@@ -109,11 +113,11 @@ describe('GitStorageProvider', () => {
     }, 'edit lesson1');
 
     const second = await provider.loadXmlFilesWithStats(prev);
-    expect(Object.keys(second.changed)).toEqual([`${URL}://lesson1.olx`]);
+    expect(Object.keys(second.changed)).toEqual([`${ORIGIN}://lesson1.olx`]);
     // Blob SHAs are stable across commits for untouched files.
     expect(Object.keys(second.unchanged).sort()).toEqual([
-      `${URL}://manifest.yaml`,
-      `${URL}://unit2/lesson2.olx`,
+      `${ORIGIN}://manifest.yaml`,
+      `${ORIGIN}://unit2/lesson2.olx`,
     ]);
     expect(Object.keys(second.deleted)).toEqual([]);
   });
@@ -307,7 +311,7 @@ describe('GitStorageProvider', () => {
     const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
     sub.repoVol = provider.repoVol;
     const scan = await sub.loadXmlFilesWithStats();
-    expect(Object.keys(scan.added)).toEqual([`${URL}://unit2/lesson2.olx`]);
+    expect(Object.keys(scan.added)).toEqual([`${ORIGIN}://unit2/lesson2.olx`]);
     // Path is repo-relative — NOT stripped to "lesson2.olx".
     const result = await sub.read('unit2/lesson2.olx' as OlxRelativePath);
     expect(result.content).toContain('Part two');
@@ -339,7 +343,7 @@ describe('GitStorageProvider', () => {
       'c/three.olx': '<Markdown id="three">3</Markdown>',  // outside dir list → excluded
     }, 'multi-subtree');
     const scan = await multi.loadXmlFilesWithStats();
-    expect(Object.keys(scan.added).sort()).toEqual([`${URL}://a/one.olx`, `${URL}://b/two.olx`]);
+    expect(Object.keys(scan.added).sort()).toEqual([`${ORIGIN}://a/one.olx`, `${ORIGIN}://b/two.olx`]);
     const r = await multi.read('a/one.olx' as OlxRelativePath);
     expect(r.content).toContain('1');
   });
