@@ -310,18 +310,49 @@ export async function unionProvider(): Promise<StorageProvider> {
   return new StackedStorageProvider([...sources.map(s => s.provider), fallback.provider]);
 }
 
+/** A write was attempted against a source the deployment marked read-only.
+ *  Routes map this to 403 — it's an authorization decision, not a failure. */
+export class ReadOnlySourceError extends Error {
+  constructor(origin: string) {
+    super(`Source is read-only: ${origin}`);
+    this.name = 'ReadOnlySourceError';
+  }
+}
+
+/** Find the configured source for an origin, or throw if it isn't subscribed. */
+async function findConfiguredSource(origin: LofsOrigin): Promise<ConfiguredSource> {
+  const { sources, fallback } = await configuredSources();
+  const match = [fallback, ...sources].find(s => s.origin === origin);
+  if (!match) {
+    throw new Error(`No configured content source for origin: ${origin}`);
+  }
+  return match;
+}
+
 /**
  * The single source identified by `origin`, repo-relative — the editing
  * handle. Authoring selects an origin (from the provenance ref it's editing)
  * and operates on this one provider; no synthetic mount-prefix paths, no
  * routing-by-guess. Throws if the origin isn't a configured source — you can't
  * edit a source the deployment hasn't subscribed to.
+ *
+ * READ handle: returns the provider for read-only sources too (browsing/reuse).
+ * For writes use `writableSourceProvider`, which enforces the read-only gate.
  */
 export async function sourceProvider(origin: LofsOrigin): Promise<StorageProvider> {
-  const { sources, fallback } = await configuredSources();
-  const match = [fallback, ...sources].find(s => s.origin === origin);
-  if (!match) {
-    throw new Error(`No configured content source for origin: ${origin}`);
+  return (await findConfiguredSource(origin)).provider;
+}
+
+/**
+ * The editing handle for WRITES — same provider, but refuses a source the
+ * deployment marked read-only (throws ReadOnlySourceError → 403). The server's
+ * authority over writability, independent of whatever backend credentials
+ * happen to permit.
+ */
+export async function writableSourceProvider(origin: LofsOrigin): Promise<StorageProvider> {
+  const match = await findConfiguredSource(origin);
+  if (!match.writable) {
+    throw new ReadOnlySourceError(String(origin));
   }
   return match.provider;
 }

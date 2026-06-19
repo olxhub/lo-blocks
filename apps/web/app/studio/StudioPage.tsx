@@ -598,6 +598,7 @@ function StudioPageContent() {
                 fileTree={fileTree}
                 currentPath={filePath}
                 dirtyFiles={getDirtyFiles()}
+                canWrite={canWrite}
                 onFileSelect={handleFileSelect}
                 onFileCreate={handleFileCreate}
                 onFileDelete={handleFileDelete}

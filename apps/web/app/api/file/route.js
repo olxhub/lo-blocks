@@ -8,7 +8,7 @@
 //   - writes (POST/DELETE/PUT) REQUIRE `source` — a union write has no defined
 //     target, which was the wrong-repo-save bug. See contentSources.ts.
 //
-import { sourceProvider, unionProvider } from '@/lib/lofs/contentSources';
+import { unionProvider, sourceProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
 import { toLofsOrigin } from '@/lib/types/address';
 import { VersionConflictError } from '@/lib/types/storage';
 import { validateRepoRelativePath } from '@/lib/lofs/contentPaths';
@@ -61,10 +61,13 @@ export async function POST(request) {
   }
 
   try {
-    const provider = await sourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(toLofsOrigin(source));
     await provider.write(validation.relativePath, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
+    if (err instanceof ReadOnlySourceError || err.name === 'ReadOnlySourceError') {
+      return Response.json({ ok: false, error: err.message }, { status: 403 });
+    }
     if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
       console.warn(`[API /file POST] Conflict: ${err.message}`);
       return Response.json({ ok: false, conflict: true, error: err.message, metadata: err.currentMetadata }, { status: 409 });
@@ -88,10 +91,13 @@ export async function DELETE(request) {
   }
 
   try {
-    const provider = await sourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(toLofsOrigin(source));
     await provider.delete(validation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
+    if (err instanceof ReadOnlySourceError || err.name === 'ReadOnlySourceError') {
+      return Response.json({ ok: false, error: err.message }, { status: 403 });
+    }
     const isNotFound = err.code === 'ENOENT' || String(err.message).includes('not found');
     const status = isNotFound ? 404 : 500;
     const error = isNotFound ? `File not found: ${validation.relativePath}` : err.message;
@@ -117,10 +123,13 @@ export async function PUT(request) {
   }
 
   try {
-    const provider = await sourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(toLofsOrigin(source));
     await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
+    if (err instanceof ReadOnlySourceError || err.name === 'ReadOnlySourceError') {
+      return Response.json({ ok: false, error: err.message }, { status: 403 });
+    }
     const isNotFound = err.code === 'ENOENT' || String(err.message).includes('not found');
     const status = isNotFound ? 404 : 500;
     const error = isNotFound ? `File not found: ${srcValidation.relativePath}` : err.message;

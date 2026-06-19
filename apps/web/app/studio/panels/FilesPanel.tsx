@@ -18,6 +18,9 @@ interface FilesPanelProps {
   fileTree: UriNode | null;
   currentPath: string;
   dirtyFiles?: Set<string>;
+  /** Whether the selected source accepts writes. When false, create/rename/
+   *  delete controls are hidden (the server rejects them too — see route.js). */
+  canWrite: boolean;
   onFileSelect: (path: string) => void;
   onFileCreate: (path: string, content: string) => Promise<void>;
   onFileDelete: (path: string) => Promise<void>;
@@ -28,6 +31,7 @@ export function FilesPanel({
   fileTree,
   currentPath,
   dirtyFiles = new Set(),
+  canWrite,
   onFileSelect,
   onFileCreate,
   onFileDelete,
@@ -92,17 +96,19 @@ export function FilesPanel({
     <div className="sidebar-panel">
       <div className="sidebar-panel-header">
         Files
-        <button
-          className="file-action-btn"
-          onClick={() => setShowNewFileDialog(true)}
-          title="New file"
-        >
-          +
-        </button>
+        {canWrite && (
+          <button
+            className="file-action-btn"
+            onClick={() => setShowNewFileDialog(true)}
+            title="New file"
+          >
+            +
+          </button>
+        )}
       </div>
 
       {/* New file dialog */}
-      {showNewFileDialog && (
+      {canWrite && showNewFileDialog && (
         <div className="file-dialog">
           <div className="file-dialog-dir">in: {currentDir || '/'}</div>
           <div className="file-dialog-name-row">
@@ -143,6 +149,7 @@ export function FilesPanel({
               key={node.uri || i}
               node={node}
               depth={0}
+              canWrite={canWrite}
               onSelect={onFileSelect}
               currentPath={currentPath}
               dirtyFiles={dirtyFiles}
@@ -169,6 +176,7 @@ export function FilesPanel({
 interface FileTreeNodeProps {
   node: UriNode;
   depth: number;
+  canWrite: boolean;
   onSelect: (path: string) => void;
   currentPath: string;
   dirtyFiles: Set<string>;
@@ -181,7 +189,7 @@ interface FileTreeNodeProps {
 }
 
 function FileTreeNode({
-  node, depth, onSelect, currentPath, dirtyFiles,
+  node, depth, canWrite, onSelect, currentPath, dirtyFiles,
   onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
 }: FileTreeNodeProps) {
   // TODO: Consider moving expanded state to redux (persist tree state)
@@ -202,7 +210,7 @@ function FileTreeNode({
         {isDir && <span className="file-icon"><ExpandIcon expanded={expanded} /></span>}
         {!isDir && <span className="file-icon">📄</span>}
         <span className="file-name">{isDirty ? `${name} *` : name}</span>
-        {!isDir && (
+        {!isDir && canWrite && (
           <button
             className="file-menu-btn"
             onClick={(e) => {
@@ -216,7 +224,7 @@ function FileTreeNode({
       </div>
 
       {/* Action menu for this file */}
-      {showingActions && !isDir && (
+      {showingActions && !isDir && canWrite && (
         <div className="file-actions" style={{ paddingLeft: depth * 12 + 20 }}>
           <input
             type="text"
@@ -241,6 +249,7 @@ function FileTreeNode({
           key={child.uri || i}
           node={child}
           depth={depth + 1}
+          canWrite={canWrite}
           onSelect={onSelect}
           currentPath={currentPath}
           dirtyFiles={dirtyFiles}
