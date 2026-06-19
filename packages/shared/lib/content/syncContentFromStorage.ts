@@ -23,7 +23,7 @@ import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
 import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
 import { unionProvider } from '@/lib/lofs/contentSources';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
+import type { LofsRef, LofsCanonical, LofsOrigin, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion, addressPath, source } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
@@ -570,7 +570,15 @@ function indexParsedBlocks(
         if (isAcceptableDuplicate(existingBlock[lang], newOlxJson)) {
           continue;  // Identical stateless block across files
         }
-        errors.push(createDuplicateIdError(blockId, existingBlock[lang], newOlxJson, sourceFile));
+        // Two blocks claim the same identity. If they come from different
+        // sources, it's a collision between independently-authored courses
+        // (the "two psych courses both define memphis/operant" case) — a
+        // different problem, with different advice, than an in-source dup.
+        const existingOrigin = source(existingBlock[lang].source);
+        const newOrigin = source(newOlxJson.source);
+        errors.push(existingOrigin === newOrigin
+          ? createDuplicateIdError(blockId, existingBlock[lang], newOlxJson, sourceFile)
+          : createSourceCollisionError(blockId, existingBlock[lang], existingOrigin, newOrigin));
         continue;  // Keep the first one
       }
 
@@ -578,6 +586,34 @@ function indexParsedBlocks(
       existingBlock[lang] = newOlxJson;
     }
   }
+}
+
+/**
+ * Two different sources both define the same identity. Unlike an in-source
+ * duplicate, the fix isn't "rename your IDs" — it's that two independently
+ * authored courses can't both mount the same namespace at once. The compiler
+ * keeps the first and reports the clash so the author can subscribe to one or
+ * give them distinct namespaces.
+ */
+function createSourceCollisionError(
+  blockId: DefinitionKey,
+  existingBlock: OlxJson,
+  existingOrigin: LofsOrigin,
+  newOrigin: LofsOrigin,
+): OLXLoadingError {
+  return {
+    type: 'source_collision',
+    title: `"${blockId}" defined by two sources`,
+    location: { provenance: [existingBlock.source] },
+    message: `"${blockId}" is defined by two different sources:
+
+   ${existingOrigin}  (kept)
+   ${newOrigin}  (ignored)
+
+These look like independently authored courses claiming the same identity. \
+They can't both mount here. Subscribe to one, or give them distinct namespaces.`,
+    technical: { blockId, existingOrigin, newOrigin },
+  };
 }
 
 function createDuplicateIdError(

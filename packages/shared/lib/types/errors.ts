@@ -56,6 +56,7 @@ const z_lofsDependencies = z.array(z.string()) as unknown as z.ZodType<LofsDepen
 const z_olxLoadingErrorType = z.enum([
   'parse_error',
   'duplicate_id',
+  'source_collision',
   'file_error',
   'peg_error',
   'attribute_validation',
