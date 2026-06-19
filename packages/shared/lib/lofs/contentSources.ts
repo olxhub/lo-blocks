@@ -356,3 +356,13 @@ export async function writableSourceProvider(origin: LofsOrigin): Promise<Storag
   }
   return match.provider;
 }
+
+/**
+ * Read/search handle for the API layer's request `source` param: scope to the
+ * named source, or span the compile union when none is given. The single
+ * definition of "no source = union", shared by the read routes (file GET,
+ * files, grep). Decodes the raw param to an origin at the boundary.
+ */
+export async function readProvider(source?: string): Promise<StorageProvider> {
+  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
+}

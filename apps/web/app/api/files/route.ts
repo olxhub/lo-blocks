@@ -6,16 +6,10 @@
 // GET /api/files?pattern=         - files matching a glob
 // GET /api/files?source=<origin>  - scope to a single source (repo-relative)
 //
-import { sourceProvider, unionProvider } from '@/lib/lofs/contentSources';
-import { toLofsOrigin } from '@/lib/types/address';
+import { readProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
-
-/** Scope to a source, or span the union when none is given. */
-function readProvider(source: string | undefined) {
-  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

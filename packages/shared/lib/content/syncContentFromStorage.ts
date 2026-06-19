@@ -254,37 +254,47 @@ function isManifestUri(uri: LofsRef): boolean {
  *
  * Returns a new XmlScanResult with affected unchanged OLX moved to "changed".
  */
-function promoteFilesAffectedByManifests(changeSets: XmlScanResult): XmlScanResult {
-  const touched = [
-    ...Object.keys(changeSets.added),
-    ...Object.keys(changeSets.changed),
-    ...Object.keys(changeSets.deleted),
-  ] as LofsRef[];
-  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
-  if (mounts.size === 0) return changeSets;
+/** Strip a scan entry to the bare XmlFileInfo, dropping any blockIds a previous
+ *  parse attached — they'd be stale once the file is re-parsed. */
+function toXmlFileInfo(entry: XmlFileInfo): XmlFileInfo {
+  return {
+    id: entry.id,
+    type: entry.type,
+    content: entry.content,
+    _metadata: entry._metadata,
+  };
+}
 
-  const changed = { ...changeSets.changed };
-  const unchanged = { ...changeSets.unchanged };
-  for (const [uriStr, fileInfo] of Object.entries(changeSets.unchanged)) {
-    const uri = uriStr as LofsRef;
-    const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
-    if (!isOlx || !mounts.has(String(source(uri)))) continue;
-    // Copy only XmlFileInfo fields (the entry may carry stale blockIds).
-    changed[uri] = {
-      id: fileInfo.id,
-      type: fileInfo.type,
-      content: fileInfo.content,
-      _metadata: fileInfo._metadata,
-    };
+/** Return a new scan with `uris` moved from "unchanged" to "changed" (as bare
+ *  XmlFileInfo). URIs not currently in "unchanged" are skipped. */
+function promote(scan: XmlScanResult, uris: Iterable<LofsRef>): XmlScanResult {
+  const changed = { ...scan.changed };
+  const unchanged = { ...scan.unchanged };
+  for (const uri of uris) {
+    const entry = unchanged[uri];
+    if (!entry) continue;
+    changed[uri] = toXmlFileInfo(entry);
     delete unchanged[uri];
   }
+  return { added: scan.added, changed, unchanged, deleted: scan.deleted };
+}
 
-  return {
-    added: changeSets.added,
-    changed,
-    unchanged,
-    deleted: changeSets.deleted,
-  };
+function promoteFilesAffectedByManifests(scan: XmlScanResult): XmlScanResult {
+  const touched = [
+    ...Object.keys(scan.added),
+    ...Object.keys(scan.changed),
+    ...Object.keys(scan.deleted),
+  ] as LofsRef[];
+  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
+  if (mounts.size === 0) return scan;
+
+  const affected: LofsRef[] = [];
+  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
+    const uri = uriStr as LofsRef;
+    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
+    if (isOlx && mounts.has(String(source(uri)))) affected.push(uri);
+  }
+  return promote(scan, affected);
 }
 
 /**
@@ -293,53 +303,28 @@ function promoteFilesAffectedByManifests(changeSets: XmlScanResult): XmlScanResu
  * a new XmlScanResult with them moved to "changed".
  */
 function promoteFilesWithChangedDependencies(
-  changeSets: XmlScanResult,
+  scan: XmlScanResult,
   blockIndex: Record<DefinitionKey, VariantMap>,
   parsedFiles: Record<LofsRef, ParsedFileEntry>,
 ): XmlScanResult {
-  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
-  if (changedAuxiliaryFiles.size === 0) return changeSets;
+  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(scan);
+  if (changedAuxiliaryFiles.size === 0) return scan;
 
-  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
+  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, scan.unchanged);
 
   // Also re-parse any unchanged OLX that previously failed — the auxiliary
   // change might fix the missing dependency. Cheap if it fails again.
-  if (changedAuxiliaryFiles.size > 0) {
-    for (const [uri, fileInfo] of Object.entries(changeSets.unchanged)) {
-      const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
-      const prevEntry = parsedFiles[uri as LofsRef];
-      if (isOlx && prevEntry?.errors?.length > 0) {
-        olxFilesToReparse.add(uri as LofsRef);
-      }
+  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
+    const uri = uriStr as LofsRef;
+    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
+    const prevEntry = parsedFiles[uri];
+    if (isOlx && prevEntry && prevEntry.errors.length > 0) {
+      olxFilesToReparse.add(uri);
     }
   }
 
-  if (olxFilesToReparse.size === 0) return changeSets;
-
-  const changed = { ...changeSets.changed };
-  const unchanged = { ...changeSets.unchanged };
-
-  for (const olxUri of olxFilesToReparse) {
-    const existingEntry = unchanged[olxUri];
-    if (!existingEntry) continue;
-
-    // Copy only XmlFileInfo fields. The old entry may carry blockIds from a
-    // previous parse; those would be stale after re-parsing.
-    changed[olxUri] = {
-      id: existingEntry.id,
-      type: existingEntry.type,
-      content: existingEntry.content,
-      _metadata: existingEntry._metadata,
-    };
-    delete unchanged[olxUri];
-  }
-
-  return {
-    added: changeSets.added,
-    changed,
-    unchanged,
-    deleted: changeSets.deleted,
-  };
+  if (olxFilesToReparse.size === 0) return scan;
+  return promote(scan, olxFilesToReparse);
 }
 
 function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {

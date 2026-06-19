@@ -6,16 +6,10 @@
 // GET /api/grep?pattern=&source=<origin> - search within one source
 // GET /api/grep?pattern=&path=&include=&limit=  - with options
 //
-import { sourceProvider, unionProvider } from '@/lib/lofs/contentSources';
-import { toLofsOrigin } from '@/lib/types/address';
+import { readProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
-
-/** Scope to a source, or span the union when none is given. */
-function readProvider(source: string | undefined) {
-  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
