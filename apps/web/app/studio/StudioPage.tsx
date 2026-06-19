@@ -2,7 +2,7 @@
 // Prototype editor - exploring layout and interaction patterns
 'use client';
 
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -58,9 +58,9 @@ This is a **live preview** of your content. Edit on the left, see changes on the
   </CapaProblem>
 </Vertical>`;
 
-// Create a single storage provider instance for content files
-// Paths are relative to this namespace (OlxRelativePath), automatically converted to LofsPath
-const storage = new NetworkStorageProvider('content');
+// The storage provider is created per selected source inside the component
+// (origin-scoped): every read/write targets the repo the user is editing, not
+// a union-routed guess. See the `storage` useMemo below.
 
 // Redux state wrapper - matches /edit/ pattern for content persistence
 // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -85,9 +85,20 @@ function getEditComponentState(field, provenance, defaultState) {
 }
 
 function StudioPageContent() {
-  // Read initial file from URL query param
+  // Read initial file + source from URL query params
   const searchParams = useSearchParams();
   const initialFile = searchParams.get('file') || '';
+  const initialSource = searchParams.get('source') || '';
+
+  // The source (origin) being edited. Empty until picked (bare /studio shows a
+  // picker — step 4); otherwise it comes from the entry link's ?source=.
+  const [source, setSource] = useState(initialSource);
+
+  // Origin-scoped provider: all file ops target this one source. A ref mirrors
+  // it so the callbacks below don't each need it in their dependency lists.
+  const storage = useMemo(() => new NetworkStorageProvider(source || undefined), [source]);
+  const storageRef = useRef(storage);
+  storageRef.current = storage;
 
   // Debug mode toggle (system-wide setting)
   // TODO: Pass baselineProps from useBaselineProps() instead of null
@@ -172,7 +183,7 @@ function StudioPageContent() {
 
   // Load file tree
   const refreshFiles = useCallback(() => {
-    storage.listFiles().then(setFileTree).catch(console.error);
+    storageRef.current.listFiles().then(setFileTree).catch(console.error);
   }, []);
 
   // Load file tree and idMap on mount
@@ -208,7 +219,7 @@ function StudioPageContent() {
       setLoading(false);
       return;
     }
-    storage.read(olxPath)
+    storageRef.current.read(olxPath)
       .then(result => {
         setContent(result.content);
         fileStateRef.current.set(filePath, {
@@ -225,7 +236,8 @@ function StudioPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePath]); // Only reload when filePath changes
 
-  // Update URL without page reload using History API
+  // Update URL without page reload using History API. Keeps ?source= in sync
+  // with the edited source, so a deep link reopens the same repo + file.
   const updateUrl = useCallback((path: string, replace = false) => {
     const url = new URL(window.location.href);
     if (!path) {
@@ -233,13 +245,18 @@ function StudioPageContent() {
     } else {
       url.searchParams.set('file', path);
     }
+    if (source) {
+      url.searchParams.set('source', source);
+    } else {
+      url.searchParams.delete('source');
+    }
     // Use pushState for file changes (enables back/forward), replaceState for renames
     if (replace) {
       window.history.replaceState({}, '', url.toString());
     } else {
       window.history.pushState({}, '', url.toString());
     }
-  }, []);
+  }, [source]);
 
   // File selection updates path and URL - content loading handled by effect above
   const handleFileSelect = useCallback((path: string) => {
@@ -268,7 +285,7 @@ function StudioPageContent() {
         // TODO: Replace confirm() with a proper modal
         // TODO: Race condition. Read then write. LOFS needs a rewrite.
         try {
-          await storage.read(olxPath);
+          await storageRef.current.read(olxPath);
           // File exists — confirm overwrite
           if (!window.confirm(`${name} already exists. Overwrite?`)) {
             setSaving(false);
@@ -277,9 +294,9 @@ function StudioPageContent() {
         } catch {
           // File doesn't exist — safe to create
         }
-        await storage.write(olxPath, content);
+        await storageRef.current.write(olxPath, content);
         // Re-read to get metadata for conflict detection on subsequent saves
-        const result = await storage.read(olxPath);
+        const result = await storageRef.current.read(olxPath);
         refreshFiles();
         // Update cache so the file-loading effect doesn't show stale content
         // (it skips files already in fileStateRef)
@@ -303,12 +320,12 @@ function StudioPageContent() {
     try {
       const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
       const olxPath = toOlxRelativePath(filePath);
-      await storage.write(olxPath, content, {
+      await storageRef.current.write(olxPath, content, {
         previousMetadata,
         force,
       });
       // Re-read to get updated metadata
-      const result = await storage.read(olxPath);
+      const result = await storageRef.current.read(olxPath);
       // Update saved state (marks file as clean, updates metadata for conflict detection)
       fileStateRef.current.set(filePath, {
         content,
@@ -344,7 +361,7 @@ function StudioPageContent() {
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
-      await storage.write(olxPath, fileContent);
+      await storageRef.current.write(olxPath, fileContent);
       refreshFiles();
       // Switch to the new file — the file-loading effect will read from storage
       // and set content with the correct Redux key (don't call setContent here;
@@ -361,7 +378,7 @@ function StudioPageContent() {
 
   const handleFileDelete = useCallback(async (path: string) => {
     try {
-      await storage.delete(toOlxRelativePath(path));
+      await storageRef.current.delete(toOlxRelativePath(path));
       refreshFiles();
       // Remove from cache
       fileStateRef.current.delete(path);
@@ -381,7 +398,7 @@ function StudioPageContent() {
 
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
-      await storage.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
+      await storageRef.current.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
       // Move cache entry to new path
       const cachedState = fileStateRef.current.get(oldPath);
@@ -410,10 +427,14 @@ function StudioPageContent() {
       if (fileParam !== filePath) {
         setFilePath(fileParam);
       }
+      const sourceParam = url.searchParams.get('source') || '';
+      if (sourceParam !== source) {
+        setSource(sourceParam);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [filePath]);
+  }, [filePath, source]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -546,6 +567,7 @@ function StudioPageContent() {
                   getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
                   onApplyEdit={setContent}
                   onOpenFile={handleFileSelect}
+                  storage={storage}
                 />
               </div>
             )}

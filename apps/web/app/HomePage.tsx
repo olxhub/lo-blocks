@@ -116,7 +116,9 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
   const description: string = extractLocalizedVariant(entry.description, userLocale) || '';
 
   const type = entry.tag || 'Activity';
-  const editPath = entry.editPath;
+  // Studio is origin-scoped: carry both the source (which repo to edit in) and
+  // the repo-relative path within it.
+  const editHref = `/studio?source=${encodeURIComponent(entry.editSource)}&file=${encodeURIComponent(entry.editPath)}`;
 
   return (
     <div className="group py-4 border-b border-border/50 hover:bg-gradient-to-r hover:from-accent-subtle/50 hover:to-transparent transition-all">
@@ -136,16 +138,12 @@ function ActivityRow({ entry, userLocale }: { entry: any; userLocale: string }) 
           <span className="text-xs text-dimmed font-mono">
             {type}
           </span>
-          {editPath ? (
-            <Link
-              href={`/studio?file=${encodeURIComponent(editPath)}`}
-              className="text-secondary hover:text-foreground transition-colors"
-            >
-              Edit
-            </Link>
-          ) : (
-            <span className="text-dimmed cursor-not-allowed">Edit</span>
-          )}
+          <Link
+            href={editHref}
+            className="text-secondary hover:text-foreground transition-colors"
+          >
+            Edit
+          </Link>
           <Link
             href={`/graph/${entry.id}`}
             className="text-dimmed hover:text-foreground transition-colors"

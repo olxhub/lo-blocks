@@ -4,8 +4,8 @@
 // /api/activities route (with locale-aware variant picking) and
 // the xml2json build script (with first-variant fallback).
 
-import { getEditPathFromProvenance } from '../lofs/contentPaths';
 import type { IdMap, ContentVariant, ContentTier } from '../types';
+import { source, addressPath } from '../types/address';
 import { variantMapKeys } from '../types/i18n';
 
 export type VariantPicker = (availableVariants: ContentVariant[]) => ContentVariant;
@@ -15,7 +15,10 @@ export interface ActivityCard {
   category: string;
   index: number;
   tag: string;
-  editPath: string | null;
+  /** Origin to open in Studio (the `source` of the block's provenance). */
+  editSource: string;
+  /** Repo-relative path within that origin. */
+  editPath: string;
   title: Record<ContentVariant, string>;
   description: Record<ContentVariant, string>;
   availableVariants: Record<ContentVariant, ContentTier>;
@@ -58,8 +61,6 @@ export function buildActivityCards(
 
         const bestVariant = pickVariant(availableVariants);
         const bestEntry = variantMap[bestVariant];
-        const editPathResult = getEditPathFromProvenance([bestEntry.source]);
-        const editPath = editPathResult.valid ? editPathResult.relativePath ?? null : null;
 
         return [
           id,
@@ -68,7 +69,10 @@ export function buildActivityCards(
             category: bestEntry.category || 'other',
             index: bestEntry.index,
             tag: bestEntry.tag,
-            editPath,
+            // Split the block's provenance ref into the origin to edit in and
+            // the repo-relative path within it — Studio's ?source= and ?file=.
+            editSource: String(source(bestEntry.source)),
+            editPath: String(addressPath(bestEntry.source)),
             title,
             description,
             availableVariants: availableVariantsMap,

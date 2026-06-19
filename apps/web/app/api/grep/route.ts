@@ -1,14 +1,21 @@
 // apps/web/app/api/grep/route.ts
 //
-// Content search API.
+// Content search API, origin-scoped.
 //
-// GET /api/grep?pattern=    - Search file contents for pattern
-// GET /api/grep?pattern=&path=&include=&limit=  - With options
+// GET /api/grep?pattern=                 - search across the union
+// GET /api/grep?pattern=&source=<origin> - search within one source
+// GET /api/grep?pattern=&path=&include=&limit=  - with options
 //
-import { unionProvider } from '@/lib/lofs/contentSources';
+import { sourceProvider, unionProvider } from '@/lib/lofs/contentSources';
+import { toLofsOrigin } from '@/lib/types/address';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
+
+/** Scope to a source, or span the union when none is given. */
+function readProvider(source: string | undefined) {
+  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -35,17 +42,11 @@ export async function GET(request: Request) {
   // 4. Consider indexing grep results or caching frequent searches
   // 5. Add timeout to grep operations (currently unbounded)
 
-  let rawBasePath = url.searchParams.get('path') || undefined;
+  const source = url.searchParams.get('source') || undefined;
+  const rawBasePath = url.searchParams.get('path') || undefined;
   const include = url.searchParams.get('include') || undefined;
   const limitStr = url.searchParams.get('limit');
   const limit = limitStr ? parseInt(limitStr, 10) : undefined;
-
-  // Strip namespace prefix if present (client sends "content/..." but FileStorageProvider expects relative paths)
-  if (rawBasePath?.startsWith('content/')) {
-    rawBasePath = rawBasePath.slice('content/'.length) || undefined;
-  } else if (rawBasePath === 'content') {
-    rawBasePath = undefined;
-  }
 
   // Brand at trust boundary — path comes from HTTP request (untrusted)
   let basePath;
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const provider = await unionProvider();
+    const provider = await readProvider(source);
     const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {

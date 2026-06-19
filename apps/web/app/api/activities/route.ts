@@ -13,7 +13,8 @@
  *       id: DefinitionKey,
  *       category: string,
  *       tag: string,
- *       editPath: string | null,
+ *       editSource: string,   // origin to open in Studio (?source=)
+ *       editPath: string,     // repo-relative path within it (?file=)
  *       title: { [variant: ContentVariant]: string },
  *       description: { [variant: ContentVariant]: string },
  *       availableVariants: { [variant: ContentVariant]: 'supported' | 'bestEffort' },

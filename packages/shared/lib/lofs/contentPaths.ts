@@ -1,17 +1,19 @@
 // packages/shared/lib/lofs/contentPaths.ts
 //
-// Server-side utilities for content path validation and resolution.
+// Server-side validation for repo-relative content paths arriving over HTTP.
 //
-// Validates LofsPath (storage layer paths like "content/demos/foo.olx")
-// and converts them to FileSystemPath for safe filesystem access.
+// A path from a request is untrusted: it must not escape the source it targets
+// or name a non-content file. This validates the path is a safe, repo-relative
+// content path (e.g. "unit1/lesson.olx") before it reaches a provider. The
+// origin/source is carried separately (the `source` request param), so paths no
+// longer carry a "content/" prefix — that was the serialized name of the old
+// default filesystem origin, redundant now that origin is explicit.
 //
 // NOTE: Server-only module (uses Node.js path). Do not import from client code.
 //
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
-import { fileProvenancePath } from '../types/storage';
-import { source, toLofsRef } from '../types/address';
-import type { LofsPath, FileSystemPath, OlxRelativePath, SafeRelativePath } from '@/lib/types';
+import type { SafeRelativePath } from '@/lib/types';
 
 // Base directory for content - resolved once at module load
 const CONTENT_BASE = path.resolve('./content');
@@ -21,59 +23,42 @@ const ALLOWED_EXTENSIONS = extensionsWithDots(CATEGORY.content); // ['.olx', '.x
 
 export interface PathValidation {
   valid: boolean;
-  /** Escape-validated relative path within content directory (when valid: true). */
+  /** Escape-validated repo-relative content path (when valid: true). */
   relativePath?: SafeRelativePath;
   error?: string;
 }
 
 /**
- * Validate a LofsPath and extract the FileSystemPath relative to content base.
- *
- * LofsPath must include the "content/" prefix to enforce LOFS path structure.
- * Extracts and validates the relative path within the content directory.
+ * Validate an untrusted, repo-relative content path from a request.
  *
  * Checks:
- * 1. Path starts with "content/" prefix (LOFS structure requirement)
- * 2. Relative path doesn't escape content directory (no ..)
- * 3. File has a valid extension
+ * 1. Non-empty
+ * 2. No "#" (reserved as the LOFS version delimiter)
+ * 3. Doesn't escape its source via traversal ("..") or an absolute path
+ * 4. Has a recognized content extension
  *
- * @param lofsPath - Storage path including "content/" prefix (e.g., "content/demos/foo.olx")
- * @returns PathValidation with extracted FileSystemPath relative to content base, or error
+ * The path is relative to whatever source the request targets — a git repo
+ * root, or the local content directory. (This is the decode-at-the-boundary
+ * point for the future `RepoRelativePath` brand.)
+ *
  * @example
- * validateContentPath("content/demos/foo.olx")
- * // => { valid: true, relativePath: "demos/foo.olx" }
+ * validateRepoRelativePath("unit1/lesson.olx")
+ * // => { valid: true, relativePath: "unit1/lesson.olx" }
  */
-export function validateContentPath(lofsPath: string): PathValidation {
-  if (!lofsPath) {
+export function validateRepoRelativePath(repoPath: string): PathValidation {
+  if (!repoPath) {
     return { valid: false, error: 'Missing path' };
   }
 
-  const CONTENT_PREFIX = 'content/';
-
-  // Enforce content/ prefix
-  if (!lofsPath.startsWith(CONTENT_PREFIX)) {
-    return {
-      valid: false,
-      error: `Path must start with '${CONTENT_PREFIX}' prefix (received: '${lofsPath}')`
-    };
-  }
-
-  // Extract relative path (remove "content/" prefix)
-  const relPath = lofsPath.slice(CONTENT_PREFIX.length);
-
-  if (!relPath) {
-    return { valid: false, error: "Path cannot be empty after 'content/' prefix" };
-  }
-
   // Reject version delimiter (# is reserved in LOFS addresses)
-  if (relPath.includes('#')) {
+  if (repoPath.includes('#')) {
     return { valid: false, error: 'Path must not contain "#" (reserved as LOFS version delimiter)' };
   }
 
   // Normalize and check for directory traversal
-  const normalized = path.normalize(relPath);
+  const normalized = path.normalize(repoPath);
   if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
-    return { valid: false, error: 'Path escapes content directory' };
+    return { valid: false, error: 'Path escapes its content source' };
   }
 
   // Check file extension
@@ -83,60 +68,6 @@ export function validateContentPath(lofsPath: string): PathValidation {
       valid: false,
       error: `Invalid file type. Allowed extensions: ${ALLOWED_EXTENSIONS.join(', ')}`
     };
-  }
-
-  return { valid: true, relativePath: normalized as SafeRelativePath };
-}
-
-/**
- * Extract the content-relative path from a LofsRef.
- *
- * With mount-point URIs, the path after :// is relative to the mount:
- * 'file:content://demos/foo.xml' → content path 'demos/foo.xml'.
- * fileProvenancePath extracts the path part and prepends the mount for validation.
- *
- * @param provenance - Array of provenance URIs (LofsRef strings)
- * @returns Validation result with relative path or error message
- *
- * @example
- * getEditPathFromProvenance(['file:content://demos/foo.xml'])
- * // => { valid: true, relativePath: 'demos/foo.xml' }
- */
-export function getEditPathFromProvenance(provenance: string[] | undefined): PathValidation {
-  if (!provenance || !Array.isArray(provenance) || provenance.length === 0) {
-    return { valid: false, error: 'No provenance available' };
-  }
-
-  const fileProv = provenance.find(p => p.startsWith('file:'));
-  if (!fileProv) {
-    return { valid: false, error: 'No file provenance found (content may be from non-file source)' };
-  }
-
-  let logicalPath: string;
-  try {
-    logicalPath = fileProvenancePath(fileProv);
-  } catch {
-    return { valid: false, error: 'Malformed file provenance URI' };
-  }
-
-  // Only accept files from the content mount (or a mounted content source:
-  // file:content/<mount>://path — see MountRouterProvider)
-  const src = source(toLofsRef(fileProv)) as string;
-  if (src !== 'file:content' && !src.startsWith('file:content/')) {
-    return { valid: false, error: 'File is not in the content mount' };
-  }
-
-  // logicalPath is relative to the mount. For mounted sources, the client-
-  // visible path includes the mount prefix: file:content/psychology://a.olx
-  // edits at "psychology/a.olx".
-  const mountSuffix = src === 'file:content' ? '' : src.slice('file:content/'.length);
-  const normalized = path.normalize(
-    mountSuffix ? `${mountSuffix}/${logicalPath}` : logicalPath
-  );
-
-  // Security: reject paths that escape via traversal
-  if (normalized.startsWith('..') || path.isAbsolute(normalized)) {
-    return { valid: false, error: 'File is outside content directory' };
   }
 
   return { valid: true, relativePath: normalized as SafeRelativePath };
