@@ -13,6 +13,7 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import EditorLLMChat from './EditorLLMChat';
 import SourceSelector, { type SourceOption } from './SourceSelector';
+import NewFileDialog from './NewFileDialog';
 import { useDocsData } from '@/lib/docs';
 import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
@@ -123,13 +124,21 @@ function StudioPageContent() {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  // The single new-file dialog, opened from the Files panel "+" and the no-file
+  // placeholder (DRY: one creation flow).
+  const [newFileOpen, setNewFileOpen] = useState(false);
   // File path synced with URL via ?file= param
   const [filePath, setFilePath] = useState(initialFile);
+
+  // A file's identity is (source, path), not path alone — the same path in two
+  // repos is two different files. Used as the redux/content and cache key so
+  // content, metadata, and dirty-state never bleed across sources.
+  const fileId = `${source}\n${filePath}`;
 
   // Content stored in Redux - enables analytics and persistence
   const [content, setContent] = useEditComponentState(
     editorFields.content,
-    filePath,
+    fileId,
     DEMO_CONTENT,
   );
   // TODO: Consider moving layout preferences to redux (persist across sessions)
@@ -156,8 +165,8 @@ function StudioPageContent() {
   // TODO: Move file metadata tracking to redux (enables cross-component dirty detection)
   const fileStateRef = useRef<Map<string, { content: string; metadata: unknown; ns?: ContentNamespace }>>(new Map());
 
-  // Get current file's saved state (for dirty detection)
-  const savedState = fileStateRef.current.get(filePath);
+  // Get current file's saved state (for dirty detection), keyed by (source, path)
+  const savedState = fileStateRef.current.get(fileId);
   const isDirty = savedState ? content !== savedState.content : false;
 
   // Namespace the preview renders in. undefined means the loaded file has
@@ -178,17 +187,20 @@ function StudioPageContent() {
     previewNs = savedState.ns;
   }
 
-  // Compute all dirty files (for beforeunload and file tree indicators)
+  // Dirty files for the CURRENT source (tree indicators + beforeunload). Cache
+  // keys are `${source}\n${path}`; filter to this source and return the paths.
   const getDirtyFiles = useCallback((): Set<string> => {
     const dirty = new Set<string>();
-    for (const [path, saved] of fileStateRef.current.entries()) {
-      const current = getEditComponentState(editorFields.content, path, DEMO_CONTENT);
+    const prefix = `${source}\n`;
+    for (const [key, saved] of fileStateRef.current.entries()) {
+      if (!key.startsWith(prefix)) continue;
+      const current = getEditComponentState(editorFields.content, key, DEMO_CONTENT);
       if (current !== undefined && current !== saved.content) {
-        dirty.add(path);
+        dirty.add(key.slice(prefix.length));
       }
     }
     return dirty;
-  }, []);
+  }, [source]);
 
   // Toast notifications
   const { notifications, notify, dismiss: dismissNotification } = useNotifications();
@@ -213,7 +225,7 @@ function StudioPageContent() {
       .catch(console.error);
   }, []);
 
-  // Load file content when filePath changes
+  // Load file content when the (source, path) identity changes.
   // Only load from storage if we haven't loaded this file before -
   // otherwise Redux has the (possibly edited) content cached
   //
@@ -223,12 +235,12 @@ function StudioPageContent() {
   useEffect(() => {
     if (!filePath) return;
 
-    // If we've already loaded this file, use Redux cache (preserves edits)
-    if (fileStateRef.current.has(filePath)) {
+    // If we've already loaded this (source, path), use Redux cache (preserves edits)
+    if (fileStateRef.current.has(fileId)) {
       return;
     }
 
-    // First time loading this file - fetch from storage
+    // First time loading this file - fetch from the source's provider
     setLoading(true);
     let olxPath;
     try {
@@ -241,7 +253,7 @@ function StudioPageContent() {
     storageRef.current.read(olxPath)
       .then(result => {
         setContent(result.content);
-        fileStateRef.current.set(filePath, {
+        fileStateRef.current.set(fileId, {
           content: result.content,
           metadata: result.metadata,
           ns: result.ns,
@@ -253,7 +265,7 @@ function StudioPageContent() {
       })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filePath]); // Only reload when filePath changes
+  }, [fileId]); // Reload when the (source, path) identity changes
 
   // Update URL without page reload using History API. Keeps ?source= in sync
   // with the edited source, so a deep link reopens the same repo + file.
@@ -284,17 +296,17 @@ function StudioPageContent() {
   }, [updateUrl]);
 
   // Switching the working repo: the open file belonged to the old source, so
-  // clear it. The tree reloads via the source effect; the URL keeps ?source=.
+  // close it (a file in another repo makes no sense to carry). Lands on the
+  // no-file placeholder; the tree reloads via the source effect.
   const handleSourceChange = useCallback((origin: string) => {
     if (origin === source) return;
     setSource(origin);
     setFilePath('');
-    setContent(DEMO_CONTENT);
     const url = new URL(window.location.href);
     url.searchParams.set('source', origin);
     url.searchParams.delete('file');
     window.history.pushState({}, '', url.toString());
-  }, [source, setContent]);
+  }, [source]);
 
   const handleSave = useCallback(async (force = false) => {
     // Saving needs a writable source picked. The Save button is disabled in
@@ -337,8 +349,8 @@ function StudioPageContent() {
         const result = await storageRef.current.read(olxPath);
         refreshFiles();
         // Update cache so the file-loading effect doesn't show stale content
-        // (it skips files already in fileStateRef)
-        fileStateRef.current.set(name, {
+        // (it skips files already in fileStateRef), keyed by (source, path)
+        fileStateRef.current.set(`${source}\n${name}`, {
           content,
           metadata: result.metadata,
           ns: result.ns,
@@ -356,7 +368,7 @@ function StudioPageContent() {
     }
     setSaving(true);
     try {
-      const previousMetadata = fileStateRef.current.get(filePath)?.metadata;
+      const previousMetadata = fileStateRef.current.get(fileId)?.metadata;
       const olxPath = toOlxRelativePath(filePath);
       await storageRef.current.write(olxPath, content, {
         previousMetadata,
@@ -365,7 +377,7 @@ function StudioPageContent() {
       // Re-read to get updated metadata
       const result = await storageRef.current.read(olxPath);
       // Update saved state (marks file as clean, updates metadata for conflict detection)
-      fileStateRef.current.set(filePath, {
+      fileStateRef.current.set(fileId, {
         content,
         metadata: result.metadata,
         ns: result.ns,
@@ -392,7 +404,7 @@ function StudioPageContent() {
     } finally {
       setSaving(false);
     }
-  }, [filePath, content, canWrite, source, notify, refreshFiles, updateUrl]);
+  }, [filePath, fileId, content, canWrite, source, notify, refreshFiles, updateUrl]);
 
   // TODO: handleFileCreate can silently overwrite an existing file with the same name.
   // Should check existence first and confirm, similar to save-as above.
@@ -418,8 +430,8 @@ function StudioPageContent() {
     try {
       await storageRef.current.delete(toOlxRelativePath(path));
       refreshFiles();
-      // Remove from cache
-      fileStateRef.current.delete(path);
+      // Remove from cache (keyed by (source, path))
+      fileStateRef.current.delete(`${source}\n${path}`);
       // If we deleted the current file, clear the editor
       if (path === filePath) {
         setFilePath('');
@@ -432,17 +444,17 @@ function StudioPageContent() {
       notify('error', `Failed to delete ${path}`, err instanceof Error ? err.message : String(err));
       throw err;
     }
-  }, [filePath, refreshFiles, notify, updateUrl, setContent]);
+  }, [filePath, source, refreshFiles, notify, updateUrl, setContent]);
 
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     try {
       await storageRef.current.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
-      // Move cache entry to new path
-      const cachedState = fileStateRef.current.get(oldPath);
+      // Move cache entry to the new (source, path) key
+      const cachedState = fileStateRef.current.get(`${source}\n${oldPath}`);
       if (cachedState) {
-        fileStateRef.current.delete(oldPath);
-        fileStateRef.current.set(newPath, cachedState);
+        fileStateRef.current.delete(`${source}\n${oldPath}`);
+        fileStateRef.current.set(`${source}\n${newPath}`, cachedState);
       }
       // If we renamed the current file, update the path and URL (replace, not push)
       if (oldPath === filePath) {
@@ -455,7 +467,7 @@ function StudioPageContent() {
       notify('error', `Failed to rename ${oldPath}`, err instanceof Error ? err.message : String(err));
       throw err;
     }
-  }, [filePath, refreshFiles, notify, updateUrl]);
+  }, [filePath, source, refreshFiles, notify, updateUrl]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -600,7 +612,7 @@ function StudioPageContent() {
                 dirtyFiles={getDirtyFiles()}
                 canWrite={canWrite}
                 onFileSelect={handleFileSelect}
-                onFileCreate={handleFileCreate}
+                onNewFile={() => setNewFileOpen(true)}
                 onFileDelete={handleFileDelete}
                 onFileRename={handleFileRename}
               />
@@ -609,7 +621,7 @@ function StudioPageContent() {
               <div className="sidebar-panel chat-panel">
                 <EditorLLMChat
                   path={filePath}
-                  getContent={() => getEditComponentState(editorFields.content, filePath, DEMO_CONTENT)}
+                  getContent={() => getEditComponentState(editorFields.content, fileId, DEMO_CONTENT)}
                   onApplyEdit={setContent}
                   onOpenFile={handleFileSelect}
                   storage={storage}
@@ -639,7 +651,25 @@ function StudioPageContent() {
         </ResizableSidebar>
 
         {/* Main Editor Area */}
-        <main ref={mainRef} className={`studio-main ${showPreview ? `split ${previewLayout}` : ''}`}>
+        <main ref={mainRef} className={`studio-main ${filePath && showPreview ? `split ${previewLayout}` : ''}`}>
+          {!filePath ? (
+            <div className="studio-empty-state">
+              <h2>No file open</h2>
+              {!source ? (
+                <p>Choose a repository from the menu in the header to start.</p>
+              ) : canWrite ? (
+                <>
+                  <p>Pick a file from the Files panel, or create one.</p>
+                  <button className="studio-btn primary" onClick={() => setNewFileOpen(true)}>
+                    New file
+                  </button>
+                </>
+              ) : (
+                <p>This source is read-only. Pick a file from the Files panel to view it.</p>
+              )}
+            </div>
+          ) : (
+          <>
           <div
             className="studio-editor-pane"
             style={showPreview ? {
@@ -702,8 +732,19 @@ function StudioPageContent() {
               </div>
             </>
           )}
+          </>
+          )}
         </main>
       </div>
+
+      {/* New file dialog — single creation flow, opened from the Files panel
+          "+" and the no-file placeholder. Directory = the open file's folder. */}
+      <NewFileDialog
+        open={newFileOpen}
+        currentDir={filePath.includes('/') ? filePath.slice(0, filePath.lastIndexOf('/')) : ''}
+        onCreate={handleFileCreate}
+        onClose={() => setNewFileOpen(false)}
+      />
 
       {/* Command Palette */}
       {commandPaletteOpen && (

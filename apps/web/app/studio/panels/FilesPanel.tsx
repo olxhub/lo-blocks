@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import type { UriNode } from '@/lib/types/storage';
-import { CREATABLE_TYPES } from '@/lib/util/fileTypes';
 import { FORBIDDEN_FILENAME_CHARS } from '@/lib/types/storage';
 import ExpandIcon from '@/components/common/ExpandIcon';
 
@@ -22,7 +21,8 @@ interface FilesPanelProps {
    *  delete controls are hidden (the server rejects them too — see route.js). */
   canWrite: boolean;
   onFileSelect: (path: string) => void;
-  onFileCreate: (path: string, content: string) => Promise<void>;
+  /** Open the shared new-file dialog (owned by StudioPage — one creation flow). */
+  onNewFile: () => void;
   onFileDelete: (path: string) => Promise<void>;
   onFileRename: (oldPath: string, newPath: string) => Promise<void>;
 }
@@ -33,40 +33,12 @@ export function FilesPanel({
   dirtyFiles = new Set(),
   canWrite,
   onFileSelect,
-  onFileCreate,
+  onNewFile,
   onFileDelete,
   onFileRename,
 }: FilesPanelProps) {
-  // TODO: Consider moving dialog state to redux for analytics
-  const [showNewFileDialog, setShowNewFileDialog] = useState(false);
-  const [newFileName, setNewFileName] = useState('');
-  const [newFileType, setNewFileType] = useState('olx');
   const [fileActionPath, setFileActionPath] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-
-  const creatableTypeKeys = Object.keys(CREATABLE_TYPES);
-  const selectedType = CREATABLE_TYPES[newFileType] || CREATABLE_TYPES.olx;
-
-  // Directory derived from current file path
-  const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
-
-  // TODO: No way to select root (/) or create subdirectories from this UI.
-  // Blocked on LOFS not auto-creating parent directories on write.
-  const handleCreateFile = async () => {
-    if (!newFileName.trim()) return;
-
-    const filename = `${newFileName.trim()}.${selectedType.ext}`;
-    const path = currentDir ? `${currentDir}/${filename}` : filename;
-
-    try {
-      await onFileCreate(path, selectedType.template);
-      setShowNewFileDialog(false);
-      setNewFileName('');
-      setNewFileType('olx');
-    } catch (err) {
-      console.error('Failed to create file:', err);
-    }
-  };
 
   const handleDeleteFile = async (path: string) => {
     if (!confirm(`Delete ${path}?`)) return;
@@ -99,48 +71,13 @@ export function FilesPanel({
         {canWrite && (
           <button
             className="file-action-btn"
-            onClick={() => setShowNewFileDialog(true)}
+            onClick={onNewFile}
             title="New file"
           >
             +
           </button>
         )}
       </div>
-
-      {/* New file dialog */}
-      {canWrite && showNewFileDialog && (
-        <div className="file-dialog">
-          <div className="file-dialog-dir">in: {currentDir || '/'}</div>
-          <div className="file-dialog-name-row">
-            <input
-              type="text"
-              className="file-dialog-name"
-              placeholder="filename"
-              value={newFileName}
-              onChange={(e) => setNewFileName(sanitizeFileName(e.target.value))}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
-              autoFocus
-            />
-            <span className="file-dialog-ext">.{selectedType.ext}</span>
-          </div>
-          <label className="file-dialog-label">
-            Type:
-            <select
-              className="file-dialog-select"
-              value={newFileType}
-              onChange={(e) => setNewFileType(e.target.value)}
-            >
-              {creatableTypeKeys.map(key => (
-                <option key={key} value={key}>{CREATABLE_TYPES[key].label}</option>
-              ))}
-            </select>
-          </label>
-          <div className="file-dialog-actions">
-            <button className="file-dialog-btn" onClick={handleCreateFile} disabled={!newFileName.trim()}>Create</button>
-            <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
 
       <div className="file-tree">
         {fileTree ? (
