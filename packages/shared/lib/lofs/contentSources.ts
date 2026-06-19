@@ -54,7 +54,8 @@ import path from 'path';
 import { FileStorageProvider } from './providers/file';
 import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
-import { gitOrigin } from '../types/address';
+import { gitOrigin, toLofsOrigin } from '../types/address';
+import type { LofsOrigin } from '../types/address';
 import { memoize } from '../util/async';
 import type { StorageProvider } from '../types/storage';
 
@@ -74,6 +75,13 @@ export interface RepoSource {
   repo: string;
   /** Branch (default: main). */
   branch?: string;
+  /** May Studio commit + push to this source? Default false: a git source is
+   *  read-only unless the deployment opts in, since editing someone else's
+   *  course is the exception, not the rule. Local directories and the fallback
+   *  are always writable. (Declared, not access-probed: confirming push rights
+   *  needs a network round-trip per source; the deployment already knows its
+   *  intent. A real access check can refine this later.) */
+  writable?: boolean;
   cooldownSeconds?: number;
   /** Path to a file holding an access token (e.g. a GitHub PAT) for private
    *  reads and pushes. Preferred over `tokenEnv` (a file is more contained than
@@ -206,11 +214,26 @@ const gitSourceProvider = memoize(
 /**
  * One configured content source: its provider and its canonical ORIGIN — the
  * `source()` of the refs it emits, which is the editing handle (`sourceProvider`)
- * and the key the compile union merges by.
+ * and the key the compile union merges by. `label`/`writable` are the
+ * authoring-facing metadata Studio shows in its source picker.
  */
 interface ConfiguredSource {
-  origin: string;
+  origin: LofsOrigin;
+  /** Human label for the picker (the config mount key, or "Local content"). */
+  label: string;
+  /** May Studio write here? See RepoSource.writable. */
+  writable: boolean;
   provider: StorageProvider;
+}
+
+/**
+ * Authoring-facing view of a source: identity + what the picker needs, without
+ * the provider handle. Returned by `sources()` (→ /api/sources → Studio).
+ */
+export interface SourceInfo {
+  origin: LofsOrigin;
+  label: string;
+  writable: boolean;
 }
 
 /**
@@ -226,7 +249,9 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
 
   registerAllowedContentDir(path.resolve(config.fallback));
   const fallback: ConfiguredSource = {
-    origin: 'file:content',
+    origin: toLofsOrigin('file:content'),
+    label: 'Local content',
+    writable: true,  // local disk — always editable
     provider: new FileStorageProvider(config.fallback, 'content'),
   };
 
@@ -238,18 +263,34 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
       // with files at the checkout root and no manifest. See namespaceFor.
       registerAllowedContentDir(path.resolve(entry));
       sources.push({
-        origin: `file:content/${mount}`,
+        origin: toLofsOrigin(`file:content/${mount}`),
+        label: mount,
+        writable: true,  // local disk — always editable
         provider: new FileStorageProvider(entry, `content/${mount}`, { defaultNs: mount }),
       });
     } else {
-      // Repo form: served from the git remote, in memory.
+      // Repo form: served from the git remote, in memory. Read-only unless the
+      // deployment opts in (entry.writable).
       sources.push({
-        origin: String(gitOrigin(entry.repo, entry.branch ?? 'main')),
+        origin: gitOrigin(entry.repo, entry.branch ?? 'main'),
+        label: mount,
+        writable: entry.writable ?? false,
         provider: await gitSourceProvider(entry),
       });
     }
   }
   return { sources, fallback };
+}
+
+/**
+ * The authoring-facing source list for Studio's picker: every configured
+ * source plus the fallback, as `{ origin, label, writable }` (no provider).
+ * Writable sources first, then read-only — the order the picker renders.
+ */
+export async function sources(): Promise<SourceInfo[]> {
+  const { sources, fallback } = await configuredSources();
+  const all = [fallback, ...sources].map(({ origin, label, writable }) => ({ origin, label, writable }));
+  return [...all.filter(s => s.writable), ...all.filter(s => !s.writable)];
 }
 
 /**
@@ -276,7 +317,7 @@ export async function unionProvider(): Promise<StorageProvider> {
  * routing-by-guess. Throws if the origin isn't a configured source — you can't
  * edit a source the deployment hasn't subscribed to.
  */
-export async function sourceProvider(origin: string): Promise<StorageProvider> {
+export async function sourceProvider(origin: LofsOrigin): Promise<StorageProvider> {
   const { sources, fallback } = await configuredSources();
   const match = [fallback, ...sources].find(s => s.origin === origin);
   if (!match) {
