@@ -5,7 +5,7 @@
 // GET /api/files           - Returns file tree
 // GET /api/files?pattern=  - Returns files matching glob pattern
 //
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     if (pattern) {
       // Glob mode - return array of matching files
       const files = await provider.glob(pattern, basePath);

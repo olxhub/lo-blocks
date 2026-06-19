@@ -13,7 +13,7 @@
 
 import path from 'path';
 import type { Context } from 'hono';
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import {
   syncContentFromStorage,
   getSourceFile,
@@ -71,7 +71,7 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     await syncContentFromStorage(provider);
 
     const originalVariant = getOriginalVariant(blockId);

@@ -1,9 +1,9 @@
 // apps/web/app/api/file/route.js
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { VersionConflictError } from '@/lib/types/storage';
 import { validateContentPath } from '@/lib/lofs/contentPaths';
 
-// Resolved per request (not a module singleton): contentProvider() re-reads
+// Resolved per request (not a module singleton): unionProvider() re-reads
 // content-sources.yaml and reassembles the source set, while caching the
 // expensive per-repo git clones. See contentSources.ts.
 
@@ -18,7 +18,7 @@ export async function GET(request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     const result = await provider.read(validation.relativePath);
     return Response.json({ ok: true, content: result.content, metadata: result.metadata, ns: result.ns });
   } catch (err) {
@@ -43,7 +43,7 @@ export async function POST(request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     await provider.write(validation.relativePath, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
@@ -72,7 +72,7 @@ export async function DELETE(request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     await provider.delete(validation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {
@@ -98,7 +98,7 @@ export async function PUT(request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
     return Response.json({ ok: true });
   } catch (err) {

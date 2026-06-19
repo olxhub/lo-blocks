@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { runTranslation } from '@/lib/translate/runTranslation';
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     await syncContentFromStorage(provider);
 
     const originalVariant = getOriginalVariant(blockId);

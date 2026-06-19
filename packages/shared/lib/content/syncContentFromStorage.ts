@@ -21,7 +21,7 @@
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
 import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
@@ -199,7 +199,7 @@ export async function applyFileChanges(
  */
 export async function defaultContentProviders(): Promise<StorageProvider> {
   return new StackedStorageProvider([
-    await contentProvider(),
+    await unionProvider(),
     new DocsStorageProvider(
       Object.values(BLOCK_REGISTRY).filter(b => b?._isBlock).map(b => b.name)
     ),

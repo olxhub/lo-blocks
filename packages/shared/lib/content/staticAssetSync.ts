@@ -19,27 +19,24 @@ const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 /**
  * Filesystem roots to copy assets from, with their URL prefixes.
  *
- * - StackedStorageProvider: flatten to its children.
- * - MountRouterProvider: fallback copies to the target root; each mounted
- *   source copies under its mount name, so asset URLs match content paths
- *   ("psychology/images/foo.png" \u2192 /content/psychology/images/foo.png).
- * - Plain filesystem provider: its baseDir at the root.
- * - Non-filesystem sources (memory, network): no baseDir, skipped.
+ * Recurses through StackedStorageProvider layers and collects every filesystem
+ * source's `baseDir`. The URL prefix is the part of the provider's mountPoint
+ * past "content" \u2014 so the fallback (mountPoint "content") copies to the root,
+ * and a directory mount (mountPoint "content/<mount>") copies under "<mount>",
+ * keeping asset URLs aligned with content paths. Non-filesystem sources (git,
+ * memory, network) have no `baseDir` and are skipped (repo-source assets are
+ * deferred \u2014 forge URLs / a blob route).
  */
 function assetRoots(provider): { dir: string; prefix: string }[] {
   const roots: { dir: string; prefix: string }[] = [];
-  const flat = Array.isArray(provider.providers) ? provider.providers : [provider];
-  for (const p of flat) {
-    if (Array.isArray(p?.mounts) && p?.fallback) {
-      // MountRouterProvider
-      if (p.fallback?.baseDir) roots.push({ dir: p.fallback.baseDir, prefix: '' });
-      for (const m of p.mounts) {
-        if (m.baseDir) roots.push({ dir: m.baseDir, prefix: m.mount });
-      }
-    } else if (p?.baseDir) {
-      roots.push({ dir: p.baseDir, prefix: '' });
+  const visit = (p: any) => {
+    if (Array.isArray(p?.providers)) { p.providers.forEach(visit); return; }  // stacked: recurse
+    if (p?.baseDir) {
+      const prefix = typeof p.mountPoint === 'string' ? p.mountPoint.replace(/^content\/?/, '') : '';
+      roots.push({ dir: p.baseDir, prefix });
     }
-  }
+  };
+  visit(provider);
   return roots;
 }
 

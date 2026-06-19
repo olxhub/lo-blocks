@@ -5,7 +5,7 @@
 // GET /api/grep?pattern=    - Search file contents for pattern
 // GET /api/grep?pattern=&path=&include=&limit=  - With options
 //
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await unionProvider();
     const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {
