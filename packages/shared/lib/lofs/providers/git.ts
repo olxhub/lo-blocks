@@ -119,12 +119,6 @@ export interface GitProviderOptions {
   url: string;
   /** Branch to serve (default: main). */
   ref?: string;
-  /** Subtree(s) within the repo to serve (default: the whole repo). A file
-   *  is served if it sits under any listed directory. Paths stay
-   *  repo-relative — NOT stripped — so they map 1:1 to repo paths, which the
-   *  commit-on-write path needs. Accepts a string or a list; "/" and ""
-   *  both mean the whole repo. */
-  dir?: string | string[];
   /** Minimum ms between remote head checks (default: 60s). */
   cooldownMs?: number;
   /** Credential resolver for private reads and pushes (default: anonymous). */
@@ -152,9 +146,6 @@ interface RepoState {
 export class GitStorageProvider implements StorageProvider {
   readonly url: string;
   readonly ref: string;
-  /** Repo subtrees to serve, as clean prefixes (no leading/trailing slash).
-   *  Empty = the whole repo (no filter). */
-  readonly contentDirs: string[];
   readonly cooldownMs: number;
   /** Canonical, ref-bearing origin (address.ts `gitOrigin`) — the identity for
    *  this source's refs. Carries the branch, so two branches of one repo are
@@ -182,12 +173,9 @@ export class GitStorageProvider implements StorageProvider {
    *  from the same head and then collide at push — chain them. */
   private writeLock: Promise<unknown> = Promise.resolve();
 
-  constructor({ url, ref = 'main', dir, cooldownMs = 60_000, auth }: GitProviderOptions) {
+  constructor({ url, ref = 'main', cooldownMs = 60_000, auth }: GitProviderOptions) {
     this.url = url.replace(/\/$/, '');
     this.ref = ref;
-    this.contentDirs = (Array.isArray(dir) ? dir : dir === undefined ? [] : [dir])
-      .map(d => d.replace(/^\/+|\/+$/g, ''))
-      .filter(d => d !== '');  // "" and "/" both mean the whole repo → no filter
     this.cooldownMs = cooldownMs;
     this.auth = auth;
     this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
@@ -221,12 +209,6 @@ export class GitStorageProvider implements StorageProvider {
   private requireState(): RepoState {
     if (!this.state) throw new Error(`${this.url}#${this.ref} is not loaded`);
     return this.state;
-  }
-
-  /** Is this repo-relative path within the served subtree(s)? */
-  private included(repoPath: string): boolean {
-    if (this.contentDirs.length === 0) return true;  // whole repo
-    return this.contentDirs.some(d => repoPath === d || repoPath.startsWith(`${d}/`));
   }
 
   // ---------------------------------------------------------------------
@@ -304,7 +286,6 @@ export class GitStorageProvider implements StorageProvider {
       map: async (filepath, [entry]) => {
         if (!entry || filepath === '.') return;
         if ((await entry.type()) !== 'blob') return;
-        if (!this.included(filepath)) return;
         const base = filepath.split('/').pop()!;
         if (!isContentFile(filepath) && base !== 'manifest.yaml') return;
         if (base.startsWith('.') || base.includes('~') || base.includes('#')) return;
@@ -419,13 +400,6 @@ export class GitStorageProvider implements StorageProvider {
     await this.ensureFresh();
     const s = this.requireState();
     const relPath = this.guardPath(stripLeadingSlash(String(p)));
-    // Honor the configured subtree(s): a path outside `dir` is not served,
-    // even though the whole repo is in memfs. Scan/glob/grep already filter
-    // via included(); the direct-blob fallback below must too, or a read
-    // could reach repo content the operator chose not to serve.
-    if (!this.included(relPath)) {
-      throw new Error(`File not found: ${p} (outside served subtree of ${this.url}#${this.ref})`);
-    }
     const entry = s.tree.get(relPath);
     if (!entry) {
       // Tree only indexes content files; for other reads, try the blob directly.
@@ -475,10 +449,8 @@ export class GitStorageProvider implements StorageProvider {
     await this.ensureFresh();
     const s = this.requireState();
 
-    // 1. Manifest walk, nearest first. Manifests are read by blob, not via
-    //    s.tree (the content-file index): a configured `dir` subtree trims the
-    //    index but not the cloned volume, so an ancestor manifest above the
-    //    served subtree still governs the content beneath it.
+    // 1. Manifest walk, nearest first. Read each ancestor manifest directly
+    //    by blob, so a manifest at any level governs the content beneath it.
     const segments = relPath.split('/').slice(0, -1);
     for (let i = segments.length; i >= 0; i--) {
       const manifestRel = [...segments.slice(0, i), 'manifest.yaml'].join('/');
@@ -600,7 +572,6 @@ export class GitStorageProvider implements StorageProvider {
     await this.ensureFresh();
     const s = this.requireState();
     const relPath = this.guardPath(String(assetPath));
-    if (!this.included(relPath)) return false;  // outside the served subtree
     // Media isn't in the content-file tree; check the blob directly.
     try {
       await this.readBlob(s, relPath);
@@ -667,11 +638,7 @@ export class GitStorageProvider implements StorageProvider {
 
   /** Validate a write target and return its repo-relative path. */
   private requireWritable(p: OlxRelativePath): string {
-    const relPath = this.guardPath(stripLeadingSlash(String(p)));
-    if (!this.included(relPath)) {
-      throw new Error(`Cannot write outside the served subtree of ${this.url}: ${p}`);
-    }
-    return relPath;
+    return this.guardPath(stripLeadingSlash(String(p)));
   }
 
   /** Optimistic conflict: the blob oid the editor last read (in
@@ -762,7 +729,6 @@ export class GitStorageProvider implements StorageProvider {
 
   /** Would walkTree index this path? (Mirrors its filter for local tree upkeep.) */
   private servesPath(repoPath: string): boolean {
-    if (!this.included(repoPath)) return false;
     const base = repoPath.split('/').pop()!;
     return isContentFile(repoPath) || base === 'manifest.yaml';
   }

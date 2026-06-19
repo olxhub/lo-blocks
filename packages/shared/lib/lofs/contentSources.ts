@@ -21,7 +21,6 @@
 //     edu.memphis.psych:                          # repo form
 //       repo: https://github.com/olxhub/edu.memphis.psych
 //       branch: main          # optional (default main)
-//       dir: psychology       # optional content subdir within the repo
 //       cooldownSeconds: 60   # optional remote head-check throttle
 //       tokenEnv: REPO_PAT    # optional; env var with a PAT for private reads
 //                             # and pushes. Defaults to LO_GITHUB_TOKEN; set
@@ -75,8 +74,6 @@ export interface RepoSource {
   repo: string;
   /** Branch (default: main). */
   branch?: string;
-  /** Subtree(s) within the repo to serve (default: whole repo). String or list. */
-  dir?: string | string[];
   cooldownSeconds?: number;
   /** Path to a file holding an access token (e.g. a GitHub PAT) for private
    *  reads and pushes. Preferred over `tokenEnv` (a file is more contained than
@@ -198,26 +195,13 @@ const gitSourceProvider = memoize(
     return new GitStorageProvider({
       url: entry.repo,
       ref: entry.branch ?? 'main',
-      dir: entry.dir,
       cooldownMs: entry.cooldownSeconds !== undefined ? entry.cooldownSeconds * 1000 : undefined,
       // GitHub PATs authenticate as the token in the username field.
       auth: token ? () => ({ username: token, password: 'x-oauth-basic' }) : undefined,
     });
   },
-  { keyOf: repoKey },
+  { keyOf: (entry: RepoSource) => `${entry.repo}|${entry.branch ?? 'main'}` },
 );
-
-/** Stable memo key for a repo source. Normalizes `dir` (strip slashes, drop
- *  empties, sort) so "psych", "/psych/", and ["psych"] — and lists in any
- *  order — all map to one clone of the same served content. (Until the
- *  config-type tightening lands, `dir` is still string | string[].) */
-function repoKey(entry: RepoSource): string {
-  const dirs = (Array.isArray(entry.dir) ? entry.dir : entry.dir == null ? [] : [entry.dir])
-    .map(d => d.replace(/^\/+|\/+$/g, ''))
-    .filter(Boolean)
-    .sort();
-  return `${entry.repo}|${entry.branch ?? 'main'}|${JSON.stringify(dirs)}`;
-}
 
 /**
  * One configured content source: its provider and its canonical ORIGIN — the

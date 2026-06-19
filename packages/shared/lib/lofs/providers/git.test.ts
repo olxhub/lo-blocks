@@ -253,13 +253,6 @@ describe('GitStorageProvider', () => {
       .rejects.toThrow(VersionConflictError);
   });
 
-  it('refuses to write outside the served subtree', async () => {
-    const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
-    sub.repoVol = provider.repoVol;  // shared main repo (unit2/, manifest, lesson1)
-    await expect(sub.write('lesson1.olx' as OlxRelativePath, '<X/>'))
-      .rejects.toThrow(/outside the served subtree/);
-  });
-
   it('builds against its captured snapshot even if state is repointed mid-commit', async () => {
     // A concurrent refresh repoints this.state while a write is between commit
     // and push. The write must still build/commit against the snapshot it
@@ -305,47 +298,6 @@ describe('GitStorageProvider', () => {
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
     await w.loadXmlFilesWithStats();
     expect(seen[0]).toEqual({ username: 'ghp_testtoken', password: 'x-oauth-basic' });
-  });
-
-  it('serves only the listed subtree, paths repo-relative (no stripping)', async () => {
-    const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
-    sub.repoVol = provider.repoVol;
-    const scan = await sub.loadXmlFilesWithStats();
-    expect(Object.keys(scan.added)).toEqual([`${ORIGIN}://unit2/lesson2.olx`]);
-    // Path is repo-relative — NOT stripped to "lesson2.olx".
-    const result = await sub.read('unit2/lesson2.olx' as OlxRelativePath);
-    expect(result.content).toContain('Part two');
-    // A read outside the configured subtree is denied, even though the whole
-    // repo is in memfs and lesson1.olx exists at the root.
-    await expect(sub.read('lesson1.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
-  });
-
-  it('inherits an ancestor (root) manifest namespace for a dir-scoped source', async () => {
-    // dir:'unit2' trims the index, but the ROOT manifest (namespace: gitcourse)
-    // still governs unit2/ content. It must be consulted even though it sits
-    // outside the served subtree — else the namespace silently falls back to the
-    // repo name, shifting DefinitionKeys/state keys.
-    const sub = new LocalGitProvider({ url: URL, ref: 'main', dir: 'unit2', cooldownMs: 0 });
-    sub.repoVol = provider.repoVol;
-    const resolved = await sub.namespaceFor(sub.toLofsRef('unit2/lesson2.olx' as any));
-    expect(resolved.ns).toBe('gitcourse');                       // root manifest, not the repo name
-    expect(String(resolved.manifest)).toMatch(/manifest\.yaml#[0-9a-f]{40}$/);
-    // And it flows through read().
-    expect((await sub.read('unit2/lesson2.olx' as OlxRelativePath)).ns).toBe('gitcourse');
-  });
-
-  it('accepts a list of subtrees and excludes the rest', async () => {
-    const multi = new LocalGitProvider({ url: URL, ref: 'main', dir: ['a', 'b'], cooldownMs: 0 });
-    await multi.initRepo();
-    await multi.commitFiles({
-      'a/one.olx': '<Markdown id="one">1</Markdown>',
-      'b/two.olx': '<Markdown id="two">2</Markdown>',
-      'c/three.olx': '<Markdown id="three">3</Markdown>',  // outside dir list → excluded
-    }, 'multi-subtree');
-    const scan = await multi.loadXmlFilesWithStats();
-    expect(Object.keys(scan.added).sort()).toEqual([`${ORIGIN}://a/one.olx`, `${ORIGIN}://b/two.olx`]);
-    const r = await multi.read('a/one.olx' as OlxRelativePath);
-    expect(r.content).toContain('1');
   });
 
   it('defaults the namespace to the repo name when no manifest declares one', async () => {
