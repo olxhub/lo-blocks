@@ -63,9 +63,10 @@ test('Next.js server basic endpoints work', async () => {
     const tree = await treeRes.json();
     expect(tree.ok).toBe(true);
 
-    // Fetch single file
+    // Fetch single file. Paths are repo-relative now (no "content/" prefix);
+    // omitting ?source= reads via the compile union.
     const fileRes = await fetch(
-      `http://localhost:${port}/api/file?path=${encodeURIComponent('content/demos/text-changer-demo.olx')}`
+      `http://localhost:${port}/api/file?path=${encodeURIComponent('demos/text-changer-demo.olx')}`
     );
     expect(fileRes.status).toBe(200);
     const fileJson = await fileRes.json();

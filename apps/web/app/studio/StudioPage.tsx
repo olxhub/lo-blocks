@@ -12,6 +12,7 @@ import Resizer from '@/components/common/Resizer';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { DataPanel, DocsPanel, FilesPanel, SearchPanel } from './panels';
 import EditorLLMChat from './EditorLLMChat';
+import SourceSelector, { type SourceOption } from './SourceSelector';
 import { useDocsData } from '@/lib/docs';
 import { NetworkStorageProvider, VersionConflictError } from '@/lib/lofs';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
@@ -90,9 +91,23 @@ function StudioPageContent() {
   const initialFile = searchParams.get('file') || '';
   const initialSource = searchParams.get('source') || '';
 
-  // The source (origin) being edited. Empty until picked (bare /studio shows a
-  // picker — step 4); otherwise it comes from the entry link's ?source=.
+  // The source (origin) being edited. Empty until picked (bare /studio shows
+  // the picker); otherwise it comes from the entry link's ?source=.
   const [source, setSource] = useState(initialSource);
+
+  // The sources this deployment offers, for the working-repo picker.
+  const [sources, setSources] = useState<SourceOption[]>([]);
+  useEffect(() => {
+    fetch('/api/sources')
+      .then(r => r.json())
+      .then(j => { if (j.ok) setSources(j.sources); })
+      .catch(console.error);
+  }, []);
+
+  // The selected source's metadata. Undefined when nothing's picked yet or the
+  // URL named one we don't offer — both legitimate "can't write" states.
+  const currentSource = sources.find(s => s.origin === source);
+  const canWrite = currentSource ? currentSource.writable : false;
 
   // Origin-scoped provider: all file ops target this one source. A ref mirrors
   // it so the callbacks below don't each need it in their dependency lists.
@@ -181,18 +196,22 @@ function StudioPageContent() {
   // Shared docs data hook
   const docsData = useDocsData();
 
-  // Load file tree
+  // Load file tree (scoped to the current source via storageRef)
   const refreshFiles = useCallback(() => {
     storageRef.current.listFiles().then(setFileTree).catch(console.error);
   }, []);
 
-  // Load file tree and idMap on mount
+  // Reload the tree whenever the working source changes (and on mount).
   useEffect(() => {
     refreshFiles();
+  }, [source, refreshFiles]);
+
+  // The compiled index (idMap) spans all sources — load once on mount.
+  useEffect(() => {
     fetchAllOlxJson()
       .then(data => setIdMap(data.idMap))
       .catch(console.error);
-  }, [refreshFiles]);
+  }, []);
 
   // Load file content when filePath changes
   // Only load from storage if we haven't loaded this file before -
@@ -264,7 +283,26 @@ function StudioPageContent() {
     updateUrl(path);
   }, [updateUrl]);
 
+  // Switching the working repo: the open file belonged to the old source, so
+  // clear it. The tree reloads via the source effect; the URL keeps ?source=.
+  const handleSourceChange = useCallback((origin: string) => {
+    if (origin === source) return;
+    setSource(origin);
+    setFilePath('');
+    setContent(DEMO_CONTENT);
+    const url = new URL(window.location.href);
+    url.searchParams.set('source', origin);
+    url.searchParams.delete('file');
+    window.history.pushState({}, '', url.toString());
+  }, [source, setContent]);
+
   const handleSave = useCallback(async (force = false) => {
+    // Saving needs a writable source picked. The Save button is disabled in
+    // this state; this guards the ⌘S path.
+    if (!canWrite) {
+      notify('error', source ? 'This source is read-only' : 'Pick a repo to edit first');
+      return;
+    }
     // Untitled file: prompt for a name and save-as
     // TODO: Replace window.prompt with a proper save-as dialog — directory picker,
     // file type selector, overwrite warning, validation feedback. Reuse FilesPanel's
@@ -354,7 +392,7 @@ function StudioPageContent() {
     } finally {
       setSaving(false);
     }
-  }, [filePath, content, notify, refreshFiles, updateUrl]);
+  }, [filePath, content, canWrite, source, notify, refreshFiles, updateUrl]);
 
   // TODO: handleFileCreate can silently overwrite an existing file with the same name.
   // Should check existence first and confirm, similar to save-as above.
@@ -493,6 +531,7 @@ function StudioPageContent() {
             ≡
           </button>
           <Link href="/" className="studio-title" title="Go to home">studio</Link>
+          <SourceSelector sources={sources} value={source} onChange={handleSourceChange} />
         </div>
         <div className="studio-header-center">
           <span className="studio-filepath">
@@ -516,7 +555,12 @@ function StudioPageContent() {
               {previewLayout === 'horizontal' ? '⬌' : '⬍'}
             </button>
           )}
-          <button className="studio-btn primary" onClick={() => handleSave()} disabled={saving}>
+          <button
+            className="studio-btn primary"
+            onClick={() => handleSave()}
+            disabled={saving || !canWrite}
+            title={canWrite ? 'Save' : source ? 'This source is read-only' : 'Pick a repo to edit first'}
+          >
             {saving && <span className="btn-spinner" />}
             {saving ? 'Saving...' : 'Save'}
           </button>

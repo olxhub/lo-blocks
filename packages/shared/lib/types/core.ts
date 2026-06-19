@@ -271,12 +271,12 @@ export type LofsPath = string & { __brand: 'LofsPath' };
  *   validated by resolveSafeReadPath / resolveSafeWritePath (traversal
  *   checks, symlink validation, allowed-directory rules).
  *
- * - NetworkStorageProvider: prepends a namespace ("content/") to form
- *   a wire-format path (LofsPath) for HTTP API calls, then strips it
- *   back on the response side. Validated by contentPaths.ts on the
- *   server. Not every provider needs this — FileStorageProvider goes
- *   straight from OlxRelativePath to the filesystem, and a postgres
- *   provider would use SQL queries.
+ * - NetworkStorageProvider: sends the repo-relative path as-is over HTTP,
+ *   plus the scoped source (?source=<origin>) so the server routes via
+ *   sourceProvider(origin). Validated by contentPaths.ts on the server.
+ *   Not every provider needs this — FileStorageProvider goes straight from
+ *   OlxRelativePath to the filesystem, and a postgres provider would use
+ *   SQL queries.
  *
  * - InMemoryStorageProvider: uses OlxRelativePath directly as a map key.
  *

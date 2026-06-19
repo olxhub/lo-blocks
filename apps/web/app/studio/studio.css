@@ -835,3 +835,60 @@
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
 }
+
+/* Working-repo selector (header dropdown) */
+.studio-source-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.studio-source-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  min-width: 220px;
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.studio-source-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--lo-chrome-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.studio-source-item:hover {
+  background: var(--lo-chrome-active);
+}
+
+.studio-source-item.active {
+  font-weight: 600;
+}
+
+.studio-source-item .ro-tag {
+  font-size: 11px;
+  color: var(--lo-chrome-text-muted);
+}
+
+.studio-source-divider {
+  padding: 6px 10px 2px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lo-chrome-text-muted);
+}
