@@ -289,28 +289,6 @@ export function toMemoryRef(name: string, sourceId = 'local'): MemoryLofsRef {
 }
 
 /**
- * Construct a git: LofsRef.
- * Format: git:mountPoint://path
- */
-export function toGitRef(mountPoint: string, filePath: string): LofsRef {
-  return makeAddress(
-    toLofsOrigin(`git:${mountPoint}`),
-    toLofsContentPath(filePath),
-  );
-}
-
-/**
- * Construct a postgres: LofsRef.
- * Format: postgres:tenant://path
- */
-export function toPgRef(tenant: string, filePath: string): LofsRef {
-  return makeAddress(
-    toLofsOrigin(`postgres:${tenant}`),
-    toLofsContentPath(filePath),
-  );
-}
-
-/**
  * Options for grep operation
  */
 export interface GrepOptions {
@@ -344,7 +322,6 @@ export interface StorageProvider {
 
   read(path: OlxRelativePath): Promise<ReadResult>;
   write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  update(path: OlxRelativePath, content: string): Promise<void>;
   delete(path: OlxRelativePath): Promise<void>;
   rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;

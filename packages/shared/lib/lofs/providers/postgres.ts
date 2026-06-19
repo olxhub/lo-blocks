@@ -39,9 +39,6 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
-  async update(_path: OlxRelativePath, _content: string): Promise<void> {
-    throw new Error('postgres storage not implemented');
-  }
 
   async listFiles(_selection: FileSelection = {}): Promise<UriNode> {
     throw new Error('postgres storage not implemented');

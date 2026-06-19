@@ -557,9 +557,6 @@ export class FileStorageProvider implements StorageProvider {
     await fs.writeFile(full, content, 'utf-8');
   }
 
-  async update(path: OlxRelativePath, content: string): Promise<void> {
-    await this.write(path, content);
-  }
 
   async delete(filePath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');

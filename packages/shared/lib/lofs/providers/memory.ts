@@ -96,9 +96,6 @@ export class InMemoryStorageProvider implements StorageProvider {
     throw new Error('InMemoryStorageProvider is read-only');
   }
 
-  async update(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
 
   async listFiles(): Promise<UriNode> {
     const children = Object.keys(this.files).map(uri => ({ uri }));

@@ -15,9 +15,6 @@ import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 import type { SafeRelativePath } from '@/lib/types';
 
-// Base directory for content - resolved once at module load
-const CONTENT_BASE = path.resolve('./content');
-
 // Valid file extensions for content files (derived from central fileTypes)
 const ALLOWED_EXTENSIONS = extensionsWithDots(CATEGORY.content); // ['.olx', '.xml', '.md', '.chatpeg', ...]
 
@@ -71,18 +68,4 @@ export function validateRepoRelativePath(repoPath: string): PathValidation {
   }
 
   return { valid: true, relativePath: normalized as SafeRelativePath };
-}
-
-/**
- * Get the list of allowed file extensions.
- */
-export function getAllowedExtensions(): readonly string[] {
-  return ALLOWED_EXTENSIONS;
-}
-
-/**
- * Get the resolved content base directory path.
- */
-export function getContentBase(): string {
-  return CONTENT_BASE;
 }

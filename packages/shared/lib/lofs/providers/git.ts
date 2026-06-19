@@ -601,12 +601,6 @@ export class GitStorageProvider implements StorageProvider {
     });
   }
 
-  /** Update an existing file. No conflict check (the interface carries no
-   *  options); treat as an unconditional write. */
-  async update(p: OlxRelativePath, content: string): Promise<void> {
-    return this.write(p, content);
-  }
-
   async delete(p: OlxRelativePath): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();

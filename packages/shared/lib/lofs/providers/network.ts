@@ -214,9 +214,6 @@ export class NetworkStorageProvider implements StorageProvider {
     }
   }
 
-  async update(path: OlxRelativePath, content: string): Promise<void> {
-    await this.write(path, content);
-  }
 
   async delete(path: OlxRelativePath): Promise<void> {
     const res = await fetch(

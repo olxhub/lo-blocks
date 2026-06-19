@@ -134,11 +134,6 @@ export class StackedStorageProvider implements StorageProvider {
     return this.providers[0].write(filePath, content, options);
   }
 
-  // Update in the first provider
-  async update(filePath: OlxRelativePath, content: string): Promise<void> {
-    return this.providers[0].update(filePath, content);
-  }
-
   // List files merged from all providers (higher priority shadows lower)
   async listFiles(selection: FileSelection = {}): Promise<UriNode> {
     // Collect results from all providers (reverse order so we merge low-to-high)
