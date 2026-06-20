@@ -4,15 +4,17 @@
 import { useState } from 'react';
 import type { IdMap, OlxJson } from '@/lib/types';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import { fileProvenancePath } from '@/lib/types/storage';
+import { source, addressPath } from '@/lib/types/address';
 
 interface SearchPanelProps {
   idMap: IdMap | null;
   content: string;
   currentPath: string;
+  /** The selected source's origin. Search is scoped to it (editing is
+   *  single-source); cross-source search is deferred to the Studio redo. */
+  currentSource: string;
   onFileSelect: (path: string) => void;
   onScrollToId?: (id: string) => void;
-  onNotify?: (type: 'error' | 'info', message: string) => void;
 }
 
 // Extract IDs and their tag names from OLX content
@@ -26,35 +28,21 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
   return results;
 }
 
-// Extract relative path from source URI.
-//
-// TODO: source-scoping gap. This only handles file: refs, so git/mounted-source
-// results return null and read as "no file provenance" (unopenable). And opening
-// a result calls onFileSelect(relPath), which opens that path in the CURRENTLY
-// selected source — wrong for a result from another source. searchResults come
-// from the union idMap (all sources) while editing is single-source, so the fix
-// needs a UX decision deferred to the Studio redo: either scope search to the
-// selected source (results are same-source, open correctly), or keep it
-// cross-source and switch the working source on open (carry origin = source(ref)
-// up, alongside addressPath(ref), instead of the file:-only path here).
-function getRelPath(source?: string): string | null {
-  if (!source) return null;
-  if (!source.startsWith('file:')) return null;
-  return fileProvenancePath(source);
-}
-
-export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrollToId, onNotify }: SearchPanelProps) {
+export function SearchPanel({ idMap, content, currentPath, currentSource, onFileSelect, onScrollToId }: SearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const localIds = extractIds(content);
 
-  // Filter idMap by search query
-  // IdMap is { [id]: { [variant]: OlxJson } } — unwrap to get the OlxJson
-  const searchResults: Array<[string, OlxJson]> = idMap && searchQuery.trim()
+  // Filter idMap by search query, scoped to the selected source. The idMap is
+  // the union across all sources, but editing is single-source — so results from
+  // other sources would open the wrong file. (Cross-source search is a Studio-redo
+  // UX decision.) IdMap is { [id]: { [variant]: OlxJson } } — unwrap to the OlxJson.
+  const searchResults: Array<[string, OlxJson]> = idMap && searchQuery.trim() && currentSource
     ? Object.entries(idMap)
         .map(([id, variantMap]) => [id, extractLocalizedVariant(variantMap, '')] as [string, OlxJson | undefined])
         .filter((pair): pair is [string, OlxJson] => {
           const [id, entry] = pair;
           if (!entry) return false;
+          if (String(source(entry.source)) !== currentSource) return false;
           const q = searchQuery.toLowerCase();
           const title = (entry.attributes.title as string) || '';
           return id.toLowerCase().includes(q) || title.toLowerCase().includes(q);
@@ -84,7 +72,8 @@ export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrol
               <div className="search-hint">No matching IDs found</div>
             ) : (
               searchResults.map(([id, entry]) => {
-                const relPath = getRelPath(entry.source);
+                // Scoped to currentSource, so the path is repo-relative within it.
+                const relPath = String(addressPath(entry.source));
                 const title = (entry.attributes.title as string) || id;
                 return (
                   <div
@@ -95,10 +84,6 @@ export function SearchPanel({ idMap, content, currentPath, onFileSelect, onScrol
                     // silently fails. Fixing properly requires deferred scroll-after-load
                     // logic, which should wait for a studio rearchitecture.
                     onClick={() => {
-                      if (!relPath) {
-                        onNotify?.('error', `No file provenance for ${id}`);
-                        return;
-                      }
                       if (relPath !== currentPath) {
                         onFileSelect(relPath);
                       }

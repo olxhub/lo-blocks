@@ -631,9 +631,9 @@ function StudioPageContent() {
                 idMap={idMap}
                 content={content}
                 currentPath={filePath}
+                currentSource={source}
                 onFileSelect={handleFileSelect}
                 onScrollToId={(id) => editorRef.current?.scrollToId(id)}
-                onNotify={(type, msg) => notify(type, msg)}
               />
             )}
             {sidebarTab === 'data' && <DataPanel />}
