@@ -172,20 +172,36 @@ export class NetworkStorageProvider implements StorageProvider {
     const url = params.toString()
       ? `${this.listEndpoint}?${params.toString()}`
       : this.listEndpoint;
-    const res = await fetch(url);
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to list files');
-    }
+    const json = await this.request(url);
     return json.tree as UriNode;
   }
 
-  async read(path: OlxRelativePath): Promise<ReadResult> {
-    const res = await fetch(`${this.readEndpoint}?${this.params(path).toString()}`);
+  /**
+   * One fetch + envelope-unwrap for every endpoint. The transport's two failure
+   * modes live here: a network-level rejection (server unreachable — fetch
+   * throws before any response) becomes a clear message instead of the browser's
+   * opaque "NetworkError…"; an { ok:false } envelope throws its error, or a
+   * VersionConflictError on a save conflict. Returns the parsed json.
+   */
+  private async request(url: string, init?: RequestInit): Promise<any> {
+    let res: Response;
+    try {
+      res = await fetch(url, init);
+    } catch {
+      throw new Error("Can't reach the content server — is it running?");
+    }
     const json = await res.json();
     if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to read');
+      if (json.conflict) {
+        throw new VersionConflictError(json.error, json.metadata);
+      }
+      throw new Error(json.error ?? 'Request failed');
     }
+    return json;
+  }
+
+  async read(path: OlxRelativePath): Promise<ReadResult> {
+    const json = await this.request(`${this.readEndpoint}?${this.params(path).toString()}`);
     const content = json.content as string;
     const ref = this.toLofsRef(path as unknown as SafeRelativePath);
     const ver = toLofsVersion(await hashContent(content));
@@ -200,42 +216,24 @@ export class NetworkStorageProvider implements StorageProvider {
 
   async write(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     const { previousMetadata, force = false } = options;
-    const res = await fetch(this.readEndpoint, {
+    await this.request(this.readEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path, source: this.origin, content, previousMetadata, force }),
     });
-    const json = await res.json();
-    if (!json.ok) {
-      if (json.conflict) {
-        throw new VersionConflictError(json.error, json.metadata);
-      }
-      throw new Error(json.error ?? 'Failed to write');
-    }
   }
 
 
   async delete(path: OlxRelativePath): Promise<void> {
-    const res = await fetch(
-      `${this.readEndpoint}?${this.params(path).toString()}`,
-      { method: 'DELETE' }
-    );
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to delete');
-    }
+    await this.request(`${this.readEndpoint}?${this.params(path).toString()}`, { method: 'DELETE' });
   }
 
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    const res = await fetch(this.readEndpoint, {
+    await this.request(this.readEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: oldPath, newPath, source: this.origin }),
     });
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to rename');
-    }
   }
 
   /**
@@ -247,13 +245,7 @@ export class NetworkStorageProvider implements StorageProvider {
     const params = this.params(basePath);
     params.set('pattern', pattern);
 
-    const res = await fetch(`${this.listEndpoint}?${params.toString()}`);
-    const json = await res.json();
-
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to glob');
-    }
-
+    const json = await this.request(`${this.listEndpoint}?${params.toString()}`);
     return json.files as OlxRelativePath[];
   }
 
@@ -268,13 +260,7 @@ export class NetworkStorageProvider implements StorageProvider {
     if (options.include) params.set('include', options.include);
     if (options.limit) params.set('limit', String(options.limit));
 
-    const res = await fetch(`${this.grepEndpoint}?${params.toString()}`);
-    const json = await res.json();
-
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to grep');
-    }
-
+    const json = await this.request(`${this.grepEndpoint}?${params.toString()}`);
     return json.matches as GrepMatch[];
   }
 }
