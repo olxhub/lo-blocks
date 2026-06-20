@@ -6,7 +6,6 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
 import type { ContentNamespace } from './id-grammar';
@@ -262,11 +261,11 @@ export function fileProvenancePath(uri: string): string {
  * @param name - File path within the memory store
  * @param sourceId - Source identifier (default: 'local')
  */
-export function toMemoryRef(name: string, sourceId = 'local'): MemoryLofsRef {
+export function toMemoryRef(name: string, sourceId = 'local'): LofsRef {
   return makeAddress(
     toLofsOrigin(`memory:${sourceId}`),
     toLofsContentPath(name),
-  ) as unknown as MemoryLofsRef;
+  );
 }
 
 /**

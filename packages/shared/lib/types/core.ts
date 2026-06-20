@@ -204,14 +204,7 @@ export type BlockGitStatus = z.infer<typeof BlockGitStatusSchema>;
  *
  * Backed by LofsRef (see address.ts) so address functions (source, addressPath,
  * scheme, etc.) work directly on provenance values.
- *
- * Sub-branded by scheme so TypeScript can distinguish file: from memory:
- * at compile time.
  */
-/** file: ref — content loaded from local filesystem */
-export type FileLofsRef = LofsRef & { readonly __scheme: 'file' };
-/** memory: ref — content from in-memory storage (tests, virtual FS) */
-export type MemoryLofsRef = LofsRef & { readonly __scheme: 'memory' };
 
 /**
  * A list of source files involved in an error or operation.
@@ -847,9 +840,6 @@ export interface LoBlock {
 export interface BlockRegistry {
   [tag: string]: LoBlock;  // Maps OLX tag names (e.g., "ChoiceInput", "Vertical") to block implementations
 }
-
-/** @deprecated Use BlockRegistry instead */
-export type ComponentMap = BlockRegistry;
 
 export type ComponentError = string | null;
 export type ParseError = string | null | {
