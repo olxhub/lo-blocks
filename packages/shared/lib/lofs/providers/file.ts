@@ -27,10 +27,13 @@ import {
   type NamespaceResolution,
   VersionConflictError,
   NamespaceResolutionError,
-  toFileRef,
   fileProvenancePath,
 } from '../../types/storage';
-import { source, scheme, withVersion, withoutVersion, toLofsRef as brandLofsRef, toLofsVersion, toLofsCanonical } from '../../types/address';
+import {
+  type LofsOrigin,
+  source, scheme, withVersion, withoutVersion, makeAddress,
+  toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
+} from '../../types/address';
 import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
@@ -342,6 +345,8 @@ async function listFileTree(
 export class FileStorageProvider implements StorageProvider {
   readonly baseDir: string;
   readonly mountPoint: string;
+  /** This mount's address origin (`file:<mountPoint>`), built once. */
+  readonly origin: LofsOrigin;
   readonly ns?: ContentNamespace;
   readonly defaultNs?: string;
 
@@ -377,8 +382,17 @@ export class FileStorageProvider implements StorageProvider {
       throw new Error(`Invalid mount point: "${mp}"`);
     }
     this.mountPoint = mp;
+    this.origin = toLofsOrigin(`file:${mp}`);
     this.ns = ns;
     this.defaultNs = defaultNs;
+  }
+
+  /** Build a file: LofsRef for a content path in this mount. */
+  private toRef(relativePath: string): LofsRef {
+    if (relativePath.includes('\\')) {
+      throw new Error(`Paths must use forward slashes: "${relativePath}"`);
+    }
+    return makeAddress(this.origin, toLofsContentPath(relativePath));
   }
 
   /**
@@ -395,8 +409,7 @@ export class FileStorageProvider implements StorageProvider {
     // (e.g., source("file:content://sba/foo.olx") → "file:content").
     // The path portion already contains only the relative path within the mount.
     const ref = brandLofsRef(uri);
-    const expectedSource = `file:${this.mountPoint}`;
-    if (source(ref) !== expectedSource) {
+    if (source(ref) !== this.origin) {
       throw new Error(
         `Mount point mismatch: URI '${uri}' doesn't match mount '${this.mountPoint}'`
       );
@@ -416,9 +429,8 @@ export class FileStorageProvider implements StorageProvider {
     // Only diff against refs this provider owns. In a stacked scan, `previous`
     // contains other mounts' files — without this filter they would all be
     // reported as deleted (they're never "found" by walking this baseDir).
-    const expectedSource = `file:${this.mountPoint}`;
     previous = Object.fromEntries(
-      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === expectedSource)
+      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === this.origin)
     ) as Record<LofsRef, XmlFileInfo>;
 
     function isContentFile(entry: any, fullPath: string) {
@@ -456,7 +468,7 @@ export class FileStorageProvider implements StorageProvider {
           await walk(fullPath);
         } else if (isContentFile(entry, fullPath)) {
           // path.relative returns OS-native separators; refs must be POSIX.
-          const ref = toFileRef(this.mountPoint, windowsToPosix(path.relative(this.baseDir, fullPath)));
+          const ref = this.toRef(windowsToPosix(path.relative(this.baseDir, fullPath)));
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
@@ -501,7 +513,7 @@ export class FileStorageProvider implements StorageProvider {
         fs.stat(full),
       ]);
       // path.relative returns OS-native separators; refs must be POSIX.
-      const ref = toFileRef(this.mountPoint, windowsToPosix(path.relative(this.baseDir, full)));
+      const ref = this.toRef(windowsToPosix(path.relative(this.baseDir, full)));
       // Resolve the file's namespace so clients (e.g. studio) can render the
       // content where it actually lives. A file outside any namespace (root
       // configs, etc.) is still readable — it just has no content identity,
@@ -610,7 +622,7 @@ export class FileStorageProvider implements StorageProvider {
   }
 
   toLofsRef(safePath: SafeRelativePath): LofsRef {
-    return toFileRef(this.mountPoint, safePath);
+    return this.toRef(safePath);
   }
 
   async validateAssetPath(assetPath: OlxRelativePath): Promise<boolean> {
@@ -682,7 +694,7 @@ export class FileStorageProvider implements StorageProvider {
           if (valid !== true) {
             throw new NamespaceResolutionError(`${manifestRel}: ${valid}`);
           }
-          const manifestRef = toFileRef(this.mountPoint, manifestRel);
+          const manifestRef = this.toRef(manifestRel);
           return {
             ns: asContentNamespace(String(declared)),
             manifest: toLofsCanonical(withVersion(manifestRef, toLofsVersion(String(mtimeMs)))),

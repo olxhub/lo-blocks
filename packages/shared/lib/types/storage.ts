@@ -6,7 +6,7 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  FileLofsRef, MemoryLofsRef,
+  MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
 import type { ContentNamespace } from './id-grammar';
@@ -223,25 +223,6 @@ export function toOlxRelativePath(
     }
   }
   return input as OlxRelativePath;
-}
-
-/**
- * Construct a file: LofsRef from a mount point and relative path.
- *
- * Uses LOFS address format: file:mountPoint://relativePath
- *
- * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
- * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
- * @returns e.g. 'file:content://sba/foo.olx'
- */
-export function toFileRef(mountPoint: string, relativePath: string): FileLofsRef {
-  if (relativePath.includes('\\')) {
-    throw new Error(`Paths must use forward slashes: "${relativePath}"`);
-  }
-  return makeAddress(
-    toLofsOrigin(`file:${mountPoint}`),
-    toLofsContentPath(relativePath),
-  ) as unknown as FileLofsRef;
 }
 
 /**
