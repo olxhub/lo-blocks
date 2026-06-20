@@ -13,34 +13,36 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
+import type { StorageProvider } from '@/lib/types/storage';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 
 /**
  * Filesystem roots to copy assets from, with their URL prefixes.
  *
- * Recurses through StackedStorageProvider layers and collects every filesystem
- * source's `baseDir`. The URL prefix is the part of the provider's mountPoint
- * past "content" \u2014 so the fallback (mountPoint "content") copies to the root,
- * and a directory mount (mountPoint "content/<mount>") copies under "<mount>",
- * keeping asset URLs aligned with content paths. Non-filesystem sources (git,
- * memory, network) have no `baseDir` and are skipped (repo-source assets are
- * deferred \u2014 forge URLs / a blob route).
+ * Only filesystem-backed sources have local assets to copy. A stack contributes
+ * its children's roots; a FileStorageProvider contributes its own `baseDir`, at
+ * a URL prefix equal to its mountPoint past "content" \u2014 so the fallback
+ * (mountPoint "content") copies to the root and a directory mount
+ * (mountPoint "content/<mount>") copies under "<mount>", keeping asset URLs
+ * aligned with content paths. Non-filesystem sources (git, memory, network)
+ * have no local assets \u2014 repo-source assets are deferred (forge URLs / a blob
+ * route). instanceof rather than field-sniffing: a rename breaks the build, and
+ * static-asset copying stays out of the StorageProvider interface.
  */
-function assetRoots(provider): { dir: string; prefix: string }[] {
-  const roots: { dir: string; prefix: string }[] = [];
-  const visit = (p: any) => {
-    if (Array.isArray(p?.providers)) { p.providers.forEach(visit); return; }  // stacked: recurse
-    if (p?.baseDir) {
-      const prefix = typeof p.mountPoint === 'string' ? p.mountPoint.replace(/^content\/?/, '') : '';
-      roots.push({ dir: p.baseDir, prefix });
-    }
-  };
-  visit(provider);
-  return roots;
+function assetRoots(provider: StorageProvider): { dir: string; prefix: string }[] {
+  if (provider instanceof StackedStorageProvider) {
+    return provider.providers.flatMap(assetRoots);
+  }
+  if (provider instanceof FileStorageProvider) {
+    return [{ dir: provider.baseDir, prefix: provider.mountPoint.replace(/^content\/?/, '') }];
+  }
+  return [];
 }
 
-export async function copyAssetsToPublic(provider, targetDir = './apps/web/public/content') {
+export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/web/public/content') {
   const publicContentDir = targetDir;
 
   try {

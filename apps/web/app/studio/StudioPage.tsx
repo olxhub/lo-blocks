@@ -268,26 +268,27 @@ function StudioPageContent() {
   }, [fileId]); // Reload when the (source, path) identity changes
 
   // Update URL without page reload using History API. Keeps ?source= in sync
-  // with the edited source, so a deep link reopens the same repo + file.
-  const updateUrl = useCallback((path: string, replace = false) => {
-    const url = new URL(window.location.href);
-    if (!path) {
-      url.searchParams.delete('file');
-    } else {
-      url.searchParams.set('file', path);
-    }
-    if (source) {
-      url.searchParams.set('source', source);
-    } else {
-      url.searchParams.delete('source');
-    }
-    // Use pushState for file changes (enables back/forward), replaceState for renames
-    if (replace) {
-      window.history.replaceState({}, '', url.toString());
-    } else {
-      window.history.pushState({}, '', url.toString());
-    }
-  }, [source]);
+  // with the edited source, so a deep link reopens the same repo + file. The
+  // `source` override lets a caller write a source it just set (state hasn't
+  // committed yet, so the closure's `source` would be stale).
+  const updateUrl = useCallback(
+    (path: string, { replace = false, source: src = source }: { replace?: boolean; source?: string } = {}) => {
+      const url = new URL(window.location.href);
+      if (path) {
+        url.searchParams.set('file', path);
+      } else {
+        url.searchParams.delete('file');
+      }
+      if (src) {
+        url.searchParams.set('source', src);
+      } else {
+        url.searchParams.delete('source');
+      }
+      // pushState for file changes (enables back/forward), replaceState for renames
+      window.history[replace ? 'replaceState' : 'pushState']({}, '', url.toString());
+    },
+    [source],
+  );
 
   // File selection updates path and URL - content loading handled by effect above
   const handleFileSelect = useCallback((path: string) => {
@@ -302,11 +303,8 @@ function StudioPageContent() {
     if (origin === source) return;
     setSource(origin);
     setFilePath('');
-    const url = new URL(window.location.href);
-    url.searchParams.set('source', origin);
-    url.searchParams.delete('file');
-    window.history.pushState({}, '', url.toString());
-  }, [source]);
+    updateUrl('', { source: origin });
+  }, [source, updateUrl]);
 
   const handleSave = useCallback(async (force = false) => {
     // Saving needs a writable source picked. The Save button is disabled in
@@ -459,7 +457,7 @@ function StudioPageContent() {
       // If we renamed the current file, update the path and URL (replace, not push)
       if (oldPath === filePath) {
         setFilePath(newPath);
-        updateUrl(newPath, true);
+        updateUrl(newPath, { replace: true });
       }
       notify('success', `Renamed to ${newPath}`);
     } catch (err) {
