@@ -182,6 +182,15 @@ export class NetworkStorageProvider implements StorageProvider {
    * throws before any response) becomes a clear message instead of the browser's
    * opaque "NetworkError…"; an { ok:false } envelope throws its error, or a
    * VersionConflictError on a save conflict. Returns the parsed json.
+   *
+   * TODO: this should grow into the ONE universal client fetch, not stay one of
+   * three — the others are fetchOlxJson's `globalThis.fetch` (×3) and StudioPage's
+   * `/api/sources`. (The dead `lib/api.ts`, git rm'd, was a stalled attempt.) Fold
+   * them in here. Soft list to (re)check when we do — figure out the shape then:
+   *   - request metadata: i18n (Accept-Language), auth, etc.
+   *   - error handling wired to one shared "no connection" signal
+   *   - JSON decoding + the { ok, error, conflict } envelope
+   *   - easy integration with hooks (reactivity)
    */
   private async request(url: string, init?: RequestInit): Promise<any> {
     let res: Response;

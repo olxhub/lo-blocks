@@ -27,7 +27,16 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
 }
 
 // Extract relative path from source URI.
-// Uses the address parser to handle all URI schemes correctly.
+//
+// TODO: source-scoping gap. This only handles file: refs, so git/mounted-source
+// results return null and read as "no file provenance" (unopenable). And opening
+// a result calls onFileSelect(relPath), which opens that path in the CURRENTLY
+// selected source — wrong for a result from another source. searchResults come
+// from the union idMap (all sources) while editing is single-source, so the fix
+// needs a UX decision deferred to the Studio redo: either scope search to the
+// selected source (results are same-source, open correctly), or keep it
+// cross-source and switch the working source on open (carry origin = source(ref)
+// up, alongside addressPath(ref), instead of the file:-only path here).
 function getRelPath(source?: string): string | null {
   if (!source) return null;
   if (!source.startsWith('file:')) return null;

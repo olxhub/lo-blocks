@@ -724,7 +724,14 @@ function StudioPageContent() {
                       }
                     />
                   ) : (
-                    <PreviewPane path={filePath} content={content} ns={previewNs} idMap={idMap} />
+                    <PreviewPane
+                      path={filePath}
+                      content={content}
+                      ns={previewNs}
+                      idMap={idMap}
+                      resolveProvider={storage}
+                      provenance={source ? `${source}://${filePath}` : undefined}
+                    />
                   )}
                 </div>
               </div>
