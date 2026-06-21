@@ -21,9 +21,9 @@
 import { StorageProvider, fileTypes } from '@/lib/lofs';
 import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
 import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { unionProvider } from '@/lib/lofs/contentSources';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import type { LofsRef, LofsCanonical, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
+import type { LofsRef, LofsCanonical, LofsOrigin, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion, addressPath, source } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
@@ -199,7 +199,7 @@ export async function applyFileChanges(
  */
 export async function defaultContentProviders(): Promise<StorageProvider> {
   return new StackedStorageProvider([
-    await contentProvider(),
+    await unionProvider(),
     new DocsStorageProvider(
       Object.values(BLOCK_REGISTRY).filter(b => b?._isBlock).map(b => b.name)
     ),
@@ -254,37 +254,47 @@ function isManifestUri(uri: LofsRef): boolean {
  *
  * Returns a new XmlScanResult with affected unchanged OLX moved to "changed".
  */
-function promoteFilesAffectedByManifests(changeSets: XmlScanResult): XmlScanResult {
-  const touched = [
-    ...Object.keys(changeSets.added),
-    ...Object.keys(changeSets.changed),
-    ...Object.keys(changeSets.deleted),
-  ] as LofsRef[];
-  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
-  if (mounts.size === 0) return changeSets;
+/** Strip a scan entry to the bare XmlFileInfo, dropping any blockIds a previous
+ *  parse attached — they'd be stale once the file is re-parsed. */
+function toXmlFileInfo(entry: XmlFileInfo): XmlFileInfo {
+  return {
+    id: entry.id,
+    type: entry.type,
+    content: entry.content,
+    _metadata: entry._metadata,
+  };
+}
 
-  const changed = { ...changeSets.changed };
-  const unchanged = { ...changeSets.unchanged };
-  for (const [uriStr, fileInfo] of Object.entries(changeSets.unchanged)) {
-    const uri = uriStr as LofsRef;
-    const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
-    if (!isOlx || !mounts.has(String(source(uri)))) continue;
-    // Copy only XmlFileInfo fields (the entry may carry stale blockIds).
-    changed[uri] = {
-      id: fileInfo.id,
-      type: fileInfo.type,
-      content: fileInfo.content,
-      _metadata: fileInfo._metadata,
-    };
+/** Return a new scan with `uris` moved from "unchanged" to "changed" (as bare
+ *  XmlFileInfo). URIs not currently in "unchanged" are skipped. */
+function promote(scan: XmlScanResult, uris: Iterable<LofsRef>): XmlScanResult {
+  const changed = { ...scan.changed };
+  const unchanged = { ...scan.unchanged };
+  for (const uri of uris) {
+    const entry = unchanged[uri];
+    if (!entry) continue;
+    changed[uri] = toXmlFileInfo(entry);
     delete unchanged[uri];
   }
+  return { added: scan.added, changed, unchanged, deleted: scan.deleted };
+}
 
-  return {
-    added: changeSets.added,
-    changed,
-    unchanged,
-    deleted: changeSets.deleted,
-  };
+function promoteFilesAffectedByManifests(scan: XmlScanResult): XmlScanResult {
+  const touched = [
+    ...Object.keys(scan.added),
+    ...Object.keys(scan.changed),
+    ...Object.keys(scan.deleted),
+  ] as LofsRef[];
+  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
+  if (mounts.size === 0) return scan;
+
+  const affected: LofsRef[] = [];
+  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
+    const uri = uriStr as LofsRef;
+    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
+    if (isOlx && mounts.has(String(source(uri)))) affected.push(uri);
+  }
+  return promote(scan, affected);
 }
 
 /**
@@ -293,53 +303,28 @@ function promoteFilesAffectedByManifests(changeSets: XmlScanResult): XmlScanResu
  * a new XmlScanResult with them moved to "changed".
  */
 function promoteFilesWithChangedDependencies(
-  changeSets: XmlScanResult,
+  scan: XmlScanResult,
   blockIndex: Record<DefinitionKey, VariantMap>,
   parsedFiles: Record<LofsRef, ParsedFileEntry>,
 ): XmlScanResult {
-  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(changeSets);
-  if (changedAuxiliaryFiles.size === 0) return changeSets;
+  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(scan);
+  if (changedAuxiliaryFiles.size === 0) return scan;
 
-  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, changeSets.unchanged);
+  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, scan.unchanged);
 
   // Also re-parse any unchanged OLX that previously failed — the auxiliary
   // change might fix the missing dependency. Cheap if it fails again.
-  if (changedAuxiliaryFiles.size > 0) {
-    for (const [uri, fileInfo] of Object.entries(changeSets.unchanged)) {
-      const isOlx = fileInfo?.type === fileTypes.olx || fileInfo?.type === fileTypes.xml;
-      const prevEntry = parsedFiles[uri as LofsRef];
-      if (isOlx && prevEntry?.errors?.length > 0) {
-        olxFilesToReparse.add(uri as LofsRef);
-      }
+  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
+    const uri = uriStr as LofsRef;
+    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
+    const prevEntry = parsedFiles[uri];
+    if (isOlx && prevEntry && prevEntry.errors.length > 0) {
+      olxFilesToReparse.add(uri);
     }
   }
 
-  if (olxFilesToReparse.size === 0) return changeSets;
-
-  const changed = { ...changeSets.changed };
-  const unchanged = { ...changeSets.unchanged };
-
-  for (const olxUri of olxFilesToReparse) {
-    const existingEntry = unchanged[olxUri];
-    if (!existingEntry) continue;
-
-    // Copy only XmlFileInfo fields. The old entry may carry blockIds from a
-    // previous parse; those would be stale after re-parsing.
-    changed[olxUri] = {
-      id: existingEntry.id,
-      type: existingEntry.type,
-      content: existingEntry.content,
-      _metadata: existingEntry._metadata,
-    };
-    delete unchanged[olxUri];
-  }
-
-  return {
-    added: changeSets.added,
-    changed,
-    unchanged,
-    deleted: changeSets.deleted,
-  };
+  if (olxFilesToReparse.size === 0) return scan;
+  return promote(scan, olxFilesToReparse);
 }
 
 function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {
@@ -570,7 +555,15 @@ function indexParsedBlocks(
         if (isAcceptableDuplicate(existingBlock[lang], newOlxJson)) {
           continue;  // Identical stateless block across files
         }
-        errors.push(createDuplicateIdError(blockId, existingBlock[lang], newOlxJson, sourceFile));
+        // Two blocks claim the same identity. If they come from different
+        // sources, it's a collision between independently-authored courses
+        // (the "two psych courses both define memphis/operant" case) — a
+        // different problem, with different advice, than an in-source dup.
+        const existingOrigin = source(existingBlock[lang].source);
+        const newOrigin = source(newOlxJson.source);
+        errors.push(existingOrigin === newOrigin
+          ? createDuplicateIdError(blockId, existingBlock[lang], newOlxJson, sourceFile)
+          : createSourceCollisionError(blockId, existingBlock[lang], existingOrigin, newOrigin));
         continue;  // Keep the first one
       }
 
@@ -578,6 +571,34 @@ function indexParsedBlocks(
       existingBlock[lang] = newOlxJson;
     }
   }
+}
+
+/**
+ * Two different sources both define the same identity. Unlike an in-source
+ * duplicate, the fix isn't "rename your IDs" — it's that two independently
+ * authored courses can't both mount the same namespace at once. The compiler
+ * keeps the first and reports the clash so the author can subscribe to one or
+ * give them distinct namespaces.
+ */
+function createSourceCollisionError(
+  blockId: DefinitionKey,
+  existingBlock: OlxJson,
+  existingOrigin: LofsOrigin,
+  newOrigin: LofsOrigin,
+): OLXLoadingError {
+  return {
+    type: 'source_collision',
+    title: `"${blockId}" defined by two sources`,
+    location: { provenance: [existingBlock.source] },
+    message: `"${blockId}" is defined by two different sources:
+
+   ${existingOrigin}  (kept)
+   ${newOrigin}  (ignored)
+
+These look like independently authored courses claiming the same identity. \
+They can't both mount here. Subscribe to one, or give them distinct namespaces.`,
+    technical: { blockId, existingOrigin, newOrigin },
+  };
 }
 
 function createDuplicateIdError(

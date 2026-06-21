@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import type { UriNode } from '@/lib/types/storage';
-import { CREATABLE_TYPES } from '@/lib/util/fileTypes';
 import { FORBIDDEN_FILENAME_CHARS } from '@/lib/types/storage';
 import ExpandIcon from '@/components/common/ExpandIcon';
 
@@ -18,8 +17,12 @@ interface FilesPanelProps {
   fileTree: UriNode | null;
   currentPath: string;
   dirtyFiles?: Set<string>;
+  /** Whether the selected source accepts writes. When false, create/rename/
+   *  delete controls are hidden (the server rejects them too — see route.js). */
+  canWrite: boolean;
   onFileSelect: (path: string) => void;
-  onFileCreate: (path: string, content: string) => Promise<void>;
+  /** Open the shared new-file dialog (owned by StudioPage — one creation flow). */
+  onNewFile: () => void;
   onFileDelete: (path: string) => Promise<void>;
   onFileRename: (oldPath: string, newPath: string) => Promise<void>;
 }
@@ -28,41 +31,14 @@ export function FilesPanel({
   fileTree,
   currentPath,
   dirtyFiles = new Set(),
+  canWrite,
   onFileSelect,
-  onFileCreate,
+  onNewFile,
   onFileDelete,
   onFileRename,
 }: FilesPanelProps) {
-  // TODO: Consider moving dialog state to redux for analytics
-  const [showNewFileDialog, setShowNewFileDialog] = useState(false);
-  const [newFileName, setNewFileName] = useState('');
-  const [newFileType, setNewFileType] = useState('olx');
   const [fileActionPath, setFileActionPath] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-
-  const creatableTypeKeys = Object.keys(CREATABLE_TYPES);
-  const selectedType = CREATABLE_TYPES[newFileType] || CREATABLE_TYPES.olx;
-
-  // Directory derived from current file path
-  const currentDir = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : '';
-
-  // TODO: No way to select root (/) or create subdirectories from this UI.
-  // Blocked on LOFS not auto-creating parent directories on write.
-  const handleCreateFile = async () => {
-    if (!newFileName.trim()) return;
-
-    const filename = `${newFileName.trim()}.${selectedType.ext}`;
-    const path = currentDir ? `${currentDir}/${filename}` : filename;
-
-    try {
-      await onFileCreate(path, selectedType.template);
-      setShowNewFileDialog(false);
-      setNewFileName('');
-      setNewFileType('olx');
-    } catch (err) {
-      console.error('Failed to create file:', err);
-    }
-  };
 
   const handleDeleteFile = async (path: string) => {
     if (!confirm(`Delete ${path}?`)) return;
@@ -92,49 +68,16 @@ export function FilesPanel({
     <div className="sidebar-panel">
       <div className="sidebar-panel-header">
         Files
-        <button
-          className="file-action-btn"
-          onClick={() => setShowNewFileDialog(true)}
-          title="New file"
-        >
-          +
-        </button>
+        {canWrite && (
+          <button
+            className="file-action-btn"
+            onClick={onNewFile}
+            title="New file"
+          >
+            +
+          </button>
+        )}
       </div>
-
-      {/* New file dialog */}
-      {showNewFileDialog && (
-        <div className="file-dialog">
-          <div className="file-dialog-dir">in: {currentDir || '/'}</div>
-          <div className="file-dialog-name-row">
-            <input
-              type="text"
-              className="file-dialog-name"
-              placeholder="filename"
-              value={newFileName}
-              onChange={(e) => setNewFileName(sanitizeFileName(e.target.value))}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateFile()}
-              autoFocus
-            />
-            <span className="file-dialog-ext">.{selectedType.ext}</span>
-          </div>
-          <label className="file-dialog-label">
-            Type:
-            <select
-              className="file-dialog-select"
-              value={newFileType}
-              onChange={(e) => setNewFileType(e.target.value)}
-            >
-              {creatableTypeKeys.map(key => (
-                <option key={key} value={key}>{CREATABLE_TYPES[key].label}</option>
-              ))}
-            </select>
-          </label>
-          <div className="file-dialog-actions">
-            <button className="file-dialog-btn" onClick={handleCreateFile} disabled={!newFileName.trim()}>Create</button>
-            <button className="file-dialog-btn cancel" onClick={() => setShowNewFileDialog(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
 
       <div className="file-tree">
         {fileTree ? (
@@ -143,6 +86,7 @@ export function FilesPanel({
               key={node.uri || i}
               node={node}
               depth={0}
+              canWrite={canWrite}
               onSelect={onFileSelect}
               currentPath={currentPath}
               dirtyFiles={dirtyFiles}
@@ -169,6 +113,7 @@ export function FilesPanel({
 interface FileTreeNodeProps {
   node: UriNode;
   depth: number;
+  canWrite: boolean;
   onSelect: (path: string) => void;
   currentPath: string;
   dirtyFiles: Set<string>;
@@ -181,7 +126,7 @@ interface FileTreeNodeProps {
 }
 
 function FileTreeNode({
-  node, depth, onSelect, currentPath, dirtyFiles,
+  node, depth, canWrite, onSelect, currentPath, dirtyFiles,
   onShowActions, actionPath, onDelete, onRename, renameValue, onRenameChange
 }: FileTreeNodeProps) {
   // TODO: Consider moving expanded state to redux (persist tree state)
@@ -202,7 +147,7 @@ function FileTreeNode({
         {isDir && <span className="file-icon"><ExpandIcon expanded={expanded} /></span>}
         {!isDir && <span className="file-icon">📄</span>}
         <span className="file-name">{isDirty ? `${name} *` : name}</span>
-        {!isDir && (
+        {!isDir && canWrite && (
           <button
             className="file-menu-btn"
             onClick={(e) => {
@@ -216,7 +161,7 @@ function FileTreeNode({
       </div>
 
       {/* Action menu for this file */}
-      {showingActions && !isDir && (
+      {showingActions && !isDir && canWrite && (
         <div className="file-actions" style={{ paddingLeft: depth * 12 + 20 }}>
           <input
             type="text"
@@ -241,6 +186,7 @@ function FileTreeNode({
           key={child.uri || i}
           node={child}
           depth={depth + 1}
+          canWrite={canWrite}
           onSelect={onSelect}
           currentPath={currentPath}
           dirtyFiles={dirtyFiles}

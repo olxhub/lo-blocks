@@ -21,7 +21,6 @@
 //     edu.memphis.psych:                          # repo form
 //       repo: https://github.com/olxhub/edu.memphis.psych
 //       branch: main          # optional (default main)
-//       dir: psychology       # optional content subdir within the repo
 //       cooldownSeconds: 60   # optional remote head-check throttle
 //       tokenEnv: REPO_PAT    # optional; env var with a PAT for private reads
 //                             # and pushes. Defaults to LO_GITHUB_TOKEN; set
@@ -33,14 +32,19 @@
 // Without a config file, behavior is exactly the historical default: one
 // FileStorageProvider over ./content.
 //
-// The config is re-read on every contentProvider() call, and the connected-
-// source SET is assembled per call — deliberately NOT a process singleton,
-// because that set is heading toward dynamic and user-specific (config now;
-// postgres + dashboard "add repo" actions + forge repo-listing later). What
-// IS cached across calls is each expensive per-repo git clone, keyed by repo
-// identity (see gitSourceProvider below). Net effect today: adding a source takes
-// effect on the next sync without a restart; removing one needs a restart to
-// drop already-indexed content (the sync snapshot retains it).
+// Two entry points (both build from config per call):
+//   - unionProvider()      — the read/compile/render union over all sources
+//   - sourceProvider(origin) — one source, repo-relative, for origin-scoped editing
+//
+// The config is re-read on every call, and the connected-source SET is
+// assembled per call — deliberately NOT a process singleton, because that set
+// is heading toward dynamic and user-specific (config now; postgres + dashboard
+// "add repo" actions + forge repo-listing later). What IS cached across calls
+// is each expensive per-repo git clone, keyed by repo identity (see
+// gitSourceProvider) — so the union and an editing handle share one clone. Net
+// effect today: adding a source takes effect on the next sync without a
+// restart; removing one needs a restart to drop already-indexed content (the
+// sync snapshot retains it).
 //
 // Namespaces are NOT declared here — each source declares its own, via
 // manifest.yaml at its root or the directory convention (namespaceFor).
@@ -48,8 +52,10 @@
 
 import path from 'path';
 import { FileStorageProvider } from './providers/file';
-import { MountRouterProvider, type MountEntry } from './providers/mountRouter';
+import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
+import { gitOrigin, toLofsOrigin } from '../types/address';
+import type { LofsOrigin } from '../types/address';
 import { memoize } from '../util/async';
 import type { StorageProvider } from '../types/storage';
 
@@ -69,8 +75,13 @@ export interface RepoSource {
   repo: string;
   /** Branch (default: main). */
   branch?: string;
-  /** Subtree(s) within the repo to serve (default: whole repo). String or list. */
-  dir?: string | string[];
+  /** May Studio commit + push to this source? Default false: a git source is
+   *  read-only unless the deployment opts in, since editing someone else's
+   *  course is the exception, not the rule. Local directories and the fallback
+   *  are always writable. (Declared, not access-probed: confirming push rights
+   *  needs a network round-trip per source; the deployment already knows its
+   *  intent. A real access check can refine this later.) */
+  writable?: boolean;
   cooldownSeconds?: number;
   /** Path to a file holding an access token (e.g. a GitHub PAT) for private
    *  reads and pushes. Preferred over `tokenEnv` (a file is more contained than
@@ -192,67 +203,168 @@ const gitSourceProvider = memoize(
     return new GitStorageProvider({
       url: entry.repo,
       ref: entry.branch ?? 'main',
-      dir: entry.dir,
       cooldownMs: entry.cooldownSeconds !== undefined ? entry.cooldownSeconds * 1000 : undefined,
       // GitHub PATs authenticate as the token in the username field.
       auth: token ? () => ({ username: token, password: 'x-oauth-basic' }) : undefined,
     });
   },
-  { keyOf: repoKey },
+  { keyOf: (entry: RepoSource) => `${entry.repo}|${entry.branch ?? 'main'}` },
 );
 
-/** Stable memo key for a repo source. Normalizes `dir` (strip slashes, drop
- *  empties, sort) so "psych", "/psych/", and ["psych"] — and lists in any
- *  order — all map to one clone of the same served content. (Until the
- *  config-type tightening lands, `dir` is still string | string[].) */
-function repoKey(entry: RepoSource): string {
-  const dirs = (Array.isArray(entry.dir) ? entry.dir : entry.dir == null ? [] : [entry.dir])
-    .map(d => d.replace(/^\/+|\/+$/g, ''))
-    .filter(Boolean)
-    .sort();
-  return `${entry.repo}|${entry.branch ?? 'main'}|${JSON.stringify(dirs)}`;
+/**
+ * One configured content source: its provider and its canonical ORIGIN — the
+ * `source()` of the refs it emits, which is the editing handle (`sourceProvider`)
+ * and the key the compile union merges by. `label`/`writable` are the
+ * authoring-facing metadata Studio shows in its source picker.
+ */
+interface ConfiguredSource {
+  origin: LofsOrigin;
+  /** Human label for the picker (the config mount key, or "Local content"). */
+  label: string;
+  /** May Studio write here? See RepoSource.writable. */
+  writable: boolean;
+  provider: StorageProvider;
 }
 
 /**
- * Build the deployment's content provider from configuration.
- *
- * - No sources configured → a single FileStorageProvider over the fallback
- *   directory (today's behavior, byte-identical refs).
- * - Sources configured → a MountRouterProvider: each source mounted at its
- *   name (provenance file:content/<mount>://...), fallback for the rest.
- *
- * Registers every configured directory with the file provider's security
- * allow-list (see allowedDirs.ts).
+ * Authoring-facing view of a source: identity + what the picker needs, without
+ * the provider handle. Returned by `sources()` (→ /api/sources → Studio).
  */
-export async function contentProvider(): Promise<StorageProvider> {
+export interface SourceInfo {
+  origin: LofsOrigin;
+  label: string;
+  writable: boolean;
+}
+
+/**
+ * Build every configured source (+ the fallback) from config, computing each
+ * one's origin. The single place that maps config → providers; both
+ * `unionProvider` (read/compile) and `sourceProvider` (origin-scoped editing)
+ * derive from it. Registers configured directories with the file provider's
+ * security allow-list (allowedDirs.ts). Git clones are memoized
+ * (gitSourceProvider), so the union and an editing handle share one clone.
+ */
+async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallback: ConfiguredSource }> {
   const config = await loadContentSourcesConfig();
 
   registerAllowedContentDir(path.resolve(config.fallback));
-  const fallback = new FileStorageProvider(config.fallback, 'content');
+  const fallback: ConfiguredSource = {
+    origin: toLofsOrigin('file:content'),
+    label: 'Local content',
+    writable: true,  // local disk — always editable
+    provider: new FileStorageProvider(config.fallback, 'content'),
+  };
 
-  const entries = Object.entries(config.sources);
-  if (entries.length === 0) return fallback;
-
-  const mounts: MountEntry[] = [];
-  for (const [mount, entry] of entries) {
+  const sources: ConfiguredSource[] = [];
+  for (const [mount, entry] of Object.entries(config.sources)) {
     if (typeof entry === 'string') {
       // Directory form: a checkout on disk. defaultNs = the mount name, so a
-      // collection that moved out of ./content/<mount> keeps its namespace
-      // even with files at the checkout root and no manifest (manifests still
-      // override). See FileStorageProvider.namespaceFor.
+      // collection that moved out of ./content/<mount> keeps its namespace even
+      // with files at the checkout root and no manifest. See namespaceFor.
       registerAllowedContentDir(path.resolve(entry));
-      mounts.push({
-        mount,
+      sources.push({
+        origin: toLofsOrigin(`file:content/${mount}`),
+        label: mount,
+        writable: true,  // local disk — always editable
         provider: new FileStorageProvider(entry, `content/${mount}`, { defaultNs: mount }),
-        baseDir: path.resolve(entry),
       });
     } else {
-      // Repo form: served directly from the git remote, in memory (cached by
-      // repo identity, see gitSourceProvider). No baseDir: nothing on disk;
-      // assets not yet served for repo sources (deferred — forge URLs / blob route).
-      mounts.push({ mount, provider: await gitSourceProvider(entry) });
+      // Repo form: served from the git remote, in memory. Read-only unless the
+      // deployment opts in (entry.writable).
+      sources.push({
+        origin: gitOrigin(entry.repo, entry.branch ?? 'main'),
+        label: mount,
+        writable: entry.writable ?? false,
+        provider: await gitSourceProvider(entry),
+      });
     }
   }
+  return { sources, fallback };
+}
 
-  return new MountRouterProvider(mounts, fallback);
+/**
+ * The authoring-facing source list for Studio's picker: every configured
+ * source plus the fallback, as `{ origin, label, writable }` (no provider).
+ * Writable sources first, then read-only — the order the picker renders.
+ */
+export async function sources(): Promise<SourceInfo[]> {
+  const { sources, fallback } = await configuredSources();
+  const all = [fallback, ...sources].map(({ origin, label, writable }) => ({ origin, label, writable }));
+  return [...all.filter(s => s.writable), ...all.filter(s => !s.writable)];
+}
+
+/**
+ * The read/compile UNION over every configured source, for `sync`.
+ *
+ * A plain stack, NOT a router: each source's refs are origin-distinct, so the
+ * merged scan needs no mount-prefix routing or shadowing — the synthetic
+ * `<mount>/path` space (and its glob bug) is gone. Combining sources is a
+ * compile concern (see docs/lofs-api.md); authoring goes per-source via
+ * `sourceProvider`, not through here. Sources shadow the fallback.
+ *
+ * No sources configured → the bare fallback provider (today's behavior).
+ */
+export async function unionProvider(): Promise<StorageProvider> {
+  const { sources, fallback } = await configuredSources();
+  if (sources.length === 0) return fallback.provider;
+  return new StackedStorageProvider([...sources.map(s => s.provider), fallback.provider]);
+}
+
+/** A write was attempted against a source the deployment marked read-only.
+ *  Routes map this to 403 — it's an authorization decision, not a failure. */
+export class ReadOnlySourceError extends Error {
+  constructor(origin: string) {
+    super(`Source is read-only: ${origin}`);
+    this.name = 'ReadOnlySourceError';
+  }
+}
+
+/** Find the configured source for an origin, or throw if it isn't subscribed. */
+async function findConfiguredSource(origin: LofsOrigin): Promise<ConfiguredSource> {
+  const { sources, fallback } = await configuredSources();
+  const match = [fallback, ...sources].find(s => s.origin === origin);
+  if (!match) {
+    throw new Error(`No configured content source for origin: ${origin}`);
+  }
+  return match;
+}
+
+/**
+ * The single source identified by `origin`, repo-relative — the editing
+ * handle. Authoring selects an origin (from the provenance ref it's editing)
+ * and operates on this one provider; no synthetic mount-prefix paths, no
+ * routing-by-guess. Throws if the origin isn't a configured source — you can't
+ * edit a source the deployment hasn't subscribed to.
+ *
+ * READ handle: returns the provider for read-only sources too (browsing/reuse).
+ * For writes use `writableSourceProvider`, which enforces the read-only gate.
+ */
+export async function sourceProvider(origin: LofsOrigin): Promise<StorageProvider> {
+  return (await findConfiguredSource(origin)).provider;
+}
+
+/**
+ * The editing handle for WRITES, for the API layer's request `source` param —
+ * mirror of `readProvider`: it decodes the raw param to an origin at the
+ * boundary, then refuses a source the deployment marked read-only (throws
+ * ReadOnlySourceError → 403). The server's authority over writability,
+ * independent of whatever backend credentials happen to permit. Routes pass the
+ * raw `source` string; they don't brand it themselves.
+ */
+export async function writableSourceProvider(source: string): Promise<StorageProvider> {
+  const match = await findConfiguredSource(toLofsOrigin(source));
+  if (!match.writable) {
+    throw new ReadOnlySourceError(source);
+  }
+  return match.provider;
+}
+
+/**
+ * Read/search handle for the API layer's request `source` param: scope to the
+ * named source, or span the compile union when none is given. The single
+ * definition of "no source = union", shared by the read routes (file GET,
+ * files, grep). Decodes the raw param to an origin at the boundary.
+ */
+export async function readProvider(source?: string): Promise<StorageProvider> {
+  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
 }

@@ -6,7 +6,6 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  FileLofsRef, MemoryLofsRef,
   JSONValue, OlxRelativePath, SafeRelativePath,
 } from './core';
 import type { ContentNamespace } from './id-grammar';
@@ -88,6 +87,13 @@ export interface WriteOptions {
   previousMetadata?: unknown;
   /** Force write even if metadata mismatch */
   force?: boolean;
+  /**
+   * This write CREATES a file and must not clobber an existing one (the
+   * lofs-api `lease: 'absent'` doorway). Currently enforced at the API route
+   * by a read-then-write existence pre-check (→ 409 if it exists); providers
+   * do not yet enforce it atomically (TODO: atomic create — see tasklist).
+   */
+  create?: boolean;
   /**
    * Commit author, for version-controlled providers (git). The platform
    * commits ON THE AUTHOR'S BEHALF — the committer is the platform/service
@@ -226,25 +232,6 @@ export function toOlxRelativePath(
 }
 
 /**
- * Construct a file: LofsRef from a mount point and relative path.
- *
- * Uses LOFS address format: file:mountPoint://relativePath
- *
- * @param mountPoint - Logical mount name (e.g., 'content', 'content/ee/ee101')
- * @param relativePath - Path within the mount (e.g., 'sba/foo.olx')
- * @returns e.g. 'file:content://sba/foo.olx'
- */
-export function toFileRef(mountPoint: string, relativePath: string): FileLofsRef {
-  if (relativePath.includes('\\')) {
-    throw new Error(`Paths must use forward slashes: "${relativePath}"`);
-  }
-  return makeAddress(
-    toLofsOrigin(`file:${mountPoint}`),
-    toLofsContentPath(relativePath),
-  ) as unknown as FileLofsRef;
-}
-
-/**
  * Extract the content path from any LofsRef.
  *
  * Uses the LOFS address parser (last "://" rule).
@@ -281,32 +268,10 @@ export function fileProvenancePath(uri: string): string {
  * @param name - File path within the memory store
  * @param sourceId - Source identifier (default: 'local')
  */
-export function toMemoryRef(name: string, sourceId = 'local'): MemoryLofsRef {
+export function toMemoryRef(name: string, sourceId = 'local'): LofsRef {
   return makeAddress(
     toLofsOrigin(`memory:${sourceId}`),
     toLofsContentPath(name),
-  ) as unknown as MemoryLofsRef;
-}
-
-/**
- * Construct a git: LofsRef.
- * Format: git:mountPoint://path
- */
-export function toGitRef(mountPoint: string, filePath: string): LofsRef {
-  return makeAddress(
-    toLofsOrigin(`git:${mountPoint}`),
-    toLofsContentPath(filePath),
-  );
-}
-
-/**
- * Construct a postgres: LofsRef.
- * Format: postgres:tenant://path
- */
-export function toPgRef(tenant: string, filePath: string): LofsRef {
-  return makeAddress(
-    toLofsOrigin(`postgres:${tenant}`),
-    toLofsContentPath(filePath),
   );
 }
 
@@ -344,7 +309,6 @@ export interface StorageProvider {
 
   read(path: OlxRelativePath): Promise<ReadResult>;
   write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  update(path: OlxRelativePath, content: string): Promise<void>;
   delete(path: OlxRelativePath): Promise<void>;
   rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;

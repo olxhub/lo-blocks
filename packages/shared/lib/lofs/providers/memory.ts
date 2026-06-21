@@ -27,14 +27,20 @@ import { type ContentNamespace, asContentNamespace } from '../../types/id-gramma
 /** Default namespace for in-memory scratch content (tests, inline parses,
  *  editor buffers) when the caller doesn't declare one. */
 const MEMORY_NS = asContentNamespace('memory');
-import { toMemoryRef, provenancePath, type NamespaceResolution } from '../../types/storage';
-import { scheme, withVersion, toLofsRef as brandLofsRef, toLofsCanonical, toLofsVersion } from '../../types/address';
+import { provenancePath, type NamespaceResolution } from '../../types/storage';
+import {
+  type LofsOrigin,
+  makeAddress, scheme, withVersion,
+  toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsCanonical, toLofsVersion,
+} from '../../types/address';
 import { hashContent } from '../../util';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;
   basePath: string;
   ns: ContentNamespace;
+  /** This store's address origin (`memory:local`), built once. */
+  readonly origin: LofsOrigin = toLofsOrigin('memory:local');
 
   /**
    * @param files - Virtual filesystem: { 'path.olx': '<OLX>...' }
@@ -49,6 +55,11 @@ export class InMemoryStorageProvider implements StorageProvider {
     this.files = files;
     this.basePath = basePath;
     this.ns = ns;
+  }
+
+  /** Build a memory: LofsRef for a content path in this store. */
+  private toRef(name: string): LofsRef {
+    return makeAddress(this.origin, toLofsContentPath(name));
   }
 
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
@@ -69,7 +80,7 @@ export class InMemoryStorageProvider implements StorageProvider {
 
     if (this.files[normalized] !== undefined) {
       const content = this.files[normalized];
-      const ref = toMemoryRef(normalized);
+      const ref = this.toRef(normalized);
       const ver = toLofsVersion(await hashContent(content));
       return { content, metadata: {}, provenance: toLofsCanonical(withVersion(ref, ver)) };
     }
@@ -78,7 +89,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     const withBase = this.basePath ? `${this.basePath}/${normalized}` : normalized;
     if (this.files[withBase] !== undefined) {
       const content = this.files[withBase];
-      const ref = toMemoryRef(withBase);
+      const ref = this.toRef(withBase);
       const ver = toLofsVersion(await hashContent(content));
       return { content, metadata: {}, provenance: toLofsCanonical(withVersion(ref, ver)) };
     }
@@ -96,9 +107,6 @@ export class InMemoryStorageProvider implements StorageProvider {
     throw new Error('InMemoryStorageProvider is read-only');
   }
 
-  async update(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
 
   async listFiles(): Promise<UriNode> {
     const children = Object.keys(this.files).map(uri => ({ uri }));
@@ -116,7 +124,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
 
-      const ref = toMemoryRef(filename);
+      const ref = this.toRef(filename);
       const ext = getExtension(filename);
       found.add(ref);
 
@@ -179,13 +187,13 @@ export class InMemoryStorageProvider implements StorageProvider {
     // for files that aren't in memory.
     const normalized = (safePath as string).replace(/^\.?\//, '');
     if (this.files[normalized] !== undefined) {
-      return toMemoryRef(safePath);
+      return this.toRef(safePath);
     }
     // Try with basePath prefix
     if (this.basePath) {
       const withBase = `${this.basePath}/${normalized}`;
       if (this.files[withBase] !== undefined) {
-        return toMemoryRef(safePath);
+        return this.toRef(safePath);
       }
     }
     throw new Error(`File not found in memory provider: ${safePath}`);

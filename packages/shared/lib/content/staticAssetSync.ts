@@ -13,37 +13,36 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
+import type { StorageProvider } from '@/lib/types/storage';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 
 /**
  * Filesystem roots to copy assets from, with their URL prefixes.
  *
- * - StackedStorageProvider: flatten to its children.
- * - MountRouterProvider: fallback copies to the target root; each mounted
- *   source copies under its mount name, so asset URLs match content paths
- *   ("psychology/images/foo.png" \u2192 /content/psychology/images/foo.png).
- * - Plain filesystem provider: its baseDir at the root.
- * - Non-filesystem sources (memory, network): no baseDir, skipped.
+ * Only filesystem-backed sources have local assets to copy. A stack contributes
+ * its children's roots; a FileStorageProvider contributes its own `baseDir`, at
+ * a URL prefix equal to its mountPoint past "content" \u2014 so the fallback
+ * (mountPoint "content") copies to the root and a directory mount
+ * (mountPoint "content/<mount>") copies under "<mount>", keeping asset URLs
+ * aligned with content paths. Non-filesystem sources (git, memory, network)
+ * have no local assets \u2014 repo-source assets are deferred (forge URLs / a blob
+ * route). instanceof rather than field-sniffing: a rename breaks the build, and
+ * static-asset copying stays out of the StorageProvider interface.
  */
-function assetRoots(provider): { dir: string; prefix: string }[] {
-  const roots: { dir: string; prefix: string }[] = [];
-  const flat = Array.isArray(provider.providers) ? provider.providers : [provider];
-  for (const p of flat) {
-    if (Array.isArray(p?.mounts) && p?.fallback) {
-      // MountRouterProvider
-      if (p.fallback?.baseDir) roots.push({ dir: p.fallback.baseDir, prefix: '' });
-      for (const m of p.mounts) {
-        if (m.baseDir) roots.push({ dir: m.baseDir, prefix: m.mount });
-      }
-    } else if (p?.baseDir) {
-      roots.push({ dir: p.baseDir, prefix: '' });
-    }
+function assetRoots(provider: StorageProvider): { dir: string; prefix: string }[] {
+  if (provider instanceof StackedStorageProvider) {
+    return provider.providers.flatMap(assetRoots);
   }
-  return roots;
+  if (provider instanceof FileStorageProvider) {
+    return [{ dir: provider.baseDir, prefix: provider.mountPoint.replace(/^content\/?/, '') }];
+  }
+  return [];
 }
 
-export async function copyAssetsToPublic(provider, targetDir = './apps/web/public/content') {
+export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/web/public/content') {
   const publicContentDir = targetDir;
 
   try {

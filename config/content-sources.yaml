@@ -10,7 +10,6 @@
 #   <mount>:                                        # a git remote, in-memory
 #     repo: <url>
 #     branch: main            # optional, default main
-#     dir: psychology         # optional subtree(s); string or list; default whole repo
 #     cooldownSeconds: 60     # optional remote head-check throttle
 #     tokenEnv: REPO_PAT      # optional; env var holding a PAT for private
 #                             # reads and pushes. Defaults to LO_GITHUB_TOKEN

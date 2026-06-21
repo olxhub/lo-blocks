@@ -300,3 +300,73 @@ export function scheme(ref: LofsRef): string {
   if (colonIdx > 0) return src.slice(0, colonIdx);
   return '';
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GIT ORIGINS — canonical, transport-in-scheme, ref-bearing
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// A git source's origin is canonicalized so that it (a) carries the branch/ref
+// — without which two branches of one repo are indistinguishable in provenance
+// — and (b) contains no "://", so the grammar's last-"://" rule finds the
+// origin↔path boundary unambiguously.
+//
+// Canonicalizing is a SCHEME SWAP: drop the clone URL's scheme, prepend the git
+// scheme, keep the locator verbatim, append "@<ref>". The transport lives in
+// the scheme; the ref is always last, so it's the substring after the last "@"
+// (any earlier "@" is ssh userinfo).
+//
+// GIT_TRANSPORTS is the single source of truth for both directions AND the
+// test: each `examples` entry is "<clone-url>@<ref> → <origin>", so input and
+// output differ only by the prefix. (The provider serves only git+https today;
+// git+ssh and git: are valid identities it raises Unimplemented for at clone
+// time.) No ssh:// (a bare ssh:// URL needn't be git — could be scp/rsync) and
+// no git:// daemon (unused): the ssh form is scp, and git: is a local repo.
+
+type GitTransport =
+  | { scheme: string; strip: string; match?: undefined; examples: readonly string[] }
+  | { scheme: string; match: RegExp; strip?: undefined; examples: readonly string[] };
+
+export const GIT_TRANSPORTS: readonly GitTransport[] = [
+  { scheme: 'git+https:', strip: 'https://',
+    examples: ['https://github.com/olxhub/lo-blocks.git@main → git+https:github.com/olxhub/lo-blocks.git@main'] },
+  { scheme: 'git+ssh:', match: /^[^@/\s]+@[^/\s]+:/,            // scp: user@host:path (no scheme to strip)
+    examples: ['git@github.com:olxhub/lo-blocks.git@main → git+ssh:git@github.com:olxhub/lo-blocks.git@main'] },
+  { scheme: 'git:', match: /^\//,                               // local filesystem repo
+    examples: ['/home/pmitros/projects/lo-blocks@main → git:/home/pmitros/projects/lo-blocks@main'] },
+];
+
+/** Canonicalize a git clone URL + ref into a ref-bearing, "://"-free origin. */
+export function gitOrigin(cloneUrl: string, ref: string): LofsOrigin {
+  if (!ref) throw new Error('gitOrigin requires a ref');
+  const url = cloneUrl.trim().replace(/\/+$/, '');
+  for (const t of GIT_TRANSPORTS) {
+    const matched = t.strip !== undefined ? url.startsWith(t.strip) : t.match.test(url);
+    if (matched) {
+      const locator = t.strip !== undefined ? url.slice(t.strip.length) : url;
+      return toLofsOrigin(`${t.scheme}${locator}@${ref}`);
+    }
+  }
+  throw new Error(`Unrecognized git clone URL: "${cloneUrl}"`);
+}
+
+/** Split a canonical git origin "<scheme>:<locator>@<ref>" into its parts. */
+function parseGitOrigin(origin: LofsOrigin): { scheme: string; locator: string; ref: string } {
+  const o = String(origin);
+  const colon = o.indexOf(':');
+  const at = o.lastIndexOf('@');
+  if (colon < 0 || at < colon) throw new Error(`Not a ref-bearing git origin: "${origin}"`);
+  return { scheme: o.slice(0, colon + 1), locator: o.slice(colon + 1, at), ref: o.slice(at + 1) };
+}
+
+/** The ref (branch/tag/commit) carried by a canonical git origin. */
+export function gitOriginRef(origin: LofsOrigin): string {
+  return parseGitOrigin(origin).ref;
+}
+
+/** Recover the clone URL from a canonical git origin — the inverse of gitOrigin. */
+export function gitCloneUrl(origin: LofsOrigin): string {
+  const { scheme, locator } = parseGitOrigin(origin);
+  const t = GIT_TRANSPORTS.find(t => t.scheme === scheme);
+  if (!t) throw new Error(`Not a git origin: "${origin}"`);
+  return t.strip !== undefined ? t.strip + locator : locator;
+}

@@ -29,7 +29,7 @@
  * - CDN deployment copies public/ assets
  *
  * SECURITY:
- * - Reuses existing resolveSafePath validation
+ * - Path validation in the provider (resolveSafeReadPath / resolveSafeWritePath)
  * - Prevents directory traversal, symlinks, etc.
  * - Image format validation (jpg, png, gif, svg, webp)
  */

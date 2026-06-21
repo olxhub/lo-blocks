@@ -29,6 +29,13 @@ export interface PreviewPaneProps {
   idMap?: IdMap | null;
   /** Provider for resolving src="" references (OLX only) */
   resolveProvider?: StorageProvider;
+  /** Provenance ref of the previewed file — the base for resolving relative
+   *  src="" references. Pass the real ref so refs resolve within the right
+   *  source (Studio passes its origin-scoped ref). Omit ONLY for self-contained
+   *  inline previews (block-doc examples): RenderOLX then treats the content as
+   *  inline (memory provenance). No fabricated default — guessing a base would
+   *  silently resolve refs against the wrong source. */
+  provenance?: string;
   /** Called with a canonical AppError when parsing/rendering fails */
   onError?: (error: AppError) => void;
   /** Called after parsing completes with merged idMap (OLX only) */
@@ -50,6 +57,7 @@ export default function PreviewPane({
   ns,
   idMap,
   resolveProvider,
+  provenance,
   onError,
   onParsed,
   nodeInfoRef,
@@ -57,7 +65,6 @@ export default function PreviewPane({
   // Create default provider if none supplied (for src="" resolution)
   const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
   const provider = resolveProvider ?? defaultProvider;
-  const provenance = path ? `file:content://${path}` : undefined;
 
   // PEG files get their own preview pane
   if (isPEGFile(path)) {

@@ -19,8 +19,9 @@ import { STUDIO_NS } from './studioNs';
  * @param {function} props.getContent - Function that returns current file content
  * @param {function} props.onApplyEdit - Called when LLM applies an edit
  * @param {function} props.onOpenFile - Called when LLM wants to open a file
+ * @param {object} props.storage - Origin-scoped provider the LLM's file tools write through
  */
-export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile }) {
+export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile, storage }) {
   const initialMessage = path
     ? `Editing: ${path}. Ask me to help with this content.`
     : 'Select a file to edit, then ask me for help.';
@@ -37,12 +38,13 @@ export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFil
       getCurrentContent: getContent,
       getFileType: () => getFileType(path),
       getCurrentPath: () => path,
+      storage,
     });
     const systemPrompt = await buildSystemPrompt({ path, content: currentContent });
     const attachments = attachedFile ? [attachedFile] : [];
 
     sendMessage(text, { attachments, tools, systemPrompt });
-  }, [path, getContent, onApplyEdit, onOpenFile, sendMessage]);
+  }, [path, getContent, onApplyEdit, onOpenFile, storage, sendMessage]);
 
   const footer = <InputFooter onSendMessage={handleSendMessage} allowFileUpload />;
 

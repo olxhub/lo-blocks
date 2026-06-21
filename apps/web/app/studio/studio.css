@@ -774,6 +774,22 @@
   color: var(--lo-text-muted);
 }
 
+/* Preview ("soon") commands — shown as roadmap, not yet wired and inert. */
+.command-palette-item.soon {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.command-palette-item.soon .command-palette-soon {
+  padding: 2px 8px;
+  border: 1px dashed var(--lo-border);
+  border-radius: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lo-text-muted);
+}
+
 /* Notifications / Toasts */
 .studio-notifications {
   bottom: 48px !important; /* Above footer */
@@ -834,4 +850,87 @@
   border-top-color: var(--lo-primary);
   border-radius: 50%;
   animation: btn-spin 0.8s linear infinite;
+}
+
+/* Working-repo selector (header dropdown) */
+.studio-source-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.studio-source-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  min-width: 220px;
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--lo-chrome-surface);
+  border: 1px solid var(--lo-chrome-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.studio-source-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--lo-chrome-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.studio-source-item:hover {
+  background: var(--lo-chrome-active);
+}
+
+.studio-source-item.active {
+  font-weight: 600;
+}
+
+.studio-source-item .ro-tag {
+  font-size: 11px;
+  color: var(--lo-chrome-text-muted);
+}
+
+.studio-source-divider {
+  padding: 6px 10px 2px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lo-chrome-text-muted);
+}
+
+/* No-file placeholder (main area) */
+.studio-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--lo-chrome-text-muted);
+}
+
+.studio-empty-state h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--lo-text);
+}
+
+.studio-empty-state p {
+  margin: 0;
+  max-width: 32ch;
 }

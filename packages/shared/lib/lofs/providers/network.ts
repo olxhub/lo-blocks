@@ -11,7 +11,7 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsPath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
 import { provenancePath, type NamespaceResolution } from '../../types/storage';
 import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
@@ -45,54 +45,38 @@ export class NetworkStorageProvider implements StorageProvider {
   listEndpoint: string;
   grepEndpoint: string;
   imageEndpoint: string;
-  namespace: string;
+  /** The source this provider edits, sent as `?source=` so the server routes
+   *  via sourceProvider(origin). Undefined = union mode: reads/lists/searches
+   *  span all sources (compile/preview). Writes require an origin — a union
+   *  write has no well-defined target (that was the wrong-repo-save bug). */
+  readonly origin: LofsOrigin | undefined;
 
   /**
-   * Create a NetworkStorageProvider that transforms OlxRelativePath to LofsPath.
-   *
-   * @param namespace - LOFS namespace prefix (e.g., "content") to prepend to paths
-   * @param options - API endpoint configuration
+   * @param origin - The source to scope to, already branded (omit for
+   *   union/preview mode). The caller brands once at its boundary — this
+   *   constructor does not, so there's no `origin ? toLofsOrigin(origin) : …`
+   *   half-branded value living on the instance.
+   * @param options - API endpoint configuration.
    *
    * @example
-   * // Studio calls:
-   * const storage = new NetworkStorageProvider('content');
-   * storage.read('demos/foo.olx')  // internally: 'content/demos/foo.olx'
+   * const studio = new NetworkStorageProvider(selectedOrigin);  // edits one repo
+   * const preview = new NetworkStorageProvider();               // reads the union
    */
-  constructor(namespace: string = 'content', options: NetworkProviderOptions = {}) {
-    this.namespace = namespace;
+  constructor(origin?: LofsOrigin, options: NetworkProviderOptions = {}) {
+    this.origin = origin;
     this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
     this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');
     this.grepEndpoint = (options.grepEndpoint ?? '/api/grep').replace(/\/$/, '');
-    this.imageEndpoint = (options.imageEndpoint ?? `/${namespace}`).replace(/\/$/, '');
+    // Static assets are served from the Next public mount, not the LOFS source.
+    this.imageEndpoint = (options.imageEndpoint ?? '/content').replace(/\/$/, '');
   }
 
-  /**
-   * Convert OlxRelativePath to LofsPath by prepending namespace.
-   *
-   * @param olxRelativePath - Path as from OLX (e.g., "demos/foo.olx")
-   * @returns LofsPath with namespace prefix (e.g., "content/demos/foo.olx")
-   */
-  private toLofsPath(olxRelativePath: OlxRelativePath): LofsPath {
-    return `${this.namespace}/${olxRelativePath}` as LofsPath;
-  }
-
-  /**
-   * Convert LofsPath back to OlxRelativePath by removing namespace prefix.
-   *
-   * @param lofsPath - Storage path with namespace (e.g., "content/demos/foo.olx")
-   * @returns OlxRelativePath relative to namespace (e.g., "demos/foo.olx")
-   * @throws Error if path doesn't match expected namespace
-   */
-  private fromLofsPath(lofsPath: LofsPath): OlxRelativePath {
-    const prefix = `${this.namespace}/`;
-    if (lofsPath.startsWith(prefix)) {
-      return lofsPath.slice(prefix.length) as OlxRelativePath;
-    }
-    // Namespace mismatch is a bug - fail fast
-    throw new Error(
-      `NetworkStorageProvider namespace mismatch: expected path starting with "${prefix}" but got "${lofsPath}". ` +
-      `This indicates the wrong storage provider was used or paths were corrupted.`
-    );
+  /** Request params for a path op, carrying the scoped source when set. */
+  private params(path?: string): URLSearchParams {
+    const p = new URLSearchParams();
+    if (path) p.set('path', path);
+    if (this.origin) p.set('source', this.origin);
+    return p;
   }
 
   /**
@@ -100,13 +84,8 @@ export class NetworkStorageProvider implements StorageProvider {
    * Works client-side by manipulating path strings.
    */
   resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
-    // Extract logical path from provenance URI using standard URL parsing.
-    let basePath: string;
-    if (baseProvenance.includes('://')) {
-      basePath = provenancePath(baseProvenance);
-    } else {
-      basePath = baseProvenance;
-    }
+    // A provenance ref always carries "://" (origin + path), so take the path.
+    const basePath = provenancePath(baseProvenance);
 
     // Get directory of base file
     const lastSlash = basePath.lastIndexOf('/');
@@ -131,10 +110,9 @@ export class NetworkStorageProvider implements StorageProvider {
   }
 
   toLofsRef(safePath: SafeRelativePath): LofsRef {
-    // NetworkStorageProvider is client-side; provenance is typically constructed
-    // server-side during loadXmlFilesWithStats. For client-side use (e.g., editor
-    // tools), return a network:namespace:// URI.
-    return `network:${this.namespace}://${safePath}` as LofsRef;
+    // Client-side synthetic ref: scoped to the origin when set, else a bare
+    // network:// ref (union/preview). Real provenance comes from the server.
+    return (this.origin ? `${this.origin}://${safePath}` : `network://${safePath}`) as LofsRef;
   }
 
   toRelativePath(uri: LofsRef): OlxRelativePath {
@@ -188,28 +166,51 @@ export class NetworkStorageProvider implements StorageProvider {
     for (const [key, value] of Object.entries(selection)) {
       if (value != null) params.set(key, String(value));
     }
+    if (this.origin) params.set('source', this.origin);
     const url = params.toString()
       ? `${this.listEndpoint}?${params.toString()}`
       : this.listEndpoint;
-    const res = await fetch(url);
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to list files');
-    }
+    const json = await this.request(url);
     return json.tree as UriNode;
   }
 
-  async read(path: OlxRelativePath): Promise<ReadResult> {
-    const lofsPath = this.toLofsPath(path);
-    const res = await fetch(
-      `${this.readEndpoint}?path=${encodeURIComponent(lofsPath)}`,
-    );
+  /**
+   * One fetch + envelope-unwrap for every endpoint. The transport's two failure
+   * modes live here: a network-level rejection (server unreachable — fetch
+   * throws before any response) becomes a clear message instead of the browser's
+   * opaque "NetworkError…"; an { ok:false } envelope throws its error, or a
+   * VersionConflictError on a save conflict. Returns the parsed json.
+   *
+   * TODO: this should grow into the ONE universal client fetch, not stay one of
+   * three — the others are fetchOlxJson's `globalThis.fetch` (×3) and StudioPage's
+   * `/api/sources`. (The dead `lib/api.ts`, git rm'd, was a stalled attempt.) Fold
+   * them in here. Soft list to (re)check when we do — figure out the shape then:
+   *   - request metadata: i18n (Accept-Language), auth, etc.
+   *   - error handling wired to one shared "no connection" signal
+   *   - JSON decoding + the { ok, error, conflict } envelope
+   *   - easy integration with hooks (reactivity)
+   */
+  private async request(url: string, init?: RequestInit): Promise<any> {
+    let res: Response;
+    try {
+      res = await fetch(url, init);
+    } catch {
+      throw new Error("Can't reach the content server — is it running?");
+    }
     const json = await res.json();
     if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to read');
+      if (json.conflict) {
+        throw new VersionConflictError(json.error, json.metadata);
+      }
+      throw new Error(json.error ?? 'Request failed');
     }
+    return json;
+  }
+
+  async read(path: OlxRelativePath): Promise<ReadResult> {
+    const json = await this.request(`${this.readEndpoint}?${this.params(path).toString()}`);
     const content = json.content as string;
-    const ref = `network:${this.namespace}://${path}` as LofsRef;
+    const ref = this.toLofsRef(path as unknown as SafeRelativePath);
     const ver = toLofsVersion(await hashContent(content));
     return {
       content,
@@ -221,104 +222,52 @@ export class NetworkStorageProvider implements StorageProvider {
   }
 
   async write(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const lofsPath = this.toLofsPath(path);
-    const { previousMetadata, force = false } = options;
-    const res = await fetch(this.readEndpoint, {
+    const { previousMetadata, force = false, create = false } = options;
+    await this.request(this.readEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: lofsPath, content, previousMetadata, force }),
+      body: JSON.stringify({ path, source: this.origin, content, previousMetadata, force, create }),
     });
-    const json = await res.json();
-    if (!json.ok) {
-      if (json.conflict) {
-        throw new VersionConflictError(json.error, json.metadata);
-      }
-      throw new Error(json.error ?? 'Failed to write');
-    }
   }
 
-  async update(path: OlxRelativePath, content: string): Promise<void> {
-    await this.write(path, content);
-  }
 
   async delete(path: OlxRelativePath): Promise<void> {
-    const lofsPath = this.toLofsPath(path);
-    const res = await fetch(
-      `${this.readEndpoint}?path=${encodeURIComponent(lofsPath)}`,
-      { method: 'DELETE' }
-    );
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to delete');
-    }
+    await this.request(`${this.readEndpoint}?${this.params(path).toString()}`, { method: 'DELETE' });
   }
 
   async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    const oldLofsPath = this.toLofsPath(oldPath);
-    const newLofsPath = this.toLofsPath(newPath);
-    const res = await fetch(this.readEndpoint, {
+    await this.request(this.readEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: oldLofsPath, newPath: newLofsPath }),
+      body: JSON.stringify({ path: oldPath, newPath, source: this.origin }),
     });
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to rename');
-    }
   }
 
   /**
    * Find files matching a glob pattern.
-   * Returns results as OlxRelativePath (relative to the provider's namespace).
+   * Returns repo-relative paths within the scoped source (or the union).
    */
   async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
-    const params = new URLSearchParams({ pattern });
-    if (basePath) {
-      const lofsBasePath = this.toLofsPath(basePath);
-      params.set('path', lofsBasePath);
-    } else {
-      // If no basePath, search from namespace root
-      params.set('path', this.namespace as LofsPath);
-    }
+    // No basePath → search from the source root (omit the param).
+    const params = this.params(basePath);
+    params.set('pattern', pattern);
 
-    const res = await fetch(`${this.listEndpoint}?${params.toString()}`);
-    const json = await res.json();
-
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to glob');
-    }
-
-    // Convert LofsPath results back to OlxRelativePath
-    return (json.files as LofsPath[]).map(lofsPath => this.fromLofsPath(lofsPath));
+    const json = await this.request(`${this.listEndpoint}?${params.toString()}`);
+    return json.files as OlxRelativePath[];
   }
 
   /**
    * Search file contents for a pattern.
-   * Returns results with paths as OlxRelativePath (relative to the provider's namespace).
+   * Returns matches with repo-relative paths within the scoped source (or union).
    */
   async grep(pattern: string, options: GrepOptions = {}): Promise<GrepMatch[]> {
-    const params = new URLSearchParams({ pattern });
-    if (options.basePath) {
-      const lofsBasePath = this.toLofsPath(options.basePath);
-      params.set('path', lofsBasePath);
-    } else {
-      // If no basePath, search from namespace root
-      params.set('path', this.namespace as LofsPath);
-    }
+    // No basePath → search from the source root (omit the param).
+    const params = this.params(options.basePath);
+    params.set('pattern', pattern);
     if (options.include) params.set('include', options.include);
     if (options.limit) params.set('limit', String(options.limit));
 
-    const res = await fetch(`${this.grepEndpoint}?${params.toString()}`);
-    const json = await res.json();
-
-    if (!json.ok) {
-      throw new Error(json.error ?? 'Failed to grep');
-    }
-
-    // Convert LofsPath results back to OlxRelativePath
-    return (json.matches as Array<GrepMatch & { path: LofsPath }>).map(match => ({
-      ...match,
-      path: this.fromLofsPath(match.path as LofsPath),
-    }));
+    const json = await this.request(`${this.grepEndpoint}?${params.toString()}`);
+    return json.matches as GrepMatch[];
   }
 }

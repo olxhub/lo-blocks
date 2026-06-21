@@ -1,11 +1,12 @@
 // apps/web/app/api/grep/route.ts
 //
-// Content search API.
+// Content search API, origin-scoped.
 //
-// GET /api/grep?pattern=    - Search file contents for pattern
-// GET /api/grep?pattern=&path=&include=&limit=  - With options
+// GET /api/grep?pattern=                 - search across the union
+// GET /api/grep?pattern=&source=<origin> - search within one source
+// GET /api/grep?pattern=&path=&include=&limit=  - with options
 //
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { readProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
@@ -35,19 +36,16 @@ export async function GET(request: Request) {
   // 4. Consider indexing grep results or caching frequent searches
   // 5. Add timeout to grep operations (currently unbounded)
 
-  let rawBasePath = url.searchParams.get('path') || undefined;
+  const source = url.searchParams.get('source') || undefined;
+  const rawBasePath = url.searchParams.get('path') || undefined;
   const include = url.searchParams.get('include') || undefined;
   const limitStr = url.searchParams.get('limit');
   const limit = limitStr ? parseInt(limitStr, 10) : undefined;
 
-  // Strip namespace prefix if present (client sends "content/..." but FileStorageProvider expects relative paths)
-  if (rawBasePath?.startsWith('content/')) {
-    rawBasePath = rawBasePath.slice('content/'.length) || undefined;
-  } else if (rawBasePath === 'content') {
-    rawBasePath = undefined;
-  }
-
-  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  // `path` here is a search BASE directory, not a content file — so it's
+  // toOlxRelativePath (structural, no content-extension requirement), NOT
+  // /api/file's toRepoRelativePath. Traversal is hardened in the provider
+  // (grep → glob → resolveSafeReadPath). Brand at the trust boundary.
   let basePath;
   try {
     basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
@@ -56,7 +54,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await readProvider(source);
     const matches = await provider.grep(pattern, { basePath, include, limit });
     return Response.json({ ok: true, matches });
   } catch (err: any) {

@@ -1,11 +1,12 @@
 // apps/web/app/api/files/route.ts
 //
-// File listing and glob API.
+// File listing and glob API, origin-scoped.
 //
-// GET /api/files           - Returns file tree
-// GET /api/files?pattern=  - Returns files matching glob pattern
+// GET /api/files                  - file tree (union, or one source via ?source=)
+// GET /api/files?pattern=         - files matching a glob
+// GET /api/files?source=<origin>  - scope to a single source (repo-relative)
 //
-import { contentProvider } from '@/lib/lofs/contentSources';
+import { readProvider } from '@/lib/lofs/contentSources';
 import { toOlxRelativePath } from '@/lib/types/storage';
 
 // Provider resolved per request (re-reads config, caches git clones).
@@ -13,16 +14,13 @@ import { toOlxRelativePath } from '@/lib/types/storage';
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const pattern = url.searchParams.get('pattern');
-  let rawBasePath = url.searchParams.get('path') || undefined;
+  const source = url.searchParams.get('source') || undefined;
+  const rawBasePath = url.searchParams.get('path') || undefined;
 
-  // Strip namespace prefix if present (client sends "content/..." but FileStorageProvider expects relative paths)
-  if (rawBasePath?.startsWith('content/')) {
-    rawBasePath = rawBasePath.slice('content/'.length) || undefined;
-  } else if (rawBasePath === 'content') {
-    rawBasePath = undefined;
-  }
-
-  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  // `path` here is a glob/search BASE directory, not a content file — so it's
+  // toOlxRelativePath (structural, no content-extension requirement), NOT
+  // /api/file's toRepoRelativePath. Traversal is hardened in the provider
+  // (FileStorageProvider.glob → resolveSafeReadPath). Brand at the trust boundary.
   let basePath;
   try {
     basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
@@ -31,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const provider = await contentProvider();
+    const provider = await readProvider(source);
     if (pattern) {
       // Glob mode - return array of matching files
       const files = await provider.glob(pattern, basePath);

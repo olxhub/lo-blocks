@@ -8,6 +8,7 @@ import {
   source, version, addressPath, withVersion, withoutVersion,
   withPath, makeAddress, hasVersion, scheme,
   toLofsRef, toLofsContentPath, toLofsOrigin, toLofsVersion,
+  gitOrigin, gitOriginRef, gitCloneUrl, GIT_TRANSPORTS,
 } from './address';
 
 // Helper to avoid repeating toLofsRef everywhere in tests
@@ -250,5 +251,49 @@ describe('scheme', () => {
 
   it('https git', () => {
     expect(scheme(ref('https://github.com/org/repo.git://foo.olx'))).toBe('https');
+  });
+});
+
+describe('canonical git origins', () => {
+  // Data-driven from the GIT_TRANSPORTS table: each example is
+  // "<clone-url>@<ref> → <origin>". Splitting the left at the last "@" recovers
+  // (url, ref) — the same last-"@" rule the origin itself uses.
+  for (const t of GIT_TRANSPORTS) {
+    for (const ex of t.examples) {
+      const [inUrlRef, out] = ex.split(' → ');
+      const at = inUrlRef.lastIndexOf('@');
+      const url = inUrlRef.slice(0, at);
+      const ref = inUrlRef.slice(at + 1);
+      it(ex, () => {
+        const origin = gitOrigin(url, ref);
+        expect(String(origin)).toBe(out);          // url + ref → origin
+        expect(gitCloneUrl(origin)).toBe(url);      // origin → url (round-trip)
+        expect(gitOriginRef(origin)).toBe(ref);     // origin → ref
+      });
+    }
+  }
+
+  it('the origin is "://"-free, so the address grammar parses it cleanly', () => {
+    const origin = gitOrigin('https://github.com/olxhub/lo-blocks.git', 'main');
+    const full = makeAddress(origin, cp('unit1/x.olx'), vr('abc123'));
+    expect(source(full)).toBe(String(origin));
+    expect(addressPath(full)).toBe('unit1/x.olx');
+    expect(version(full)).toBe('abc123');
+  });
+
+  it('keeps a slashed ref intact (ref is after the last @)', () => {
+    expect(gitOriginRef(gitOrigin('https://github.com/olxhub/lo-blocks.git', 'feature/foo')))
+      .toBe('feature/foo');
+  });
+
+  it('distinguishes branches of the same repo (the provenance fix)', () => {
+    expect(String(gitOrigin('https://github.com/olxhub/lo-blocks.git', 'main')))
+      .not.toBe(String(gitOrigin('https://github.com/olxhub/lo-blocks.git', 'draft')));
+  });
+
+  it('rejects a missing ref or an ambiguous/unrecognized URL', () => {
+    expect(() => gitOrigin('https://github.com/o/r.git', '')).toThrow();
+    expect(() => gitOrigin('ssh://git@host/o/r.git', 'main')).toThrow();  // ssh:// isn't accepted
+    expect(() => gitOrigin('not a url', 'main')).toThrow();
   });
 });
