@@ -60,7 +60,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { path: rawPath, source, content, previousMetadata, force } = await request.json();
+  const { path: rawPath, source, content, previousMetadata, force, create } = await request.json();
 
   const missing = requireSource(source, 'save');
   if (missing) return missing;
@@ -72,6 +72,19 @@ export async function POST(request) {
 
   try {
     const provider = await writableSourceProvider(source);
+    // A create must not clobber an existing file. Interim: a read-then-write
+    // existence pre-check here (a TOCTOU race is acceptable for now; atomic
+    // create — lofs-api lease:'absent' — is a tasklist follow-up).
+    if (create) {
+      let exists = true;
+      try {
+        await provider.read(path);
+      } catch (err) {
+        if (err.code === 'ENOENT' || String(err.message).includes('not found')) exists = false;
+        else throw err;  // a real read failure — surface it, don't create over it
+      }
+      if (exists) return fail(`File already exists: ${path}`, 409);
+    }
     await provider.write(path, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {

@@ -88,6 +88,13 @@ export interface WriteOptions {
   /** Force write even if metadata mismatch */
   force?: boolean;
   /**
+   * This write CREATES a file and must not clobber an existing one (the
+   * lofs-api `lease: 'absent'` doorway). Currently enforced at the API route
+   * by a read-then-write existence pre-check (→ 409 if it exists); providers
+   * do not yet enforce it atomically (TODO: atomic create — see tasklist).
+   */
+  create?: boolean;
+  /**
    * Commit author, for version-controlled providers (git). The platform
    * commits ON THE AUTHOR'S BEHALF — the committer is the platform/service
    * identity, the author is the teacher (from CurrentUser). Carried per-write,

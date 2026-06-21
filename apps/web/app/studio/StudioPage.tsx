@@ -101,6 +101,15 @@ function StudioPageContent() {
       .catch(console.error);
   }, []);
 
+  // Studio is a client-only app: its render depends on the URL (?source=/?file=
+  // via useSearchParams) and on client-fetched `sources` — data the server
+  // doesn't have at SSR time, so an SSR'd shell can't match the hydrated client
+  // (e.g. the Save button's `disabled`). Gate on mount: server + first client
+  // render show the loading shell; the real UI renders after hydration. (This
+  // is what the page's <Suspense fallback> was reaching for — made reliable.)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   // The selected source's metadata. Undefined when nothing's picked yet or the
   // URL named one we don't offer — both legitimate "can't write" states.
   const currentSource = sources.find(s => s.origin === source);
@@ -286,7 +295,8 @@ function StudioPageContent() {
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
-      await storageRef.current.write(olxPath, fileContent);
+      // create: must not clobber an existing file (route returns 409 if it exists).
+      await storageRef.current.write(olxPath, fileContent, { create: true });
       refreshFiles();
       // Switch to the new file — the file-loading effect will read from storage
       // and set content with the correct Redux key (don't call setContent here;
@@ -406,6 +416,11 @@ function StudioPageContent() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [getDirtyFiles]);
+
+  // Client-only: until mounted, render the same shell the server does, so there's
+  // no hydration mismatch from URL/`sources`-dependent UI. (All hooks above run
+  // every render — this guard is after them, so hook order stays stable.)
+  if (!mounted) return <Spinner>Loading Studio...</Spinner>;
 
   return (
     <div className="studio">
@@ -584,6 +599,7 @@ function StudioPageContent() {
           onSave={handleSave}
           onTogglePreview={() => setShowPreview(p => !p)}
           onInsert={(template) => editorRef.current?.insertAtCursor(template)}
+          onNewFile={() => setNewFileOpen(true)}
         />
       )}
 
@@ -642,28 +658,53 @@ interface CommandPaletteProps {
   onSave: () => void;
   onTogglePreview: () => void;
   onInsert: (template: string) => void;
+  onNewFile: () => void;
 }
 
-function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandPaletteProps) {
+interface Command {
+  id: string;
+  label: string;
+  shortcut?: string;
+  action: () => void;
+  /**
+   * A PREVIEW command: shown so the palette's roadmap is visible, but not yet
+   * wired. Rendered greyed with a "soon" tag (so the user never clicks a thing
+   * that silently no-ops) and inert. The per-item comment says what to wire.
+   */
+  soon?: boolean;
+}
+
+function CommandPalette({ onClose, onSave, onTogglePreview, onInsert, onNewFile }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const commands = [
+  const commands: Command[] = [
     { id: 'save', label: 'Save', shortcut: '⌘S', action: () => { onSave(); onClose(); } },
+    { id: 'new-file', label: 'New File', shortcut: '⌘N', action: () => { onNewFile(); onClose(); } },
     { id: 'toggle-preview', label: 'Toggle Preview', shortcut: '⌘P', action: () => { onTogglePreview(); onClose(); } },
-    { id: 'insert-mcq', label: 'Insert: Multiple Choice Question', shortcut: '', action: () => { onInsert(TEMPLATES.mcq); onClose(); } },
-    { id: 'insert-hint', label: 'Insert: Hint', shortcut: '', action: () => { onInsert(TEMPLATES.hint); onClose(); } },
-    { id: 'insert-markdown', label: 'Insert: Markdown Block', shortcut: '', action: () => { onInsert(TEMPLATES.markdown); onClose(); } },
+    // TODO(studio-as-blocks): "Insert" should open a block palette (Insert → pick
+    // a block, driven by the block registry), not this flat list of hardcoded
+    // templates. These three are the interim stand-in.
+    { id: 'insert-mcq', label: 'Insert: Multiple Choice Question', action: () => { onInsert(TEMPLATES.mcq); onClose(); } },
+    { id: 'insert-hint', label: 'Insert: Hint', action: () => { onInsert(TEMPLATES.hint); onClose(); } },
+    { id: 'insert-markdown', label: 'Insert: Markdown Block', action: () => { onInsert(TEMPLATES.markdown); onClose(); } },
     { id: 'docs', label: 'Open documentation', shortcut: 'F1', action: () => { window.open('/docs/', '_blank'); onClose(); } },
-    { id: 'goto-id', label: 'Go to ID...', shortcut: '⌘G', action: () => { /* TODO: implement ID search */ onClose(); } },
-    { id: 'new-file', label: 'New File', shortcut: '⌘N', action: () => { /* TODO: implement new file */ onClose(); } },
-    { id: 'fork', label: 'Fork to new file...', shortcut: '', action: () => { /* TODO: implement fork */ onClose(); } },
-    { id: 'history', label: 'Show version history', shortcut: '', action: () => { /* TODO: implement history */ onClose(); } },
+    // --- Previews (roadmap; wired later, see TODOs) ---
+    // TODO: wire to the Search panel — open it, focus search, jump to the id.
+    { id: 'goto-id', label: 'Go to ID…', soon: true, action: () => {} },
+    // TODO: fork the current file to a new name in the same (or a new) source.
+    { id: 'fork', label: 'Fork to new file…', soon: true, action: () => {} },
+    // TODO(content-in-git): show the file's git history — or link to the forge's
+    // history — and (now within reach) load the content at a chosen commit.
+    { id: 'history', label: 'Show version history', soon: true, action: () => {} },
   ];
 
   const filtered = commands.filter(c =>
     c.label.toLowerCase().includes(query.toLowerCase())
   );
+
+  // Run a command — previews ("soon") are inert.
+  const run = (cmd: Command) => { if (!cmd.soon) cmd.action(); };
 
   // Reset selection when results change
   useEffect(() => {
@@ -682,7 +723,7 @@ function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandP
         break;
       case 'Enter':
         if (filtered.length > 0 && filtered[selectedIndex]) {
-          filtered[selectedIndex].action();
+          run(filtered[selectedIndex]);
         }
         break;
     }
@@ -704,12 +745,14 @@ function CommandPalette({ onClose, onSave, onTogglePreview, onInsert }: CommandP
           {filtered.map((cmd, idx) => (
             <div
               key={cmd.id}
-              className={`command-palette-item ${idx === selectedIndex ? 'selected' : ''}`}
-              onClick={cmd.action}
+              className={`command-palette-item ${idx === selectedIndex ? 'selected' : ''} ${cmd.soon ? 'soon' : ''}`}
+              onClick={() => run(cmd)}
               onMouseEnter={() => setSelectedIndex(idx)}
             >
               <span>{cmd.label}</span>
-              {cmd.shortcut && <kbd>{cmd.shortcut}</kbd>}
+              {cmd.soon
+                ? <span className="command-palette-soon">soon</span>
+                : cmd.shortcut && <kbd>{cmd.shortcut}</kbd>}
             </div>
           ))}
         </div>

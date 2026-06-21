@@ -774,6 +774,22 @@
   color: var(--lo-text-muted);
 }
 
+/* Preview ("soon") commands — shown as roadmap, not yet wired and inert. */
+.command-palette-item.soon {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.command-palette-item.soon .command-palette-soon {
+  padding: 2px 8px;
+  border: 1px dashed var(--lo-border);
+  border-radius: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lo-text-muted);
+}
+
 /* Notifications / Toasts */
 .studio-notifications {
   bottom: 48px !important; /* Above footer */

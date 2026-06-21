@@ -169,8 +169,11 @@ export class StackedStorageProvider implements StorageProvider {
     for (const provider of this.providers) {
       try {
         results.push(await provider.loadXmlFilesWithStats(previous));
-      } catch {
-        // Provider doesn't support scan or failed - skip it
+      } catch (err) {
+        // A source that can't scan (down remote, unsupported) drops out of the
+        // merged result. Log it — otherwise its content silently vanishes from
+        // the union with no trace. (TODO: structured per-source health surfacing.)
+        console.error(`[StackedStorageProvider] source scan failed, dropping its content: ${(err as Error).message}`);
       }
     }
 

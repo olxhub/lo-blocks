@@ -222,11 +222,11 @@ export class NetworkStorageProvider implements StorageProvider {
   }
 
   async write(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const { previousMetadata, force = false } = options;
+    const { previousMetadata, force = false, create = false } = options;
     await this.request(this.readEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path, source: this.origin, content, previousMetadata, force }),
+      body: JSON.stringify({ path, source: this.origin, content, previousMetadata, force, create }),
     });
   }
 

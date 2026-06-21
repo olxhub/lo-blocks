@@ -9,15 +9,21 @@
 // the brand TYPE lives in core.ts and this CONSTRUCTOR lives beside the other
 // server-only path code (resolveSafeReadPath/WritePath in providers/file.ts).
 //
-// This is a first-line boundary check + brand. The authoritative enforcement is
-// still the provider's resolveSafeReadPath/WritePath (realpath + symlink + the
-// allowed-dir list) — defense in depth.
+// This is a first-line boundary check + brand, in front of the providers'
+// authoritative path guards — defense in depth on BOTH provider families:
+//   - FileStorageProvider: resolveSafeReadPath/WritePath (realpath + symlink +
+//     allowed-dir list), on reads and writes.
+//   - GitStorageProvider: guardPath (reject "..", absolute, null byte) on every
+//     read and write (requireWritable) — sufficient for an in-memory tree with
+//     no symlinks/realpath.
+// SAFETY VERDICT: sound. It composes hardened pieces (toOlxRelativePath's
+// segment allowlist + path.posix.normalize) and is backed by the provider
+// guards above; it is not the sole line of defense.
 //
-// TODO: Figure out the right way / place to do this, and a holistic TS cleanup
-// for all of LOFS. 
-//
-// This is interim code until we're ready. Better than what we had
-// before, but not good.
+// The remaining interim-ness is type-system PLACEMENT, not safety: the brand
+// TYPE is in core.ts while this CONSTRUCTOR sits here, and origin/path/ref
+// types across LOFS still want a holistic pass. Tracked by the LOFS type
+// cleanup (see tasklist) — not a path-validation concern.
 
 import path from 'path';
 import { toOlxRelativePath } from '@/lib/types/storage';
