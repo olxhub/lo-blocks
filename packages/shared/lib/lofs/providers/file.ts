@@ -268,44 +268,6 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
 }
 
 /**
- * @deprecated Use resolveSafeReadPath or resolveSafeWritePath instead.
- *
- * Legacy function maintained for backwards compatibility during migration.
- * Will be removed once all callers are updated.
- */
-export async function resolveSafePath(
-  baseDir: string,
-  relPath: string,
-  { allowSymlinks = false }: { allowSymlinks?: boolean | 'file' } = {}
-): Promise<string> {
-  // For backwards compatibility, delegate to read path if symlinks allowed,
-  // otherwise use stricter write path logic
-  if (allowSymlinks) {
-    return resolveSafeReadPath(baseDir, relPath);
-  }
-
-  // Original strict behavior - no symlinks, must stay within baseDir
-  if (typeof relPath !== 'string' || relPath.includes('\0')) {
-    throw new Error('Invalid path');
-  }
-
-  const fs = await import('fs/promises');
-  const full = path.resolve(baseDir, relPath);
-  const relative = path.relative(baseDir, full);
-
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    throw new Error('Invalid path');
-  }
-
-  const stats = await fs.lstat(full).catch(() => null);
-  if (stats && stats.isSymbolicLink()) {
-    throw new Error('Symlinks not allowed');
-  }
-
-  return full;
-}
-
-/**
  * Build a tree of XML/OLX files from a content directory.
  * Server-only - uses Node.js fs module.
  */

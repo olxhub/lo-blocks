@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { IdMap, OlxJson } from '@/lib/types';
+import type { IdMap, OlxJson, LofsOrigin } from '@/lib/types';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { source, addressPath } from '@/lib/types/address';
 
@@ -10,9 +10,10 @@ interface SearchPanelProps {
   idMap: IdMap | null;
   content: string;
   currentPath: string;
-  /** The selected source's origin. Search is scoped to it (editing is
-   *  single-source); cross-source search is deferred to the Studio redo. */
-  currentSource: string;
+  /** The selected source's origin (undefined until one is picked). Search is
+   *  scoped to it (editing is single-source); cross-source search is deferred
+   *  to the Studio redo. */
+  currentSource: LofsOrigin | undefined;
   onFileSelect: (path: string) => void;
   onScrollToId?: (id: string) => void;
 }
@@ -42,7 +43,10 @@ export function SearchPanel({ idMap, content, currentPath, currentSource, onFile
         .filter((pair): pair is [string, OlxJson] => {
           const [id, entry] = pair;
           if (!entry) return false;
-          if (String(source(entry.source)) !== currentSource) return false;
+          // HACK: Skip blocks which aren't from accessible files (no provenance).
+          // TODO: Figure out how to handle those (e.g. /docs/).
+          if (!entry.source) return false;
+          if (source(entry.source) !== currentSource) return false;
           const q = searchQuery.toLowerCase();
           const title = (entry.attributes.title as string) || '';
           return id.toLowerCase().includes(q) || title.toLowerCase().includes(q);

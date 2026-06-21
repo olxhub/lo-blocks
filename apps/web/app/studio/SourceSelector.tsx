@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import type { LofsOrigin } from '@/lib/types';
 
 /** One selectable content source (mirrors SourceInfo from contentSources.ts). */
 export interface SourceOption {
-  origin: string;
+  origin: LofsOrigin;
   label: string;
   writable: boolean;
 }
@@ -23,8 +24,8 @@ export default function SourceSelector({
   onChange,
 }: {
   sources: SourceOption[];
-  value: string;
-  onChange: (origin: string) => void;
+  value: LofsOrigin | undefined;
+  onChange: (origin: LofsOrigin) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,7 +49,7 @@ export default function SourceSelector({
   const writable = sources.filter(s => s.writable);
   const readonly = sources.filter(s => !s.writable);
 
-  const pick = (origin: string) => { onChange(origin); setOpen(false); };
+  const pick = (origin: LofsOrigin) => { onChange(origin); setOpen(false); };
 
   const item = (s: SourceOption) => (
     <button

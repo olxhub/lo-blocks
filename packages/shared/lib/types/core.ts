@@ -252,26 +252,28 @@ export type SafeRelativePath = OlxRelativePath & { __safe: true };
  * (postgres, git, in-memory). The provider's toLofsRef() maps
  * from name → location.
  *
- * From here, it must be read from storage. The location in our
- * virtual filesystem is:
+ * One safe path carries an extra facet. A path arriving at an API route is
+ * untrusted; validating it as a repo-relative path that points at a content
+ * file (right extension, no traversal out of the source) earns:
  */
-export type LofsPath = string & { __brand: 'LofsPath' };
+export type RepoRelativePath = SafeRelativePath & { __contentFile: true };
 /*
- * This might have a prefix, and be managed differently by different
- * providers. For example:
+ * Produced by toRepoRelativePath() (see lib/lofs/repoPath.ts — server-only, as
+ * it uses Node `path`) — the conversion the content API routes run on an
+ * untrusted ?path= before handing it to a provider. It IS a SafeRelativePath
+ * (so it flows into any provider method unchanged), plus the content-file stamp
+ * the boundary actually checks.
+ *
+ * From a safe path, to touch bytes a provider decodes it to a concrete
+ * locator, managed differently per provider:
  *
  * - FileStorageProvider: resolves against baseDir to an absolute path,
  *   validated by resolveSafeReadPath / resolveSafeWritePath (traversal
  *   checks, symlink validation, allowed-directory rules).
- *
  * - NetworkStorageProvider: sends the repo-relative path as-is over HTTP,
- *   plus the scoped source (?source=<origin>) so the server routes via
- *   sourceProvider(origin). Validated by contentPaths.ts on the server.
- *   Not every provider needs this — FileStorageProvider goes straight from
- *   OlxRelativePath to the filesystem, and a postgres provider would use
- *   SQL queries.
- *
- * - InMemoryStorageProvider: uses OlxRelativePath directly as a map key.
+ *   with the scoped source (?source=<origin>) so the server routes via
+ *   sourceProvider(origin), which re-validates.
+ * - InMemoryStorageProvider: uses the path directly as a map key.
  *
  * For filesystem I/O specifically, the final resolved absolute path is:
  */
@@ -282,8 +284,9 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
  *
  * In summary:
  * - The OLX universal types are OlxRelativePath (unresolved) and
- *   SafeRelativePath (canonical).
- * - LofsPath is internal to our virtual filesystem.
+ *   SafeRelativePath (canonical, escape-checked).
+ * - RepoRelativePath is a SafeRelativePath that also points at a content file
+ *   — the content API-route boundary type.
  * - FileSystemPath represents a specific file on disk.
  *
  * Safety convention: __safe: true means "verified safe" (escape-checked,

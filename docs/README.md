@@ -858,7 +858,20 @@ Gotcha: React `<Suspense>` looks like a natural fit here, but as of early 2026, 
 
 # Type Validation, TypeScript, and zod
 
-This project is TypeScript-optional. We use tools judiciously. Most of our code is plain JavaScript, but we try to be very careful about having type safety and meaningful parameter checking at interfaces.
+We are strong types, and we use specific types. We might have a different integer type for cm than for inches, so only the correct things fit together.
+
+We don't use generic types. `string` doesn't help us. In some cases, if something might not be ready for a branded type, we'll use an alias to `string`. A lot of the current branded types started out that way.
+
+We do use compound brands. If something is:
+- a file path
+- in a content directory
+- pointing to olx
+
+We would have brand tags for each of those, so it can be used for anything requiring a path brand, but a generic path would not fit into something requiring an OLX file or a content directory.
+
+As much as possible, we decode at the boundary and brand inward, but isn't always possible. Where it is not, we don't want to skip a validation step, so we do have safe versus unsafe types indicating the level of validation it's gone through. There might be successive levels of validation. For example, if a user types in a string, a lower level might be to check it against a regexp, and a higher follow-on to check if they are a registered user.
+
+This project is TypeScript-optional. We use tools judiciously. Much of our code is intentionally not typed, but we try to be very careful about having type safety and meaningful parameter checking at key interfaces and for key types.
 
 Since the blocks are designed to be developer-friendly, we also use zod for type-validation for our major user-facing APIs. Not that zod supports both parsing and validation. In most cases, we avoid using zod for parsing, as zod may do things like typecast functions in ways which strip metadata. It can also lose important properties, like equality.
 
@@ -868,14 +881,7 @@ const parsed = ZodSchema.parse(config); // Validate config
 
 But to continue to use `config` rather than `parsed`, or to only use `parsed` for relatively simple types.
 
-Short story:
-
-* Internal code: Mostly use pure JavaScript, except for what's in `lib/types/`:
-  - Major types
-  - Branded IDs
-* Interface code: Support TypeScript for the benefit of downstream TypeScript projects, and do additional validation
-
-Most of the other typescript is to prevent errors. We don't proactively tag types.
+Types generally live in `/lib/types/` rather than locally.
 
 # Tools
 

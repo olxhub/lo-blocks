@@ -11,7 +11,7 @@
 // The provider translates storage operations into HTTP requests against
 // configurable endpoints, maintaining the same interface as local file storage.
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
 import { provenancePath, type NamespaceResolution } from '../../types/storage';
 import { toLofsCanonical, withVersion, toLofsVersion } from '../../types/address';
@@ -49,17 +49,20 @@ export class NetworkStorageProvider implements StorageProvider {
    *  via sourceProvider(origin). Undefined = union mode: reads/lists/searches
    *  span all sources (compile/preview). Writes require an origin — a union
    *  write has no well-defined target (that was the wrong-repo-save bug). */
-  readonly origin: string | undefined;
+  readonly origin: LofsOrigin | undefined;
 
   /**
-   * @param origin - The source to scope to (omit for union/preview mode).
+   * @param origin - The source to scope to, already branded (omit for
+   *   union/preview mode). The caller brands once at its boundary — this
+   *   constructor does not, so there's no `origin ? toLofsOrigin(origin) : …`
+   *   half-branded value living on the instance.
    * @param options - API endpoint configuration.
    *
    * @example
    * const studio = new NetworkStorageProvider(selectedOrigin);  // edits one repo
    * const preview = new NetworkStorageProvider();               // reads the union
    */
-  constructor(origin?: string, options: NetworkProviderOptions = {}) {
+  constructor(origin?: LofsOrigin, options: NetworkProviderOptions = {}) {
     this.origin = origin;
     this.readEndpoint = (options.readEndpoint ?? '/api/file').replace(/\/$/, '');
     this.listEndpoint = (options.listEndpoint ?? '/api/files').replace(/\/$/, '');

@@ -11,7 +11,7 @@
 import { readProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
 import { toLofsOrigin } from '@/lib/types/address';
 import { VersionConflictError } from '@/lib/types/storage';
-import { validateRepoRelativePath } from '@/lib/lofs/contentPaths';
+import { toRepoRelativePath } from '@/lib/lofs/repoPath';
 
 // Resolved per request (re-reads config; git clones cached). See contentSources.ts.
 
@@ -22,6 +22,16 @@ const fail = (error, status) => Response.json({ ok: false, error }, { status });
 function requireSource(source, action) {
   if (!source) return fail(`A "source" is required to ${action} (which repo to commit to)`, 400);
   return null;
+}
+
+/** Brand an untrusted `?path=` as a RepoRelativePath, or return a 400 Response.
+ *  Discriminate the result with `instanceof Response`. */
+function brandPath(raw) {
+  try {
+    return toRepoRelativePath(raw);
+  } catch (err) {
+    return fail(err.message, 400);
+  }
 }
 
 /** Map a thrown storage error to a Response: 403 read-only, 404 missing file,
@@ -38,39 +48,39 @@ function mapFileError(err, fallbackPath, tag) {
 
 export async function GET(request) {
   const url = new URL(request.url);
-  const validation = validateRepoRelativePath(url.searchParams.get('path'));
-  if (!validation.valid) return fail(validation.error, 400);
+  const path = brandPath(url.searchParams.get('path'));
+  if (path instanceof Response) return path;
 
   try {
     const provider = await readProvider(url.searchParams.get('source'));
-    const result = await provider.read(validation.relativePath);
+    const result = await provider.read(path);
     return Response.json({ ok: true, content: result.content, metadata: result.metadata, ns: result.ns });
   } catch (err) {
-    return mapFileError(err, validation.relativePath, 'GET');
+    return mapFileError(err, path, 'GET');
   }
 }
 
 export async function POST(request) {
-  const { path, source, content, previousMetadata, force } = await request.json();
+  const { path: rawPath, source, content, previousMetadata, force } = await request.json();
 
   const missing = requireSource(source, 'save');
   if (missing) return missing;
   if (typeof content !== 'string') return fail('content must be a string', 400);
   if (content.length > 100_000) return fail('File too large (max 100KB)', 400);
 
-  const validation = validateRepoRelativePath(path);
-  if (!validation.valid) return fail(validation.error, 400);
+  const path = brandPath(rawPath);
+  if (path instanceof Response) return path;
 
   try {
     const provider = await writableSourceProvider(toLofsOrigin(source));
-    await provider.write(validation.relativePath, content, { previousMetadata, force });
+    await provider.write(path, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
     if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
       console.warn(`[API /file POST] Conflict: ${err.message}`);
       return Response.json({ ok: false, conflict: true, error: err.message, metadata: err.currentMetadata }, { status: 409 });
     }
-    return mapFileError(err, validation.relativePath, 'POST');
+    return mapFileError(err, path, 'POST');
   }
 }
 
@@ -81,34 +91,34 @@ export async function DELETE(request) {
   const missing = requireSource(source, 'delete');
   if (missing) return missing;
 
-  const validation = validateRepoRelativePath(url.searchParams.get('path'));
-  if (!validation.valid) return fail(validation.error, 400);
+  const path = brandPath(url.searchParams.get('path'));
+  if (path instanceof Response) return path;
 
   try {
     const provider = await writableSourceProvider(toLofsOrigin(source));
-    await provider.delete(validation.relativePath);
+    await provider.delete(path);
     return Response.json({ ok: true });
   } catch (err) {
-    return mapFileError(err, validation.relativePath, 'DELETE');
+    return mapFileError(err, path, 'DELETE');
   }
 }
 
 export async function PUT(request) {
-  const { path, newPath, source } = await request.json();
+  const { path: rawPath, newPath: rawNewPath, source } = await request.json();
 
   const missing = requireSource(source, 'rename');
   if (missing) return missing;
 
-  const srcValidation = validateRepoRelativePath(path);
-  if (!srcValidation.valid) return fail(srcValidation.error, 400);
-  const dstValidation = validateRepoRelativePath(newPath);
-  if (!dstValidation.valid) return fail(dstValidation.error, 400);
+  const path = brandPath(rawPath);
+  if (path instanceof Response) return path;
+  const newPath = brandPath(rawNewPath);
+  if (newPath instanceof Response) return newPath;
 
   try {
     const provider = await writableSourceProvider(toLofsOrigin(source));
-    await provider.rename(srcValidation.relativePath, dstValidation.relativePath);
+    await provider.rename(path, newPath);
     return Response.json({ ok: true });
   } catch (err) {
-    return mapFileError(err, srcValidation.relativePath, 'PUT');
+    return mapFileError(err, path, 'PUT');
   }
 }
