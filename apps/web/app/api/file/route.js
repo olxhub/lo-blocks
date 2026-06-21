@@ -9,7 +9,6 @@
 //     target, which was the wrong-repo-save bug. See contentSources.ts.
 //
 import { readProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
-import { toLofsOrigin } from '@/lib/types/address';
 import { VersionConflictError } from '@/lib/types/storage';
 import { toRepoRelativePath } from '@/lib/lofs/repoPath';
 
@@ -72,7 +71,7 @@ export async function POST(request) {
   if (path instanceof Response) return path;
 
   try {
-    const provider = await writableSourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(source);
     await provider.write(path, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
@@ -95,7 +94,7 @@ export async function DELETE(request) {
   if (path instanceof Response) return path;
 
   try {
-    const provider = await writableSourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(source);
     await provider.delete(path);
     return Response.json({ ok: true });
   } catch (err) {
@@ -115,7 +114,7 @@ export async function PUT(request) {
   if (newPath instanceof Response) return newPath;
 
   try {
-    const provider = await writableSourceProvider(toLofsOrigin(source));
+    const provider = await writableSourceProvider(source);
     await provider.rename(path, newPath);
     return Response.json({ ok: true });
   } catch (err) {

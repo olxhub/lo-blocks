@@ -344,15 +344,17 @@ export async function sourceProvider(origin: LofsOrigin): Promise<StorageProvide
 }
 
 /**
- * The editing handle for WRITES — same provider, but refuses a source the
- * deployment marked read-only (throws ReadOnlySourceError → 403). The server's
- * authority over writability, independent of whatever backend credentials
- * happen to permit.
+ * The editing handle for WRITES, for the API layer's request `source` param —
+ * mirror of `readProvider`: it decodes the raw param to an origin at the
+ * boundary, then refuses a source the deployment marked read-only (throws
+ * ReadOnlySourceError → 403). The server's authority over writability,
+ * independent of whatever backend credentials happen to permit. Routes pass the
+ * raw `source` string; they don't brand it themselves.
  */
-export async function writableSourceProvider(origin: LofsOrigin): Promise<StorageProvider> {
-  const match = await findConfiguredSource(origin);
+export async function writableSourceProvider(source: string): Promise<StorageProvider> {
+  const match = await findConfiguredSource(toLofsOrigin(source));
   if (!match.writable) {
-    throw new ReadOnlySourceError(String(origin));
+    throw new ReadOnlySourceError(source);
   }
   return match.provider;
 }

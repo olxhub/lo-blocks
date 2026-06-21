@@ -17,7 +17,10 @@ export async function GET(request: Request) {
   const source = url.searchParams.get('source') || undefined;
   const rawBasePath = url.searchParams.get('path') || undefined;
 
-  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  // `path` here is a glob/search BASE directory, not a content file — so it's
+  // toOlxRelativePath (structural, no content-extension requirement), NOT
+  // /api/file's toRepoRelativePath. Traversal is hardened in the provider
+  // (FileStorageProvider.glob → resolveSafeReadPath). Brand at the trust boundary.
   let basePath;
   try {
     basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;

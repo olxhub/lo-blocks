@@ -42,7 +42,10 @@ export async function GET(request: Request) {
   const limitStr = url.searchParams.get('limit');
   const limit = limitStr ? parseInt(limitStr, 10) : undefined;
 
-  // Brand at trust boundary — path comes from HTTP request (untrusted)
+  // `path` here is a search BASE directory, not a content file — so it's
+  // toOlxRelativePath (structural, no content-extension requirement), NOT
+  // /api/file's toRepoRelativePath. Traversal is hardened in the provider
+  // (grep → glob → resolveSafeReadPath). Brand at the trust boundary.
   let basePath;
   try {
     basePath = rawBasePath ? toOlxRelativePath(rawBasePath) : undefined;
