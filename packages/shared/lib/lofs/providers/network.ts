@@ -84,13 +84,8 @@ export class NetworkStorageProvider implements StorageProvider {
    * Works client-side by manipulating path strings.
    */
   resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
-    // Extract logical path from provenance URI using standard URL parsing.
-    let basePath: string;
-    if (baseProvenance.includes('://')) {
-      basePath = provenancePath(baseProvenance);
-    } else {
-      basePath = baseProvenance;
-    }
+    // A provenance ref always carries "://" (origin + path), so take the path.
+    const basePath = provenancePath(baseProvenance);
 
     // Get directory of base file
     const lastSlash = basePath.lastIndexOf('/');

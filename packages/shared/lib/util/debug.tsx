@@ -3,8 +3,8 @@
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import type { LofsRef } from '@/lib/types';
 import type { AppError } from '@/lib/types/errors';
+import { source, addressPath, scheme } from '@/lib/types/address';
 import { getExtension } from '@/lib/util/fileTypes';
 import { safeStringify } from '@/lib/util';
 import { useFieldState, settings } from '@/lib/state';
@@ -82,29 +82,21 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
     : [];
   const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
 
-  /** Extract scheme and path from a LofsRef (e.g., "file:content://foo" → ["file:content", "foo"]) */
-  function splitProvenance(uri: LofsRef): { scheme: string; path: string } {
-    const idx = uri.lastIndexOf('://');
-    if (idx < 0) return { scheme: 'unknown', path: uri };
-    return { scheme: uri.slice(0, idx), path: uri.slice(idx + 3) };
-  }
-
   const links = provenance.map((uri, idx) => {
-    const { scheme, path: uriPath } = splitProvenance(uri);
-    if (scheme.startsWith('file:')) {
-      // Path after last :// e.g. 'file:content://sba/foo.olx' → 'sba/foo.olx'
-      const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
-      // logicalPath is already relative to the mount point (e.g. 'sba/foo.olx')
-      const rel = logicalPath;
+    // Reuse the address grammar instead of hand-splitting: origin = source(),
+    // path = addressPath() — which also strips the #version a canonical ref
+    // carries, so it never leaks into the ?file= param.
+    const origin = source(uri);
+    if (scheme(uri) === 'file') {
+      const rel = String(addressPath(uri)).replace(/^\/+/, '');
       // Origin-scoped: carry the source so Studio opens the file in its repo,
-      // not the picker. `scheme` here is the provenance's origin (the part
-      // before "://", e.g. "file:content").
-      const href = `/studio?source=${encodeURIComponent(scheme)}&file=${encodeURIComponent(rel)}`;
-      const fileType = getExtension(uriPath) || 'file';
+      // not the picker.
+      const href = `/studio?source=${encodeURIComponent(origin)}&file=${encodeURIComponent(rel)}`;
+      const fileType = getExtension(rel) || 'file';
       return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
     }
-    // Fallback for non-file provenances
-    return <a key={idx} href={`${prefix}${uri}`}>{scheme}</a>;
+    // Fallback for non-file provenances (git, etc.) — link to the raw ref.
+    return <a key={idx} href={`${prefix}${uri}`}>{String(origin)}</a>;
   });
 
   const handleLog = () => console.log('[props]', props);
