@@ -56,14 +56,31 @@ function sourceFromParam(raw: string | null): LofsOrigin | undefined {
   }
 }
 
+// Decode a ?file= URL param into a repo-relative path. Same untrusted boundary
+// as sourceFromParam: a structurally-invalid value (notably a "#", which would
+// throw when fileId = makeAddress(source, toLofsContentPath(file)) is derived
+// during render) fails CLOSED to "no file open" — the placeholder shows, which
+// offers New file. (Tree selection and create produce trusted paths.)
+// TODO: a crafted/typo'd link should show a real "file not found" with an offer
+// to create — see tasklist; this only prevents the render crash.
+function fileFromParam(raw: string | null): string {
+  if (!raw) return '';
+  try {
+    toOlxRelativePath(raw);
+    return raw;
+  } catch {
+    console.warn(`Ignoring malformed ?file=: ${raw}`);
+    return '';
+  }
+}
+
 function StudioPageContent() {
   // Read initial file + source from URL query params
   const searchParams = useSearchParams();
-  const initialFile = searchParams.get('file') || '';
 
   // The source (origin) being edited. Undefined until picked (bare /studio
   // shows the picker); otherwise it comes from the entry link's ?source=.
-  // Lazy initializer so the boundary decode runs once, not every render.
+  // Lazy initializers so the boundary decode runs once, not every render.
   const [source, setSource] = useState<LofsOrigin | undefined>(
     () => sourceFromParam(searchParams.get('source'))
   );
@@ -106,8 +123,8 @@ function StudioPageContent() {
   // The single new-file dialog, opened from the Files panel "+" and the no-file
   // placeholder (DRY: one creation flow).
   const [newFileOpen, setNewFileOpen] = useState(false);
-  // File path synced with URL via ?file= param
-  const [filePath, setFilePath] = useState(initialFile);
+  // File path synced with URL via ?file= param (validated at the boundary).
+  const [filePath, setFilePath] = useState(() => fileFromParam(searchParams.get('file')));
 
   // The open file's identity: its LofsRef in the selected source. Undefined
   // when no file is open in a source (the picker/placeholder state) — the redux
@@ -333,7 +350,7 @@ function StudioPageContent() {
   useEffect(() => {
     const handlePopState = () => {
       const url = new URL(window.location.href);
-      const fileParam = url.searchParams.get('file') || '';
+      const fileParam = fileFromParam(url.searchParams.get('file'));
       if (fileParam !== filePath) {
         setFilePath(fileParam);
       }

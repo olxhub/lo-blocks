@@ -96,7 +96,10 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
       const logicalPath = uriPath.startsWith('/') ? uriPath.slice(1) : uriPath;
       // logicalPath is already relative to the mount point (e.g. 'sba/foo.olx')
       const rel = logicalPath;
-      const href = `/studio?file=${encodeURIComponent(rel)}`;
+      // Origin-scoped: carry the source so Studio opens the file in its repo,
+      // not the picker. `scheme` here is the provenance's origin (the part
+      // before "://", e.g. "file:content").
+      const href = `/studio?source=${encodeURIComponent(scheme)}&file=${encodeURIComponent(rel)}`;
       const fileType = getExtension(uriPath) || 'file';
       return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
     }
