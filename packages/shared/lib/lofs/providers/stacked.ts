@@ -130,8 +130,8 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Write to the first provider
-  async write(filePath: OlxRelativePath, content: string, options?: WriteOptions): Promise<void> {
-    return this.providers[0].write(filePath, content, options);
+  async save(filePath: OlxRelativePath, content: string, options?: WriteOptions): Promise<void> {
+    return this.providers[0].save(filePath, content, options);
   }
 
   // List files merged from all providers (higher priority shadows lower)
@@ -319,12 +319,12 @@ export class StackedStorageProvider implements StorageProvider {
   }
 
   // Delete from the first provider
-  async delete(filePath: OlxRelativePath): Promise<void> {
-    return this.providers[0].delete(filePath);
+  async remove(filePath: OlxRelativePath): Promise<void> {
+    return this.providers[0].remove(filePath);
   }
 
   // Rename in the first provider
-  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    return this.providers[0].rename(oldPath, newPath);
+  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+    return this.providers[0].move(oldPath, newPath);
   }
 }

@@ -182,7 +182,7 @@ describe('GitStorageProvider', () => {
 
   it('write commits with the given author and platform committer', async () => {
     const w = await writableRepo();
-    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>', {
+    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>', {
       author: { name: 'Maggie Chen', email: 'mchen@example.edu' },
       message: 'Edit a.olx',
     });
@@ -198,7 +198,7 @@ describe('GitStorageProvider', () => {
 
   it('write of a new nested path builds the intermediate trees', async () => {
     const w = await writableRepo();
-    await w.write('unit3/deep/lesson.olx' as OlxRelativePath, '<Markdown id="d">deep</Markdown>');
+    await w.save('unit3/deep/lesson.olx' as OlxRelativePath, '<Markdown id="d">deep</Markdown>');
     expect((await w.read('unit3/deep/lesson.olx' as OlxRelativePath)).content).toContain('deep');
     // Sibling untouched.
     expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v1');
@@ -206,14 +206,14 @@ describe('GitStorageProvider', () => {
 
   it('delete removes a file via a commit', async () => {
     const w = await writableRepo();
-    await w.delete('a.olx' as OlxRelativePath);
+    await w.remove('a.olx' as OlxRelativePath);
     await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
-    await expect(w.delete('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    await expect(w.remove('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
   });
 
   it('rename moves content in a single commit', async () => {
     const w = await writableRepo();
-    await w.rename('a.olx' as OlxRelativePath, 'b.olx' as OlxRelativePath);
+    await w.move('a.olx' as OlxRelativePath, 'b.olx' as OlxRelativePath);
     expect((await w.read('b.olx' as OlxRelativePath)).content).toContain('v1');
     await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
     // One commit for the move (parent is the pre-rename head).
@@ -228,11 +228,11 @@ describe('GitStorageProvider', () => {
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v2 external</Markdown>' }, 'external edit');
 
     await expect(
-      w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v3 mine</Markdown>', { previousMetadata: before.metadata }),
+      w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v3 mine</Markdown>', { previousMetadata: before.metadata }),
     ).rejects.toThrow(VersionConflictError);
 
     // force overrides the optimistic check.
-    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v3 forced</Markdown>', {
+    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v3 forced</Markdown>', {
       previousMetadata: before.metadata, force: true,
     });
     expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v3 forced');
@@ -249,7 +249,7 @@ describe('GitStorageProvider', () => {
     const w = new RejectingPush({ url: URL, ref: 'main', cooldownMs: 0 });
     await w.initRepo();
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
-    await expect(w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>'))
+    await expect(w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>'))
       .rejects.toThrow(VersionConflictError);
   });
 
@@ -272,7 +272,7 @@ describe('GitStorageProvider', () => {
     const foreign = { vol: new Volume(), head: 'deadbeef'.repeat(5), tree: new Map() };
     onPush = () => { (w as any).state = foreign; };
 
-    await w.write('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>');
+    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>');
 
     // The commit landed in the snapshot's own volume (repoVol)...
     const commit = await headCommit(w);

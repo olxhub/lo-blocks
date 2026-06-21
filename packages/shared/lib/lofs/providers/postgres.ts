@@ -35,7 +35,7 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
-  async write(_path: OlxRelativePath, _content: string, _options?: WriteOptions): Promise<void> {
+  async save(_path: OlxRelativePath, _content: string, _options?: WriteOptions): Promise<void> {
     throw new Error('postgres storage not implemented');
   }
 
@@ -68,11 +68,11 @@ export class PostgresStorageProvider implements StorageProvider {
     throw new Error('postgres storage not implemented');
   }
 
-  async delete(_path: OlxRelativePath): Promise<void> {
+  async remove(_path: OlxRelativePath): Promise<void> {
     throw new Error('postgres storage not implemented');
   }
 
-  async rename(_oldPath: OlxRelativePath, _newPath: OlxRelativePath): Promise<void> {
+  async move(_oldPath: OlxRelativePath, _newPath: OlxRelativePath): Promise<void> {
     throw new Error('postgres storage not implemented');
   }
 

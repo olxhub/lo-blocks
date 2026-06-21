@@ -103,7 +103,7 @@ export class InMemoryStorageProvider implements StorageProvider {
     return this.files[normalized] !== undefined;
   }
 
-  async write(): Promise<void> {
+  async save(): Promise<void> {
     throw new Error('InMemoryStorageProvider is read-only');
   }
 
@@ -267,11 +267,11 @@ export class InMemoryStorageProvider implements StorageProvider {
     return matches;
   }
 
-  async delete(): Promise<void> {
+  async remove(): Promise<void> {
     throw new Error('InMemoryStorageProvider is read-only');
   }
 
-  async rename(): Promise<void> {
+  async move(): Promise<void> {
     throw new Error('InMemoryStorageProvider is read-only');
   }
 }

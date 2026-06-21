@@ -308,9 +308,12 @@ export interface StorageProvider {
   loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
 
   read(path: OlxRelativePath): Promise<ReadResult>;
-  write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  delete(path: OlxRelativePath): Promise<void>;
-  rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
+  // The write doorway. Verbs mirror lofs-api.md (save/remove/move), carrying a
+  // lease via WriteOptions. There is no separate "create": creating is a save
+  // whose lease says "nothing here yet" (WriteOptions.create).
+  save(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
+  remove(path: OlxRelativePath): Promise<void>;
+  move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;
 
   /**

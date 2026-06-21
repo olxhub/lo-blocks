@@ -500,7 +500,7 @@ export class FileStorageProvider implements StorageProvider {
     }
   }
 
-  async write(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async save(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     const { previousMetadata, force = false } = options;
     const fs = await import('fs/promises');
     const full = await resolveSafeWritePath(this.baseDir, filePath);
@@ -532,7 +532,7 @@ export class FileStorageProvider implements StorageProvider {
   }
 
 
-  async delete(filePath: OlxRelativePath): Promise<void> {
+  async remove(filePath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     const full = await resolveSafeWritePath(this.baseDir, filePath);
     await fs.unlink(full);
@@ -542,7 +542,7 @@ export class FileStorageProvider implements StorageProvider {
     return this.extractRelativePath(uri) as OlxRelativePath;
   }
 
-  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     // Validate both paths with write safety checks
     const fullOld = await resolveSafeWritePath(this.baseDir, oldPath);

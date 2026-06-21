@@ -288,7 +288,7 @@ export function createEditorTools({
       },
       callback: async ({ file_path, content }: { file_path: string; content: string }) => {
         try {
-          await storage.write(toOlxRelativePath(file_path), content);
+          await storage.save(toOlxRelativePath(file_path), content);
           return `File created: ${file_path}`;
         } catch (err: any) {
           return `Error: ${err.message}`;

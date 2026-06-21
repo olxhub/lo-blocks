@@ -263,7 +263,7 @@ function StudioPageContent() {
       const content = getStudioContent(id);  // current edited content (synchronous)
       const previousMetadata = fileStateRef.current.get(id)?.metadata;
       const olxPath = toOlxRelativePath(filePath);
-      await storageRef.current.write(olxPath, content, { previousMetadata, force });
+      await storageRef.current.save(olxPath, content, { previousMetadata, force });
       // Re-read to refresh conflict metadata; mark clean.
       const result = await storageRef.current.read(olxPath);
       fileStateRef.current.set(id, { content, metadata: result.metadata, ns: result.ns });
@@ -296,7 +296,7 @@ function StudioPageContent() {
     try {
       const olxPath = toOlxRelativePath(path);
       // create: must not clobber an existing file (route returns 409 if it exists).
-      await storageRef.current.write(olxPath, fileContent, { create: true });
+      await storageRef.current.save(olxPath, fileContent, { create: true });
       refreshFiles();
       // Switch to the new file — the file-loading effect will read from storage
       // and set content with the correct Redux key (don't call setContent here;
@@ -314,7 +314,7 @@ function StudioPageContent() {
   const handleFileDelete = useCallback(async (path: string) => {
     if (!source) return;  // delete targets a specific source (UI gates on canWrite)
     try {
-      await storageRef.current.delete(toOlxRelativePath(path));
+      await storageRef.current.remove(toOlxRelativePath(path));
       refreshFiles();
       // Remove from cache (keyed by the file's ref)
       fileStateRef.current.delete(fileRef(source, path));
@@ -335,7 +335,7 @@ function StudioPageContent() {
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     if (!source) return;  // rename targets a specific source (UI gates on canWrite)
     try {
-      await storageRef.current.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
+      await storageRef.current.move(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
       // Move cache entry to the new ref
       const cachedState = fileStateRef.current.get(fileRef(source, oldPath));

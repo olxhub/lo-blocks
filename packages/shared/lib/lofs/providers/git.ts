@@ -586,7 +586,7 @@ export class GitStorageProvider implements StorageProvider {
   // ensures the repo is current before forking a commit from head.
   // ---------------------------------------------------------------------
 
-  async write(p: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async save(p: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
       const s = this.requireState();
@@ -601,7 +601,7 @@ export class GitStorageProvider implements StorageProvider {
     });
   }
 
-  async delete(p: OlxRelativePath): Promise<void> {
+  async remove(p: OlxRelativePath): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
       const s = this.requireState();
@@ -613,7 +613,7 @@ export class GitStorageProvider implements StorageProvider {
     });
   }
 
-  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     return this.serialize(async () => {
       await this.ensureFresh();
       const s = this.requireState();
