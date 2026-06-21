@@ -294,7 +294,7 @@ async function listFileTree(
       }
     }
     return {
-      uri: rel ?? '',
+      uri: rel,
       children,
     };
   };

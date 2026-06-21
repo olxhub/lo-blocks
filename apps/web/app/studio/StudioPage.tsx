@@ -290,8 +290,6 @@ function StudioPageContent() {
     }
   }, [filePath, canWrite, source, notify]);
 
-  // TODO: handleFileCreate can silently overwrite an existing file with the same name.
-  // Should check existence first and confirm, similar to save-as above.
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
