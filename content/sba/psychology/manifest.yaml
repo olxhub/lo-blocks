@@ -7,7 +7,7 @@
 # FileStorageProvider.namespaceFor).
 #
 title: Psychology Study Group - Child Defiance
-namespace: edu.memphis.psych.defiance
+namespace: psych-defiance
 classes:
   - no-translanguaging
 content_notice: >
@@ -17,4 +17,4 @@ content_notice: >
   [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html). Source available on
   [GitHub](https://github.com/olxhub/lo-blocks/tree/main/content/psychology/defiance).
 routes:
-  /: edu.memphis.psych.defiance/psych_course
+  /: CONTENT/psych_course
