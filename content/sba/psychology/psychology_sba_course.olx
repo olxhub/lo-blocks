@@ -1,6 +1,6 @@
 <!--
 ---
-description: Complete psychology study group course covering sleep refusal, operant conditioning, function of behavior, and fidelity of implementation
+description: Psychology study group course (child defiance / non-compliance scenario), Parts 1-2, covering parenting techniques and operant conditioning
 category: psychology
 index: 0
 lang: en-Latn-US
@@ -15,15 +15,11 @@ license: AGPL
 ---
 -->
 
-<Course id="psych_course" title="Psychology Study Group" launchable="true">
+<Course id="psych_course" title="Psychology Study Group - Child Defiance" launchable="true">
   <Use ref="psych_irb_consent_form" />
   <!-- Note: As of this authoring, when is not support in Course, and is aspirational.
 
        By the time you read this, it might be. If so, please remove this comment. -->
   <Use ref="psych_sba"       when="@psych_irb_consent"/>
   <Use ref="psych_sba2"      when="@psych_irb_consent"/>
-  <!-- Hidden for the summer term: Parts 3 & 4 are not covered this summer. Restore for fall:
-  <Use ref="psych_sba_part3" when="@psych_irb_consent"/>
-  <Use ref="psych_sba_part4" when="@psych_irb_consent"/>
-  -->
 </Course>
