@@ -13,7 +13,7 @@ Annie: Thanks again for your help with my roommate's dilemma with Johnny, the ki
 Two Weeks Later
 ------------
 
-psych_sba_part3_sidebar -> psych_sba_part3_clear
+psych_sba_part3_sidebar <- psych_sba_part3_clear
 
 JJ: How's that going? Did our suggestions help?
 
@@ -83,7 +83,7 @@ Review Concepts
 
 --- wait @review_jenny_whining.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar <- abc_screen_clear
 
 JJ: Whew, thank you for the refresher. I needed that.
 
@@ -142,7 +142,7 @@ Annie: Good catch, JJ. That's a useful chart! But we won't really **learn** what
 
 --- wait @positive_reinforcement_for_sensory.value && @negative_reinforcement_for_sensory.value ---
 
-psych_sba_part3_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar <- abc_screen_clear
 
 Lin: After this exercise, I think that I've got the relationship between reinforcement and function of behavior down really well!
 
@@ -216,7 +216,7 @@ Practice Functions
 
 --- wait @function_simon.submitCount > 0 ---
 
-psych_sba_part3_sidebar -> abc_screen_clear
+psych_sba_part3_sidebar <- abc_screen_clear
 
 Lin: Great job! I think we're getting the hang of identifying functions.
 

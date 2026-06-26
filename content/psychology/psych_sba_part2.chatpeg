@@ -157,7 +157,7 @@ Annie: #15 confused me, because dessert was taken away only once. But that one t
 
 JJ: #17 confused me, because the teacher giving Chloe an order didn't seem like a punishment to me! But it counts as one, because it made Chloe less likely to play with scissors.
 
-psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
+psych_sba_sidebar2 <- operant_conditioning_clear_screen_1
 
 Annie: Well, I think we've cleared all of that up now!
 
@@ -317,7 +317,7 @@ Annie: I am, too. Let's give it a try!
 
 --- wait @four_types_practice_1t.correct === correctness.correct ---
 
-psych_sba_sidebar2 -> clear_screen_after_quiz
+psych_sba_sidebar2 <- clear_screen_after_quiz
 
 Lin: Phew...we've covered a lot of ground.
 

@@ -154,7 +154,7 @@ Control how an embedded block is presented using `[display=...]` metadata:
 ::activity_1 [display=target:sidebar]
 ```
 
-**Target mode** repoints a component (like UseHistory) to display the embedded block, replacing the arrow command for embed-specific use cases. The embed does not appear inline — it auto-advances like an arrow command. Use surrounding dialogue to direct the learner's attention:
+**Target mode** repoints a component (like UseHistory) to display the embedded block, replacing the set command for embed-specific use cases. The embed does not appear inline — it auto-advances like a set command. Use surrounding dialogue to direct the learner's attention:
 
 ```
 ::problem_1 [display=target:sidebar]
@@ -166,9 +166,9 @@ Kim: Take a look at the problem on the right.
 **Pause** — Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.** Each "Continue" click already advances dialogue, so `--- pause ---` is not for progressive reveal between messages. Use it only when consecutive commands must run sequentially with a user confirmation in between:
 
 ```
-sidebar -> intro_panel
+sidebar <- intro_panel
 --- pause ---
-sidebar -> activity_panel
+sidebar <- activity_panel
 ```
 
 **Wait** — Blocks until a state language expression is truthy:
@@ -181,13 +181,16 @@ sidebar -> activity_panel
 
 See [State Language Expressions](../../../lib/stateLanguage/expr.pegjs.md) for full syntax.
 
-**Arrow** — Repoints a dynamic component to show different content. For repointing embeds, prefer `display=target:<id>` (see [Display Modes](#display-modes)). Arrow commands are for general field updates:
+**Set** — Writes a field on a block as the script plays (`destination <- value`). The arrow points *into* the destination, like assignment; the field defaults to `value`, and leading dots scope it to this block (`.field`) or its parent (`..field`). For repointing embeds, prefer `display=target:<id>` (see [Display Modes](#display-modes)); set commands are for general field updates:
 
 ```
-sidebar -> student_input
+sidebar <- student_input        # sidebar.value = "student_input"
+useElement.target <- choice_b   # explicit field
+..mode <- activity              # a field on the parent block
+caption.value <- "It's a \"big\" deal.\nLine two."   # quoted, with escapes
 ```
 
-Place arrow commands **before** the dialogue that references the new content.
+Place set commands **before** the dialogue that references the new content.
 
 ## Activities Pattern
 
@@ -220,7 +223,7 @@ Kim: Interesting! Let's see what the research says...
 
 Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention — especially when the spacing matches how long you need to remember.
 
-sidebar -> summary
+sidebar <- summary
       </Chat>
     </LeftPane>
     <RightPane>

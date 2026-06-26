@@ -68,8 +68,8 @@ export function canAdvanceToContent(
       continue;
     }
 
-    // Arrows, section headers are actionable (we execute them)
-    if (entry.type === 'ArrowCommand' || entry.type === 'SectionHeader') {
+    // Set commands, section headers are actionable (we execute them)
+    if (entry.type === 'SetField' || entry.type === 'SectionHeader') {
       foundActionableEntry = true;
       continue;
     }
