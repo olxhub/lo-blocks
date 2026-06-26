@@ -102,6 +102,10 @@ export interface ContentSourcesConfig {
   sources: Record<string, string | RepoSource>;
   /** directory for unrouted paths */
   fallback: string;
+  /** Whether the fallback (./content) is editable. Default false — a deploy
+   *  shouldn't let anyone write the bundled content. Set true in a local
+   *  config for dev. */
+  fallbackWritable: boolean;
 }
 
 /** The built-in default — used when no config file exists. */
@@ -109,6 +113,7 @@ function defaultConfig(): ContentSourcesConfig {
   return {
     sources: {},
     fallback: './content',
+    fallbackWritable: false,
   };
 }
 
@@ -153,6 +158,7 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   return {
     sources,
     fallback: parsed.fallback || './content',
+    fallbackWritable: parsed.fallbackWritable === true,  // opt-in; default read-only
   };
 }
 
@@ -251,7 +257,7 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
   const fallback: ConfiguredSource = {
     origin: toLofsOrigin('file:content'),
     label: 'Local content',
-    writable: true,  // local disk — always editable
+    writable: config.fallbackWritable,  // default read-only; dev opts in via config
     provider: new FileStorageProvider(config.fallback, 'content'),
   };
 

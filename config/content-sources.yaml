@@ -22,3 +22,8 @@ sources: {}
 
 # Unrouted paths (demos, transitional content).
 fallback: ./content
+
+# Is the fallback (./content) editable? Default false — a deploy shouldn't let
+# anyone write the bundled content. Set true in config/content-sources.local.yaml
+# for local dev when you want to edit ./content from Studio / the catalog.
+fallbackWritable: false

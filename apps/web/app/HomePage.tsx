@@ -257,14 +257,6 @@ function Sidebar() {
             >
               🔗 GitHub
             </a>
-            <a
-              href="https://learning-observer.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block px-3 py-2 text-sm text-foreground hover:bg-muted rounded transition-colors"
-            >
-              🌐 Learning Observer
-            </a>
           </nav>
         </div>
 

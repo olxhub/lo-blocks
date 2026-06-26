@@ -11,6 +11,7 @@ import { startServer, type ServerHandle } from './server.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
+import { registerCatalogTools } from '@/lib/catalog/tool';
 import {
   validateProviderConfig,
   availableProviders,
@@ -111,8 +112,9 @@ async function initStorage(): Promise<KVStore> {
 async function initTools() {
   const registry = createToolRegistry();
   registerDocsTools(registry);
+  registerCatalogTools(registry);
   // TODO: registerLofsTools(registry, storage);
-  console.log('  Tools: docs');
+  console.log('  Tools: docs, catalog');
   return registry;
 }
 

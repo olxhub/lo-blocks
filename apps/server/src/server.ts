@@ -38,7 +38,11 @@ import { ToolRegistry } from '@/lib/mcp/registry';
 // --- Constants ---------------------------------------------------------------
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/'];
+// '/catalog' is the new author front page (a static-client route), served here
+// during the migration off Next.js; the live Next '/' is untouched. Its DATA
+// comes from the get_repositories MCP tool over /mcp (one transport) — there is
+// no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/catalog'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -71,6 +75,7 @@ export async function startServer(
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.
   app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
+  app.get('/catalog', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
 
   const honoHandler = getRequestListener(app.fetch);
 

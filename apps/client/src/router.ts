@@ -4,17 +4,30 @@
 // Add routes here as they migrate from Next.js.
 //
 import type { StateKey } from '@/lib/types';
-import { parseStateKey } from '@/lib/types/id-grammar';
+import { asStateKey, validateStateKey } from '@/lib/types/id-grammar';
 
 export type Route =
   | { page: 'preview'; id: StateKey }
-  | { page: 'notFound'; path: string };
+  | { page: 'catalog' }
+  | { page: 'notFound'; path: string; reason?: string };
 
 export function resolveRoute(pathname: string): Route {
+  // /catalog — the author front page (the new `/`, parallel during migration)
+  if (pathname === '/catalog') {
+    return { page: 'catalog' };
+  }
+
   // /preview/:id
   const previewMatch = pathname.match(/^\/preview\/(.+)$/);
   if (previewMatch) {
-    return { page: 'preview', id: parseStateKey(previewMatch[1]) };
+    const raw = previewMatch[1];
+    // A malformed id is a 404, not a crash: route to notFound with the
+    // grammar's explanation rather than throwing out of boot().
+    const valid = validateStateKey(raw);
+    if (valid !== true) {
+      return { page: 'notFound', path: pathname, reason: valid };
+    }
+    return { page: 'preview', id: asStateKey(raw) };
   }
 
   return { page: 'notFound', path: pathname };

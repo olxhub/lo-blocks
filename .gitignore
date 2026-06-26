@@ -96,6 +96,7 @@ lofs/runtime/
 /apps/static/out/
 /apps/static/dist/
 /apps/client/dist/
+/apps/client/node_modules/
 /dist/
 
 # Deployment-specific content source overrides (committed default is
