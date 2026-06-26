@@ -101,9 +101,9 @@ export interface SectionHeader extends HasMetadata {
  * Use only when consecutive commands must run sequentially with a user
  * confirmation in between.
  *
- *   sidebar -> intro_panel
+ *   sidebar <- intro_panel
  *   --- pause ---
- *   sidebar -> activity_panel
+ *   sidebar <- activity_panel
  */
 export interface PauseCommand {
   type: 'PauseCommand';
@@ -134,16 +134,26 @@ export interface WaitCommand {
  * Repoints a dynamic component (e.g. UseHistory) to show different content.
  * Placed before the dialogue that references the new content.
  *
- *   sidebar -> summary
+ *   sidebar <- summary
  *   Kim: Now look at the summary on the right.
  *
- * `source` is the target component ID (e.g. "sidebar").
- * `target` is the content ID to display (e.g. "summary").
+ * The left side is the destination being written; the arrow points into it
+ * (assignment: `lhs <- value`). Scope is encoded by leading dots in the
+ * source: a named `ref`, `self` (`.field`), or `parent` (`..field`). The
+ * field defaults to `value` when omitted.
+ *
+ *   sidebar <- summary          → { scope:'ref', ref:'sidebar', field:'value', value:'summary' }
+ *   item.target <- thing        → { scope:'ref', ref:'item', field:'target', value:'thing' }
+ *   .mode <- chat               → { scope:'self', ref:null, field:'mode', value:'chat' }
+ *   ..mode <- activity          → { scope:'parent', ref:null, field:'mode', value:'activity' }
  */
-export interface ArrowCommand {
-  type: 'ArrowCommand';
-  source: DefinitionRef;
-  target: DefinitionRef;
+export interface SetField {
+  type: 'SetField';
+  scope: 'ref' | 'self' | 'parent';
+  /** Block reference when scope is 'ref'; null for self/parent. */
+  ref: DefinitionRef | null;
+  field: string;
+  value: string;
 }
 
 /**
@@ -216,7 +226,7 @@ export type ConversationEntry =
   | SectionHeader
   | PauseCommand
   | WaitCommand
-  | ArrowCommand
+  | SetField
   | CommandBlock
   | EmbedCommand
   | EmbedBlock;

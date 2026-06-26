@@ -158,6 +158,23 @@ A ball is dropped from height *h*. Using g = 10 m/s²:
 </CapaProblem>
 ```
 
+## Button Label
+
+By default the action button reads "Check" (or "Submit" on the final attempt). Use `submitLabel` to override it — e.g. "Verify", "Answer", "Done", or "OK":
+
+```olx:playground
+<CapaProblem id="customlabel" title="Capital of France" submitLabel="Verify">
+  <KeyGrader>
+    <Markdown>What is the capital of France?</Markdown>
+    <ChoiceInput>
+      <Key>Paris</Key>
+      <Distractor>Lyon</Distractor>
+      <Distractor>Marseille</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+```
+
 ## How It Works
 
 1. **Parsing**: CapaProblem's parser walks child nodes, identifying inputs (`getValue`) and graders (`isGrader`)

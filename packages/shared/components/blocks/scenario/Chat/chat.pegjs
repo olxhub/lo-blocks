@@ -79,7 +79,7 @@ ConversationHeader
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / ArrowCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
+  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / SetCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -132,15 +132,65 @@ CommandBlock
   }
 
 
-/* Matches:   ElfForest -> sidebar            */
-ArrowCommand
-  = _ source:Identifier _ "->" _ target:Identifier _ NewLine {
-      return { type: "ArrowCommand", source, target };
+/* ───────────────────────────  Set command  ──────────────────────────── */
+/*
+ * Sets a field on a block as the script plays — a one-shot assignment.
+ * The left side is the destination (the thing being written); the arrow
+ * points INTO it, like assignment (`x <- value`). The field is optional
+ * and defaults to `value`. Scope is encoded by leading dots:
+ *
+ *   sidebar <- intro_panel        # sidebar.value = "intro_panel"
+ *   textItem.value <- Hello       # named block + explicit field
+ *   useElement.target <- Boo
+ *   .mode <- chat                 # this block (self)
+ *   ..mode <- activity            # parent block
+ *   text.value <- "Line one\n\nA \"quoted\" word."   # quoted string w/ escapes
+ *
+ * Disambiguation: namespaces use `/` (see Namespace), so inside an LValue a
+ * `.` is unambiguously the field separator and leading dots are pure scope
+ * (2 → parent, 1 → self, 0 → named ref).
+ */
+SetCommand
+  = _ lhs:LValue _ "<-" _ value:RValue _ NewLine {
+      return { type: "SetField", scope: lhs.scope, ref: lhs.ref, field: lhs.field, value };
     }
 
-/* helper so continuation lines don’t swallow arrow commands */
-ArrowCommandStart
-  = _ Identifier _ "->"
+LValue
+  = ".." field:Name?       { return { scope: "parent", ref: null, field: field || "value" }; }
+  / "."  field:Name?       { return { scope: "self",   ref: null, field: field || "value" }; }
+  / ref:Ref "." field:Name { return { scope: "ref", ref, field }; }
+  / ref:Ref                { return { scope: "ref", ref, field: "value" }; }
+
+// A block reference: bare name or namespace-qualified (e.g. ee101/foo).
+Ref
+  = $(Namespace? Name)
+
+Name
+  = $([a-zA-Z_][a-zA-Z0-9_]*)
+
+RValue
+  = StringLiteral / BareWord
+
+StringLiteral
+  = '"' chars:StringChar* '"' { return chars.join(''); }
+
+StringChar
+  = '\\' esc:EscapeChar { return esc; }
+  / [^"\\]
+
+EscapeChar
+  = '"'  { return '"'; }
+  / '\\' { return '\\'; }
+  / 'n'  { return '\n'; }
+  / 't'  { return '\t'; }
+  / 'r'  { return '\r'; }
+
+BareWord
+  = chars:[^ \t\r\n]+ { return chars.join(''); }
+
+/* helper so continuation lines don’t swallow set commands */
+SetCommandStart
+  = _ LValue _ "<-"
 
 
 /* Pause command
@@ -251,7 +301,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !ArrowCommand !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !SetCommandStart !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
       return { text: content };
   }
 

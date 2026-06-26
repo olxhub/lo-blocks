@@ -129,35 +129,35 @@ JJ: Do you remember when the TA gave us that practice page with twenty extra que
 
 --- wait @reinforce_punish_practice_1t.correct === correctness.correct ---
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1c
+::reinforce_punish_practice_1c [display=target:psych_sba_sidebar2]
 
 JJ: I got #3 wrong. I was confused by "accidentally". It didn't matter if it was an accident. It reduced the likelihood that Lucas would touch the stove to zero, so in terms of psychological theory, it was a punishment.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1e
+::reinforce_punish_practice_1e [display=target:psych_sba_sidebar2]
 
 Lin: #5 confused me, because the dad's actions are making it MORE likely that Michael will stay seated. But what's really happening is that the dad is frowning angrily when Michael stands up, and that's making Michael less likely to stand. So it's also a punishment.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1i
+::reinforce_punish_practice_1i [display=target:psych_sba_sidebar2]
 
 Annie: #9 confused me. But I guess you can paraphrase it as "Whenever his mom gets upset, that makes Matthew more likely to make his bed in the morning," so it's a reinforcer.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1j
+::reinforce_punish_practice_1j [display=target:psych_sba_sidebar2]
 
 Lin: #10 confused me because I didn't think NOT doing something would count as punishment. But her teacher never calling on her to speak made it less likely that Luna would ask questions in class, so it counts as punishment.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1k
+::reinforce_punish_practice_1k [display=target:psych_sba_sidebar2]
 
 JJ: #11 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1o
+::reinforce_punish_practice_1o [display=target:psych_sba_sidebar2]
 
 Annie: #15 confused me, because dessert was taken away only once. But that one time had a big impact, and took the probability that Jackson will try new foods down to zero, so it counts as punishment psychologically.
 
-psych_sba_sidebar2 -> reinforce_punish_practice_1q
+::reinforce_punish_practice_1q [display=target:psych_sba_sidebar2]
 
 JJ: #17 confused me, because the teacher giving Chloe an order didn't seem like a punishment to me! But it counts as one, because it made Chloe less likely to play with scissors.
 
-psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
+psych_sba_sidebar2 <- operant_conditioning_clear_screen_1
 
 Annie: Well, I think we've cleared all of that up now!
 
@@ -317,7 +317,7 @@ Annie: I am, too. Let's give it a try!
 
 --- wait @four_types_practice_1t.correct === correctness.correct ---
 
-psych_sba_sidebar2 -> clear_screen_after_quiz
+psych_sba_sidebar2 <- clear_screen_after_quiz
 
 Lin: Phew...we've covered a lot of ground.
 

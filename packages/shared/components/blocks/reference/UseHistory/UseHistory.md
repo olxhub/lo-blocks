@@ -43,11 +43,11 @@ title: Discussion
 
 Alex: Let's think about this topic.
 
-sidebar -> activity_one
+sidebar <- activity_one
 
 Kim: Good point! Here's another angle.
 
-sidebar -> activity_two
+sidebar <- activity_two
 
 Alex: That makes sense.
     </Chat>

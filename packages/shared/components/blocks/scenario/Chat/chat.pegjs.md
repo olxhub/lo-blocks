@@ -308,16 +308,16 @@ With metadata:
 
 Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.**
 
-Normal flow: each "Continue" click reveals the next batch of dialogue messages and simultaneously executes any commands (arrows, embeds, waits) adjacent to them. You do **not** need `--- pause ---` between dialogue lines — the user already clicks Continue to advance.
+Normal flow: each "Continue" click reveals the next batch of dialogue messages and simultaneously executes any commands (sets, embeds, waits) adjacent to them. You do **not** need `--- pause ---` between dialogue lines — the user already clicks Continue to advance.
 
-Use `--- pause ---` only when two commands must run sequentially with a user confirmation in between (e.g., an arrow command that must visibly complete before a wait command fires).
+Use `--- pause ---` only when two commands must run sequentially with a user confirmation in between (e.g., a set command that must visibly complete before a wait command fires).
 
 ```
-sidebar -> intro_panel
+sidebar <- intro_panel
 
 --- pause ---
 
-sidebar -> activity_panel
+sidebar <- activity_panel
 --- wait @activity.done ---
 ```
 
@@ -335,18 +335,35 @@ Multiple waits in sequence act as AND — all must be satisfied before the chat 
 
 See [State Language Expressions](../../../lib/stateLanguage/expr.pegjs.md) for full expression syntax.
 
-### Arrow
+### Set
 
-Repoints a dynamic component (like UseHistory) to different content:
-
-```
-sidebar -> activity_panel
-```
-
-Place arrow commands **before** the dialogue that references the new content:
+Writes a field on a block as the script plays — `destination <- value`. The arrow
+points *into* the destination (assignment, not navigation). The field defaults to
+`value`, so repointing a `UseHistory` is just:
 
 ```
-sidebar -> activity_panel
+sidebar <- activity_panel
+```
+
+An explicit field, and the relative scopes `.field` (this block) and `..field`
+(parent block):
+
+```
+useElement.target <- choice_b
+.mode <- chat
+..mode <- activity
+```
+
+Values may be a bare token or a quoted string with `\n \t \r \" \\` escapes:
+
+```
+caption.value <- "It's a \"big\" deal.\nLine two."
+```
+
+Place set commands **before** the dialogue that references the new content:
+
+```
+sidebar <- activity_panel
 
 Alex: Now complete this activity.
 

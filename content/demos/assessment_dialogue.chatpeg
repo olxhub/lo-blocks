@@ -25,7 +25,7 @@ Piotr: I did. And their application process is fascinating. They use AI-powered 
 
 Jay: That's kind of cool, right? You always say assessment should come first.
 
-assessment_sidebar -> testing_first_context
+::testing_first_context [display=target:assessment_sidebar]
 
 Piotr: It *is* cool. Assessment-driven selection is a strong approach. Let me show you what happened though.
 
@@ -48,7 +48,7 @@ Piotr: Intimately. But my Ph.D. is in electrical engineering, not education. The
 
 Jay: That seems... wrong?
 
-assessment_sidebar -> validity_construct
+::validity_construct [display=target:assessment_sidebar]
 
 Piotr: It's a construct validity problem. The system is measuring "has credential X" rather than "can do job Y." Those correlate, but they're not the same thing.
 
@@ -67,7 +67,7 @@ Jay: What did you do?
 
 Piotr: There's no way to contact anyone. It's fully automated. No human in the loop.
 
-assessment_sidebar -> human_fallback
+::human_fallback [display=target:assessment_sidebar]
 
 --- pause ---
 
@@ -82,7 +82,7 @@ Piotr: Exactly. This is what I want to talk about. Let's dig into what makes ass
 The Standards Gap
 -----------------
 
-assessment_sidebar -> standards_overview
+::standards_overview [display=target:assessment_sidebar]
 
 Piotr: There are professional standards for educational and psychological testing. The AERA/APA/NCME Joint Standards. They represent decades of research on how to do assessment ethically and validly.
 
@@ -100,7 +100,7 @@ Jay: And there's no one to contact.
 
 Piotr: Third: **fairness requires transparency**. Test-takers should understand how they'll be evaluated. "An LLM will decide if your background counts" isn't transparent.
 
-assessment_sidebar -> campbell_activity
+::campbell_activity [display=target:assessment_sidebar]
 
 Jay: So they're violating the standards?
 
@@ -119,7 +119,7 @@ Piotr: That's the irony. They understand the principle.
 
 --- pause ---
 
-assessment_sidebar -> decision_theory
+::decision_theory [display=target:assessment_sidebar]
 
 Piotr: Cronbach—one of the founders of modern testing—said we should ask: "Valid for what decision?" A test might be valid for screening out clearly unqualified candidates but invalid for distinguishing between highly qualified candidates.
 
@@ -134,7 +134,7 @@ Piotr: On the core insight? Absolutely. Assessment should drive learning. But th
 Stealth Assessment
 ------------------
 
-assessment_sidebar -> stealth_context
+::stealth_context [display=target:assessment_sidebar]
 
 Jay: You've worked on this stuff, right?
 
@@ -150,7 +150,7 @@ Jay: That sounds like what they're trying to do.
 
 Piotr: It is! That's why I find them interesting despite the friction. The vision is right. I just want them to debug it before it screens out people who could help them build it right.
 
-assessment_sidebar -> reflection_activity
+::reflection_activity [display=target:assessment_sidebar]
 
 Jay: So what now?
 

@@ -14,7 +14,7 @@ import {
   selectReferences, createContext, extractStructuredRefs, mergeReferences, EMPTY_REFS,
   parse as parseExpr, evaluate,
 } from '@/lib/stateLanguage';
-import type { ConversationEntry, WaitCommand, ParsedConversation } from './_chatTypes';
+import type { ConversationEntry, WaitCommand, ParsedConversation, SetField } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
 import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
@@ -93,6 +93,32 @@ function extractWaitRefs(entries: ConversationEntry[]) {
   return mergeReferences(...expressions.map(extractStructuredRefs));
 }
 
+/**
+ * Execute a SetField command: resolve its destination stateKey from the
+ * command's scope, then write the named field. `self` resolves to this chat,
+ * `parent` to its OlxDom parent, and a named `ref` to that block (scoped to
+ * the chat's namespace). The field defaults to `value` (see chat.pegjs).
+ */
+function applySetField(props: RuntimeProps, block: SetField): void {
+  let stateKey;
+  switch (block.scope) {
+    case 'self':
+      stateKey = scopedStateKeyForBlock(props);
+      break;
+    case 'parent':
+      stateKey = props.nodeInfo?.parent?.stateKey;
+      if (!stateKey) {
+        console.warn('[Chat] `..` set command has no OlxDom parent; skipping', block);
+        return;
+      }
+      break;
+    default: // 'ref'
+      stateKey = scopedStateKeyForBlock({ ...props, id: block.ref as DefinitionRef });
+  }
+  const field = state.componentFieldByStateKey(props, stateKey, block.field);
+  state.updateField(props, field, block.value, { stateKey });
+}
+
 function canAdvance(props: RuntimeProps, reduxState: any): boolean {
   const { windowedIndex, clipEnd } = getState(props, reduxState);
   return windowedIndex < clipEnd;
@@ -116,10 +142,8 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
     if (!block) break;
 
     switch (block.type) {
-      case 'ArrowCommand':
-        state.updateField(props, fields.value, block.target, {
-          stateKey: scopedStateKeyForBlock({ ...props, id: block.source as DefinitionRef }),
-        });
+      case 'SetField':
+        applySetField(props, block);
         nextIndex += 1;
         continue;
 
@@ -168,10 +192,10 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
  *
  * Unlike advance (which pauses at each content entry), this walks
  * all entries from the current position to clipEnd, executing side
- * effects (arrow commands, section headers) and skipping waits. Only
+ * effects (set commands, section headers) and skipping waits. Only
  * the final index is written to Redux, avoiding per-step dispatches.
  *
- * HACK: UseHistory currently picks up intermediate arrow command
+ * HACK: UseHistory currently picks up intermediate set-command
  * values because React re-renders between synchronous dispatches
  * (likely due to lo_event). This is not guaranteed in the future. If
  * UseHistory stops building full history, convert this to an async
@@ -186,10 +210,8 @@ function autoadvance(props: RuntimeProps): void {
     if (!entry) break;
 
     switch (entry.type) {
-      case 'ArrowCommand':
-        state.updateField(props, fields.value, entry.target, {
-          stateKey: scopedStateKeyForBlock({ ...props, id: entry.source as DefinitionRef }),
-        });
+      case 'SetField':
+        applySetField(props, entry);
         break;
       case 'SectionHeader':
         state.updateField(props, fields.sectionHeader, entry.title);
