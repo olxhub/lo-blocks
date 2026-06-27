@@ -10,7 +10,7 @@ import type {
 } from './core';
 import type { ContentNamespace } from './id-grammar';
 import {
-  type LofsRef, type LofsCanonical,
+  type LofsRef, type LofsCanonical, type ForgeLink,
   makeAddress, addressPath, scheme, withVersion,
   toLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
 } from './address';
@@ -394,6 +394,17 @@ export interface StorageProvider {
    * multi-namespace content directory with no manifest.
    */
   namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+
+  /**
+   * A browsable forge link for this source — the repo at its ref, or a file
+   * within it when `path` is given. For "view on GitHub"-style affordances.
+   *
+   * Optional capability: providers backed by something with no web UI (local
+   * files, in-memory, a database, an unmapped forge) omit it. A present method
+   * may still return null for a specific input. Callers treat "method absent"
+   * and "returned null" identically — no link available.
+   */
+  forgeLink?(path?: OlxRelativePath): ForgeLink | null;
 }
 
 /**

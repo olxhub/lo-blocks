@@ -75,9 +75,9 @@ import {
 } from '../../types/storage';
 import {
   source, addressPath, withVersion, withoutVersion,
-  makeAddress, gitOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
+  makeAddress, gitOrigin, forgeLink, toLofsContentPath, toLofsVersion, toLofsCanonical,
   toLofsRef as brandLofsRef,
-  type LofsOrigin, type LofsVersion,
+  type LofsOrigin, type LofsVersion, type ForgeLink,
 } from '../../types/address';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../types/id-grammar';
 import { fileTypes } from '../fileTypes';
@@ -481,6 +481,12 @@ export class GitStorageProvider implements StorageProvider {
         `Add a manifest.yaml with an explicit "namespace:" field.`
       );
     }
+  }
+
+  /** Forge link for this repo (or a file within it) at the served ref. Null
+   *  when the origin's forge has no web view we map (see address.forgeLink). */
+  forgeLink(path?: OlxRelativePath): ForgeLink | null {
+    return forgeLink(this.origin, path);
   }
 
   async listFiles(_selection: FileSelection = {}): Promise<UriNode> {

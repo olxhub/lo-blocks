@@ -13,7 +13,8 @@ export type VariantPicker = (availableVariants: ContentVariant[]) => ContentVari
 export interface ActivityCard {
   id: string;
   category: string;
-  index: number;
+  /** Author-declared ordering hint (metadata `index:`); undefined when undeclared. */
+  index?: number;
   tag: string;
   /** Origin to open in Studio (the `source` of the block's provenance). */
   editSource: string;

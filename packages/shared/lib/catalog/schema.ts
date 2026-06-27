@@ -1,7 +1,7 @@
 // packages/shared/lib/catalog/schema.ts
 //
 // Wire schemas for the get_repositories tool — the SHARED contract. Pure zod,
-// no node imports, so BOTH ends import it: catalogTool.ts (the advertise/handler
+// no node imports, so BOTH ends import it: tool.ts (the advertise/handler
 // side, server) and useCatalog.ts (the consume/hook side, client). Pairing the
 // two ends on one schema is the point. See docs/mcp-authoring.md.
 
@@ -36,6 +36,16 @@ export const GetRepositoriesInput = z.object({
   // TODO(2.0): offset vs a pagination cursor/key?
 });
 
+/** A "view on the forge" link — where, plus how to present it. `forge` is a
+ *  serializable identity the UI maps to an icon (a component can't cross the
+ *  wire); null upstream means no web view is available. Derived from the
+ *  origin by the source provider (StorageProvider.forgeLink). */
+export const ForgeLinkSchema = z.object({
+  url: z.string(),
+  forge: z.enum(['github', 'gitlab']),
+  label: z.string().describe('Action label, e.g. "View on GitHub"'),
+});
+
 export const LaunchableSchema = z.object({
   id: z.string(),
   role: z.enum(['course', 'activity', 'internal', 'other']).describe(
@@ -47,8 +57,10 @@ export const LaunchableSchema = z.object({
   status: z.enum(['draft', 'usable']).describe('draft (work in progress) vs usable'),
   title: z.string(),
   type: z.string().describe('Block tag'),
+  index: z.number().optional().describe('Author-declared ordering hint within its collection; absent when undeclared'),
   path: z.string().describe('Repo-relative path; opens in Studio as ?file='),
   description: z.string().optional().describe('Only when include: launchables.description'),
+  forgeLink: ForgeLinkSchema.nullable().describe('Link to this file on its forge, or null'),
 });
 
 export const RepositorySchema = z.object({
@@ -62,6 +74,11 @@ export const RepositorySchema = z.object({
   draftCount: z.number().describe('launchables hidden as drafts'),
   internalCount: z.number().describe('internal building blocks (role: internal) — editable, not launched on their own'),
   launchables: z.array(LaunchableSchema),
+  internal: z.array(LaunchableSchema).describe(
+    'Building blocks (role: internal) — editable, never launched on their own. ' +
+    'Listed so authoring surfaces can reach them; kept separate from launchables.',
+  ),
+  forgeLink: ForgeLinkSchema.nullable().describe('Link to the repo on its forge, or null'),
 
   // include-only (null until wired — see TODOs above):
   readme: z.string().nullable().optional(),
@@ -76,6 +93,7 @@ export const GetRepositoriesOutput = z.object({
   total: z.number().describe('Total repositories (before pagination, once that exists)'),
 });
 
+export type ForgeLink = z.infer<typeof ForgeLinkSchema>;
 export type Launchable = z.infer<typeof LaunchableSchema>;
 export type Repository = z.infer<typeof RepositorySchema>;
 export type GetRepositoriesResult = z.infer<typeof GetRepositoriesOutput>;

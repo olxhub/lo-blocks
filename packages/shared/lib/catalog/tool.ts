@@ -12,7 +12,7 @@ import YAML from 'yaml';
 import { sources, readProvider } from '@/lib/lofs/contentSources';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards, type ActivityCard } from '@/lib/content/buildActivityCards';
-import { toOlxRelativePath } from '@/lib/types/storage';
+import { toOlxRelativePath, type StorageProvider } from '@/lib/types/storage';
 import type { ToolRegistry } from '@/lib/mcp/registry';
 import {
   GetRepositoriesInput,
@@ -49,9 +49,8 @@ interface SourceDescriptor {
 
 /** Read one repo-root file via the provider; null if absent (a real I/O
  *  boundary — a repo need not have every convention file). */
-async function readRepoFile(origin: string, name: string): Promise<string | null> {
+async function readRepoFile(provider: StorageProvider, name: string): Promise<string | null> {
   try {
-    const provider = await readProvider(origin);
     return (await provider.read(toOlxRelativePath(name))).content;
   } catch {
     return null;
@@ -74,9 +73,9 @@ function firstParagraph(md: string): string {
 
 /** Compose the repo descriptor: git conventions first (README), layered with
  *  the metadata YAML for beyond-git fields. */
-async function readSourceDescriptor(origin: string): Promise<SourceDescriptor> {
-  const readme = await readRepoFile(origin, 'README.md');
-  const metaRaw = await readRepoFile(origin, REPO_METADATA_FILE);
+async function readSourceDescriptor(provider: StorageProvider): Promise<SourceDescriptor> {
+  const readme = await readRepoFile(provider, 'README.md');
+  const metaRaw = await readRepoFile(provider, REPO_METADATA_FILE);
   const parsed = metaRaw ? YAML.parse(metaRaw) : null;
   const meta = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
 
@@ -105,40 +104,55 @@ async function getRepositories(
   const { idMap } = await syncContentFromStorage();
   const cards = buildActivityCards(idMap);
 
-  // Group launchables by the origin they came from (their provenance source).
-  const byOrigin = new Map<string, z.infer<typeof LaunchableSchema>[]>();
+  // Group cards by the origin they came from (their provenance source). The
+  // launchable wire objects are built per-repo below, where that repo's
+  // provider is in hand to derive each one's forge link.
+  const cardsByOrigin = new Map<string, ActivityCard[]>();
   for (const card of Object.values(cards)) {
-    const launchable: z.infer<typeof LaunchableSchema> = {
-      id: card.id,
-      role: card.role,      // derived from the declaration (buildActivityCards)
-      status: card.status,  // draft vs usable
-      title: pickTitle(card),
-      type: card.tag,
-      path: card.editPath,
-    };
-    if (includeSet.has('launchables.description')) {
-      launchable.description = Object.values(card.description)[0] || '';
-    }
-    const list = byOrigin.get(card.editSource) ?? [];
-    list.push(launchable);
-    byOrigin.set(card.editSource, list);
+    const list = cardsByOrigin.get(card.editSource) ?? [];
+    list.push(card);
+    cardsByOrigin.set(card.editSource, list);
   }
   // TODO: cards whose origin isn't a configured source (e.g. /docs/ blocks) are
   // dropped here. Decide how to surface them (see the SearchPanel HACK/TODO).
 
   const repositories = await Promise.all(repos.map(async (repo) => {
-    const all = byOrigin.get(String(repo.origin)) ?? [];
+    const origin = String(repo.origin);
+    // One provider per repo: the editing handle for this origin. Used both for
+    // the repo descriptor (README/lo.yaml) and for forge links — which it
+    // derives from the origin, returning null when the source has no web view.
+    const provider = await readProvider(origin);
+    const descriptor = await readSourceDescriptor(provider);
+
+    const toLaunchable = (card: ActivityCard): z.infer<typeof LaunchableSchema> => {
+      const launchable: z.infer<typeof LaunchableSchema> = {
+        id: card.id,
+        role: card.role,      // derived from the declaration (buildActivityCards)
+        status: card.status,  // draft vs usable
+        title: pickTitle(card),
+        type: card.tag,
+        index: card.index,
+        path: card.editPath,
+        forgeLink: provider.forgeLink?.(toOlxRelativePath(card.editPath)) ?? null,
+      };
+      if (includeSet.has('launchables.description')) {
+        launchable.description = Object.values(card.description)[0] || '';
+      }
+      return launchable;
+    };
+
+    const all = (cardsByOrigin.get(origin) ?? []).map(toLaunchable);
     // Internal blocks (building blocks composed into others) are not public
-    // learning objects — they're kept out of the launchable lists/counts. The
-    // draft vs usable split applies to the public (non-internal) ones.
+    // learning objects — kept out of the launchable lists/counts, surfaced in
+    // their own `internal` list. The draft vs usable split applies to the
+    // public (non-internal) ones.
     const internal = all.filter(l => l.role === 'internal');
     const publicLaunchables = all.filter(l => l.role !== 'internal');
     const usable = publicLaunchables.filter(l => l.status === 'usable');
     const drafts = publicLaunchables.filter(l => l.status === 'draft');
-    const descriptor = await readSourceDescriptor(String(repo.origin));
 
     const entry: z.infer<typeof RepositorySchema> = {
-      origin: String(repo.origin),
+      origin,
       label: descriptor.title || repo.label,   // manifest title wins over the config label
       writable: repo.writable,
       description: descriptor.description ?? null,
@@ -147,6 +161,8 @@ async function getRepositories(
       draftCount: drafts.length,
       internalCount: internal.length,
       launchables: includeDrafts ? publicLaunchables : usable,
+      internal,
+      forgeLink: provider.forgeLink?.() ?? null,
     };
     // README is a git convention — real now.
     if (includeSet.has('readme')) entry.readme = descriptor.readme ?? null;

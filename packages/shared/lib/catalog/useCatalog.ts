@@ -2,8 +2,7 @@
 // packages/shared/lib/catalog/useCatalog.ts
 //
 // useCatalog — consume the get_repositories tool. The CONSUME end paired with
-// catalogTool.ts (advertise); both share catalogSchema.ts. See
-// docs/mcp-authoring.md.
+// tool.ts (advertise); both share schema.ts. See docs/mcp-authoring.md.
 
 import { useMCP } from '@/lib/mcp/useMCP';
 import {

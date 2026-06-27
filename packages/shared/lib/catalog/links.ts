@@ -3,9 +3,14 @@
 // Destinations the author catalog links to. Studio is origin-scoped (?source=
 // picks the repo, ?file= opens a file); preview renders a launchable by id.
 
-export function studioHref(origin: string, path?: string): string {
-  const file = path ? `&file=${encodeURIComponent(path)}` : '';
-  return `/studio?source=${encodeURIComponent(origin)}${file}`;
+export function studioHref(
+  origin: string,
+  opts: { file?: string; tab?: 'chat' | 'docs' | 'search' | 'files' | 'data' } = {},
+): string {
+  const params = new URLSearchParams({ source: origin });
+  if (opts.file) params.set('file', opts.file);
+  if (opts.tab) params.set('tab', opts.tab);
+  return `/studio?${params.toString()}`;
 }
 
 export function previewHref(id: string): string {

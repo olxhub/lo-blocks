@@ -126,7 +126,13 @@ function StudioPageContent() {
   const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio' });
 
   // TODO: Consider moving UI state to redux for analytics
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
+  // Initial sidebar tab honors ?tab= (e.g. the catalog opens a repo on 'docs');
+  // anything unrecognized falls back to 'chat'.
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>(() => {
+    const tab = searchParams.get('tab');
+    const tabs: SidebarTab[] = ['chat', 'docs', 'search', 'files', 'data'];
+    return tabs.includes(tab as SidebarTab) ? (tab as SidebarTab) : 'chat';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   // The single new-file dialog, opened from the Files panel "+" and the no-file
