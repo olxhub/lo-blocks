@@ -35,7 +35,7 @@ In this session, you will:
 - Review **progress monitoring** data to evaluate how the intervention is going.
 - Learn about **implementation fidelity** and why it matters.
 - Identify areas where the plan was not followed correctly.
-- Use AI to brainstorm **modifications** to improve adherence.
+- Use AI to brainstorm **modifications** to improve implementation fidelity.
 - Reflect on the overall experience.
 
 Let's check in with Annie to see how things went.
@@ -45,7 +45,7 @@ Let's check in with Annie to see how things went.
 
 <HH> ============= Screen: Progress graph + predict fidelity ===== </HH>
 
-<IntakeGate id="fba3_predict_fidelity" ready="@fba3_interpretation_confidence.value">
+<IntakeGate id="fba3_predict_fidelity" ready="@fba3_week1_interpretation.value.length > 10 && @fba3_interpretation_confidence.value">
 
   <!-- Front: see the data, predict what went wrong -->
   <Vertical>
@@ -116,12 +116,14 @@ The data shows that something isn't working. **Before reading the explanation, l
     <TextArea id="fba3_week1_interpretation" rows="3"
       placeholder="Looking at the graph, I think the problem might be..." />
 
+    <Vertical when="@fba3_week1_interpretation.value.length > 10">
     <Markdown>Once you've written your interpretation, **select a confidence level below to see what actually happened.** (You won't be able to change your answer after selecting.)</Markdown>
     <ChoiceInput id="fba3_interpretation_confidence">
       <Key value="very">Very confident — I'm sure about this</Key>
       <Key value="somewhat">Somewhat confident — I think so but I'm not sure</Key>
       <Key value="guess">Just guessing</Key>
     </ChoiceInput>
+    </Vertical>
   </Vertical>
 
   <!-- Back: show interpretation alongside the fidelity framework -->
@@ -130,7 +132,8 @@ The data shows that something isn't working. **Before reading the explanation, l
 ## Your Interpretation
 
 {{text2markdown(@fba3_week1_interpretation.value)}}
-
+    </Markdown>
+    <Markdown when="!@fba3_completion_checkbox.value">
 ---
 
 ## What Actually Happened
@@ -166,23 +169,25 @@ Implementation fidelity refers to how accurately and consistently a behavior pla
 <CapaProblem id="fba3_fidelity_matching_problem" title="Match the Fidelity Aspects">
 <Markdown>
 ## Match Each Fidelity Aspect to Its Key Question
+
+_You can change your answers and recheck if needed._
 </Markdown>
 <MatchingGrader id="fba3_fidelity_matching_grader">
   <MatchingInput id="fba3_fidelity_matching">
     <Markdown id="fba3_match_adherence">Adherence</Markdown>
-    <Markdown id="fba3_match_adherence_def">Are all steps of the plan followed as written?</Markdown>
+    <Markdown id="fba3_match_adherence_def" initialPosition="4">Are all steps of the plan followed as written?</Markdown>
 
     <Markdown id="fba3_match_dosage">Dosage</Markdown>
-    <Markdown id="fba3_match_dosage_def">Is the plan used for the correct amount of time/frequency?</Markdown>
+    <Markdown id="fba3_match_dosage_def" initialPosition="1">Is the plan used for the correct amount of time/frequency?</Markdown>
 
     <Markdown id="fba3_match_quality">Quality of Delivery</Markdown>
-    <Markdown id="fba3_match_quality_def">Are strategies implemented with the intended tone/approach?</Markdown>
+    <Markdown id="fba3_match_quality_def" initialPosition="5">Are strategies implemented with the intended tone/approach?</Markdown>
 
     <Markdown id="fba3_match_responsive">Participant Responsiveness</Markdown>
-    <Markdown id="fba3_match_responsive_def">Is the child exposed to and engaged with the intervention?</Markdown>
+    <Markdown id="fba3_match_responsive_def" initialPosition="3">Is the child exposed to and engaged with the intervention?</Markdown>
 
     <Markdown id="fba3_match_differentiation">Program Differentiation</Markdown>
-    <Markdown id="fba3_match_differentiation_def">Are non-plan strategies avoided during implementation?</Markdown>
+    <Markdown id="fba3_match_differentiation_def" initialPosition="2">Are non-plan strategies avoided during implementation?</Markdown>
   </MatchingInput>
 </MatchingGrader>
 </CapaProblem>
@@ -238,7 +243,7 @@ The main issue is **adherence** — Annie's roommate is not following all the st
 
 <Vertical id="fba3_ai_adherence">
 <Markdown>
-## Ask AI: Improving Adherence
+## Use AI: Improving Adherence
 
 In the box below, type out a prompt that will help us improve adherence to an intervention plan.
 </Markdown>
@@ -247,14 +252,16 @@ In the box below, type out a prompt that will help us improve adherence to an in
 
 <LLMFeedback id="fba3_ai_adherence_response" render="markdown" />
 
-<ActionButton id="fba3_ai_adherence_btn" label="Ask AI">
+<ActionButton id="fba3_ai_adherence_btn" label="Use AI">
 <LLMAction id="fba3_ai_adherence_action" target="fba3_ai_adherence_response">
-If the following question is about improving adherence to a behavior intervention
+If the student prompt that follows is about improving adherence to a behavior intervention
 plan — particularly helping a caregiver consistently follow all steps of a bedtime
 intervention plan for a child with escape-maintained behavior — provide practical,
-actionable suggestions. Otherwise, point out the prompt is not relevant and stop.
+actionable suggestions, using Markdown to format your reply with bolded headers
+and organized lists. Otherwise, point out the prompt is not relevant and stop.
+
+Student Prompt:
 <Ref id="fba3_ref_adherence_prompt" target="fba3_ai_adherence_prompt" />
-Use Markdown to format your reply with bolded headers and organized lists.
 </LLMAction>
 </ActionButton>
 </Vertical>
@@ -325,6 +332,21 @@ _Based on AI suggestions and course materials, here are some modifications that 
 Of these modifications, which ones do you think we should add to help Annie's roommate improve her adherence? **Pick up to 2.**
 </Markdown>
 
+<HH>
+There is something funky about this.
+
+(a) This is basically a survey question, which means that correct/incorrect grading is
+not really appropriate. Thus, the language "Check" on the button and the green check mark next to
+it after it's pushed don't make much sense, and neither does the green highlighting and
+check mark that appear on the problem title.
+
+(b) You suggested that one solution would be to rename the button "submit" in certain cases.
+That might work, but wouldn't resolve the weirdness of the checkmark and green highlighting
+on the title, which people are going to interpret as correctness feedback I'm pretty sure regardless.
+
+(c) Would it be possible instead perhaps to create a SurveyGrader that suppresses these behaviors and has
+a submit button instead of a check button?
+</HH>
 <CapaProblem id="fba3_modification_problem" title="Choose Modifications" showanswer="never">
 <CorrectGrader>
 <CheckboxInput id="fba3_modification_choices">
@@ -359,7 +381,6 @@ possible.
 </Markdown>
 <TextArea id="fba3_revision_email_text" rows="8"
   placeholder="Dear Roommate, besides using the checklists, here's something else you can do that will help..." />
-<LLMFeedback id="fba3_revision_feedback" render="markdown" />
 <ActionButton id="fba3_revision_btn" label="Get AI Feedback" dependsOn="@fba3_revision_email_text.value">
 <LLMAction target="fba3_revision_feedback"><![CDATA[
 BACKGROUND:
@@ -391,9 +412,11 @@ are original -- that is, present neither in the checklists nor in the AI respons
 Finally, evaluate the advice provided in the student email for consistency with what is
 known about using operant conditioning to treat sleep refusal and with what is known about
 effective ways to improve adherence to an intervention, focusing on whether the proposed
-plan is sound and effective.
+plan is sound and effective. Do not provide any suggestions about other advice the student
+could give.
 ]]></LLMAction>
 </ActionButton>
+<LLMFeedback id="fba3_revision_feedback" render="markdown" />
 </Vertical>
 <Vertical id="fba3_revision_ai_ref" title="AI Suggestions">
 <Use ref="fba3_ai_adherence_response" />
@@ -415,9 +438,12 @@ plan is sound and effective.
 
 Based on your selected modifications, here is the updated plan:
 </Markdown>
-
-<LLMFeedback id="fba3_updated_plan_response" render="markdown" />
-
+<HH>
+In the action button and collapsible that follow I repeat the same textual content
+twice. That is because I couldn't figure out how to create a text as XML content
+and then convert it into raw text for LLM use (or vice versa). There must be a function that does that?
+I hope? Please fix!
+</HH>
 <ActionButton id="fba3_generate_plan_btn" label="Generate Updated Plan">
 <LLMAction id="fba3_generate_plan_action" target="fba3_updated_plan_response"><![CDATA[
 You are helping a group of psychology students update a behavior modification plan for a child named Johnny who has escape-maintained bedtime behavior. His babysitter has been struggling with adherence to the original plan.
@@ -447,7 +473,7 @@ Here is the ORIGINAL escape-focused behavior modification plan:
 
 The student selected these modifications to improve the babysitter's adherence:
 ]]>
-<Ref id="fba3_ref_modifications" target="fba3_modification_choices" />
+<Ref id="fba3_ref_modifications" target="fba3_modification_problem" />
 <![CDATA[
 The student's reasoning for choosing these modifications:
 ]]>
@@ -469,6 +495,61 @@ Format the plan with these sections:
 - Data Collection
 ]]></LLMAction>
 </ActionButton>
+<Collapsible id="fba3_final_prompt_text" title="Lin's Final Prompt">
+<Vertical>
+<Markdown>
+You are helping a group of psychology students update a behavior modification plan for a child named Johnny who has escape-maintained bedtime behavior. His babysitter has been struggling with adherence to the original plan.
+
+Here is the ORIGINAL escape-focused behavior modification plan:
+
+**Target Behavior:** Johnny does not go to bed on time
+**Function of Behavior:** Escape
+**Behavior Goal:** Johnny will go to bed on time when told, without running away, for 4 out of 5 bedtimes over a 2-week period
+
+**Antecedent Strategies:**
+- Create a predictable bedtime routine with a visual schedule
+- Use a timer to signal when each routine step begins and ends
+- Give 10-minute and 5-minute advance warnings
+- Incorporate a brief preferred activity into the routine
+- Allow limited choices within the routine
+
+**Consequence Strategies:**
+- Provide positive reinforcement (sticker chart, praise) for on-time bedtime
+- Ignore escape behaviors — do not chase or engage
+- Use a "bedtime pass" for one approved brief delay per night
+- Provide brief positive attention when Johnny stays in bed
+
+**Data Collection:**
+- Track whether Johnny goes to bed on time each night for 2 weeks
+- Note any modifications or deviations from the plan
+
+The student selected these modifications to improve the babysitter's adherence:
+</Markdown>
+<Use id="fba3_ref_modifications" ref="fba3_modification_problem" />
+<Markdown>
+The student's reasoning for choosing these modifications:
+</Markdown>
+<Ref id="fba3_ref_mod_explanation" target="fba3_modification_explanation" />
+<Markdown>
+Now generate an UPDATED plan that:
+1. Keeps all the original antecedent and consequence strategies
+2. Incorporates the student's selected modifications as a new "Adherence Supports" section
+3. Updates the Data Collection section to include fidelity tracking
+4. Uses clear Markdown formatting with bold headers and bullet points
+5. Is specific and actionable — tailor the adherence supports to Johnny's bedtime scenario
+6. Keeps the plan concise (no more than ~300 words)
+Make absolutely sure that you keep the plan concise!!!!
+
+Format the plan with these sections:
+- Target Behavior / Function / Goal (brief header)
+- Antecedent Strategies
+- Consequence Strategies
+- New Adherence Supports (based on student's selections)
+- Data Collection
+</Markdown>
+</Vertical>
+</Collapsible>
+<LLMFeedback id="fba3_updated_plan_response" render="markdown" />
 </Vertical>
 
 
