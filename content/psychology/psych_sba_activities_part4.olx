@@ -169,7 +169,7 @@ Annie texted her roommate to find out exactly where things went wrong:
           <Distractor id="fidelity_d4">Program Differentiation</Distractor>
         </ChoiceInput>
       </KeyGrader>
-      <Explanation showWhen="answered"><Markdown id="answered_md">
+      <Explanation showWhen="correct"><Markdown id="answered_md">
 The roommate is struggling with **adherence** - she's forgetting to follow the steps of the plan as written (forgetting timers, warnings, and rewards; falling into old patterns of negotiating).
       </Markdown></Explanation>
     </CapaProblem>

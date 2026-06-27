@@ -65,9 +65,9 @@ Lin: That looks a lot better!
 
 Annie: It does indeed!
 
-::ai_modifications2 [display=target:psych_sba_sidebar4 label="Ask AI: tailored modifications"]
-
 Lin: Let's go ahead and find out what kind of response this gives us from the AI.
+
+::ai_modifications2 [display=target:psych_sba_sidebar4 label="Ask AI: tailored modifications"]
 
 --- wait @modifications_ai_response2.value ---
 
