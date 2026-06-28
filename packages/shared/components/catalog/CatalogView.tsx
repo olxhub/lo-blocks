@@ -5,15 +5,19 @@
 // launchables, read from the get_repositories MCP tool (useCatalog). Styled with
 // the platform's tokens/primitives — the look-and-feel follows the /ux/ mock,
 // not its CSS. See docs/ux.md + docs/mcp-authoring.md.
+//
+// All state — catalog data and filter controls — lives in Redux.
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
+import { useFieldState } from '@/lib/state/redux';
+import { system } from '@/lib/state/settings';
 import { useCatalog } from '@/lib/catalog/useCatalog';
 import {
-  initialCatalogFilters, filterRepos, repoScope,
-  type CatalogFilters, type Sort,
+  filterRepos, repoScope,
+  type CatalogFilters, type Scope, type Sort,
 } from '@/lib/catalog/filter';
 import type { Repository } from '@/lib/catalog/schema';
 import CatalogSidebar from './CatalogSidebar';
@@ -41,7 +45,14 @@ function Section({ title, caption, repos, wide = false }: {
 export default function CatalogView() {
   // Request launchable descriptions so rows have summaries.
   const { repositories, loading, error } = useCatalog(['launchables.description']);
-  const [filters, setFilters] = useState<CatalogFilters>(initialCatalogFilters);
+
+  // Filter state — system-scope fields, read/written via useFieldState.
+  const [scope, setScope] = useFieldState(null, system.catalogScope, 'all' as Scope, { tag: 'catalog' });
+  const [query, setQuery] = useFieldState(null, system.catalogQuery, '', { tag: 'catalog' });
+  const [sort, setSort] = useFieldState(null, system.catalogSort, 'name' as Sort, { tag: 'catalog' });
+  const filters: CatalogFilters = useMemo(() => ({ scope, query, sort, types: [] }), [scope, query, sort]);
+
+  // Sidebar collapse is a widget concern, not application state.
   const [collapsed, setCollapsed] = useState(false);
 
   if (error) return <div className="p-8 text-error">Failed to load catalog: {error}</div>;
@@ -62,7 +73,7 @@ export default function CatalogView() {
         chrome
         label="Catalog filters"
       >
-        <CatalogSidebar repos={repositories} filters={filters} onChange={setFilters} />
+        <CatalogSidebar repos={repositories} scope={scope} onScopeChange={setScope} />
       </ResizableSidebar>
 
       <main className="flex-1 overflow-auto flex flex-col">
@@ -74,15 +85,15 @@ export default function CatalogView() {
                 className="lo-control"
                 type="search"
                 placeholder="Search…"
-                value={filters.query}
-                onChange={e => setFilters({ ...filters, query: e.target.value })}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
               />
               <label className="flex items-center gap-1.5 text-sm text-secondary whitespace-nowrap">
                 Sort
                 <select
                   className="lo-control"
-                  value={filters.sort}
-                  onChange={e => setFilters({ ...filters, sort: e.target.value as Sort })}
+                  value={sort}
+                  onChange={e => setSort(e.target.value as Sort)}
                 >
                   <option value="name">Name (A–Z)</option>
                   <option value="activities">Most activities</option>
@@ -94,15 +105,15 @@ export default function CatalogView() {
           </header>
 
           <div className="flex flex-col gap-10 pb-12 flex-1">
-            {filters.query.trim() ? (
+            {query.trim() ? (
               <SearchResults repos={repositories} filters={filters} />
             ) : (
               <>
                 {shown.length === 0 && <p className="text-dimmed py-8">Nothing matches those filters.</p>}
-                {filters.scope !== 'community' && mine.length > 0 && (
+                {scope !== 'community' && mine.length > 0 && (
                   <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide />
                 )}
-                {filters.scope !== 'mine' && community.length > 0 && (
+                {scope !== 'mine' && community.length > 0 && (
                   <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} />
                 )}
               </>

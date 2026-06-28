@@ -7,7 +7,7 @@
 // richer metadata; faceting on the raw block tag wasn't useful.)
 
 import type { Repository } from '@/lib/catalog/schema';
-import { scopeCounts, type CatalogFilters, type Scope } from '@/lib/catalog/filter';
+import { scopeCounts, type Scope } from '@/lib/catalog/filter';
 
 const SCOPES: { key: Scope; label: string }[] = [
   { key: 'all', label: 'Everything' },
@@ -15,10 +15,10 @@ const SCOPES: { key: Scope; label: string }[] = [
   { key: 'community', label: 'Community' },
 ];
 
-export default function CatalogSidebar({ repos, filters, onChange }: {
+export default function CatalogSidebar({ repos, scope, onScopeChange }: {
   repos: Repository[];
-  filters: CatalogFilters;
-  onChange: (next: CatalogFilters) => void;
+  scope: Scope;
+  onScopeChange: (next: Scope) => void;
 }) {
   const counts = scopeCounts(repos);
 
@@ -31,10 +31,10 @@ export default function CatalogSidebar({ repos, filters, onChange }: {
             <button
               key={s.key}
               role="radio"
-              aria-checked={filters.scope === s.key}
-              onClick={() => onChange({ ...filters, scope: s.key })}
+              aria-checked={scope === s.key}
+              onClick={() => onScopeChange(s.key)}
               className={`flex items-center justify-between px-3 py-1.5 rounded text-sm transition-colors ${
-                filters.scope === s.key ? 'bg-accent-subtle text-accent font-medium' : 'text-secondary hover:bg-muted'
+                scope === s.key ? 'bg-accent-subtle text-accent font-medium' : 'text-secondary hover:bg-muted'
               }`}
             >
               <span>{s.label}</span>

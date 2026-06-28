@@ -44,6 +44,10 @@ const systemFields = fields([
   // Written by reduxLogger.handleAuth; read by anything needing user identity
   // (persistence keying, display, per-user content selection, etc.).
   { name: 'currentUser', event: 'SET_CURRENT_USER', scope: scopes.system },
+  // Catalog page filter state — scope (all/mine/community), search query, sort order.
+  { name: 'catalogScope', event: 'SET_CATALOG_SCOPE', scope: scopes.system },
+  { name: 'catalogQuery', event: 'SET_CATALOG_QUERY', scope: scopes.system },
+  { name: 'catalogSort', event: 'SET_CATALOG_SORT', scope: scopes.system },
 ]);
 
 export const system = systemFields;
