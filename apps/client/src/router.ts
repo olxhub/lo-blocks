@@ -9,7 +9,7 @@ import { asStateKey, validateStateKey } from '@/lib/types/id-grammar';
 export type Route =
   | { page: 'preview'; id: StateKey }
   | { page: 'catalog' }
-  | { page: 'notFound'; path: string; reason?: string };
+  | { page: 'notFound'; path: string; reason?: string; detail?: string };
 
 export function resolveRoute(pathname: string): Route {
   // /catalog — the author front page (the new `/`, parallel during migration)
@@ -25,7 +25,12 @@ export function resolveRoute(pathname: string): Route {
     // grammar's explanation rather than throwing out of boot().
     const valid = validateStateKey(raw);
     if (valid !== true) {
-      return { page: 'notFound', path: pathname, reason: valid };
+      return {
+        page: 'notFound',
+        path: pathname,
+        reason: `This doesn't look like a valid activity address. Check the link and try again.`,
+        detail: valid,
+      };
     }
     return { page: 'preview', id: asStateKey(raw) };
   }

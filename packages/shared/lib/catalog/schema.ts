@@ -4,8 +4,16 @@
 // no node imports, so BOTH ends import it: tool.ts (the advertise/handler
 // side, server) and useCatalog.ts (the consume/hook side, client). Pairing the
 // two ends on one schema is the point. See docs/mcp-authoring.md.
+//
+// ForgeLink is defined once in address.ts (the domain type) and re-exported
+// here; the Zod schema mirrors it for wire validation. One source of truth.
 
 import { z } from 'zod';
+import type { ForgeLink, Forge } from '@/lib/types/address';
+
+// Re-export so consumers that only need the type can import from schema.ts
+// (the catalog's public surface) without reaching into address.ts.
+export type { ForgeLink, Forge };
 
 /** Fields beyond the default set. Heavy per-repo fields are opt-in so the
  *  default response stays small (the get_blocks anti-spam discipline). */
@@ -36,11 +44,11 @@ export const GetRepositoriesInput = z.object({
   // TODO(2.0): offset vs a pagination cursor/key?
 });
 
-/** A "view on the forge" link — where, plus how to present it. `forge` is a
- *  serializable identity the UI maps to an icon (a component can't cross the
- *  wire); null upstream means no web view is available. Derived from the
- *  origin by the source provider (StorageProvider.forgeLink). */
-export const ForgeLinkSchema = z.object({
+/** Zod wire schema for ForgeLink (the domain type lives in address.ts).
+ *  `forge` is a serializable identity the UI maps to an icon (a component
+ *  can't cross the wire); null upstream means no web view is available.
+ *  Derived from the origin by the source provider (StorageProvider.forgeLink). */
+export const ForgeLinkSchema: z.ZodType<ForgeLink> = z.object({
   url: z.string(),
   forge: z.enum(['github', 'gitlab']),
   label: z.string().describe('Action label, e.g. "View on GitHub"'),
@@ -93,7 +101,6 @@ export const GetRepositoriesOutput = z.object({
   total: z.number().describe('Total repositories (before pagination, once that exists)'),
 });
 
-export type ForgeLink = z.infer<typeof ForgeLinkSchema>;
 export type Launchable = z.infer<typeof LaunchableSchema>;
 export type Repository = z.infer<typeof RepositorySchema>;
 export type GetRepositoriesResult = z.infer<typeof GetRepositoriesOutput>;

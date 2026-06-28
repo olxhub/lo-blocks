@@ -10,6 +10,10 @@ import { variantMapKeys } from '../types/i18n';
 
 export type VariantPicker = (availableVariants: ContentVariant[]) => ContentVariant;
 
+/** Recognized values for the `launchable` OLX attribute. Anything not in this
+ *  set is a content error — fail fast so authors notice typos. */
+const LAUNCHABLE_VALUES = new Set(['true', 'course', 'internal', 'other']);
+
 export interface ActivityCard {
   id: string;
   category: string;
@@ -45,12 +49,21 @@ export function buildActivityCards(
 ): Record<string, ActivityCard> {
   return Object.fromEntries(
     Object.entries(idMap)
-      .filter(([_, variantMap]: [string, any]) => {
-        // Any non-empty `launchable` value declares a role (true/course/
-        // internal/other) — not just "true". Mirrors parseIdMap's truthy test.
-        return Object.values(variantMap).some((olxJson: any) =>
-          !!olxJson.attributes?.launchable
-        );
+      .filter(([id, variantMap]: [string, any]) => {
+        // A `launchable` attribute declares a role. Only recognized values are
+        // accepted; anything else (typo, unsupported format) fails fast so the
+        // author notices immediately.
+        return Object.values(variantMap).some((olxJson: any) => {
+          const val = olxJson.attributes?.launchable;
+          if (!val) return false;
+          if (!LAUNCHABLE_VALUES.has(val)) {
+            throw new Error(
+              `Unrecognized launchable="${val}" on block "${id}". ` +
+              `Supported values: ${[...LAUNCHABLE_VALUES].join(', ')}.`
+            );
+          }
+          return true;
+        });
       })
       .map(([id, variantMap]: [string, any]) => {
         const availableVariants = variantMapKeys(variantMap);
@@ -61,7 +74,7 @@ export function buildActivityCards(
 
         for (const variant of availableVariants) {
           const olxJson = variantMap[variant];
-          if (olxJson.attributes?.launchable) {
+          if (LAUNCHABLE_VALUES.has(olxJson.attributes?.launchable)) {
             title[variant] = olxJson.attributes?.title || id;
             description[variant] = olxJson.description || '';
             availableVariantsMap[variant] = olxJson.generated ? 'bestEffort' : 'supported';

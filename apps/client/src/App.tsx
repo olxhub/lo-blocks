@@ -41,6 +41,12 @@ export default function App({ route }: { route: Route }) {
               {route.reason}
             </p>
           )}
+          {route.detail && (
+            <details style={{ marginTop: '0.5rem', color: 'var(--lo-text-secondary, #64748b)', fontSize: '0.85rem' }}>
+              <summary>Technical details</summary>
+              <code style={{ display: 'block', marginTop: '0.25rem' }}>{route.detail}</code>
+            </details>
+          )}
         </div>
       );
       break;
