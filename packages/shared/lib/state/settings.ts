@@ -48,6 +48,9 @@ const systemFields = fields([
   { name: 'catalogScope', event: 'SET_CATALOG_SCOPE', scope: scopes.system },
   { name: 'catalogQuery', event: 'SET_CATALOG_QUERY', scope: scopes.system },
   { name: 'catalogSort', event: 'SET_CATALOG_SORT', scope: scopes.system },
+  // Repo card expand/collapse state — keyed by repo origin via stateKey.
+  { name: 'repoExpanded', event: 'SET_REPO_EXPANDED', scope: scopes.system },
+  { name: 'repoShowBlocks', event: 'SET_REPO_SHOW_BLOCKS', scope: scopes.system },
 ]);
 
 export const system = systemFields;

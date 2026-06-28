@@ -20,6 +20,7 @@
 
 import { updateResponseReducer } from './state/store';
 import { initialOlxJsonState } from './state/olxjson';
+import { initialCatalogState, type CatalogState } from './state/catalog';
 
 // =============================================================================
 // Types
@@ -37,6 +38,7 @@ export interface AppState {
   storage: Record<string, Record<string, any>>;
   olxjson: Record<string, Record<string, any>>;
   chat: Record<string, { messages: any[]; status: string }>;
+  catalog: CatalogState;
 }
 
 /**
@@ -110,6 +112,7 @@ export const initialReplayState: AppState = {
   storage: {},
   olxjson: initialOlxJsonState,
   chat: {},
+  catalog: initialCatalogState,
 };
 
 /**

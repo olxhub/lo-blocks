@@ -12,35 +12,115 @@
 //   All activities with descriptions and hover actions, building blocks
 //   section, footer with metadata and "+ New file".
 
-import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import type { Repository } from '@/lib/catalog/schema';
 import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
+import { useFieldState } from '@/lib/state/redux';
+import { system } from '@/lib/state/settings';
+import { asStateKey } from '@/lib/types/id-grammar';
 import ScenarioGroup from './ScenarioGroup';
 import ActivityRow from './ActivityRow';
 import ForgeLinkIcon from './ForgeLinkIcon';
 
 const COMPACT_LIMIT = 5;
 
-/** Collect a flat ordered list of all activities (courses + activities) across
- *  all scenario groups, for compact title rendering. */
-function flatActivities(groups: Group[]) {
-  const out: { title: string; id: string; path: string; description?: string; prominent?: boolean }[] = [];
+/** Readable label for a scenario with no Course — last namespace segment,
+ *  title-cased ("…psych.defiance" → "Defiance"). Mirrors ScenarioGroup.tsx. */
+function scenarioLabel(namespace: string): string {
+  const leaf = namespace.slice(namespace.lastIndexOf('.') + 1);
+  return leaf.charAt(0).toUpperCase() + leaf.slice(1);
+}
+
+type CompactItem =
+  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string }
+  | { kind: 'activity'; title: string; id: string; path: string; description?: string };
+
+/** Collect a flat ordered list of headings + activities across all scenario
+ *  groups for compact title rendering, preserving group structure. */
+function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
+  const out: CompactItem[] = [];
   for (const g of groups) {
-    if (g.course) out.push({ title: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, prominent: true });
-    for (const a of g.activities) out.push({ title: a.title, id: a.id, path: a.path, description: a.description });
+    // For flat repos (single namespace, no Course) skip the heading.
+    if (!isFlat) {
+      if (g.course) {
+        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description });
+      } else {
+        out.push({ kind: 'heading', label: scenarioLabel(g.namespace) });
+      }
+    }
+    for (const a of g.activities) {
+      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description });
+    }
   }
   return out;
 }
 
+/** Count only launchable activities (not headings) in a CompactItem list. */
+function countActivities(items: CompactItem[]): number {
+  return items.filter(i => i.kind === 'activity').length;
+}
+
+/** Render a compact list of items with a budget of `limit` activities.
+ *  Headings are always shown (don't count against the budget); activities
+ *  beyond the budget are omitted. */
+function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: number; repo: Repository }) {
+  let activityCount = 0;
+  const visible: CompactItem[] = [];
+  for (const item of items) {
+    if (item.kind === 'heading') {
+      visible.push(item);
+    } else {
+      if (activityCount >= limit) break;
+      visible.push(item);
+      activityCount++;
+    }
+  }
+  return (
+    <ul className="flex flex-col gap-1">
+      {visible.map((item, i) =>
+        item.kind === 'heading' ? (
+          <li key={item.id ?? `heading-${i}`} className="text-sm font-semibold text-secondary pt-1 first:pt-0">
+            {item.id ? (
+              <a href={previewHref(item.id)} className="hover:text-accent" title={item.description || undefined}>
+                {item.label}
+              </a>
+            ) : (
+              item.label
+            )}
+          </li>
+        ) : (
+          <li key={item.id} className="group flex items-baseline gap-2 pl-3">
+            <a
+              href={previewHref(item.id)}
+              className="flex-1 min-w-0 text-sm font-medium text-foreground hover:text-accent"
+              title={item.description || undefined}
+            >
+              {item.title}
+            </a>
+            <a
+              className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+              href={studioHref(repo.origin, { file: item.path })}
+            >
+              {repo.writable ? 'Edit' : 'Open'}
+            </a>
+          </li>
+        )
+      )}
+    </ul>
+  );
+}
+
 export default function RepoCard({ repo, compact = true }: { repo: Repository; compact?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-  const [showBlocks, setShowBlocks] = useState(false);
+  // Expand/collapse state keyed by repo origin so each card remembers independently.
+  const originKey = asStateKey(repo.origin);
+  const [expanded, setExpanded] = useFieldState(null, system.repoExpanded, false, { stateKey: originKey, tag: 'catalog' });
+  const [showBlocks, setShowBlocks] = useFieldState(null, system.repoShowBlocks, false, { stateKey: originKey, tag: 'catalog' });
+
   const groups = groupByScenario(repo.launchables);
   const flat = groups.length <= 1 && !groups[0]?.course;
-  const allActivities = flatActivities(groups);
-  const totalCount = allActivities.length;
+  const items = compactItems(groups, flat);
+  const totalCount = countActivities(items);
   const overflows = compact && totalCount > COMPACT_LIMIT;
 
   // Show full activity listing when not compact, or when expanded inline.
@@ -78,26 +158,8 @@ export default function RepoCard({ repo, compact = true }: { repo: Repository; c
         )}
 
         {compact && !showFull && totalCount > 0 && (
-          /* Compact title list — Edit/Open link + title with description tooltip */
-          <ul className="flex flex-col gap-1">
-            {allActivities.slice(0, COMPACT_LIMIT).map(a => (
-              <li key={a.id} className="group flex items-baseline gap-2">
-                <a
-                  href={previewHref(a.id)}
-                  className={`flex-1 min-w-0 text-sm hover:text-accent ${a.prominent ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}
-                  title={a.description || undefined}
-                >
-                  {a.title}
-                </a>
-                <a
-                  className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                  href={studioHref(repo.origin, { file: a.path })}
-                >
-                  {repo.writable ? 'Edit' : 'Open'}
-                </a>
-              </li>
-            ))}
-          </ul>
+          /* Compact title list — headings + activity titles with budget */
+          <CompactList items={items} limit={COMPACT_LIMIT} repo={repo} />
         )}
 
         {showFull && totalCount > 0 && (
@@ -112,8 +174,8 @@ export default function RepoCard({ repo, compact = true }: { repo: Repository; c
       {compact && (overflows || expanded) && (
         <button
           className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground"
-          onClick={() => setExpanded(v => !v)}
-          aria-expanded={expanded}
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={!!expanded}
         >
           <ChevronRight size={14} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden />
           {expanded ? 'Collapse' : `… and ${totalCount - COMPACT_LIMIT} more`}
@@ -125,8 +187,8 @@ export default function RepoCard({ repo, compact = true }: { repo: Repository; c
         <div className="border-t border-border-subtle pt-2">
           <button
             className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground"
-            onClick={() => setShowBlocks(v => !v)}
-            aria-expanded={showBlocks}
+            onClick={() => setShowBlocks(!showBlocks)}
+            aria-expanded={!!showBlocks}
           >
             <ChevronRight size={14} className={`transition-transform ${showBlocks ? 'rotate-90' : ''}`} aria-hidden />
             Building blocks <span className="text-dimmed">{repo.internal.length}</span>
