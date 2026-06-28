@@ -1,12 +1,20 @@
 // apps/client/src/pages/CatalogPage.tsx
 //
 // The author front page (the new `/`, served at /catalog during migration).
-// All the UI is the shared CatalogView (packages/shared/components/catalog),
-// which reads the get_repositories MCP tool via useCatalog. This page is just
-// the route's entry point.
+// Renders the Catalog block through the standard block pipeline (RenderOLX).
+// All the UI lives in CatalogView (packages/shared/components/catalog),
+// wrapped as a block at blocks/navigation/Catalog.
 
-import CatalogView from '@/components/catalog/CatalogView';
+import RenderOLX from '@/components/common/RenderOLX';
+import { asContentNamespace, asStateKey } from '@/lib/types/id-grammar';
 
 export default function CatalogPage() {
-  return <CatalogView />;
+  return (
+    <RenderOLX
+      ns={asContentNamespace('system')}
+      id={asStateKey('system/catalog')}
+      inline='<Catalog id="catalog"/>'
+      eventContext="catalog"
+    />
+  );
 }
