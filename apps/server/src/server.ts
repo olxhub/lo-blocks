@@ -12,6 +12,7 @@
 //                 ├→ /api/translate → content translation (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
+//                 ├→ /repo/*        → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
 
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
@@ -42,7 +43,7 @@ const WS_PATH = '/wsapi/in/';
 // during the migration off Next.js; the live Next '/' is untouched. Its DATA
 // comes from the get_repositories MCP tool over /mcp (one transport) — there is
 // no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/catalog'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/catalog', '/repo/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -76,6 +77,7 @@ export async function startServer(
   // Add route patterns here as they migrate from Next.js.
   app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
   app.get('/catalog', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
+  app.get('/repo/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
 
   const honoHandler = getRequestListener(app.fetch);
 

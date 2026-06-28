@@ -21,3 +21,7 @@ export function previewHref(id: string): string {
   const encoded = id.split('/').map(encodeURIComponent).join('/');
   return `/preview/${encoded}`;
 }
+
+export function repoDetailHref(origin: string): string {
+  return `/repo/${encodeURIComponent(origin)}`;
+}

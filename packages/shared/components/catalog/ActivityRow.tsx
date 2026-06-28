@@ -33,7 +33,7 @@ export default function ActivityRow({ repo, launchable, showRepo = false, promin
         {showRepo && <p className="text-xs text-dimmed mt-0.5">in {repo.label}</p>}
       </div>
 
-      <div className="flex items-center gap-3 text-sm shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+      <div className="flex flex-col items-end gap-0.5 text-sm shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         <a className="text-secondary hover:text-foreground" href={studioHref(repo.origin, { file: launchable.path })}>
           {repo.writable ? 'Edit' : 'Open'}
         </a>

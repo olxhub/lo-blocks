@@ -141,3 +141,16 @@ export function selectCatalogRepositories(state: RootState, argsKey: string): Re
 export function useCatalogData(argsKey: string): CatalogEntry | undefined {
   return useSelector((state: RootState) => selectCatalogEntry(state, argsKey));
 }
+
+/** Find a repository by its origin across all loaded catalog entries. */
+export function useRepoByOrigin(origin: string): Repository | undefined {
+  return useSelector((state: RootState) => {
+    const catalog = state.application_state?.catalog;
+    if (!catalog) return undefined;
+    for (const entry of Object.values(catalog)) {
+      const match = entry.repositories.find(r => r.origin === origin);
+      if (match) return match;
+    }
+    return undefined;
+  });
+}

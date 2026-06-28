@@ -1,34 +1,65 @@
 'use client';
 // packages/shared/components/catalog/RepoCard.tsx
 //
-// A repository: identity, then its activities organized into scenarios (a
-// Course and its parts), then a collapsed drawer of building blocks. The title
-// opens the repo in Studio (docs tab); a forge link points at the source. The
-// raw origin is below-the-fold — a tooltip, not a banner.
+// A repository card. Two modes controlled by the `compact` prop:
+//
+// compact=true (default, catalog listing):
+//   Header + up to COMPACT_LIMIT activity titles (no descriptions, no actions,
+//   descriptions as browser tooltips). "… and N more" expands the activity list
+//   inline; repo title links to /repo/:origin for the full page.
+//
+// compact=false (full repo page):
+//   All activities with descriptions and hover actions, building blocks
+//   section, footer with metadata and "+ New file".
 
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import type { Repository } from '@/lib/catalog/schema';
-import { groupByScenario } from '@/lib/catalog/group';
-import { studioHref } from '@/lib/catalog/links';
+import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
+import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import ScenarioGroup from './ScenarioGroup';
 import ActivityRow from './ActivityRow';
 import ForgeLinkIcon from './ForgeLinkIcon';
 
-export default function RepoCard({ repo }: { repo: Repository }) {
+const COMPACT_LIMIT = 5;
+
+/** Collect a flat ordered list of all activities (courses + activities) across
+ *  all scenario groups, for compact title rendering. */
+function flatActivities(groups: Group[]) {
+  const out: { title: string; id: string; path: string; description?: string; prominent?: boolean }[] = [];
+  for (const g of groups) {
+    if (g.course) out.push({ title: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, prominent: true });
+    for (const a of g.activities) out.push({ title: a.title, id: a.id, path: a.path, description: a.description });
+  }
+  return out;
+}
+
+export default function RepoCard({ repo, compact = true }: { repo: Repository; compact?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
   const [showBlocks, setShowBlocks] = useState(false);
   const groups = groupByScenario(repo.launchables);
-  // A simple repo (one namespace, no Course) lists its activities flat — no
-  // scenario headers to add where there's nothing to distinguish.
   const flat = groups.length <= 1 && !groups[0]?.course;
+  const allActivities = flatActivities(groups);
+  const totalCount = allActivities.length;
+  const overflows = compact && totalCount > COMPACT_LIMIT;
+
+  // Show full activity listing when not compact, or when expanded inline.
+  const showFull = !compact || expanded;
 
   return (
     <article className="lo-panel flex flex-col gap-3 p-5 transition-shadow hover:shadow-md">
+      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-foreground truncate min-w-0">
-          <a className="hover:text-accent" href={studioHref(repo.origin, { tab: 'docs' })} title="Open in Studio">
-            {repo.label}
-          </a>
+          {compact ? (
+            <a className="hover:text-accent" href={repoDetailHref(repo.origin)}>
+              {repo.label}
+            </a>
+          ) : (
+            <a className="hover:text-accent" href={studioHref(repo.origin, { tab: 'docs' })} title="Open in Studio">
+              {repo.label}
+            </a>
+          )}
         </h3>
         <div className="flex items-center gap-2.5 shrink-0">
           {repo.forgeLink && <ForgeLinkIcon link={repo.forgeLink} />}
@@ -40,18 +71,57 @@ export default function RepoCard({ repo }: { repo: Repository }) {
 
       {repo.description && <p className="text-sm text-secondary">{repo.description}</p>}
 
+      {/* Activity listing */}
       <div className="flex flex-col gap-4">
-        {repo.launchables.length === 0 && (
+        {totalCount === 0 && (
           <p className="text-sm text-dimmed py-2">No usable activities yet.</p>
         )}
-        {flat
-          ? groups[0]?.activities.map(l => <ActivityRow key={l.id} repo={repo} launchable={l} />)
-          : groups.map(g => <ScenarioGroup key={g.namespace} repo={repo} group={g} />)}
+
+        {compact && !showFull && totalCount > 0 && (
+          /* Compact title list — Edit/Open link + title with description tooltip */
+          <ul className="flex flex-col gap-1">
+            {allActivities.slice(0, COMPACT_LIMIT).map(a => (
+              <li key={a.id} className="group flex items-baseline gap-2">
+                <a
+                  href={previewHref(a.id)}
+                  className={`flex-1 min-w-0 text-sm hover:text-accent ${a.prominent ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}
+                  title={a.description || undefined}
+                >
+                  {a.title}
+                </a>
+                <a
+                  className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                  href={studioHref(repo.origin, { file: a.path })}
+                >
+                  {repo.writable ? 'Edit' : 'Open'}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {showFull && totalCount > 0 && (
+          /* Full activity listing — ActivityRow/ScenarioGroup with descriptions and actions */
+          flat
+            ? groups[0]?.activities.map(l => <ActivityRow key={l.id} repo={repo} launchable={l} />)
+            : groups.map(g => <ScenarioGroup key={g.namespace} repo={repo} group={g} />)
+        )}
       </div>
 
-      {/* Building blocks: editable pieces composed into activities, never
-          launched on their own. Below the fold — collapsed by default. */}
-      {repo.internal.length > 0 && (
+      {/* Expand/collapse toggle — only in compact mode when there are overflow items */}
+      {compact && (overflows || expanded) && (
+        <button
+          className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground"
+          onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
+        >
+          <ChevronRight size={14} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden />
+          {expanded ? 'Collapse' : `… and ${totalCount - COMPACT_LIMIT} more`}
+        </button>
+      )}
+
+      {/* Building blocks — only in full mode */}
+      {!compact && repo.internal.length > 0 && (
         <div className="border-t border-border-subtle pt-2">
           <button
             className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground"
@@ -69,8 +139,8 @@ export default function RepoCard({ repo }: { repo: Repository }) {
         </div>
       )}
 
+      {/* Footer */}
       <div className="flex items-center justify-between gap-3 pt-1 mt-auto">
-        {/* Raw origin lives here as a tooltip — present for the curious, never a banner. */}
         <p className="lo-muted text-xs truncate" title={repo.origin}>
           {repo.launchableCount} activit{repo.launchableCount === 1 ? 'y' : 'ies'}
           {repo.draftCount > 0 && ` · +${repo.draftCount} draft${repo.draftCount === 1 ? '' : 's'}`}

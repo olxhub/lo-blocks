@@ -9,9 +9,16 @@ import { asStateKey, validateStateKey } from '@/lib/types/id-grammar';
 export type Route =
   | { page: 'preview'; id: StateKey }
   | { page: 'catalog' }
+  | { page: 'repo'; origin: string }
   | { page: 'notFound'; path: string; reason?: string; detail?: string };
 
 export function resolveRoute(pathname: string): Route {
+  // /repo/:encodedOrigin — full repository detail view
+  const repoMatch = pathname.match(/^\/repo\/(.+)$/);
+  if (repoMatch) {
+    return { page: 'repo', origin: decodeURIComponent(repoMatch[1]) };
+  }
+
   // /catalog — the author front page (the new `/`, parallel during migration)
   if (pathname === '/catalog') {
     return { page: 'catalog' };
