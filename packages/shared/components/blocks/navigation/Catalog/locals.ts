@@ -16,7 +16,7 @@
 
 import * as state from '@/lib/state';
 import type { RuntimeProps, IdPrefix } from '@/lib/types';
-import { extendIdPrefix, scopeMarker, asIdPrefix, asDefinitionRef } from '@/lib/types/id-grammar';
+import { extendIdPrefix, scopeMarker, asIdPrefix, asDefinitionKey } from '@/lib/types/id-grammar';
 
 // ---------------------------------------------------------------------------
 // Fields — component-scoped (default), so each Catalog / repo card instance
@@ -96,7 +96,7 @@ export function scenarioLabel(namespace: string): string {
 export function scopedRepoProps(props: RuntimeProps, origin: string): RuntimeProps {
   const encoded = encodeOriginForId(origin);
   const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(encoded)]);
-  return { ...props, id: asDefinitionRef(REPO_ID), idPrefix, runtime: { ...props.runtime, idPrefix } };
+  return { ...props, id: asDefinitionKey(REPO_ID), idPrefix, runtime: { ...props.runtime, idPrefix } };
 }
 
 // ---------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 // useCatalogData() reads from Redux via useSelector. See state/catalog.ts.
 
 import { useEffect } from 'react';
-import { refreshCatalog, useCatalogData } from '@/lib/state/catalog';
+import { ensureCatalog, useCatalogData } from '@/lib/state/catalog';
 import type { Repository } from '@/lib/catalog/schema';
 
 export interface CatalogState {
@@ -18,21 +18,23 @@ export interface CatalogState {
 }
 
 /** The author catalog: every repository + its launchables, in one MCP call.
- *  Triggers the fetch on mount, reads from Redux.
+ *  Triggers the fetch on mount (deduped), reads from Redux.
  *
- *  HACK: Calls refreshCatalog (unconditional re-fetch) on every mount so
- *  edits made in Studio are visible when navigating to /catalog. This is a
+ *  HACK: Uses ensureCatalog (deduped) so repeat mounts don't re-fetch, but
+ *  edits made in Studio are NOT visible until a hard reload. This is a
  *  stopgap — the right fix is MCP notification push (see state/catalog.ts).
  *
- *  TODO: Switch to ensureCatalog (deduped) once server→client push is wired;
- *  the notification handler calls refreshCatalog, and the hook just ensures. */
+ *  TODO: Wire MCP notification subscription; the notification handler calls
+ *  refreshCatalog, and the hook stays with ensureCatalog (deduped). */
 export function useCatalog(include?: string[]): CatalogState {
   const args = include ? { include } : {};
   const argsKey = JSON.stringify(args);
 
-  // HACK: unconditional re-fetch on mount — see docstring above.
+  // HACK: deduped fetch on mount — see docstring above. Once MCP
+  // notifications are wired, the server pushes invalidation and this
+  // just ensures the initial load.
   useEffect(() => {
-    refreshCatalog(args);
+    ensureCatalog(args);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [argsKey]);
 

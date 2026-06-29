@@ -9,6 +9,7 @@
 // All state — catalog data and filter controls — lives in Redux.
 
 import { useMemo } from 'react';
+import type { RuntimeProps } from '@/lib/types';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
@@ -25,7 +26,7 @@ import RepoCard from './repoCard';
 import SearchResults from './searchResults';
 
 function Section({ title, caption, repos, wide = false, parentProps }: {
-  title: string; caption: string; repos: Repository[]; wide?: boolean; parentProps: any;
+  title: string; caption: string; repos: Repository[]; wide?: boolean; parentProps: RuntimeProps;
 }) {
   return (
     <section>
@@ -42,7 +43,7 @@ function Section({ title, caption, repos, wide = false, parentProps }: {
   );
 }
 
-export default function CatalogView(props: any) {
+export default function CatalogView(props: RuntimeProps) {
   // Request launchable descriptions so rows have summaries.
   const { repositories, loading, error } = useCatalog(['launchables.description']);
 

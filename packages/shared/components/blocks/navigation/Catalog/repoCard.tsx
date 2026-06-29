@@ -23,6 +23,7 @@
 // gets a unique Redux key.
 
 import { ChevronRight } from 'lucide-react';
+import type { RuntimeProps } from '@/lib/types';
 import type { Repository } from '@/lib/catalog/schema';
 import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
@@ -112,7 +113,7 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
 
 /** Props: scoped RuntimeProps + optional repo object + compact flag.
  *  When `repo` is not provided, decodes origin from idPrefix and looks it up. */
-export default function RepoCard(props: any) {
+export default function RepoCard(props: RuntimeProps) {
   // Determine the repo: direct prop (CatalogView) or lookup (block pipeline).
   const directRepo: Repository | undefined = props.repo;
   const idPrefix: string = props.runtime?.idPrefix ?? props.idPrefix ?? '';
@@ -142,15 +143,12 @@ export default function RepoCard(props: any) {
     );
   }
 
-  // After the guard, repo is guaranteed non-null.
-  const r = repo as Repository;
-
-  const groups = groupByScenario(r.launchables);
+  const groups = groupByScenario(repo.launchables);
   const flat = groups.length <= 1 && !groups[0]?.course;
   const items = compactItems(groups, flat);
   // Count all launchables (courses + activities), not just non-course items.
   // A course-only repo is still real content — it's previewable and openable.
-  const totalCount = r.launchables.length;
+  const totalCount = repo.launchables.length;
   const overflows = compact && totalCount > COMPACT_LIMIT;
 
   // Show full activity listing when not compact, or when expanded inline.
@@ -162,24 +160,24 @@ export default function RepoCard(props: any) {
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-foreground truncate min-w-0">
           {compact ? (
-            <a className="hover:text-accent" href={repoDetailHref(r.origin)}>
-              {r.label}
+            <a className="hover:text-accent" href={repoDetailHref(repo.origin)}>
+              {repo.label}
             </a>
           ) : (
-            <a className="hover:text-accent" href={studioHref(r.origin, { tab: 'docs' })} title="Open in Studio">
-              {r.label}
+            <a className="hover:text-accent" href={studioHref(repo.origin, { tab: 'docs' })} title="Open in Studio">
+              {repo.label}
             </a>
           )}
         </h3>
         <div className="flex items-center gap-2.5 shrink-0">
-          {r.forgeLink && <ForgeLinkIcon link={r.forgeLink} />}
-          <span className={`lo-chip ${r.writable ? 'text-accent' : 'text-dimmed'}`}>
-            {r.writable ? 'Writable' : 'Read-only'}
+          {repo.forgeLink && <ForgeLinkIcon link={repo.forgeLink} />}
+          <span className={`lo-chip ${repo.writable ? 'text-accent' : 'text-dimmed'}`}>
+            {repo.writable ? 'Writable' : 'Read-only'}
           </span>
         </div>
       </div>
 
-      {r.description && <p className="text-sm text-secondary">{r.description}</p>}
+      {repo.description && <p className="text-sm text-secondary">{repo.description}</p>}
 
       {/* Activity listing */}
       <div className="flex flex-col gap-4">
@@ -189,14 +187,14 @@ export default function RepoCard(props: any) {
 
         {compact && !showFull && totalCount > 0 && (
           /* Compact title list — headings + activity titles with budget */
-          <CompactList items={items} limit={COMPACT_LIMIT} repo={r} />
+          <CompactList items={items} limit={COMPACT_LIMIT} repo={repo} />
         )}
 
         {showFull && totalCount > 0 && (
           /* Full activity listing — ActivityRow/ScenarioGroup with descriptions and actions */
           flat
-            ? groups[0]?.activities.map(l => <ActivityRow key={l.id} repo={r} launchable={l} />)
-            : groups.map(g => <ScenarioGroup key={g.namespace} repo={r} group={g} />)
+            ? groups[0]?.activities.map(l => <ActivityRow key={l.id} repo={repo} launchable={l} />)
+            : groups.map(g => <ScenarioGroup key={g.namespace} repo={repo} group={g} />)
         )}
       </div>
 
@@ -213,7 +211,7 @@ export default function RepoCard(props: any) {
       )}
 
       {/* Building blocks — only in full mode */}
-      {!compact && r.internal.length > 0 && (
+      {!compact && repo.internal.length > 0 && (
         <div className="border-t border-border-subtle pt-2">
           <button
             className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground"
@@ -221,11 +219,11 @@ export default function RepoCard(props: any) {
             aria-expanded={!!showBlocks}
           >
             <ChevronRight size={14} className={`transition-transform ${showBlocks ? 'rotate-90' : ''}`} aria-hidden />
-            Building blocks <span className="text-dimmed">{r.internal.length}</span>
+            Building blocks <span className="text-dimmed">{repo.internal.length}</span>
           </button>
           {showBlocks && (
             <div className="pl-3 ml-1 mt-1 border-l border-border-subtle">
-              {r.internal.map(l => <ActivityRow key={l.id} repo={r} launchable={l} />)}
+              {repo.internal.map(l => <ActivityRow key={l.id} repo={repo} launchable={l} />)}
             </div>
           )}
         </div>
@@ -233,14 +231,14 @@ export default function RepoCard(props: any) {
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-3 pt-1 mt-auto">
-        <p className="lo-muted text-xs truncate" title={r.origin}>
-          {r.launchableCount} activit{r.launchableCount === 1 ? 'y' : 'ies'}
-          {r.draftCount > 0 && ` · +${r.draftCount} draft${r.draftCount === 1 ? '' : 's'}`}
-          {r.internalCount > 0 && ` · ${r.internalCount} building block${r.internalCount === 1 ? '' : 's'}`}
-          {r.discipline && ` · ${r.discipline}`}
+        <p className="lo-muted text-xs truncate" title={repo.origin}>
+          {repo.launchableCount} activit{repo.launchableCount === 1 ? 'y' : 'ies'}
+          {repo.draftCount > 0 && ` · +${repo.draftCount} draft${repo.draftCount === 1 ? '' : 's'}`}
+          {repo.internalCount > 0 && ` · ${repo.internalCount} building block${repo.internalCount === 1 ? '' : 's'}`}
+          {repo.discipline && ` · ${repo.discipline}`}
         </p>
-        {r.writable && (
-          <a className="lo-btn lo-btn--subtle lo-btn--sm shrink-0" href={studioHref(r.origin)}>+ New file</a>
+        {repo.writable && (
+          <a className="lo-btn lo-btn--subtle lo-btn--sm shrink-0" href={studioHref(repo.origin)}>+ New file</a>
         )}
       </div>
     </article>

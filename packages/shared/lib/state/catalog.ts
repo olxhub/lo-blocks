@@ -7,7 +7,16 @@
 //
 // The transport is MCP (callMcpTool); the state is Redux. Wire validation
 // uses the shared Zod schema (catalog/schema.ts).
+
+// HACK HACK HACK TODO TODO TODO
 //
+// This was built quickly so that we could move content to
+// repos. However, this structure doesn't work well for live-updating
+// changes and similar operations. It should probably be managed more
+// like LOFS or OlxJson.
+//
+// It should also support MCP push
+
 'use client';
 
 import { useSelector } from 'react-redux';
@@ -75,47 +84,53 @@ export function dispatchCatalogError(argsKey: string, error: string): void {
 // Fetch + Dedup (matches ensuredIds pattern in useOlxJson.ts)
 // =============================================================================
 
+/** Keys whose fetch completed successfully — dedup guard for ensureCatalog. */
 const fetchedKeys = new Set<string>();
+/** Keys with a fetch currently in-flight — prevents duplicate concurrent requests. */
+const fetchingKeys = new Set<string>();
 
 function fetchCatalog(args: Record<string, unknown>, argsKey: string): void {
-  fetchedKeys.add(argsKey);
+  fetchingKeys.add(argsKey);
   dispatchCatalogLoading(argsKey);
 
   callMcpTool<unknown>('get_repositories', args)
     .then((raw) => {
       const parsed = GetRepositoriesOutput.parse(raw);
+      fetchingKeys.delete(argsKey);
+      fetchedKeys.add(argsKey);
       dispatchCatalogLoaded(argsKey, parsed.repositories);
     })
     .catch((err) => {
-      fetchedKeys.delete(argsKey);  // allow retry on network failure
+      console.error('Catalog fetch failed:', err);
+      fetchingKeys.delete(argsKey);
+      fetchedKeys.delete(argsKey);  // allow retry on next call
       dispatchCatalogError(argsKey, err instanceof Error ? err.message : String(err));
     });
 }
 
 /**
  * Ensure catalog data is loaded for the given args. Deduped: a second call
- * with the same args is a no-op. On network error the key is removed so the
- * next call retries; on API/parse error it stays to prevent retry storms.
+ * with the same args is a no-op if a fetch already completed or is in-flight.
+ * On error both guards are cleared so the next call retries.
  */
 export function ensureCatalog(args: Record<string, unknown> = {}): void {
   const argsKey = JSON.stringify(args);
-  if (fetchedKeys.has(argsKey)) return;
+  if (fetchedKeys.has(argsKey) || fetchingKeys.has(argsKey)) return;
   fetchCatalog(args, argsKey);
 }
 
 /**
- * HACK: Force a re-fetch of catalog data, bypassing the dedup guard.
+ * Force a re-fetch of catalog data, bypassing the dedup guard.
  *
- * Called when navigating to /catalog so edits made in Studio are visible
- * without a hard reload. This is a stopgap — the right fix is server→client
+ * Use sparingly — e.g. an explicit user refresh action. For routine mount,
+ * prefer ensureCatalog (deduped). The right long-term fix is server→client
  * push via MCP notifications (the SSE stream the transport already holds).
- * When the tool advertises list-changed, the client subscribes and refetches
- * automatically; this function and every call site go away.
  *
  * TODO: Replace with MCP notification subscription (see client.ts TODO).
  */
 export function refreshCatalog(args: Record<string, unknown> = {}): void {
   const argsKey = JSON.stringify(args);
+  fetchingKeys.delete(argsKey);
   fetchedKeys.delete(argsKey);
   fetchCatalog(args, argsKey);
 }

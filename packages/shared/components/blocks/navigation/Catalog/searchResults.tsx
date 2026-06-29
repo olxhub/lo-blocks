@@ -4,6 +4,7 @@
 // Search mode: matching repositories and matching activities, side by side.
 // Each activity shows which repo it's from (cross-repo provenance).
 
+import type { RuntimeProps } from '@/lib/types';
 import type { Repository } from '@/lib/catalog/schema';
 import { searchCatalog, type CatalogFilters } from '@/lib/catalog/filter';
 import { scopedRepoProps } from './locals';
@@ -20,7 +21,7 @@ function Head({ title, n }: { title: string; n: number }) {
   );
 }
 
-export default function SearchResults({ repos, filters, parentProps }: { repos: Repository[]; filters: CatalogFilters; parentProps: any }) {
+export default function SearchResults({ repos, filters, parentProps }: { repos: Repository[]; filters: CatalogFilters; parentProps: RuntimeProps }) {
   const { repos: matchRepos, activities } = searchCatalog(repos, filters);
   const q = filters.query.trim();
 
