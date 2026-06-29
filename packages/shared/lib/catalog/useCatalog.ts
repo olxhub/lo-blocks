@@ -27,7 +27,8 @@ export interface CatalogState {
  *  TODO: Wire MCP notification subscription; the notification handler calls
  *  refreshCatalog, and the hook stays with ensureCatalog (deduped). */
 export function useCatalog(include?: string[]): CatalogState {
-  const args = include ? { include } : {};
+  const args: Record<string, unknown> = { drafts: 'include' };
+  if (include) args.include = include;
   const argsKey = JSON.stringify(args);
 
   // HACK: deduped fetch on mount — see docstring above. Once MCP

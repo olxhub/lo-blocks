@@ -37,8 +37,8 @@ import ForgeLinkIcon from './forgeLinkIcon';
 const COMPACT_LIMIT = 5;
 
 type CompactItem =
-  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string }
-  | { kind: 'activity'; title: string; id: string; path: string; description?: string };
+  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string; status?: string }
+  | { kind: 'activity'; title: string; id: string; path: string; description?: string; status?: string };
 
 /** Collect a flat ordered list of headings + activities across all scenario
  *  groups for compact title rendering, preserving group structure. */
@@ -48,13 +48,13 @@ function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
     // For flat repos (single namespace, no Course) skip the heading.
     if (!isFlat) {
       if (g.course) {
-        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description });
+        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, status: g.course.status });
       } else {
         out.push({ kind: 'heading', label: scenarioLabel(g.namespace) });
       }
     }
     for (const a of g.activities) {
-      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description });
+      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description, status: a.status });
     }
   }
   return out;
@@ -80,7 +80,7 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
     <ul className="flex flex-col gap-1">
       {visible.map((item, i) =>
         item.kind === 'heading' ? (
-          <li key={item.id ?? `heading-${i}`} className="text-sm font-semibold text-secondary pt-1 first:pt-0">
+          <li key={item.id ?? `heading-${i}`} className="text-sm font-semibold text-secondary pt-1 first:pt-0 flex items-baseline gap-1.5">
             {item.id ? (
               <a href={previewHref(item.id)} className="hover:text-accent" title={item.description || undefined}>
                 {item.label}
@@ -88,6 +88,7 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
             ) : (
               item.label
             )}
+            {item.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
           </li>
         ) : (
           <li key={item.id} className="group flex items-baseline gap-2 pl-3">
@@ -98,6 +99,7 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
             >
               {item.title}
             </a>
+            {item.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
             <a
               className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
               href={studioHref(repo.origin, { file: item.path })}

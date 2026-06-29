@@ -14,11 +14,11 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));
 
   try {
-    // Seed with files from content/demos and content/psychology
+    // Seed with files from content/demos
     const seedFiles = [
       { src: 'content/demos/text-changer-demo.olx', dest: 'text-changer-demo.olx' },
       { src: 'content/demos/ref-demo.xml', dest: 'ref-demo.xml' },
-      { src: 'content/psychology/psychology_sba_part1.olx', dest: 'psychology_sba_part1.olx' },
+      { src: 'content/demos/linear-dialogue-demo.olx', dest: 'linear-dialogue-demo.olx' },
     ];
     for (const { src, dest } of seedFiles) {
       await fs.copyFile(src, path.join(tmpDir, dest));
@@ -47,7 +47,7 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
       expect([fileTypes.xml, fileTypes.olx]).toContain(info.type);
     }
 
-    expect(Object.keys(second.unchanged).some(id => id.endsWith('psychology_sba_part1.olx'))).toBe(true);
+    expect(Object.keys(second.unchanged).some(id => id.endsWith('linear-dialogue-demo.olx'))).toBe(true);
     expect(Object.keys(second.changed).some(id => id.endsWith('text-changer-demo.olx'))).toBe(true);
     expect(Object.keys(second.added).some(id => id.endsWith('learning-observer-course.olx'))).toBe(true);
     expect(Object.keys(second.deleted).some(id => id.endsWith('ref-demo.xml'))).toBe(true);
