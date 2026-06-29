@@ -18,7 +18,7 @@ lang: en-Latn-US
   Future chapters: Mastery Learning, Standards-Based Assessment, etc.
 -->
 
-<Course id="authoring_course" title="Interactive Communication" launchable="course">
+<Course id="authoring_course" title="Interactive Communication" launchable="course" draft="true">
 
 <!-- ================================================================
      CHAPTER 1: INTERACTIVE COMMUNICATION
