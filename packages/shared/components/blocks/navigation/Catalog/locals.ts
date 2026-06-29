@@ -15,8 +15,8 @@
 // fields are declared on the parent block.
 
 import * as state from '@/lib/state';
-import type { RuntimeProps } from '@/lib/types';
-import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
+import type { RuntimeProps, IdPrefix } from '@/lib/types';
+import { extendIdPrefix, scopeMarker, asIdPrefix } from '@/lib/types/id-grammar';
 
 // ---------------------------------------------------------------------------
 // Fields — component-scoped (default), so each Catalog / repo card instance
@@ -65,4 +65,49 @@ export function scopedRepoProps(props: RuntimeProps, origin: string): RuntimePro
   const encoded = encodeOriginForId(origin);
   const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(encoded)]);
   return { ...props, idPrefix, runtime: { ...props.runtime, idPrefix } };
+}
+
+// ---------------------------------------------------------------------------
+// OLX IDs — canonical block IDs from content/system/catalog.olx
+//
+// The catalog OLX is:  <Catalog id="catalog"><RepoCard id="repo"/></Catalog>
+// These constants must match those IDs.
+// ---------------------------------------------------------------------------
+
+/** Block ID of the Catalog instance in system OLX. */
+export const CATALOG_ID = 'catalog';
+
+/** Block ID of the RepoCard template in system OLX. */
+export const REPO_ID = 'repo';
+
+// ---------------------------------------------------------------------------
+// Repo detail page helpers
+//
+// The /repo/:origin page renders the same RepoCard block from catalog.olx
+// but with an idPrefix that matches the scoped state key the Catalog would
+// create. This means expand/collapse state is shared between the catalog
+// listing and the detail page.
+//
+// State key structure:  system/catalog:#[encodedOrigin]:repo
+// idPrefix for RenderOLX:  catalog:#[encodedOrigin]
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the idPrefix for rendering a RepoCard at the /repo/:origin page.
+ *
+ * The rendered block's state key will be:
+ *   system/catalog:#[encodedOrigin]:repo
+ * matching what the Catalog creates for each repo card.
+ */
+export function repoIdPrefix(origin: string): IdPrefix {
+  const encoded = encodeOriginForId(origin);
+  return asIdPrefix(`${CATALOG_ID}:${scopeMarker(encoded)}`);
+}
+
+/** Extract the repo origin from an idPrefix built by repoIdPrefix/scopedRepoProps.
+ *  Returns null if the prefix doesn't contain a scope marker. */
+export function originFromIdPrefix(idPrefix: string): string | null {
+  const match = idPrefix.match(/#([^:]+)/);
+  if (!match) return null;
+  return decodeOriginFromId(match[1]);
 }

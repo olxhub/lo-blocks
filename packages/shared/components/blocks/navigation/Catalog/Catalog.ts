@@ -27,7 +27,12 @@ import _Catalog from './catalogView';
 import { catalogFields, repoCardFields } from './locals';
 
 // Re-export locals for consumers.
-export { catalogFields, repoCardFields, scopedRepoProps, encodeOriginForId, decodeOriginFromId } from './locals';
+export {
+  catalogFields, repoCardFields,
+  scopedRepoProps, repoIdPrefix, originFromIdPrefix,
+  encodeOriginForId, decodeOriginFromId,
+  CATALOG_ID, REPO_ID,
+} from './locals';
 
 const Catalog = dev({
   ...parsers.ignore(),
