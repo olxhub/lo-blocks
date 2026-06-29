@@ -23,8 +23,8 @@ import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 // gets independent state keyed by its Redux key.
 // ---------------------------------------------------------------------------
 
-/** Catalog-level fields: filter/sort state, scoped to each Catalog instance. */
-export const catalogFields = state.fields(['catalogScope', 'catalogQuery', 'catalogSort']);
+/** Catalog-level fields: filter/sort state + sidebar, scoped to each Catalog instance. */
+export const catalogFields = state.fields(['catalogScope', 'catalogQuery', 'catalogSort', 'sidebarCollapsed']);
 
 /** Per-repo-card fields: expand/collapse, scoped per repo via idPrefix. */
 export const repoCardFields = state.fields(['expanded', 'showBlocks']);

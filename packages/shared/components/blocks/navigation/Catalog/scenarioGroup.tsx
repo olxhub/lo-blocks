@@ -7,7 +7,7 @@
 
 import type { Repository } from '@/lib/catalog/schema';
 import type { ScenarioGroup as Group } from '@/lib/catalog/group';
-import ActivityRow from './ActivityRow';
+import ActivityRow from './activityRow';
 
 /** Readable label for a scenario that has no Course to name it — the last
  *  namespace segment, title-cased ("…psych.defiance" → "Defiance"). */

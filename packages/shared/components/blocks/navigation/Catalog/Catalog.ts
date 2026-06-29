@@ -23,7 +23,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import _Catalog from '@/components/catalog/CatalogView';
+import _Catalog from './catalogView';
 import { catalogFields, repoCardFields } from './locals';
 
 // Re-export locals for consumers.

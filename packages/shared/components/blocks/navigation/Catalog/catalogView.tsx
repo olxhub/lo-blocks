@@ -8,7 +8,7 @@
 //
 // All state — catalog data and filter controls — lives in Redux.
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
@@ -19,10 +19,10 @@ import {
   type CatalogFilters, type Scope, type Sort,
 } from '@/lib/catalog/filter';
 import type { Repository } from '@/lib/catalog/schema';
-import { catalogFields, scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
-import CatalogSidebar from './CatalogSidebar';
-import RepoCard from './RepoCard';
-import SearchResults from './SearchResults';
+import { catalogFields, scopedRepoProps } from './locals';
+import CatalogSidebar from './catalogSidebar';
+import RepoCard from './repoCard';
+import SearchResults from './searchResults';
 
 function Section({ title, caption, repos, wide = false, parentProps }: {
   title: string; caption: string; repos: Repository[]; wide?: boolean; parentProps: any;
@@ -52,8 +52,7 @@ export default function CatalogView(props: any) {
   const [sort, setSort] = useFieldState(props, catalogFields.catalogSort, 'name' as Sort);
   const filters: CatalogFilters = useMemo(() => ({ scope, query, sort, types: [] }), [scope, query, sort]);
 
-  // Sidebar collapse is a widget concern, not application state.
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useFieldState(props, catalogFields.sidebarCollapsed, false);
 
   if (error) return <div className="p-8 text-error">Failed to load catalog: {error}</div>;
   if (loading) return <div className="p-8"><Spinner>Loading catalog…</Spinner></div>;

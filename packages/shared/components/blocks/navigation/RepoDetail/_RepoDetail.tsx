@@ -4,10 +4,10 @@
 
 import { ArrowLeft } from 'lucide-react';
 import Spinner from '@/components/common/Spinner';
-import RepoCard from '@/components/catalog/RepoCard';
+import RepoCard from '../Catalog/repoCard';
 import { useCatalog } from '@/lib/catalog/useCatalog';
 import { useRepoByOrigin } from '@/lib/state/catalog';
-import { scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
+import { scopedRepoProps } from '../Catalog/locals';
 
 export default function _RepoDetail(props: any) {
   const origin: string = props.origin ?? '';

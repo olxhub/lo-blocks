@@ -7,7 +7,7 @@
 
 import type { Repository, Launchable } from '@/lib/catalog/schema';
 import { studioHref, previewHref } from '@/lib/catalog/links';
-import ForgeLinkIcon from './ForgeLinkIcon';
+import ForgeLinkIcon from './forgeLinkIcon';
 
 export default function ActivityRow({ repo, launchable, showRepo = false, prominent = false }: {
   repo: Repository;

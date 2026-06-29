@@ -23,10 +23,10 @@ import type { Repository } from '@/lib/catalog/schema';
 import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';
-import { repoCardFields } from '@/components/blocks/navigation/Catalog/locals';
-import ScenarioGroup from './ScenarioGroup';
-import ActivityRow from './ActivityRow';
-import ForgeLinkIcon from './ForgeLinkIcon';
+import { repoCardFields } from './locals';
+import ScenarioGroup from './scenarioGroup';
+import ActivityRow from './activityRow';
+import ForgeLinkIcon from './forgeLinkIcon';
 
 const COMPACT_LIMIT = 5;
 

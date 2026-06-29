@@ -6,9 +6,9 @@
 
 import type { Repository } from '@/lib/catalog/schema';
 import { searchCatalog, type CatalogFilters } from '@/lib/catalog/filter';
-import { scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
-import RepoCard from './RepoCard';
-import ActivityRow from './ActivityRow';
+import { scopedRepoProps } from './locals';
+import RepoCard from './repoCard';
+import ActivityRow from './activityRow';
 
 function Head({ title, n }: { title: string; n: number }) {
   return (
