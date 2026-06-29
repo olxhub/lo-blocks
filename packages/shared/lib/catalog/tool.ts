@@ -12,6 +12,7 @@ import YAML from 'yaml';
 import { sources, readProvider } from '@/lib/lofs/contentSources';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards, type ActivityCard } from '@/lib/content/buildActivityCards';
+import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { toOlxRelativePath, type StorageProvider } from '@/lib/types/storage';
 import type { ToolRegistry } from '@/lib/mcp/registry';
 import {
@@ -25,10 +26,10 @@ import {
 // Handler
 // ===========================================================================
 
-/** First localized title, else the id. TODO: locale-aware pick (getBestVariant),
- *  the way the activities route already does for /preview. */
+/** Pick the best title for a card, preferring English. TODO: pass the user's
+ *  locale through the MCP request so we can respect Accept-Language. */
 function pickTitle(card: ActivityCard): string {
-  return Object.values(card.title)[0] || card.id;
+  return extractLocalizedVariant(card.title, 'en') || Object.values(card.title)[0] || card.id;
 }
 
 // Repo-level metadata follows GIT CONVENTIONS first — README.md (description),
@@ -136,7 +137,7 @@ async function getRepositories(
         forgeLink: provider.forgeLink?.(toOlxRelativePath(card.editPath)) ?? null,
       };
       if (includeSet.has('launchables.description')) {
-        launchable.description = Object.values(card.description)[0] || '';
+        launchable.description = extractLocalizedVariant(card.description, 'en') || Object.values(card.description)[0] || '';
       }
       return launchable;
     };
