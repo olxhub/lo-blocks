@@ -20,7 +20,7 @@ export default function RepoDetailPage({ origin }: { origin: string }) {
   const { loading, error } = useCatalog(['launchables.description']);
 
   const backLink = (
-    <a href="/catalog" className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground mb-6">
+    <a href="/" className="flex items-center gap-1.5 text-sm text-secondary hover:text-foreground mb-6">
       <ArrowLeft size={14} /> Back to catalog
     </a>
   );

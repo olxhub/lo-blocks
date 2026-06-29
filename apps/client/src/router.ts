@@ -23,8 +23,8 @@ export function resolveRoute(pathname: string): Route {
     }
   }
 
-  // /catalog — the author front page (the new `/`, parallel during migration)
-  if (pathname === '/catalog') {
+  // Catalog — the author front page.
+  if (pathname === '/') {
     return { page: 'catalog' };
   }
 

@@ -43,7 +43,7 @@ const WS_PATH = '/wsapi/in/';
 // during the migration off Next.js; the live Next '/' is untouched. Its DATA
 // comes from the get_repositories MCP tool over /mcp (one transport) — there is
 // no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/catalog', '/repo/'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/repo/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -75,8 +75,8 @@ export async function startServer(
 
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.
+  app.get('/', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
   app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
-  app.get('/catalog', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
   app.get('/repo/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
 
   const honoHandler = getRequestListener(app.fetch);
@@ -139,7 +139,7 @@ export async function startServer(
       return;
     }
 
-    if (SERVER_PREFIXES.some(p => url.startsWith(p))) {
+    if (url === '/' || SERVER_PREFIXES.some(p => url.startsWith(p))) {
       await handleWithSession(req, res);
     } else {
       // Resolve session before proxying so the cookie gets set on the
