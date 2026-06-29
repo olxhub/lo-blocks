@@ -11,14 +11,19 @@
 // compact=false (full repo page):
 //   All activities with descriptions and hover actions, building blocks
 //   section, footer with metadata and "+ New file".
+//
+// State: expand/collapse fields are component-scoped, keyed per repo via
+// scoped RuntimeProps from the parent (Catalog or RepoDetail). The parent
+// calls scopedRepoProps(props, origin) to set the idPrefix, and this
+// component uses useFieldState(props, field, fallback) which resolves to
+// a unique Redux key per repo card instance.
 
 import { ChevronRight } from 'lucide-react';
 import type { Repository } from '@/lib/catalog/schema';
 import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';
-import { system } from '@/lib/state/settings';
-import { asStateKey } from '@/lib/types/id-grammar';
+import { repoCardFields } from '@/components/blocks/navigation/Catalog/locals';
 import ScenarioGroup from './ScenarioGroup';
 import ActivityRow from './ActivityRow';
 import ForgeLinkIcon from './ForgeLinkIcon';
@@ -107,11 +112,14 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
   );
 }
 
-export default function RepoCard({ repo, compact = true }: { repo: Repository; compact?: boolean }) {
-  // Expand/collapse state keyed by repo origin so each card remembers independently.
-  const originKey = asStateKey(repo.origin);
-  const [expanded, setExpanded] = useFieldState(null, system.repoExpanded, false, { stateKey: originKey, tag: 'catalog' });
-  const [showBlocks, setShowBlocks] = useFieldState(null, system.repoShowBlocks, false, { stateKey: originKey, tag: 'catalog' });
+/** Props: scoped RuntimeProps (from scopedRepoProps) + repo object + compact flag. */
+export default function RepoCard(props: any) {
+  const { repo, compact = true } = props as { repo: Repository; compact?: boolean };
+
+  // Component-scoped fields — each repo card gets its own Redux key via
+  // the scoped idPrefix set by the parent's scopedRepoProps() call.
+  const [expanded, setExpanded] = useFieldState(props, repoCardFields.expanded, false);
+  const [showBlocks, setShowBlocks] = useFieldState(props, repoCardFields.showBlocks, false);
 
   const groups = groupByScenario(repo.launchables);
   const flat = groups.length <= 1 && !groups[0]?.course;

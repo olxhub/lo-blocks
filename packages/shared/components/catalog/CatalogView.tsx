@@ -13,19 +13,19 @@ import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { useFieldState } from '@/lib/state/redux';
-import { system } from '@/lib/state/settings';
 import { useCatalog } from '@/lib/catalog/useCatalog';
 import {
   filterRepos, repoScope,
   type CatalogFilters, type Scope, type Sort,
 } from '@/lib/catalog/filter';
 import type { Repository } from '@/lib/catalog/schema';
+import { catalogFields, scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
 import CatalogSidebar from './CatalogSidebar';
 import RepoCard from './RepoCard';
 import SearchResults from './SearchResults';
 
-function Section({ title, caption, repos, wide = false }: {
-  title: string; caption: string; repos: Repository[]; wide?: boolean;
+function Section({ title, caption, repos, wide = false, parentProps }: {
+  title: string; caption: string; repos: Repository[]; wide?: boolean; parentProps: any;
 }) {
   return (
     <section>
@@ -36,20 +36,20 @@ function Section({ title, caption, repos, wide = false }: {
         <p className="text-sm text-secondary">{caption}</p>
       </div>
       <div className={`grid gap-4 ${wide ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-        {repos.map(r => <RepoCard key={r.origin} repo={r} />)}
+        {repos.map(r => <RepoCard key={r.origin} {...scopedRepoProps(parentProps, r.origin)} repo={r} />)}
       </div>
     </section>
   );
 }
 
-export default function CatalogView() {
+export default function CatalogView(props: any) {
   // Request launchable descriptions so rows have summaries.
   const { repositories, loading, error } = useCatalog(['launchables.description']);
 
-  // Filter state — system-scope fields, read/written via useFieldState.
-  const [scope, setScope] = useFieldState(null, system.catalogScope, 'all' as Scope, { tag: 'catalog' });
-  const [query, setQuery] = useFieldState(null, system.catalogQuery, '', { tag: 'catalog' });
-  const [sort, setSort] = useFieldState(null, system.catalogSort, 'name' as Sort, { tag: 'catalog' });
+  // Filter state — component-scoped fields, keyed per Catalog instance.
+  const [scope, setScope] = useFieldState(props, catalogFields.catalogScope, 'all' as Scope);
+  const [query, setQuery] = useFieldState(props, catalogFields.catalogQuery, '');
+  const [sort, setSort] = useFieldState(props, catalogFields.catalogSort, 'name' as Sort);
   const filters: CatalogFilters = useMemo(() => ({ scope, query, sort, types: [] }), [scope, query, sort]);
 
   // Sidebar collapse is a widget concern, not application state.
@@ -106,15 +106,15 @@ export default function CatalogView() {
 
           <div className="flex flex-col gap-10 pb-12 flex-1">
             {query.trim() ? (
-              <SearchResults repos={repositories} filters={filters} />
+              <SearchResults repos={repositories} filters={filters} parentProps={props} />
             ) : (
               <>
                 {shown.length === 0 && <p className="text-dimmed py-8">Nothing matches those filters.</p>}
                 {scope !== 'community' && mine.length > 0 && (
-                  <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide />
+                  <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide parentProps={props} />
                 )}
                 {scope !== 'mine' && community.length > 0 && (
-                  <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} />
+                  <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} parentProps={props} />
                 )}
               </>
             )}

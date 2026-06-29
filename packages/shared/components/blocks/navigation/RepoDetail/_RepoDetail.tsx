@@ -2,12 +2,12 @@
 // _RepoDetail — full repo view. Reads origin from block attributes, looks up
 // the Repository from Redux catalog state, renders RepoCard in full mode.
 
-import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import Spinner from '@/components/common/Spinner';
 import RepoCard from '@/components/catalog/RepoCard';
 import { useCatalog } from '@/lib/catalog/useCatalog';
 import { useRepoByOrigin } from '@/lib/state/catalog';
+import { scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
 
 export default function _RepoDetail(props: any) {
   const origin: string = props.origin ?? '';
@@ -54,7 +54,7 @@ export default function _RepoDetail(props: any) {
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       {backLink}
-      <RepoCard repo={repo} compact={false} />
+      <RepoCard {...scopedRepoProps(props, origin)} repo={repo} compact={false} />
     </div>
   );
 }

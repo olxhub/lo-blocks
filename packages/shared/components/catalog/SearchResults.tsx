@@ -6,6 +6,7 @@
 
 import type { Repository } from '@/lib/catalog/schema';
 import { searchCatalog, type CatalogFilters } from '@/lib/catalog/filter';
+import { scopedRepoProps } from '@/components/blocks/navigation/Catalog/locals';
 import RepoCard from './RepoCard';
 import ActivityRow from './ActivityRow';
 
@@ -19,7 +20,7 @@ function Head({ title, n }: { title: string; n: number }) {
   );
 }
 
-export default function SearchResults({ repos, filters }: { repos: Repository[]; filters: CatalogFilters }) {
+export default function SearchResults({ repos, filters, parentProps }: { repos: Repository[]; filters: CatalogFilters; parentProps: any }) {
   const { repos: matchRepos, activities } = searchCatalog(repos, filters);
   const q = filters.query.trim();
 
@@ -39,7 +40,7 @@ export default function SearchResults({ repos, filters }: { repos: Repository[];
         <section>
           <Head title="Repositories" n={matchRepos.length} />
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            {matchRepos.map(r => <RepoCard key={r.origin} repo={r} />)}
+            {matchRepos.map(r => <RepoCard key={r.origin} {...scopedRepoProps(parentProps, r.origin)} repo={r} />)}
           </div>
         </section>
       )}
