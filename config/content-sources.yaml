@@ -18,7 +18,9 @@
 # Each source declares its own namespace (manifest.yaml, or — for repo
 # sources — the repo name). This file is WHERE content lives, not WHAT it is.
 
-sources: {}
+sources:
+  edu.memphis.psych:
+    repo: https://github.com/olxhub/edu.memphis.psych.git
 
 # Unrouted paths (demos, transitional content).
 fallback: ./content
