@@ -56,10 +56,6 @@ function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
   return out;
 }
 
-/** Count only launchable activities (not headings) in a CompactItem list. */
-function countActivities(items: CompactItem[]): number {
-  return items.filter(i => i.kind === 'activity').length;
-}
 
 /** Render a compact list of items with a budget of `limit` activities.
  *  Headings are always shown (don't count against the budget); activities
@@ -120,7 +116,9 @@ export default function RepoCard({ repo, compact = true }: { repo: Repository; c
   const groups = groupByScenario(repo.launchables);
   const flat = groups.length <= 1 && !groups[0]?.course;
   const items = compactItems(groups, flat);
-  const totalCount = countActivities(items);
+  // Count all launchables (courses + activities), not just non-course items.
+  // A course-only repo is still real content — it's previewable and openable.
+  const totalCount = repo.launchables.length;
   const overflows = compact && totalCount > COMPACT_LIMIT;
 
   // Show full activity listing when not compact, or when expanded inline.
