@@ -255,7 +255,8 @@ export const baseAttributes = z.object({
   ).describe('Unique identifier (letter or underscore start, then letters/digits/underscores)'),
   title: z.string().optional().describe('Display title (shown in tabs, course navigation, headers)'),
   class: z.string().optional().describe('Visual styling classes (CSS classes for developers)'),
-  launchable: z.string().optional().describe('Set to "true" to show in activity indexes'),
+  launchable: z.string().optional().describe('Catalog visibility: "true" (activity), "course" (course heading), "internal" (building block), "other" (hidden from catalog)'),
+  draft: z_olx_boolean.optional().describe('Set to "true" to mark as draft (hidden from public catalogs)'),
   initialPosition: z.coerce.number().optional().describe('Initial position for sortable items (1-indexed)'),
   lang: z_locale.optional().describe('BCP 47 language tag (e.g., en-Latn-US, ar-Arab-SA). Overrides parent and file-level language.'),
   when: z_expression.optional()

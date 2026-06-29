@@ -7,7 +7,7 @@ lang: en-Latn-US
 ---
 -->
 <!-- content/demos/course-demo.xml -->
-<Course id="intro_course" title="Introduction to Learning Observer" launchable="true">
+<Course id="intro_course" title="Introduction to Learning Observer" launchable="course">
   <Chapter title="Getting Started" id="ch1">
     <Sequential id="welcome" title="Welcome">
       <Markdown>
