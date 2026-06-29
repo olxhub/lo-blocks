@@ -28,19 +28,12 @@ import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/grou
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';
 import { useRepoByOrigin } from '@/lib/state/catalog';
-import { repoCardFields, originFromIdPrefix } from './locals';
+import { repoCardFields, originFromIdPrefix, scenarioLabel } from './locals';
 import ScenarioGroup from './scenarioGroup';
 import ActivityRow from './activityRow';
 import ForgeLinkIcon from './forgeLinkIcon';
 
 const COMPACT_LIMIT = 5;
-
-/** Readable label for a scenario with no Course — last namespace segment,
- *  title-cased ("…psych.defiance" → "Defiance"). Mirrors ScenarioGroup.tsx. */
-function scenarioLabel(namespace: string): string {
-  const leaf = namespace.slice(namespace.lastIndexOf('.') + 1);
-  return leaf.charAt(0).toUpperCase() + leaf.slice(1);
-}
 
 type CompactItem =
   | { kind: 'heading'; label: string; id?: string; path?: string; description?: string }

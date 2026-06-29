@@ -7,14 +7,8 @@
 
 import type { Repository } from '@/lib/catalog/schema';
 import type { ScenarioGroup as Group } from '@/lib/catalog/group';
+import { scenarioLabel } from './locals';
 import ActivityRow from './activityRow';
-
-/** Readable label for a scenario that has no Course to name it — the last
- *  namespace segment, title-cased ("…psych.defiance" → "Defiance"). */
-function scenarioLabel(namespace: string): string {
-  const leaf = namespace.slice(namespace.lastIndexOf('.') + 1);
-  return leaf.charAt(0).toUpperCase() + leaf.slice(1);
-}
 
 export default function ScenarioGroup({ repo, group }: { repo: Repository; group: Group }) {
   const { course, activities } = group;

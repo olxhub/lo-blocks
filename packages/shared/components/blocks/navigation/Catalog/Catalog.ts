@@ -31,6 +31,7 @@ export {
   catalogFields, repoCardFields,
   scopedRepoProps, repoIdPrefix, originFromIdPrefix,
   encodeOriginForId, decodeOriginFromId,
+  scenarioLabel,
   CATALOG_ID, REPO_ID,
 } from './locals';
 

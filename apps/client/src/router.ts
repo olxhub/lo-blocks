@@ -16,7 +16,11 @@ export function resolveRoute(pathname: string): Route {
   // /repo/:encodedOrigin — full repository detail view
   const repoMatch = pathname.match(/^\/repo\/(.+)$/);
   if (repoMatch) {
-    return { page: 'repo', origin: decodeURIComponent(repoMatch[1]) };
+    try {
+      return { page: 'repo', origin: decodeURIComponent(repoMatch[1]) };
+    } catch {
+      return { page: 'notFound', path: pathname, reason: 'Malformed repository URL.' };
+    }
   }
 
   // /catalog — the author front page (the new `/`, parallel during migration)

@@ -8,7 +8,7 @@
 //   decodeOriginFromId — reverse of encodeOriginForId
 //   scopedRepoProps   — build RuntimeProps scoped to a specific repo
 //
-// CatalogView, SearchResults, and RepoDetail all import from here to
+// CatalogView, SearchResults, and RepoDetailPage all import from here to
 // create scoped props for RepoCard instances. The field declarations live
 // here (not on a separate RepoCard block) so the Catalog block owns the
 // field registration, following the Annotate pattern where per-annotation
@@ -16,7 +16,7 @@
 
 import * as state from '@/lib/state';
 import type { RuntimeProps, IdPrefix } from '@/lib/types';
-import { extendIdPrefix, scopeMarker, asIdPrefix } from '@/lib/types/id-grammar';
+import { extendIdPrefix, scopeMarker, asIdPrefix, asDefinitionRef } from '@/lib/types/id-grammar';
 
 // ---------------------------------------------------------------------------
 // Fields — component-scoped (default), so each Catalog / repo card instance
@@ -28,6 +28,19 @@ export const catalogFields = state.fields(['catalogScope', 'catalogQuery', 'cata
 
 /** Per-repo-card fields: expand/collapse, scoped per repo via idPrefix. */
 export const repoCardFields = state.fields(['expanded', 'showBlocks']);
+
+// ---------------------------------------------------------------------------
+// OLX IDs — canonical block IDs from content/system/catalog.olx
+//
+// The catalog OLX is:  <Catalog id="catalog"><RepoCard id="repo"/></Catalog>
+// These constants must match those IDs.
+// ---------------------------------------------------------------------------
+
+/** Block ID of the Catalog instance in system OLX. */
+export const CATALOG_ID = 'catalog';
+
+/** Block ID of the RepoCard template in system OLX. */
+export const REPO_ID = 'repo';
 
 // ---------------------------------------------------------------------------
 // Origin ↔ scope-marker encoding
@@ -53,32 +66,38 @@ export function decodeOriginFromId(encoded: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Scoped props — Annotate pattern
-//
-// For origin "file:content" on block "catalog", the Redux key becomes
-// "catalog:#file_3acontent" — and fields like `expanded` store under
-// "catalog:#file_3acontent:expanded".
+// Shared helpers
 // ---------------------------------------------------------------------------
 
-/** Build scoped RuntimeProps for a repo card, keyed by encoded origin. */
-export function scopedRepoProps(props: RuntimeProps, origin: string): RuntimeProps {
-  const encoded = encodeOriginForId(origin);
-  const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(encoded)]);
-  return { ...props, idPrefix, runtime: { ...props.runtime, idPrefix } };
+/** Readable label for a scenario with no Course — last namespace segment,
+ *  title-cased ("…psych.defiance" → "Defiance"). */
+export function scenarioLabel(namespace: string): string {
+  const leaf = namespace.slice(namespace.lastIndexOf('.') + 1);
+  return leaf.charAt(0).toUpperCase() + leaf.slice(1);
 }
 
 // ---------------------------------------------------------------------------
-// OLX IDs — canonical block IDs from content/system/catalog.olx
+// Scoped props — Annotate pattern
 //
-// The catalog OLX is:  <Catalog id="catalog"><RepoCard id="repo"/></Catalog>
-// These constants must match those IDs.
+// For origin "file:content", the block state key becomes
+// "system/catalog:#file_3acontent:repo". Fields like `expanded` are
+// stored as properties under that key in Redux.
+//
+// Both the catalog listing and the /repo/:origin detail page produce the
+// same state key, so expand/collapse state is shared.
 // ---------------------------------------------------------------------------
 
-/** Block ID of the Catalog instance in system OLX. */
-export const CATALOG_ID = 'catalog';
-
-/** Block ID of the RepoCard template in system OLX. */
-export const REPO_ID = 'repo';
+/** Build scoped RuntimeProps for a repo card, keyed by encoded origin.
+ *
+ *  Sets id to REPO_ID so the state key matches the /repo/:origin page:
+ *    system/catalog:#[encodedOrigin]:repo
+ *  Without this, the catalog path would use the parent Catalog block's id
+ *  ("catalog"), producing a different key than the detail page. */
+export function scopedRepoProps(props: RuntimeProps, origin: string): RuntimeProps {
+  const encoded = encodeOriginForId(origin);
+  const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(encoded)]);
+  return { ...props, id: asDefinitionRef(REPO_ID), idPrefix, runtime: { ...props.runtime, idPrefix } };
+}
 
 // ---------------------------------------------------------------------------
 // Repo detail page helpers
