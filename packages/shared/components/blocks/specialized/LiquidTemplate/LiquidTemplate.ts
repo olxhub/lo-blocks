@@ -17,58 +17,12 @@ import { Liquid } from 'liquidjs';
 
 import { core } from '@/lib/blocks';
 import { parseXmlFragment } from '@/lib/content/parseOLX';
+import { loadExternalSource, extractTextFromXmlNodes } from '@/lib/content/parsers';
 import { _LiquidTemplate } from './_LiquidTemplate';
 import { registerFilters } from './liquidFilters';
 
 import type { LofsCanonical } from '@/lib/types/address';
 import type { DefinitionRef, OLXLoadingError } from '@/lib/types';
-import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
-
-// === Utilities (inlined from parsers.ts — not exported there) ===
-
-async function loadExternalSource({
-  src,
-  provider,
-  source,
-  parseDeps,
-}: {
-  src: string;
-  provider: any;
-  source: LofsCanonical;
-  parseDeps: LofsCanonical[];
-}): Promise<{ text: string; dep: LofsCanonical }> {
-  if (!provider) {
-    throw new Error('No storage provider supplied for src attribute');
-  }
-
-  if (!isContentFile(src)) {
-    const allowed = extensionsWithDots(CATEGORY.content).join(', ');
-    throw new Error(`Invalid src file type: "${src}". Allowed extensions: ${allowed}`);
-  }
-
-  const resolveBase = parseDeps.length > 0 ? parseDeps[parseDeps.length - 1] : source;
-  const resolved = provider.resolveRelativePath(resolveBase, src);
-  const readResult = await provider.read(resolved);
-  return { text: readResult.content, dep: readResult.provenance };
-}
-
-function extractTextFromXmlNodes(rawParsed: any[], { preserveWhitespace = false } = {}): string {
-  let result = '';
-  for (const node of rawParsed) {
-    if (typeof node === 'object') {
-      if ('#text' in node && typeof node['#text'] === 'string') {
-        result += node['#text'];
-      } else if ('cdata' in node && Array.isArray(node.cdata)) {
-        for (const c of node.cdata) {
-          if (typeof c === 'object' && '#text' in c) {
-            result += c['#text'];
-          }
-        }
-      }
-    }
-  }
-  return preserveWhitespace ? result : result.trim();
-}
 
 // === Data file loading ===
 
@@ -172,7 +126,7 @@ async function liquidTemplateParser({
   } else {
     const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
-    templateText = extractTextFromXmlNodes(kids, { preserveWhitespace: true });
+    templateText = extractTextFromXmlNodes(kids, { preserveWhitespace: true }) as string;
 
     if (!templateText.trim()) {
       throw new Error(

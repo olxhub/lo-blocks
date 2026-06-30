@@ -60,7 +60,7 @@ const prod = false;
  * loaded text and the canonical ref of the loaded file (to append to
  * parseDeps).
  */
-async function loadExternalSource({
+export async function loadExternalSource({
   src,
   provider,
   source,
@@ -144,7 +144,7 @@ function reconstructXmlAsFallback(rawParsed, error) {
  * @param {boolean} options.preserveWhitespace - If true, preserves raw whitespace; if false, trims and adds newline.
  * @returns {Object|string} - `{ text: string, type: 'text' }` or raw string, or fallback object on failure.
  */
-function extractTextFromXmlNodes(rawParsed, { preserveWhitespace = false } = {}) {
+export function extractTextFromXmlNodes(rawParsed, { preserveWhitespace = false } = {}) {
   if (!Array.isArray(rawParsed)) {
     const error = `Expected rawParsed to be an array`;
     if (preserveWhitespace) {
