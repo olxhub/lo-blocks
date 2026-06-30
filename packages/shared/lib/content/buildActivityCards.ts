@@ -91,7 +91,7 @@ export function buildActivityCards(
           : launchableVal === 'other' ? 'other'
           : 'activity';
         const status: 'draft' | 'usable' =
-          bestEntry.attributes?.draft === 'true' ? 'draft' : 'usable';
+          bestEntry.attributes?.draft ? 'draft' : 'usable';
 
         return [
           id,

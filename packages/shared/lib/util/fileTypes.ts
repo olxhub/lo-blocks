@@ -22,6 +22,7 @@ export const EXT = {
   mermaid: ['mmd', 'mermaid'] as const,
   data: ['yaml', 'yml', 'json'] as const,
   cast: ['cast'] as const,
+  template: ['liquid'] as const,
 
   // Code (for upload, syntax highlighting)
   code: ['js', 'jsx', 'ts', 'tsx', 'css', 'html', 'py', 'json', 'yaml', 'yml', 'pegjs'] as const,
@@ -39,7 +40,7 @@ export const EXT = {
 
 export const CATEGORY = {
   // What can be loaded as authored content
-  content: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast] as const,
+  content: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast, ...EXT.template] as const,
 
   // What the editor can open (content + sidecar files in future)
   editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast] as const,
