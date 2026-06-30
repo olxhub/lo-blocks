@@ -370,7 +370,19 @@ export async function writableSourceProvider(source: string): Promise<StoragePro
  * named source, or span the compile union when none is given. The single
  * definition of "no source = union", shared by the read routes (file GET,
  * files, grep). Decodes the raw param to an origin at the boundary.
+ *
+ * Special case: `file:docs` reaches the block-documentation provider
+ * (DocsStorageProvider). It is not a configured content source — it serves
+ * example/sidecar files from the block source tree so docs previews can
+ * resolve relative `src=` / `data=` references.
  */
 export async function readProvider(source?: string): Promise<StorageProvider> {
+  if (source === 'file:docs') {
+    const { DocsStorageProvider } = await import('./providers/docs');
+    const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
+    return new DocsStorageProvider(
+      Object.values(BLOCK_REGISTRY).filter((b: any) => b?._isBlock).map((b: any) => b.name)
+    );
+  }
   return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
 }

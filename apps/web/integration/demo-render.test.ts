@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { collectErrors } from '@/lib/content/collectErrors';
 import { toMemoryRef } from '@/lib/types/storage';
+import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -158,8 +159,12 @@ describe('Demo OLX files render without errors', () => {
           }
         }
 
-        // Parse the OLX
-        const parseResult = await parseOLX(content, [toMemoryRef(filePath)], undefined, TEST_NS);
+        // Parse the OLX with a provider rooted at the example's directory
+        // so blocks with src= or data= can resolve relative file references.
+        const exampleDir = path.dirname(filePath);
+        const exampleProvider = new FileStorageProvider(exampleDir, 'demo');
+        const exampleRef = exampleProvider.toLofsRef(fileName);
+        const parseResult = await parseOLX(content, [exampleRef], exampleProvider, TEST_NS);
         let { idMap } = parseResult;
         const { root } = parseResult;
 
