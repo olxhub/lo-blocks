@@ -77,21 +77,22 @@ function firstParagraph(md: string): string {
 /** Compose the repo descriptor: git conventions first (README), layered with
  *  the metadata YAML for beyond-git fields.
  *
- *  The first provider.read() call triggers ensureFresh() on git sources. If
- *  that fails (403, network), the error is captured as a source-level AppError
- *  on the descriptor rather than swallowed — so the catalog can surface it. */
+ *  The first provider call triggers ensureFresh() on git sources. If that
+ *  fails (403, network), the error is captured as a source-level AppError
+ *  on the descriptor rather than swallowed — so the catalog can surface it.
+ *  File-not-found (a healthy repo without README.md) is normal and not an error. */
 async function readSourceDescriptor(provider: StorageProvider): Promise<SourceDescriptor> {
-  // First read: try directly (not via readRepoFile) so we can distinguish
-  // source-level failures from file-not-found.
-  let readme: string | null = null;
+  // Probe the source with a cheap call. listFiles triggers ensureFresh() on
+  // git sources — if the remote is unreachable (403, network), it throws here.
+  // This is separate from readRepoFile, which swallows ALL errors (including
+  // source-level ones) because a missing file is normal.
   try {
-    readme = (await provider.read(toOlxRelativePath('README.md'))).content;
+    await provider.listFiles({ limit: 1 });
   } catch (err) {
-    // If ensureFresh() failed (403, network), further reads will also fail.
-    // Capture the error and return early — no point trying lo.yaml.
     return { error: toAppError(err, { title: 'Source unavailable' }) };
   }
 
+  const readme = await readRepoFile(provider, 'README.md');
   const metaRaw = await readRepoFile(provider, REPO_METADATA_FILE);
   const parsed = metaRaw ? YAML.parse(metaRaw) : null;
   const meta = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
