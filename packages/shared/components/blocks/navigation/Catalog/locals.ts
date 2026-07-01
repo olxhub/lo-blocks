@@ -17,6 +17,7 @@
 import * as state from '@/lib/state';
 import type { RuntimeProps, IdPrefix } from '@/lib/types';
 import { extendIdPrefix, scopeMarker, asIdPrefix, asDefinitionKey } from '@/lib/types/id-grammar';
+import type { ScenarioGroup as Group } from '@/lib/catalog/group';
 
 // ---------------------------------------------------------------------------
 // Fields — component-scoped (default), so each Catalog / repo card instance
@@ -129,4 +130,32 @@ export function originFromIdPrefix(idPrefix: string): string | null {
   const match = idPrefix.match(/#([^:]+)/);
   if (!match) return null;
   return decodeOriginFromId(match[1]);
+}
+
+// ---------------------------------------------------------------------------
+// Compact item list — pure data transform for compact card rendering
+// ---------------------------------------------------------------------------
+
+export type CompactItem =
+  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string; status?: string }
+  | { kind: 'activity'; title: string; id: string; path: string; description?: string; status?: string };
+
+/** Collect a flat ordered list of headings + activities across all scenario
+ *  groups for compact title rendering, preserving group structure. */
+export function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
+  const out: CompactItem[] = [];
+  for (const g of groups) {
+    // For flat repos (single namespace, no Course) skip the heading.
+    if (!isFlat) {
+      if (g.course) {
+        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, status: g.course.status });
+      } else {
+        out.push({ kind: 'heading', label: scenarioLabel(g.namespace) });
+      }
+    }
+    for (const a of g.activities) {
+      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description, status: a.status });
+    }
+  }
+  return out;
 }

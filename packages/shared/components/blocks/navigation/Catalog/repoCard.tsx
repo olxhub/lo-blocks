@@ -25,41 +25,16 @@
 import { ChevronRight } from 'lucide-react';
 import type { RuntimeProps } from '@/lib/types';
 import type { Repository } from '@/lib/catalog/schema';
-import { groupByScenario, type ScenarioGroup as Group } from '@/lib/catalog/group';
+import { groupByScenario } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';
 import { useRepoByOrigin } from '@/lib/state/catalog';
-import { repoCardFields, originFromIdPrefix, scenarioLabel } from './locals';
+import { repoCardFields, originFromIdPrefix, compactItems, type CompactItem } from './locals';
 import ScenarioGroup from './scenarioGroup';
 import ActivityRow from './activityRow';
 import ForgeLinkIcon from './forgeLinkIcon';
 
 const COMPACT_LIMIT = 5;
-
-type CompactItem =
-  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string; status?: string }
-  | { kind: 'activity'; title: string; id: string; path: string; description?: string; status?: string };
-
-/** Collect a flat ordered list of headings + activities across all scenario
- *  groups for compact title rendering, preserving group structure. */
-function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
-  const out: CompactItem[] = [];
-  for (const g of groups) {
-    // For flat repos (single namespace, no Course) skip the heading.
-    if (!isFlat) {
-      if (g.course) {
-        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, status: g.course.status });
-      } else {
-        out.push({ kind: 'heading', label: scenarioLabel(g.namespace) });
-      }
-    }
-    for (const a of g.activities) {
-      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description, status: a.status });
-    }
-  }
-  return out;
-}
-
 
 /** Render a compact list of items with a budget of `limit` activities.
  *  Headings are always shown (don't count against the budget); activities
