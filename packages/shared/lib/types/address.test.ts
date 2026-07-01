@@ -318,13 +318,15 @@ describe('forgeLink', () => {
     expect(forgeLink(gh, '/a.olx')?.url).toBe('https://github.com/olxhub/edu.memphis.psych/blob/main/a.olx');
   });
 
-  it('maps gitlab too', () => {
+  it('maps gitlab with /-/ path prefix', () => {
     const gl = gitOrigin('https://gitlab.com/group/repo.git', 'v2');
     expect(forgeLink(gl)).toEqual({
-      url: 'https://gitlab.com/group/repo/tree/v2',
+      url: 'https://gitlab.com/group/repo/-/tree/v2',
       forge: 'gitlab',
       label: 'View on GitLab',
     });
+    expect(forgeLink(gl, 'src/main.olx')?.url)
+      .toBe('https://gitlab.com/group/repo/-/blob/v2/src/main.olx');
   });
 
   it('returns null when no web view is known', () => {

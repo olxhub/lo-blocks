@@ -388,11 +388,12 @@ export interface ForgeLink {
   label: string;
 }
 
-// Forges whose web UI follows the github.com path convention
-// (…/tree/<ref> for a directory, …/blob/<ref>/<path> for a file).
-const WEB_FORGES: Record<string, { forge: Forge; label: string }> = {
-  'github.com': { forge: 'github', label: 'View on GitHub' },
-  'gitlab.com': { forge: 'gitlab', label: 'View on GitLab' },
+// Known forges with web UIs.  `pathPrefix` accounts for differences in URL
+// structure: GitHub uses /tree/<ref> and /blob/<ref>/<path>; GitLab inserts a
+// `/-/` segment (/-/tree/<ref>, /-/blob/<ref>/<path>).
+const WEB_FORGES: Record<string, { forge: Forge; label: string; pathPrefix: string }> = {
+  'github.com': { forge: 'github', label: 'View on GitHub', pathPrefix: '' },
+  'gitlab.com': { forge: 'gitlab', label: 'View on GitLab', pathPrefix: '/-' },
 };
 
 /**
@@ -417,6 +418,8 @@ export function forgeLink(origin: LofsOrigin, path?: string): ForgeLink | null {
   if (!known) return null;
   const base = `https://${locator}`;
   const rel = path ? String(path).replace(/^\/+/, '') : '';
-  const url = rel ? `${base}/blob/${parsed.ref}/${rel}` : `${base}/tree/${parsed.ref}`;
+  const url = rel
+    ? `${base}${known.pathPrefix}/blob/${parsed.ref}/${rel}`
+    : `${base}${known.pathPrefix}/tree/${parsed.ref}`;
   return { url, forge: known.forge, label: known.label };
 }
