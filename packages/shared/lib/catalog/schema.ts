@@ -10,6 +10,7 @@
 
 import { z } from 'zod';
 import type { ForgeLink, Forge } from '@/lib/types/address';
+import { z_appError } from '@/lib/types/errors';
 
 // Re-export so consumers that only need the type can import from schema.ts
 // (the catalog's public surface) without reaching into address.ts.
@@ -87,6 +88,11 @@ export const RepositorySchema = z.object({
     'Listed so authoring surfaces can reach them; kept separate from launchables.',
   ),
   forgeLink: ForgeLinkSchema.nullable().describe('Link to the repo on its forge, or null'),
+  error: z_appError.nullable().optional().describe(
+    'Non-null when the source could not be loaded (auth failure, network error, etc.). ' +
+    'The repo card still appears so the user knows the source is configured — but ' +
+    'launchables/counts will be empty. Spread into DisplayError for rendering.',
+  ),
 
   // include-only (null until wired — see TODOs above):
   readme: z.string().nullable().optional(),

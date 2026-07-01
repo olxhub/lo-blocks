@@ -14,6 +14,7 @@ import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards, type ActivityCard } from '@/lib/content/buildActivityCards';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { toOlxRelativePath, type StorageProvider } from '@/lib/types/storage';
+import { toAppError, type AppError } from '@/lib/types/errors';
 import type { ToolRegistry } from '@/lib/mcp/registry';
 import {
   GetRepositoriesInput,
@@ -46,6 +47,7 @@ interface SourceDescriptor {
   description?: string;
   discipline?: string;
   readme?: string;   // full README.md — for include: readme
+  error?: AppError;  // source-level failure (auth, network, etc.)
 }
 
 /** Read one repo-root file via the provider; null if absent (a real I/O
@@ -73,9 +75,23 @@ function firstParagraph(md: string): string {
 }
 
 /** Compose the repo descriptor: git conventions first (README), layered with
- *  the metadata YAML for beyond-git fields. */
+ *  the metadata YAML for beyond-git fields.
+ *
+ *  The first provider.read() call triggers ensureFresh() on git sources. If
+ *  that fails (403, network), the error is captured as a source-level AppError
+ *  on the descriptor rather than swallowed — so the catalog can surface it. */
 async function readSourceDescriptor(provider: StorageProvider): Promise<SourceDescriptor> {
-  const readme = await readRepoFile(provider, 'README.md');
+  // First read: try directly (not via readRepoFile) so we can distinguish
+  // source-level failures from file-not-found.
+  let readme: string | null = null;
+  try {
+    readme = (await provider.read(toOlxRelativePath('README.md'))).content;
+  } catch (err) {
+    // If ensureFresh() failed (403, network), further reads will also fail.
+    // Capture the error and return early — no point trying lo.yaml.
+    return { error: toAppError(err, { title: 'Source unavailable' }) };
+  }
+
   const metaRaw = await readRepoFile(provider, REPO_METADATA_FILE);
   const parsed = metaRaw ? YAML.parse(metaRaw) : null;
   const meta = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
@@ -164,6 +180,7 @@ async function getRepositories(
       launchables: includeDrafts ? publicLaunchables : usable,
       internal,
       forgeLink: provider.forgeLink?.() ?? null,
+      error: descriptor.error ?? null,
     };
     // README is a git convention — real now.
     if (includeSet.has('readme')) entry.readme = descriptor.readme ?? null;

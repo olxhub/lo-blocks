@@ -29,6 +29,7 @@ import { groupByScenario } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';
 import { useRepoByOrigin } from '@/lib/state/catalog';
+import { DisplayError } from '@/lib/util/debug';
 import { repoCardFields, originFromIdPrefix, compactItems, type CompactItem } from './locals';
 import ScenarioGroup from './scenarioGroup';
 import ActivityRow from './activityRow';
@@ -158,7 +159,8 @@ export default function RepoCard(props: RuntimeProps) {
 
       {/* Activity listing */}
       <div className="flex flex-col gap-4">
-        {totalCount === 0 && (
+        {repo.error && <DisplayError {...repo.error} />}
+        {!repo.error && totalCount === 0 && (
           <p className="text-sm text-dimmed py-2">No usable activities yet.</p>
         )}
 
