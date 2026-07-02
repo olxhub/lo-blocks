@@ -5,7 +5,7 @@
 // Each activity shows which repo it's from (cross-repo provenance).
 
 import type { RuntimeProps } from '@/lib/types';
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 import { searchCatalog, type CatalogFilters } from '@/lib/catalog/filter';
 import { scopedRepoProps } from './locals';
 import RepoCard from './repoCard';

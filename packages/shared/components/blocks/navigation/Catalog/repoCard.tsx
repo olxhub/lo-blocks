@@ -24,7 +24,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import type { RuntimeProps } from '@/lib/types';
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 import { groupByScenario } from '@/lib/catalog/group';
 import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
 import { useFieldState } from '@/lib/state/redux';

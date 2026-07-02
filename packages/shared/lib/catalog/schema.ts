@@ -5,16 +5,12 @@
 // side, server) and useCatalog.ts (the consume/hook side, client). Pairing the
 // two ends on one schema is the point. See docs/mcp-authoring.md.
 //
-// ForgeLink is defined once in address.ts (the domain type) and re-exported
-// here; the Zod schema mirrors it for wire validation. One source of truth.
+// Domain types (ForgeLink, Launchable, Repository) are defined in
+// lib/types/core.ts; the Zod schemas here mirror them for wire validation.
 
 import { z } from 'zod';
-import type { ForgeLink, Forge } from '@/lib/types/address';
+import type { ForgeLink, Launchable, Repository } from '@/lib/types';
 import { z_appError } from '@/lib/types/errors';
-
-// Re-export so consumers that only need the type can import from schema.ts
-// (the catalog's public surface) without reaching into address.ts.
-export type { ForgeLink, Forge };
 
 /** Fields beyond the default set. Heavy per-repo fields are opt-in so the
  *  default response stays small (the get_blocks anti-spam discipline). */
@@ -55,7 +51,7 @@ export const ForgeLinkSchema: z.ZodType<ForgeLink> = z.object({
   label: z.string().describe('Action label, e.g. "View on GitHub"'),
 });
 
-export const LaunchableSchema = z.object({
+export const LaunchableSchema: z.ZodType<Launchable> = z.object({
   id: z.string(),
   role: z.enum(['course', 'activity', 'internal', 'other']).describe(
     'What the block IS (courseware-model). course/activity are public learning ' +
@@ -72,7 +68,7 @@ export const LaunchableSchema = z.object({
   forgeLink: ForgeLinkSchema.nullable().describe('Link to this file on its forge, or null'),
 });
 
-export const RepositorySchema = z.object({
+export const RepositorySchema: z.ZodType<Repository> = z.object({
   origin: z.string().describe('The handle — git+https:…@branch or file:…'),
   label: z.string().describe('manifest title, else the configured source label'),
   writable: z.boolean(),
@@ -107,6 +103,4 @@ export const GetRepositoriesOutput = z.object({
   total: z.number().describe('Total repositories (before pagination, once that exists)'),
 });
 
-export type Launchable = z.infer<typeof LaunchableSchema>;
-export type Repository = z.infer<typeof RepositorySchema>;
 export type GetRepositoriesResult = z.infer<typeof GetRepositoriesOutput>;

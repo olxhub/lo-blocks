@@ -18,46 +18,13 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, DefinitionKey, IdMap, UserLocale, VariantMap } from '../types';
+import type {
+  OlxJson, DefinitionKey, IdMap, UserLocale, VariantMap, RootState,
+  LoadingStatus, VariantStatus, VariantStatusEntry,
+  OlxJsonBlockEntry, OlxJsonSourceState, OlxJsonState,
+} from '../types';
 import type { LogEventFn } from '../render';
 
-// =============================================================================
-// Types
-// =============================================================================
-
-export type LoadingStatus = 'ready' | 'loading' | 'error';
-
-export type VariantStatus = 'translanguaging' | 'error';
-
-export interface VariantStatusEntry {
-  status: VariantStatus;
-  error?: string;
-}
-
-export interface BlockEntry {
-  olxJson: VariantMap | null;
-  loadingState: { status: LoadingStatus };
-  /** Per-variant status for in-flight translations and variant-level errors. */
-  variantStatus?: Record<string, VariantStatusEntry>;
-  error?: { message: string };
-}
-
-export interface SourceState {
-  [id: string]: BlockEntry;
-}
-
-export interface OlxJsonState {
-  [source: string]: SourceState;
-}
-
-// Full Redux state shape (for selector typing)
-// Note: olxjson lives inside application_state due to lo_event's state wrapping
-interface RootState {
-  application_state?: {
-    olxjson?: OlxJsonState;
-    [key: string]: any;
-  };
-}
 
 // =============================================================================
 // Event Types
@@ -225,7 +192,7 @@ export function olxjsonReducer(
       const { source, blocks } = action;
       if (!source || !blocks) return state;
 
-      const entries: SourceState = {};
+      const entries: OlxJsonSourceState = {};
       for (const [id, variantMap] of Object.entries(blocks)) {
         // Merge with existing variants so a partial update (e.g., a new
         // translation) doesn't discard variants already in Redux.
@@ -410,13 +377,13 @@ export function selectBlock(
  * @param state - Redux root state
  * @param sources - Array of source names in priority order
  * @param id - DefinitionKey to look up
- * @returns BlockEntry if found in any source, undefined otherwise
+ * @returns OlxJsonBlockEntry if found in any source, undefined otherwise
  */
 export function selectBlockState(
   state: RootState,
   sources: string[],
   id: DefinitionKey
-): BlockEntry | undefined {
+): OlxJsonBlockEntry | undefined {
   const olxjson = state.application_state?.olxjson;
   if (!olxjson) return undefined;
 
@@ -563,12 +530,12 @@ export function useOlxJsonBlock(sources: string[], id: DefinitionKey, locale: Us
  *
  * @param sources - Array of source names in priority order
  * @param id - DefinitionKey to look up
- * @returns BlockEntry if found, undefined otherwise
+ * @returns OlxJsonBlockEntry if found, undefined otherwise
  */
 export function useOlxJsonBlockState(
   sources: string[],
   id: DefinitionKey
-): BlockEntry | undefined {
+): OlxJsonBlockEntry | undefined {
   return useSelector((state: RootState) => selectBlockState(state, sources, id));
 }
 

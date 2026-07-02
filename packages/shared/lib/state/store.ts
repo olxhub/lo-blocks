@@ -37,8 +37,7 @@ function createArrayLogger() {
 import { websocketLogger } from 'lo_event/websocket';
 import { scopes, Scope } from './scopes';
 import { commonFields } from './commonFields';
-import type { FieldInfo, Fields } from '../types';
-import type { ChatMessage } from '../llm/types';
+import type { FieldInfo, Fields, AppState } from '../types';
 import {
   olxjsonReducer,
   initialOlxJsonState,
@@ -52,7 +51,6 @@ import {
   catalogReducer,
   CATALOG_EVENT_TYPES,
   initialCatalogState,
-  type CatalogState,
 } from './catalog';
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
@@ -160,15 +158,16 @@ function getWebsocketUrl() {
 // instead of state.application_state.olxjson. This would better reflect the semantic
 // difference between content definitions and runtime application state.
 //
-const initialState = {
+const initialState: AppState = {
   component: {},
   componentSetting: {},
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {} as Record<string, { messages: ChatMessage[]; status: string }>,
-  catalog: initialCatalogState as CatalogState,
+  chat: {},
+  catalog: initialCatalogState,
 };
+
 
 // Event types for olxjson state
 const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];

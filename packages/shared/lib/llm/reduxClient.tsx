@@ -13,15 +13,8 @@ import {
   CHAT_ADD_MESSAGES,
   CHAT_SET_STATUS,
 } from '@/lib/state/store';
-import type {
-  ChatMessage,
-  ChatLineMessage,
-  ApiMessage,
-  LlmTool,
-  ToolCall,
-  ToolResult,
-  ChatCompletionResponse,
-} from './types';
+import type { ChatMessage, ChatLineMessage, RootState } from '@/lib/types';
+import type { ApiMessage, LlmTool, ToolCall, ToolResult, ChatCompletionResponse } from './types';
 
 const LLM_ENDPOINT = '/api/llm/chat/completions';
 
@@ -202,11 +195,8 @@ export function useChat(params: UseChatParams = {}) {
     initialMessage = 'Ask the LLM a question.'
   } = params;
 
-  // Read from Redux.
-  // TODO: type `state` as RootState once the store exports one (store.ts has
-  // no RootState type today). Until then this selector is unavoidably `any`.
   const chatState = useSelector(
-    (state: any) => state?.application_state?.chat?.[chatId]
+    (state: RootState) => state.application_state.chat?.[chatId]
   );
   const messages: ChatMessage[] = chatState?.messages ?? [];
   const status: string = chatState?.status ?? LLM_STATUS.INIT;

@@ -22,31 +22,8 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { callMcpTool } from '@/lib/mcp/client';
-import { GetRepositoriesOutput, type Repository } from '@/lib/catalog/schema';
-
-// =============================================================================
-// Types
-// =============================================================================
-
-export type CatalogLoadingStatus = 'ready' | 'loading' | 'error';
-
-export interface CatalogEntry {
-  repositories: Repository[];
-  loadingState: { status: CatalogLoadingStatus };
-  error?: { message: string };
-}
-
-export interface CatalogState {
-  [argsKey: string]: CatalogEntry;
-}
-
-// Full Redux state shape (for selector typing)
-interface RootState {
-  application_state?: {
-    catalog?: CatalogState;
-    [key: string]: any;
-  };
-}
+import { GetRepositoriesOutput } from '@/lib/catalog/schema';
+import type { RootState, CatalogEntry, CatalogState, Repository } from '../types';
 
 // =============================================================================
 // Event Types

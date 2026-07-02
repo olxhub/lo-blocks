@@ -6,7 +6,7 @@
 // shared lib stays free of UI, the rendering layer owns the pixels.
 
 import { Github, Gitlab, type LucideIcon } from 'lucide-react';
-import type { ForgeLink } from '@/lib/catalog/schema';
+import type { ForgeLink } from '@/lib/types';
 
 const ICONS: Record<ForgeLink['forge'], LucideIcon> = {
   github: Github,

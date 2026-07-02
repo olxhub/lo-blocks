@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react';
 import { ensureCatalog, useCatalogData } from '@/lib/state/catalog';
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 
 export interface CatalogState {
   repositories: Repository[];

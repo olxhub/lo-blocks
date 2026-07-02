@@ -6,7 +6,7 @@
 // SBLA parts). Pure over the get_repositories result, so the view stays
 // declarative. See docs/ux.md (the front-door design) and courseware-model.
 
-import type { Launchable } from './schema';
+import type { Launchable } from '@/lib/types';
 
 export interface ScenarioGroup {
   /** Namespace shared by the group's blocks (e.g. "edu.memphis.psych"). */

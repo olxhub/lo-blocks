@@ -20,26 +20,8 @@
 
 import { updateResponseReducer } from './state/store';
 import { initialOlxJsonState } from './state/olxjson';
-import { initialCatalogState, type CatalogState } from './state/catalog';
-
-// =============================================================================
-// Types
-// =============================================================================
-
-/**
- * Application state shape (what updateResponseReducer manages).
- * This is the state INSIDE application_state when using lo_event's Redux wrapper.
- * For pure replay, we work with this directly without the wrapper.
- */
-export interface AppState {
-  component: Record<string, Record<string, any>>;
-  componentSetting: Record<string, Record<string, any>>;
-  system: Record<string, any>;
-  storage: Record<string, Record<string, any>>;
-  olxjson: Record<string, Record<string, any>>;
-  chat: Record<string, { messages: any[]; status: string }>;
-  catalog: CatalogState;
-}
+import { initialCatalogState } from './state/catalog';
+import type { AppState } from './types';
 
 /**
  * An event from the event log.

@@ -19,7 +19,7 @@ import {
   filterRepos, repoScope,
   type CatalogFilters, type Scope, type Sort,
 } from '@/lib/catalog/filter';
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 import { catalogFields, scopedRepoProps } from './locals';
 import CatalogSidebar from './catalogSidebar';
 import RepoCard from './repoCard';

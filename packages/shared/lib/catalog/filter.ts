@@ -5,7 +5,7 @@
 // (filter/sort moves server-side when get_repositories grows `filter` — see
 // docs/mcp-authoring.md.)
 
-import type { Repository, Launchable } from '@/lib/catalog/schema';
+import type { Repository, Launchable } from '@/lib/types';
 
 export type Scope = 'all' | 'mine' | 'community';
 export type Sort = 'name' | 'activities';

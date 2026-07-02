@@ -5,7 +5,7 @@
 // Edit → Studio, Preview → /preview, plus a forge link to the source file when
 // the source has a web view. `prominent` styles a Course heading its scenario.
 
-import type { Repository, Launchable } from '@/lib/catalog/schema';
+import type { Repository, Launchable } from '@/lib/types';
 import { studioHref, previewHref } from '@/lib/catalog/links';
 import ForgeLinkIcon from './forgeLinkIcon';
 

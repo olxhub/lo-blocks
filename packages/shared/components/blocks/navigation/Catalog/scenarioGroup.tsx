@@ -5,7 +5,7 @@
 // "Psychology Study Group — Sleep Refusal" and its SBLA parts). The Course is
 // the heading; its parts indent under it so a bare "Part One" reads in context.
 
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 import type { ScenarioGroup as Group } from '@/lib/catalog/group';
 import { scenarioLabel } from './locals';
 import ActivityRow from './activityRow';

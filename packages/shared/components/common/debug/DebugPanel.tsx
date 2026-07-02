@@ -13,7 +13,8 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { replayToEvent, diffStates, AppState, LoggedEvent } from '@/lib/replay';
+import { replayToEvent, diffStates, LoggedEvent } from '@/lib/replay';
+import type { AppState } from '@/lib/types';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useUser } from '@/lib/state/redux';
 import ExpandIcon from '@/components/common/ExpandIcon';

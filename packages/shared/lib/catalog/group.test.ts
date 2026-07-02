@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { groupByScenario } from './group';
-import type { Launchable } from './schema';
+import type { Launchable } from '@/lib/types';
 
 function L(id: string, role: Launchable['role'], index: number, title = id): Launchable {
   return { id, role, status: 'usable', title, type: 'X', index, path: `${id}.olx`, forgeLink: null };

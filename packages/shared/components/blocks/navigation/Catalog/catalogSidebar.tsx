@@ -6,7 +6,7 @@
 // Studio source picker. (A Type/discipline facet returns once repos carry
 // richer metadata; faceting on the raw block tag wasn't useful.)
 
-import type { Repository } from '@/lib/catalog/schema';
+import type { Repository } from '@/lib/types';
 import { scopeCounts, type Scope } from '@/lib/catalog/filter';
 
 const SCOPES: { key: Scope; label: string }[] = [

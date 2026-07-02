@@ -27,9 +27,9 @@ import {
   replayToEvent,
   replayWithSnapshots,
   diffStates,
-  AppState,
   LoggedEvent,
 } from '../lib/replay';
+import type { AppState } from '../lib/types';
 
 // =============================================================================
 // Event log loading
