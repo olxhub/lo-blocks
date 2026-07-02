@@ -7,8 +7,8 @@
 // ToolRegistry.toMcpTools — always JSON), which we parse back into data.
 //
 // TODO(push): the StreamableHTTP transport already holds a GET /mcp SSE stream
-// for server→client notifications. Wire a notification handler here (and surface
-// it through useMCP) for live updates — 2.0, or 1.0 if it stays simple.
+// for server→client notifications. Wire a notification handler here for live
+// updates — 2.0, or 1.0 if it stays simple.
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
