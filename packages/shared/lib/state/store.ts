@@ -49,6 +49,7 @@ import {
   CLEAR_OLXJSON,
 } from './olxjson';
 import {
+  catalogReducer,
   CATALOG_EVENT_TYPES,
   initialCatalogState,
   type CatalogState,
@@ -229,45 +230,10 @@ export const updateResponseReducer = (state = initialState, action) => {
 
   // Handle catalog events (MCP-sourced repository data)
   if (CATALOG_EVENT_TYPES.includes(eventType)) {
-    const { argsKey } = action;
-    switch (eventType) {
-      case 'CATALOG_LOADING':
-        return {
-          ...state,
-          catalog: {
-            ...state.catalog,
-            [argsKey]: {
-              repositories: state.catalog?.[argsKey]?.repositories ?? [],
-              loadingState: { status: 'loading' },
-            },
-          },
-        };
-      case 'CATALOG_LOADED':
-        return {
-          ...state,
-          catalog: {
-            ...state.catalog,
-            [argsKey]: {
-              repositories: action.repositories,
-              loadingState: { status: 'ready' },
-            },
-          },
-        };
-      case 'CATALOG_ERROR':
-        return {
-          ...state,
-          catalog: {
-            ...state.catalog,
-            [argsKey]: {
-              repositories: state.catalog?.[argsKey]?.repositories ?? [],
-              loadingState: { status: 'error' },
-              error: action.error,
-            },
-          },
-        };
-      default:
-        return state;
-    }
+    return {
+      ...state,
+      catalog: catalogReducer(state.catalog, { ...action, type: eventType }),
+    };
   }
 
   // Field-level reducers — route events to field.reduce when registered.

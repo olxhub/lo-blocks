@@ -65,6 +65,46 @@ export const CATALOG_EVENT_TYPES = [CATALOG_LOADING, CATALOG_LOADED, CATALOG_ERR
 export const initialCatalogState: CatalogState = {};
 
 // =============================================================================
+// Reducer (delegated from updateResponseReducer, like olxjsonReducer)
+// =============================================================================
+
+export function catalogReducer(
+  state: CatalogState = initialCatalogState,
+  action: any,
+): CatalogState {
+  const { argsKey } = action;
+  switch (action.type) {
+    case CATALOG_LOADING:
+      return {
+        ...state,
+        [argsKey]: {
+          repositories: state[argsKey]?.repositories ?? [],
+          loadingState: { status: 'loading' },
+        },
+      };
+    case CATALOG_LOADED:
+      return {
+        ...state,
+        [argsKey]: {
+          repositories: action.repositories,
+          loadingState: { status: 'ready' },
+        },
+      };
+    case CATALOG_ERROR:
+      return {
+        ...state,
+        [argsKey]: {
+          repositories: state[argsKey]?.repositories ?? [],
+          loadingState: { status: 'error' },
+          error: action.error,
+        },
+      };
+    default:
+      return state;
+  }
+}
+
+// =============================================================================
 // Dispatch Helpers (via lo_event.logEvent, like chat)
 // =============================================================================
 
