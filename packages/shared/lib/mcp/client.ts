@@ -57,20 +57,22 @@ async function callOnce(name: string, args: Record<string, unknown>, signal?: Ab
 }
 
 /**
- * Call an MCP tool and return its (JSON-decoded) result. Retries once after a
- * failure with a fresh connection, to recover transparently from an expired or
- * closed session. Safe because today's tools are read-only/idempotent — a future
- * non-idempotent tool (save_file) should opt out of the retry.
+ * Call an MCP tool and return its (JSON-decoded) result.
+ *
+ * Pass `retry: true` to retry once with a fresh connection on failure — safe
+ * for read-only/idempotent tools and recovers transparently from expired
+ * sessions. Write tools must NOT opt in (risk of double-write).
  */
 export async function callMcpTool<T = unknown>(
   name: string,
   args: Record<string, unknown> = {},
-  signal?: AbortSignal,
+  opts: { signal?: AbortSignal; retry?: boolean } = {},
 ): Promise<T> {
+  const { signal, retry = false } = opts;
   try {
     return await callOnce(name, args, signal) as T;
   } catch (err) {
-    if (signal?.aborted) throw err;
+    if (!retry || signal?.aborted) throw err;
     reset();
     return await callOnce(name, args, signal) as T;
   }

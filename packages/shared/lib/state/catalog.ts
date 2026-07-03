@@ -110,7 +110,7 @@ function fetchCatalog(args: Record<string, unknown>, argsKey: string): void {
   fetchingKeys.add(argsKey);
   dispatchCatalogLoading(argsKey);
 
-  callMcpTool<unknown>('get_repositories', args)
+  callMcpTool<unknown>('get_repositories', args, { retry: true })
     .then((raw) => {
       const parsed = GetRepositoriesOutput.parse(raw);
       fetchingKeys.delete(argsKey);
