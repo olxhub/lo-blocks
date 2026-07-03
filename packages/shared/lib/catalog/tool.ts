@@ -120,7 +120,13 @@ async function getRepositories(
   // per-source, lazily — this is the move that retires the `_snapshot`
   // singleton (syncContentFromStorage.ts) rather than depending on it.
   const { idMap } = await syncContentFromStorage();
-  const cards = buildActivityCards(idMap);
+  const { cards, warnings } = buildActivityCards(idMap);
+  // TODO: Group warnings by editSource (origin) and surface them on each
+  // repo's error field so they render as DisplayError on the repo card.
+  // Currently dropped — a launchable="typo" block is silently skipped.
+  if (warnings.length) {
+    console.warn('buildActivityCards warnings:', warnings);
+  }
 
   // Group cards by the origin they came from (their provenance source). The
   // launchable wire objects are built per-repo below, where that repo's

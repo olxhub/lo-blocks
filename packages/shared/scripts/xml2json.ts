@@ -236,7 +236,11 @@ async function main() {
 
     // Write activities if requested
     if (activitiesFile) {
-      const activities = buildActivityCards(idMap);
+      const { cards: activities, warnings } = buildActivityCards(idMap);
+      if (warnings.length) {
+        console.warn(`${warnings.length} launchable warning(s):`);
+        for (const w of warnings) console.warn(`  ${w.message}`);
+      }
       const activityCount = Object.keys(activities).length;
       console.log(`Found ${activityCount} launchable activities`);
       writeJson(activitiesFile, { ok: true, activities });
@@ -245,7 +249,7 @@ async function main() {
       writeManifest(idMap, activities);
     } else if (manifestOutFile) {
       // Manifest requested without activities — build activities for default generation
-      const activities = buildActivityCards(idMap);
+      const { cards: activities } = buildActivityCards(idMap);
       writeManifest(idMap, activities);
     }
 

@@ -13,7 +13,8 @@
 
 import path from 'path';
 import type { Context } from 'hono';
-import { unionProvider } from '@/lib/lofs/contentSources';
+import { unionProvider, writableSourceProvider } from '@/lib/lofs/contentSources';
+import { source as lofsSource } from '@/lib/types/address';
 import {
   syncContentFromStorage,
   getSourceFile,
@@ -89,9 +90,13 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
+    // Write to the source's own provider — NOT the union (StackedStorageProvider
+    // writes to providers[0], which may be a different repo entirely).
+    const writeProvider = await writableSourceProvider(lofsSource(sourceFileUri));
+
     // Dedupe concurrent identical requests + enforce a timeout (shared helper).
     const result = await runTranslation({
-      provider, logsDir,
+      provider: writeProvider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
     return c.json(result, result.ok ? undefined : 500);

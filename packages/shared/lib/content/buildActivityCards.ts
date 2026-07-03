@@ -11,7 +11,13 @@ import { variantMapKeys } from '../types/i18n';
 export type VariantPicker = (availableVariants: ContentVariant[]) => ContentVariant;
 
 /** Recognized values for the `launchable` OLX attribute. Anything not in this
- *  set is a content error — fail fast so authors notice typos. */
+ *  set is a content error — the block is skipped and a warning is collected so
+ *  it can surface on the repo card (via DisplayError).
+ *
+ *  TODO: Surface these warnings on the repo card as DisplayError. Currently
+ *  warnings are returned but tool.ts doesn't propagate them to the per-repo
+ *  error field. A typo in any community repo should show on that repo's card,
+ *  not crash the whole catalog. */
 const LAUNCHABLE_VALUES = new Set(['true', 'course', 'internal', 'other']);
 
 export interface ActivityCard {
@@ -35,6 +41,20 @@ export interface ActivityCard {
   status: 'draft' | 'usable';
 }
 
+/** A content warning from buildActivityCards — not fatal, but should be
+ *  surfaced to the author (e.g. on the repo card via DisplayError). */
+export interface ActivityCardWarning {
+  blockId: string;
+  /** Origin of the block (same as ActivityCard.editSource). */
+  editSource: string;
+  message: string;
+}
+
+export interface BuildActivityCardsResult {
+  cards: Record<string, ActivityCard>;
+  warnings: ActivityCardWarning[];
+}
+
 /**
  * Build activity cards from an idMap.
  *
@@ -42,25 +62,32 @@ export interface ActivityCard {
  * card metadata. The pickVariant callback selects which variant to use
  * for non-localized metadata (editPath, category, etc.); defaults to
  * first available variant.
+ *
+ * Content errors (e.g. unrecognized launchable values) are collected in
+ * `warnings` rather than thrown — a bad block in one repo must not crash
+ * the catalog for every other repo.
  */
 export function buildActivityCards(
   idMap: IdMap,
   pickVariant: VariantPicker = (variants) => variants[0]
-): Record<string, ActivityCard> {
-  return Object.fromEntries(
+): BuildActivityCardsResult {
+  const warnings: ActivityCardWarning[] = [];
+
+  const cards = Object.fromEntries(
     Object.entries(idMap)
       .filter(([id, variantMap]: [string, any]) => {
-        // A `launchable` attribute declares a role. Only recognized values are
-        // accepted; anything else (typo, unsupported format) fails fast so the
-        // author notices immediately.
         return Object.values(variantMap).some((olxJson: any) => {
           const val = olxJson.attributes?.launchable;
           if (!val) return false;
           if (!LAUNCHABLE_VALUES.has(val)) {
-            throw new Error(
-              `Unrecognized launchable="${val}" on block "${id}". ` +
-              `Supported values: ${[...LAUNCHABLE_VALUES].join(', ')}.`
-            );
+            warnings.push({
+              blockId: id,
+              editSource: String(source(olxJson.source ?? '')),
+              message:
+                `Unrecognized launchable="${val}" on block "${id}". ` +
+                `Supported values: ${[...LAUNCHABLE_VALUES].join(', ')}.`,
+            });
+            return false;
           }
           return true;
         });
@@ -113,4 +140,6 @@ export function buildActivityCards(
         ];
       })
   );
+
+  return { cards, warnings };
 }

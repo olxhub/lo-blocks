@@ -12,7 +12,8 @@
 
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { unionProvider } from '@/lib/lofs/contentSources';
+import { unionProvider, writableSourceProvider } from '@/lib/lofs/contentSources';
+import { source as lofsSource } from '@/lib/types/address';
 import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { runTranslation } from '@/lib/translate/runTranslation';
@@ -90,9 +91,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Write to the source's own provider — NOT the union (StackedStorageProvider
+    // writes to providers[0], which may be a different repo entirely).
+    const writeProvider = await writableSourceProvider(lofsSource(sourceFileUri));
+
     // Dedupe concurrent identical requests + enforce a timeout (shared helper).
     const result = await runTranslation({
-      provider, logsDir,
+      provider: writeProvider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
     return NextResponse.json(result, result.ok ? undefined : { status: 500 });
