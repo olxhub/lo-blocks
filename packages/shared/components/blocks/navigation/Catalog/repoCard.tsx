@@ -77,7 +77,7 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
             </a>
             {item.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
             <a
-              className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+              className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity"
               href={studioHref(repo.origin, { file: item.path })}
             >
               {repo.writable ? 'Edit' : 'Open'}

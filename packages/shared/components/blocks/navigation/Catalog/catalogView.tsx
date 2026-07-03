@@ -8,7 +8,7 @@
 //
 // All state — catalog data and filter controls — lives in Redux.
 
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import type { RuntimeProps } from '@/lib/types';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
@@ -51,7 +51,8 @@ export default function CatalogView(props: RuntimeProps) {
   const [scope, setScope] = useFieldState(props, catalogFields.catalogScope, 'all' as Scope);
   const [query, setQuery] = useFieldState(props, catalogFields.catalogQuery, '');
   const [sort, setSort] = useFieldState(props, catalogFields.catalogSort, 'name' as Sort);
-  const filters: CatalogFilters = useMemo(() => ({ scope, query, sort, types: [] }), [scope, query, sort]);
+  const deferredQuery = useDeferredValue(query);
+  const filters: CatalogFilters = useMemo(() => ({ scope, query: deferredQuery, sort, types: [] }), [scope, deferredQuery, sort]);
 
   const [collapsed, setCollapsed] = useFieldState(props, catalogFields.sidebarCollapsed, false);
 
@@ -85,6 +86,7 @@ export default function CatalogView(props: RuntimeProps) {
                 className="lo-control"
                 type="search"
                 placeholder="Search…"
+                aria-label="Search repositories and activities"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
               />
