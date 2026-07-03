@@ -5,7 +5,7 @@ import postcssNesting from 'postcss-nesting';
 
 export default defineConfig({
   test: {
-    environment: 'jsdom', // for React/component tests
+    environment: 'node', // files needing jsdom opt in with // @vitest-environment jsdom
     globals: true,
     include: [
       'packages/shared/**/*.test.{js,ts,jsx,tsx}',

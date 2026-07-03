@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // apps/web/integration/demo-render.test.ts
 //
 // Tests that all demo .olx files in the blocks directory render without errors.
