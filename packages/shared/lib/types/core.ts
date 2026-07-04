@@ -1585,6 +1585,41 @@ export interface CatalogState {
   [argsKey: string]: CatalogEntry;
 }
 
+/**
+ * One block's documentation record from the get_blocks MCP tool.
+ *
+ * Structural mirror of BlockResultSchema in lib/docs/tools.ts (the wire
+ * schema owns validation; this is the at-rest shape). name/description/
+ * categories are always present; the rest appear when requested via the
+ * tool's `include` parameter.
+ */
+export interface BlockDocRecord {
+  name: string;
+  description: string | null;
+  categories: string[];
+  attributes?: Array<Record<string, unknown>> | null;
+  fields?: string[];
+  template?: string | null;
+  demo?: string | null;
+  readme?: { path: string; content: string } | null;
+  examples?: Record<string, { path: string; content: string; gitStatus: string | null }>;
+  formats?: string[];
+}
+
+/** One docs query result — the blocks returned and the query's loading state. */
+export interface DocsEntry {
+  blocks: BlockDocRecord[];
+  loadingState: { status: LoadingStatus };
+  error?: { message: string };
+}
+
+/** The block-documentation slice, keyed by stringified get_blocks args.
+ *  Deliberate twin of CatalogState — both migrate together to the planned
+ *  content-slice abstraction. */
+export interface DocsState {
+  [argsKey: string]: DocsEntry;
+}
+
 // ---------------------------------------------------------------------------
 // AppState / RootState — the assembled store.
 // ---------------------------------------------------------------------------
@@ -1608,6 +1643,9 @@ export interface AppState {
   chat: Record<string, { messages: ChatMessage[]; status: string }>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
+  /** Block documentation (get_blocks results). Interim — converges with
+   *  catalog into the planned content-slice abstraction. */
+  docs: DocsState;
 }
 
 /** Full Redux store shape. lo_event's reduxLogger wraps the reducer output

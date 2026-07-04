@@ -1,0 +1,51 @@
+// packages/shared/lib/docs/schema.ts
+//
+// Wire schemas for the get_blocks MCP tool — shared between the server-side
+// tool implementation (tools.ts) and the client-side docs slice
+// (lib/state/docs.ts), which validates responses against them.
+//
+// Separate from tools.ts on purpose: tools.ts reads files (node:fs) and
+// must never enter the browser bundle. Mirrors the catalog split
+// (catalog/schema.ts shared, catalog/tool.ts server-side).
+
+import { z } from 'zod';
+import { AttributeDocSchema } from '@/lib/docs/schemaUtils';
+import { OLXTagSchema, BlockGitStatusSchema } from '@/lib/types';
+
+/** File content with its path. */
+export const FileContentSchema = z.object({
+  path: z.string().describe('Path relative to project root'),
+  content: z.string().describe('File content (UTF-8)'),
+});
+
+/** Example file with content and metadata (value in examples dict). */
+export const ExampleSchema = z.object({
+  path: z.string().describe('Path relative to project root'),
+  content: z.string().describe('Example file content (UTF-8)'),
+  gitStatus: BlockGitStatusSchema.nullable(),
+});
+
+/** Per-block result. Fields beyond name/description/categories appear only
+ *  when requested via `include`. */
+export const BlockResultSchema = z.object({
+  name: OLXTagSchema,
+  description: z.string().nullable(),
+  categories: z.array(z.string()).describe('All categories this block belongs to'),
+
+  // Included on request
+  attributes: z.array(AttributeDocSchema).nullable().optional(),
+  fields: z.array(z.string()).optional(),
+  template: z.string().nullable().optional().describe('Editor insert template (bare block)'),
+  demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
+  readme: FileContentSchema.nullable().optional(),
+  examples: z.record(z.string(), ExampleSchema).optional().describe('Example files keyed by filename'),
+  formats: z.array(z.string()).optional().describe('Content format names used by this block (e.g. "chatpeg")'),
+});
+
+export const GetBlocksOutput = z.object({
+  blocks: z.array(BlockResultSchema),
+  total: z.number().describe('Total matching blocks (before pagination)'),
+});
+
+/** One block's documentation record as it crosses the MCP wire. */
+export type BlockDocInfo = z.infer<typeof BlockResultSchema>;

@@ -54,41 +54,10 @@ const GetBlocksInput = z.object({
 });
 
 // -- Output -----------------------------------------------------------------
-
-/** File content with its path. */
-const FileContentSchema = z.object({
-  path: z.string().describe('Path relative to project root'),
-  content: z.string().describe('File content (UTF-8)'),
-});
-
-/** Example file with content and metadata (value in examples dict). */
-const ExampleSchema = z.object({
-  path: z.string().describe('Path relative to project root'),
-  content: z.string().describe('Example file content (UTF-8)'),
-  gitStatus: BlockGitStatusSchema.nullable(),
-});
-
-/** Per-block result. Fields beyond name/description/categories appear only
- *  when requested via `include`. */
-const BlockResultSchema = z.object({
-  name: OLXTagSchema,
-  description: z.string().nullable(),
-  categories: z.array(z.string()).describe('All categories this block belongs to'),
-
-  // Included on request
-  attributes: z.array(AttributeDocSchema).nullable().optional(),
-  fields: z.array(z.string()).optional(),
-  template: z.string().nullable().optional().describe('Editor insert template (bare block)'),
-  demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
-  readme: FileContentSchema.nullable().optional(),
-  examples: z.record(z.string(), ExampleSchema).optional().describe('Example files keyed by filename'),
-  formats: z.array(z.string()).optional().describe('Content format names used by this block (e.g. "chatpeg")'),
-});
-
-const GetBlocksOutput = z.object({
-  blocks: z.array(BlockResultSchema),
-  total: z.number().describe('Total matching blocks (before pagination)'),
-});
+//
+// Wire schemas live in schema.ts (browser-safe — the client docs slice
+// validates against them; this module reads files and must stay server-side).
+import { FileContentSchema, ExampleSchema, BlockResultSchema, GetBlocksOutput } from './schema';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -127,11 +96,17 @@ async function getBlocks(
   }
 
   // -- Filter --------------------------------------------------------------
+  // Matching is normalized (case- and punctuation-insensitive): categories
+  // travel as display labels ('Input', 'Language Arts'), but callers —
+  // authors writing categories="input", LLMs echoing directory names like
+  // 'language-arts' — reasonably use other spellings, and an exact-match
+  // miss is a silent empty result.
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
   let matched: Entry[];
   if (filter && filter.length > 0) {
-    const filterSet = new Set(filter);
+    const filterSet = new Set(filter.map(normalize));
     matched = allEntries.filter(
-      (e) => filterSet.has(e.name) || e.categories.some((c) => filterSet.has(c)),
+      (e) => filterSet.has(normalize(e.name)) || e.categories.some((c) => filterSet.has(normalize(c))),
     );
   } else {
     // No filter → all non-internal blocks
