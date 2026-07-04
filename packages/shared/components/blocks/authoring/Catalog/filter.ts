@@ -1,4 +1,4 @@
-// packages/shared/components/blocks/navigation/Catalog/filter.ts
+// packages/shared/components/blocks/authoring/Catalog/filter.ts
 //
 // Client-side filtering / sorting / faceting for the author catalog. Pure
 // functions over the get_repositories result, so the view stays declarative.

@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/navigation/Catalog/repoCard.tsx
+// packages/shared/components/blocks/authoring/Catalog/repoCard.tsx
 //
 // A repository card. Two modes controlled by the `compact` prop:
 //

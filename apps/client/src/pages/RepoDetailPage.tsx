@@ -13,7 +13,7 @@ import Spinner from '@/components/common/Spinner';
 import RenderOLX from '@/components/common/RenderOLX';
 import { asContentNamespace, asStateKey } from '@/lib/types/id-grammar';
 import { useCatalog } from '@/lib/catalog/useCatalog';
-import { repoIdPrefix, REPO_ID } from '@/components/blocks/navigation/Catalog/locals';
+import { repoIdPrefix, REPO_ID } from '@/components/blocks/authoring/Catalog/locals';
 
 export default function RepoDetailPage({ origin }: { origin: string }) {
   // Ensure catalog data is loaded (handles direct navigation to /repo/:origin).

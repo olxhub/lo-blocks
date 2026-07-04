@@ -1,4 +1,4 @@
-// packages/shared/components/blocks/navigation/Catalog/locals.ts
+// packages/shared/components/blocks/authoring/Catalog/locals.ts
 //
 // Shared helpers for the Catalog/RepoCard block family.
 //

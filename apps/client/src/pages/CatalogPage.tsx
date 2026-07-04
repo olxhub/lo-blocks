@@ -3,11 +3,11 @@
 // The author front page, served at `/`.
 // Renders the Catalog block through the standard block pipeline (RenderOLX).
 // All the UI lives in CatalogView (packages/shared/components/catalog),
-// wrapped as a block at blocks/navigation/Catalog.
+// wrapped as a block at blocks/authoring/Catalog.
 
 import RenderOLX from '@/components/common/RenderOLX';
 import { asContentNamespace, asStateKey } from '@/lib/types/id-grammar';
-import { CATALOG_ID } from '@/components/blocks/navigation/Catalog/locals';
+import { CATALOG_ID } from '@/components/blocks/authoring/Catalog/locals';
 
 export default function CatalogPage() {
   return (
