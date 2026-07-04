@@ -93,7 +93,7 @@ Use the same `seed` across TalkBubbles to maintain a character's appearance:
 ```olx:code
 <TalkBubble who="Researcher" seed="researcher_01">
   <Markdown>Look at the results from Hake's study:</Markdown>
-  <Image src="/images/hake-gains.png" />
+  <Image src="path/to/hake-gains-chart.png" />
   <Markdown>Interactive engagement nearly doubled learning gains.</Markdown>
 </TalkBubble>
 ```

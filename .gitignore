@@ -93,11 +93,17 @@ lofs/runtime/
 /obsolete/
 /local/
 /tmp/
+/uncommitted/
+/prototypes/
 /apps/static/out/
 /apps/static/dist/
 /apps/client/dist/
 /apps/client/node_modules/
 /dist/
+
+# Local checkout of a repo that config/content-sources.yaml mounts remotely
+# (git-source form) — not tracked here; see docs/content-in-git.md.
+/edu.memphis.psych/
 
 # Deployment-specific content source overrides (committed default is
 # config/content-sources.yaml; see docs/content-in-git.md)

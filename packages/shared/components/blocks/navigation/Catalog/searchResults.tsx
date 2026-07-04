@@ -6,7 +6,7 @@
 
 import type { RuntimeProps } from '@/lib/types';
 import type { Repository } from '@/lib/types';
-import { searchCatalog, type CatalogFilters } from '@/lib/catalog/filter';
+import { searchCatalog, type CatalogFilters } from './filter';
 import { scopedRepoProps } from './locals';
 import RepoCard from './repoCard';
 import ActivityRow from './activityRow';
@@ -21,9 +21,9 @@ function Head({ title, n }: { title: string; n: number }) {
   );
 }
 
-export default function SearchResults({ repos, filters, parentProps }: { repos: Repository[]; filters: CatalogFilters; parentProps: RuntimeProps }) {
-  const { repos: matchRepos, activities } = searchCatalog(repos, filters);
-  const q = filters.query.trim();
+export default function SearchResults({ repos, query, filters, parentProps }: { repos: Repository[]; query: string; filters: CatalogFilters; parentProps: RuntimeProps }) {
+  const { repos: matchRepos, activities } = searchCatalog(repos, query, filters);
+  const q = query.trim();
 
   if (!matchRepos.length && !activities.length) {
     return <p className="text-dimmed py-8">Nothing matches “{q}”.</p>;

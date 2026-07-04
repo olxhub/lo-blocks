@@ -18,6 +18,7 @@ import { Liquid } from 'liquidjs';
 import { core } from '@/lib/blocks';
 import { parseXmlFragment } from '@/lib/content/parseOLX';
 import { loadExternalSource, extractTextFromXmlNodes } from '@/lib/content/parsers';
+import { EXT, fileHasExtension } from '@/lib/util/fileTypes';
 import { _LiquidTemplate } from './_LiquidTemplate';
 import { registerFilters } from './liquidFilters';
 
@@ -26,14 +27,15 @@ import type { DefinitionRef, OLXLoadingError } from '@/lib/types';
 
 // === Data file loading ===
 
+// EXT.data / fileHasExtension are the single source of truth for
+// recognized data extensions (packages/shared/lib/util/fileTypes.ts) —
+// don't hand-roll extension checks here.
 function isDataFile(src: string): boolean {
-  const ext = src.split('.').pop()?.toLowerCase();
-  return ext === 'yaml' || ext === 'yml' || ext === 'json';
+  return fileHasExtension(src, EXT.data);
 }
 
 function parseDataFile(text: string, src: string): any {
-  const ext = src.split('.').pop()?.toLowerCase();
-  if (ext === 'json') {
+  if (fileHasExtension(src, ['json'])) {
     return JSON.parse(text);
   }
   return yaml.load(text, { schema: yaml.JSON_SCHEMA });
@@ -94,13 +96,18 @@ async function liquidTemplateParser({
     );
   }
 
+  // data= and src= are siblings on the same element and must resolve
+  // relative to the same file. loadExternalSource resolves against the
+  // LAST entry of the parseDeps it's given, so both loads use the
+  // unmutated parseDepsIn as their base — pushing the data dep before
+  // loading src would make src resolve relative to the data file instead
+  // of the OLX file that declared them both.
   const dataLoaded = await loadExternalSource({
     src: attributes.data,
     provider,
     source,
-    parseDeps,
+    parseDeps: parseDepsIn,
   });
-  parseDeps.push(dataLoaded.dep);
 
   let data: any;
   try {
@@ -119,11 +126,12 @@ async function liquidTemplateParser({
       src: attributes.src,
       provider,
       source,
-      parseDeps,
+      parseDeps: parseDepsIn,
     });
-    parseDeps.push(templateLoaded.dep);
+    parseDeps.push(dataLoaded.dep, templateLoaded.dep);
     templateText = templateLoaded.text;
   } else {
+    parseDeps.push(dataLoaded.dep);
     const tagParsed = rawParsed[tag];
     const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
     templateText = extractTextFromXmlNodes(kids, { preserveWhitespace: true }) as string;

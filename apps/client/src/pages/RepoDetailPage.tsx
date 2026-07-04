@@ -49,7 +49,7 @@ export default function RepoDetailPage({ origin }: { origin: string }) {
       <RenderOLX
         ns={asContentNamespace('system')}
         id={asStateKey(`system/${REPO_ID}`)}
-        inline={`<RepoCard id="${REPO_ID}" compact="false"/>`}
+        inline={`<RepoCard id="${REPO_ID}" compact="false" origin="${origin.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"/>`}
         idPrefix={repoIdPrefix(origin)}
         eventContext="repo-detail"
       />

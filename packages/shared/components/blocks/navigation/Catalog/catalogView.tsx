@@ -18,7 +18,7 @@ import { useCatalog } from '@/lib/catalog/useCatalog';
 import {
   filterRepos, repoScope,
   type CatalogFilters, type Scope, type Sort,
-} from '@/lib/catalog/filter';
+} from './filter';
 import type { Repository } from '@/lib/types';
 import { catalogFields, scopedRepoProps } from './locals';
 import CatalogSidebar from './catalogSidebar';
@@ -43,6 +43,28 @@ function Section({ title, caption, repos, wide = false, parentProps }: {
   );
 }
 
+/** The non-search listing: scope-filtered, sorted repos split into "yours"
+ *  and "community" sections. Only computed when there's no active query —
+ *  SearchResults renders instead in that case. */
+function Listing({ repositories, scope, filters, parentProps }: {
+  repositories: Repository[]; scope: Scope; filters: CatalogFilters; parentProps: RuntimeProps;
+}) {
+  const shown = filterRepos(repositories, filters);
+  const mine = shown.filter(r => repoScope(r) === 'mine');
+  const community = shown.filter(r => repoScope(r) === 'community');
+  return (
+    <>
+      {shown.length === 0 && <p className="text-dimmed py-8">Nothing matches those filters.</p>}
+      {scope !== 'community' && mine.length > 0 && (
+        <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide parentProps={parentProps} />
+      )}
+      {scope !== 'mine' && community.length > 0 && (
+        <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} parentProps={parentProps} />
+      )}
+    </>
+  );
+}
+
 export default function CatalogView(props: RuntimeProps) {
   // Request launchable descriptions so rows have summaries.
   const { repositories, loading, error } = useCatalog(['launchables.description']);
@@ -52,16 +74,12 @@ export default function CatalogView(props: RuntimeProps) {
   const [query, setQuery] = useFieldState(props, catalogFields.catalogQuery, '');
   const [sort, setSort] = useFieldState(props, catalogFields.catalogSort, 'name' as Sort);
   const deferredQuery = useDeferredValue(query);
-  const filters: CatalogFilters = useMemo(() => ({ scope, query: deferredQuery, sort, types: [] }), [scope, deferredQuery, sort]);
+  const filters: CatalogFilters = useMemo(() => ({ scope, sort }), [scope, sort]);
 
   const [collapsed, setCollapsed] = useFieldState(props, catalogFields.sidebarCollapsed, false);
 
   if (error) return <div className="p-8 text-error">Failed to load catalog: {error}</div>;
   if (loading) return <div className="p-8"><Spinner>Loading catalog…</Spinner></div>;
-
-  const shown = filterRepos(repositories, filters);
-  const mine = shown.filter(r => repoScope(r) === 'mine');
-  const community = shown.filter(r => repoScope(r) === 'community');
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -108,17 +126,9 @@ export default function CatalogView(props: RuntimeProps) {
 
           <div className="flex flex-col gap-10 pb-12 flex-1">
             {query.trim() ? (
-              <SearchResults repos={repositories} filters={filters} parentProps={props} />
+              <SearchResults repos={repositories} query={deferredQuery} filters={filters} parentProps={props} />
             ) : (
-              <>
-                {shown.length === 0 && <p className="text-dimmed py-8">Nothing matches those filters.</p>}
-                {scope !== 'community' && mine.length > 0 && (
-                  <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide parentProps={props} />
-                )}
-                {scope !== 'mine' && community.length > 0 && (
-                  <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} parentProps={props} />
-                )}
-              </>
+              <Listing repositories={repositories} scope={scope} filters={filters} parentProps={props} />
             )}
           </div>
 

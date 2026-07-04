@@ -378,6 +378,15 @@ export async function writableSourceProvider(source: string): Promise<StoragePro
  */
 export async function readProvider(source?: string): Promise<StorageProvider> {
   if (source === 'file:docs') {
+    // Dynamic, not circular: nothing in the block tree imports contentSources.ts
+    // back, so these could be static. Kept dynamic for cost, not correctness —
+    // BLOCK_REGISTRY pulls in every block's component module (the whole block
+    // tree, including client-only UI code), and readProvider is the shared entry
+    // point for every read route (file GET, files, grep, translate), not just
+    // docs previews. Importing statically would make every caller pay that
+    // weight at load time for a branch most of them never take. The one caller
+    // that always needs the full registry anyway (syncContentFromStorage, which
+    // parses OLX against it unconditionally) imports it statically.
     const { DocsStorageProvider } = await import('./providers/docs');
     const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
     return new DocsStorageProvider(

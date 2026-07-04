@@ -1,4 +1,4 @@
-// packages/shared/lib/catalog/links.ts
+// packages/shared/components/blocks/navigation/Catalog/links.ts
 //
 // Destinations the author catalog links to. Studio is origin-scoped (?source=
 // picks the repo, ?file= opens a file); preview renders a launchable by id.

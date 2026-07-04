@@ -18,22 +18,13 @@
 //     expanded   — whether the compact card's activity list is expanded inline
 //     showBlocks — whether the building-blocks section is visible (full mode)
 //
-// Each repo card gets a scoped Redux key (e.g., "catalog:#file_3acontent:expanded")
+// Each repo card gets a scoped Redux key (e.g., "catalog:#file_3a_content:expanded")
 // via the Annotate pattern: scopedRepoProps(props, origin) extends the idPrefix.
 
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import _Catalog from './catalogView';
 import { catalogFields, repoCardFields } from './locals';
-
-// Re-export locals for consumers.
-export {
-  catalogFields, repoCardFields,
-  scopedRepoProps, repoIdPrefix, originFromIdPrefix,
-  encodeOriginForId, decodeOriginFromId,
-  scenarioLabel,
-  CATALOG_ID, REPO_ID,
-} from './locals';
 
 const Catalog = dev({
   ...parsers.ignore(),

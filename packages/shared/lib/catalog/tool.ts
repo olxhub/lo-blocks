@@ -30,7 +30,7 @@ import {
 /** Pick the best title for a card, preferring English. TODO: pass the user's
  *  locale through the MCP request so we can respect Accept-Language. */
 function pickTitle(card: ActivityCard): string {
-  return extractLocalizedVariant(card.title, 'en') || Object.values(card.title)[0] || card.id;
+  return extractLocalizedVariant(card.title, 'en') || card.id;
 }
 
 // Repo-level metadata follows GIT CONVENTIONS first — README.md (description),
@@ -160,7 +160,12 @@ async function getRepositories(
         forgeLink: provider.forgeLink?.(toOlxRelativePath(card.editPath)) ?? null,
       };
       if (includeSet.has('launchables.description')) {
-        launchable.description = extractLocalizedVariant(card.description, 'en') || Object.values(card.description)[0] || '';
+        // extractLocalizedVariant can legitimately return '' (an empty-string
+        // variant) — only fall back to an arbitrary variant when it returns
+        // undefined (no variants at all), so we never bypass its
+        // prefer-human-authored ordering for a merely-empty match.
+        const variant = extractLocalizedVariant(card.description, 'en');
+        launchable.description = variant !== undefined ? variant : (Object.values(card.description)[0] ?? '');
       }
       return launchable;
     };

@@ -7,7 +7,7 @@
 // richer metadata; faceting on the raw block tag wasn't useful.)
 
 import type { Repository } from '@/lib/types';
-import { scopeCounts, type Scope } from '@/lib/catalog/filter';
+import { scopeCounts, type Scope } from './filter';
 
 const SCOPES: { key: Scope; label: string }[] = [
   { key: 'all', label: 'Everything' },

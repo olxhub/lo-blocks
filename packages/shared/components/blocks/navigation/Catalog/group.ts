@@ -1,4 +1,4 @@
-// packages/shared/lib/catalog/group.ts
+// packages/shared/components/blocks/navigation/Catalog/group.ts
 //
 // Intra-repo structure for the catalog: group a repo's launchables into
 // scenarios. A scenario is a namespace — typically one Course plus the

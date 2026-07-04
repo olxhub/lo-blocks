@@ -16,7 +16,7 @@
 //   1. Direct child of CatalogView — receives `repo` as a React prop, with
 //      scoped RuntimeProps from scopedRepoProps(props, origin).
 //   2. Via block pipeline (RenderOLX) at /repo/:origin — no `repo` prop;
-//      decodes origin from the scoped idPrefix and looks up the repo.
+//      reads `origin` from its OLX attribute and looks up the repo.
 //
 // State: expand/collapse fields are component-scoped, keyed per repo via
 // the idPrefix (set by scopedRepoProps or repoIdPrefix). Each instance
@@ -25,12 +25,12 @@
 import { ChevronRight } from 'lucide-react';
 import type { RuntimeProps } from '@/lib/types';
 import type { Repository } from '@/lib/types';
-import { groupByScenario } from '@/lib/catalog/group';
-import { studioHref, previewHref, repoDetailHref } from '@/lib/catalog/links';
+import { groupByScenario } from './group';
+import { studioHref, previewHref, repoDetailHref } from './links';
 import { useFieldState } from '@/lib/state/redux';
 import { useRepoByOrigin } from '@/lib/state/catalog';
 import { DisplayError } from '@/lib/util/debug';
-import { repoCardFields, originFromIdPrefix, compactItems, type CompactItem } from './locals';
+import { repoCardFields, compactItems, type CompactItem } from './locals';
 import ScenarioGroup from './scenarioGroup';
 import ActivityRow from './activityRow';
 import ForgeLinkIcon from './forgeLinkIcon';
@@ -56,29 +56,29 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
     <ul className="flex flex-col gap-1">
       {visible.map((item, i) =>
         item.kind === 'heading' ? (
-          <li key={item.id ?? `heading-${i}`} className="text-sm font-semibold text-secondary pt-1 first:pt-0 flex items-baseline gap-1.5">
-            {item.id ? (
-              <a href={previewHref(item.id)} className="hover:text-accent" title={item.description || undefined}>
+          <li key={item.course?.id ?? `heading-${i}`} className="text-sm font-semibold text-secondary pt-1 first:pt-0 flex items-baseline gap-1.5">
+            {item.course ? (
+              <a href={previewHref(item.course.id)} className="hover:text-accent" title={item.course.description || undefined}>
                 {item.label}
               </a>
             ) : (
               item.label
             )}
-            {item.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
+            {item.course?.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
           </li>
         ) : (
-          <li key={item.id} className="group flex items-baseline gap-2 pl-3">
+          <li key={item.launchable.id} className="group flex items-baseline gap-2 pl-3">
             <a
-              href={previewHref(item.id)}
+              href={previewHref(item.launchable.id)}
               className="flex-1 min-w-0 text-sm font-medium text-foreground hover:text-accent"
-              title={item.description || undefined}
+              title={item.launchable.description || undefined}
             >
-              {item.title}
+              {item.launchable.title}
             </a>
-            {item.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
+            {item.launchable.status === 'draft' && <span className="lo-chip text-warning text-xs">Draft</span>}
             <a
               className="text-sm text-secondary hover:text-foreground shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity"
-              href={studioHref(repo.origin, { file: item.path })}
+              href={studioHref(repo.origin, { file: item.launchable.path })}
             >
               {repo.writable ? 'Edit' : 'Open'}
             </a>
@@ -90,12 +90,11 @@ function CompactList({ items, limit, repo }: { items: CompactItem[]; limit: numb
 }
 
 /** Props: scoped RuntimeProps + optional repo object + compact flag.
- *  When `repo` is not provided, decodes origin from idPrefix and looks it up. */
+ *  When `repo` is not provided, reads `origin` from props and looks it up. */
 export default function RepoCard(props: RuntimeProps) {
   // Determine the repo: direct prop (CatalogView) or lookup (block pipeline).
   const directRepo: Repository | undefined = props.repo;
-  const idPrefix: string = props.runtime?.idPrefix ?? props.idPrefix ?? '';
-  const origin = directRepo?.origin ?? originFromIdPrefix(idPrefix);
+  const origin = directRepo?.origin ?? props.origin ?? null;
 
   // When rendered via the block pipeline (standalone), look up the repo from
   // Redux. The page component (e.g. RepoDetailPage) is responsible for
@@ -103,9 +102,11 @@ export default function RepoCard(props: RuntimeProps) {
   const lookedUpRepo = useRepoByOrigin(origin ?? '');
 
   const repo = directRepo ?? lookedUpRepo;
-  const compact = typeof props.compact === 'string'
-    ? props.compact !== 'false'
-    : (props.compact ?? true);
+  // props.compact arrives as a real boolean via the block pipeline (RepoCard's
+  // z_olx_boolean.default(true) attribute schema coerces "true"/"false" before
+  // this component sees it); the direct-React-prop path (CatalogView,
+  // SearchResults) never sets it, so it's undefined here — default to true.
+  const compact = props.compact ?? true;
 
   // Component-scoped fields — each repo card gets its own Redux key via
   // the scoped idPrefix (set by scopedRepoProps or repoIdPrefix).
@@ -127,7 +128,10 @@ export default function RepoCard(props: RuntimeProps) {
   // Count all launchables (courses + activities), not just non-course items.
   // A course-only repo is still real content — it's previewable and openable.
   const totalCount = repo.launchables.length;
-  const overflows = compact && totalCount > COMPACT_LIMIT;
+  // Overflow uses the same budget CompactList applies: headings render for
+  // free, so only activity items consume COMPACT_LIMIT.
+  const activityCount = items.filter(item => item.kind === 'activity').length;
+  const overflows = compact && activityCount > COMPACT_LIMIT;
 
   // Show full activity listing when not compact, or when expanded inline.
   const showFull = !compact || expanded;
@@ -185,7 +189,7 @@ export default function RepoCard(props: RuntimeProps) {
           aria-expanded={!!expanded}
         >
           <ChevronRight size={14} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden />
-          {expanded ? 'Collapse' : `… and ${totalCount - COMPACT_LIMIT} more`}
+          {expanded ? 'Collapse' : `… and ${activityCount - COMPACT_LIMIT} more`}
         </button>
       )}
 

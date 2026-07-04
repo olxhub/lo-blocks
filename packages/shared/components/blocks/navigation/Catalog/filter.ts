@@ -1,4 +1,4 @@
-// packages/shared/lib/catalog/filter.ts
+// packages/shared/components/blocks/navigation/Catalog/filter.ts
 //
 // Client-side filtering / sorting / faceting for the author catalog. Pure
 // functions over the get_repositories result, so the view stays declarative.
@@ -12,17 +12,8 @@ export type Sort = 'name' | 'activities';
 
 export interface CatalogFilters {
   scope: Scope;
-  types: string[];   // block types (tags) to require
-  query: string;
   sort: Sort;
 }
-
-export const initialCatalogFilters: CatalogFilters = {
-  scope: 'all',
-  types: [],
-  query: '',
-  sort: 'name',
-};
 
 /** Writable repos are "yours"; read-only ones are "community". */
 export function repoScope(repo: Repository): 'mine' | 'community' {
@@ -36,42 +27,16 @@ export function scopeCounts(repos: Repository[]): ScopeCounts {
   return { all: repos.length, mine, community: repos.length - mine };
 }
 
-/** Block-type → count across (usable) launchables, for the Type facet. */
-export function typeCounts(repos: Repository[]): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const repo of repos) {
-    for (const l of repo.launchables) counts[l.type] = (counts[l.type] ?? 0) + 1;
-  }
-  return counts;
-}
-
-/** Keep a repo if it (or some launchable) matches the query; when only some
- *  launchables match, narrow the card to those. */
-function applyQuery(repo: Repository, q: string): Repository | null {
-  const needle = q.toLowerCase();
-  const repoHit = [repo.label, repo.description ?? '', repo.origin, repo.discipline ?? '']
-    .some(s => s.toLowerCase().includes(needle));
-  if (repoHit) return repo;
-  const launchables = repo.launchables.filter(l =>
-    l.title.toLowerCase().includes(needle) || (l.description ?? '').toLowerCase().includes(needle),
-  );
-  return launchables.length ? { ...repo, launchables } : null;
-}
-
 function sortRepos(repos: Repository[], sort: Sort): Repository[] {
   return [...repos].sort((a, b) =>
     sort === 'activities' ? b.launchableCount - a.launchableCount : a.label.localeCompare(b.label),
   );
 }
 
+/** Scope + sort only — query text is handled by searchCatalog, which
+ *  CatalogView renders instead of this list whenever there's a query. */
 export function filterRepos(repos: Repository[], f: CatalogFilters): Repository[] {
-  let out = repos;
-  if (f.scope !== 'all') out = out.filter(r => repoScope(r) === f.scope);
-  if (f.types.length) out = out.filter(r => r.launchables.some(l => f.types.includes(l.type)));
-  if (f.query.trim()) {
-    const q = f.query.trim();
-    out = out.map(r => applyQuery(r, q)).filter((r): r is Repository => r !== null);
-  }
+  const out = f.scope === 'all' ? repos : repos.filter(r => repoScope(r) === f.scope);
   return sortRepos(out, f.sort);
 }
 
@@ -81,9 +46,9 @@ export interface SearchResult { repos: Repository[]; activities: SearchHit[] }
 /** Search mode: match repos AND activities (respecting scope), returned
  *  separately so the view can show "repositories" and "activities" lists —
  *  the cleaner /ux/ behaviour. */
-export function searchCatalog(repos: Repository[], f: CatalogFilters): SearchResult {
+export function searchCatalog(repos: Repository[], query: string, f: CatalogFilters): SearchResult {
   const scoped = f.scope === 'all' ? repos : repos.filter(r => repoScope(r) === f.scope);
-  const q = f.query.trim().toLowerCase();
+  const q = query.trim().toLowerCase();
   if (!q) return { repos: [], activities: [] };
 
   const matchedRepos = scoped.filter(r =>

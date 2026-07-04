@@ -6,7 +6,7 @@
 // the source has a web view. `prominent` styles a Course heading its scenario.
 
 import type { Repository, Launchable } from '@/lib/types';
-import { studioHref, previewHref } from '@/lib/catalog/links';
+import { studioHref, previewHref } from './links';
 import ForgeLinkIcon from './forgeLinkIcon';
 
 export default function ActivityRow({ repo, launchable, showRepo = false, prominent = false }: {

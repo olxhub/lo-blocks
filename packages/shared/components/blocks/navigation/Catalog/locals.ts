@@ -3,9 +3,8 @@
 // Shared helpers for the Catalog/RepoCard block family.
 //
 // Exports:
-//   repoCardFields   — component-scoped fields for per-repo-card state
+//   repoCardFields    — component-scoped fields for per-repo-card state
 //   encodeOriginForId — encode a repo origin into a valid scope marker
-//   decodeOriginFromId — reverse of encodeOriginForId
 //   scopedRepoProps   — build RuntimeProps scoped to a specific repo
 //
 // CatalogView, SearchResults, and RepoDetailPage all import from here to
@@ -15,9 +14,9 @@
 // fields are declared on the parent block.
 
 import * as state from '@/lib/state';
-import type { RuntimeProps, IdPrefix } from '@/lib/types';
+import type { RuntimeProps, IdPrefix, Launchable } from '@/lib/types';
 import { extendIdPrefix, scopeMarker, asIdPrefix, asDefinitionKey } from '@/lib/types/id-grammar';
-import type { ScenarioGroup as Group } from '@/lib/catalog/group';
+import type { ScenarioGroup } from './group';
 
 // ---------------------------------------------------------------------------
 // Fields — component-scoped (default), so each Catalog / repo card instance
@@ -31,10 +30,12 @@ export const catalogFields = state.fields(['catalogScope', 'catalogQuery', 'cata
 export const repoCardFields = state.fields(['expanded', 'showBlocks']);
 
 // ---------------------------------------------------------------------------
-// OLX IDs — canonical block IDs from content/system/catalog.olx
+// OLX IDs — canonical block IDs for the catalog system
 //
-// The catalog OLX is:  <Catalog id="catalog"><RepoCard id="repo"/></Catalog>
-// These constants must match those IDs.
+// These constants ARE the canonical IDs (there is no content/system/catalog.olx
+// file). CatalogPage and RepoDetailPage each build their inline OLX
+// (<Catalog id={CATALOG_ID}><RepoCard id={REPO_ID}/></Catalog>) from them, so
+// the two pages agree on the same block IDs.
 // ---------------------------------------------------------------------------
 
 /** Block ID of the Catalog instance in system OLX. */
@@ -44,25 +45,25 @@ export const CATALOG_ID = 'catalog';
 export const REPO_ID = 'repo';
 
 // ---------------------------------------------------------------------------
-// Origin ↔ scope-marker encoding
+// Origin → scope-marker encoding
 //
 // scopeMarker() requires [0-9a-zA-Z_]+. Repo origins contain colons,
-// slashes, dots, etc. We encode every non-alphanumeric character as _XX
-// (two hex digits). The underscore itself encodes as _5f, keeping the
-// encoding unambiguous and fully reversible.
+// slashes, dots, etc. We encode every non-alphanumeric character as _XX_
+// (hex code point, terminated by a closing underscore). The trailing
+// underscore is load-bearing: without it, a code point above U+00FF (3+ hex
+// digits) can run into the literal alphanumeric characters that follow it,
+// so two different origins could encode to the same scope marker and
+// silently share state. The underscore itself encodes as _5f_, so the only
+// underscores in the output are escape delimiters.
 // ---------------------------------------------------------------------------
 
-/** Encode a repo origin string into a valid scope marker segment. */
+/** Encode a repo origin string into a valid scope marker segment. One-way
+ *  (no decoder): the encoded value is used only as an opaque Redux scope
+ *  key, never decoded back to an origin — RepoCard reads origin from a
+ *  separate OLX attribute or React prop. */
 export function encodeOriginForId(origin: string): string {
   return origin.replace(/[^a-zA-Z0-9]/g, c =>
-    '_' + c.charCodeAt(0).toString(16).padStart(2, '0')
-  );
-}
-
-/** Decode an encoded scope marker back to the original origin string. */
-export function decodeOriginFromId(encoded: string): string {
-  return encoded.replace(/_([0-9a-f]{2})/g, (_, hex) =>
-    String.fromCharCode(parseInt(hex, 16))
+    `_${c.charCodeAt(0).toString(16)}_`
   );
 }
 
@@ -81,7 +82,7 @@ export function scenarioLabel(namespace: string): string {
 // Scoped props — Annotate pattern
 //
 // For origin "file:content", the block state key becomes
-// "system/catalog:#file_3acontent:repo". Fields like `expanded` are
+// "system/catalog:#file_3a_content:repo". Fields like `expanded` are
 // stored as properties under that key in Redux.
 //
 // Both the catalog listing and the /repo/:origin detail page produce the
@@ -103,10 +104,10 @@ export function scopedRepoProps(props: RuntimeProps, origin: string): RuntimePro
 // ---------------------------------------------------------------------------
 // Repo detail page helpers
 //
-// The /repo/:origin page renders the same RepoCard block from catalog.olx
-// but with an idPrefix that matches the scoped state key the Catalog would
-// create. This means expand/collapse state is shared between the catalog
-// listing and the detail page.
+// The /repo/:origin page renders a standalone RepoCard block (built from
+// REPO_ID, same as the Catalog's inline OLX) with an idPrefix that matches
+// the scoped state key the Catalog would create. This means expand/collapse
+// state is shared between the catalog listing and the detail page.
 //
 // State key structure:  system/catalog:#[encodedOrigin]:repo
 // idPrefix for RenderOLX:  catalog:#[encodedOrigin]
@@ -124,37 +125,29 @@ export function repoIdPrefix(origin: string): IdPrefix {
   return asIdPrefix(`${CATALOG_ID}:${scopeMarker(encoded)}`);
 }
 
-/** Extract the repo origin from an idPrefix built by repoIdPrefix/scopedRepoProps.
- *  Returns null if the prefix doesn't contain a scope marker. */
-export function originFromIdPrefix(idPrefix: string): string | null {
-  const match = idPrefix.match(/#([^:]+)/);
-  if (!match) return null;
-  return decodeOriginFromId(match[1]);
-}
-
 // ---------------------------------------------------------------------------
 // Compact item list — pure data transform for compact card rendering
 // ---------------------------------------------------------------------------
 
 export type CompactItem =
-  | { kind: 'heading'; label: string; id?: string; path?: string; description?: string; status?: string }
-  | { kind: 'activity'; title: string; id: string; path: string; description?: string; status?: string };
+  | { kind: 'heading'; label: string; course?: Launchable }
+  | { kind: 'activity'; launchable: Launchable };
 
 /** Collect a flat ordered list of headings + activities across all scenario
  *  groups for compact title rendering, preserving group structure. */
-export function compactItems(groups: Group[], isFlat: boolean): CompactItem[] {
+export function compactItems(groups: ScenarioGroup[], isFlat: boolean): CompactItem[] {
   const out: CompactItem[] = [];
   for (const g of groups) {
     // For flat repos (single namespace, no Course) skip the heading.
     if (!isFlat) {
       if (g.course) {
-        out.push({ kind: 'heading', label: g.course.title, id: g.course.id, path: g.course.path, description: g.course.description, status: g.course.status });
+        out.push({ kind: 'heading', label: g.course.title, course: g.course });
       } else {
         out.push({ kind: 'heading', label: scenarioLabel(g.namespace) });
       }
     }
     for (const a of g.activities) {
-      out.push({ kind: 'activity', title: a.title, id: a.id, path: a.path, description: a.description, status: a.status });
+      out.push({ kind: 'activity', launchable: a });
     }
   }
   return out;

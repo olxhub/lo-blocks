@@ -11,7 +11,9 @@ import { useEffect } from 'react';
 import { ensureCatalog, useCatalogData } from '@/lib/state/catalog';
 import type { Repository } from '@/lib/types';
 
-export interface CatalogState {
+// Named UseCatalogResult (not CatalogState) — lib/types/core.ts already
+// exports a canonical CatalogState (the Redux slice shape), which this is not.
+export interface UseCatalogResult {
   repositories: Repository[];
   loading: boolean;
   error: string | null;
@@ -26,17 +28,17 @@ export interface CatalogState {
  *
  *  TODO: Wire MCP notification subscription; the notification handler calls
  *  refreshCatalog, and the hook stays with ensureCatalog (deduped). */
-export function useCatalog(include?: string[]): CatalogState {
-  const args: Record<string, unknown> = { drafts: 'include' };
-  if (include) args.include = include;
-  const argsKey = JSON.stringify(args);
+export function useCatalog(include?: string[]): UseCatalogResult {
+  // args is rebuilt from argsKey inside the effect (rather than closed over
+  // directly) so the effect's dependency array can honestly list argsKey —
+  // a string — instead of an object that's a new reference every render.
+  const argsKey = JSON.stringify(include ? { drafts: 'include', include } : { drafts: 'include' });
 
   // HACK: deduped fetch on mount — see docstring above. Once MCP
   // notifications are wired, the server pushes invalidation and this
   // just ensures the initial load.
   useEffect(() => {
-    ensureCatalog(args);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ensureCatalog(JSON.parse(argsKey));
   }, [argsKey]);
 
   // Read from Redux
