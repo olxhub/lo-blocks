@@ -5,7 +5,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder } from '@/lib/blocks/attributeSchemas';
-import _LineInput from './_LineInput';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
@@ -25,7 +24,6 @@ const LineInput = core({
   name: 'LineInput',
   ...input({ valueSchema: z.string() }),
   description: 'Single-line text input field for student responses',
-  component: _LineInput,
   fields,
   selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   attributes: z.object({

@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { gradeArrangement } from './gradingUtils';
 
@@ -17,7 +16,8 @@ const SortableGrader = blocks.test({
   name: 'SortableGrader',
   description: 'Grades sortable arrangements with various algorithms (exact, partial, adjacent, spearman, survey)',
   category: 'grading',
-  component: _Noop,
+  // Non-conventional: reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   attributes: z.object({
     algorithm: z.enum(['exact', 'partial', 'adjacent', 'spearman', 'survey']).optional().describe('Grading algorithm: exact match, partial order, adjacent pairs, Spearman rank correlation, or survey (always correct)'),

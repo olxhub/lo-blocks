@@ -15,6 +15,7 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';
@@ -96,6 +97,14 @@ async function findOlxFiles(dir) {
   await walk(dir);
   return files;
 }
+
+// Components are lazy; these tests assert synchronously after mount, so
+// resolve every loader up front. This also keeps the render sweep meaningful —
+// without it, lazy blocks would render as spinners and "renders without
+// errors" would silently stop exercising the real components.
+beforeAll(async () => {
+  await preloadBlockComponents(Object.values(BLOCK_REGISTRY));
+}, 60_000);
 
 describe('Demo OLX files render without errors', () => {
   let demoFiles = [];
@@ -264,7 +273,8 @@ describe('Demo OLX files render without errors', () => {
       const errorReport = errors.map(e => `  ${e.file}:\n    ${e.error}`).join('\n\n');
       throw new Error(`${errors.length} demo file(s) failed to render:\n\n${errorReport}`);
     }
-  }, 60000); // Allow 60 seconds for all files
+  }, 120000); // 2026-07-04: this sweep took ~57s running alone; the full suite
+              // shares CPU with it under `vitest run`.
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

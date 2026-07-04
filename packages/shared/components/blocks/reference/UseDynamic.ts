@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { _UseDynamic } from './_UseDynamic';
 import { ignore } from '@/lib/content/parsers';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 
@@ -13,7 +12,6 @@ export const fields = state.fields(
 const UseDynamic = dev({
   ...ignore(),
   name: 'UseDynamic',
-  component: _UseDynamic,
   description: 'Include a component block.',
   fields: fields,
   attributes: z.object({

@@ -14,7 +14,6 @@ import { z } from 'zod';
 import { dev, visibilityHandlers } from '@/lib/blocks';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
-import _Explanation from './_Explanation';
 
 const validShowWhen = Object.keys(visibilityHandlers) as [string, ...string[]];
 
@@ -22,7 +21,6 @@ const Explanation = dev({
   ...parsers.blocks.allowHTML(),
   name: 'Explanation',
   description: 'Displays explanation content conditionally based on grader state (e.g., after correct answer)',
-  component: _Explanation,
   requiresUniqueId: false,
   requiresGrader: true,
   attributes: z.object({

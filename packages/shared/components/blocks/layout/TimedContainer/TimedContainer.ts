@@ -10,7 +10,6 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { z_olx_boolean, z_olx_duration } from '@/lib/blocks/attributeSchemas';
-import _TimedContainer from './_TimedContainer';
 
 export const fields = state.fields([
   'started',
@@ -23,7 +22,6 @@ const TimedContainer = dev({
   ...parsers.blocks(),
   name: 'TimedContainer',
   description: 'Container with a time limit that disables interaction when time expires',
-  component: _TimedContainer,
   fields,
   attributes: z.object({
     duration: z_olx_duration.describe('Time limit (e.g. "5 minutes", "1 hour 30 minutes", "2 days")'),

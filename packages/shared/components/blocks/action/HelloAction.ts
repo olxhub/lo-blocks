@@ -1,7 +1,6 @@
 // packages/shared/components/blocks/action/HelloAction.ts
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import _Noop from '@/components/blocks/layout/_Noop';
 
 const HelloAction = blocks.test({
   ...parsers.ignore(),
@@ -10,7 +9,8 @@ const HelloAction = blocks.test({
   }),
   name: 'HelloAction',
   description: 'Testing block that shows "Hello, World!" alert when triggered',
-  component: _Noop,
+  // Shared no-op renderer lives in layout/, not a sibling of this file.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
 });
 
 export default HelloAction;

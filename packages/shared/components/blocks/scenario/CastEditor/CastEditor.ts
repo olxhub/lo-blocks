@@ -32,7 +32,6 @@ import {
 } from '../CharacterBuilder/CharacterBuilder';
 import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
-import _CastEditor from './_CastEditor';
 
 export const fields = state.fields([
   state.idField('memberIds'),
@@ -46,7 +45,6 @@ const CastEditor = dev({
   ...parsers.ignore(),
   name: 'CastEditor',
   description: 'Toy/prototype: Cast-of-characters editor — build a full cast with avatars, traits, and profiles',
-  component: _CastEditor,
   fields,
   locals: {
     // CastEditor's own field refs

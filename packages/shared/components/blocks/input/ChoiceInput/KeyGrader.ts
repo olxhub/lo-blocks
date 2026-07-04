@@ -9,7 +9,6 @@ import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
 
@@ -68,7 +67,7 @@ const KeyGrader = blocks.test({
   name: 'KeyGrader',
   description: 'Grades multiple choice selections by checking if Key was chosen over Distractor',
   category: 'grading',
-  component: _Noop,
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
   inputSchema: z.string(),

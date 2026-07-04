@@ -12,7 +12,6 @@ import * as state from '@/lib/state';
 import { commonFields } from '@/lib/state/commonFields';
 import * as parsers from '@/lib/content/parsers';
 import { z_olx_boolean, z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _OlxSlot from './_OlxSlot';
 
 export const fields = state.fields([commonFields.value, 'state', 'debounced', 'validOlx', 'error', 'stale']);
 
@@ -20,7 +19,6 @@ const OlxSlot = test({
   ...parsers.blocks.allowHTML(),
   name: 'OlxSlot',
   description: 'Experimental: renders an OLX string as live content',
-  component: _OlxSlot,
   fields,
   attributes: z.object({
     target: z_stateRef.optional()

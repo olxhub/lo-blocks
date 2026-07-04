@@ -10,13 +10,13 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
-import _ChoiceItem from './_ChoiceItem';
 
 const Key = core({
   ...parsers.blocks.wrapText('Markdown'),
   name: 'Key',
   description: 'Correct answer option inside ChoiceInput',
-  component: _ChoiceItem,
+  // Non-conventional: shared with Distractor, so it lives in _ChoiceItem rather than _Key.
+  componentLoader: () => import('./_ChoiceItem').then(m => m.default),
   requiresUniqueId: false,
   attributes: srcAttributes.extend({
     value: z.string().optional().describe('Value submitted when selected; defaults to element ID'),

@@ -25,7 +25,6 @@
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import _Course from './_Course';
 
 export const fields = state.fields([
   { name: 'selectedChild', url: true, urlDefault: true },
@@ -97,7 +96,6 @@ const Course = dev({
   ...courseParser(),
   name: 'Course',
   description: 'Hierarchical course structure with chapter navigation and content display',
-  component: _Course,
   fields,
 });
 

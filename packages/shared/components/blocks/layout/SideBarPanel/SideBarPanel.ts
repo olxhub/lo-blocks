@@ -12,7 +12,6 @@
 
 import { dev } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
-import _SideBarPanel from './_SideBarPanel';
 
 // === Custom parser to build named slots ===
 const sbParser = childParser(async function sideBlockParser({ rawKids, parseNode }) {
@@ -56,7 +55,6 @@ const SideBarPanel = dev({
   ...sbParser(),
   name: 'SideBarPanel',
   description: 'Layout with separate MainPane and Sidebar sections for content organization',
-  component: _SideBarPanel,
 });
 
 export default SideBarPanel;

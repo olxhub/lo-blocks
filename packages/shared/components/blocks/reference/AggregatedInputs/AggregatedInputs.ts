@@ -3,13 +3,11 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
 import { z_stateRefList } from '@/lib/blocks/attributeSchemas';
-import _AggregatedInputs from './_AggregatedInputs';
 
 const AggregatedInputs = dev({
   ...ignore(),
   name: 'AggregatedInputs',
   description: 'Aggregates grader correctness values and displays progress.',
-  component: _AggregatedInputs,
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated list of component IDs to aggregate'),
     field: z.string().optional().describe('Field name to aggregate (default: "value")'),

@@ -93,7 +93,7 @@ test('Next.js server basic endpoints work', async () => {
     // Clean up test build directory
     cleanupTestDir();
   }
-}, 120000);
+}, 180000); // 2026-07-04: Next build + endpoint checks took 90-120s under full-suite load.
 
 async function waitForServer(url, { timeout = 45000, interval = 2000 } = {}) {
   const start = Date.now();

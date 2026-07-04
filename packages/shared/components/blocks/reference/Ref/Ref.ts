@@ -7,7 +7,6 @@ import { blockData, withStatus } from '@/lib/state/blockData';
 import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
-import _Ref from './_Ref';
 import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/lib/types';
 
 /**
@@ -51,7 +50,6 @@ const Ref = core({
   ...parsers.textToAttribute('target'), // <Ref>id</Ref> compiles to target="id" in attributes
   name: 'Ref',
   requiresUniqueId: false,
-  component: _Ref,
   description: 'Reference another component\'s value by ID via target attribute.',
   attributes: srcAttributes.extend({
     target: z_stateRef.optional().describe('ID of component to reference'),

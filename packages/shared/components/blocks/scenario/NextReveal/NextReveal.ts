@@ -5,7 +5,6 @@ import * as state from '@/lib/state';
 import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
 import { selectKidsJson } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
-import _NextReveal from './_NextReveal';
 
 export const fields = state.fields([
   { name: 'currentStep', scope: 'component' }  // Number of steps revealed
@@ -43,7 +42,6 @@ const NextReveal = core({
   ...parsers.blocks(),
   name: 'NextReveal',
   description: 'Progressive reveal container that shows children one at a time with Next buttons, scrolling to bottom on Next but allowing up-scrolling',
-  component: _NextReveal,
   fields,
   advance: nextRevealAdvance,
   canAdvance: nextRevealCanAdvance,

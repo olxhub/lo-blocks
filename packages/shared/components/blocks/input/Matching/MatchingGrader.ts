@@ -17,7 +17,6 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { gradeMatching } from './gradingUtils';
 
@@ -31,7 +30,8 @@ const MatchingGrader = blocks.test({
   name: 'MatchingGrader',
   description: 'Grades matching exercises with partial credit support',
   category: 'grading',
-  component: _Noop,
+  // Non-conventional: reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   attributes: z.object({
     // Could add future attributes like grading algorithm, partial credit config, etc.

@@ -18,7 +18,6 @@ import { commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as idListParser from '@/components/blocks/specialized/MasteryBank/_idlistParser';
-import _Carousel from './_Carousel';
 
 export const fields = state.fields([commonFields.value, { name: 'title' }, { name: 'readonly', schema: z_olx_boolean }, { name: 'order' }]);
 
@@ -30,7 +29,6 @@ const Carousel = core({
   }),
   name: 'Carousel',
   description: 'Browse and select from a list of referenced items with left/right navigation',
-  component: _Carousel,
   fields,
   attributes: srcAttributes.extend({
     wrap: z_olx_boolean.optional().describe('Enable circular navigation (wrap around at ends)'),

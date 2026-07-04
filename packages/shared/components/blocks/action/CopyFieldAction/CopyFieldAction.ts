@@ -10,7 +10,6 @@ import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import _Noop from '@/components/blocks/layout/_Noop';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 
 async function copyFieldAction({ targetInstance, props }) {
@@ -56,7 +55,8 @@ const CopyFieldAction = blocks.dev({
   }),
   name: 'CopyFieldAction',
   description: 'Copies a field value from one block to one or more others when triggered',
-  component: _Noop,
+  // Shared no-op renderer lives in layout/, not a sibling of this file.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   attributes: z.object({
     target: z_blockFieldRef.describe('Source block.field to read from (default field: value)'),
     output: z_blockFieldRefList.describe('Destination block.field(s) to write to, comma-separated (default field: value)'),

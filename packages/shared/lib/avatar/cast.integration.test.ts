@@ -10,7 +10,7 @@
 // wrapper through to child components at render time.
 //
 
-import { describe, test, expect, afterEach } from 'vitest';
+import { describe, test, expect, afterEach, beforeAll } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
@@ -19,6 +19,7 @@ import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
 import { store } from '@/lib/state/store';
 import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';
@@ -72,6 +73,14 @@ carol:
  *  @param renderRoot - If provided, start rendering from this ID instead of the document root.
  *                      Simulates the preview page launching from a launchable block.
  */
+// Components are lazy; these tests assert synchronously after mount, so
+// resolve every loader up front. In beforeAll (not per-test): importing
+// every component module is seconds of work under full-suite load, which
+// would blow per-test timeouts.
+beforeAll(async () => {
+  await preloadBlockComponents(Object.values(BLOCK_REGISTRY));
+}, 60_000);
+
 async function parseAndRender(olx: string, providerFiles?: Record<string, string>, renderRoot?: string) {
   const provider = providerFiles ? new InMemoryStorageProvider(providerFiles) : undefined;
   const { idMap, root } = await parseOLX(olx, [toMemoryRef('test.olx')], provider, TEST_NS);

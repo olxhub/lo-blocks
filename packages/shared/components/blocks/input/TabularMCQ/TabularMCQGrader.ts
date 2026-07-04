@@ -14,7 +14,6 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 
 export const fields = state.fields(state.graderFields());
@@ -104,7 +103,8 @@ const TabularMCQGrader = core({
   name: 'TabularMCQGrader',
   description: 'Grades TabularMCQ selections against expected answers',
   category: 'grading',
-  component: _Noop,
+  // Non-conventional: reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   getDisplayAnswer: getTabularMCQDisplayAnswer,
   // Uses grader mixin attributes (target, answer, displayAnswer)

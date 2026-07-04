@@ -23,14 +23,15 @@
 
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import _Catalog from './catalogView';
 import { catalogFields, repoCardFields } from './locals';
 
 const Catalog = dev({
   ...parsers.ignore(),
   name: 'Catalog',
   description: 'Author catalog — lists repositories and their launchables.',
-  component: _Catalog,
+  // Explicit loader: the component lives in catalogView.tsx, not the
+  // conventional _Catalog.tsx the generator would wire.
+  componentLoader: () => import('./catalogView').then(m => m.default),
   fields: catalogFields.extend(repoCardFields),
 });
 

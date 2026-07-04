@@ -13,7 +13,6 @@ import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { getInputs } from '@/lib/blocks/olxdom';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
 
@@ -121,7 +120,7 @@ const CheckboxGrader = blocks.test({
   name: 'CheckboxGrader',
   description: 'Grades checkbox selections - all Keys must be selected and no Distractors. Use partialCredit="true" for n/m scoring.',
   category: 'grading',
-  component: _Noop,
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   getDisplayAnswer: getCheckboxDisplayAnswer,
   inputSchema: z.array(z.string()),

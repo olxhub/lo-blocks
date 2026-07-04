@@ -27,13 +27,11 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _StatusText from './_StatusText';
 
 const StatusText = dev({
   ...ignore(),
   name: 'StatusText',
   description: 'Displays field values from related components (typically graders). Use field="fieldName" to specify which field to display.',
-  component: _StatusText,
   requiresGrader: true,
   internal: true,
   attributes: z.object({

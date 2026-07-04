@@ -32,7 +32,6 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _SplitTest from './_SplitTest';
 
 export const fields = state.fields([state.commonFields.value]);
 
@@ -40,7 +39,6 @@ const SplitTest = dev({
   ...parsers.blocks(),
   name: 'SplitTest',
   description: 'Content experiments / A/B testing (Open edX compatibility)',
-  component: _SplitTest,
   fields,
   internal: true,
   attributes: z.object({

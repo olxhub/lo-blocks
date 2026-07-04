@@ -32,7 +32,6 @@ import { isPascalCase } from '@/lib/util';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
-import _CapaProblem from './_CapaProblem';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets.
@@ -182,7 +181,6 @@ const CapaProblem = dev({
   staticKids: capaParser.staticKids,
   name: 'CapaProblem',
   description: 'Interactive problem with rich content, inputs, grading, hints, explanations, and feedback',
-  component: _CapaProblem,
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states
   attributes: z.object({

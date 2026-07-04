@@ -21,7 +21,6 @@ import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { DefinitionRef } from '@/lib/types';
 import * as matchingParser from './_matchingParser';
-import _Noop from '@/components/blocks/layout/_Noop';
 
 // Typed child-role suffixes for joinDefinitionRef.
 const PROBLEM = parseLeafId('problem');
@@ -144,7 +143,9 @@ const SimpleMatching = dev({
   }),
   name: 'SimpleMatching',
   description: 'Simplified matching problem with DSL syntax - expands to CapaProblem+MatchingGrader+MatchingInput',
-  component: _Noop, // This component doesn't render - it generates others
+  // Non-conventional: this block doesn't render itself - it generates other
+  // blocks in postprocess, so it reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   attributes: srcAttributes.passthrough(), // Allow passthrough for CapaProblem attributes
 });

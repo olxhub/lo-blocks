@@ -10,7 +10,6 @@ import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _Navigator from './_Navigator';
 
 export const fields = state.fields([
   'selectedItem',     // Currently selected item ID
@@ -22,7 +21,6 @@ const Navigator = dev({
   ...parsers.text(),
   name: 'Navigator',
   description: 'Two-pane navigator with configurable preview and detail templates',
-  component: _Navigator,
   fields: fields,
   // as any: See selectValue spec in lib/blocks/actions.tsx
   selectValue: ((props, state, _stateKey) => {

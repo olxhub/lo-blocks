@@ -57,7 +57,6 @@ import { OPEN_PEEPS_KEYS, COLOR_PEEPS_KEYS } from '@/lib/avatar/cast';
 import { fields as avatarEditorFields } from '../AvatarEditor/AvatarEditor';
 import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
-import _CharacterBuilder from './_CharacterBuilder';
 
 export const fields = state.fields([
   state.idField('cardIds'),
@@ -226,7 +225,6 @@ const CharacterBuilder = dev({
   ...parsers.ignore(),
   name: 'CharacterBuilder',
   description: 'Toy/prototype: Character sheet builder with dimension cards, bio, and RPG stats',
-  component: _CharacterBuilder,
   fields,
   locals: {
     avatarEditorFields,

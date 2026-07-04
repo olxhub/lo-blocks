@@ -18,7 +18,6 @@ import { core, grader, isMatch, inferRelatedNodes, getBlockByOLXId } from '@/lib
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
-import _Noop from '@/components/blocks/layout/_Noop';
 import * as state from '@/lib/state';
 import type { RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
@@ -95,7 +94,8 @@ const RulesGrader = core({
   inputSchema: z.any(),
   description: 'Grader that evaluates Match rules top-to-bottom with partial credit and feedback',
   category: 'grading',
-  component: _Noop,
+  // Non-conventional: reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   // Display answer: find first Match child with score=1
   getDisplayAnswer: (props: RuntimeProps) => {
     if (props.displayAnswer) return props.displayAnswer;

@@ -6,7 +6,6 @@ import * as state from '@/lib/state';
 import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
 import { selectKidsJson } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
-import _Sequential from './_Sequential';
 
 export const fields = state.fields([
   { name: 'index', scope: 'component' }  // Current sequence index
@@ -41,7 +40,6 @@ const Sequential = core({
   ...parsers.blocks(),
   name: 'Sequential',
   description: 'Linear step-through showing one piece of content at a time, with guided, sequential navigation',
-  component: _Sequential,
   fields,
   advance: sequentialAdvance,
   canAdvance: sequentialCanAdvance,

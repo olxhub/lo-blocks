@@ -11,14 +11,12 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _HintButton from './_HintButton';
 
 const HintButton = core({
   name: 'HintButton',
   description: 'Reveals the next hint in a DemandHints component',
   category: 'action',
   internal: true,
-  component: _HintButton,
   attributes: z.object({
     target: z_stateRef.optional().describe('ID of DemandHints component; infers from parent/siblings if omitted'),
   }).strict(),

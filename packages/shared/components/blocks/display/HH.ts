@@ -12,7 +12,6 @@
 
 import { test } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { _Markdown } from './Markdown/_Markdown';
 
 function stripDecoration(text: string): string {
   const stripped = text.replace(/^[\s=]+|[\s=]+$/g, '');
@@ -24,7 +23,8 @@ const HH = test({
   ...parsers.text({ postprocess: stripDecoration }),
   name: 'HH',
   description: 'Visual section divider — horizontal rule with optional heading',
-  component: _Markdown,
+  // Non-conventional: HH reuses Markdown's renderer rather than its own sibling file.
+  componentLoader: () => import('./Markdown/_Markdown').then(m => m._Markdown),
   internal: true,
   requiresUniqueId: false,
 });

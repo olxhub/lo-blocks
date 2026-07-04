@@ -18,7 +18,6 @@ import { test } from '@/lib/blocks';
 import { childParser } from '@/lib/content/parsers';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import type { OLXLoadingError } from '@/lib/types/errors';
-import { _BadBlock } from './_BadBlock';
 
 // throws: when (if ever) to blow up.  kind: what to throw.
 //   kind="native"    → new Error(message)             (well-formed)
@@ -85,7 +84,6 @@ const BadBlock = test({
   ...buggyParser(),
   name: 'BadBlock',
   description: 'Internal test block that deliberately fails (parse/render) to exercise and verify the error-handling pipeline',
-  component: _BadBlock,
   attributes,
   internal: true,
 });

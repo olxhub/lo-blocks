@@ -8,7 +8,6 @@ import { core, input, getBlockByOLXId, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { RuntimeProps } from '@/lib/types';
@@ -42,7 +41,7 @@ const CheckboxInput = core({
   name: 'CheckboxInput',
   ...input({ valueSchema: z.array(z.string()) }),
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
-  component: _Noop,
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   selectValue: (props: RuntimeProps, state, _stateKey) => {
     const value = fieldSelector(state, props, fields.value, { fallback: [] });

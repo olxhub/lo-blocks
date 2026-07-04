@@ -20,7 +20,6 @@ import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp from './_chatParser';
-import { _Chat } from './_Chat';
 
 import * as chatUtils from './chatUtils';
 
@@ -490,7 +489,6 @@ const Chat = blocks.dev({
   }),
   grammars: ['chatpeg', 'clippeg'],
   name: 'Chat',
-  component: _Chat,
   description: 'Example block that parses an SBA dialogue format using PEG.',
   fields,
   advance,

@@ -1,12 +1,10 @@
 import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import _ObservablePlot from './_ObservablePlot';
 
 const ObservablePlot = core({
   ...parsers.text.withTarget.stripIndent(),
   name: 'ObservablePlot',
-  component: _ObservablePlot,
   description: 'Render Observable Plot visualizations from YAML or JavaScript specs.',
   attributes: z.object({
     format: z.enum(['yaml', 'js']).optional()

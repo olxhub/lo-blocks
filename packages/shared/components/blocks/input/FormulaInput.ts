@@ -9,7 +9,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder } from '@/lib/blocks/attributeSchemas';
-import _FormulaInput from './_FormulaInput';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
@@ -19,7 +18,6 @@ const FormulaInput = core({
   ...input(),
   name: 'FormulaInput',
   description: 'Math expression input with live LaTeX preview (supports variables, functions, operators)',
-  component: _FormulaInput,
   fields,
   selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   attributes: z.object({

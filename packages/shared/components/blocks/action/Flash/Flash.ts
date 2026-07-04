@@ -13,7 +13,6 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _Noop from '@/components/blocks/layout/_Noop';
 
 function flashAction({ targetInstance }) {
   const { target, duration = '500ms', color = 'gold' } = targetInstance.attributes;
@@ -51,7 +50,8 @@ const Flash = blocks.core({
   ...blocks.action({ action: flashAction }),
   name: 'Flash',
   description: 'Applies a momentary highlight animation to a target block',
-  component: _Noop,
+  // Shared no-op renderer lives in layout/, not a sibling of this file.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   attributes: z.object({
     target: z_stateRef.describe('Block ID to flash'),
     duration: z.string().default('500ms').describe('Animation duration (CSS time value)'),

@@ -5,7 +5,6 @@ import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import * as sortParser from './_sortParser';
-import _Noop from '@/components/blocks/layout/_Noop';
 
 // Typed child-role suffixes for joinDefinitionRef.
 const PROBLEM = parseLeafId('problem');
@@ -99,7 +98,9 @@ const SimpleSortable = dev({
   }),
   name: 'SimpleSortable',
   description: 'Simplified sortable problem with PEG syntax - expands to CapaProblem+SortableGrader+SortableInput',
-  component: _Noop, // This component doesn't render - it generates others
+  // Non-conventional: this block doesn't render itself - it generates other
+  // blocks in postprocess, so it reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   attributes: srcAttributes.passthrough(), // Allow passthrough for CapaProblem attributes
 });

@@ -45,7 +45,6 @@ import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import _Annotate from './_Annotate';
 
 // All fields on the block — including per-annotation scoped fields.
 // They must be registered here so the reducer knows their event types.
@@ -69,7 +68,6 @@ const Annotate = test({
   name: 'Annotate',
   category: 'language-arts',
   description: 'Text annotation block: students highlight passages and take notes in a sidebar',
-  component: _Annotate,
   fields,
   attributes: z.object({
     editor: z.string().optional()

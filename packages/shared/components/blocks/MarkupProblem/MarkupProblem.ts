@@ -15,7 +15,6 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
-import _CapaProblem from '@/components/blocks/CapaProblem/_CapaProblem';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import { parse as parseExpr } from '@/lib/stateLanguage';
@@ -522,7 +521,9 @@ const MarkupProblem = dev({
   name: 'MarkupProblem',
   category: 'CAPA Problems',
   description: 'Simple markup language for authoring problems - expands to CapaProblem with graders and inputs',
-  component: _CapaProblem,
+  // Non-conventional: MarkupProblem expands to CapaProblem's structure, so it reuses
+  // CapaProblem's renderer rather than having its own sibling component file.
+  componentLoader: () => import('@/components/blocks/CapaProblem/_CapaProblem').then(m => m.default),
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
   attributes: srcAttributes.extend(problemAttributes.shape).strict(),
