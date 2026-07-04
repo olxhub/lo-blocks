@@ -179,8 +179,13 @@ interface CreateGraderConfig {
   /**
    * Custom grader function. If match is provided and grader is not, the grader
    * is auto-generated from match. Required if match is not provided.
+   *
+   * May be async — the grading action awaits results (the seam for slow
+   * graders, and for readying lazy engines before sync match calls, e.g.
+   * RulesGrader awaiting child match blocks' ensureReady).
    */
-  grader?: (props: RuntimeProps, params: GraderParams) => { correct: any; message: any };
+  grader?: (props: RuntimeProps, params: GraderParams) =>
+    { correct: any; message: any } | Promise<{ correct: any; message: any }>;
   /**
    * Zod schema for the input(s) this grader expects. Required when using match.
    *
@@ -327,7 +332,7 @@ export function createGrader({
   }
 
   // Auto-generate grader from match function, or use custom grader if provided
-  let graderFn: ((props: RuntimeProps, params: GraderParams) => { correct: any; message: any }) | undefined;
+  let graderFn: ((props: RuntimeProps, params: GraderParams) => { correct: any; message: any } | Promise<{ correct: any; message: any }>) | undefined;
 
   if (customGraderFn) {
     graderFn = customGraderFn;

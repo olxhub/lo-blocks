@@ -19,24 +19,33 @@
 import type * as CalcModule from '@/lib/util/calc/index.js';
 
 let calc: typeof CalcModule | null = null;
+let loading: Promise<typeof CalcModule> | null = null;
 
-/** Load the math engine (idempotent, cached). */
+/** Load the math engine (idempotent; concurrent callers share one load). */
 export async function ensureCalcLoaded(): Promise<void> {
   if (!calc) {
     // await import (documented exception): the whole point of this module —
     // keep mathjs out of the eager import graph of grader blueprints.
-    calc = await import('@/lib/util/calc/index.js');
+    loading ??= import('@/lib/util/calc/index.js');
+    calc = await loading;
   }
 }
 
-/** Synchronous access to the loaded engine. Callers run after ensureCalcLoaded
- *  (parse/grade paths await it); the throw is the fail-fast backstop. */
+/** Synchronous access to the loaded engine.
+ *
+ *  Parse/grade paths await ensureCalcLoaded first, but sync paths can reach
+ *  a match function with the engine unloaded: browsers receive PRE-PARSED
+ *  OlxJson (/api/olxjson, static builds) — parseOLX's ensureReady never ran
+ *  there — and DSL calls in when= expressions or a RulesGrader's rules have
+ *  no await point of their own. So a miss here KICKS OFF the load before
+ *  throwing: the failure is retriable (next grade click / next when=
+ *  re-evaluation succeeds) instead of permanent. */
 export function requireCalc(): typeof CalcModule {
   if (!calc) {
+    void ensureCalcLoaded();
     throw new Error(
-      'The math engine is still loading. This can happen when a formula is ' +
-      'evaluated in an expression (e.g. when=) before any math block has ' +
-      'loaded — it resolves as soon as loading completes.'
+      'The math engine loads on first use and is not ready yet — ' +
+      'try again in a moment.'
     );
   }
   return calc;

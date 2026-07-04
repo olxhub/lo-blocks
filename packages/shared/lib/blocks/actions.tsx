@@ -38,7 +38,10 @@ export type ListParam = { inputList: unknown[]; inputApis: object[] };
 export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
 export type GraderParams = SingleParam | ListParam | DictParam;
 
-type GraderFn = (props: RuntimeProps, params: GraderParams) => { correct: unknown; message: unknown; score?: number };
+// May return a Promise — the grading action awaits results (slow graders,
+// and graders that ready lazy engines before sync match calls).
+type GraderResult = { correct: unknown; message: unknown; score?: number };
+type GraderFn = (props: RuntimeProps, params: GraderParams) => GraderResult | Promise<GraderResult>;
 
 // Mix-in to make a block an action
 export function action({ action }) {
