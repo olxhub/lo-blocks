@@ -4,17 +4,8 @@
 // Validators compose general-purpose calc/ validators into the shapes
 // that createGrader expects.
 
-import {
-  parseComplex,
-  parseTolerance,
-  parseRange,
-  compareAbsolute,
-  inRange,
-  validateTolerance,
-  validateNumber,
-  validateRange,
-} from '@/lib/util/calc/index.js';
-import type { Tolerance } from '@/lib/util/calc/tolerance';
+import { parseTolerance, validateTolerance, type Tolerance } from '@/lib/util/calc/schemas';
+import { requireCalc } from './calcLoader';
 
 /** Attributes passed to NumericalGrader validation. */
 interface NumericalGraderAttributes {
@@ -50,31 +41,31 @@ export function numericalMatch(
   answer: string | number,
   options?: NumericalMatchOptions
 ): boolean {
-  const student = parseComplex(input);
+  const student = requireCalc().parseComplex(input);
   const answerStr = String(answer);
 
   // Handle range notation
   if (/^\s*[\[(].*[\])]\s*$/.test(answerStr)) {
-    const range = parseRange(answerStr);
+    const range = requireCalc().parseRange(answerStr);
     if (!range) {
       throw new Error('Invalid range specification');
     }
     const base = Math.abs(range.upper.re - range.lower.re);
     const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
-    return inRange(student, range, tolerance);
+    return requireCalc().inRange(student, range, tolerance);
   }
 
   // Handle single value with tolerance
-  const base = parseComplex(answer).abs();
+  const base = requireCalc().parseComplex(answer).abs();
   const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
-  return compareAbsolute(student, answer, tolerance);
+  return requireCalc().compareAbsolute(student, answer, tolerance);
 }
 
 /**
  * Validate that a numerical input is a valid number.
  */
 export function validateNumericalInput(input: unknown): string[] | undefined {
-  const error = validateNumber(input);
+  const error = requireCalc().validateNumber(input);
   return error ? ['Invalid number'] : undefined;
 }
 
@@ -88,12 +79,12 @@ export function validateNumericalAttributes(attrs: NumericalGraderAttributes): s
     const answerStr = String(attrs.answer).trim();
 
     if (/^\s*[\[(].*[\])]\s*$/.test(answerStr)) {
-      const rangeErrors = validateRange(answerStr);
+      const rangeErrors = requireCalc().validateRange(answerStr);
       if (rangeErrors) {
         errors.push(...rangeErrors.map(e => `answer: ${e}`));
       }
     } else {
-      const numError = validateNumber(answerStr);
+      const numError = requireCalc().validateNumber(answerStr);
       if (numError) {
         errors.push(`answer: ${numError}`);
       }
@@ -116,13 +107,13 @@ export function validateRatioInputs(inputDict: RatioInput): string[] | undefined
     return ['Need two inputs (numerator and denominator)'];
   }
 
-  const numError = validateNumber(numerator);
+  const numError = requireCalc().validateNumber(numerator);
   if (numError) return ['Invalid numerator'];
 
-  const denError = validateNumber(denominator);
+  const denError = requireCalc().validateNumber(denominator);
   if (denError) return ['Invalid denominator'];
 
-  const denC = parseComplex(denominator);
+  const denC = requireCalc().parseComplex(denominator);
   if (denC.abs() === 0) return ['Division by zero'];
 
   return undefined;
@@ -139,10 +130,10 @@ export function ratioMatch(
   answer: string,
   options?: { tolerance?: Tolerance }
 ): boolean {
-  const numC = parseComplex(inputDict.numerator);
-  const denC = parseComplex(inputDict.denominator);
+  const numC = requireCalc().parseComplex(inputDict.numerator);
+  const denC = requireCalc().parseComplex(inputDict.denominator);
   const studentRatio = numC.div(denC);
-  const base = parseComplex(answer).abs();
+  const base = requireCalc().parseComplex(answer).abs();
   const tolerance = options?.tolerance != null ? parseTolerance(options.tolerance, base) : 0;
-  return compareAbsolute(studentRatio, answer, tolerance);
+  return requireCalc().compareAbsolute(studentRatio, answer, tolerance);
 }

@@ -551,6 +551,17 @@ export const BlockBlueprintSchema = z.object({
   namespace: z.string().nonempty(),
   component: z.custom<React.ComponentType<any>>().optional(),
   componentLoader: z.custom<ComponentLoader>().optional(),
+  /**
+   * Load slow dependencies before this block parses or grades.
+   *
+   *   ensureReady: ensureCalcLoaded,   // FormulaGrader: mathjs at first use
+   *
+   * Awaited (idempotent) by parseOLX before validating/parsing a tag and by
+   * the grading action before invoking the grader — so heavy engines load
+   * only when content actually uses the block, and synchronous code
+   * (match functions, instant-mode grading) runs against a loaded engine.
+   */
+  ensureReady: z.custom<() => Promise<void>>().optional(),
   action: z.function().optional(),
   isGrader: z.boolean().optional().default(false),
   isInput: z.boolean().optional().default(false),
@@ -757,6 +768,8 @@ export interface LoBlock {
   /** Lazy component loader — see ComponentLoader. Declared in the blueprint
    *  or wired by the registry generator from the sibling `_Name` file. */
   componentLoader?: ComponentLoader;
+  /** Load slow dependencies before parse/grade — see BlockBlueprintSchema. */
+  ensureReady?: () => Promise<void>;
   /** Internal: stable component identity chosen at first render resolution
    *  (direct component, lazy wrapper, or headless null component). Stable so
    *  React never sees an element-type swap mid-session, which would unmount

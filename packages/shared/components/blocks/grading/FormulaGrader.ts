@@ -7,10 +7,13 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/grading';
-import { ToleranceSchema, SamplesSpecSchema } from '@/lib/util/calc/index.js';
+import { formulaMatch, validateFormulaAttributes, validateFormulaInput, ensureCalcLoaded } from '@/lib/grading';
+// schemas, not calc/index: attribute validation is mathjs-free; the engine
+// itself loads via ensureReady at first parse/grade of math content.
+import { ToleranceSchema, SamplesSpecSchema } from '@/lib/util/calc/schemas';
 
 const FormulaGrader = createGrader({
+  ensureReady: ensureCalcLoaded,
   base: 'Formula',
   description: 'Grades math formulas by sampling-based equivalence (e.g. x^2-1 vs (x-1)(x+1))',
   match: formulaMatch,

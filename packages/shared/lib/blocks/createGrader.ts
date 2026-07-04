@@ -271,6 +271,9 @@ interface CreateGraderConfig {
    *  E.g. `() => import('@/components/blocks/layout/_Hidden').then(m => m.default)`
    *  to hide children. Declare component OR componentLoader, not both. */
   componentLoader?: ComponentLoader;
+  /** Load slow dependencies (e.g. mathjs) before parse/grade — see
+   *  BlockBlueprintSchema.ensureReady. Applied to the Match block too. */
+  ensureReady?: () => Promise<void>;
   /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
   parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
   /**
@@ -303,6 +306,7 @@ export function createGrader({
   createMatch = true,
   component,
   componentLoader,
+  ensureReady,
   parser,
   allowOverrides,
 }: CreateGraderConfig) {
@@ -360,6 +364,7 @@ export function createGrader({
     description,
     category: 'grading',
     ...componentProps,
+    ensureReady,
     fields: state.fields(state.graderFields()),
     // graderMixin (via grader(...)) contributes target/answer/displayAnswer;
     // blueprint layer only adds grader-specific attrs from callers.
@@ -382,6 +387,7 @@ export function createGrader({
       description: `Matching rule for ${base} patterns, used inside RulesGrader`,
       category: 'grading',
       componentLoader: NOOP_LOADER,
+      ensureReady,
       internal: true,
       isMatch: true,
       attributes: z.object({

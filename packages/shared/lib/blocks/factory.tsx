@@ -361,6 +361,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
   const block: LoBlock = {
     component: Component,
     componentLoader: effectiveConfig.componentLoader,
+    ensureReady: effectiveConfig.ensureReady,
     _isBlock: true,
 
     action: effectiveConfig.action,

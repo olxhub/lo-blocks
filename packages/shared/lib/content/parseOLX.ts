@@ -563,6 +563,12 @@ export async function parseOLX(
 
     const Component = BLOCK_REGISTRY[tag];
 
+    // Blocks with slow dependencies (e.g. FormulaGrader's mathjs) declare
+    // ensureReady — their attribute validation may exercise the engine
+    // (test-evaluating an answer formula). Awaited here (idempotent), so
+    // only content that actually uses such blocks pays the load.
+    if (Component?.ensureReady) await Component.ensureReady();
+
     // Validate and transform attributes - use component schema if defined, else base with passthrough
     // Passthrough preserves unknown attrs; strict() rejects unknown (catching typos like scr= vs src=)
     const schema = Component?.attributes ?? baseAttributes.passthrough();

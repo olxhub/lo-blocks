@@ -3,20 +3,23 @@
 // Match function is a pure predicate. Validators compose calc/ primitives.
 
 import {
-  checkFormula,
   validateSamplesSpec,
   validateTolerance,
   parseTolerance,
-  evaluator,
-} from '@/lib/util/calc/index.js';
-import { parse, collectIdentifiers, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS } from '@/lib/util/calc/index.js';
+  BUILTIN_VARIABLE_NAMES,
+  BUILTIN_FUNCTION_NAMES,
+  type Tolerance,
+} from '@/lib/util/calc/schemas';
+import { requireCalc } from './calcLoader';
 import type { SamplesSpec, CalcASTNode } from '@/lib/util/calc/types';
-import type { Tolerance } from '@/lib/util/calc/tolerance';
 
-/** Names that are built-in and don't need to appear in a samples spec. */
-const BUILTIN_NAMES = new Set([
-  ...Object.keys(DEFAULT_VARIABLES),
-  ...Object.keys(DEFAULT_FUNCTIONS),
+
+/** Names that are built-in and don't need to appear in a samples spec.
+ *  From the mathjs-free contract lists — functions.js asserts they match
+ *  the real implementations. */
+const BUILTIN_NAMES = new Set<string>([
+  ...BUILTIN_VARIABLE_NAMES,
+  ...BUILTIN_FUNCTION_NAMES,
 ]);
 
 export interface FormulaMatchOptions {
@@ -54,7 +57,7 @@ export function formulaMatch(
   }
 
   for (const ans of answers) {
-    const result = checkFormula(ans, input, samples, evalOpts);
+    const result = requireCalc().checkFormula(ans, input, samples, evalOpts);
     if (result.correct) return true;
   }
   return false;
@@ -66,8 +69,8 @@ export function formulaMatch(
 
 function validateAnswerFormula(answer: string): { ast: CalcASTNode; vars: Set<string> } | string {
   try {
-    const ast = parse(answer);
-    const ids = collectIdentifiers(ast);
+    const ast = requireCalc().parse(answer);
+    const ids = requireCalc().collectIdentifiers(ast);
     const vars = new Set([...ids.variables].filter(v => !BUILTIN_NAMES.has(v.toLowerCase())));
     return { ast, vars };
   } catch {
@@ -146,7 +149,7 @@ function testEvaluateAnswer(
   caseSensitive: boolean,
 ): string | undefined {
   try {
-    evaluator(testVars, {}, answer, { caseSensitive });
+    requireCalc().evaluator(testVars, {}, answer, { caseSensitive });
     return undefined;
   } catch (e: any) {
     return (
@@ -166,13 +169,13 @@ function validateAdditionalAnswers(
   const extras = additionalAnswers.split(';').map(s => s.trim()).filter(Boolean);
   for (const extra of extras) {
     try {
-      parse(extra);
+      requireCalc().parse(extra);
     } catch {
       errors.push(`additionalAnswers: Could not parse "${extra}" as a math expression.`);
       continue;
     }
     try {
-      evaluator(testVars, {}, extra, { caseSensitive });
+      requireCalc().evaluator(testVars, {}, extra, { caseSensitive });
     } catch (e: any) {
       errors.push(
         `additionalAnswers: "${extra}" failed with sample values {${testDescription}}: ${e.message}`
@@ -267,7 +270,7 @@ export function validateFormulaInput(input: unknown, attrs: Record<string, any>)
   const caseSensitive = attrs.caseSensitive === 'true' || attrs.caseSensitive === true;
 
   try {
-    evaluator(allowedVars, {}, input, { caseSensitive });
+    requireCalc().evaluator(allowedVars, {}, input, { caseSensitive });
   } catch (e: any) {
     if (e.name === 'UndefinedVariable') {
       return shouldCheckVars ? [e.message] : undefined;

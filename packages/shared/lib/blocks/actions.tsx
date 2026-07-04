@@ -311,7 +311,13 @@ export function grader({ grader, infer = true, slots, inputType }: {
         }
       }
       if (param) {
-        ({ correct, message, score } = grader(
+        // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
+        // declare ensureReady; await it so the (synchronous) match function
+        // runs against a loaded engine. The await on grader also accepts
+        // async grader functions — the seam for slow graders (LLM,
+        // code-in-sandbox).
+        await map[targetInstance.tag]?.ensureReady?.();
+        ({ correct, message, score } = await grader(
           { ...props, ...targetAttributes },
           param
         ));

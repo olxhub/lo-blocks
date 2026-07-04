@@ -2,9 +2,15 @@
  * Tests for formula grading utilities (formulaMatch, validateFormulaAttributes, validateFormulaInput).
  */
 
-import { describe, it, expect } from 'vitest';
-import { formulaMatch, validateFormulaAttributes, validateFormulaInput } from '@/lib/grading';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { formulaMatch, validateFormulaAttributes, validateFormulaInput, ensureCalcLoaded } from '@/lib/grading';
 import { validateTolerance } from '@/lib/util/calc/index.js';
+
+// The math engine is lazy (see lib/grading/calcLoader.ts); match functions
+// assume it is loaded, as the parse/grade pipelines guarantee via ensureReady.
+beforeAll(async () => {
+  await ensureCalcLoaded();
+});
 
 // Seeded RNG for deterministic tests
 function seededRng(seed = 42) {

@@ -7,10 +7,11 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { numericalMatch, validateNumericalInput, validateNumericalAttributes } from '@/lib/grading';
-import { ToleranceSchema } from '@/lib/util/calc/index.js';
+import { numericalMatch, validateNumericalInput, validateNumericalAttributes, ensureCalcLoaded } from '@/lib/grading';
+import { ToleranceSchema } from '@/lib/util/calc/schemas';
 
 const NumericalGrader = createGrader({
+  ensureReady: ensureCalcLoaded,
   base: 'Numerical',
   description: 'Grades numeric answers with tolerance for rounding and formatting variations',
   match: numericalMatch,

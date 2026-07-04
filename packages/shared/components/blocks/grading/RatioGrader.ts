@@ -19,13 +19,14 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { ratioMatch, validateRatioInputs, validateNumericalAttributes } from '@/lib/grading';
-import { ToleranceSchema } from '@/lib/util/calc/index.js';
+import { ratioMatch, validateRatioInputs, validateNumericalAttributes, ensureCalcLoaded } from '@/lib/grading';
+import { ToleranceSchema } from '@/lib/util/calc/schemas';
 
 // Re-export for convenience
 export { ratioMatch } from '@/lib/grading';
 
 const RatioGrader = createGrader({
+  ensureReady: ensureCalcLoaded,
   base: 'Ratio',
   description: 'Grades ratio and fraction answers, comparing the ratio between two inputs',
   match: ratioMatch,
