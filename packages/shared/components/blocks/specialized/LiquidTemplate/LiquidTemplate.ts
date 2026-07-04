@@ -18,7 +18,7 @@ import { Liquid } from 'liquidjs';
 import { core } from '@/lib/blocks';
 import { parseXmlFragment } from '@/lib/content/parseOLX';
 import { loadExternalSource, extractTextFromXmlNodes } from '@/lib/content/parsers';
-import { EXT, fileHasExtension } from '@/lib/util/fileTypes';
+import { isDataFile, getExtension } from '@/lib/util/fileTypes';
 import { _LiquidTemplate } from './_LiquidTemplate';
 import { registerFilters } from './liquidFilters';
 
@@ -27,15 +27,8 @@ import type { DefinitionRef, OLXLoadingError } from '@/lib/types';
 
 // === Data file loading ===
 
-// EXT.data / fileHasExtension are the single source of truth for
-// recognized data extensions (packages/shared/lib/util/fileTypes.ts) —
-// don't hand-roll extension checks here.
-function isDataFile(src: string): boolean {
-  return fileHasExtension(src, EXT.data);
-}
-
 function parseDataFile(text: string, src: string): any {
-  if (fileHasExtension(src, ['json'])) {
+  if (getExtension(src) === 'json') {
     return JSON.parse(text);
   }
   return yaml.load(text, { schema: yaml.JSON_SCHEMA });

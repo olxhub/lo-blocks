@@ -146,6 +146,9 @@ export const isMarkdownFile = (path: string | undefined | null) =>
 export const isPEGFile = (path: string | undefined | null) =>
   fileHasExtension(path, EXT.peg);
 
+export const isDataFile = (path: string | undefined | null) =>
+  fileHasExtension(path, EXT.data);
+
 // Category checks
 export const isContentFile = (path: string | undefined | null) =>
   fileHasExtension(path, CATEGORY.content);

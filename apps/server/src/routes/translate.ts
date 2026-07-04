@@ -13,7 +13,7 @@
 
 import path from 'path';
 import type { Context } from 'hono';
-import { unionProvider, writableSourceProvider } from '@/lib/lofs/contentSources';
+import { unionProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
 import { source as lofsSource } from '@/lib/types/address';
 import {
   syncContentFromStorage,
@@ -101,6 +101,11 @@ export async function handleTranslate(c: Context): Promise<Response> {
     });
     return c.json(result, result.ok ? undefined : 500);
   } catch (error: any) {
+    // Denied, not broken: translating content from a read-only source is an
+    // authorization failure — 403, matching /api/file's mapping.
+    if (error instanceof ReadOnlySourceError || error.name === 'ReadOnlySourceError') {
+      return c.json({ ok: false, error: error.message }, 403);
+    }
     console.error('[/api/translate] Error:', error);
     return c.json(
       { ok: false, error: error.message || 'Unknown error' },

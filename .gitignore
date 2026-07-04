@@ -101,14 +101,13 @@ lofs/runtime/
 /apps/client/node_modules/
 /dist/
 
-# Local checkout of a repo that config/content-sources.yaml mounts remotely
-# (git-source form) — not tracked here; see docs/content-in-git.md.
-/edu.memphis.psych/
+# Local checkouts of repos
+/local-repos
 
 # Deployment-specific content source overrides (committed default is
-# config/content-sources.yaml; see docs/content-in-git.md)
+# config/content-sources.yaml)
 config/content-sources.local.yaml
 
 # Access tokens / secrets (e.g. GitHub PAT for git-backed content sources).
-# Never commit. Default token file is config/github.pat (see contentSources.ts).
+# Never commit. Default token file is config/github.pat
 config/*.pat

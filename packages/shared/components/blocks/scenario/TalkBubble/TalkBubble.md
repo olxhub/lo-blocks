@@ -90,10 +90,11 @@ Use the same `seed` across TalkBubbles to maintain a character's appearance:
 
 ### Multi-block Content
 
-```olx:code
+```olx:playground
 <TalkBubble who="Researcher" seed="researcher_01">
   <Markdown>Look at the results from Hake's study:</Markdown>
-  <Image src="path/to/hake-gains-chart.png" />
+  <Image src="/demos/images/hake-gains.png"
+         alt="Scatter plot of normalized gain versus pretest score for 62 physics courses: interactive-engagement courses cluster around twice the gain of traditional courses (Hake 1998, Fig. 1)" />
   <Markdown>Interactive engagement nearly doubled learning gains.</Markdown>
 </TalkBubble>
 ```

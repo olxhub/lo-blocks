@@ -94,7 +94,17 @@ async function readSourceDescriptor(provider: StorageProvider): Promise<SourceDe
 
   const readme = await readRepoFile(provider, 'README.md');
   const metaRaw = await readRepoFile(provider, REPO_METADATA_FILE);
-  const parsed = metaRaw ? YAML.parse(metaRaw) : null;
+
+  // lo.yaml is optional per-repo metadata: a malformed one degrades this repo
+  // to its README-derived fields (error surfaced on its card) rather than
+  // rejecting the whole get_repositories call for every repo.
+  let parsed: unknown = null;
+  let metaError: AppError | undefined;
+  try {
+    parsed = metaRaw ? YAML.parse(metaRaw) : null;
+  } catch (err) {
+    metaError = toAppError(err, { title: `Malformed ${REPO_METADATA_FILE}` });
+  }
   const meta = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
 
   return {
@@ -105,6 +115,7 @@ async function readSourceDescriptor(provider: StorageProvider): Promise<SourceDe
       : undefined,
     discipline: typeof meta.discipline === 'string' ? meta.discipline : undefined,
     readme: readme ?? undefined,
+    error: metaError,
   };
 }
 
