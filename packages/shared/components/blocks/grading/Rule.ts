@@ -18,7 +18,6 @@
 import { z } from 'zod';
 import { core, z_stateRef, z_expression } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import _Noop from '@/components/blocks/layout/_Noop';
 import { evaluate, createContext } from '@/lib/stateLanguage/evaluate';
 import { correctness } from '@/lib/blocks/correctness';
 import type { RuntimeProps } from '@/lib/types';
@@ -66,7 +65,8 @@ const Rule = core({
   name: 'Rule',
   description: 'Matching rule that evaluates a DSL expression, used inside RulesGrader',
   category: 'grading',
-  component: _Noop,
+  // Non-conventional: reuses the shared layout Noop renderer.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   internal: true,
   isMatch: true,
   attributes: z.object({

@@ -18,7 +18,6 @@ import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { commonFields } from '@/lib/state';
 import { z_olx_boolean, z_olx_duration, placeholder } from '@/lib/blocks/attributeSchemas';
-import _Freewrite from './_Freewrite';
 
 export const fields = state.fields([commonFields.value, 'revealed', 'lastKeystrokeTime']);
 
@@ -27,7 +26,6 @@ const Freewrite = dev({
   ...input(),
   name: 'Freewrite',
   description: 'Freewriting input with optional constraints (invisible text, no deletion, pace tracking). Use inside TimedContainer for timed sessions.',
-  component: _Freewrite,
   fields,
   attributes: z.object({
     ...placeholder,

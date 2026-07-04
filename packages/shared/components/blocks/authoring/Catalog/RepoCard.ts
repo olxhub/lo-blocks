@@ -17,14 +17,15 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
-import _RepoCard from './repoCard';
 import { repoCardFields } from './locals';
 
 const RepoCard = dev({
   ...parsers.ignore(),
   name: 'RepoCard',
   description: 'Repository card — compact or full view of a repo.',
-  component: _RepoCard,
+  // Non-conventional: component lives in repoCard.tsx (lowercase), not the
+  // conventional _RepoCard.tsx the generator would wire.
+  componentLoader: () => import('./repoCard').then(m => m.default),
   fields: repoCardFields,
   attributes: z.object({
     origin: z.string().optional().describe('Repo origin (e.g. git+https://…@branch or file:…). Required when not passed as a direct React prop.'),

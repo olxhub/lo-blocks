@@ -17,7 +17,6 @@ import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import * as idListParser from './_idlistParser';
-import _MasteryBank from './_MasteryBank';
 
 export const fields = state.fields([
   'correctStreak',          // Current streak of correct answers
@@ -41,7 +40,6 @@ const MasteryBank = dev({
   }),
   name: 'MasteryBank',
   description: 'Mastery-based practice: present random problems until N correct in a row',
-  component: _MasteryBank,
   fields,
   attributes: srcAttributes.extend({
     goal: z.coerce.number().int().positive().default(6).describe('Number of correct answers in a row to achieve mastery'),

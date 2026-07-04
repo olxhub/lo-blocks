@@ -38,7 +38,10 @@ export type ListParam = { inputList: unknown[]; inputApis: object[] };
 export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
 export type GraderParams = SingleParam | ListParam | DictParam;
 
-type GraderFn = (props: RuntimeProps, params: GraderParams) => { correct: unknown; message: unknown; score?: number };
+// May return a Promise — the grading action awaits results (slow graders,
+// and graders that ready lazy engines before sync match calls).
+type GraderResult = { correct: unknown; message: unknown; score?: number };
+type GraderFn = (props: RuntimeProps, params: GraderParams) => GraderResult | Promise<GraderResult>;
 
 // Mix-in to make a block an action
 export function action({ action }) {
@@ -311,7 +314,13 @@ export function grader({ grader, infer = true, slots, inputType }: {
         }
       }
       if (param) {
-        ({ correct, message, score } = grader(
+        // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
+        // declare ensureReady; await it so the (synchronous) match function
+        // runs against a loaded engine. The await on grader also accepts
+        // async grader functions — the seam for slow graders (LLM,
+        // code-in-sandbox).
+        await map[targetInstance.tag]?.ensureReady?.();
+        ({ correct, message, score } = await grader(
           { ...props, ...targetAttributes },
           param
         ));

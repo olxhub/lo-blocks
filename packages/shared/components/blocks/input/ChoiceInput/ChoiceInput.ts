@@ -10,7 +10,6 @@ import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { isKidArray } from '@/lib/util/kids';
 import type { RuntimeProps, DefinitionKey, StateKey, KidEntry } from '@/lib/types';
-import _Noop from '@/components/blocks/layout/_Noop';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import { qualifyDefinitionRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 
@@ -64,7 +63,7 @@ const ChoiceInput = core({
   name: 'ChoiceInput',
   ...input({ valueSchema: z.string() }),
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
-  component: _Noop,
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   selectValue: (props: RuntimeProps, state, _stateKey) => {
     return fieldSelector(state, props, fields.value, { fallback: '' });

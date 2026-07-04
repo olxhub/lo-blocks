@@ -17,10 +17,13 @@
 
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
-import { Hono } from 'hono';
+import { Hono, type Context, type Next } from 'hono';
 import { getRequestListener } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
+import type { ViteDevServer } from 'vite';
 
 import type { KVStore } from './kvs.js';
 import type { AuthUser } from './auth.js';
@@ -38,7 +41,9 @@ import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
-const PORT = 8888;
+// Overridable for tests (the smoke test boots a second instance beside a
+// running dev server); 8888 is the canonical port — see docs/README.md.
+const PORT = Number(process.env.PORT ?? 8888);
 const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
 // The legacy Next.js pages remain reachable at paths not claimed by this
@@ -64,6 +69,13 @@ export async function startServer(
   kvs: KVStore,
   registry: ToolRegistry
 ): Promise<ServerHandle> {
+  // Dev serves the client through Vite's dev middleware on this port —
+  // on-demand transforms + HMR, no build step. Production serves the
+  // prebuilt apps/client/dist. `vite` is assigned after the http server
+  // exists (its HMR websocket attaches to it); Hono handlers close over it.
+  const clientDev = process.env.NODE_ENV !== 'production';
+  let vite: ViteDevServer | undefined;
+
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
 
@@ -78,26 +90,32 @@ export async function startServer(
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.
   //
-  // apps/client/dist is gitignored and only exists after a client build (Vite
-  // build or watch). `npm run dev` starts this server and the Vite watch build
-  // concurrently, so the build may finish after startup — re-check until it
-  // appears, then cache; only the not-yet-built state pays a per-request stat.
+  // Dev: index.html comes from Vite (transformIndexHtml injects the HMR
+  // client and module scripts; modules are transformed on demand).
+  // Prod: apps/client/dist, which only exists after `npm run build:client`.
   const clientIndexPath = './apps/client/dist/index.html';
   let clientBuilt = existsSync(clientIndexPath);
   const serveClientIndex = serveStatic({ root: './apps/client/dist', path: 'index.html' });
-  app.get('/', async (c, next) => {
+  const spaIndex = async (c: Context, next: Next) => {
+    if (vite) {
+      const raw = await readFile('./apps/client/index.html', 'utf-8');
+      return c.html(await vite.transformIndexHtml(c.req.path, raw));
+    }
     if (!clientBuilt) clientBuilt = existsSync(clientIndexPath);
     if (!clientBuilt) {
       return c.text(
-        'Client build not found at apps/client/dist/index.html.\n' +
-        'Run `npm run build` in apps/client (or `npm run dev` for local development) and retry.',
+        `Client build not found: ${path.resolve(clientIndexPath)} does not exist.\n\n` +
+        'This server is running with NODE_ENV=production, which serves the\n' +
+        'prebuilt client. Run `npm run build:client` first, or run without\n' +
+        'NODE_ENV=production to serve the client through Vite dev middleware.',
         503
       );
     }
     return serveClientIndex(c, next);
-  });
-  app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
-  app.get('/repo/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
+  };
+  app.get('/', spaIndex);
+  app.get('/preview/*', spaIndex);
+  app.get('/repo/*', spaIndex);
 
   const honoHandler = getRequestListener(app.fetch);
 
@@ -165,14 +183,41 @@ export async function startServer(
       // Resolve session before proxying so the cookie gets set on the
       // first page load (which is served by Next.js). The proxyRes handler
       // above picks up the stashed cookie value.
-      const { needsCookie, user } = await resolveUserWithSession(req);
-      if (needsCookie) {
-        const token = await createSessionToken(user);
-        (req as any)[PENDING_COOKIE] = buildSetCookie(token);
-      }
-      proxy.web(req, res);
+      const proxyToNext = async () => {
+        const { needsCookie, user } = await resolveUserWithSession(req);
+        if (needsCookie) {
+          const token = await createSessionToken(user);
+          (req as any)[PENDING_COOKIE] = buildSetCookie(token);
+        }
+        proxy.web(req, res);
+      };
+      // In dev, Vite's middleware serves its module/asset URLs (/src/*,
+      // /@vite/*, /@fs/*, prebundled deps) and calls next() for anything it
+      // doesn't own — which continues to the Next.js proxy as before.
+      if (vite) vite.middlewares(req, res, () => { void proxyToNext(); });
+      else await proxyToNext();
     }
   });
+
+  // --- Vite dev middleware (dev only) ---------------------------------------
+  // await-imported so production never loads Vite (or the client's plugin
+  // chain) — the client is served from dist there.
+  // The config is imported as a module rather than passed as configFile:
+  // Vite's config loader bundles configFile to a temp .mjs next to it and
+  // imports it in-process, which lands the (immediately deleted) temp file
+  // in tsx --watch's module graph and restart-loops the server.
+  // appType 'custom' disables Vite's own HTML fallback: unmatched paths must
+  // keep flowing to the Next.js proxy during the migration.
+  if (clientDev) {
+    const { createServer: createViteServer } = await import('vite');
+    const { default: clientViteConfig } = await import('../../client/vite.config');
+    vite = await createViteServer({
+      ...clientViteConfig,
+      configFile: false,
+      appType: 'custom',
+      server: { middlewareMode: true, hmr: { server } },
+    });
+  }
 
   // --- WebSocket server (via ws, not Hono) ---------------------------------
   // TODO: We use the raw `ws` library here because we need to selectively
@@ -187,6 +232,11 @@ export async function startServer(
   // avoids a race where messages arriving during an async resolveUserWithSession
   // would be dropped because the pipeline's message listener wasn't attached yet.
   server.on('upgrade', async (req, socket, head) => {
+    // Vite's HMR websocket: Vite attached its own upgrade listener to this
+    // server (hmr: { server } below); it identifies its sockets by this
+    // subprotocol. Node fires every upgrade listener, so ours must not
+    // claim the socket too.
+    if (req.headers['sec-websocket-protocol']?.includes('vite-hmr')) return;
     if (req.url?.startsWith(WS_PATH)) {
       const { user } = await resolveUserWithSession(req);
       (req as any)[RESOLVED_USER] = user;
@@ -236,7 +286,7 @@ export async function startServer(
 
   console.log(`  Listening on http://localhost:${PORT}`);
   console.log(`    WebSocket: ws://localhost:${PORT}${WS_PATH}`);
-  console.log(`    Client:    apps/client/dist/`);
+  console.log(`    Client:    ${vite ? 'Vite dev middleware (HMR, on-demand transforms)' : 'apps/client/dist/ (prebuilt)'}`);
   console.log(`    MCP:       http://localhost:${PORT}/mcp`);
   console.log(`    Fallback:  proxy → Next.js at http://127.0.0.1:3000`);
 

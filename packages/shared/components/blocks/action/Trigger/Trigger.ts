@@ -19,7 +19,6 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { z_expression, z_triggerMode } from '@/lib/blocks/attributeSchemas';
-import _Trigger from './_Trigger';
 
 export const fields = state.fields([
   { name: 'hasTriggered', scope: 'component' },
@@ -30,7 +29,6 @@ const Trigger = dev({
   ...parsers.blocks(),
   name: 'Trigger',
   description: 'Fires related actions when a DSL expression becomes true (edge-triggered)',
-  component: _Trigger,
   fields,
   attributes: z.object({
     watch: z_expression.describe('DSL expression to watch (e.g., "@grader.correct === correctness.correct")'),

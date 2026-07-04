@@ -3,13 +3,11 @@ import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
 import { problemAttributes, z_stateRefList, z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _CapaFooter from './_CapaFooter';
 
 const CapaFooter = blocks.dev({
   ...ignore(),
   name: 'CapaFooter',
   description: 'Problem footer with action buttons (Check, Show Answer) and status display',
-  component: _CapaFooter,
   internal: true,
   // Note: Receives runtime attributes from _CapaProblem
   attributes: z.object({

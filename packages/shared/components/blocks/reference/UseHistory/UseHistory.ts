@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { _UseHistory } from './_UseHistory';
 import { ignore } from '@/lib/content/parsers';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 
@@ -14,7 +13,6 @@ export const fields = state.fields([
 const UseHistory = dev({
   ...ignore(),
   name: 'UseHistory',
-  component: _UseHistory,
   description: 'Like UseDynamic with history navigation.',
   fields,
   attributes: z.object({

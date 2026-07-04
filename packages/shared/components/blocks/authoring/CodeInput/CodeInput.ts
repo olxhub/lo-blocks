@@ -11,7 +11,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
-import _CodeInput from './_CodeInput';
 
 export const fields = state.fields([commonFields.value]);
 
@@ -20,7 +19,6 @@ const CodeInput = test({
   ...input(),
   name: 'CodeInput',
   description: 'Experimental: CodeMirror editor for in-browser code editing',
-  component: _CodeInput,
   fields,
   selectValue: ((props, reduxState, _stateKey) => {
     const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null });

@@ -5,7 +5,6 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { z_triggerMode } from '@/lib/blocks/attributeSchemas';
-import _OnShow from './_OnShow';
 
 export const fields = state.fields([
   { name: 'hasRun', scope: 'component' } // Tracks whether lifetime mode has fired
@@ -15,7 +14,6 @@ const OnShow = dev({
   ...parsers.blocks(),
   name: 'OnShow',
   description: 'Triggers child action blocks automatically when the block is shown',
-  component: _OnShow,
   fields,
   attributes: z.object({
     mode: z_triggerMode

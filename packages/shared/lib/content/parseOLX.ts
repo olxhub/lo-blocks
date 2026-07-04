@@ -18,9 +18,9 @@
 import SHA1 from 'crypto-js/sha1';
 import yaml from 'js-yaml';
 
-import { XMLParser, XMLValidator } from 'fast-xml-parser';
+import { XMLValidator } from 'fast-xml-parser';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { transformTagName } from '@/lib/content/xmlTransforms';
+import { xmlParser, isElementNode, XML_META } from './xmlParser';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OlxJson, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
@@ -38,74 +38,16 @@ import { toAppError } from '@/lib/types/errors';
 
 const defaultParser = parsers.blocks().parser;
 
-const xmlParser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '',
-  preserveOrder: true,
-  commentPropName: '#comment',
-  trimValues: false,              // Preserve whitespace in text nodes
-
-  // CRITICAL: Prevent automatic type conversion - see parseOLX.test.js for details
-  parseTagValue: false,       // Keep tag text content as strings (not numbers/booleans)
-  parseAttributeValue: false, // Keep attribute values as strings
-
-  // Attach per-node position info. Accessed via XMLParser.getMetaDataSymbol();
-  // fast-xml-parser stores { startIndex } on a Symbol key so it is invisible
-  // to Object.keys / JSON.stringify / structural walks. Consumers who want
-  // real line/column convert startIndex against the original xml string.
-  //
-  // Heads-up: this option is genuinely undocumented in most places — ChatGPT,
-  // Claude, and general web search will all confidently tell you it doesn't
-  // exist. It does. The one piece of real upstream docs lives in an
-  // awkwardly-named directory ("v4, v5", with the comma) in the repo:
-  //   https://github.com/NaturalIntelligence/fast-xml-parser/blob/master/docs/v4,%20v5/2.XMLparseOptions.md#capturemetadata
-  // Local confirmation in node_modules/fast-xml-parser:
-  //   src/xmlparser/OptionsBuilder.js   — default `captureMetaData: false`
-  //   src/fxp.d.ts                       — `captureMetaData?: boolean`,
-  //                                        `interface XMLMetaData { startIndex?: number }`,
-  //                                        `static getMetaDataSymbol(): Symbol`
-  //   src/xmlparser/OrderedObjParser.js  — honored under `preserveOrder: true`
-  //   src/xmlparser/xmlNode.js           — actually attaches the symbol to children
-  captureMetaData: true,
-
-  transformTagName
-});
-
-/** True if a parsed FXP node represents an XML element (not text/comment). */
-function isElementNode(node: any): boolean {
-  return typeof node === 'object' && node !== null &&
-    Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
-}
+// The XMLParser instance and fragment helpers live in xmlParser.ts
+// (registry-free) so blueprints can use parseXmlFragment without importing
+// this module, which imports BLOCK_REGISTRY. Re-exported for existing
+// render-side callers.
+export { parseXmlFragment } from './xmlParser';
 
 function isBlockKid(node: JSONValue): node is { type: 'block'; id: DefinitionKey } {
   return typeof node === 'object' && node !== null && !Array.isArray(node) &&
     node.type === 'block' && typeof node.id === 'string';
 }
-
-/**
- * Parse an OLX XML fragment and return its element nodes.
- *
- * Uses the same XMLParser config as parseOLX so behavior is consistent.
- * Filters out text-only and comment-only nodes — returns only elements
- * (nodes that have at least one key besides #text, #comment, :@).
- *
- * Used by Chat.ts postprocess to parse inline EmbedBlock OLX without
- * duplicating the parser config.
- */
-export function parseXmlFragment(xml: string): any[] {
-  const tree = xmlParser.parse(xml);
-  const nodes = Array.isArray(tree) ? tree : [tree];
-  return nodes.filter(isElementNode);
-}
-
-/**
- * Symbol key under which fast-xml-parser stores per-node metadata.
- *
- * The upstream type declares this as `Symbol` (the constructor type) rather
- * than `symbol` (the primitive type), which TypeScript refuses to use as an
- * index. Cast once here so callers can write `node[XML_META]` cleanly.
- */
-const XML_META = XMLParser.getMetaDataSymbol() as unknown as symbol;
 
 /**
  * Convert a byte offset within an XML source string to a 1-based line/column
@@ -621,6 +563,12 @@ export async function parseOLX(
 
     const Component = BLOCK_REGISTRY[tag];
 
+    // Blocks with slow dependencies (e.g. FormulaGrader's mathjs) declare
+    // ensureReady — their attribute validation may exercise the engine
+    // (test-evaluating an answer formula). Awaited here (idempotent), so
+    // only content that actually uses such blocks pays the load.
+    if (Component?.ensureReady) await Component.ensureReady();
+
     // Validate and transform attributes - use component schema if defined, else base with passthrough
     // Passthrough preserves unknown attrs; strict() rejects unknown (catching typos like scr= vs src=)
     const schema = Component?.attributes ?? baseAttributes.passthrough();
@@ -717,6 +665,20 @@ export async function parseOLX(
       ns,
       parseNode: parseNodeWithLang,
       assignSystemId,
+      // HACK HACK HACK — for CapaProblem only. Do not hang anything else
+      // off of this. CapaProblem's legacy ID-assignment walk needs to know
+      // whether a child tag is a grader or an input to pick a role-based ID
+      // prefix. That's all it gets: two descriptor-level booleans, not the
+      // block. There is deliberately NO general parse-time block-lookup
+      // facility — a blueprint importing the registry is an import cycle,
+      // and the CapaProblem redesign (see the TODO in CapaProblem.ts)
+      // dissolves this need via runtime inference / idPrefix scoping.
+      // If you think you need this, you probably want a descriptor lookup —
+      // talk to the registry-as-a-service work first.
+      HACK_getBlockRolesForCapaProblem: (blockTag: string) => ({
+        isGrader: BLOCK_REGISTRY[blockTag]?.isGrader ?? false,
+        isInput: BLOCK_REGISTRY[blockTag]?.isInput ?? false,
+      }),
       metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (refId: DefinitionRef, entryOrUpdater) => {
         // Callers pass branded DefinitionRef values — either the block's own

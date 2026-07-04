@@ -24,13 +24,8 @@ import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { DefinitionRef, StateKey, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { qualifyDefinitionRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import { selectBlock } from '@/lib/state/olxjson';
-import {
-  evaluate, createContext,
-  extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  selectReferences,
-} from '@/lib/stateLanguage';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { selectKidsJson } from './olxdom';
 
 export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
@@ -178,66 +173,12 @@ export function getRenderedBlocksMultiple(
 //   useKidsJson(props)                — reactive hook wrapper
 //   getKidsJson(props)                — one-shot imperative wrapper
 //
-// Collects `when` expressions from kid blocks, resolves their
-// dependencies, evaluates each, and filters out kids whose condition
-// is false.
+// The pure forms live in olxdom.ts (blueprint-safe — no React, no render
+// layer) so blueprint functions can import them without dragging this
+// module's render-layer dependencies. Re-exported here for render-side
+// callers; only the hook wrapper is defined in this file.
 
-// Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
-function getWhen(kid, props) {
-  if (kid.type === 'block') {
-    const definitionKey = qualifyDefinitionRef(kid.id, props.runtime.ns);
-    const state = props.runtime.store.getState();
-    const sources = props.runtime.olxJsonSources ?? ['content'];
-    const block = selectBlock(state, sources, definitionKey, props.runtime.locale.code);
-    if (!block) return undefined;  // not yet loaded — show by default
-    return block.attributes.when;
-  }
-  if (kid.tag) {
-    return kid.attributes.when;
-  }
-  return undefined;
-}
-
-function collectWhens(kids, props) {
-  const map = {};
-  for (const kid of kids) {
-    const when = getWhen(kid, props);
-    if (!when) continue;
-    map[kid.id] = when;
-  }
-  return map;
-}
-
-/**
- * Pure selector: returns kids as OlxJson nodes with `when=` filtering applied.
- *
- * Use in blueprint functions (advance, canAdvance, actions) where hooks
- * are unavailable.  Composable — wrap with `.length` for kid count, etc.
- */
-export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
-  const rawKids = (props.kids || []) as any[];
-  const whenMap = collectWhens(rawKids, props);
-  if (Object.keys(whenMap).length === 0) return rawKids;
-
-  const allRefs = (() => {
-    const entries = Object.values(whenMap) as { expr: string }[];
-    if (entries.length === 0) return EMPTY_REFS;
-    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
-  })();
-
-  const resolved = selectReferences(reduxState, props, allRefs);
-  const ctx = createContext(resolved);
-  return rawKids.filter(kid => {
-    const when = whenMap[kid.id];
-    if (!when) return true;
-    return Boolean(evaluate(when.ast, ctx));
-  });
-}
-
-/** One-shot imperative form: grabs current state and calls selectKidsJson. */
-export function getKidsJson(props: RuntimeProps): any[] {
-  return selectKidsJson(props, props.runtime.store.getState());
-}
+export { selectKidsJson, getKidsJson } from './olxdom';
 
 /**
  * Hook that returns kids as OlxJson nodes with `when=` filtering applied.

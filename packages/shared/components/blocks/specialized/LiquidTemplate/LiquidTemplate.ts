@@ -16,10 +16,9 @@ import yaml from 'js-yaml';
 import { Liquid } from 'liquidjs';
 
 import { core } from '@/lib/blocks';
-import { parseXmlFragment } from '@/lib/content/parseOLX';
+import { parseXmlFragment } from '@/lib/content/xmlParser';
 import { loadExternalSource, extractTextFromXmlNodes } from '@/lib/content/parsers';
 import { isDataFile, getExtension } from '@/lib/util/fileTypes';
-import { _LiquidTemplate } from './_LiquidTemplate';
 import { registerFilters } from './liquidFilters';
 
 import type { LofsCanonical } from '@/lib/types/address';
@@ -196,7 +195,6 @@ const LiquidTemplate = core({
   },
   name: 'LiquidTemplate',
   description: 'Renders a Liquid template with data at parse time, producing child OLX blocks.',
-  component: _LiquidTemplate,
   attributes: z.object({
     data: z.string().describe('Path to YAML/JSON data file'),
     src: z.string().optional().describe('Path to .liquid template file'),

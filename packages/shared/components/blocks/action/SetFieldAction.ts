@@ -14,7 +14,6 @@ import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import _Noop from '@/components/blocks/layout/_Noop';
 
 async function setFieldAction({ targetInstance, props }) {
   const { target, field: fieldName, value } = targetInstance.attributes;
@@ -34,7 +33,8 @@ const SetFieldAction = blocks.core({
   }),
   name: 'SetFieldAction',
   description: 'Sets a field value on a target component when triggered',
-  component: _Noop,
+  // Shared no-op renderer lives in layout/, not a sibling of this file.
+  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   attributes: z.object({
     target: z_stateRef
       .describe('ID of the component to update'),

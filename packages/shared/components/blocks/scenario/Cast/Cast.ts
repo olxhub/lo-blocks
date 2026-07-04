@@ -20,13 +20,11 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { cast } from '@/lib/blocks/attributeSchemas';
 import { withCastSupport } from '@/lib/avatar/cast';
-import _Cast from './_Cast';
 
 const Cast = core({
   ...withCastSupport(parsers.blocks()),
   name: 'Cast',
   description: 'Defines a cast of characters available to child components',
-  component: _Cast,
   attributes: z.object({ ...cast }).strict(),
 
 });

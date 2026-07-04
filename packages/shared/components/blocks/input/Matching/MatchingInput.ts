@@ -21,7 +21,6 @@ import { dev, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import _MatchingInput from './_MatchingInput';
 import type { RuntimeProps } from '@/lib/types';
 import type { MatchingArrangement } from './types';
 
@@ -56,7 +55,6 @@ const MatchingInput = dev({
   ...input(),
   name: 'MatchingInput',
   description: 'Match items from left column to right column',
-  component: _MatchingInput,
   fields,
   selectValue: (props: RuntimeProps, reduxState, _stateKey) => ({
     arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })

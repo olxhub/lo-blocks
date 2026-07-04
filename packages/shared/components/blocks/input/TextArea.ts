@@ -6,7 +6,6 @@ import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { selectBlock } from '@/lib/state/olxjson';
-import _TextArea from './_TextArea';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export const fields = state.fields([docField('value'), { name: 'readonly', schema: z_olx_boolean }]);
@@ -15,7 +14,6 @@ const TextArea = core({
   name: 'TextArea',
   ...input({ valueSchema: z.string() }),
   description: 'Multi-line text input field for longer student responses',
-  component: _TextArea,
   fields: fields,
   attributes: z.object({
     ...placeholder,

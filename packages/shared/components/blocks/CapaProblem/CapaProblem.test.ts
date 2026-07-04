@@ -9,6 +9,15 @@ import { FileStorageProvider } from '@/lib/lofs/providers/file';
 import { toMemoryRef } from '@/lib/types/storage';
 import { getOlxJson, TEST_NS, testKey } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';
+import { ensureCalcLoaded } from '@/lib/grading';
+import { beforeAll } from 'vitest';
+
+// CapaProblem fixtures contain NumericalGrader, whose parse triggers the
+// lazy math-engine load (ensureReady). Preload it so the first test's 5s
+// budget isn't spent importing mathjs under full-suite CPU load.
+beforeAll(async () => {
+  await ensureCalcLoaded();
+});
 
 it('wires inputs and graders with explicit targeting', async () => {
   // Test-fixture mount: example files sit at the provider root, so there is

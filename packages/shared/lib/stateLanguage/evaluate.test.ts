@@ -1,13 +1,19 @@
 // packages/shared/lib/stateLanguage/evaluate.test.ts
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { parse } from './parser';
 import { evaluate, createContext, wordcount } from './evaluate';
 import { asContentNamespace } from '@/lib/types/id-grammar';
 
 // Import match functions from their pure modules (avoid circular imports)
 import { stringMatch } from '@/components/blocks/grading/stringMatch';
-import { numericalMatch } from '@/lib/grading';
+import { numericalMatch, ensureCalcLoaded } from '@/lib/grading';
+
+// The math engine is lazy (see lib/grading/calcLoader.ts); match functions
+// assume it is loaded, as the parse/grade pipelines guarantee via ensureReady.
+beforeAll(async () => {
+  await ensureCalcLoaded();
+});
 import { registerDSLFunction } from './functions';
 
 // Register match functions for DSL evaluation

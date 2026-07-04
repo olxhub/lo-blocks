@@ -7,6 +7,7 @@
  */
 
 import { Complex, isComplex, coerce, maybeReal, divide, subtract } from './complex.js';
+import { BUILTIN_VARIABLE_NAMES, BUILTIN_FUNCTION_NAMES } from './schemas';
 
 // --- Trig functions (with complex support) ---
 
@@ -175,6 +176,26 @@ export const DEFAULT_VARIABLES = {
   e: Math.E,
   pi: Math.PI,
 };
+
+// The canonical NAME lists live in schemas.ts (mathjs-free, so attribute
+// validation can check built-in shadowing without loading the math engine).
+// Assert the implementations here match that contract — drift fails fast
+// the first time the engine loads.
+{
+  const check = (declared, actual, kind) => {
+    const d = [...declared].sort().join(',');
+    const a = Object.keys(actual).sort().join(',');
+    if (d !== a) {
+      throw new Error(
+        `calc: built-in ${kind} names in schemas.ts do not match functions.js.\n` +
+        `  schemas.ts:   ${d}\n  functions.js: ${a}\n` +
+        `Update BUILTIN_${kind.toUpperCase()}_NAMES in schemas.ts.`
+      );
+    }
+  };
+  check(BUILTIN_VARIABLE_NAMES, DEFAULT_VARIABLES, 'variable');
+  check(BUILTIN_FUNCTION_NAMES, DEFAULT_FUNCTIONS, 'function');
+}
 
 export const SUFFIXES = {
   '%': (x) => x * 0.01,

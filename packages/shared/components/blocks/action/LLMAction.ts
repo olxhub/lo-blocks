@@ -6,7 +6,6 @@ import * as state from '@/lib/state';
 import * as reduxClient from '@/lib/llm/reduxClient';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import _Hidden from '@/components/blocks/layout/_Hidden';
 
 export const fields = state.fields([]);
 
@@ -90,7 +89,8 @@ const LLMAction = blocks.test({
   }),
   name: 'LLMAction',
   description: 'Executes LLM prompts with embedded Element references and updates target components',
-  component: _Hidden,
+  // Shared hidden renderer lives in layout/, not a sibling of this file.
+  componentLoader: () => import('@/components/blocks/layout/_Hidden').then(m => m.default),
   fields,
   attributes: z.object({
     target: z_stateRef.describe('ID of the TextSlot or LLMFeedback to write output to'),

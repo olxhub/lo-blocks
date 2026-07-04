@@ -14,7 +14,14 @@ import {
   ratioMatch,
   validateRatioInputs,
   validateNumericalAttributes,
+  ensureCalcLoaded,
 } from '@/lib/grading';
+
+// The math engine is lazy (see lib/grading/calcLoader.ts); match functions
+// assume it is loaded, as the parse/grade pipelines guarantee via ensureReady.
+beforeAll(async () => {
+  await ensureCalcLoaded();
+});
 
 it('parses complex numbers and compares', () => {
   const c1 = parseComplex('3+4i');

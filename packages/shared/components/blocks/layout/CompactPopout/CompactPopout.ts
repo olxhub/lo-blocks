@@ -3,7 +3,6 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _CompactPopout from './_CompactPopout';
 
 // `expanded`  — overlay open/closed (fullscreen/window modes)
 // `repointed` — target mode: whether this popout has already done its one-time
@@ -16,7 +15,6 @@ const CompactPopout = dev({
   ...parsers.blocks(),
   name: 'CompactPopout',
   description: 'Wraps children in a popout overlay that auto-expands on first render. When closed, shows a compact placeholder button.',
-  component: _CompactPopout,
   fields,
   attributes: z.object({
     label: z.string().optional().describe('Placeholder text shown when collapsed (e.g. "View the research paper")'),

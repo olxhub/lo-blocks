@@ -16,12 +16,10 @@
 //
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
-import { _Html } from './_Html';
 
 const Html = dev({
   ...parsers.text.raw(),
   name: 'Html',
-  component: _Html,
   description: 'Render raw HTML content (OLX 1.0 backwards compatibility ONLY — NOT for new content).',
   requiresUniqueId: false,
   internal: true,

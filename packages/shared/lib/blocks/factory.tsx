@@ -331,14 +331,24 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
   // For a long time, we were very mindful for when we used parsed.X
   // versus config.x, but some of this may need a cleanup still.
   const parsed = BlockBlueprintSchema.parse(effectiveConfig);
-  const Component: React.ComponentType<any> = effectiveConfig.component ?? (() => null);
+
+  // component (eager, same-module) and componentLoader (lazy, code-split)
+  // are alternatives — see ComponentLoader in lib/types/core.ts. Blocks with
+  // neither are headless (or get the conventional `_Name` loader wired by
+  // the registry generator).
+  if (effectiveConfig.component && effectiveConfig.componentLoader) {
+    throw new Error(
+      `createBlock(${blockName}): declare 'component' (eager) or ` +
+      `'componentLoader' (lazy) — not both. Drop 'component' unless the ` +
+      `component must load with the blueprint.`
+    );
+  }
+  const Component = effectiveConfig.component;
 
   // === Strict name resolution ===
   const rawName =
     parsed.name ??
-    (Component.displayName || Component.name);
-
-  const olxName = (rawName.startsWith('_') ? rawName.slice(1) : rawName) as OLXTag;
+    (Component && (Component.displayName || Component.name));
 
   if (typeof rawName !== 'string' || rawName.trim() === '') {
     throw new Error(
@@ -346,8 +356,12 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     );
   }
 
+  const olxName = (rawName.startsWith('_') ? rawName.slice(1) : rawName) as OLXTag;
+
   const block: LoBlock = {
     component: Component,
+    componentLoader: effectiveConfig.componentLoader,
+    ensureReady: effectiveConfig.ensureReady,
     _isBlock: true,
 
     action: effectiveConfig.action,

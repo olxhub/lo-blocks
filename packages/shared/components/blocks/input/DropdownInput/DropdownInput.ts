@@ -6,7 +6,6 @@ import { fieldSelector, commonFields } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import * as parser from './_dropdownParser';
-import _DropdownSelect from './_DropdownSelect';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
@@ -16,7 +15,8 @@ const DropdownInput = core({
   name: 'DropdownInput',
   ...input({ valueSchema: z.string() }),
   description: 'Dropdown select input for choosing from a list of options',
-  component: _DropdownSelect,
+  // Non-conventional: component file is _DropdownSelect, not _DropdownInput.
+  componentLoader: () => import('./_DropdownSelect').then(m => m.default),
   fields,
   selectValue: (props: RuntimeProps, state, _stateKey) => {
     return fieldSelector(state, props, fields.value, { fallback: '' });

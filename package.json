@@ -8,8 +8,7 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run server & npm run dev:client & npm run dev:next",
-    "dev:client": "./sandbox.sh npx vite build --watch --logLevel warn apps/client",
+    "dev": "npm run server & npm run dev:next",
     "dev:crdt": "NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt npm run dev",
     "dev:full": "npm run build && npm run dev",
     "dev:postgres": "KVS_BACKEND=postgres KVS_URL='postgresql:///lo_kvs?host=/var/run/postgresql' npm run dev",
@@ -33,8 +32,9 @@
     "build:sync-images": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts",
     "typecheck": "./sandbox.sh npx tsc --noEmit",
     "lint": "./sandbox.sh next lint apps/web",
-    "test": "npm run typecheck && ./sandbox.sh vitest run",
+    "test": "npm run typecheck && ./sandbox.sh vitest run --exclude=apps/web/integration/server-smoke.test.ts",
     "test:ci": "npm run typecheck && ./sandbox.sh vitest run",
+    "test:next": "./sandbox.sh vitest run apps/web/integration/server-smoke.test.ts",
     "test:unit": "./sandbox.sh vitest run --exclude='**/integration/**'",
     "test:ui": "./sandbox.sh vitest --ui",
     "smoke": "playwright test --config apps/web/playwright.smoke.config.ts",

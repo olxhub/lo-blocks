@@ -23,7 +23,6 @@ import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import { yamlParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
-import _TabularMCQ from './_TabularMCQ';
 
 // === Zod Schema ===
 //
@@ -209,7 +208,6 @@ const TabularMCQ = core({
   }),
   name: 'TabularMCQ',
   description: 'Tabular multiple choice matrix',
-  component: _TabularMCQ,
   fields,
   attributes: srcAttributes.strict(),
   locals: {

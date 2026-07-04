@@ -519,11 +519,49 @@ export const ReduxFieldsReturn = z.record(
   z.union([ReduxFieldInfo, z.function()])
 );
 
+/**
+ * Loads a block's React component on demand.
+ *
+ *   componentLoader: () => import('./_Chat').then(m => m.default)
+ *
+ * This is the seam between a block's *logic* (blueprint: parser, fields,
+ * locals — loadable in node and browser) and its *view* (React component +
+ * heavy dependencies like Mermaid or CodeMirror — browser-only, needed at
+ * render time). Blueprints that declare `componentLoader` (or declare
+ * neither, letting the registry generator wire the `_Name` convention) never
+ * import their component, so:
+ *
+ *   - node consumers (parseOLX, xml2json, tests) import blueprints without
+ *     dragging in the entire component dependency tree;
+ *   - bundlers code-split each component into its own lazy chunk;
+ *   - a future sandboxed tier can substitute a loader that mounts the
+ *     component in an isolated realm — the contract doesn't change.
+ *
+ * A blueprint declares `component` (eager, same-module — right for tiny
+ * single-file blocks and test fixtures) or `componentLoader` — never both;
+ * the factory raises on the combination. Blocks with neither render nothing
+ * (headless actions, graders) unless the generator wires a conventional
+ * sibling `_Name.tsx`.
+ */
+export type ComponentLoader = () => Promise<React.ComponentType<any>>;
+
 // === Schema ===
 export const BlockBlueprintSchema = z.object({
   name: z.string().optional(),
   namespace: z.string().nonempty(),
   component: z.custom<React.ComponentType<any>>().optional(),
+  componentLoader: z.custom<ComponentLoader>().optional(),
+  /**
+   * Load slow dependencies before this block parses or grades.
+   *
+   *   ensureReady: ensureCalcLoaded,   // FormulaGrader: mathjs at first use
+   *
+   * Awaited (idempotent) by parseOLX before validating/parsing a tag and by
+   * the grading action before invoking the grader — so heavy engines load
+   * only when content actually uses the block, and synchronous code
+   * (match functions, instant-mode grading) runs against a loaded engine.
+   */
+  ensureReady: z.custom<() => Promise<void>>().optional(),
   action: z.function().optional(),
   isGrader: z.boolean().optional().default(false),
   isInput: z.boolean().optional().default(false),
@@ -721,7 +759,22 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
 export type ValueSelectorFn = (props: RuntimeProps, state: any, stateKey: StateKey) => any;
 
 export interface LoBlock {
-  component: React.ComponentType<any>;
+  /** Eager component. Set when the blueprint declared one, or after this
+   *  block's componentLoader resolves. Absent on lazy blocks pre-load and
+   *  on headless blocks (actions/graders with no view). Render code goes
+   *  through resolveBlockComponent() (lib/blocks/lazyBlockComponent), never
+   *  reads this directly — the resolver owns the lazy/headless semantics. */
+  component?: React.ComponentType<any>;
+  /** Lazy component loader — see ComponentLoader. Declared in the blueprint
+   *  or wired by the registry generator from the sibling `_Name` file. */
+  componentLoader?: ComponentLoader;
+  /** Load slow dependencies before parse/grade — see BlockBlueprintSchema. */
+  ensureReady?: () => Promise<void>;
+  /** Internal: stable component identity chosen at first render resolution
+   *  (direct component, lazy wrapper, or headless null component). Stable so
+   *  React never sees an element-type swap mid-session, which would unmount
+   *  and lose local UI state. Owned by resolveBlockComponent(). */
+  _resolvedComponent?: React.ComponentType<any>;
   _isBlock: true;
   action?: Function;
   parser?: Function;

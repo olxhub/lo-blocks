@@ -309,8 +309,29 @@ function discoverBlockAssets(blockFilePath, gitStatusMap) {
 // Produces TypeScript imports/exports + a metadata object with docs, examples,
 // i18n paths, and git status for each block.
 
+// Blueprints usually declare neither `component` nor `componentLoader`; the
+// registry wires the conventional sibling component file (`_Name.tsx`) as a
+// lazy loader here. withComponentLoader() is a no-op for blocks that declared
+// their own, so blueprint declarations always win. Emitting `import()` in a
+// closure is what makes one registry serve everyone: node consumers
+// (parseOLX, scripts, tests) never call the loaders, so importing the
+// registry no longer drags in every component's dependency tree; bundlers
+// code-split each component into its own lazy chunk.
+const COMPONENT_FILE_EXTS = ['.tsx', '.jsx'];
+
+function findConventionalComponent(blockFilePath) {
+  const dir = path.dirname(blockFilePath);
+  const blockName = path.basename(blockFilePath, path.extname(blockFilePath));
+  for (const ext of COMPONENT_FILE_EXTS) {
+    const candidate = path.join(dir, `_${blockName}${ext}`);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
 function reduceBlockRegistry(files, outputFile, gitStatusMap) {
-  let imports = '';
+  let imports = `import { withComponentLoader } from '@/lib/blocks/componentLoader';\n`;
+  const loaderWirings = [];
   const exports = [];
   const metadata = {};
 
@@ -324,6 +345,34 @@ function reduceBlockRegistry(files, outputFile, gitStatusMap) {
 
     imports += `import { default as ${baseName} } from '${relativePath}';\n`;
     exports.push(baseName);
+
+    const componentFile = findConventionalComponent(filePath);
+    if (componentFile) {
+      const componentExt = path.extname(componentFile);
+      const componentImportPath = ('./' +
+        path.relative(path.dirname(outputFile), componentFile).replace(/\\/g, '/')
+      ).slice(0, -componentExt.length);
+      // Component files export their component as `default` or as the named
+      // `_Name` convention. Emit exactly the accessor that exists — TS
+      // typechecks the generated import against the real module shape.
+      const componentSource = fs.readFileSync(componentFile, 'utf8');
+      const hasDefault = /export\s+default\b/.test(componentSource);
+      const hasNamed =
+        new RegExp(`export\\s+(const|function|class)\\s+_${baseName}\\b`).test(componentSource) ||
+        new RegExp(`export\\s*\\{[^}]*\\b_${baseName}\\b`).test(componentSource);
+      if (hasDefault || hasNamed) {
+        const accessor = hasDefault ? 'm.default' : `m._${baseName}`;
+        loaderWirings.push(
+          `withComponentLoader(${baseName}, () => import('${componentImportPath}').then(m => ${accessor}));`
+        );
+      } else {
+        console.warn(
+          `Warning: ${componentFile} exports neither 'default' nor '_${baseName}' — ` +
+          `no componentLoader wired for ${baseName}. Export the component or ` +
+          `declare component/componentLoader in the blueprint.`
+        );
+      }
+    }
 
     const blockMeta = {
       source: srcPath
@@ -352,7 +401,10 @@ function reduceBlockRegistry(files, outputFile, gitStatusMap) {
   }
 
   return {
-    registryContent: imports + '\n' + `export { ${exports.join(', ')} };\n`,
+    registryContent:
+      imports + '\n' +
+      loaderWirings.join('\n') + '\n\n' +
+      `export { ${exports.join(', ')} };\n`,
     metadata
   };
 }

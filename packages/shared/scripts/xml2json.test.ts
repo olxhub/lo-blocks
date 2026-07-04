@@ -1,32 +1,47 @@
 // @vitest-environment node
 // packages/shared/scripts/xml2json.test.ts
-import { test, expect, afterEach } from 'vitest';
+//
+// CLI-level tests: each test spawns the real script under tsx and asserts
+// the command-line contract (exit codes, printed errors, output files).
+// That's deliberate — it covers argument parsing, process startup, and the
+// teacher-facing CLI output that in-process calls would miss (a registry
+// initialization-order crash was only visible at this level).
+//
+// The tests run CONCURRENTLY: each subprocess pays the same tsx+registry
+// startup, so serializing them triples the wall time for no isolation
+// benefit — they use distinct content dirs and output files.
+import { test, expect, afterAll } from 'vitest';
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 
-const OUTPUT_FILE = path.resolve('./xml2json-test-output.json');
+// Per-test output files (tmp/ is gitignored); shared output would race
+// under concurrent execution.
+const outputFile = (name: string) => path.resolve(`./tmp/xml2json-test-${name}.json`);
+const OUTPUT_FILES = ['default', 'errors', 'singlecourse'].map(outputFile);
 
-// Clean up after test
-afterEach(async () => {
-  try { await fs.unlink(OUTPUT_FILE); } catch {}
+afterAll(async () => {
+  for (const f of OUTPUT_FILES) {
+    try { await fs.unlink(f); } catch {}
+  }
 });
 
-test('xml2json script outputs valid JSON', async () => {
-  // Run the script with --out flag
-  const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--out', OUTPUT_FILE], {
-    stdio: ['ignore', 'pipe', 'pipe']
+function runXml2json(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', ...args], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    proc.stdout.on('data', (data) => { stdout += data.toString(); });
+    proc.stderr.on('data', (data) => { stderr += data.toString(); });
+    proc.on('exit', (exitCode) => resolve({ exitCode: exitCode ?? 1, stdout, stderr }));
   });
+}
 
-  let stdout = '';
-  let stderr = '';
-  proc.stdout.on('data', (data) => { stdout += data.toString(); });
-  proc.stderr.on('data', (data) => { stderr += data.toString(); });
-
-  // Wait for it to finish
-  const exitCode = await new Promise((resolve) => {
-    proc.on('exit', resolve);
-  });
+test.concurrent('xml2json script outputs valid JSON', async () => {
+  const out = outputFile('default');
+  const { exitCode, stdout, stderr } = await runXml2json(['--out', out]);
 
   if (exitCode !== 0) {
     console.error('xml2json failed with exit code:', exitCode);
@@ -36,7 +51,7 @@ test('xml2json script outputs valid JSON', async () => {
   }
 
   // Read and parse the output file
-  const fileContent = await fs.readFile(OUTPUT_FILE, 'utf8');
+  const fileContent = await fs.readFile(out, 'utf8');
   let parsed;
   expect(() => { parsed = JSON.parse(fileContent); }).not.toThrow();
   expect(parsed).toHaveProperty('idMap');
@@ -44,7 +59,8 @@ test('xml2json script outputs valid JSON', async () => {
   expect(parsed).toHaveProperty('errorCount');
 }, 60000);
 
-test('xml2json error accumulation with PEG errors', async () => {
+test.concurrent('xml2json error accumulation with PEG errors', async () => {
+  const out = outputFile('errors');
   const testContentDir = path.resolve('./test-content-errors');
 
   try {
@@ -63,26 +79,13 @@ test('xml2json error accumulation with PEG errors', async () => {
       path.join(nsDir, 'broken.chatpeg')
     );
 
-    // Run xml2json with test content directory
-    const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2json.ts', '--content', testContentDir, '--out', OUTPUT_FILE], {
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-    proc.stdout.on('data', (data) => { stdout += data.toString(); });
-    proc.stderr.on('data', (data) => { stderr += data.toString(); });
-
-    // Wait for completion
-    const exitCode = await new Promise((resolve) => {
-      proc.on('exit', resolve);
-    });
+    const { exitCode, stderr } = await runXml2json(['--content', testContentDir, '--out', out]);
 
     // Should exit with error code 1 (content errors)
     expect(exitCode).toBe(1);
 
     // Should output JSON even with errors
-    const fileContent = await fs.readFile(OUTPUT_FILE, 'utf8');
+    const fileContent = await fs.readFile(out, 'utf8');
     const parsed = JSON.parse(fileContent);
     expect(parsed.hasErrors).toBe(true);
     expect(parsed.errorCount).toBeGreaterThan(0);
@@ -101,12 +104,13 @@ test('xml2json error accumulation with PEG errors', async () => {
   }
 }, 60000);
 
-test('xml2json --ns handles single-course roots with root-level files', async () => {
+test.concurrent('xml2json --ns handles single-course roots with root-level files', async () => {
   // Regression: static builds mount a single course directory directly, so
   // OLX files at its root have no namespace directory and (for manifests
   // without a namespace: field) no manifest to declare one. build-static.ts
   // resolves the namespace itself and passes it via --ns; without --ns the
   // root-level file must surface as an error, not silently disappear.
+  const out = outputFile('singlecourse');
   const testContentDir = path.resolve('./test-content-singlecourse');
 
   try {
@@ -116,30 +120,17 @@ test('xml2json --ns handles single-course roots with root-level files', async ()
       '<Markdown id="welcome">Hello</Markdown>'
     );
 
-    const runXml2json = (extraArgs: string[]) => new Promise<{ exitCode: number; output: string }>((resolve) => {
-      const proc = spawn('npx', [
-        'tsx', 'packages/shared/scripts/xml2json.ts',
-        '--content', testContentDir,
-        '--out', OUTPUT_FILE,
-        ...extraArgs,
-      ], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      let output = '';
-      proc.stdout.on('data', d => { output += d.toString(); });
-      proc.stderr.on('data', d => { output += d.toString(); });
-      proc.on('exit', (exitCode) => resolve({ exitCode: exitCode ?? 1, output }));
-    });
+    const baseArgs = ['--content', testContentDir, '--out', out];
 
     // Without --ns: the root-level file has no resolvable namespace → error
-    const without = await runXml2json([]);
+    const without = await runXml2json(baseArgs);
     expect(without.exitCode).toBe(1);
-    expect(without.output).toMatch(/no namespace|namespace directory/);
+    expect(without.stdout + without.stderr).toMatch(/no namespace|namespace directory/);
 
     // With --ns: the whole mount is one namespace; keys are qualified
-    const withNs = await runXml2json(['--ns', 'mycourse']);
+    const withNs = await runXml2json([...baseArgs, '--ns', 'mycourse']);
     expect(withNs.exitCode).toBe(0);
-    const parsed = JSON.parse(await fs.readFile(OUTPUT_FILE, 'utf8'));
+    const parsed = JSON.parse(await fs.readFile(out, 'utf8'));
     expect(parsed.idMap['mycourse/welcome']).toBeDefined();
     expect(parsed.hasErrors).toBe(false);
   } finally {

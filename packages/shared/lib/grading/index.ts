@@ -33,3 +33,7 @@ export {
   validateFormulaInput,
 } from './formula';
 export type { FormulaMatchOptions } from './formula';
+
+// Lazy math engine — grader blueprints pass this as `ensureReady` so mathjs
+// loads at first parse/grade of math content, not with the blueprint.
+export { ensureCalcLoaded } from './calcLoader';

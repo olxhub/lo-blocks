@@ -13,7 +13,7 @@ const CONTENT_PLACEHOLDER = '{{CONTENT}}';
  * @param {string} content - The content to inject
  * @returns {{ olx: string } | { error: string }} - Result with either OLX or error
  */
-export function injectPreviewContent(template, content) {
+export function injectPreviewContent(template: string, content: string): { olx: string } | { error: string } {
   if (!template) {
     return { error: 'No template provided' };
   }

@@ -14,7 +14,6 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import _DemandHints from './_DemandHints';
 
 export const fields = state.fields(['hintsRevealed']);
 
@@ -23,7 +22,6 @@ const DemandHints = core({
   name: 'DemandHints',
   description: 'Sequential hint reveal - shows hints one at a time',
   category: 'display',
-  component: _DemandHints,
   fields,
   locals: {
     // Get total number of hints

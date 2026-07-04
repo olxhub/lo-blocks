@@ -6,7 +6,6 @@ import { fieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
-import _TextSelection from './_TextSelection';
 
 export const fields = state.fields([
   commonFields.value,      // Set of selected word indices
@@ -38,7 +37,6 @@ const TextSelection = test({
   name: 'TextSelection',
   category: 'language-arts',
   description: 'Prototype text highlighting exercise. Works for wireframing courses; scoring and feedback rules are placeholders pending integration with the expression language and Capa grading system.',
-  component: _TextSelection,
   fields,
   attributes: z.object({
     mode: z.enum(['immediate', 'graded', 'selfcheck']).optional()

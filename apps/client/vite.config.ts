@@ -1,23 +1,29 @@
 // apps/client/vite.config.ts
 //
-// Build configuration for the client SPA. Vite is used purely as a build
-// tool — the app server (apps/server) serves the output from dist/.
+// Vite configuration for the client SPA, used two ways:
 //
-// Dev workflow: `vite build --watch apps/client` rebuilds on save,
-// the server picks up new files on the next request.
+// - Dev: apps/server mounts Vite as dev middleware (middlewareMode, this
+//   config file) — modules transform on demand with HMR; no build step.
+// - Prod: `npm run build:client` bundles to dist/, which apps/server
+//   serves when NODE_ENV=production.
 //
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+
+// import.meta.url, not __dirname: apps/server imports this file directly
+// (via tsx) for dev middleware, where no CJS __dirname shim exists.
+const here = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: path.resolve(__dirname),
+  root: here,
   base: '/',
   plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../../packages/shared'),
+      '@': path.resolve(here, '../../packages/shared'),
     },
   },
   define: {

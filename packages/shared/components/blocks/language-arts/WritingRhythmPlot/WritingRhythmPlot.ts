@@ -2,13 +2,11 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
-import _WritingRhythmPlot from './_WritingRhythmPlot';
 
 const WritingRhythmPlot = core({
   ...parsers.ignore(),
   name: 'WritingRhythmPlot',
   requiresUniqueId: false,
-  component: _WritingRhythmPlot,
   description: 'Bar chart of sentence lengths with word-length stacking, reading from a target TextArea.',
   attributes: z.object({
     target: z_stateRef.describe('ID of TextArea to analyze'),

@@ -15,13 +15,11 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { z_stateRef, z_olx_boolean, src } from '@/lib/blocks/attributeSchemas';
-import _WordUsage from './_WordUsage';
 
 const WordUsage = dev({
   ...parsers.textToAttribute('words'),
   name: 'WordUsage',
   requiresUniqueId: false,
-  component: _WordUsage,
   description: 'Analyzes writing patterns (repeated words, sentence starters, alliteration, transition words) in text from a target block.',
   attributes: z.object({
     ...src,

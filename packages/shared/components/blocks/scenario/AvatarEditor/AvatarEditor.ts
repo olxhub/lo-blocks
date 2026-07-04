@@ -10,7 +10,6 @@ import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import {
   isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
 } from '@/lib/avatar/types';
-import _AvatarEditor from './_AvatarEditor';
 
 export const fields = state.fields([
   'characterId',     // Cast key (e.g. "robert", "Łukasz")
@@ -74,7 +73,6 @@ const AvatarEditor = dev({
   ...parsers.ignore(),
   name: 'AvatarEditor',
   description: 'Toy/prototype: Visual avatar editor for picking Open Peeps features',
-  component: _AvatarEditor,
   fields,
   attributes: z.object({
     compact: z_olx_boolean.optional(),

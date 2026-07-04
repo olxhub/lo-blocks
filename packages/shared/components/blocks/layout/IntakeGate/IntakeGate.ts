@@ -13,13 +13,11 @@ import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { z_stateRefList } from '@/lib/blocks/attributeSchemas';
-import _IntakeGate from './_IntakeGate';
 
 const IntakeGate = test({
   ...parsers.blocks({ requiredChildren: 2 }),
   name: 'IntakeGate',
   description: 'Gates content behind a readiness condition - shows first child until ready, then reveals second child',
-  component: _IntakeGate,
   attributes: z.object({
     targets: z_stateRefList.optional().describe('Comma-separated TextSlot IDs to watch (shorthand for LLM flows)'),
     ready: z.string().optional().describe('DSL expression — when truthy, show content (second child)'),
