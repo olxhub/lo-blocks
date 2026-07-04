@@ -8,8 +8,7 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run server & npm run dev:client & npm run dev:next",
-    "dev:client": "./sandbox.sh npx vite build --watch --logLevel warn apps/client",
+    "dev": "npm run server & npm run dev:next",
     "dev:crdt": "NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt npm run dev",
     "dev:full": "npm run build && npm run dev",
     "dev:postgres": "KVS_BACKEND=postgres KVS_URL='postgresql:///lo_kvs?host=/var/run/postgresql' npm run dev",
