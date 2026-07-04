@@ -1,0 +1,10 @@
+title: "Branches of Government"
+question: "What are the three branches of US government?"
+hint: "Think about who makes laws, enforces them, and interprets them."
+branches:
+  - name: Legislative
+    role: "Makes laws"
+  - name: Executive
+    role: "Enforces laws"
+  - name: Judicial
+    role: "Interprets laws"

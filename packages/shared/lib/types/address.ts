@@ -370,3 +370,56 @@ export function gitCloneUrl(origin: LofsOrigin): string {
   if (!t) throw new Error(`Not a git origin: "${origin}"`);
   return t.strip !== undefined ? t.strip + locator : locator;
 }
+
+/** Forge identity behind a web link — drives the icon and label the UI shows.
+ *  A serializable token (not a component): this crosses the get_repositories
+ *  wire, and the rendering layer maps it to an actual icon. */
+export type Forge = 'github' | 'gitlab';
+
+/** A browsable link to content on its forge: where, and how to present it.
+ *  More than a URL because the UI needs the forge identity (for the icon) and
+ *  a human label ("View on GitHub"). */
+export interface ForgeLink {
+  /** The browser URL — the repo at its ref, or a file within it. */
+  url: string;
+  /** Which forge; the UI resolves this to an icon. */
+  forge: Forge;
+  /** Action label, e.g. "View on GitHub". */
+  label: string;
+}
+
+// Known forges with web UIs.  `pathPrefix` accounts for differences in URL
+// structure: GitHub uses /tree/<ref> and /blob/<ref>/<path>; GitLab inserts a
+// `/-/` segment (/-/tree/<ref>, /-/blob/<ref>/<path>).
+const WEB_FORGES: Record<string, { forge: Forge; label: string; pathPrefix: string }> = {
+  'github.com': { forge: 'github', label: 'View on GitHub', pathPrefix: '' },
+  'gitlab.com': { forge: 'gitlab', label: 'View on GitLab', pathPrefix: '/-' },
+};
+
+/**
+ * The forge link for an origin — the repo at its ref when `path` is omitted, or
+ * a specific file when given. Pure: derived from the origin, no network.
+ *
+ * Returns null when no web view is known — a non-git origin, a transport with
+ * no canonical web UI (local `git:`, `git+ssh:`), or a forge host we don't map.
+ * Callers must treat null as "no link available" (the caveat is the contract).
+ */
+export function forgeLink(origin: LofsOrigin, path?: string): ForgeLink | null {
+  let parsed: { scheme: string; locator: string; ref: string };
+  try {
+    parsed = parseGitOrigin(origin);
+  } catch {
+    return null;                       // not a ref-bearing git origin
+  }
+  if (parsed.scheme !== 'git+https:') return null;   // only https forges have a web UI
+  const locator = parsed.locator.replace(/\.git$/, '');   // "github.com/olxhub/repo"
+  const host = locator.slice(0, locator.indexOf('/'));
+  const known = WEB_FORGES[host];
+  if (!known) return null;
+  const base = `https://${locator}`;
+  const rel = path ? String(path).replace(/^\/+/, '') : '';
+  const url = rel
+    ? `${base}${known.pathPrefix}/blob/${parsed.ref}/${rel}`
+    : `${base}${known.pathPrefix}/tree/${parsed.ref}`;
+  return { url, forge: known.forge, label: known.label };
+}

@@ -102,6 +102,10 @@ export interface ContentSourcesConfig {
   sources: Record<string, string | RepoSource>;
   /** directory for unrouted paths */
   fallback: string;
+  /** Whether the fallback (./content) is editable. Default false — a deploy
+   *  shouldn't let anyone write the bundled content. Set true in a local
+   *  config for dev. */
+  fallbackWritable: boolean;
 }
 
 /** The built-in default — used when no config file exists. */
@@ -109,6 +113,7 @@ function defaultConfig(): ContentSourcesConfig {
   return {
     sources: {},
     fallback: './content',
+    fallbackWritable: false,
   };
 }
 
@@ -153,6 +158,7 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   return {
     sources,
     fallback: parsed.fallback || './content',
+    fallbackWritable: parsed.fallbackWritable === true,  // opt-in; default read-only
   };
 }
 
@@ -251,7 +257,7 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
   const fallback: ConfiguredSource = {
     origin: toLofsOrigin('file:content'),
     label: 'Local content',
-    writable: true,  // local disk — always editable
+    writable: config.fallbackWritable,  // default read-only; dev opts in via config
     provider: new FileStorageProvider(config.fallback, 'content'),
   };
 
@@ -364,7 +370,28 @@ export async function writableSourceProvider(source: string): Promise<StoragePro
  * named source, or span the compile union when none is given. The single
  * definition of "no source = union", shared by the read routes (file GET,
  * files, grep). Decodes the raw param to an origin at the boundary.
+ *
+ * Special case: `file:docs` reaches the block-documentation provider
+ * (DocsStorageProvider). It is not a configured content source — it serves
+ * example/sidecar files from the block source tree so docs previews can
+ * resolve relative `src=` / `data=` references.
  */
 export async function readProvider(source?: string): Promise<StorageProvider> {
+  if (source === 'file:docs') {
+    // Dynamic, not circular: nothing in the block tree imports contentSources.ts
+    // back, so these could be static. Kept dynamic for cost, not correctness —
+    // BLOCK_REGISTRY pulls in every block's component module (the whole block
+    // tree, including client-only UI code), and readProvider is the shared entry
+    // point for every read route (file GET, files, grep, translate), not just
+    // docs previews. Importing statically would make every caller pay that
+    // weight at load time for a branch most of them never take. The one caller
+    // that always needs the full registry anyway (syncContentFromStorage, which
+    // parses OLX against it unconditionally) imports it statically.
+    const { DocsStorageProvider } = await import('./providers/docs');
+    const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
+    return new DocsStorageProvider(
+      Object.values(BLOCK_REGISTRY).filter((b: any) => b?._isBlock).map((b: any) => b.name)
+    );
+  }
   return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
 }

@@ -180,7 +180,12 @@ export class ToolRegistry {
       handler: async (args: any) => {
         // SDK already validates via the Zod schema, so args are parsed.
         const result = await tool.handler(args);
-        const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        // Always JSON — including string results. The text block is the wire
+        // contract the client JSON.parses back (callMcpTool); leaving a string
+        // raw would make a plain-text tool's output un-parseable. (The richer
+        // path is outputSchema + structuredContent, which also validates
+        // server-side — a later MCP-hardening step.)
+        const text = JSON.stringify(result, null, 2);
         return {
           content: [{ type: 'text' as const, text }],
         };

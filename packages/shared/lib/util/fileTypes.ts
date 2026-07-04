@@ -22,9 +22,10 @@ export const EXT = {
   mermaid: ['mmd', 'mermaid'] as const,
   data: ['yaml', 'yml', 'json'] as const,
   cast: ['cast'] as const,
+  template: ['liquid'] as const,
 
-  // Code (for upload, syntax highlighting)
-  code: ['js', 'jsx', 'ts', 'tsx', 'css', 'html', 'py', 'json', 'yaml', 'yml', 'pegjs'] as const,
+  // Code (for upload, syntax highlighting — data formats live in EXT.data)
+  code: ['js', 'jsx', 'ts', 'tsx', 'css', 'html', 'py', 'pegjs'] as const,
   plainText: ['txt'] as const,
 
   // Media
@@ -37,17 +38,19 @@ export const EXT = {
 // COMPOSABLE CATEGORIES (for different purposes)
 // ============================================================
 
+// OLX and its parse dependencies — used by the file provider (scan, file
+// tree, search), src= validation, and route security.
+const content = [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast, ...EXT.template] as const;
+
 export const CATEGORY = {
-  // What can be loaded as authored content
-  content: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast] as const,
+  content,
 
-  // What the editor can open (content + sidecar files in future)
-  editable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.mermaid, ...EXT.data, ...EXT.cast] as const,
+  // What can be attached to chat — content files plus code/text for context.
+  // TODO: Add office formats (.docx, .pptx, .xlsx) once converters exist.
+  uploadable: [...content, ...EXT.code, ...EXT.plainText] as const,
 
-  // What can be uploaded/attached to chat
-  uploadable: [...EXT.olx, ...EXT.markdown, ...EXT.peg, ...EXT.cast, ...EXT.code, ...EXT.plainText] as const,
-
-  // Media files
+  // Embeddable assets in content (images, video, pdf) — used by asset
+  // validation and static asset sync.
   media: [...EXT.image, ...EXT.video, ...EXT.document] as const,
 } as const;
 
@@ -143,18 +146,12 @@ export const isMarkdownFile = (path: string | undefined | null) =>
 export const isPEGFile = (path: string | undefined | null) =>
   fileHasExtension(path, EXT.peg);
 
-export const isImageFile = (path: string | undefined | null) =>
-  fileHasExtension(path, EXT.image);
-
-export const isVideoFile = (path: string | undefined | null) =>
-  fileHasExtension(path, EXT.video);
+export const isDataFile = (path: string | undefined | null) =>
+  fileHasExtension(path, EXT.data);
 
 // Category checks
 export const isContentFile = (path: string | undefined | null) =>
   fileHasExtension(path, CATEGORY.content);
-
-export const isEditableFile = (path: string | undefined | null) =>
-  fileHasExtension(path, CATEGORY.editable);
 
 export const isUploadableFile = (path: string | undefined | null) =>
   fileHasExtension(path, CATEGORY.uploadable);

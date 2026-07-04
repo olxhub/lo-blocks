@@ -85,7 +85,7 @@ export async function POST(request) {
       }
       if (exists) return fail(`File already exists: ${path}`, 409);
     }
-    await provider.write(path, content, { previousMetadata, force });
+    await provider.save(path, content, { previousMetadata, force });
     return Response.json({ ok: true });
   } catch (err) {
     if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
@@ -108,7 +108,7 @@ export async function DELETE(request) {
 
   try {
     const provider = await writableSourceProvider(source);
-    await provider.delete(path);
+    await provider.remove(path);
     return Response.json({ ok: true });
   } catch (err) {
     return mapFileError(err, path, 'DELETE');
@@ -128,7 +128,7 @@ export async function PUT(request) {
 
   try {
     const provider = await writableSourceProvider(source);
-    await provider.rename(path, newPath);
+    await provider.move(path, newPath);
     return Response.json({ ok: true });
   } catch (err) {
     return mapFileError(err, path, 'PUT');

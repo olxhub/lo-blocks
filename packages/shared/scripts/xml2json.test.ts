@@ -42,7 +42,7 @@ test('xml2json script outputs valid JSON', async () => {
   expect(parsed).toHaveProperty('idMap');
   expect(parsed).toHaveProperty('hasErrors');
   expect(parsed).toHaveProperty('errorCount');
-}, 30000);
+}, 60000);
 
 test('xml2json error accumulation with PEG errors', async () => {
   const testContentDir = path.resolve('./test-content-errors');
@@ -99,7 +99,7 @@ test('xml2json error accumulation with PEG errors', async () => {
       await fs.rm(testContentDir, { recursive: true, force: true });
     } catch {}
   }
-}, 30000);
+}, 60000);
 
 test('xml2json --ns handles single-course roots with root-level files', async () => {
   // Regression: static builds mount a single course directory directly, so

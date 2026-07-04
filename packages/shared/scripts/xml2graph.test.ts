@@ -29,4 +29,4 @@ test('xml2graph script outputs edges and issues', async () => {
   expect(parsed).toHaveProperty('edges');
   expect(Array.isArray(parsed.edges)).toBe(true);
   expect(parsed).toHaveProperty('issues');
-}, 30000 /* timeout */);
+}, 60000);

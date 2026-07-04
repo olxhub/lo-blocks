@@ -16,7 +16,7 @@ import { selectVariantTiers } from '@/lib/state/olxjson';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
 import { ALL_LANGUAGES, getLanguageLabel, filterLanguages } from '@/lib/i18n/languages';
-import type { Locale } from '@/lib/types';
+import type { Locale, RootState } from '@/lib/types';
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -58,7 +58,7 @@ export function useVariantTiers(
       return { curated: availableLocales, bestEffort: bestEffortLocales ?? [] };
     }
     if (!olxjson) return { curated: [], bestEffort: [] };
-    const t = selectVariantTiers({ application_state: { olxjson } });
+    const t = selectVariantTiers({ application_state: { olxjson } } as RootState);
     return { curated: t.curated as Locale[], bestEffort: t.bestEffort as Locale[] };
   }, [olxjson, availableLocales, bestEffortLocales]);
 }

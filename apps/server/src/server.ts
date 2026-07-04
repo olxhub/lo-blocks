@@ -12,9 +12,11 @@
 //                 ├→ /api/translate → content translation (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
+//                 ├→ /repo/*        → SPA fallback (Hono serveStatic)
 //                 └→ everything else → proxy to Next.js :3000 (transition)
 
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
+import { existsSync } from 'node:fs';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Hono } from 'hono';
 import { getRequestListener } from '@hono/node-server';
@@ -38,7 +40,12 @@ import { ToolRegistry } from '@/lib/mcp/registry';
 // --- Constants ---------------------------------------------------------------
 const PORT = 8888;
 const WS_PATH = '/wsapi/in/';
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/'];
+// '/' serves the catalog SPA (a static-client route) from apps/client/dist.
+// The legacy Next.js pages remain reachable at paths not claimed by this
+// server (i.e. not '/' and not one of SERVER_PREFIXES) during the migration.
+// The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
+// transport) — there is no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/repo/'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -70,7 +77,27 @@ export async function startServer(
 
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.
+  //
+  // apps/client/dist is gitignored and only exists after a client build (Vite
+  // build or watch). `npm run dev` starts this server and the Vite watch build
+  // concurrently, so the build may finish after startup — re-check until it
+  // appears, then cache; only the not-yet-built state pays a per-request stat.
+  const clientIndexPath = './apps/client/dist/index.html';
+  let clientBuilt = existsSync(clientIndexPath);
+  const serveClientIndex = serveStatic({ root: './apps/client/dist', path: 'index.html' });
+  app.get('/', async (c, next) => {
+    if (!clientBuilt) clientBuilt = existsSync(clientIndexPath);
+    if (!clientBuilt) {
+      return c.text(
+        'Client build not found at apps/client/dist/index.html.\n' +
+        'Run `npm run build` in apps/client (or `npm run dev` for local development) and retry.',
+        503
+      );
+    }
+    return serveClientIndex(c, next);
+  });
   app.get('/preview/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
+  app.get('/repo/*', serveStatic({ root: './apps/client/dist', path: 'index.html' }));
 
   const honoHandler = getRequestListener(app.fetch);
 
@@ -132,7 +159,7 @@ export async function startServer(
       return;
     }
 
-    if (SERVER_PREFIXES.some(p => url.startsWith(p))) {
+    if (url === '/' || url.startsWith('/?') || SERVER_PREFIXES.some(p => url.startsWith(p))) {
       await handleWithSession(req, res);
     } else {
       // Resolve session before proxying so the cookie gets set on the

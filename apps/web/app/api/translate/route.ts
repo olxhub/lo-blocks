@@ -12,7 +12,8 @@
 
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { unionProvider } from '@/lib/lofs/contentSources';
+import { unionProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
+import { source as lofsSource } from '@/lib/types/address';
 import { syncContentFromStorage, getSourceFile, getOriginalVariant } from '@/lib/content/syncContentFromStorage';
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { runTranslation } from '@/lib/translate/runTranslation';
@@ -90,13 +91,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Write to the source's own provider — NOT the union (StackedStorageProvider
+    // writes to providers[0], which may be a different repo entirely).
+    const writeProvider = await writableSourceProvider(lofsSource(sourceFileUri));
+
     // Dedupe concurrent identical requests + enforce a timeout (shared helper).
     const result = await runTranslation({
-      provider, logsDir,
+      provider: writeProvider, logsDir,
       blockId, sourceFileUri, targetLocale, sourceLocale,
     });
     return NextResponse.json(result, result.ok ? undefined : { status: 500 });
   } catch (error: any) {
+    // Denied, not broken: translating content from a read-only source is an
+    // authorization failure — 403, matching /api/file's mapping.
+    if (error instanceof ReadOnlySourceError || error.name === 'ReadOnlySourceError') {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 403 });
+    }
     console.error('[/api/translate] Error:', error);
     return NextResponse.json(
       { ok: false, error: error.message || 'Unknown error' },

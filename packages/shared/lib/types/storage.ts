@@ -10,7 +10,7 @@ import type {
 } from './core';
 import type { ContentNamespace } from './id-grammar';
 import {
-  type LofsRef, type LofsCanonical,
+  type LofsRef, type LofsCanonical, type ForgeLink,
   makeAddress, addressPath, scheme, withVersion,
   toLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
 } from './address';
@@ -308,9 +308,12 @@ export interface StorageProvider {
   loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
 
   read(path: OlxRelativePath): Promise<ReadResult>;
-  write(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  delete(path: OlxRelativePath): Promise<void>;
-  rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
+  // The write doorway. Verbs mirror lofs-api.md (save/remove/move), carrying a
+  // lease via WriteOptions. There is no separate "create": creating is a save
+  // whose lease says "nothing here yet" (WriteOptions.create).
+  save(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
+  remove(path: OlxRelativePath): Promise<void>;
+  move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
   listFiles(selection?: FileSelection): Promise<UriNode>;
 
   /**
@@ -391,6 +394,17 @@ export interface StorageProvider {
    * multi-namespace content directory with no manifest.
    */
   namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+
+  /**
+   * A browsable forge link for this source — the repo at its ref, or a file
+   * within it when `path` is given. For "view on GitHub"-style affordances.
+   *
+   * Optional capability: providers backed by something with no web UI (local
+   * files, in-memory, a database, an unmapped forge) omit it. A present method
+   * may still return null for a specific input. Callers treat "method absent"
+   * and "returned null" identically — no link available.
+   */
+  forgeLink?(path?: OlxRelativePath): ForgeLink | null;
 }
 
 /**

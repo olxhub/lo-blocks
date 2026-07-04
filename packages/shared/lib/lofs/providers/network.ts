@@ -221,7 +221,7 @@ export class NetworkStorageProvider implements StorageProvider {
     };
   }
 
-  async write(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async save(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     const { previousMetadata, force = false, create = false } = options;
     await this.request(this.readEndpoint, {
       method: 'POST',
@@ -231,11 +231,11 @@ export class NetworkStorageProvider implements StorageProvider {
   }
 
 
-  async delete(path: OlxRelativePath): Promise<void> {
+  async remove(path: OlxRelativePath): Promise<void> {
     await this.request(`${this.readEndpoint}?${this.params(path).toString()}`, { method: 'DELETE' });
   }
 
-  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     await this.request(this.readEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

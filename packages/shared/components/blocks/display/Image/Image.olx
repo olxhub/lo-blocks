@@ -1,4 +1,4 @@
 <Image id="ImageDemo" title="Image Example"
-       src="/psychology/images/sleep-refusal-llm.png"
-       alt="LLM response about sleep deprivation"
+       src="/demos/images/image-demo.svg"
+       alt="Illustration of hills under a sun, used as a placeholder demo graphic"
        width="50%" />

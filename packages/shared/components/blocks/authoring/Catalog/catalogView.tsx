@@ -1,0 +1,142 @@
+'use client';
+// packages/shared/components/catalog/CatalogView.tsx
+//
+// The author front page: source-first catalog of repositories and their
+// launchables, read from the get_repositories MCP tool (useCatalog). Styled with
+// the platform's tokens/primitives — the look-and-feel follows the /ux/ mock,
+// not its CSS. See docs/ux.md + docs/mcp-authoring.md.
+//
+// All state — catalog data and filter controls — lives in Redux.
+
+import { useDeferredValue, useMemo } from 'react';
+import type { RuntimeProps } from '@/lib/types';
+import Spinner from '@/components/common/Spinner';
+import Notice from '@/components/common/Notice';
+import ResizableSidebar from '@/components/common/ResizableSidebar';
+import { useFieldState } from '@/lib/state/redux';
+import { useCatalog } from '@/lib/catalog/useCatalog';
+import {
+  filterRepos, repoScope,
+  type CatalogFilters, type Scope, type Sort,
+} from './filter';
+import type { Repository } from '@/lib/types';
+import { catalogFields, scopedRepoProps } from './locals';
+import CatalogSidebar from './catalogSidebar';
+import RepoCard from './repoCard';
+import SearchResults from './searchResults';
+
+function Section({ title, caption, repos, wide = false, parentProps }: {
+  title: string; caption: string; repos: Repository[]; wide?: boolean; parentProps: RuntimeProps;
+}) {
+  return (
+    <section>
+      <div className="mb-3 border-b border-border pb-2">
+        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+          {title}<span className="text-dimmed text-sm font-normal">{repos.length}</span>
+        </h2>
+        <p className="text-sm text-secondary">{caption}</p>
+      </div>
+      <div className={`grid gap-4 ${wide ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
+        {repos.map(r => <RepoCard key={r.origin} {...scopedRepoProps(parentProps, r.origin)} repo={r} />)}
+      </div>
+    </section>
+  );
+}
+
+/** The non-search listing: scope-filtered, sorted repos split into "yours"
+ *  and "community" sections. Only computed when there's no active query —
+ *  SearchResults renders instead in that case. */
+function Listing({ repositories, scope, filters, parentProps }: {
+  repositories: Repository[]; scope: Scope; filters: CatalogFilters; parentProps: RuntimeProps;
+}) {
+  const shown = filterRepos(repositories, filters);
+  const mine = shown.filter(r => repoScope(r) === 'mine');
+  const community = shown.filter(r => repoScope(r) === 'community');
+  return (
+    <>
+      {shown.length === 0 && <p className="text-dimmed py-8">Nothing matches those filters.</p>}
+      {scope !== 'community' && mine.length > 0 && (
+        <Section title="Your repositories" caption="You have write access — edit and publish." repos={mine} wide parentProps={parentProps} />
+      )}
+      {scope !== 'mine' && community.length > 0 && (
+        <Section title="From the community" caption="Read-only — free to browse and reuse (AGPL-3.0)." repos={community} parentProps={parentProps} />
+      )}
+    </>
+  );
+}
+
+export default function CatalogView(props: RuntimeProps) {
+  // Request launchable descriptions so rows have summaries.
+  const { repositories, loading, error } = useCatalog(['launchables.description']);
+
+  // Filter state — component-scoped fields, keyed per Catalog instance.
+  const [scope, setScope] = useFieldState(props, catalogFields.catalogScope, 'all' as Scope);
+  const [query, setQuery] = useFieldState(props, catalogFields.catalogQuery, '');
+  const [sort, setSort] = useFieldState(props, catalogFields.catalogSort, 'name' as Sort);
+  const deferredQuery = useDeferredValue(query);
+  const filters: CatalogFilters = useMemo(() => ({ scope, sort }), [scope, sort]);
+
+  const [collapsed, setCollapsed] = useFieldState(props, catalogFields.sidebarCollapsed, false);
+
+  if (error) return <div className="p-8 text-error">Failed to load catalog: {error}</div>;
+  if (loading) return <div className="p-8"><Spinner>Loading catalog…</Spinner></div>;
+
+  return (
+    <div className="flex h-screen bg-background text-foreground">
+      <ResizableSidebar
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
+        defaultWidth={248}
+        minWidth={200}
+        maxWidth={360}
+        chrome
+        label="Catalog filters"
+      >
+        <CatalogSidebar repos={repositories} scope={scope} onScopeChange={setScope} />
+      </ResizableSidebar>
+
+      <main className="flex-1 overflow-auto flex flex-col">
+        <div className="w-full max-w-5xl mx-auto px-8 flex flex-col flex-1">
+          <header className="pt-8 pb-5 flex items-center justify-between gap-4 flex-wrap">
+            <h1 className="text-2xl font-semibold">Repositories</h1>
+            <div className="flex items-center gap-2">
+              <input
+                className="lo-control"
+                type="search"
+                placeholder="Search…"
+                aria-label="Search repositories and activities"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
+              <label className="flex items-center gap-1.5 text-sm text-secondary whitespace-nowrap">
+                Sort
+                <select
+                  className="lo-control"
+                  value={sort}
+                  onChange={e => setSort(e.target.value as Sort)}
+                >
+                  <option value="name">Name (A–Z)</option>
+                  <option value="activities">Most activities</option>
+                </select>
+              </label>
+              {/* New repository — coming with the add/create-repo flow. */}
+              <button className="lo-btn lo-btn--primary lo-btn--sm" disabled title="Coming soon">+ New repository</button>
+            </div>
+          </header>
+
+          <div className="flex flex-col gap-10 pb-12 flex-1">
+            {query.trim() ? (
+              <SearchResults repos={repositories} query={deferredQuery} filters={filters} parentProps={props} />
+            ) : (
+              <Listing repositories={repositories} scope={scope} filters={filters} parentProps={props} />
+            )}
+          </div>
+
+          <footer className="border-t border-border mt-auto py-4 text-xs text-dimmed">
+            <Notice />
+          </footer>
+        </div>
+      </main>
+    </div>
+  );
+}

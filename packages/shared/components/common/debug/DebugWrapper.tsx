@@ -23,7 +23,8 @@ import * as lo_event from 'lo_event';
 import { useFieldState, ReduxStoreLoader } from '@/lib/state';
 import { settings } from '@/lib/state/settings';
 import { DebugSettingsContext } from '@/lib/state/debugSettings';
-import { replayToEvent, filterByContext, type LoggedEvent, type AppState } from '@/lib/replay';
+import { replayToEvent, filterByContext, type LoggedEvent } from '@/lib/replay';
+import type { AppState } from '@/lib/types';
 import { getConfigBool } from '@/lib/config';
 import type { BaselineProps } from '@/lib/types';
 

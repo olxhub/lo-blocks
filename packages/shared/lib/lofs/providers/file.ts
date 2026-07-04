@@ -9,10 +9,9 @@
 import path from 'path';
 import { glob as globLib } from 'glob';
 import YAML from 'yaml';
-import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace } from '../../types/id-grammar';
-import { EXT, isMediaFile } from '@/lib/util/fileTypes';
+import { CATEGORY, isMediaFile } from '@/lib/util/fileTypes';
 import { windowsToPosix } from '@/lib/util/posixPath';
 import {
   type StorageProvider,
@@ -38,8 +37,10 @@ import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
 import type { JSONValue } from '../../types';
 
-/** Content file extensions recognized by the storage provider. */
-const CONTENT_EXTENSIONS = ['.xml', '.olx', '.md', '.cast', ...pegExts.map(e => `.${e}`), ...EXT.mermaid.map(ext => `.${ext}`)];
+/** CATEGORY.content (fileTypes.ts) lists content file extensions — OLX and its
+ *  parse dependencies (.olx, .md, .liquid, .cast, etc.). We need the same list
+ *  with dots prepended for filename.endsWith() matching in filesystem walks. */
+const CONTENT_EXTENSIONS = CATEGORY.content.map(e => `.${e}`);
 
 /**
  * FileStorageProvider-specific metadata structure.
@@ -294,7 +295,7 @@ async function listFileTree(
       }
     }
     return {
-      uri: rel ?? '',
+      uri: rel,
       children,
     };
   };
@@ -500,7 +501,7 @@ export class FileStorageProvider implements StorageProvider {
     }
   }
 
-  async write(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async save(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
     const { previousMetadata, force = false } = options;
     const fs = await import('fs/promises');
     const full = await resolveSafeWritePath(this.baseDir, filePath);
@@ -532,7 +533,7 @@ export class FileStorageProvider implements StorageProvider {
   }
 
 
-  async delete(filePath: OlxRelativePath): Promise<void> {
+  async remove(filePath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     const full = await resolveSafeWritePath(this.baseDir, filePath);
     await fs.unlink(full);
@@ -542,7 +543,7 @@ export class FileStorageProvider implements StorageProvider {
     return this.extractRelativePath(uri) as OlxRelativePath;
   }
 
-  async rename(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
+  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
     const fs = await import('fs/promises');
     // Validate both paths with write safety checks
     const fullOld = await resolveSafeWritePath(this.baseDir, oldPath);

@@ -1,67 +1,14 @@
 // packages/shared/lib/llm/types.ts
 //
-// Domain model for LLM chat. The conversation model (ChatMessage and its
-// variants) and the tool / wire-format types live here, in the domain layer
-// that owns them. The Redux store (lib/state/store), the LLM client
-// (reduxClient), and the chat UI (components/common/ChatComponent) all import
-// from this one definition so the union can never diverge into two copies.
+// LLM-specific types: tool definitions, wire format, and API types.
+//
+// The conversation model (ChatMessage and its variants) lives in
+// types/core.ts — it's shared across chat surfaces (LLM, chatpeg,
+// collaboration). This file has only the LLM implementation types:
+// tool callbacks, OpenAI wire format, completion responses.
 
-import type { ReactNode } from 'react';
-
-/* ──────────────────────────────────────────────────────────────────────────
- * Conversation model (displayed in the chat UI, persisted in Redux)
- * ────────────────────────────────────────────────────────────────────────── */
-
-/** A file attached to a user message, stored so follow-up turns can replay it. */
-export interface MessageAttachment {
-  name: string;
-  /** Content hash — stable id for dedupe / future upload-to-store. */
-  hash: string;
-  /** Full file content (text). Replaced with converted text once conversion lands. */
-  body: string;
-}
-
-/** A chat line from a speaker (chatpeg Line, LLM response, user turn, etc.) */
-export interface ChatLineMessage {
-  type: 'Line';
-  speaker: string;
-  text: string;
-  metadata?: Record<string, string>;
-  attachments?: MessageAttachment[];
-}
-
-/** A system-level notification in the conversation. */
-export interface SystemMessageEntry {
-  type: 'SystemMessage';
-  text: string;
-}
-
-/** A date divider between messages. */
-export interface DateSeparatorEntry {
-  type: 'DateSeparator';
-  date: string;
-}
-
-/** An LLM tool call, surfaced in the transcript. */
-export interface ToolCallEntry {
-  type: 'ToolCall';
-  name: string;
-  args: Record<string, unknown>;
-  result: string;
-}
-
-/** A pre-rendered React element (embedded blocks, custom content). */
-export interface ElementEntry {
-  type: 'Element';
-  element: ReactNode;
-}
-
-export type ChatMessage =
-  | ChatLineMessage
-  | SystemMessageEntry
-  | DateSeparatorEntry
-  | ToolCallEntry
-  | ElementEntry;
+// Conversation types (ChatMessage, ChatLineMessage, etc.) live in
+// types/core.ts — import from @/lib/types, not here.
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Tools

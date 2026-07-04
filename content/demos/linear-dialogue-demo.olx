@@ -6,7 +6,7 @@ license: AGPL
 lang: en-Latn-US
 ---
 -->
-<NextReveal id="discourse_community_dialogue" title="Discourse Communities Discussion" launchable="true">
+<NextReveal id="discourse_community_dialogue" title="Discourse Communities Discussion" launchable="true" draft="true">
   <TalkBubble who="Chip">
     <Markdown>Hey, Clara. How's it going? Are you ready to break out?</Markdown>
   </TalkBubble>

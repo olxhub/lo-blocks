@@ -9,32 +9,23 @@ import * as cast from '@/lib/avatar/cast';
 import { acceptString } from '@/lib/util/fileTypes';
 import type { Cast, FaceExpression } from '@/lib/avatar/types';
 import type { ContentNamespace } from '@/lib/types';
-// The conversation model lives in the LLM domain layer (lib/llm/types), which
-// owns it. The chat UI consumes those types; it must not define its own copy.
+// Conversation types live in lib/types (the canonical source of truth).
+// ChatDisplayEntry is the rendering union (includes non-serializable ElementEntry);
+// ChatMessage is the serializable subset stored in Redux state.
 import type {
-  ChatMessage,
+  ChatDisplayEntry,
   ChatLineMessage,
   SystemMessageEntry,
   DateSeparatorEntry,
   ToolCallEntry,
   ElementEntry,
   MessageAttachment,
-} from '@/lib/llm/types';
+} from '@/lib/types';
 
 /* ----------------------------------------------------------------
  * Types
  * -------------------------------------------------------------- */
 
-// Re-exported for back-compat with existing importers (e.g. blocks/scenario/Chat).
-export type {
-  ChatMessage,
-  ChatLineMessage,
-  SystemMessageEntry,
-  DateSeparatorEntry,
-  ToolCallEntry,
-  ElementEntry,
-  MessageAttachment,
-};
 
 export interface FileAttachment {
   name: string;
@@ -59,7 +50,7 @@ export interface AdvanceFooterProps {
 
 export interface ChatComponentProps {
   id: string;
-  messages: ChatMessage[];
+  messages: ChatDisplayEntry[];
   /** Content namespace for markdown in messages (embedded ```olx fences
    *  parse here). The Chat block passes its runtime ns; the studio LLM
    *  sidebar passes the studio namespace. */
@@ -376,7 +367,7 @@ export function ChatComponent({
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages.length]);
 
-  const renderMessage = (message: ChatMessage, index: number) => {
+  const renderMessage = (message: ChatDisplayEntry, index: number) => {
     const prev = index > 0 ? messages[index - 1] : null;
     const isSequential =
       prev?.type === 'Line' &&

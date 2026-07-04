@@ -126,7 +126,13 @@ function StudioPageContent() {
   const [debug, setDebug] = useFieldState(null, settings.debug, false, { tag: 'studio' });
 
   // TODO: Consider moving UI state to redux for analytics
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat');
+  // Initial sidebar tab honors ?tab= (e.g. the catalog opens a repo on 'docs');
+  // anything unrecognized falls back to 'chat'.
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>(() => {
+    const tab = searchParams.get('tab');
+    const tabs: SidebarTab[] = ['chat', 'docs', 'search', 'files', 'data'];
+    return tabs.includes(tab as SidebarTab) ? (tab as SidebarTab) : 'chat';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   // The single new-file dialog, opened from the Files panel "+" and the no-file
@@ -263,7 +269,7 @@ function StudioPageContent() {
       const content = getStudioContent(id);  // current edited content (synchronous)
       const previousMetadata = fileStateRef.current.get(id)?.metadata;
       const olxPath = toOlxRelativePath(filePath);
-      await storageRef.current.write(olxPath, content, { previousMetadata, force });
+      await storageRef.current.save(olxPath, content, { previousMetadata, force });
       // Re-read to refresh conflict metadata; mark clean.
       const result = await storageRef.current.read(olxPath);
       fileStateRef.current.set(id, { content, metadata: result.metadata, ns: result.ns });
@@ -290,13 +296,11 @@ function StudioPageContent() {
     }
   }, [filePath, canWrite, source, notify]);
 
-  // TODO: handleFileCreate can silently overwrite an existing file with the same name.
-  // Should check existence first and confirm, similar to save-as above.
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       const olxPath = toOlxRelativePath(path);
       // create: must not clobber an existing file (route returns 409 if it exists).
-      await storageRef.current.write(olxPath, fileContent, { create: true });
+      await storageRef.current.save(olxPath, fileContent, { create: true });
       refreshFiles();
       // Switch to the new file — the file-loading effect will read from storage
       // and set content with the correct Redux key (don't call setContent here;
@@ -314,7 +318,7 @@ function StudioPageContent() {
   const handleFileDelete = useCallback(async (path: string) => {
     if (!source) return;  // delete targets a specific source (UI gates on canWrite)
     try {
-      await storageRef.current.delete(toOlxRelativePath(path));
+      await storageRef.current.remove(toOlxRelativePath(path));
       refreshFiles();
       // Remove from cache (keyed by the file's ref)
       fileStateRef.current.delete(fileRef(source, path));
@@ -335,7 +339,7 @@ function StudioPageContent() {
   const handleFileRename = useCallback(async (oldPath: string, newPath: string) => {
     if (!source) return;  // rename targets a specific source (UI gates on canWrite)
     try {
-      await storageRef.current.rename(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
+      await storageRef.current.move(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
       refreshFiles();
       // Move cache entry to the new ref
       const cachedState = fileStateRef.current.get(fileRef(source, oldPath));

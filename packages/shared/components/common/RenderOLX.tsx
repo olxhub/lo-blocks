@@ -288,6 +288,11 @@ interface RenderOLXProps {
   source?: string;
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
+  /** Initial idPrefix for scoping the rendered block's state key.
+   *  Defaults to '' (root level). Set this when rendering a block that
+   *  should share state with a scoped instance inside another tree
+   *  (e.g., a repo detail page sharing state with a catalog card). */
+  idPrefix?: IdPrefix;
   /** Ref to expose the root OlxDomNode for external tree inspection.
    *
    *  TIMING CAVEAT: The ref is populated during render, but the tree (renderedKids)
@@ -321,6 +326,7 @@ export default function RenderOLX({
   source = 'content',
   eventContext,
   nodeInfoRef,
+  idPrefix: initialIdPrefix,
 }: RenderOLXProps) {
   // Build baseline runtime context - use bare runtime, not wrapped BaselineProps
   let runtimeContext = useBaselineRuntime();
@@ -364,7 +370,7 @@ export default function RenderOLX({
     logEvent: renderProps.logEvent,
     sideEffectFree: renderProps.sideEffectFree,
     olxJsonSources: [source],
-    idPrefix: '' as IdPrefix,
+    idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
     locale: renderProps.locale,
     cast: {},

@@ -1,0 +1,7 @@
+<Vertical id="organizer" title="{{ title }}">
+  <Markdown id="prompt">## {{ question }}</Markdown>
+  {% for branch in branches %}
+  <TextArea id="branch_{{ forloop.index }}" placeholder="Describe the {{ branch.name }} branch (hint: {{ branch.role }})" />
+  {% endfor %}
+  <Markdown id="hint">*Hint: {{ hint }}*</Markdown>
+</Vertical>

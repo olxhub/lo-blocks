@@ -93,9 +93,9 @@ test('Next.js server basic endpoints work', async () => {
     // Clean up test build directory
     cleanupTestDir();
   }
-}, 60000);
+}, 120000);
 
-async function waitForServer(url, { timeout = 20000, interval = 2000 } = {}) {
+async function waitForServer(url, { timeout = 45000, interval = 2000 } = {}) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     try {

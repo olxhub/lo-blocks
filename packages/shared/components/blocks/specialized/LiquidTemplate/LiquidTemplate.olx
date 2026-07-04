@@ -1,0 +1,7 @@
+<!--
+---
+title: LiquidTemplate Demo
+description: Generates a graphic organizer from YAML data
+---
+-->
+<LiquidTemplate id="demo" data="LiquidTemplate.demo.yaml" src="LiquidTemplate.demo.liquid" />

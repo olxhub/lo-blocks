@@ -32,6 +32,8 @@ import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { CATEGORY_ORDER, getCategory, groupBlocksByCategory } from '@/lib/docs/categoryUtils';
 import { parseContentNamespace, stateKeyFromFilename } from '@/lib/types/id-grammar';
+import { NetworkStorageProvider } from '@/lib/lofs';
+import { toLofsOrigin } from '@/lib/types/address';
 import type {
   BlockDocumentation,
   GrammarDocumentation,
@@ -42,6 +44,22 @@ import type {
 // Per-block docs namespace: examples, includes, and README snippets for a
 // block all live in docs.<BlockName> (see lib/lofs/providers/docs.ts).
 const docsNamespace = (blockName) => parseContentNamespace(`docs.${blockName}`);
+
+// Docs provider for resolving relative src= / data= references in block
+// examples. Scoped to file:docs so reads route to DocsStorageProvider.
+const DOCS_ORIGIN = toLofsOrigin('file:docs');
+const docsProvider = new NetworkStorageProvider(DOCS_ORIGIN);
+
+// Docs base directory — stripped from example.path to get the docs-relative path.
+const DOCS_BASE = 'packages/shared/components/blocks/';
+
+/** Build a file:docs provenance ref from an example's repo-relative path. */
+function docsProvenance(examplePath: string): string {
+  const rel = examplePath.startsWith(DOCS_BASE)
+    ? examplePath.slice(DOCS_BASE.length)
+    : examplePath;
+  return `file:docs://${rel}`;
+}
 
 // Shared attribute sets for documentation display.
 // Derives attribute names from the actual mixin definitions (DRY).
@@ -647,7 +665,7 @@ function ExamplePreview({ example, showMoreCount, blockName }) {
           Live Preview
         </div>
         <div className="p-4 bg-background">
-          <PreviewPane path={example.path || 'example.olx'} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || 'example.olx'} content={editedContent} ns={docsNamespace(blockName)} resolveProvider={docsProvider} provenance={example.path ? docsProvenance(example.path) : undefined} nodeInfoRef={nodeInfoRef} />
         </div>
       </div>
 
@@ -743,7 +761,7 @@ function ExampleTab({ example, blockName }) {
           <code className="text-xs text-dimmed">{example.path || example.filename}</code>
         </div>
         <div className="p-6">
-          <PreviewPane path={example.path || example.filename} content={editedContent} ns={docsNamespace(blockName)} nodeInfoRef={nodeInfoRef} />
+          <PreviewPane path={example.path || example.filename} content={editedContent} ns={docsNamespace(blockName)} resolveProvider={docsProvider} provenance={example.path ? docsProvenance(example.path) : undefined} nodeInfoRef={nodeInfoRef} />
         </div>
         <StatePanel nodeInfoRef={nodeInfoRef} />
       </section>

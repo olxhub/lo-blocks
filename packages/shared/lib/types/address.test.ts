@@ -8,7 +8,7 @@ import {
   source, version, addressPath, withVersion, withoutVersion,
   withPath, makeAddress, hasVersion, scheme,
   toLofsRef, toLofsContentPath, toLofsOrigin, toLofsVersion,
-  gitOrigin, gitOriginRef, gitCloneUrl, GIT_TRANSPORTS,
+  gitOrigin, gitOriginRef, gitCloneUrl, GIT_TRANSPORTS, forgeLink,
 } from './address';
 
 // Helper to avoid repeating toLofsRef everywhere in tests
@@ -295,5 +295,44 @@ describe('canonical git origins', () => {
     expect(() => gitOrigin('https://github.com/o/r.git', '')).toThrow();
     expect(() => gitOrigin('ssh://git@host/o/r.git', 'main')).toThrow();  // ssh:// isn't accepted
     expect(() => gitOrigin('not a url', 'main')).toThrow();
+  });
+});
+
+describe('forgeLink', () => {
+  const gh = gitOrigin('https://github.com/olxhub/edu.memphis.psych.git', 'main');
+
+  it('links to the repo at its ref, stripping .git', () => {
+    expect(forgeLink(gh)).toEqual({
+      url: 'https://github.com/olxhub/edu.memphis.psych/tree/main',
+      forge: 'github',
+      label: 'View on GitHub',
+    });
+  });
+
+  it('links to a file via /blob/<ref>/<path>', () => {
+    expect(forgeLink(gh, 'psychology/psych_sba_part1.olx')?.url)
+      .toBe('https://github.com/olxhub/edu.memphis.psych/blob/main/psychology/psych_sba_part1.olx');
+  });
+
+  it('normalizes a leading slash on the path', () => {
+    expect(forgeLink(gh, '/a.olx')?.url).toBe('https://github.com/olxhub/edu.memphis.psych/blob/main/a.olx');
+  });
+
+  it('maps gitlab with /-/ path prefix', () => {
+    const gl = gitOrigin('https://gitlab.com/group/repo.git', 'v2');
+    expect(forgeLink(gl)).toEqual({
+      url: 'https://gitlab.com/group/repo/-/tree/v2',
+      forge: 'gitlab',
+      label: 'View on GitLab',
+    });
+    expect(forgeLink(gl, 'src/main.olx')?.url)
+      .toBe('https://gitlab.com/group/repo/-/blob/v2/src/main.olx');
+  });
+
+  it('returns null when no web view is known', () => {
+    expect(forgeLink(toLofsOrigin('file:content'))).toBeNull();            // not a git origin
+    expect(forgeLink(gitOrigin('/home/me/repo', 'main'))).toBeNull();      // local git:
+    expect(forgeLink(gitOrigin('git@github.com:o/r.git', 'main'))).toBeNull(); // ssh transport
+    expect(forgeLink(gitOrigin('https://example.com/o/r.git', 'main'))).toBeNull(); // unmapped host
   });
 });

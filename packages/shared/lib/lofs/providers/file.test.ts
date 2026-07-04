@@ -49,7 +49,7 @@ describe('FileStorageProvider security', () => {
     });
 
     test('rejects write with path traversal', async () => {
-      await expect(provider.write(toOlxRelativePath('../../../tmp/evil.txt'), 'malicious'))
+      await expect(provider.save(toOlxRelativePath('../../../tmp/evil.txt'), 'malicious'))
         .rejects.toThrow(/escapes base directory/);
     });
   });
@@ -66,7 +66,7 @@ describe('FileStorageProvider security', () => {
         await expect(provider.read(attackPath as OlxRelativePath))
           .rejects.toThrow(/null bytes not allowed/);
       } else {
-        await expect(provider.write(attackPath as OlxRelativePath, 'content'))
+        await expect(provider.save(attackPath as OlxRelativePath, 'content'))
           .rejects.toThrow(/null bytes not allowed/);
       }
     });
@@ -78,7 +78,7 @@ describe('FileStorageProvider security', () => {
     test('rejects absolute path read and write', async () => {
       await expect(provider.read('/etc/passwd' as OlxRelativePath))
         .rejects.toThrow(/escapes base directory|outside allowed/);
-      await expect(provider.write('/tmp/evil.txt' as OlxRelativePath, 'malicious'))
+      await expect(provider.save('/tmp/evil.txt' as OlxRelativePath, 'malicious'))
         .rejects.toThrow(/escapes base directory|outside allowed/);
     });
   });
@@ -90,21 +90,21 @@ describe('FileStorageProvider security', () => {
     });
 
     test('can write and read file', async () => {
-      await provider.write(toOlxRelativePath('new-file.olx'), '<New>data</New>');
+      await provider.save(toOlxRelativePath('new-file.olx'), '<New>data</New>');
       const result = await provider.read(toOlxRelativePath('new-file.olx'));
       expect(result.content).toBe('<New>data</New>');
     });
 
     test('can handle subdirectory paths', async () => {
       await fs.mkdir(path.join(tempDir, 'subdir'), { recursive: true });
-      await provider.write(toOlxRelativePath('subdir/nested.olx'), '<Nested/>');
+      await provider.save(toOlxRelativePath('subdir/nested.olx'), '<Nested/>');
       const result = await provider.read(toOlxRelativePath('subdir/nested.olx'));
       expect(result.content).toBe('<Nested/>');
     });
 
     test('allows .. that stays within base directory', async () => {
       await fs.mkdir(path.join(tempDir, 'a', 'b'), { recursive: true });
-      await provider.write(toOlxRelativePath('a/b/file.olx'), '<AB/>');
+      await provider.save(toOlxRelativePath('a/b/file.olx'), '<AB/>');
       const result = await provider.read(toOlxRelativePath('a/b/../b/file.olx'));
       expect(result.content).toBe('<AB/>');
     });

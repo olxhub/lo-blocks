@@ -17,7 +17,7 @@
 import { z } from 'zod';
 import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
-import type { LofsRef, LofsCanonical } from './address';
+import type { LofsRef, LofsCanonical, ForgeLink } from './address';
 import type { ContentVariant, LocaleContext } from './i18n';
 
 /**
@@ -1290,3 +1290,276 @@ export interface BlockDataResult {
 // - 'bestEffort': Machine-generated content (generated present)
 // Future: Computation can become more complex (e.g., generated + reviewed by 2 people = supported)
 export type ContentTier = 'supported' | 'bestEffort';
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REDUX STORE SHAPE
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The Redux store is the central state container. lo_event's reduxLogger wraps
+// the reducer output under `application_state`, so the full store shape is:
+//
+//   { application_state: AppState }
+//
+// AppState has several slices:
+//
+//   component / componentSetting / system / storage
+//     Block-scoped and system-scoped runtime state, managed by the Fields API
+//     (FieldInfo above). These are the core state slices — every block's
+//     interactive state lives here, keyed by StateKey.
+//
+//   olxjson
+//     Parsed OLX content — the IdMap for each content source (namespace).
+//     This is the content database: block definitions, their variants, and
+//     provenance. Blocks read from it via useBlock/useKids; the parse pipeline
+//     writes to it. See OlxJson / IdMap above for the per-block shape.
+//
+//   catalog
+//     Repository metadata from the get_repositories MCP tool — repo cards,
+//     launchable listings, forge links. Interim: this should evolve toward
+//     OlxJson (repositories and launchables are content, not a separate
+//     data model). The MCP tool would write into OlxJson, and catalog UI
+//     would read via the same useBlock/useKids hooks as everything else.
+//
+//   chat
+//     LLM chat sessions — messages, status. Interim: chat state should
+//     become normal field data (the chat UI will be reconstructed from
+//     blocks, like the catalog was). When that happens, this slice goes
+//     away and conversations live in component-scoped fields.
+//
+// The typed slices (olxjson, catalog, chat) have explicit interfaces below.
+// The dynamic slices (component, system, etc.) are open records — their
+// internal structure is defined per-block by FieldInfo, not by a global type.
+
+import type { AppError } from './errors';
+
+// ---------------------------------------------------------------------------
+// Loading status — shared across slices that do async fetches.
+// ---------------------------------------------------------------------------
+
+/** Status of an async-loaded data entry (content block, catalog query, etc.). */
+export type LoadingStatus = 'ready' | 'loading' | 'error';
+
+// ---------------------------------------------------------------------------
+// OlxJson slice — parsed content by source namespace.
+// ---------------------------------------------------------------------------
+
+/** Status of a variant-level async operation (e.g. machine translation). */
+export type VariantStatus = 'translanguaging' | 'error';
+
+export interface VariantStatusEntry {
+  status: VariantStatus;
+  error?: string;
+}
+
+/** A single block's entry in the OlxJson Redux slice — its parsed variants,
+ *  loading state, and any per-variant async status (translations, etc.). */
+export interface OlxJsonBlockEntry {
+  olxJson: VariantMap | null;
+  loadingState: { status: LoadingStatus };
+  /** Per-variant status for in-flight translations and variant-level errors. */
+  variantStatus?: Record<string, VariantStatusEntry>;
+  error?: { message: string };
+}
+
+/** All blocks from one content source (namespace), keyed by DefinitionKey. */
+export interface OlxJsonSourceState {
+  [id: string]: OlxJsonBlockEntry;
+}
+
+/** The full OlxJson slice — all content sources, keyed by namespace.
+ *  state.application_state.olxjson['docs']['myBlock']['en-Latn-US'] → OlxJson */
+export interface OlxJsonState {
+  [source: string]: OlxJsonSourceState;
+}
+
+// ---------------------------------------------------------------------------
+// Conversation model — message types shared across chat contexts.
+// ---------------------------------------------------------------------------
+//
+// These types underlie multiple chat surfaces: LLM tutoring, simulated
+// conversations (chatpeg scenarios), author collaboration, and the Studio
+// chat panel. The specific surfaces may extend or subset them, but the
+// core discriminated union is shared so renderers and state don't diverge.
+//
+// The LLM-specific wire types (ApiMessage, ToolCall, ChatCompletionResponse)
+// stay in llm/types.ts — they're an implementation detail of the OpenAI
+// completions proxy, not part of the conversation domain model.
+
+/** A file attached to a user message, stored so follow-up turns can replay it. */
+export interface MessageAttachment {
+  name: string;
+  /** Content hash — stable id for dedupe / future upload-to-store. */
+  hash: string;
+  /** Full file content (text). Replaced with converted text once conversion lands. */
+  body: string;
+}
+
+/** A chat line from a speaker (chatpeg Line, LLM response, user turn, etc.) */
+export interface ChatLineMessage {
+  type: 'Line';
+  speaker: string;
+  text: string;
+  metadata?: Record<string, string>;
+  attachments?: MessageAttachment[];
+}
+
+/** A system-level notification in the conversation. */
+export interface SystemMessageEntry {
+  type: 'SystemMessage';
+  text: string;
+}
+
+/** A date divider between messages. */
+export interface DateSeparatorEntry {
+  type: 'DateSeparator';
+  date: string;
+}
+
+/** An LLM tool call, surfaced in the transcript. */
+export interface ToolCallEntry {
+  type: 'ToolCall';
+  name: string;
+  args: Record<string, unknown>;
+  result: string;
+}
+
+/** Serializable conversation message — the internal transcript shape
+ *  persisted in Redux and replayed from event logs. The LLM wire format
+ *  is ApiMessage (lib/llm/types.ts), which is a separate concern. */
+export type ChatMessage =
+  | ChatLineMessage
+  | SystemMessageEntry
+  | DateSeparatorEntry
+  | ToolCallEntry;
+
+/** A pre-rendered React element (embedded blocks, custom content).
+ *  NOT serializable — excluded from ChatMessage / Redux state.
+ *  Only used at the rendering layer for injecting live UI into a
+ *  conversation view. */
+export interface ElementEntry {
+  type: 'Element';
+  element: import('react').ReactNode;
+}
+
+/** Any entry that can appear in a rendered conversation view —
+ *  serializable messages plus UI-only elements. Use ChatMessage
+ *  for state; ChatDisplayEntry for rendering. */
+export type ChatDisplayEntry = ChatMessage | ElementEntry;
+
+// ---------------------------------------------------------------------------
+// Catalog domain types — repositories and launchables.
+// ---------------------------------------------------------------------------
+//
+// The catalog lists content repositories and the learning objects (launchables)
+// in each. These types are the domain model; the zod schemas in
+// catalog/schema.ts validate wire data against them.
+//
+// Interim: the catalog is a separate data model today. It should converge
+// with OlxJson — repositories and launchables are content, and catalog UI
+// should read via the same useBlock/useKids hooks as everything else.
+
+/** What a launchable IS in the courseware model. course/activity are public
+ *  learning objects; internal is a building block composed into others. */
+export type LaunchableRole = 'course' | 'activity' | 'internal' | 'other';
+
+/** A single learning object within a repository. */
+export interface Launchable {
+  id: string;
+  role: LaunchableRole;
+  status: 'draft' | 'usable';
+  title: string;
+  /** Block tag (e.g. "Sequential", "Chat"). */
+  type: string;
+  /** Author-declared ordering hint; absent when undeclared. */
+  index?: number;
+  /** Repo-relative path; opens in Studio as ?file=. */
+  path: string;
+  /** Only present when include: launchables.description is requested. */
+  description?: string;
+  /** Link to this file on its forge, or null if no web view. */
+  forgeLink: ForgeLink | null;
+}
+
+/** A content repository — a git repo or local directory containing
+ *  launchable learning objects. */
+export interface Repository {
+  /** The handle — git+https:…@branch or file:… */
+  origin: string;
+  /** Manifest title, else the configured source label. */
+  label: string;
+  writable: boolean;
+  description: string | null;
+  discipline: string | null;
+  /** Usable, public launchables (drafts and internal blocks excluded). */
+  launchableCount: number;
+  /** Launchables hidden as drafts. */
+  draftCount: number;
+  /** Internal building blocks (role: internal). */
+  internalCount: number;
+  /** Public launchables (usable, or usable+drafts when drafts='include'). */
+  launchables: Launchable[];
+  /** Building blocks — editable, never launched on their own. */
+  internal: Launchable[];
+  /** Link to the repo on its forge, or null. */
+  forgeLink: ForgeLink | null;
+  /** Non-null when the source could not be loaded (auth, network, etc.). */
+  error?: AppError | null;
+
+  // include-only fields (null until wired):
+  readme?: string | null;
+  license?: string | null;
+  contributors?: { name: string; commits: number }[] | null;
+  commits?: { sha: string; message: string; author: string; when: string }[] | null;
+  forge?: { description: string; url: string } | null;
+}
+
+// ---------------------------------------------------------------------------
+// Catalog slice — repository metadata from the MCP tool.
+// ---------------------------------------------------------------------------
+// Interim structure (see design note above). Each argsKey is a distinct
+// get_repositories query; most apps use one (the default args).
+
+/** One catalog query result — the repositories returned and its loading state. */
+export interface CatalogEntry {
+  repositories: Repository[];
+  loadingState: { status: LoadingStatus };
+  error?: { message: string };
+}
+
+/** The catalog slice, keyed by stringified query args. */
+export interface CatalogState {
+  [argsKey: string]: CatalogEntry;
+}
+
+// ---------------------------------------------------------------------------
+// AppState / RootState — the assembled store.
+// ---------------------------------------------------------------------------
+
+/** The inner application state managed by updateResponseReducer (store.ts).
+ *  lo_event wraps this under `application_state` in the Redux store. */
+export interface AppState {
+  /** Block-scoped runtime state, keyed by StateKey. */
+  component: Record<string, any>;
+  /** Block settings (persist across sessions), keyed by StateKey. */
+  componentSetting: Record<string, any>;
+  /** System-scoped state (currentUser, locale, etc.). */
+  system: Record<string, any>;
+  /** Storage-scoped state. */
+  storage: Record<string, any>;
+  /** Parsed OLX content by source namespace. */
+  olxjson: OlxJsonState;
+  /** Chat sessions (LLM tutoring, simulated conversations, etc.).
+   *  Interim: the Studio Redux chat will become field data; the
+   *  conversation types above will persist for other chat surfaces. */
+  chat: Record<string, { messages: ChatMessage[]; status: string }>;
+  /** Repository catalog. Interim — will converge with OlxJson. */
+  catalog: CatalogState;
+}
+
+/** Full Redux store shape. lo_event's reduxLogger wraps the reducer output
+ *  under `application_state`; this is the single source of truth for all
+ *  selectors across the codebase. */
+export interface RootState {
+  application_state: AppState;
+}

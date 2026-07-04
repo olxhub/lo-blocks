@@ -37,8 +37,7 @@ function createArrayLogger() {
 import { websocketLogger } from 'lo_event/websocket';
 import { scopes, Scope } from './scopes';
 import { commonFields } from './commonFields';
-import type { FieldInfo, Fields } from '../types';
-import type { ChatMessage } from '../llm/types';
+import type { FieldInfo, Fields, AppState } from '../types';
 import {
   olxjsonReducer,
   initialOlxJsonState,
@@ -48,6 +47,11 @@ import {
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
 } from './olxjson';
+import {
+  catalogReducer,
+  CATALOG_EVENT_TYPES,
+  initialCatalogState,
+} from './catalog';
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
 export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
@@ -154,14 +158,16 @@ function getWebsocketUrl() {
 // instead of state.application_state.olxjson. This would better reflect the semantic
 // difference between content definitions and runtime application state.
 //
-const initialState = {
+const initialState: AppState = {
   component: {},
   componentSetting: {},
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {} as Record<string, { messages: ChatMessage[]; status: string }>,
+  chat: {},
+  catalog: initialCatalogState,
 };
+
 
 // Event types for olxjson state
 const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];
@@ -219,6 +225,14 @@ export const updateResponseReducer = (state = initialState, action) => {
       default:
         return state;
     }
+  }
+
+  // Handle catalog events (MCP-sourced repository data)
+  if (CATALOG_EVENT_TYPES.includes(eventType)) {
+    return {
+      ...state,
+      catalog: catalogReducer(state.catalog, { ...action, type: eventType }),
+    };
   }
 
   // Field-level reducers — route events to field.reduce when registered.
@@ -428,6 +442,7 @@ function collectEventTypes(
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
     ...CHAT_EVENT_TYPES,
+    ...CATALOG_EVENT_TYPES,
   ]));
 }
 
@@ -487,7 +502,7 @@ function configureStore({
   // static, fetched in client), so syncing it is redundant — and shipping the
   // bundled course as one giant action corrupts the receiving tab. lo_event
   // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
-  const CONTENT_EVENTS = new Set<string>(OLXJSON_EVENT_TYPES);
+  const CONTENT_EVENTS = new Set<string>([...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES]);
   const syncFilter = (action: any): boolean => {
     if (action?.redux_type !== 'EMIT_EVENT' || typeof action.payload !== 'string') return true;
     try { return !CONTENT_EVENTS.has(JSON.parse(action.payload).event); }

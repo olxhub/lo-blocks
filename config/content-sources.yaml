@@ -18,7 +18,23 @@
 # Each source declares its own namespace (manifest.yaml, or — for repo
 # sources — the repo name). This file is WHERE content lives, not WHAT it is.
 
-sources: {}
+sources:
+  edu.memphis.psych:
+    repo: https://github.com/olxhub/edu.memphis.psych.git
+  edu.memphis.writing:
+    repo: https://github.com/olxhub/edu.memphis.writing.git
+  # edu.gsu.interdisciplinary:              # non-public repo — uncomment in
+  #   repo: https://github.com/olxhub/edu.gsu.interdisciplinary.git  # content-sources.local.yaml
+  #                                         # to use locally with a PAT
 
 # Unrouted paths (demos, transitional content).
 fallback: ./content
+
+# Is the fallback (./content) editable? Default false — a deploy shouldn't let
+# anyone write the bundled content. Set true in config/content-sources.local.yaml
+# for local dev when you want to edit ./content from Studio / the catalog.
+#
+# To override any source above (e.g. make repos writable, add private repos),
+# copy this file to config/content-sources.local.yaml and edit there. The local
+# file replaces this one wholesale (not merged) — see contentSources.ts.
+fallbackWritable: false

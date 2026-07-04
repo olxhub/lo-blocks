@@ -7,7 +7,7 @@ import { useFieldState, settings } from '@/lib/state';
 import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';
 import { advanceFrom } from '@/lib/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
-import type { ChatMessage } from '@/components/common/ChatComponent';
+import type { ChatDisplayEntry } from '@/lib/types';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
@@ -114,9 +114,9 @@ export function _Chat(props: RuntimeProps) {
   // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window
   // with the same filter logic. A Map<DefinitionRef, ReactNode> keyed by entry.ref would be
   // more robust against dependency/closure mismatches, at the cost of a bit more memory.
-  const visibleMessages: ChatMessage[] = useMemo(() => {
+  const visibleMessages: ChatDisplayEntry[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
-    const messages: ChatMessage[] = [];
+    const messages: ChatDisplayEntry[] = [];
     let embedIndex = 0;
 
     for (const entry of window) {

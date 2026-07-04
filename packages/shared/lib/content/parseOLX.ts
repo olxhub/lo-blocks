@@ -761,6 +761,15 @@ export async function parseOLX(
           entry.generated = currentGenerated;
         }
 
+        // Stamp provenance (source file + parse dependencies) so every entry
+        // in the blockIndex is traceable. Block parsers that create child
+        // entries (e.g. MarkupProblem → Markdown, GraderInline) typically
+        // omit these — they're the same file, so we inherit from the parent.
+        if (entry && typeof entry === 'object') {
+          if (!('source' in entry)) entry.source = source;
+          if (!('parseDeps' in entry)) entry.parseDeps = parseDeps;
+        }
+
         // Stamp the byte offset of the source element. Parsers usually
         // build their entry from the same node parseNode is processing, so
         // we attach this here once instead of asking every parser to
