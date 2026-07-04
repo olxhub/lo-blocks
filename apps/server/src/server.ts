@@ -41,7 +41,9 @@ import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
-const PORT = 8888;
+// Overridable for tests (the smoke test boots a second instance beside a
+// running dev server); 8888 is the canonical port — see docs/README.md.
+const PORT = Number(process.env.PORT ?? 8888);
 const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
 // The legacy Next.js pages remain reachable at paths not claimed by this
