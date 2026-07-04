@@ -29,7 +29,6 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import { isPascalCase } from '@/lib/util';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
@@ -57,7 +56,7 @@ export const fields = state.fields(state.graderFields());
 //
 // IDs are assigned by mutating nodes BEFORE child parsers run. See:
 // docs/architecture/container-id-scoping.md
-async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns }) {
+async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, getBlock }) {
   const tagParsed = rawParsed[tag];
   const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
   let inputIndex = 0;
@@ -85,7 +84,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
     if (isPascalCase(childTag)) {
-      const blockType = BLOCK_REGISTRY[childTag];
+      const blockType = getBlock(childTag);
 
       // Derive a branded DefinitionRef: auto-assigned via joinDefinitionRef,
       // or validated from an authored id attribute.

@@ -217,7 +217,7 @@ describe('Block components should not access idMap directly', () => {
 });
 
 /*
-  Rule 4: Blueprint files must not import the render layer.
+  Rule 4: Blueprint files must not import the render layer or the registry.
 
   Blueprints (the [A-Z]*.ts registry files) are the logic layer: parsers,
   fields, graders, locals. They load in node (parseOLX, xml2json, tests)
@@ -225,13 +225,18 @@ describe('Block components should not access idMap directly', () => {
   React components, PopoutWrapper/lucide-react, and the full block
   registry (circularly) — bloats every server process and once forced a
   'use client' workaround. Pure helpers blueprints need (selectKidsJson,
-  DOM traversal) live in lib/blocks/olxdom. See
-  docs/blueprint-graph-performance.md #2.
+  DOM traversal) live in lib/blocks/olxdom.
+
+  Importing the block registry from a blueprint is the same class of
+  violation with a worse failure mode: it is a blueprint → registry →
+  blueprint import cycle, which works only under one module-initialization
+  order and breaks per-blueprint loading. Parsers that need to look up
+  other blocks receive `getBlock` in their parser context instead.
 
   This checks direct imports only; the import-graph version of this rule
-  is the registry bundle measurement in that doc.
+  is the registry bundle measurement in docs/blueprint-graph-performance.md.
 */
-describe('Blueprint files should not import lib/render', () => {
+describe('Blueprint files should not import lib/render or the registry', () => {
   const blueprintFiles = generateAllRegistryContents().blocks.files;
 
   it('finds blueprint files to check', () => {
@@ -247,7 +252,10 @@ describe('Blueprint files should not import lib/render', () => {
 
       lines.forEach((line, index) => {
         if (!line.trimStart().startsWith('import')) return;
-        if (line.includes("'@/lib/render'") || line.includes('"@/lib/render"')) {
+        if (
+          line.includes("'@/lib/render'") || line.includes('"@/lib/render"') ||
+          line.includes("'@/components/blockRegistry'") || line.includes('"@/components/blockRegistry"')
+        ) {
           violations.push({ line: index + 1, content: line.trim() });
         }
       });
@@ -256,10 +264,12 @@ describe('Blueprint files should not import lib/render', () => {
 
       const details = violations.map(v => `  Line ${v.line}: ${v.content}`).join('\n');
       expect.fail(
-        `Blueprint imports the render layer:\n${details}\n\n` +
+        `Blueprint imports the render layer or the registry:\n${details}\n\n` +
         `Blueprints load in node and server routes; lib/render drags in React\n` +
-        `components and the full registry. Import blueprint-safe helpers from\n` +
-        `@/lib/blocks/olxdom instead (see docs/blueprint-graph-performance.md).`
+        `components, and importing the registry creates a blueprint → registry\n` +
+        `import cycle. Use blueprint-safe helpers from @/lib/blocks/olxdom, or\n` +
+        `the parser-context getBlock for block lookups\n` +
+        `(see docs/blueprint-graph-performance.md).`
       );
     });
   });
