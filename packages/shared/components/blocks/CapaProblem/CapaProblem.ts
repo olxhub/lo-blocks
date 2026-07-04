@@ -56,7 +56,7 @@ export const fields = state.fields(state.graderFields());
 //
 // IDs are assigned by mutating nodes BEFORE child parsers run. See:
 // docs/architecture/container-id-scoping.md
-async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, getBlock }) {
+async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, HACK_getBlockRolesForCapaProblem }) {
   const tagParsed = rawParsed[tag];
   const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
   let inputIndex = 0;
@@ -84,7 +84,10 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
 
     if (isPascalCase(childTag)) {
-      const blockType = getBlock(childTag);
+      // Role flags only — see the HACK note at the parser-context call site
+      // in parseOLX.ts. The redesign TODO at the top of this file is what
+      // eventually removes this.
+      const blockType = HACK_getBlockRolesForCapaProblem(childTag);
 
       // Derive a branded DefinitionRef: auto-assigned via joinDefinitionRef,
       // or validated from an authored id attribute.

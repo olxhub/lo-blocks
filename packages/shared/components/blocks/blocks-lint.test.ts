@@ -267,9 +267,9 @@ describe('Blueprint files should not import lib/render or the registry', () => {
         `Blueprint imports the render layer or the registry:\n${details}\n\n` +
         `Blueprints load in node and server routes; lib/render drags in React\n` +
         `components, and importing the registry creates a blueprint → registry\n` +
-        `import cycle. Use blueprint-safe helpers from @/lib/blocks/olxdom, or\n` +
-        `the parser-context getBlock for block lookups\n` +
-        `(see docs/blueprint-graph-performance.md).`
+        `import cycle. Use blueprint-safe helpers from @/lib/blocks/olxdom.\n` +
+        `There is deliberately no general parse-time block lookup — see the\n` +
+        `HACK note in parseOLX.ts's parser context.`
       );
     });
   });

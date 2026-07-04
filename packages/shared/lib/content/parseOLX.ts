@@ -659,12 +659,20 @@ export async function parseOLX(
       ns,
       parseNode: parseNodeWithLang,
       assignSystemId,
-      // Block lookup for parsers that inspect child block types (e.g.
-      // CapaProblem's ID-assignment walk). A resolver function, not the
-      // registry map: parsers must not import the registry themselves (a
-      // blueprint → registry → blueprint cycle), and a future runtime
-      // registry can swap this implementation without touching parsers.
-      getBlock: (blockTag: string) => BLOCK_REGISTRY[blockTag],
+      // HACK HACK HACK — for CapaProblem only. Do not hang anything else
+      // off of this. CapaProblem's legacy ID-assignment walk needs to know
+      // whether a child tag is a grader or an input to pick a role-based ID
+      // prefix. That's all it gets: two descriptor-level booleans, not the
+      // block. There is deliberately NO general parse-time block-lookup
+      // facility — a blueprint importing the registry is an import cycle,
+      // and the CapaProblem redesign (see the TODO in CapaProblem.ts)
+      // dissolves this need via runtime inference / idPrefix scoping.
+      // If you think you need this, you probably want a descriptor lookup —
+      // talk to the registry-as-a-service work first.
+      HACK_getBlockRolesForCapaProblem: (blockTag: string) => ({
+        isGrader: BLOCK_REGISTRY[blockTag]?.isGrader ?? false,
+        isInput: BLOCK_REGISTRY[blockTag]?.isInput ?? false,
+      }),
       metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (refId: DefinitionRef, entryOrUpdater) => {
         // Callers pass branded DefinitionRef values — either the block's own
