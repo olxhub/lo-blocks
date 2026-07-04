@@ -7,7 +7,6 @@ import { childParser } from '@/lib/content/parsers';
 import { cast } from '@/lib/blocks/attributeSchemas';
 import { z } from 'zod';
 import { withCastSupport, parseCastYaml } from '@/lib/avatar/cast';
-import _TeamDirectory from './_TeamDirectory';
 
 export const fields = state.fields([
   'selectedMember',   // Currently selected team member ID
@@ -41,7 +40,6 @@ const TeamDirectory = dev({
   ...withCastSupport(castBody()),
   name: 'TeamDirectory',
   description: 'Interactive team directory showing team members with details and bios',
-  component: _TeamDirectory,
   fields: fields,
   attributes: z.object({
     ...cast,

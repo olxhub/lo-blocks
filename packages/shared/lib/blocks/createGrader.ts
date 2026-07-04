@@ -35,11 +35,17 @@ import { core } from './namespaces';
 import * as parsers from '@/lib/content/parsers';
 import { grader, type GraderParams, type SingleParam, type ListParam, type DictParam } from './actions';
 import { graderAttributes, z_stateRef } from './attributeSchemas';
-import _Noop from '@/components/blocks/layout/_Noop';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from './correctness';
 import * as state from '@/lib/state';
-import type { RuntimeProps, LocalsAPI } from '@/lib/types';
+import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
+
+// Default grader renderer, loaded lazily: _Noop renders children and pulls
+// the render layer (useKids → lib/render), which must stay out of the
+// eager blueprint graph — graders load in node and server routes.
+// See docs/blueprint-graph-performance.md #2.
+const NOOP_LOADER: ComponentLoader = () =>
+  import('@/components/blocks/layout/_Noop').then(m => m.default);
 
 // Registry of Match blocks created by createGrader
 // blockRegistry.ts will merge these in
@@ -257,8 +263,14 @@ interface CreateGraderConfig {
   infer?: boolean;
   /** If false, don't create a Match block variant. Default: true */
   createMatch?: boolean;
-  /** Custom component to render. Default: _Noop (renders children). Use _Hidden to hide children. */
+  /** Custom component to render (eager, same-module). Default: _Noop via a
+   *  lazy loader (renders children). Prefer componentLoader for anything
+   *  imported from another file. */
   component?: React.ComponentType<any>;
+  /** Lazy component loader — see ComponentLoader in lib/types/core.ts.
+   *  E.g. `() => import('@/components/blocks/layout/_Hidden').then(m => m.default)`
+   *  to hide children. Declare component OR componentLoader, not both. */
+  componentLoader?: ComponentLoader;
   /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
   parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
   /**
@@ -289,12 +301,19 @@ export function createGrader({
   locals,
   infer = true,
   createMatch = true,
-  component = _Noop,
+  component,
+  componentLoader,
   parser,
   allowOverrides,
 }: CreateGraderConfig) {
   const graderName = `${base}Grader`;
   const matchName = `${base}Match`;
+
+  // Eager component wins if declared (factory raises on both); otherwise a
+  // lazy loader, defaulting to _Noop.
+  const componentProps = component
+    ? { component }
+    : { componentLoader: componentLoader ?? NOOP_LOADER };
 
   // Register a DSL wrapper that returns boolean for use in conditions
   // e.g., stringMatch(@answer.value, "Paris") returns true/false
@@ -340,7 +359,7 @@ export function createGrader({
     name: graderName,
     description,
     category: 'grading',
-    component,
+    ...componentProps,
     fields: state.fields(state.graderFields()),
     // graderMixin (via grader(...)) contributes target/answer/displayAnswer;
     // blueprint layer only adds grader-specific attrs from callers.
@@ -362,7 +381,7 @@ export function createGrader({
       name: matchName,
       description: `Matching rule for ${base} patterns, used inside RulesGrader`,
       category: 'grading',
-      component: _Noop,
+      componentLoader: NOOP_LOADER,
       internal: true,
       isMatch: true,
       attributes: z.object({

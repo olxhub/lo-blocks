@@ -215,3 +215,52 @@ describe('Block components should not access idMap directly', () => {
     });
   });
 });
+
+/*
+  Rule 4: Blueprint files must not import the render layer.
+
+  Blueprints (the [A-Z]*.ts registry files) are the logic layer: parsers,
+  fields, graders, locals. They load in node (parseOLX, xml2json, tests)
+  and in Next.js server routes, so importing lib/render — which pulls in
+  React components, PopoutWrapper/lucide-react, and the full block
+  registry (circularly) — bloats every server process and once forced a
+  'use client' workaround. Pure helpers blueprints need (selectKidsJson,
+  DOM traversal) live in lib/blocks/olxdom. See
+  docs/blueprint-graph-performance.md #2.
+
+  This checks direct imports only; the import-graph version of this rule
+  is the registry bundle measurement in that doc.
+*/
+describe('Blueprint files should not import lib/render', () => {
+  const blueprintFiles = generateAllRegistryContents().blocks.files;
+
+  it('finds blueprint files to check', () => {
+    expect(blueprintFiles.length).toBeGreaterThan(0);
+  });
+
+  blueprintFiles.forEach(filePath => {
+    const name = relative(BLOCKS_DIR, filePath);
+
+    it(name, () => {
+      const lines = readFileSync(filePath, 'utf-8').split('\n');
+      const violations = [];
+
+      lines.forEach((line, index) => {
+        if (!line.trimStart().startsWith('import')) return;
+        if (line.includes("'@/lib/render'") || line.includes('"@/lib/render"')) {
+          violations.push({ line: index + 1, content: line.trim() });
+        }
+      });
+
+      if (violations.length === 0) return;
+
+      const details = violations.map(v => `  Line ${v.line}: ${v.content}`).join('\n');
+      expect.fail(
+        `Blueprint imports the render layer:\n${details}\n\n` +
+        `Blueprints load in node and server routes; lib/render drags in React\n` +
+        `components and the full registry. Import blueprint-safe helpers from\n` +
+        `@/lib/blocks/olxdom instead (see docs/blueprint-graph-performance.md).`
+      );
+    });
+  });
+});

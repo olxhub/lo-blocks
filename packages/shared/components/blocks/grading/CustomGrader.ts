@@ -102,7 +102,6 @@ import { createGrader } from '@/lib/blocks';
 import { z_stateRefList, src } from '@/lib/blocks/attributeSchemas';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
-import _Hidden from '@/components/blocks/layout/_Hidden';
 
 /**
  * Security error message explaining why CustomGrader is disabled server-side.
@@ -312,7 +311,7 @@ const CustomGrader = createGrader({
   // No display answer - code graders have custom logic
   getDisplayAnswer: () => undefined,
   // Hide the code from rendering (children are code, not content)
-  component: _Hidden,
+  componentLoader: () => import('@/components/blocks/layout/_Hidden').then(m => m.default),
   // Parse children as text (code), not blocks. Supports src= for external files.
   parser: parsers.text.raw(),
 });
