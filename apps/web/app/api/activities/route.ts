@@ -20,7 +20,9 @@
  *       availableVariants: { [variant: ContentVariant]: 'supported' | 'bestEffort' },
  *       provenance: string[]
  *     }
- *   }
+ *   },
+ *   warnings: [{ blockId, editSource, message }],  // content warnings (e.g. bad launchable=)
+ *   errors: [...]                                   // per-file sync errors
  * }
  */
 
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
   try {
     const { idMap, errors } = await syncContentFromStorage();
 
-    const activities = buildActivityCards(
+    const { cards: activities, warnings } = buildActivityCards(
       idMap,
       (variants) => getBestVariantServer(request, variants)
     );
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
     return Response.json({
       ok: true,
       activities,
+      warnings,
       errors
     });
   } catch (err: any) {
