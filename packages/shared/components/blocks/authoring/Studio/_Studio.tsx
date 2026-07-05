@@ -26,7 +26,12 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import type { CodeEditorHandle } from '@/components/common/CodeEditor';
 import type { RuntimeProps, IdMap, LofsOrigin, LofsRef } from '@/lib/types';
 import FileEditorPane, { type FileCache } from './fileEditorPane';
-import { getStudioContent, useStudioContent } from './editorContent';
+import { getStudioContent, setStudioContent, useStudioContent } from './editorContent';
+import { FilesPanel } from './filesPanel';
+import { SearchPanel } from './searchPanel';
+import { DocsPanel } from './docsPanel';
+import EditorLLMChat from './editorLLMChat';
+import NewFileDialog from './newFileDialog';
 import { studioFields } from './locals';
 
 /** Buffer key when no file is open — subscribes to an always-empty scratch
@@ -418,9 +423,46 @@ export default function _Studio(props: RuntimeProps) {
             ))}
           </div>
           <div className="studio-sidebar-panel">
-            {/* Panels land in the next pass (ported against the behavior
-                inventory): chat, docs, search, files. */}
-            <p className="text-dimmed text-sm p-3">The “{sidebarTab}” panel is being rebuilt.</p>
+            {sidebarTab === 'chat' && (
+              <div className="sidebar-panel chat-panel">
+                <EditorLLMChat
+                  path={filePath || undefined}
+                  getContent={() => (fileId ? getStudioContent(fileId) : '')}
+                  onApplyEdit={(v) => { if (fileId) setStudioContent(fileId, v); }}
+                  onOpenFile={handleFileSelect}
+                  storage={storage}
+                />
+              </div>
+            )}
+            {sidebarTab === 'docs' && (
+              <DocsPanel
+                filePath={filePath}
+                content={openContent}
+                onInsert={(t) => editorRef.current?.insertAtCursor(t)}
+              />
+            )}
+            {sidebarTab === 'search' && (
+              <SearchPanel
+                idMap={idMap}
+                content={openContent}
+                currentPath={filePath}
+                currentSource={source}
+                onFileSelect={handleFileSelect}
+                onScrollToId={(id) => editorRef.current?.scrollToId(id)}
+              />
+            )}
+            {sidebarTab === 'files' && (
+              <FilesPanel
+                fileTree={fileTree}
+                currentPath={filePath}
+                dirtyFiles={getDirtyFiles()}
+                canWrite={canWrite}
+                onFileSelect={handleFileSelect}
+                onNewFile={() => setNewFileOpen(true)}
+                onFileDelete={handleFileDelete}
+                onFileRename={handleFileRename}
+              />
+            )}
           </div>
         </ResizableSidebar>
 
@@ -463,6 +505,13 @@ export default function _Studio(props: RuntimeProps) {
           [{debug ? 'debug on' : 'debug'}]
         </span>
       </footer>
+
+      <NewFileDialog
+        open={newFileOpen}
+        currentDir={filePath.includes('/') ? filePath.slice(0, filePath.lastIndexOf('/')) : ''}
+        onCreate={handleFileCreate}
+        onClose={() => setNewFileOpen(false)}
+      />
 
       <ToastNotifications notifications={notifications} onDismiss={dismissNotification} />
     </div>
