@@ -12,6 +12,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
+import { blockDocFields } from './locals';
 
 const BlockDoc = dev({
   ...parsers.ignore(),
@@ -22,6 +23,7 @@ const BlockDoc = dev({
   attributes: z.object({
     block: z.string().describe('Name of the block to document (e.g. "Chat")'),
   }).strict(),
+  fields: blockDocFields,
 });
 
 export default BlockDoc;
