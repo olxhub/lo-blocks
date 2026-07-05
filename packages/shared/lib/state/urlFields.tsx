@@ -28,7 +28,8 @@
 // - Fields which don't sync (initial values)
 // - Include in documentation
 // - zod / readers / writers
-// - Reactivity: popstate listener for browser back/forward with urlPush fields
+// (Popstate reactivity for back/forward is handled in useFieldState —
+// see redux.ts — so mounted url fields re-sync on browser navigation.)
 // ...
 
 import { scopes } from './scopes';
@@ -45,12 +46,25 @@ function getParam(key: string): string | undefined {
 }
 
 function setParam(key: string, value: string | null, options?: { push?: boolean }): void {
+  setParams([[key, value]], options);
+}
+
+/** Write several params in ONE history entry. Callers changing correlated
+ *  params (studio's ?source= and ?file=) must batch them — separate writes
+ *  would leave intermediate entries whose param combinations never existed,
+ *  and back/forward would step through them. */
+export function setParams(
+  entries: Array<[key: string, value: string | null | undefined]>,
+  options?: { push?: boolean },
+): void {
   if (typeof window === 'undefined') return;
   const url = new URL(window.location.href);
-  if (value === null || value === undefined) {
-    url.searchParams.delete(key);
-  } else {
-    url.searchParams.set(key, value);
+  for (const [key, value] of entries) {
+    if (value === null || value === undefined) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
   }
   if (options?.push) {
     window.history.pushState({}, '', url.toString());
@@ -113,6 +127,13 @@ export function getUrlOverride(
   if (!field.url) return undefined;
 
   const { defaultKey, explicitKey } = urlKeyForField(propsId, field);
+
+  // System-scoped fields have one key form (defaultKey === explicitKey) —
+  // no duplicate to reconcile; the cleanup below would read the single
+  // param twice and delete it.
+  if (defaultKey && defaultKey === explicitKey) {
+    return getParam(defaultKey);
+  }
 
   const canonicalValue = defaultKey ? getParam(defaultKey) : undefined;
   const explicitValue = explicitKey ? getParam(explicitKey) : undefined;
