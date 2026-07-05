@@ -781,6 +781,9 @@ export interface LoBlock {
   /** Internal: ensureReady settled (even on failure) — releases the gate so
    *  requireCalc's retriable path owns the error instead of a stuck spinner. */
   _ensureReadySettled?: boolean;
+  /** Internal: a useBlocksReady round (engines + chunk preload) completed
+   *  for this block, success or not. Owned by useBlocksReady(). */
+  _gateSettled?: boolean;
   _isBlock: true;
   action?: Function;
   parser?: Function;

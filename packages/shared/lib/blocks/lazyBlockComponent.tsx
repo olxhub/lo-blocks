@@ -63,6 +63,8 @@ function makeLazyBlockComponent(block: LoBlock): React.ComponentType<any> {
             return;
           }
           block.component = loaded;  // future resolutions and preload checks see it
+          // A successful load re-arms the stale-chunk heal (see error path).
+          if (typeof window !== 'undefined') sessionStorage.removeItem('lo-stale-chunk-reload');
           if (alive) setComponent(() => loaded);
         },
         (err) => { if (alive) setError(err instanceof Error ? err : new Error(String(err))); },
@@ -71,7 +73,18 @@ function makeLazyBlockComponent(block: LoBlock): React.ComponentType<any> {
     }, [Component]);
 
     if (error) {
-      // Chunk load failures are environmental (offline, stale deploy) —
+      // Stale-chunk failures (vite re-optimized mid-session, invalidating
+      // every loaded dep URL — "Outdated Optimize Dep" 504s) are fixed by
+      // exactly one reload. Heal automatically, once per page view, so the
+      // cascade never reaches the user as a dead-end error band.
+      if (/dynamically imported module|Outdated Optimize Dep|Failed to fetch/i.test(error.message)
+          && typeof window !== 'undefined'
+          && !sessionStorage.getItem('lo-stale-chunk-reload')) {
+        sessionStorage.setItem('lo-stale-chunk-reload', '1');
+        window.location.reload();
+        return <Spinner />;
+      }
+      // Other chunk failures are environmental (offline, stale deploy) —
       // show an in-place message rather than taking down the page.
       return (
         <div className="text-error text-sm p-2">

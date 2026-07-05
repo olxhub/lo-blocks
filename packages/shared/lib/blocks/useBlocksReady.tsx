@@ -1,27 +1,61 @@
 'use client';
 // packages/shared/lib/blocks/useBlocksReady.tsx
 //
-// Render-side dependency gate: before rendering an idMap, await ensureReady
-// for every block type appearing in it (lazy engines like mathjs — see
-// lib/grading/calcLoader.ts).
+// Render-side readiness gate: before rendering an idMap, resolve — for
+// every block type appearing in it — both halves of block readiness:
+//
+//   ensureReady        lazy engines (mathjs — see lib/grading/calcLoader.ts)
+//   componentLoader    the component's code-split chunk
 //
 // parseOLX awaits ensureReady per tag, so content parsed in-process is
 // always covered. But content that arrives PRE-PARSED (OlxJson from
 // /api/olxjson, static builds) skipped that await on this client — without
 // this gate, the first when= evaluation or grader render hits
 // requireCalc() cold and surfaces a retriable "engine not ready" error.
-// This hook is that missing await, at render mount.
+// Chunks are preloaded in the same walk so blocks paint without per-block
+// spinners and chunk failures are known before render (LazyBlock remains
+// the fallback for blocks that appear post-gate, and owns stale-chunk
+// self-healing — see lazyBlockComponent.tsx).
 //
 // Failures do not block rendering: a rejected ensureReady falls through to
 // requireCalc's self-healing path (it kicks off the load and throws a
-// retriable error), which is strictly better than a permanent spinner.
+// retriable error), and a rejected chunk load falls through to LazyBlock's
+// error handling. Both are strictly better than a permanent spinner.
 
 import { useEffect, useState } from 'react';
 import type { LoBlock } from '@/lib/types';
 
-/** Blocks in the registry whose ensureReady has not yet completed, for the
- *  tags present in idMap. Completion is cached on the block (like
+/** True when a block still has readiness work: an unresolved ensureReady
+ *  or an unloaded component chunk. */
+function isPending(block: LoBlock): boolean {
+  return (!!block.ensureReady && !block._ensureReadyDone) ||
+         (!!block.componentLoader && !block.component);
+}
+
+/** Resolve one block's readiness. Completion is cached on the block (like
  *  _resolvedComponent) so later mounts skip the gate entirely. */
+function resolveBlock(block: LoBlock): Promise<unknown> {
+  const work: Promise<unknown>[] = [];
+  if (block.ensureReady && !block._ensureReadyDone) {
+    work.push(
+      block.ensureReady()
+        .then(() => { block._ensureReadyDone = true; })
+        .finally(() => { block._ensureReadySettled = true; })
+    );
+  }
+  if (block.componentLoader && !block.component) {
+    // Same convention as LazyBlock: loaded chunks land on block.component.
+    // Failures are left for LazyBlock's error path (incl. stale-chunk heal).
+    work.push(
+      block.componentLoader().then((loaded) => {
+        if (loaded) block.component = loaded;
+      })
+    );
+  }
+  return Promise.allSettled(work);
+}
+
+/** Blocks in the registry with unresolved readiness, for the tags in idMap. */
 function pendingBlocks(
   idMap: Record<string, any> | undefined,
   registry: Record<string, LoBlock>,
@@ -36,7 +70,7 @@ function pendingBlocks(
   }
   return [...tags]
     .map(tag => registry[tag])
-    .filter((b): b is LoBlock => !!b?.ensureReady && !b._ensureReadyDone);
+    .filter((b): b is LoBlock => !!b && isPending(b));
 }
 
 /** True once every block type in idMap has its dependencies ready. */
@@ -45,7 +79,8 @@ export function useBlocksReady(
   registry: Record<string, LoBlock>,
 ): boolean {
   const pending = pendingBlocks(idMap, registry);
-  // Re-render trigger only — the source of truth is _ensureReadyDone.
+  // Re-render trigger only — the source of truth is the cached flags on
+  // the blocks (._ensureReadyDone / .component).
   const [, bump] = useState(0);
 
   const pendingKey = pending.map(b => b.name).sort().join(',');
@@ -53,19 +88,17 @@ export function useBlocksReady(
     if (!pendingKey) return;
     let alive = true;
     Promise.allSettled(
-      pending.map(b =>
-        b.ensureReady!()
-          .then(() => { b._ensureReadyDone = true; })
-          .finally(() => { b._ensureReadySettled = true; })
-      ),
+      // _gateSettled: this block's readiness round completed (success or
+      // not) — releases the gate so failures land with their per-path
+      // handlers (requireCalc's retriable error for engines; LazyBlock's
+      // error path, incl. stale-chunk healing, for chunks) instead of a
+      // permanent spinner.
+      pending.map(b => resolveBlock(b).then(() => { b._gateSettled = true; })),
     ).then(() => { if (alive) bump(n => n + 1); });
     return () => { alive = false; };
     // pending is derived from idMap+registry; pendingKey captures its identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingKey]);
 
-  // Rejected loads don't set _ensureReadyDone, so `pending` would stay
-  // non-empty and spin forever — report ready once all have settled and
-  // let requireCalc's retriable path own the failure.
-  return pending.every(b => b._ensureReadyDone || b._ensureReadySettled);
+  return pending.every(b => !isPending(b) || b._gateSettled);
 }
