@@ -49,3 +49,39 @@ export const GetBlocksOutput = z.object({
 
 /** One block's documentation record as it crosses the MCP wire. */
 export type BlockDocInfo = z.infer<typeof BlockResultSchema>;
+
+// ---------------------------------------------------------------------------
+// get_formats wire schemas (content formats: PEG grammars, YAML schemas)
+// ---------------------------------------------------------------------------
+
+/** Format types. PEG grammars are auto-discovered; others will be registered
+ *  as the format system grows. */
+export const FormatType = z.enum(['peg', 'yaml']);
+
+/** Per-format result. Fields beyond the descriptor appear only when
+ *  requested via `include`. */
+export const FormatResultSchema = z.object({
+  name: z.string().describe('Format name (e.g. "chat")'),
+  type: FormatType.describe('Format type'),
+  extension: z.string().nullable().describe('Content file extension (e.g. "chatpeg"), null for inline-only formats'),
+  description: z.string().nullable(),
+  source: z.string().nullable().describe('Path to format spec file (e.g. .pegjs source)'),
+  blocks: z.array(z.string()).describe('Block names that use this format'),
+
+  // Included on request
+  spec: z.string().nullable().optional().describe('Format specification (PEG grammar source, schema description, etc.)'),
+  readme: FileContentSchema.nullable().optional(),
+  preview: z.string().nullable().optional().describe('Preview OLX template'),
+  examples: z.record(z.string(), z.object({
+    path: z.string(),
+    content: z.string(),
+  })).optional(),
+});
+
+export const GetFormatsOutput = z.object({
+  formats: z.array(FormatResultSchema),
+  total: z.number().describe('Total matching formats (before pagination)'),
+});
+
+/** One content format's documentation record as it crosses the MCP wire. */
+export type FormatDocInfo = z.infer<typeof FormatResultSchema>;

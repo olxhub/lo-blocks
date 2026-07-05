@@ -6,8 +6,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ensureDocs, useDocsData } from '@/lib/state/docs';
-import type { BlockDocRecord } from '@/lib/types';
+import { ensureDocs, ensureFormats, formatsArgsKey, useDocsData } from '@/lib/state/docs';
+import type { BlockDocRecord, FormatDocRecord } from '@/lib/types';
 
 // Named UseBlockDocsResult (not DocsState) — lib/types/core.ts owns the
 // canonical slice type names.
@@ -41,6 +41,39 @@ export function useBlockDocs(filter?: string[], include?: string[]): UseBlockDoc
   return {
     blocks: entry?.blocks ?? [],
     total: entry?.blocks.length ?? 0,
+    loading: !entry || entry.loadingState.status === 'loading',
+    error: entry?.loadingState.status === 'error' ? (entry.error?.message ?? 'Unknown error') : null,
+  };
+}
+
+export interface UseFormatDocsResult {
+  formats: FormatDocRecord[];
+  loading: boolean;
+  error: string | null;
+}
+
+/** Fetch (deduped) and read content-format documentation (get_formats —
+ *  PEG grammars, YAML schemas). Same slice and dedup semantics as
+ *  useBlockDocs; keys are `formats:`-prefixed so the two never collide.
+ *
+ *  @param filter - format names, extensions, or block names (OR-matched);
+ *                  omit for all formats.
+ *  @param include - extra detail per format ('readme', 'spec', 'preview',
+ *                  'examples' — see get_formats in docs/tools.ts). */
+export function useFormatDocs(filter?: string[], include?: string[]): UseFormatDocsResult {
+  // Same honest-deps construction as useBlockDocs above.
+  const argsJson = JSON.stringify({
+    ...(filter?.length ? { filter } : {}),
+    ...(include?.length ? { include } : {}),
+  });
+
+  useEffect(() => {
+    ensureFormats(JSON.parse(argsJson));
+  }, [argsJson]);
+
+  const entry = useDocsData(formatsArgsKey(JSON.parse(argsJson)));
+  return {
+    formats: entry?.formats ?? [],
     loading: !entry || entry.loadingState.status === 'loading',
     error: entry?.loadingState.status === 'error' ? (entry.error?.message ?? 'Unknown error') : null,
   };

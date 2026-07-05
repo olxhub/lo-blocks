@@ -18,7 +18,10 @@
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { callMcpTool } from '@/lib/mcp/client';
-import { GetBlocksOutput, type BlockDocInfo } from '@/lib/docs/schema';
+import {
+  GetBlocksOutput, GetFormatsOutput,
+  type BlockDocInfo, type FormatDocInfo,
+} from '@/lib/docs/schema';
 import type { RootState, DocsEntry, DocsState } from '../types';
 
 // =============================================================================
@@ -52,6 +55,7 @@ export function docsReducer(
         ...state,
         [argsKey]: {
           blocks: state[argsKey]?.blocks ?? [],
+          formats: state[argsKey]?.formats ?? [],
           loadingState: { status: 'loading' },
         },
       };
@@ -59,7 +63,8 @@ export function docsReducer(
       return {
         ...state,
         [argsKey]: {
-          blocks: action.blocks,
+          blocks: action.blocks ?? [],
+          formats: action.formats ?? [],
           loadingState: { status: 'ready' },
         },
       };
@@ -68,6 +73,7 @@ export function docsReducer(
         ...state,
         [argsKey]: {
           blocks: state[argsKey]?.blocks ?? [],
+          formats: state[argsKey]?.formats ?? [],
           loadingState: { status: 'error' },
           error: action.error,
         },
@@ -87,6 +93,10 @@ export function dispatchDocsLoading(argsKey: string): void {
 
 export function dispatchDocsLoaded(argsKey: string, blocks: BlockDocInfo[]): void {
   lo_event.logEvent(DOCS_LOADED, { argsKey, blocks });
+}
+
+export function dispatchFormatsLoaded(argsKey: string, formats: FormatDocInfo[]): void {
+  lo_event.logEvent(DOCS_LOADED, { argsKey, formats });
 }
 
 export function dispatchDocsError(argsKey: string, error: string): void {
@@ -140,6 +150,44 @@ export function refreshDocs(args: Record<string, unknown> = {}): void {
   fetchingKeys.delete(argsKey);
   fetchedKeys.delete(argsKey);
   fetchDocs(args, argsKey);
+}
+
+// -----------------------------------------------------------------------------
+// Formats (get_formats) — same slice, same events, keys prefixed `formats:`
+// so a get_formats query can never collide with a get_blocks query.
+// -----------------------------------------------------------------------------
+
+function fetchFormats(args: Record<string, unknown>, argsKey: string): void {
+  fetchingKeys.add(argsKey);
+  dispatchDocsLoading(argsKey);
+
+  callMcpTool<unknown>('get_formats', args, { retry: true })
+    .then((raw) => {
+      const parsed = GetFormatsOutput.parse(raw);
+      fetchingKeys.delete(argsKey);
+      fetchedKeys.add(argsKey);
+      dispatchFormatsLoaded(argsKey, parsed.formats);
+    })
+    .catch((err) => {
+      console.error('Formats fetch failed:', err);
+      fetchingKeys.delete(argsKey);
+      fetchedKeys.delete(argsKey);  // allow retry on next call
+      dispatchDocsError(argsKey, err instanceof Error ? err.message : String(err));
+    });
+}
+
+/** Key for a get_formats query in the docs slice. Exported so hooks and
+ *  selectors compute the identical key. */
+export function formatsArgsKey(args: Record<string, unknown> = {}): string {
+  return `formats:${JSON.stringify(args)}`;
+}
+
+/** Ensure content-format documentation is loaded for the given get_formats
+ *  args. Dedup semantics identical to ensureDocs. */
+export function ensureFormats(args: Record<string, unknown> = {}): void {
+  const argsKey = formatsArgsKey(args);
+  if (fetchedKeys.has(argsKey) || fetchingKeys.has(argsKey)) return;
+  fetchFormats(args, argsKey);
 }
 
 // =============================================================================

@@ -1606,9 +1606,30 @@ export interface BlockDocRecord {
   formats?: string[];
 }
 
-/** One docs query result — the blocks returned and the query's loading state. */
+/**
+ * One content format's documentation record from the get_formats MCP tool
+ * (PEG grammars, YAML schemas). Structural mirror of FormatResultSchema in
+ * lib/docs/schema.ts, same at-rest/wire split as BlockDocRecord.
+ */
+export interface FormatDocRecord {
+  name: string;
+  type: 'peg' | 'yaml';
+  extension: string | null;
+  description: string | null;
+  source: string | null;
+  blocks: string[];
+  spec?: string | null;
+  readme?: { path: string; content: string } | null;
+  preview?: string | null;
+  examples?: Record<string, { path: string; content: string }>;
+}
+
+/** One docs query result and its loading state. A given entry holds blocks
+ *  (get_blocks queries) or formats (get_formats queries, keyed with a
+ *  `formats:` prefix) — the other array stays empty. */
 export interface DocsEntry {
   blocks: BlockDocRecord[];
+  formats: FormatDocRecord[];
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }

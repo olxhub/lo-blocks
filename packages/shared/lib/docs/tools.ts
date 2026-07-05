@@ -57,7 +57,10 @@ const GetBlocksInput = z.object({
 //
 // Wire schemas live in schema.ts (browser-safe — the client docs slice
 // validates against them; this module reads files and must stay server-side).
-import { FileContentSchema, ExampleSchema, BlockResultSchema, GetBlocksOutput } from './schema';
+import {
+  FileContentSchema, ExampleSchema, BlockResultSchema, GetBlocksOutput,
+  FormatType, FormatResultSchema, GetFormatsOutput,
+} from './schema';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -181,9 +184,9 @@ async function getBlocks(
 // get_formats
 // ===========================================================================
 
-/** Format types. PEG grammars are auto-discovered; others will be registered
- *  as the format system grows. */
-const FormatType = z.enum(['peg', 'yaml']);
+// FormatType / FormatResultSchema / GetFormatsOutput live in schema.ts
+// (browser-safe, shared with the client docs slice) — see the get_blocks
+// schemas above.
 
 const FormatIncludeField = z.enum([
   'readme',      // Full README content
@@ -204,29 +207,6 @@ const GetFormatsInput = z.object({
   ),
   limit: z.number().int().min(0).max(100).optional().describe('Max formats to return (default 50)'),
   offset: z.number().int().min(0).optional().describe('Number of formats to skip (default 0)'),
-});
-
-const FormatResultSchema = z.object({
-  name: z.string().describe('Format name (e.g. "chat")'),
-  type: FormatType.describe('Format type'),
-  extension: z.string().nullable().describe('Content file extension (e.g. "chatpeg"), null for inline-only formats'),
-  description: z.string().nullable(),
-  source: z.string().nullable().describe('Path to format spec file (e.g. .pegjs source)'),
-  blocks: z.array(z.string()).describe('Block names that use this format'),
-
-  // Included on request
-  spec: z.string().nullable().optional().describe('Format specification (PEG grammar source, schema description, etc.)'),
-  readme: FileContentSchema.nullable().optional(),
-  preview: z.string().nullable().optional().describe('Preview OLX template'),
-  examples: z.record(z.string(), z.object({
-    path: z.string(),
-    content: z.string(),
-  })).optional(),
-});
-
-const GetFormatsOutput = z.object({
-  formats: z.array(FormatResultSchema),
-  total: z.number().describe('Total matching formats (before pagination)'),
 });
 
 const FORMAT_DEFAULT_LIMIT = 50;
