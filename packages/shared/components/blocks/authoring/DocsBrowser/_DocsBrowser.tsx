@@ -16,7 +16,7 @@
 
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
-import { useBlockDocs, useFormatDocs } from '@/lib/docs/useBlockDocs';
+import { useDocs, useFormats } from '@/lib/docs/useDocs';
 import { CATEGORY_ORDER } from '@/lib/docs/categoryUtils';
 import { useFieldState } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
@@ -90,8 +90,8 @@ function DocsSidebar({ props, selected, onSelect }: {
   selected: string | undefined;
   onSelect: (key: string) => void;
 }) {
-  const { blocks, loading, error } = useBlockDocs();
-  const { formats, loading: formatsLoading } = useFormatDocs();
+  const { blocks, loading, error } = useDocs('*');
+  const { formats, loading: formatsLoading } = useFormats('*');
   const [search, setSearch] = useFieldState(props, docsBrowserFields.docsSearch, '');
   const [categoryOverrides, setCategoryOverrides] = useFieldState(
     props, docsBrowserFields.docsCategoryOverrides, {} as Record<string, boolean>);

@@ -11,7 +11,7 @@
 import React from 'react';
 import type { RuntimeProps, FormatDocRecord } from '@/lib/types';
 import { asContentNamespace } from '@/lib/types/id-grammar';
-import { useFormatDocs } from '@/lib/docs/useBlockDocs';
+import { useFormats } from '@/lib/docs/useDocs';
 import { useFieldState } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
@@ -126,7 +126,7 @@ export function GrammarDocContent({ format, activeTab, onTabChange }: {
 /** Fetch one format's full documentation and render it — the grammar
  *  counterpart of BlockDocView, used by DocsBrowser's detail pane. */
 export function GrammarDocView({ props, name }: { props: RuntimeProps; name: string }) {
-  const { formats, loading, error } = useFormatDocs([name], ['readme', 'spec', 'preview', 'examples']);
+  const { formats, loading, error } = useFormats([name], ['readme', 'spec', 'preview', 'examples']);
   const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
 
   if (error) return <div className="text-error text-sm p-2">Failed to load grammar documentation: {error}</div>;

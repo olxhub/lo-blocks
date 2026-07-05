@@ -2,11 +2,11 @@
 // packages/shared/components/blocks/authoring/BlockIndex/_BlockIndex.tsx
 //
 // Renders the block listing: name (linked to its documentation page),
-// description, category chips. Data via useBlockDocs (get_blocks MCP).
+// description, category chips. Data via useDocs (get_blocks MCP).
 
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
-import { useBlockDocs } from '@/lib/docs/useBlockDocs';
+import { useDocs } from '@/lib/docs/useDocs';
 import Spinner from '@/components/common/Spinner';
 
 /** Split a comma-separated attribute into trimmed non-empty entries. */
@@ -16,10 +16,10 @@ function csv(value: unknown): string[] {
 }
 
 export default function _BlockIndex(props: RuntimeProps) {
-  // get_blocks OR-matches each filter entry against names and categories,
-  // so the two attributes combine into one filter list.
+  // `match` OR-matches each entry against names and categories, so the two
+  // attributes combine into one list.
   const filter = [...csv(props.categories), ...csv(props.blocks)];
-  const { blocks, loading, error } = useBlockDocs(filter.length ? filter : undefined);
+  const { blocks, loading, error } = useDocs(filter.length ? { match: filter } : '*');
 
   if (error) return <div className="text-error text-sm p-2">Failed to load block index: {error}</div>;
   if (loading) return <Spinner>Loading block index…</Spinner>;

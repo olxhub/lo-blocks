@@ -8,7 +8,8 @@
 // READMEs, sources, and example code.
 
 import React from 'react';
-import type { ContentNamespace } from '@/lib/types';
+import type { ContentNamespace, BlockDocRecord } from '@/lib/types';
+import type { AttributeDoc } from '@/lib/docs/schemaUtils';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
@@ -130,5 +131,159 @@ export function FileCard({ title, path, children }: {
       </div>
       {children}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Block interface: attributes and fields
+// ---------------------------------------------------------------------------
+
+// Authoring-time vs runtime — the distinction users asked about, as
+// hover help on the section labels.
+const ATTRIBUTES_HELP =
+  'Attributes configure a block when authoring OLX markup (e.g. title="…"). ' +
+  'They are fixed once written.';
+const FIELDS_HELP =
+  'Fields are the block’s runtime state — values that change as learners ' +
+  'interact (answers, scores, UI state). Not set in markup.';
+
+const GROUP_LABELS: Record<string, string> = {
+  base: 'Base attributes (all blocks)',
+  input: 'Input attributes',
+  grader: 'Grader attributes',
+};
+
+function HelpLabel({ text, help }: { text: string; help: string }) {
+  return (
+    <span className="cursor-help border-b border-dotted border-border" title={help}>
+      {text}
+    </span>
+  );
+}
+
+/** Block-specific attributes as a table; shared mixin attributes (base /
+ *  input / grader — whatever groups the data carries) as compact lines
+ *  with description mouseovers. Grouping comes from the wire (`group`,
+ *  computed where the mixin schemas live) — no client-side set matching. */
+export function AttributesSection({ attributes }: { attributes: AttributeDoc[] }) {
+  const own = attributes.filter(a => (a.group ?? 'own') === 'own');
+  const shared = Object.keys(GROUP_LABELS)
+    .map(group => ({ group, attrs: attributes.filter(a => a.group === group) }))
+    .filter(s => s.attrs.length > 0);
+  if (!attributes.length) return null;
+
+  return (
+    <section>
+      <h4 className="font-medium text-foreground mb-3">
+        <HelpLabel text="Attributes" help={ATTRIBUTES_HELP} />
+      </h4>
+      {own.length > 0 && (
+        <table className="w-full text-sm mb-4">
+          <thead>
+            <tr>
+              <th className="text-start py-2 pe-4 font-medium text-secondary">Name</th>
+              <th className="text-start py-2 pe-4 font-medium text-secondary">Type</th>
+              <th className="text-start py-2 font-medium text-secondary">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {own.map(attr => (
+              <tr key={attr.name} className="border-b border-border-subtle">
+                <td className="py-2 pe-4 align-top">
+                  <code className="text-accent">{attr.name}</code>
+                  {attr.required && <span className="text-error ms-1">*</span>}
+                </td>
+                <td className="py-2 pe-4 align-top">
+                  {attr.enumValues?.length
+                    ? attr.enumValues.map((v, i) => (
+                        <React.Fragment key={v}>
+                          {i > 0 && ' | '}
+                          <span className="text-success">"{v}"</span>
+                        </React.Fragment>
+                      ))
+                    : <span className="font-mono text-xs text-secondary">{attr.type}</span>}
+                </td>
+                <td className="py-2 text-secondary">
+                  {attr.description}
+                  {attr.default !== undefined && ` (default: ${JSON.stringify(attr.default)})`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <div className="space-y-1 text-sm text-dimmed">
+        {shared.map(({ group, attrs }) => (
+          <div key={group}>
+            <span className="font-medium">{GROUP_LABELS[group]}: </span>
+            {attrs.map((attr, i) => (
+              <span key={attr.name}>
+                {i > 0 && ', '}
+                <code
+                  className="text-secondary cursor-help border-b border-dotted border-border"
+                  title={attr.description || attr.name}
+                >
+                  {attr.name}
+                </code>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Fields as a compact line — the shape is open (the field system grows),
+ *  so render name plus whatever description a field carries. */
+export function FieldsSection({ fields }: { fields: Array<{ name: string } & Record<string, unknown>> }) {
+  if (!fields.length) return null;
+  return (
+    <section className="text-sm">
+      <span className="font-medium text-foreground me-2">
+        <HelpLabel text="Fields" help={FIELDS_HELP} />:
+      </span>
+      {fields.map((field, i) => (
+        <span key={field.name}>
+          {i > 0 && ', '}
+          <code
+            className="text-secondary cursor-help border-b border-dotted border-border"
+            title={typeof field.description === 'string' ? field.description : field.name}
+          >
+            {field.name}
+          </code>
+        </span>
+      ))}
+    </section>
+  );
+}
+
+/** The Quick Reference card: identity (tag, source, namespace), fields,
+ *  attributes — composed from the same sections the standalone
+ *  DocAttributes / DocFields blocks render. */
+export function BlockQuickReference({ block }: { block: BlockDocRecord }) {
+  const attributes = (block.attributes ?? []) as AttributeDoc[];
+  return (
+    <section className="bg-background rounded-lg border p-6 flex flex-col gap-5">
+      <h3 className="font-medium text-foreground">Quick Reference</h3>
+      <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
+        <dt className="text-dimmed">Block</dt>
+        <dd className="font-mono">&lt;{block.name}/&gt;</dd>
+        {block.source && (
+          <>
+            <dt className="text-dimmed">Source</dt>
+            <dd className="font-mono text-xs break-all">{block.source}</dd>
+          </>
+        )}
+        {block.namespace && (
+          <>
+            <dt className="text-dimmed">Namespace</dt>
+            <dd className="font-mono text-xs">{block.namespace}</dd>
+          </>
+        )}
+      </dl>
+      <FieldsSection fields={block.fields ?? []} />
+      <AttributesSection attributes={attributes} />
+    </section>
   );
 }

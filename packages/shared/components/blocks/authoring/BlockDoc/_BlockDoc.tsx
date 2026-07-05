@@ -13,14 +13,13 @@
 
 import React from 'react';
 import type { RuntimeProps, BlockDocRecord } from '@/lib/types';
-import { useBlockDocs } from '@/lib/docs/useBlockDocs';
+import { useDocs } from '@/lib/docs/useDocs';
 import { asContentNamespace } from '@/lib/types/id-grammar';
 import { useFieldState } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
-import type { AttributeDoc } from '@/lib/docs/schemaUtils';
-import { DocHeader, DocTabs, LivePreviewPanel, FileCard } from './docPanels';
+import { DocHeader, DocTabs, LivePreviewPanel, FileCard, BlockQuickReference } from './docPanels';
 import { blockDocFields } from './locals';
 
 // ---------------------------------------------------------------------------
@@ -36,53 +35,6 @@ function buildTabs(block: BlockDocRecord, examples: ExampleEntry[]) {
     tabs.push({ id: `example:${filename}`, label: filename.replace(/\.olx$/, '') });
   }
   return tabs;
-}
-
-// ---------------------------------------------------------------------------
-// Quick reference (attribute table)
-// ---------------------------------------------------------------------------
-
-function QuickReference({ attributes }: { attributes: AttributeDoc[] }) {
-  return (
-    <section className="bg-background rounded-lg border p-6">
-      <h3 className="font-medium text-foreground mb-3">Quick Reference</h3>
-      <table className="w-full text-sm mb-4">
-        <thead>
-          <tr>
-            <th className="text-start py-2 pe-4 font-medium text-secondary">Name</th>
-            <th className="text-start py-2 pe-4 font-medium text-secondary">Type</th>
-            <th className="text-start py-2 pe-4 font-medium text-secondary">Required</th>
-            <th className="text-start py-2 font-medium text-secondary">Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {attributes.map(attr => (
-            <tr key={attr.name} className="border-b border-border-subtle">
-              <td className="py-2 pe-4">
-                <code className="text-accent">{attr.name}</code>
-                {attr.required && <span className="text-error ms-1">*</span>}
-              </td>
-              <td className="py-2 pe-4">
-                {attr.enumValues?.length
-                  ? attr.enumValues.map((v, i) => (
-                      <React.Fragment key={v}>
-                        {i > 0 && ' | '}
-                        <span className="text-success">"{v}"</span>
-                      </React.Fragment>
-                    ))
-                  : <span className="font-mono text-xs text-secondary">{attr.type}</span>}
-              </td>
-              <td className="py-2 pe-4 text-secondary">{attr.required ? 'Yes' : '—'}</td>
-              <td className="py-2 text-secondary">
-                {attr.description}
-                {attr.default !== undefined && ` (default: ${JSON.stringify(attr.default)})`}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -114,13 +66,13 @@ function ExamplePreview({ filename, content, rootId, ns, showMoreCount }: {
 // Tab content
 // ---------------------------------------------------------------------------
 
-function OverviewTab({ block, attributes, examples, ns }: {
-  block: BlockDocRecord; attributes: AttributeDoc[]; examples: ExampleEntry[]; ns: ReturnType<typeof asContentNamespace>;
+function OverviewTab({ block, examples, ns }: {
+  block: BlockDocRecord; examples: ExampleEntry[]; ns: ReturnType<typeof asContentNamespace>;
 }) {
   const [firstFilename, firstExample] = examples[0] ?? [];
   return (
     <div className="p-6 flex flex-col gap-4">
-      {attributes.length > 0 && <QuickReference attributes={attributes} />}
+      <BlockQuickReference block={block} />
       {firstExample && (
         <ExamplePreview
           filename={firstFilename}
@@ -171,7 +123,6 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
   onTabChange: (id: string) => void;
 }) {
   const ns = asContentNamespace(`docs.${block.name}`);
-  const attributes = (block.attributes as AttributeDoc[] | null | undefined) ?? [];
   const examples = Object.entries(block.examples ?? {})
     .filter(([filename]) => !filename.endsWith('.includes.olx')) as ExampleEntry[];
 
@@ -187,7 +138,7 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
       />
       <DocTabs tabs={tabs} active={currentTab} onSelect={onTabChange} />
       {currentTab === 'overview' && (
-        <OverviewTab block={block} attributes={attributes} examples={examples} ns={ns} />
+        <OverviewTab block={block} examples={examples} ns={ns} />
       )}
       {currentTab === 'readme' && <ReadmeTab block={block} ns={ns} />}
       {currentTab.startsWith('example:') && (() => {
@@ -209,7 +160,7 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
  *  BlockDoc block (below) and DocsBrowser's detail pane. Tab state lives in
  *  the caller's docTab field (keyed by `props`). */
 export function BlockDocView({ props, name }: { props: RuntimeProps; name: string }) {
-  const { blocks, loading, error } = useBlockDocs([name], ['readme', 'examples', 'attributes']);
+  const { blocks, loading, error } = useDocs([name], ['readme', 'examples', 'attributes', 'fields']);
   const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
 
   if (error) return <div className="text-error text-sm p-2">Failed to load block documentation: {error}</div>;

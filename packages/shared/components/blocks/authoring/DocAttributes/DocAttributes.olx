@@ -1,0 +1,4 @@
+<Vertical id="DocAttributesDemo">
+  <Markdown>For example, `CapaProblem` has the following attributes:</Markdown>
+  <DocAttributes block="CapaProblem"/>
+</Vertical>
