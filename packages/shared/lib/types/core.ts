@@ -775,6 +775,12 @@ export interface LoBlock {
    *  React never sees an element-type swap mid-session, which would unmount
    *  and lose local UI state. Owned by resolveBlockComponent(). */
   _resolvedComponent?: React.ComponentType<any>;
+  /** Internal: ensureReady completed successfully — later renders skip the
+   *  dependency gate. Owned by useBlocksReady(). */
+  _ensureReadyDone?: boolean;
+  /** Internal: ensureReady settled (even on failure) — releases the gate so
+   *  requireCalc's retriable path owns the error instead of a stuck spinner. */
+  _ensureReadySettled?: boolean;
   _isBlock: true;
   action?: Function;
   parser?: Function;
