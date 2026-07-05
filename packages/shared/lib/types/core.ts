@@ -1607,6 +1607,7 @@ export interface BlockDocRecord {
   namespace?: string;
   isInput?: boolean;
   isGrader?: boolean;
+  internal?: boolean;
   attributes?: Array<Record<string, unknown>> | null;
   /** Open shape — the field system will grow; tolerate unknown keys. */
   fields?: Array<{ name: string } & Record<string, unknown>>;

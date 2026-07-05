@@ -150,13 +150,15 @@ export function fetchDocs(kind: DocsKind, opts: {
   listingKey?: string;
   filter?: string[];
   facets: string[];
+  internal?: boolean;
 }): void {
-  const { names, listingKey, filter, facets } = opts;
+  const { names, listingKey, filter, facets, internal } = opts;
   lo_event.logEvent(DOCS_LOADING, { kind, names: names ?? [], facets, listingKey });
 
   const args: Record<string, unknown> = {
     ...(names ? { filter: names } : filter?.length ? { filter } : {}),
     ...(facets.length ? { include: facets } : {}),
+    ...(internal ? { internal: true } : {}),
   };
 
   callMcpTool<unknown>(TOOL[kind], args, { retry: true })

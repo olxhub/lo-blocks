@@ -59,9 +59,10 @@ function normalizeSelector(selector: DocsSelector): {
   names: string[] | null;          // known upfront (array form)
   listingKey: string | null;       // cache key for query forms
   filter: string[] | undefined;    // MCP filter for query forms
+  internal: boolean;
 } {
   if (Array.isArray(selector)) {
-    return { names: selector, listingKey: null, filter: undefined };
+    return { names: selector, listingKey: null, filter: undefined, internal: false };
   }
   const query = selector === '*' ? {} : selector;
   const filter = [
@@ -69,9 +70,10 @@ function normalizeSelector(selector: DocsSelector): {
     ...(query.categories ?? []),
     ...(query.match ?? []),
   ];
+  const internal = query.internal ?? false;
   // Key on the normalized query object so equivalent queries share a listing.
-  const listingKey = JSON.stringify({ filter: [...filter].sort(), internal: query.internal ?? false });
-  return { names: null, listingKey, filter: filter.length ? filter : undefined };
+  const listingKey = JSON.stringify({ filter: [...filter].sort(), internal });
+  return { names: null, listingKey, filter: filter.length ? filter : undefined, internal };
 }
 
 function useDocsKind<Record extends { name: string }>(
@@ -85,7 +87,7 @@ function useDocsKind<Record extends { name: string }>(
     (state: RootState) => selectDocsStore(state, kind),
   ) as unknown as DocsKindStore<Record> | undefined;
 
-  const { names: selectorNames, listingKey, filter } = normalizeSelector(selector);
+  const { names: selectorNames, listingKey, filter, internal } = normalizeSelector(selector);
   const listing = listingKey ? store?.listings[listingKey] : undefined;
 
   // Names this request covers: the array form, or whatever the listing
@@ -108,7 +110,7 @@ function useDocsKind<Record extends { name: string }>(
       const guard = `${kind}:listing:${listingKey}:${facetsKey}`;
       if (!requested.has(guard)) {
         requested.add(guard);
-        fetchDocs(kind, { listingKey: listingKey!, filter, facets });
+        fetchDocs(kind, { listingKey: listingKey!, filter, facets, internal });
       }
       return;
     }

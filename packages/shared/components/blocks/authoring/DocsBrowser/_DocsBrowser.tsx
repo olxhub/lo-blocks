@@ -41,7 +41,7 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
-type SidebarEntry = { key: string; label: string };
+type SidebarEntry = { key: string; label: string; internal?: boolean };
 type SidebarCategory = { name: string; entries: SidebarEntry[] };
 
 function CategorySection({ category, expanded, onToggle, selected, onSelect }: {
@@ -77,6 +77,9 @@ function CategorySection({ category, expanded, onToggle, selected, onSelect }: {
               }`}
             >
               {entry.label}
+              {entry.internal && (
+                <span className="text-[10px] text-dimmed border border-border rounded px-1">internal</span>
+              )}
             </button>
           ))}
         </div>
@@ -90,7 +93,12 @@ function DocsSidebar({ props, selected, onSelect }: {
   selected: string | undefined;
   onSelect: (key: string) => void;
 }) {
-  const { blocks, loading, error } = useDocs('*');
+  // Field-overrideable attribute: internal= is the authored default, the
+  // checkbox below writes the per-user field override.
+  const [showInternal, setShowInternal] = useFieldState(
+    props, docsBrowserFields.docsShowInternal,
+    props.internal === true || props.internal === 'true');
+  const { blocks, loading, error } = useDocs(showInternal ? { internal: true } : '*');
   const { formats, loading: formatsLoading } = useFormats('*');
   const [search, setSearch] = useFieldState(props, docsBrowserFields.docsSearch, '');
   const [categoryOverrides, setCategoryOverrides] = useFieldState(
@@ -108,7 +116,7 @@ function DocsSidebar({ props, selected, onSelect }: {
   for (const b of blocks) {
     if (!matches(b.name, b.description)) continue;
     const category = b.categories[0] ?? 'Other';
-    (grouped[category] ??= []).push({ key: b.name, label: b.name });
+    (grouped[category] ??= []).push({ key: b.name, label: b.name, internal: b.internal });
   }
   const categories: SidebarCategory[] = [
     ...CATEGORY_ORDER.filter(c => grouped[c]),
@@ -160,6 +168,14 @@ function DocsSidebar({ props, selected, onSelect }: {
           />
         ))}
       </nav>
+      <label className="flex items-center gap-2 px-3 py-2 border-t border-border text-xs text-dimmed cursor-pointer">
+        <input
+          type="checkbox"
+          checked={showInternal}
+          onChange={e => setShowInternal(e.target.checked)}
+        />
+        Show internal blocks
+      </label>
     </>
   );
 }

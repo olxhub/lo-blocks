@@ -13,6 +13,7 @@
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
 import { blockDocFields } from '../BlockDoc/locals';
 import { docsBrowserFields } from './locals';
@@ -25,6 +26,9 @@ const DocsBrowser = dev({
   requiresUniqueId: false,
   attributes: z.object({
     selected: z.string().optional().describe('Block name whose documentation shows in the main pane'),
+    internal: z_olx_boolean.optional().describe(
+      'Show internal/system blocks by default — the authored default for ' +
+      'the sidebar\'s "internal blocks" toggle (a field overrides it per user)'),
   }).strict(),
   // Extends BlockDoc's docTab field (not just docsBrowserFields) — the
   // detail pane reuses BlockDocContent, which needs a docTab field on

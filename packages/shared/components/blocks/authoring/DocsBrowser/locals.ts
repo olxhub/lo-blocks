@@ -22,4 +22,8 @@ export const docsBrowserFields = state.fields([
   'docsSearch',
   'docsSidebarCollapsed',
   'docsCategoryOverrides',
+  // Show internal/system blocks. Field-overrideable attribute: the
+  // internal= attribute is the authored default, this field is the user's
+  // per-session override (sidebar checkbox).
+  'docsShowInternal',
 ]);

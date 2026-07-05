@@ -49,6 +49,9 @@ const GetBlocksInput = z.object({
     'Additional detail to include per block. ' +
     'Without this, only name/description/categories are returned.',
   ),
+  internal: z.boolean().optional().describe(
+    'Include internal/system blocks in unfiltered listings (default false). ' +
+    'Explicit filter matches always include internal blocks.'),
   limit: z.number().int().min(0).max(500).optional().describe('Max blocks to return (default 300)'),
   offset: z.number().int().min(0).optional().describe('Number of blocks to skip (default 0)'),
 });
@@ -118,7 +121,7 @@ const DEFAULT_LIMIT = 300;
 async function getBlocks(
   args: z.infer<typeof GetBlocksInput>,
 ): Promise<z.infer<typeof GetBlocksOutput>> {
-  const { filter, include, limit = DEFAULT_LIMIT, offset = 0 } = args;
+  const { filter, include, internal = false, limit = DEFAULT_LIMIT, offset = 0 } = args;
   const includeSet = new Set(include ?? []);
 
   // -- Collect all blocks with their categories ----------------------------
@@ -144,8 +147,8 @@ async function getBlocks(
       (e) => filterSet.has(normalize(e.name)) || e.categories.some((c) => filterSet.has(normalize(c))),
     );
   } else {
-    // No filter → all non-internal blocks
-    matched = allEntries.filter((e) => !e.block.internal);
+    // No filter → all blocks, minus internal unless asked for
+    matched = internal ? allEntries : allEntries.filter((e) => !e.block.internal);
   }
 
   // -- Sort & paginate -----------------------------------------------------
@@ -165,6 +168,7 @@ async function getBlocks(
       namespace: block.namespace,
       isInput: block.isInput,
       isGrader: block.isGrader,
+      internal: !!block.internal,
     };
 
     if (includeSet.has('attributes')) {

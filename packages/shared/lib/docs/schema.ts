@@ -40,6 +40,7 @@ export const BlockResultSchema = z.object({
   namespace: z.string().optional().describe('Block namespace (e.g. "olx")'),
   isInput: z.boolean().optional(),
   isGrader: z.boolean().optional(),
+  internal: z.boolean().optional().describe('Internal/system block (hidden from default listings)'),
 
   // Included on request
   attributes: z.array(AttributeDocSchema).nullable().optional(),
