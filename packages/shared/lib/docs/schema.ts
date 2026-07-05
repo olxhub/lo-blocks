@@ -36,10 +36,16 @@ export const BlockResultSchema = z.object({
   name: OLXTagSchema,
   description: z.string().nullable(),
   categories: z.array(z.string()).describe('All categories this block belongs to'),
+  source: z.string().nullable().optional().describe('Blueprint file path'),
+  namespace: z.string().optional().describe('Block namespace (e.g. "olx")'),
+  isInput: z.boolean().optional(),
+  isGrader: z.boolean().optional(),
 
   // Included on request
   attributes: z.array(AttributeDocSchema).nullable().optional(),
-  fields: z.array(z.string()).optional(),
+  // Open shape: the field system will grow (server-side fields, aggregating
+  // fields, field types) — consumers must tolerate unknown keys.
+  fields: z.array(z.object({ name: z.string() }).passthrough()).optional(),
   template: z.string().nullable().optional().describe('Editor insert template (bare block)'),
   demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
   readme: FileContentSchema.nullable().optional(),

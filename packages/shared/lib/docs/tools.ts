@@ -161,13 +161,18 @@ async function getBlocks(
       name,
       description: block.description || null,
       categories,
+      source: block.source || null,
+      namespace: block.namespace,
+      isInput: block.isInput,
+      isGrader: block.isGrader,
     };
 
     if (includeSet.has('attributes')) {
       entry.attributes = extractAttributes(block.attributes);
     }
     if (includeSet.has('fields')) {
-      entry.fields = Object.keys(block.fields || {});
+      // Open per-field shape — grows with the field system (see schema.ts).
+      entry.fields = Object.keys(block.fields || {}).map(name => ({ name }));
     }
     if (includeSet.has('template')) {
       // block.template is a key into block.examples (set by generateBlockRegistry.js)

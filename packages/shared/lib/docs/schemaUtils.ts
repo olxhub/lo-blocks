@@ -3,6 +3,22 @@
 // Utilities for extracting documentation-friendly information from Zod schemas.
 //
 import { z } from 'zod';
+import { baseAttributes, inputAttributes, graderAttributes } from '@/lib/blocks/attributeSchemas';
+
+// Mixin membership for attribute grouping — derived from the actual mixin
+// shapes so the docs can never drift from the factory's composition.
+const ATTRIBUTE_GROUPS: Array<[group: 'base' | 'input' | 'grader', names: Set<string>]> = [
+  ['base', new Set(Object.keys(baseAttributes.shape))],
+  ['input', new Set(Object.keys(inputAttributes.shape))],
+  ['grader', new Set(Object.keys(graderAttributes.shape))],
+];
+
+function attributeGroup(name: string): 'own' | 'base' | 'input' | 'grader' {
+  for (const [group, names] of ATTRIBUTE_GROUPS) {
+    if (names.has(name)) return group;
+  }
+  return 'own';
+}
 
 /** Attribute documentation extracted from a block's Zod schema. */
 export const AttributeDocSchema = z.object({
@@ -12,6 +28,9 @@ export const AttributeDocSchema = z.object({
   description: z.string().optional(),
   enumValues: z.array(z.string()).optional().describe('Allowed values for enum types'),
   default: z.unknown().optional(),
+  group: z.enum(['own', 'base', 'input', 'grader']).optional().describe(
+    'Where the attribute comes from: block-specific ("own") or a shared ' +
+    'mixin (base/input/grader). Computed where the mixin schemas live.'),
 });
 
 export type AttributeDoc = z.infer<typeof AttributeDocSchema>;
@@ -130,6 +149,7 @@ export function extractAttributes(schema: z.ZodTypeAny | undefined): AttributeDo
       description,
       enumValues,
       default: defaultValue,
+      group: attributeGroup(name),
     });
   }
 
