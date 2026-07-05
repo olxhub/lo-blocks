@@ -100,11 +100,15 @@ export function docsReducer(state: DocsState = initialDocsState, action: any): D
       for (const record of records) {
         merged[record.name] = { ...merged[record.name], ...record };
       }
+      // Mark requested names too, not just returned ones: a name with no
+      // documentation gets 'ready' with no record — callers reach their
+      // "not found" branch instead of spinning forever.
+      const covered = [...new Set([...names, ...(action.names ?? [])])];
       return {
         ...state,
         [kind]: {
           records: merged,
-          have: markFacets(store.have, names, [DESCRIPTOR, ...facets], 'ready'),
+          have: markFacets(store.have, covered, [DESCRIPTOR, ...facets], 'ready'),
           listings: action.listingKey
             ? { ...store.listings, [action.listingKey]: { names, status: 'ready' } }
             : store.listings,
@@ -167,6 +171,7 @@ export function fetchDocs(kind: DocsKind, opts: {
       lo_event.logEvent(DOCS_LOADED, {
         kind,
         records: parsed[RECORDS_KEY[kind]],
+        names: names ?? [],   // requested names — marked ready even if absent
         facets,
         listingKey,
       });

@@ -32,19 +32,19 @@ export function DocsPanel({ filePath, content, docsData, onInsert }: DocsPanelPr
     <div className="sidebar-panel docs-panel">
       <div className="sidebar-panel-header">Documentation</div>
       <div className="docs-list">
-        <a href="/docs/" target="_blank" className="docs-link">Full Documentation</a>
+        <a href="/docs" target="_blank" className="docs-link">Full Documentation</a>
 
         {/* File-type specific docs */}
         {/* TODO: Add general PEG syntax guide page. For now, link to specific grammars. */}
         {docType === 'peg' && (
           <div className="docs-section-links">
-            <a href="/docs#Chat" target="_blank" className="docs-item">ChatPEG Format</a>
+            <a href="/docs/Chat" target="_blank" className="docs-item">ChatPEG Format</a>
           </div>
         )}
 
         {docType === 'markdown' && (
           <div className="docs-section-links">
-            <a href="/docs#Markdown" target="_blank" className="docs-item">Markdown Block</a>
+            <a href="/docs/Markdown" target="_blank" className="docs-item">Markdown Block</a>
           </div>
         )}
 

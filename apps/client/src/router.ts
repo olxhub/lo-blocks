@@ -13,7 +13,10 @@ export type Route =
   | { page: 'docs'; block?: string }
   | { page: 'notFound'; path: string; reason?: string; detail?: string };
 
-export function resolveRoute(pathname: string): Route {
+export function resolveRoute(rawPathname: string): Route {
+  // Trailing slashes never distinguish routes here — "/docs/" is "/docs".
+  const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, '') : rawPathname;
+
   // /repo/:encodedOrigin — full repository detail view
   const repoMatch = pathname.match(/^\/repo\/(.+)$/);
   if (repoMatch) {

@@ -30,9 +30,10 @@ export default defineConfig({
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(''),
   },
   optimizeDeps: {
-    // Deps reached only through lazy componentLoader chunks. Without
-    // pre-bundling, Vite discovers them mid-session on first render of the
-    // block, re-optimizes, and every already-loaded dep URL 504s
+    // Deps reached only through lazy componentLoader chunks (i18next enters
+    // via blockI18n.ts inside lazy block components — not the eager graph).
+    // Without pre-bundling, Vite discovers them mid-session on first render
+    // of the block, re-optimizes, and every already-loaded dep URL 504s
     // ("Outdated Optimize Dep") — dynamic block imports then fail until a
     // hard reload.
     include: [
@@ -45,7 +46,6 @@ export default defineConfig({
       'dagre',
       'peggy',
       'crypto-js',
-      'lodash-es',
       '@observablehq/plot',
       '@xyflow/react',
       '@dicebear/core',

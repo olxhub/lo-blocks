@@ -150,7 +150,7 @@ function ExpandableBlockDoc({ name, block, onInsert, isGrammar, extension }: Exp
 
           {/* Link to full docs */}
           <a
-            href={`/docs#${name}`}
+            href={`/docs/${name}`}
             target="_blank"
             rel="noopener noreferrer"
             className="expandable-block-item__link"
