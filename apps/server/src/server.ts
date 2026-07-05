@@ -37,6 +37,12 @@ import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
+import { handleActivities } from './routes/activities.js';
+import { handleShutdown } from './routes/admin.js';
+import { handleFileGet, handleFilePost, handleFileDelete, handleFilePut } from './routes/file.js';
+import { handleFilesGet } from './routes/files.js';
+import { handleGrep } from './routes/grep.js';
+import { handleSourcesGet } from './routes/sources.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
@@ -50,7 +56,12 @@ const WS_PATH = '/wsapi/in/';
 // server (i.e. not '/' and not one of SERVER_PREFIXES) during the migration.
 // The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
 // transport) — there is no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/repo/', '/docs'];
+const SERVER_PREFIXES = [
+  '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
+  '/api/activities', '/api/admin/', '/api/file', '/api/files',
+  '/api/grep', '/api/sources',
+  '/assets/', '/preview/', '/repo/', '/docs',
+];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -83,6 +94,15 @@ export async function startServer(
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
+  app.get('/api/activities', handleActivities);
+  app.get('/api/admin/shutdown', handleShutdown);
+  app.get('/api/file', handleFileGet);
+  app.post('/api/file', handleFilePost);
+  app.delete('/api/file', handleFileDelete);
+  app.put('/api/file', handleFilePut);
+  app.get('/api/files', handleFilesGet);
+  app.get('/api/grep', handleGrep);
+  app.get('/api/sources', handleSourcesGet);
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
