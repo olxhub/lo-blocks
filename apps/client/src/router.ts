@@ -4,15 +4,19 @@
 // Add routes here as they migrate from Next.js.
 //
 import type { StateKey } from '@/lib/types';
-import { asStateKey, validateStateKey } from '@/lib/types/id-grammar';
+import { asStateKey, validateStateKey, validateOLXTag } from '@/lib/types/id-grammar';
 
 export type Route =
   | { page: 'preview'; id: StateKey }
   | { page: 'catalog' }
   | { page: 'repo'; origin: string }
+  | { page: 'docs'; block?: string }
   | { page: 'notFound'; path: string; reason?: string; detail?: string };
 
-export function resolveRoute(pathname: string): Route {
+export function resolveRoute(rawPathname: string): Route {
+  // Trailing slashes never distinguish routes here — "/docs/" is "/docs".
+  const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, '') : rawPathname;
+
   // /repo/:encodedOrigin — full repository detail view
   const repoMatch = pathname.match(/^\/repo\/(.+)$/);
   if (repoMatch) {
@@ -26,6 +30,25 @@ export function resolveRoute(pathname: string): Route {
   // Catalog — the author front page.
   if (pathname === '/') {
     return { page: 'catalog' };
+  }
+
+  // /docs — block documentation index; /docs/:BlockName — one block's docs.
+  if (pathname === '/docs') {
+    return { page: 'docs' };
+  }
+  const docsMatch = pathname.match(/^\/docs\/(.+)$/);
+  if (docsMatch) {
+    const tag = decodeURIComponent(docsMatch[1]);
+    const valid = validateOLXTag(tag);
+    if (valid !== true) {
+      return {
+        page: 'notFound',
+        path: pathname,
+        reason: `This doesn't look like a block name. Block names are PascalCase, like /docs/Markdown.`,
+        detail: valid,
+      };
+    }
+    return { page: 'docs', block: tag };
   }
 
   // /preview/:id

@@ -21,6 +21,7 @@
 import { updateResponseReducer } from './state/store';
 import { initialOlxJsonState } from './state/olxjson';
 import { initialCatalogState } from './state/catalog';
+import { initialDocsState } from './state/docs';
 import type { AppState } from './types';
 
 /**
@@ -95,6 +96,7 @@ export const initialReplayState: AppState = {
   olxjson: initialOlxJsonState,
   chat: {},
   catalog: initialCatalogState,
+  docs: initialDocsState,
 };
 
 /**

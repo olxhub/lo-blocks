@@ -29,6 +29,35 @@ export default defineConfig({
   define: {
     'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(''),
   },
+  optimizeDeps: {
+    // Deps reached only through lazy componentLoader chunks (i18next enters
+    // via blockI18n.ts inside lazy block components — not the eager graph).
+    // Without pre-bundling, Vite discovers them mid-session on first render
+    // of the block, re-optimizes, and every already-loaded dep URL 504s
+    // ("Outdated Optimize Dep") — dynamic block imports then fail until a
+    // hard reload.
+    include: [
+      'i18next',
+      'react-i18next',
+      'mathjs',
+      'mermaid',
+      'katex',
+      'liquidjs',
+      'dagre',
+      'peggy',
+      'crypto-js',
+      '@observablehq/plot',
+      '@xyflow/react',
+      '@dicebear/core',
+      '@dicebear/open-peeps',
+      'codemirror',
+      '@uiw/react-codemirror',
+      '@codemirror/lang-markdown',
+      '@codemirror/lang-xml',
+      '@codemirror/lang-yaml',
+      'react-split',
+    ],
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

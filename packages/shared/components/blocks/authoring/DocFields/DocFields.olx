@@ -1,0 +1,4 @@
+<Vertical id="DocFieldsDemo">
+  <Markdown>`TextInput` keeps the following runtime state:</Markdown>
+  <DocFields block="TextInput"/>
+</Vertical>

@@ -775,6 +775,12 @@ export interface LoBlock {
    *  React never sees an element-type swap mid-session, which would unmount
    *  and lose local UI state. Owned by resolveBlockComponent(). */
   _resolvedComponent?: React.ComponentType<any>;
+  /** Internal: ensureReady completed successfully — later renders skip the
+   *  dependency gate. Owned by useBlocksReady(). */
+  _ensureReadyDone?: boolean;
+  /** Internal: ensureReady settled (even on failure) — releases the gate so
+   *  requireCalc's retriable path owns the error instead of a stuck spinner. */
+  _ensureReadySettled?: boolean;
   _isBlock: true;
   action?: Function;
   parser?: Function;
@@ -1585,6 +1591,89 @@ export interface CatalogState {
   [argsKey: string]: CatalogEntry;
 }
 
+/**
+ * One block's documentation record from the get_blocks MCP tool.
+ *
+ * Structural mirror of BlockResultSchema in lib/docs/tools.ts (the wire
+ * schema owns validation; this is the at-rest shape). name/description/
+ * categories are always present; the rest appear when requested via the
+ * tool's `include` parameter.
+ */
+export interface BlockDocRecord {
+  name: string;
+  description: string | null;
+  categories: string[];
+  source?: string | null;
+  namespace?: string;
+  isInput?: boolean;
+  isGrader?: boolean;
+  internal?: boolean;
+  attributes?: Array<Record<string, unknown>> | null;
+  /** Open shape — the field system will grow; tolerate unknown keys. */
+  fields?: Array<{ name: string } & Record<string, unknown>>;
+  template?: string | null;
+  demo?: string | null;
+  readme?: { path: string; content: string } | null;
+  examples?: Record<string, {
+    path: string;
+    content: string;
+    gitStatus: string | null;
+    /** DefinitionKey of the indexed top-level block — see ExampleSchema. */
+    rootId?: string | null;
+  }>;
+  formats?: string[];
+}
+
+/**
+ * One content format's documentation record from the get_formats MCP tool
+ * (PEG grammars, YAML schemas). Structural mirror of FormatResultSchema in
+ * lib/docs/schema.ts, same at-rest/wire split as BlockDocRecord.
+ */
+export interface FormatDocRecord {
+  name: string;
+  type: 'peg' | 'yaml';
+  extension: string | null;
+  description: string | null;
+  source: string | null;
+  blocks: string[];
+  spec?: string | null;
+  readme?: { path: string; content: string } | null;
+  preview?: string | null;
+  examples?: Record<string, { path: string; content: string }>;
+}
+
+/** Documentation record kinds — blocks (get_blocks) and content formats
+ *  (get_formats). One normalized cache shape serves both. */
+export type DocsKind = 'block' | 'format';
+
+export type DocsFacetStatus = 'loading' | 'ready' | 'error';
+
+/** Normalized per-kind documentation cache:
+ *  - records: merged per-name records — facets accumulate as they arrive
+ *    (the wire shape is flat, so merge is a spread)
+ *  - have: per-name facet status; the implicit 'descriptor' facet marks
+ *    the base fields every response carries
+ *  - listings: what a query ('*', category filter, …) resolved to */
+export interface DocsKindStore<Record> {
+  records: { [name: string]: Record };
+  have: { [name: string]: { [facet: string]: DocsFacetStatus } };
+  listings: {
+    [listingKey: string]: {
+      names: string[] | null;
+      status: LoadingStatus;
+      error?: { message: string };
+    };
+  };
+}
+
+/** The documentation slice. The normalized (name × facet) shape is the
+ *  createContentSlice design candidate — state/catalog.ts (the older
+ *  query-keyed twin) migrates onto it once this has soaked. */
+export interface DocsState {
+  block: DocsKindStore<BlockDocRecord>;
+  format: DocsKindStore<FormatDocRecord>;
+}
+
 // ---------------------------------------------------------------------------
 // AppState / RootState — the assembled store.
 // ---------------------------------------------------------------------------
@@ -1608,6 +1697,9 @@ export interface AppState {
   chat: Record<string, { messages: ChatMessage[]; status: string }>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
+  /** Block documentation (get_blocks results). Interim — converges with
+   *  catalog into the planned content-slice abstraction. */
+  docs: DocsState;
 }
 
 /** Full Redux store shape. lo_event's reduxLogger wraps the reducer output

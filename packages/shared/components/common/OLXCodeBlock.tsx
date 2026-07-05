@@ -69,7 +69,10 @@ function OLXCodeView({ code }) {
  */
 function OLXRenderView({ code, ns }: { code: string; ns: ContentNamespace }) {
   const uniqueId = useId();
-  const bareId = `_embed_${uniqueId.replace(/:/g, '_')}`;
+  // No leading underscore: this id lands in authored OLX (the inline
+  // wrapper), and the id grammar reserves leading "_" for system-assigned
+  // refs — parse rejects it with a DisplayError on every embed.
+  const bareId = `embed_${uniqueId.replace(/[^a-zA-Z0-9_]/g, '_')}`;
   const rootId = `${ns}/${bareId}`;
 
   // Wrap in a root element with known ID
@@ -92,7 +95,8 @@ function OLXRenderView({ code, ns }: { code: string; ns: ContentNamespace }) {
 function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns: ContentNamespace }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
-  const bareId = `_playground_${uniqueId.replace(/:/g, '_')}`;
+  // No leading underscore — see OLXRenderView's bareId note.
+  const bareId = `playground_${uniqueId.replace(/[^a-zA-Z0-9_]/g, '_')}`;
   // See OLXRenderView for namespace semantics.
   const rootId = `${ns}/${bareId}`;
 

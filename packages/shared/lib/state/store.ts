@@ -52,6 +52,11 @@ import {
   CATALOG_EVENT_TYPES,
   initialCatalogState,
 } from './catalog';
+import {
+  docsReducer,
+  DOCS_EVENT_TYPES,
+  initialDocsState,
+} from './docs';
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
 export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
@@ -166,6 +171,7 @@ const initialState: AppState = {
   olxjson: initialOlxJsonState,
   chat: {},
   catalog: initialCatalogState,
+  docs: initialDocsState,
 };
 
 
@@ -232,6 +238,14 @@ export const updateResponseReducer = (state = initialState, action) => {
     return {
       ...state,
       catalog: catalogReducer(state.catalog, { ...action, type: eventType }),
+    };
+  }
+
+  // Handle docs events (MCP-sourced block documentation) — catalog's twin.
+  if (DOCS_EVENT_TYPES.includes(eventType)) {
+    return {
+      ...state,
+      docs: docsReducer(state.docs, { ...action, type: eventType }),
     };
   }
 
@@ -443,6 +457,7 @@ function collectEventTypes(
     ...OLXJSON_EVENT_TYPES,
     ...CHAT_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
+    ...DOCS_EVENT_TYPES,
   ]));
 }
 

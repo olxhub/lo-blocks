@@ -50,7 +50,7 @@ const WS_PATH = '/wsapi/in/';
 // server (i.e. not '/' and not one of SERVER_PREFIXES) during the migration.
 // The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
 // transport) — there is no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
-const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/repo/'];
+const SERVER_PREFIXES = ['/api/olxjson', '/api/config', '/api/translate', '/api/llm/', '/assets/', '/preview/', '/repo/', '/docs'];
 
 // Symbols for annotating request objects between middleware stages
 const PENDING_COOKIE = Symbol('pendingSessionCookie');
@@ -116,6 +116,8 @@ export async function startServer(
   app.get('/', spaIndex);
   app.get('/preview/*', spaIndex);
   app.get('/repo/*', spaIndex);
+  app.get('/docs', spaIndex);
+  app.get('/docs/*', spaIndex);
 
   const honoHandler = getRequestListener(app.fetch);
 

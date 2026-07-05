@@ -49,46 +49,53 @@ const GetBlocksInput = z.object({
     'Additional detail to include per block. ' +
     'Without this, only name/description/categories are returned.',
   ),
+  internal: z.boolean().optional().describe(
+    'Include internal/system blocks in unfiltered listings (default false). ' +
+    'Explicit filter matches always include internal blocks.'),
   limit: z.number().int().min(0).max(500).optional().describe('Max blocks to return (default 300)'),
   offset: z.number().int().min(0).optional().describe('Number of blocks to skip (default 0)'),
 });
 
 // -- Output -----------------------------------------------------------------
+//
+// Wire schemas live in schema.ts (browser-safe — the client docs slice
+// validates against them; this module reads files and must stay server-side).
+import {
+  FileContentSchema, ExampleSchema, BlockResultSchema, GetBlocksOutput,
+  FormatType, FormatResultSchema, GetFormatsOutput,
+} from './schema';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 
-/** File content with its path. */
-const FileContentSchema = z.object({
-  path: z.string().describe('Path relative to project root'),
-  content: z.string().describe('File content (UTF-8)'),
-});
+// ---------------------------------------------------------------------------
+// Example root ids — the content index already has every example parsed
+// ---------------------------------------------------------------------------
 
-/** Example file with content and metadata (value in examples dict). */
-const ExampleSchema = z.object({
-  path: z.string().describe('Path relative to project root'),
-  content: z.string().describe('Example file content (UTF-8)'),
-  gitStatus: BlockGitStatusSchema.nullable(),
-});
+/** Root of the block source tree — must match DocsStorageProvider's default
+ *  baseDir (lib/lofs/providers/docs.ts), which mounts this tree under
+ *  file:docs:// refs in the system content index. */
+const BLOCKS_DIR = 'packages/shared/components/blocks';
 
-/** Per-block result. Fields beyond name/description/categories appear only
- *  when requested via `include`. */
-const BlockResultSchema = z.object({
-  name: OLXTagSchema,
-  description: z.string().nullable(),
-  categories: z.array(z.string()).describe('All categories this block belongs to'),
-
-  // Included on request
-  attributes: z.array(AttributeDocSchema).nullable().optional(),
-  fields: z.array(z.string()).optional(),
-  template: z.string().nullable().optional().describe('Editor insert template (bare block)'),
-  demo: z.string().nullable().optional().describe('Docs marquee example (minimum working example with context)'),
-  readme: FileContentSchema.nullable().optional(),
-  examples: z.record(z.string(), ExampleSchema).optional().describe('Example files keyed by filename'),
-  formats: z.array(z.string()).optional().describe('Content format names used by this block (e.g. "chatpeg")'),
-});
-
-const GetBlocksOutput = z.object({
-  blocks: z.array(BlockResultSchema),
-  total: z.number().describe('Total matching blocks (before pagination)'),
-});
+/**
+ * DefinitionKey of an example file's top-level block in the system content
+ * index, or null if the file isn't indexed (parse errors, non-OLX).
+ *
+ * The index entry is the *parsed* example — src=/cast= companions resolved
+ * at parse time with real provenance — so clients render examples by this
+ * id through the standard olxjson pipeline instead of re-parsing the raw
+ * content as an inline string (which has no file identity, so relative
+ * src= cannot resolve).
+ */
+function exampleRootId(
+  parsedFiles: Record<string, { blockIds: string[] }>,
+  examplePath: string,
+): string | null {
+  if (!examplePath.startsWith(`${BLOCKS_DIR}/`)) return null;
+  const rel = examplePath.slice(BLOCKS_DIR.length + 1);
+  // blockIds are recorded in parse-completion (post-)order — kids before
+  // parents — so the file's top-level block is the LAST entry.
+  const ids = parsedFiles[`file:docs://${rel}`]?.blockIds;
+  return ids?.length ? ids[ids.length - 1] : null;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -114,7 +121,7 @@ const DEFAULT_LIMIT = 300;
 async function getBlocks(
   args: z.infer<typeof GetBlocksInput>,
 ): Promise<z.infer<typeof GetBlocksOutput>> {
-  const { filter, include, limit = DEFAULT_LIMIT, offset = 0 } = args;
+  const { filter, include, internal = false, limit = DEFAULT_LIMIT, offset = 0 } = args;
   const includeSet = new Set(include ?? []);
 
   // -- Collect all blocks with their categories ----------------------------
@@ -127,15 +134,21 @@ async function getBlocks(
   }
 
   // -- Filter --------------------------------------------------------------
+  // Matching is normalized (case- and punctuation-insensitive): categories
+  // travel as display labels ('Input', 'Language Arts'), but callers —
+  // authors writing categories="input", LLMs echoing directory names like
+  // 'language-arts' — reasonably use other spellings, and an exact-match
+  // miss is a silent empty result.
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
   let matched: Entry[];
   if (filter && filter.length > 0) {
-    const filterSet = new Set(filter);
+    const filterSet = new Set(filter.map(normalize));
     matched = allEntries.filter(
-      (e) => filterSet.has(e.name) || e.categories.some((c) => filterSet.has(c)),
+      (e) => filterSet.has(normalize(e.name)) || e.categories.some((c) => filterSet.has(normalize(c))),
     );
   } else {
-    // No filter → all non-internal blocks
-    matched = allEntries.filter((e) => !e.block.internal);
+    // No filter → all blocks, minus internal unless asked for
+    matched = internal ? allEntries : allEntries.filter((e) => !e.block.internal);
   }
 
   // -- Sort & paginate -----------------------------------------------------
@@ -151,13 +164,19 @@ async function getBlocks(
       name,
       description: block.description || null,
       categories,
+      source: block.source || null,
+      namespace: block.namespace,
+      isInput: block.isInput,
+      isGrader: block.isGrader,
+      internal: !!block.internal,
     };
 
     if (includeSet.has('attributes')) {
       entry.attributes = extractAttributes(block.attributes);
     }
     if (includeSet.has('fields')) {
-      entry.fields = Object.keys(block.fields || {});
+      // Open per-field shape — grows with the field system (see schema.ts).
+      entry.fields = Object.keys(block.fields || {}).map(name => ({ name }));
     }
     if (includeSet.has('template')) {
       // block.template is a key into block.examples (set by generateBlockRegistry.js)
@@ -179,6 +198,9 @@ async function getBlocks(
       entry.formats = block.grammars ?? [];
     }
     if (includeSet.has('examples') && block.examples) {
+      // Cached after the first call (module-level snapshot; the server's
+      // olxjson route keeps it warm) — see exampleRootId above.
+      const { parsed } = await syncContentFromStorage();
       const entries = Object.entries(block.examples);
       const results = await Promise.all(
         entries.map(async ([filename, example]) => {
@@ -188,6 +210,7 @@ async function getBlocks(
             path: example.path,
             content,
             gitStatus: example.gitStatus ?? null,
+            rootId: exampleRootId(parsed, example.path),
           }] as const;
         }),
       );
@@ -206,9 +229,9 @@ async function getBlocks(
 // get_formats
 // ===========================================================================
 
-/** Format types. PEG grammars are auto-discovered; others will be registered
- *  as the format system grows. */
-const FormatType = z.enum(['peg', 'yaml']);
+// FormatType / FormatResultSchema / GetFormatsOutput live in schema.ts
+// (browser-safe, shared with the client docs slice) — see the get_blocks
+// schemas above.
 
 const FormatIncludeField = z.enum([
   'readme',      // Full README content
@@ -229,29 +252,6 @@ const GetFormatsInput = z.object({
   ),
   limit: z.number().int().min(0).max(100).optional().describe('Max formats to return (default 50)'),
   offset: z.number().int().min(0).optional().describe('Number of formats to skip (default 0)'),
-});
-
-const FormatResultSchema = z.object({
-  name: z.string().describe('Format name (e.g. "chat")'),
-  type: FormatType.describe('Format type'),
-  extension: z.string().nullable().describe('Content file extension (e.g. "chatpeg"), null for inline-only formats'),
-  description: z.string().nullable(),
-  source: z.string().nullable().describe('Path to format spec file (e.g. .pegjs source)'),
-  blocks: z.array(z.string()).describe('Block names that use this format'),
-
-  // Included on request
-  spec: z.string().nullable().optional().describe('Format specification (PEG grammar source, schema description, etc.)'),
-  readme: FileContentSchema.nullable().optional(),
-  preview: z.string().nullable().optional().describe('Preview OLX template'),
-  examples: z.record(z.string(), z.object({
-    path: z.string(),
-    content: z.string(),
-  })).optional(),
-});
-
-const GetFormatsOutput = z.object({
-  formats: z.array(FormatResultSchema),
-  total: z.number().describe('Total matching formats (before pagination)'),
 });
 
 const FORMAT_DEFAULT_LIMIT = 50;

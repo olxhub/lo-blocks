@@ -692,7 +692,7 @@ function CommandPalette({ onClose, onSave, onTogglePreview, onInsert, onNewFile 
     { id: 'insert-mcq', label: 'Insert: Multiple Choice Question', action: () => { onInsert(TEMPLATES.mcq); onClose(); } },
     { id: 'insert-hint', label: 'Insert: Hint', action: () => { onInsert(TEMPLATES.hint); onClose(); } },
     { id: 'insert-markdown', label: 'Insert: Markdown Block', action: () => { onInsert(TEMPLATES.markdown); onClose(); } },
-    { id: 'docs', label: 'Open documentation', shortcut: 'F1', action: () => { window.open('/docs/', '_blank'); onClose(); } },
+    { id: 'docs', label: 'Open documentation', shortcut: 'F1', action: () => { window.open('/docs', '_blank'); onClose(); } },
     // --- Previews (roadmap; wired later, see TODOs) ---
     // TODO: wire to the Search panel — open it, focus search, jump to the id.
     { id: 'goto-id', label: 'Go to ID…', soon: true, action: () => {} },

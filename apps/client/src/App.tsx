@@ -12,6 +12,7 @@ import type { Route } from './router';
 import PreviewPage from './pages/PreviewPage';
 import CatalogPage from './pages/CatalogPage';
 import RepoDetailPage from './pages/RepoDetailPage';
+import DocsPage from './pages/DocsPage';
 
 const reduxStore = store.init({
   extraFields: extendSettings([]),
@@ -32,6 +33,9 @@ export default function App({ route }: { route: Route }) {
       break;
     case 'repo':
       page = <RepoDetailPage origin={route.origin} />;
+      break;
+    case 'docs':
+      page = <DocsPage block={route.block} />;
       break;
     case 'notFound':
       page = (
