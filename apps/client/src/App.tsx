@@ -5,6 +5,7 @@
 import React from 'react';
 
 import { store, extendSettings } from '@/lib/state';
+import { editorFields } from '@/lib/state/editorFields';
 import { getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
@@ -13,9 +14,12 @@ import PreviewPage from './pages/PreviewPage';
 import CatalogPage from './pages/CatalogPage';
 import RepoDetailPage from './pages/RepoDetailPage';
 import DocsPage from './pages/DocsPage';
+import StudioPage from './pages/StudioPage';
 
 const reduxStore = store.init({
-  extraFields: extendSettings([]),
+  // editorFields must be registered or the redux logger silently drops
+  // editor content events (Studio's working-tree buffers).
+  extraFields: extendSettings(editorFields),
   blockRegistry: BLOCK_REGISTRY,
   websocket: getConfigBool('websocket'),
   tabSync: getConfigBool('tab-sync'),
@@ -36,6 +40,9 @@ export default function App({ route }: { route: Route }) {
       break;
     case 'docs':
       page = <DocsPage block={route.block} />;
+      break;
+    case 'studio':
+      page = <StudioPage />;
       break;
     case 'notFound':
       page = (

@@ -11,6 +11,7 @@ export type Route =
   | { page: 'catalog' }
   | { page: 'repo'; origin: string }
   | { page: 'docs'; block?: string }
+  | { page: 'studio' }
   | { page: 'notFound'; path: string; reason?: string; detail?: string };
 
 export function resolveRoute(rawPathname: string): Route {
@@ -30,6 +31,11 @@ export function resolveRoute(rawPathname: string): Route {
   // Catalog — the author front page.
   if (pathname === '/') {
     return { page: 'catalog' };
+  }
+
+  // /studio — the authoring environment (location travels in query params).
+  if (pathname === '/studio') {
+    return { page: 'studio' };
   }
 
   // /docs — block documentation index; /docs/:BlockName — one block's docs.

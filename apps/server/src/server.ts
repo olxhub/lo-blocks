@@ -60,7 +60,7 @@ const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/api/file', '/api/files',
   '/api/grep', '/api/sources',
-  '/assets/', '/preview/', '/repo/', '/docs',
+  '/assets/', '/preview/', '/repo/', '/docs', '/studio',
 ];
 
 // Symbols for annotating request objects between middleware stages
@@ -138,6 +138,7 @@ export async function startServer(
   app.get('/repo/*', spaIndex);
   app.get('/docs', spaIndex);
   app.get('/docs/*', spaIndex);
+  app.get('/studio', spaIndex);
 
   const honoHandler = getRequestListener(app.fetch);
 
