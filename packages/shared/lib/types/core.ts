@@ -1603,8 +1603,13 @@ export interface BlockDocRecord {
   name: string;
   description: string | null;
   categories: string[];
+  source?: string | null;
+  namespace?: string;
+  isInput?: boolean;
+  isGrader?: boolean;
   attributes?: Array<Record<string, unknown>> | null;
-  fields?: string[];
+  /** Open shape — the field system will grow; tolerate unknown keys. */
+  fields?: Array<{ name: string } & Record<string, unknown>>;
   template?: string | null;
   demo?: string | null;
   readme?: { path: string; content: string } | null;
@@ -1636,21 +1641,36 @@ export interface FormatDocRecord {
   examples?: Record<string, { path: string; content: string }>;
 }
 
-/** One docs query result and its loading state. A given entry holds blocks
- *  (get_blocks queries) or formats (get_formats queries, keyed with a
- *  `formats:` prefix) — the other array stays empty. */
-export interface DocsEntry {
-  blocks: BlockDocRecord[];
-  formats: FormatDocRecord[];
-  loadingState: { status: LoadingStatus };
-  error?: { message: string };
+/** Documentation record kinds — blocks (get_blocks) and content formats
+ *  (get_formats). One normalized cache shape serves both. */
+export type DocsKind = 'block' | 'format';
+
+export type DocsFacetStatus = 'loading' | 'ready' | 'error';
+
+/** Normalized per-kind documentation cache:
+ *  - records: merged per-name records — facets accumulate as they arrive
+ *    (the wire shape is flat, so merge is a spread)
+ *  - have: per-name facet status; the implicit 'descriptor' facet marks
+ *    the base fields every response carries
+ *  - listings: what a query ('*', category filter, …) resolved to */
+export interface DocsKindStore<Record> {
+  records: { [name: string]: Record };
+  have: { [name: string]: { [facet: string]: DocsFacetStatus } };
+  listings: {
+    [listingKey: string]: {
+      names: string[] | null;
+      status: LoadingStatus;
+      error?: { message: string };
+    };
+  };
 }
 
-/** The block-documentation slice, keyed by stringified get_blocks args.
- *  Deliberate twin of CatalogState — both migrate together to the planned
- *  content-slice abstraction. */
+/** The documentation slice. The normalized (name × facet) shape is the
+ *  createContentSlice design candidate — state/catalog.ts (the older
+ *  query-keyed twin) migrates onto it once this has soaked. */
 export interface DocsState {
-  [argsKey: string]: DocsEntry;
+  block: DocsKindStore<BlockDocRecord>;
+  format: DocsKindStore<FormatDocRecord>;
 }
 
 // ---------------------------------------------------------------------------

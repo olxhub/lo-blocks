@@ -1,31 +1,35 @@
 // packages/shared/lib/state/docs.ts
 //
-// Block documentation data in Redux — get_blocks MCP results, stored here
-// for docs blocks (BlockIndex, BlockDoc) to read. The transport is MCP
-// (callMcpTool); the state is Redux; wire validation uses the shared Zod
-// schema (docs/tools.ts).
+// Documentation cache in Redux — get_blocks / get_formats MCP results,
+// normalized by (kind × name × facet) so overlapping queries share data:
 //
-// DELIBERATE TWIN of state/catalog.ts, hack and all: catalog.ts carries a
-// fenced HACK note (module-level dedup Sets, argsKey = JSON.stringify,
-// dispatch via bare lo_event) pending the planned createContentSlice
-// convergence for semi-static content. This file copies that pattern
-// EXACTLY rather than improvising a third dialect — when the convergence
-// lands, it migrates two identical twins in one motion. Do not let the
-// twins drift; fix both or neither.
+//   records[kind][name]          merged record — facets accumulate as they
+//                                arrive (flat wire shape makes merge = spread)
+//   have[kind][name]             per-facet status ('loading' | 'ready')
+//   listings[kind][listingKey]   what a query ('*', categories, …) resolved
+//                                to: an ordered name list + status
+//
+// The descriptor (name/description/categories/source/…) is an implicit
+// facet ('descriptor') present on every response. Fetch dedup lives in the
+// have/listing status marks — no module-level Set bookkeeping. The
+// component-facing API is useDocs/useFormats (lib/docs/useDocs.ts); this
+// module owns state shape, events, and the fetch.
+//
+// NOTE for state/catalog.ts: the catalog slice is the older query-keyed
+// twin of the previous docs slice. This normalized shape is the
+// createContentSlice design candidate — catalog migrates onto it once this
+// has soaked (see backlog).
 
 'use client';
 
-import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { callMcpTool } from '@/lib/mcp/client';
-import {
-  GetBlocksOutput, GetFormatsOutput,
-  type BlockDocInfo, type FormatDocInfo,
-} from '@/lib/docs/schema';
-import type { RootState, DocsEntry, DocsState } from '../types';
+import { GetBlocksOutput, GetFormatsOutput } from '@/lib/docs/schema';
+import type { RootState, DocsState, DocsKind, DocsFacetStatus } from '../types';
 
 // =============================================================================
-// Event Types
+// Event Types (already registered in store.ts collectEventTypes — reused,
+// with the normalized payloads, so no logger wiring changes)
 // =============================================================================
 
 export const DOCS_LOADING = 'DOCS_LOADING';
@@ -34,175 +38,153 @@ export const DOCS_ERROR = 'DOCS_ERROR';
 
 export const DOCS_EVENT_TYPES = [DOCS_LOADING, DOCS_LOADED, DOCS_ERROR];
 
+/** The implicit facet every response carries. */
+export const DESCRIPTOR = 'descriptor';
+
+export const initialDocsState: DocsState = {
+  block: { records: {}, have: {}, listings: {} },
+  format: { records: {}, have: {}, listings: {} },
+};
+
 // =============================================================================
-// Initial State
+// Reducer (delegated from updateResponseReducer)
 // =============================================================================
 
-export const initialDocsState: DocsState = {};
+function markFacets(
+  have: Record<string, Record<string, DocsFacetStatus>>,
+  names: string[],
+  facets: string[],
+  status: DocsFacetStatus,
+): Record<string, Record<string, DocsFacetStatus>> {
+  const next = { ...have };
+  for (const name of names) {
+    const entry = { ...(next[name] ?? {}) };
+    for (const facet of facets) {
+      // Never regress 'ready' — a later broader query's loading/error marks
+      // must not hide data we already hold.
+      if (entry[facet] === 'ready' && status !== 'ready') continue;
+      entry[facet] = status;
+    }
+    next[name] = entry;
+  }
+  return next;
+}
 
-// =============================================================================
-// Reducer (delegated from updateResponseReducer, like catalogReducer)
-// =============================================================================
+export function docsReducer(state: DocsState = initialDocsState, action: any): DocsState {
+  const kind: DocsKind = action.kind;
+  if (action.type !== DOCS_LOADING && action.type !== DOCS_LOADED && action.type !== DOCS_ERROR) {
+    return state;
+  }
+  const store = state[kind];
+  if (!store) return state;
+  const facets: string[] = action.facets ?? [];
 
-export function docsReducer(
-  state: DocsState = initialDocsState,
-  action: any,
-): DocsState {
-  const { argsKey } = action;
   switch (action.type) {
-    case DOCS_LOADING:
+    case DOCS_LOADING: {
+      const names: string[] = action.names ?? [];
       return {
         ...state,
-        [argsKey]: {
-          blocks: state[argsKey]?.blocks ?? [],
-          formats: state[argsKey]?.formats ?? [],
-          loadingState: { status: 'loading' },
+        [kind]: {
+          ...store,
+          have: markFacets(store.have, names, [DESCRIPTOR, ...facets], 'loading'),
+          listings: action.listingKey
+            ? { ...store.listings, [action.listingKey]: { names: store.listings[action.listingKey]?.names ?? null, status: 'loading' } }
+            : store.listings,
         },
       };
-    case DOCS_LOADED:
+    }
+    case DOCS_LOADED: {
+      const records: Array<{ name: string }> = action.records ?? [];
+      const names = records.map(r => r.name);
+      const merged = { ...store.records };
+      for (const record of records) {
+        merged[record.name] = { ...merged[record.name], ...record };
+      }
       return {
         ...state,
-        [argsKey]: {
-          blocks: action.blocks ?? [],
-          formats: action.formats ?? [],
-          loadingState: { status: 'ready' },
+        [kind]: {
+          records: merged,
+          have: markFacets(store.have, names, [DESCRIPTOR, ...facets], 'ready'),
+          listings: action.listingKey
+            ? { ...store.listings, [action.listingKey]: { names, status: 'ready' } }
+            : store.listings,
         },
       };
-    case DOCS_ERROR:
+    }
+    case DOCS_ERROR: {
+      const names: string[] = action.names ?? [];
       return {
         ...state,
-        [argsKey]: {
-          blocks: state[argsKey]?.blocks ?? [],
-          formats: state[argsKey]?.formats ?? [],
-          loadingState: { status: 'error' },
-          error: action.error,
+        [kind]: {
+          ...store,
+          // 'error' (not cleared): surfaced to callers, and keeps the hook
+          // from refetch-looping a persistently failing key. Retry = reload.
+          have: markFacets(store.have, names, [DESCRIPTOR, ...facets], 'error'),
+          listings: action.listingKey
+            ? { ...store.listings, [action.listingKey]: { names: store.listings[action.listingKey]?.names ?? null, status: 'error', error: action.error } }
+            : store.listings,
         },
       };
+    }
     default:
       return state;
   }
 }
 
 // =============================================================================
-// Dispatch Helpers (via lo_event.logEvent, like catalog)
+// Fetch — one function per query shape; dedup is the caller's job (useDocs
+// consults have/listings before calling)
 // =============================================================================
 
-export function dispatchDocsLoading(argsKey: string): void {
-  lo_event.logEvent(DOCS_LOADING, { argsKey });
-}
-
-export function dispatchDocsLoaded(argsKey: string, blocks: BlockDocInfo[]): void {
-  lo_event.logEvent(DOCS_LOADED, { argsKey, blocks });
-}
-
-export function dispatchFormatsLoaded(argsKey: string, formats: FormatDocInfo[]): void {
-  lo_event.logEvent(DOCS_LOADED, { argsKey, formats });
-}
-
-export function dispatchDocsError(argsKey: string, error: string): void {
-  lo_event.logEvent(DOCS_ERROR, { argsKey, error: { message: error } });
-}
-
-// =============================================================================
-// Fetch + Dedup (matches ensuredIds pattern in useOlxJson.ts)
-// =============================================================================
-
-/** Keys whose fetch completed successfully — dedup guard for ensureDocs. */
-const fetchedKeys = new Set<string>();
-/** Keys with a fetch currently in-flight — prevents duplicate concurrent requests. */
-const fetchingKeys = new Set<string>();
-
-function fetchDocs(args: Record<string, unknown>, argsKey: string): void {
-  fetchingKeys.add(argsKey);
-  dispatchDocsLoading(argsKey);
-
-  callMcpTool<unknown>('get_blocks', args, { retry: true })
-    .then((raw) => {
-      const parsed = GetBlocksOutput.parse(raw);
-      fetchingKeys.delete(argsKey);
-      fetchedKeys.add(argsKey);
-      dispatchDocsLoaded(argsKey, parsed.blocks);
-    })
-    .catch((err) => {
-      console.error('Docs fetch failed:', err);
-      fetchingKeys.delete(argsKey);
-      fetchedKeys.delete(argsKey);  // allow retry on next call
-      dispatchDocsError(argsKey, err instanceof Error ? err.message : String(err));
-    });
-}
+const TOOL = { block: 'get_blocks', format: 'get_formats' } as const;
+const OUTPUT = { block: GetBlocksOutput, format: GetFormatsOutput } as const;
+const RECORDS_KEY = { block: 'blocks', format: 'formats' } as const;
 
 /**
- * Ensure block documentation is loaded for the given get_blocks args.
- * Deduped: a second call with the same args is a no-op if a fetch already
- * completed or is in-flight. On error both guards are cleared so the next
- * call retries.
+ * Fetch records for a kind. Exactly one of:
+ *   names      — known targets (facet top-up; no listing bookkeeping)
+ *   listingKey + filter — a query to resolve (names recorded under the key)
  */
-export function ensureDocs(args: Record<string, unknown> = {}): void {
-  const argsKey = JSON.stringify(args);
-  if (fetchedKeys.has(argsKey) || fetchingKeys.has(argsKey)) return;
-  fetchDocs(args, argsKey);
-}
+export function fetchDocs(kind: DocsKind, opts: {
+  names?: string[];
+  listingKey?: string;
+  filter?: string[];
+  facets: string[];
+}): void {
+  const { names, listingKey, filter, facets } = opts;
+  lo_event.logEvent(DOCS_LOADING, { kind, names: names ?? [], facets, listingKey });
 
-/** Force a re-fetch, bypassing the dedup guard. Use sparingly — see
- *  refreshCatalog's note; the long-term fix is MCP push. */
-export function refreshDocs(args: Record<string, unknown> = {}): void {
-  const argsKey = JSON.stringify(args);
-  fetchingKeys.delete(argsKey);
-  fetchedKeys.delete(argsKey);
-  fetchDocs(args, argsKey);
-}
+  const args: Record<string, unknown> = {
+    ...(names ? { filter: names } : filter?.length ? { filter } : {}),
+    ...(facets.length ? { include: facets } : {}),
+  };
 
-// -----------------------------------------------------------------------------
-// Formats (get_formats) — same slice, same events, keys prefixed `formats:`
-// so a get_formats query can never collide with a get_blocks query.
-// -----------------------------------------------------------------------------
-
-function fetchFormats(args: Record<string, unknown>, argsKey: string): void {
-  fetchingKeys.add(argsKey);
-  dispatchDocsLoading(argsKey);
-
-  callMcpTool<unknown>('get_formats', args, { retry: true })
+  callMcpTool<unknown>(TOOL[kind], args, { retry: true })
     .then((raw) => {
-      const parsed = GetFormatsOutput.parse(raw);
-      fetchingKeys.delete(argsKey);
-      fetchedKeys.add(argsKey);
-      dispatchFormatsLoaded(argsKey, parsed.formats);
+      const parsed = OUTPUT[kind].parse(raw) as Record<string, unknown>;
+      lo_event.logEvent(DOCS_LOADED, {
+        kind,
+        records: parsed[RECORDS_KEY[kind]],
+        facets,
+        listingKey,
+      });
     })
     .catch((err) => {
-      console.error('Formats fetch failed:', err);
-      fetchingKeys.delete(argsKey);
-      fetchedKeys.delete(argsKey);  // allow retry on next call
-      dispatchDocsError(argsKey, err instanceof Error ? err.message : String(err));
+      console.error(`Docs fetch failed (${TOOL[kind]}):`, err);
+      lo_event.logEvent(DOCS_ERROR, {
+        kind,
+        names: names ?? [],
+        facets,
+        listingKey,
+        error: { message: err instanceof Error ? err.message : String(err) },
+      });
     });
-}
-
-/** Key for a get_formats query in the docs slice. Exported so hooks and
- *  selectors compute the identical key. */
-export function formatsArgsKey(args: Record<string, unknown> = {}): string {
-  return `formats:${JSON.stringify(args)}`;
-}
-
-/** Ensure content-format documentation is loaded for the given get_formats
- *  args. Dedup semantics identical to ensureDocs. */
-export function ensureFormats(args: Record<string, unknown> = {}): void {
-  const argsKey = formatsArgsKey(args);
-  if (fetchedKeys.has(argsKey) || fetchingKeys.has(argsKey)) return;
-  fetchFormats(args, argsKey);
 }
 
 // =============================================================================
 // Selectors
 // =============================================================================
 
-export function selectDocsEntry(state: RootState, argsKey: string): DocsEntry | undefined {
-  return state.application_state?.docs?.[argsKey];
-}
-
-// =============================================================================
-// React Hook
-// =============================================================================
-
-/** Read a docs entry from Redux. Pair with ensureDocs() to trigger the fetch. */
-export function useDocsData(argsKey: string): DocsEntry | undefined {
-  return useSelector((state: RootState) => selectDocsEntry(state, argsKey));
+export function selectDocsStore(state: RootState, kind: DocsKind) {
+  return state.application_state?.docs?.[kind];
 }
