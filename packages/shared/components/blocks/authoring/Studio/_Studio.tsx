@@ -109,7 +109,7 @@ function SourceSelector({ props, sources, current, onChange }: {
   return (
     <div className="studio-source-selector" ref={rootRef}>
       {/* No functional updates: useFieldState setters take values, not reducers. */}
-      <button className="studio-source-button" onClick={() => setOpen(!open)}>
+      <button className="studio-btn" onClick={() => setOpen(!open)}>
         {current ? current.label : 'Select a repo…'}
       </button>
       {open && (
@@ -378,26 +378,30 @@ export default function _Studio(props: RuntimeProps) {
     : 'Save (⌘S)';
 
   return (
-    <div className="studio-root">
+    <div className="studio">
       <header className="studio-header">
-        <button className="studio-hamburger" aria-label="Toggle sidebar"
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>≡</button>
-        <a href="/" className="studio-title">studio</a>
-        <SourceSelector props={props} sources={sources} current={currentSource} onChange={handleSourceChange} />
-        <div className="studio-filepath">
-          {filePath || 'untitled'}{isDirty && <span className="studio-dirty-dot"> •</span>}
+        <div className="studio-header-left">
+          <button className="studio-btn icon" aria-label="Toggle sidebar"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>≡</button>
+          <a href="/" className="studio-title" title="Go to home">studio</a>
+          <SourceSelector props={props} sources={sources} current={currentSource} onChange={handleSourceChange} />
         </div>
-        <div className="studio-header-actions">
-          <button className={`studio-header-btn ${showPreview ? 'active' : ''}`}
+        <div className="studio-header-center">
+          <span className="studio-filepath">
+            {filePath || 'untitled'}{isDirty && <span className="studio-dirty-indicator" title="Unsaved changes"> •</span>}
+          </span>
+        </div>
+        <div className="studio-header-right">
+          <button className={`studio-btn icon ${showPreview ? 'active' : ''}`}
             title="Toggle preview (⌘P)"
             onClick={() => setShowPreview(!showPreview)}>Preview</button>
           {showPreview && (
-            <button className="studio-header-btn" title="Flip preview layout"
+            <button className="studio-btn icon" title="Flip preview layout"
               onClick={() => setPreviewLayout(previewLayout === 'horizontal' ? 'vertical' : 'horizontal')}>
               {previewLayout === 'horizontal' ? '⬌' : '⬍'}
             </button>
           )}
-          <button className="studio-header-btn studio-save-btn"
+          <button className="studio-btn primary"
             disabled={!canWrite || !filePath || saving}
             title={saveTitle}
             onClick={() => handleSave()}>
@@ -410,10 +414,11 @@ export default function _Studio(props: RuntimeProps) {
         <ResizableSidebar
           collapsed={sidebarCollapsed}
           onCollapsedChange={setSidebarCollapsed}
-          defaultWidth={300} minWidth={200} maxWidth={600}
+          minWidth={200} maxWidth={600}
           chrome label="Studio sidebar"
+          className="studio-sidebar"
         >
-          <div className="studio-sidebar-tabs">
+          <nav className="studio-sidebar-tabs">
             {SIDEBAR_TABS.map(tab => (
               <button key={tab}
                 className={`studio-sidebar-tab ${tab === sidebarTab ? 'active' : ''}`}
@@ -421,8 +426,8 @@ export default function _Studio(props: RuntimeProps) {
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
-          </div>
-          <div className="studio-sidebar-panel">
+          </nav>
+          <div className="studio-sidebar-content">
             {sidebarTab === 'chat' && (
               <div className="sidebar-panel chat-panel">
                 <EditorLLMChat
@@ -479,27 +484,32 @@ export default function _Studio(props: RuntimeProps) {
             onError={(title, message) => notify('error', title, message)}
           />
         ) : (
-          <main className="studio-main studio-empty">
-            {!source ? (
-              <p>Choose a repository to start editing.</p>
-            ) : canWrite ? (
-              <p>
-                Pick a file from the Files panel — or{' '}
-                <button className="studio-link-btn" onClick={() => setNewFileOpen(true)}>
-                  create one
-                </button>.
-              </p>
-            ) : (
-              <p>This source is read-only — pick a file to view it.</p>
-            )}
+          <main className="studio-main">
+            <div className="studio-empty-state">
+              {!source ? (
+                <p>Choose a repository to start editing.</p>
+              ) : canWrite ? (
+                <p>
+                  Pick a file from the Files panel — or{' '}
+                  <button className="studio-btn primary" onClick={() => setNewFileOpen(true)}>
+                    create one
+                  </button>.
+                </p>
+              ) : (
+                <p>This source is read-only — pick a file to view it.</p>
+              )}
+            </div>
           </main>
         )}
       </div>
 
       <footer className="studio-footer">
-        <span className="studio-kbd-hints"><kbd>⌘S</kbd> Save · <kbd>⌘P</kbd> Preview · <kbd>⌘N</kbd> New file</span>
+        <kbd>⌘S</kbd> Save
+        <kbd>⌘P</kbd> Preview
+        <kbd>⌘N</kbd> New file
         <Notice />
         <span role="button" tabIndex={0} className="studio-debug-toggle"
+          title="Toggle debug mode"
           onClick={() => setDebug(!debug)}
           onKeyDown={e => { if (e.key === 'Enter') setDebug(!debug); }}>
           [{debug ? 'debug on' : 'debug'}]
