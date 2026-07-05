@@ -22,9 +22,9 @@ import { useFieldState } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
-import { BlockDocContent } from '../BlockDoc/_BlockDoc';
+import { BlockDocView } from '../BlockDoc/_BlockDoc';
 import { blockDocFields } from '../BlockDoc/locals';
-import { GrammarDocContent } from './grammarDocContent';
+import { GrammarDocView } from './grammarDocContent';
 import { docsBrowserFields } from './locals';
 
 const GRAMMARS_CATEGORY = 'Grammars';
@@ -174,38 +174,6 @@ function WelcomePane() {
   );
 }
 
-function SelectedBlockPane({ props, selected }: { props: RuntimeProps; selected: string }) {
-  // Heavier include levels than the sidebar's descriptor-only listing —
-  // the detail pane needs the full record.
-  const { blocks, loading, error } = useBlockDocs([selected], ['readme', 'examples', 'attributes']);
-  const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
-
-  if (error) return <div className="text-error text-sm p-2">Failed to load block documentation: {error}</div>;
-  if (loading) return <Spinner>Loading block documentation…</Spinner>;
-
-  const block = blocks.find(b => b.name === selected);
-  if (!block) {
-    return <p className="text-dimmed py-2 p-8">No documentation found for {selected}.</p>;
-  }
-
-  return <BlockDocContent block={block} activeTab={activeTab} onTabChange={setActiveTab} />;
-}
-
-function SelectedGrammarPane({ props, name }: { props: RuntimeProps; name: string }) {
-  const { formats, loading, error } = useFormatDocs([name], ['readme', 'spec', 'preview', 'examples']);
-  const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
-
-  if (error) return <div className="text-error text-sm p-2">Failed to load grammar documentation: {error}</div>;
-  if (loading) return <Spinner>Loading grammar documentation…</Spinner>;
-
-  const format = formats.find(f => f.name === name);
-  if (!format) {
-    return <p className="text-dimmed py-2 p-8">No documentation found for grammar {name}.</p>;
-  }
-
-  return <GrammarDocContent format={format} activeTab={activeTab} onTabChange={setActiveTab} />;
-}
-
 export default function _DocsBrowser(props: RuntimeProps) {
   const initialSelected = typeof props.selected === 'string' ? props.selected : '';
   const [selected, setSelected] = useFieldState(
@@ -238,8 +206,8 @@ export default function _DocsBrowser(props: RuntimeProps) {
       <main className="flex-1 overflow-auto flex flex-col">
         {selected
           ? (selected.startsWith(FORMAT_PREFIX)
-              ? <SelectedGrammarPane props={props} name={selected.slice(FORMAT_PREFIX.length)} />
-              : <SelectedBlockPane props={props} selected={selected} />)
+              ? <GrammarDocView props={props} name={selected.slice(FORMAT_PREFIX.length)} />
+              : <BlockDocView props={props} name={selected} />)
           : <WelcomePane />}
         <div className="mt-auto px-6 py-4 border-t border-border text-[10px] text-dimmed leading-tight">
           <Notice />

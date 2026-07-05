@@ -20,27 +20,8 @@ import Spinner from '@/components/common/Spinner';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
 import type { AttributeDoc } from '@/lib/docs/schemaUtils';
+import { DocHeader, DocTabs, LivePreviewPanel, FileCard } from './docPanels';
 import { blockDocFields } from './locals';
-
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
-
-function BlockHeader({ block }: { block: BlockDocRecord }) {
-  return (
-    <div className="bg-background border-b px-6 py-4">
-      <h2 className="text-xl font-bold text-foreground">{block.name}</h2>
-      {block.description && <p className="text-secondary mt-1">{block.description}</p>}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {block.categories.map(cat => (
-          <span key={cat} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
-            {cat}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Tabs
@@ -55,30 +36,6 @@ function buildTabs(block: BlockDocRecord, examples: ExampleEntry[]) {
     tabs.push({ id: `example:${filename}`, label: filename.replace(/\.olx$/, '') });
   }
   return tabs;
-}
-
-function BlockTabs({ tabs, active, onSelect }: {
-  tabs: { id: string; label: string }[]; active: string; onSelect: (id: string) => void;
-}) {
-  return (
-    <div className="bg-background border-b px-6">
-      <nav className="flex gap-4 overflow-x-auto">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              tab.id === active
-                ? 'border-accent text-accent'
-                : 'border-transparent text-dimmed hover:text-secondary hover:border-border'
-            }`}
-            onClick={() => onSelect(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -136,25 +93,19 @@ function ExamplePreview({ filename, content, ns, showMoreCount }: {
   filename: string; content: string; ns: ReturnType<typeof asContentNamespace>; showMoreCount: number;
 }) {
   return (
-    <>
-      <div className="mb-4 border rounded-lg overflow-hidden">
-        <div className="px-3 py-2 bg-muted border-b text-xs text-dimmed">Live Preview</div>
-        <div className="p-4 bg-background">
-          <OLXCodeBlock language="olx:render" ns={ns}>{content}</OLXCodeBlock>
-        </div>
-      </div>
-      <div className="mb-4 border rounded-lg overflow-hidden">
-        <div className="px-3 py-2 bg-muted border-b text-xs text-dimmed">{filename}</div>
+    <div className="flex flex-col gap-4">
+      <LivePreviewPanel olx={content} ns={ns} />
+      <FileCard title={filename}>
         <div className="p-4 bg-background">
           <OLXCodeBlock language="olx:code" ns={ns}>{content}</OLXCodeBlock>
         </div>
-      </div>
+      </FileCard>
       {showMoreCount > 0 && (
-        <p className="mt-4 text-sm text-dimmed">
+        <p className="text-sm text-dimmed">
           {showMoreCount} more example{showMoreCount === 1 ? '' : 's'} available in the tabs above.
         </p>
       )}
-    </>
+    </div>
   );
 }
 
@@ -185,15 +136,11 @@ function ReadmeTab({ block, ns }: { block: BlockDocRecord; ns: ReturnType<typeof
   if (!block.readme) return null;
   return (
     <div className="p-6">
-      <div className="bg-background rounded-lg border overflow-hidden">
-        <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
-          <span className="font-medium text-foreground">README</span>
-          <code className="text-xs text-dimmed">{block.readme.path}</code>
-        </div>
+      <FileCard title="README" path={block.readme.path}>
         <div className="p-6 prose max-w-none">
           <RenderMarkdown ns={ns}>{block.readme.content}</RenderMarkdown>
         </div>
-      </div>
+      </FileCard>
     </div>
   );
 }
@@ -203,14 +150,7 @@ function ExampleTab({ filename, content, ns }: {
 }) {
   return (
     <div className="p-6">
-      <div className="bg-background rounded-lg border overflow-hidden">
-        <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
-          <span className="font-medium text-foreground">{filename}</span>
-        </div>
-        <div className="p-4">
-          <OLXCodeBlock language="olx:code" ns={ns}>{content}</OLXCodeBlock>
-        </div>
-      </div>
+      <ExamplePreview filename={filename} content={content} ns={ns} showMoreCount={0} />
     </div>
   );
 }
@@ -237,8 +177,12 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
 
   return (
     <div className="flex flex-col flex-1">
-      <BlockHeader block={block} />
-      <BlockTabs tabs={tabs} active={currentTab} onSelect={onTabChange} />
+      <DocHeader
+        title={block.name}
+        description={block.description}
+        chips={block.categories.map(label => ({ label }))}
+      />
+      <DocTabs tabs={tabs} active={currentTab} onSelect={onTabChange} />
       {currentTab === 'overview' && (
         <OverviewTab block={block} attributes={attributes} examples={examples} ns={ns} />
       )}
@@ -253,33 +197,40 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
 }
 
 // ---------------------------------------------------------------------------
-// Default export — data-fetching wrapper
+// BlockDocView — data-fetching wrapper around BlockDocContent
 // ---------------------------------------------------------------------------
 
-export default function _BlockDoc(props: RuntimeProps) {
-  const name = props.block;
-  const validName = typeof name === 'string' && name.length > 0;
-
-  // Hooks run unconditionally (rules of hooks) — the invalid-name guard
-  // renders below. Zod already rejects a missing block= at OLX parse time;
-  // this path only exists for direct React usage.
-  const { blocks, loading, error } = useBlockDocs(
-    [validName ? name : ''], ['readme', 'examples', 'attributes']);
+/** Fetch one block's full documentation and render it. Shared between the
+ *  BlockDoc block (below) and DocsBrowser's detail pane. Tab state lives in
+ *  the caller's docTab field (keyed by `props`). */
+export function BlockDocView({ props, name }: { props: RuntimeProps; name: string }) {
+  const { blocks, loading, error } = useBlockDocs([name], ['readme', 'examples', 'attributes']);
   const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
 
-  if (!validName) {
-    return <div className="text-error text-sm p-2">BlockDoc requires a block= attribute naming the block to document.</div>;
-  }
   if (error) return <div className="text-error text-sm p-2">Failed to load block documentation: {error}</div>;
   if (loading) return <Spinner>Loading block documentation…</Spinner>;
 
   // get_blocks matching is fuzzy/normalized (can match categories too),
   // so pick the exact record by name locally.
   const block = blocks.find(b => b.name === name);
-
   if (!block) {
-    return <p className="text-dimmed py-2">No documentation found for {name}.</p>;
+    return <p className="text-dimmed py-2 p-8">No documentation found for {name}.</p>;
   }
 
   return <BlockDocContent block={block} activeTab={activeTab} onTabChange={setActiveTab} />;
+}
+
+// ---------------------------------------------------------------------------
+// Default export — the BlockDoc block
+// ---------------------------------------------------------------------------
+
+export default function _BlockDoc(props: RuntimeProps) {
+  const name = props.block;
+  // Zod already rejects a missing block= at OLX parse time; this path only
+  // exists for direct React usage. BlockDocView is a child component, so
+  // its hooks are unconditional from React's perspective.
+  if (typeof name !== 'string' || name.length === 0) {
+    return <div className="text-error text-sm p-2">BlockDoc requires a block= attribute naming the block to document.</div>;
+  }
+  return <BlockDocView props={props} name={name} />;
 }

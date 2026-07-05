@@ -1,37 +1,23 @@
 'use client';
 // packages/shared/components/blocks/authoring/DocsBrowser/grammarDocContent.tsx
 //
-// Presentational view of one content format's documentation (PEG grammar,
-// YAML schema) — the grammar-flavored counterpart to BlockDocContent.
+// One content format's documentation (PEG grammar, YAML schema) — the
+// grammar-flavored counterpart to _BlockDoc, built from the same shared
+// panels (docPanels.tsx) so the two views stay visually identical.
 // Header (name, format badge, extension), tab strip (Overview / Grammar /
-// README / one per example), tab content. Data comes from useFormatDocs
-// (get_formats MCP); this component just renders a FormatDocRecord.
+// README / one per example), tab content. Data via useFormatDocs
+// (get_formats MCP).
 
 import React from 'react';
-import type { FormatDocRecord } from '@/lib/types';
+import type { RuntimeProps, FormatDocRecord } from '@/lib/types';
 import { asContentNamespace } from '@/lib/types/id-grammar';
+import { useFormatDocs } from '@/lib/docs/useBlockDocs';
+import { useFieldState } from '@/lib/state';
+import Spinner from '@/components/common/Spinner';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
-import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
 import { injectPreviewContent, hasContentPlaceholder } from '@/lib/template/previewTemplate';
-
-function GrammarHeader({ format }: { format: FormatDocRecord }) {
-  return (
-    <div className="bg-background border-b px-6 py-4">
-      <h2 className="text-xl font-bold text-foreground">{format.name}</h2>
-      {format.description && <p className="text-secondary mt-1">{format.description}</p>}
-      <div className="flex flex-wrap gap-2 mt-2">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-subtle text-accent">
-          {format.type === 'peg' ? 'PEG Grammar' : 'YAML Schema'}
-        </span>
-        {format.extension && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground font-mono">
-            .{format.extension}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+import { DocHeader, DocTabs, LivePreviewPanel, FileCard } from '../BlockDoc/docPanels';
+import { blockDocFields } from '../BlockDoc/locals';
 
 function GrammarQuickReference({ format }: { format: FormatDocRecord }) {
   return (
@@ -63,15 +49,16 @@ export function GrammarDocContent({ format, activeTab, onTabChange }: {
   const ns = asContentNamespace(`docs.format.${format.name}`);
   const examples = Object.entries(format.examples ?? {});
 
-  // format.preview is a template with a {{CONTENT}} placeholder; the sample
-  // content lives in the `.preview.{extension}` example file. Render only
-  // when both halves are present and injection succeeds.
+  // format.preview is a template with a {{CONTENT}} placeholder; sample
+  // content gets injected per view — the `.preview.{extension}` example on
+  // the Overview tab, each example file on its own tab.
+  const inject = (content: string): string | null => {
+    if (!format.preview || !hasContentPlaceholder(format.preview)) return null;
+    const injected = injectPreviewContent(format.preview, content);
+    return 'olx' in injected ? injected.olx : null;
+  };
   const previewContent = examples.find(([f]) => f.includes('.preview.'))?.[1].content;
-  let previewOlx: string | null = null;
-  if (format.preview && hasContentPlaceholder(format.preview) && previewContent) {
-    const injected = injectPreviewContent(format.preview, previewContent);
-    if ('olx' in injected) previewOlx = injected.olx;
-  }
+  const previewOlx = previewContent ? inject(previewContent) : null;
 
   const tabs = [{ id: 'overview', label: 'Overview' }];
   if (format.spec) tabs.push({ id: 'grammar', label: 'Grammar' });
@@ -83,62 +70,38 @@ export function GrammarDocContent({ format, activeTab, onTabChange }: {
 
   return (
     <div className="flex flex-col flex-1">
-      <GrammarHeader format={format} />
-      <div className="bg-background border-b px-6">
-        <nav className="flex gap-4 overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                tab.id === currentTab
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-dimmed hover:text-secondary hover:border-border'
-              }`}
-              onClick={() => onTabChange(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <DocHeader
+        title={format.name}
+        description={format.description}
+        chips={[
+          { label: format.type === 'peg' ? 'PEG Grammar' : 'YAML Schema', accent: true },
+          ...(format.extension ? [{ label: `.${format.extension}` }] : []),
+        ]}
+      />
+      <DocTabs tabs={tabs} active={currentTab} onSelect={onTabChange} />
 
       {currentTab === 'overview' && (
         <div className="p-6 flex flex-col gap-4">
           <GrammarQuickReference format={format} />
-          {previewOlx && (
-            <div className="border rounded-lg overflow-hidden">
-              <div className="px-3 py-2 bg-muted border-b text-xs text-dimmed">Live Preview</div>
-              <div className="p-4 bg-background">
-                <OLXCodeBlock language="olx:render" ns={ns}>{previewOlx}</OLXCodeBlock>
-              </div>
-            </div>
-          )}
+          {previewOlx && <LivePreviewPanel olx={previewOlx} ns={ns} />}
         </div>
       )}
 
       {currentTab === 'grammar' && format.spec && (
         <div className="p-6">
-          <div className="bg-background rounded-lg border overflow-hidden">
-            <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
-              <span className="font-medium text-foreground">Grammar source</span>
-              <code className="text-xs text-dimmed">{format.source}</code>
-            </div>
+          <FileCard title="Grammar source" path={format.source}>
             <pre className="p-4 text-xs overflow-x-auto"><code>{format.spec}</code></pre>
-          </div>
+          </FileCard>
         </div>
       )}
 
       {currentTab === 'readme' && format.readme && (
         <div className="p-6">
-          <div className="bg-background rounded-lg border overflow-hidden">
-            <div className="px-4 py-3 bg-surface border-b flex justify-between items-center">
-              <span className="font-medium text-foreground">README</span>
-              <code className="text-xs text-dimmed">{format.readme.path}</code>
-            </div>
+          <FileCard title="README" path={format.readme.path}>
             <div className="p-6 prose max-w-none">
               <RenderMarkdown ns={ns}>{format.readme.content}</RenderMarkdown>
             </div>
-          </div>
+          </FileCard>
         </div>
       )}
 
@@ -146,17 +109,33 @@ export function GrammarDocContent({ format, activeTab, onTabChange }: {
         const filename = currentTab.slice('example:'.length);
         const example = examples.find(([f]) => f === filename);
         if (!example) return null;
+        const exampleOlx = inject(example[1].content);
         return (
-          <div className="p-6">
-            <div className="bg-background rounded-lg border overflow-hidden">
-              <div className="px-4 py-3 bg-surface border-b">
-                <span className="font-medium text-foreground">{filename}</span>
-              </div>
+          <div className="p-6 flex flex-col gap-4">
+            {exampleOlx && <LivePreviewPanel olx={exampleOlx} ns={ns} />}
+            <FileCard title={filename}>
               <pre className="p-4 text-xs overflow-x-auto"><code>{example[1].content}</code></pre>
-            </div>
+            </FileCard>
           </div>
         );
       })()}
     </div>
   );
+}
+
+/** Fetch one format's full documentation and render it — the grammar
+ *  counterpart of BlockDocView, used by DocsBrowser's detail pane. */
+export function GrammarDocView({ props, name }: { props: RuntimeProps; name: string }) {
+  const { formats, loading, error } = useFormatDocs([name], ['readme', 'spec', 'preview', 'examples']);
+  const [activeTab, setActiveTab] = useFieldState(props, blockDocFields.docTab, 'overview');
+
+  if (error) return <div className="text-error text-sm p-2">Failed to load grammar documentation: {error}</div>;
+  if (loading) return <Spinner>Loading grammar documentation…</Spinner>;
+
+  const format = formats.find(f => f.name === name);
+  if (!format) {
+    return <p className="text-dimmed py-2 p-8">No documentation found for grammar {name}.</p>;
+  }
+
+  return <GrammarDocContent format={format} activeTab={activeTab} onTabChange={setActiveTab} />;
 }
