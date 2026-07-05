@@ -27,7 +27,7 @@ import { blockDocFields } from './locals';
 // Tabs
 // ---------------------------------------------------------------------------
 
-type ExampleEntry = [filename: string, example: { content: string }];
+type ExampleEntry = [filename: string, example: { content: string; rootId?: string | null }];
 
 function buildTabs(block: BlockDocRecord, examples: ExampleEntry[]) {
   const tabs = [{ id: 'overview', label: 'Overview' }];
@@ -89,12 +89,13 @@ function QuickReference({ attributes }: { attributes: AttributeDoc[] }) {
 // Example preview
 // ---------------------------------------------------------------------------
 
-function ExamplePreview({ filename, content, ns, showMoreCount }: {
-  filename: string; content: string; ns: ReturnType<typeof asContentNamespace>; showMoreCount: number;
+function ExamplePreview({ filename, content, rootId, ns, showMoreCount }: {
+  filename: string; content: string; rootId?: string | null;
+  ns: ReturnType<typeof asContentNamespace>; showMoreCount: number;
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <LivePreviewPanel olx={content} ns={ns} />
+      <LivePreviewPanel olx={content} rootId={rootId} ns={ns} />
       <FileCard title={filename}>
         <div className="p-4 bg-background">
           <OLXCodeBlock language="olx:code" ns={ns}>{content}</OLXCodeBlock>
@@ -124,6 +125,7 @@ function OverviewTab({ block, attributes, examples, ns }: {
         <ExamplePreview
           filename={firstFilename}
           content={firstExample.content}
+          rootId={firstExample.rootId}
           ns={ns}
           showMoreCount={examples.length - 1}
         />
@@ -145,12 +147,13 @@ function ReadmeTab({ block, ns }: { block: BlockDocRecord; ns: ReturnType<typeof
   );
 }
 
-function ExampleTab({ filename, content, ns }: {
-  filename: string; content: string; ns: ReturnType<typeof asContentNamespace>;
+function ExampleTab({ filename, content, rootId, ns }: {
+  filename: string; content: string; rootId?: string | null;
+  ns: ReturnType<typeof asContentNamespace>;
 }) {
   return (
     <div className="p-6">
-      <ExamplePreview filename={filename} content={content} ns={ns} showMoreCount={0} />
+      <ExamplePreview filename={filename} content={content} rootId={rootId} ns={ns} showMoreCount={0} />
     </div>
   );
 }
@@ -190,7 +193,9 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
       {currentTab.startsWith('example:') && (() => {
         const filename = currentTab.slice('example:'.length);
         const example = examples.find(([f]) => f === filename);
-        return example ? <ExampleTab filename={filename} content={example[1].content} ns={ns} /> : null;
+        return example
+          ? <ExampleTab filename={filename} content={example[1].content} rootId={example[1].rootId} ns={ns} />
+          : null;
       })()}
     </div>
   );

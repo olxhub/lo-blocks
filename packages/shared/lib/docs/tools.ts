@@ -61,6 +61,35 @@ import {
   FileContentSchema, ExampleSchema, BlockResultSchema, GetBlocksOutput,
   FormatType, FormatResultSchema, GetFormatsOutput,
 } from './schema';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+
+// ---------------------------------------------------------------------------
+// Example root ids — the content index already has every example parsed
+// ---------------------------------------------------------------------------
+
+/** Root of the block source tree — must match DocsStorageProvider's default
+ *  baseDir (lib/lofs/providers/docs.ts), which mounts this tree under
+ *  file:docs:// refs in the system content index. */
+const BLOCKS_DIR = 'packages/shared/components/blocks';
+
+/**
+ * DefinitionKey of an example file's top-level block in the system content
+ * index, or null if the file isn't indexed (parse errors, non-OLX).
+ *
+ * The index entry is the *parsed* example — src=/cast= companions resolved
+ * at parse time with real provenance — so clients render examples by this
+ * id through the standard olxjson pipeline instead of re-parsing the raw
+ * content as an inline string (which has no file identity, so relative
+ * src= cannot resolve).
+ */
+function exampleRootId(
+  parsedFiles: Record<string, { blockIds: string[] }>,
+  examplePath: string,
+): string | null {
+  if (!examplePath.startsWith(`${BLOCKS_DIR}/`)) return null;
+  const rel = examplePath.slice(BLOCKS_DIR.length + 1);
+  return parsedFiles[`file:docs://${rel}`]?.blockIds[0] ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -157,6 +186,9 @@ async function getBlocks(
       entry.formats = block.grammars ?? [];
     }
     if (includeSet.has('examples') && block.examples) {
+      // Cached after the first call (module-level snapshot; the server's
+      // olxjson route keeps it warm) — see exampleRootId above.
+      const { parsed } = await syncContentFromStorage();
       const entries = Object.entries(block.examples);
       const results = await Promise.all(
         entries.map(async ([filename, example]) => {
@@ -166,6 +198,7 @@ async function getBlocks(
             path: example.path,
             content,
             gitStatus: example.gitStatus ?? null,
+            rootId: exampleRootId(parsed, example.path),
           }] as const;
         }),
       );

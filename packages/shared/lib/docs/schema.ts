@@ -23,6 +23,11 @@ export const ExampleSchema = z.object({
   path: z.string().describe('Path relative to project root'),
   content: z.string().describe('Example file content (UTF-8)'),
   gitStatus: BlockGitStatusSchema.nullable(),
+  rootId: z.string().nullable().optional().describe(
+    'DefinitionKey of the file\'s top-level block in the system content ' +
+    'index (docs.* namespace). Render examples by this id via the standard ' +
+    'content pipeline — the indexed copy is parsed in place, so relative ' +
+    'src=/cast= companions resolve. Null when the file is not indexed.'),
 });
 
 /** Per-block result. Fields beyond name/description/categories appear only

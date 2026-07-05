@@ -10,6 +10,12 @@
 import React from 'react';
 import type { ContentNamespace } from '@/lib/types';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
+import RenderOLX from '@/components/common/RenderOLX';
+import Spinner from '@/components/common/Spinner';
+import { useContentLoader } from '@/lib/content/useContentLoader';
+import {
+  parseStateKey, parseDefinitionKey, splitNs, leafDefinitionKeyFromStateKey,
+} from '@/lib/types/id-grammar';
 
 export function DocHeader({ title, description, chips }: {
   title: string;
@@ -64,13 +70,46 @@ export function DocTabs({ tabs, active, onSelect }: {
   );
 }
 
-/** Live-rendered OLX in the standard "Live Preview" frame. */
-export function LivePreviewPanel({ olx, ns }: { olx: string; ns: ContentNamespace }) {
+/** Render an already-indexed block by DefinitionKey through the standard
+ *  content pipeline (useContentLoader + RenderOLX, PreviewPage's core).
+ *  The indexed copy was parsed in place with real provenance, so relative
+ *  src=/cast= companion files resolved at parse time — the reason example
+ *  previews render by id rather than re-parsing their text inline. */
+function RenderIndexed({ rootId }: { rootId: string }) {
+  const stateKey = parseStateKey(rootId);
+  const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(stateKey));
+
+  if (error) return <div className="text-error text-sm">Failed to load example: {String(error)}</div>;
+  if (loading) return <Spinner>Loading example…</Spinner>;
+
+  return (
+    <RenderOLX
+      id={stateKey}
+      ns={splitNs(parseDefinitionKey(rootId)).ns}
+      baseIdMap={idMap ?? undefined}
+      eventContext="docs"
+    />
+  );
+}
+
+/** Live-rendered OLX in the standard "Live Preview" frame.
+ *
+ *  Pass `rootId` (an indexed example's DefinitionKey) to render through the
+ *  content pipeline — required for multifile examples. `olx` re-parses the
+ *  string inline; use it only for synthetic content with no file identity
+ *  (grammar preview-template injections, README code fences). */
+export function LivePreviewPanel({ olx, rootId, ns }: {
+  olx?: string;
+  rootId?: string | null;
+  ns: ContentNamespace;
+}) {
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="px-3 py-2 bg-muted border-b text-xs text-dimmed">Live Preview</div>
       <div className="p-4 bg-background">
-        <OLXCodeBlock language="olx:render" ns={ns}>{olx}</OLXCodeBlock>
+        {rootId
+          ? <RenderIndexed rootId={rootId} />
+          : olx !== undefined && <OLXCodeBlock language="olx:render" ns={ns}>{olx}</OLXCodeBlock>}
       </div>
     </div>
   );

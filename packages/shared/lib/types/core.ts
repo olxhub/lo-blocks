@@ -1602,7 +1602,13 @@ export interface BlockDocRecord {
   template?: string | null;
   demo?: string | null;
   readme?: { path: string; content: string } | null;
-  examples?: Record<string, { path: string; content: string; gitStatus: string | null }>;
+  examples?: Record<string, {
+    path: string;
+    content: string;
+    gitStatus: string | null;
+    /** DefinitionKey of the indexed top-level block — see ExampleSchema. */
+    rootId?: string | null;
+  }>;
   formats?: string[];
 }
 
