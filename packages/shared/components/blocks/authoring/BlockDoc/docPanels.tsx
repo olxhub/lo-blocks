@@ -7,11 +7,12 @@
 // tab strip, live-preview panel, and the titled bordered card that wraps
 // READMEs, sources, and example code.
 
-import React from 'react';
-import type { ContentNamespace, BlockDocRecord } from '@/lib/types';
+import React, { useRef } from 'react';
+import type { ContentNamespace, BlockDocRecord, OlxDomNode } from '@/lib/types';
 import type { AttributeDoc } from '@/lib/docs/schemaUtils';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
 import RenderOLX from '@/components/common/RenderOLX';
+import StatePanel from '@/components/common/StatePanel';
 import Spinner from '@/components/common/Spinner';
 import { useContentLoader } from '@/lib/content/useContentLoader';
 import {
@@ -79,17 +80,26 @@ export function DocTabs({ tabs, active, onSelect }: {
 function RenderIndexed({ rootId }: { rootId: string }) {
   const stateKey = parseStateKey(rootId);
   const { idMap, error, loading } = useContentLoader(leafDefinitionKeyFromStateKey(stateKey));
+  // State viewer below the preview — StatePanel walks this tree to scope
+  // the Redux display to just this example's blocks.
+  const nodeInfoRef = useRef<OlxDomNode | null>(null);
 
   if (error) return <div className="text-error text-sm">Failed to load example: {String(error)}</div>;
   if (loading) return <Spinner>Loading example…</Spinner>;
 
   return (
-    <RenderOLX
-      id={stateKey}
-      ns={splitNs(parseDefinitionKey(rootId)).ns}
-      baseIdMap={idMap ?? undefined}
-      eventContext="docs"
-    />
+    <>
+      <RenderOLX
+        id={stateKey}
+        ns={splitNs(parseDefinitionKey(rootId)).ns}
+        baseIdMap={idMap ?? undefined}
+        eventContext="docs"
+        nodeInfoRef={nodeInfoRef}
+      />
+      <div className="mt-3">
+        <StatePanel nodeInfoRef={nodeInfoRef} />
+      </div>
+    </>
   );
 }
 
