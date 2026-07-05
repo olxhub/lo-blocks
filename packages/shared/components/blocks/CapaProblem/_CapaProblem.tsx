@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { correctness, worstCaseCorrectness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
 import * as state from '@/lib/state';
-import { useKids, renderBlock } from '@/lib/render';
+import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
@@ -254,19 +254,21 @@ export default function _CapaProblem(props: RuntimeProps) {
 
   // Build header/footer nodes (they find CapaProblem via parent inference)
   const title = props.title || props.displayName || props.id || 'Problem';
-  const headerNode = renderBlock(props, 'Correctness', { id: `${id}_header_status` });
-  const footerNode = renderBlock(props, 'CapaFooter', {
-    id: `${id}_footer_controls`,
-    target: childGraderIds.join(','),
-    hintsTarget: hintsId,
-    // Author override for the button label; falls back to computed Check/Submit.
-    label: props.submitLabel,
-    // Problem mode settings
-    maxAttempts: props.maxAttempts,
-    showanswer: props.showanswer,
-    submitCount,
-    correct: correctness,
-  });
+  const headerNode = <Block props={props} tag="Correctness" id={`${id}_header_status`} />;
+  const footerNode = (
+    <Block props={props} tag="CapaFooter"
+      id={`${id}_footer_controls`}
+      target={childGraderIds.join(',')}
+      hintsTarget={hintsId}
+      // Author override for the button label; falls back to computed Check/Submit.
+      label={props.submitLabel}
+      // Problem mode settings
+      maxAttempts={props.maxAttempts}
+      showanswer={props.showanswer}
+      submitCount={submitCount}
+      correct={correctness}
+    />
+  );
 
   return (
     <div className="lo-problem">

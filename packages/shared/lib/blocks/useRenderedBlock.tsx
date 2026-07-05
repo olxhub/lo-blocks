@@ -18,7 +18,7 @@ import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { renderOlxJson, renderCompiledKids } from '@/lib/render';
+import { render, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
@@ -100,7 +100,7 @@ export function useBlock(
   }
 
   // Ready from Redux - render the block, wrapped with translation indicator
-  const rendered = renderOlxJson({ ...props, node: reduxOlxJson });
+  const rendered = render({ ...props, node: reduxOlxJson });
   const block = (
     <TranslatingIndicator translationState={translationState}>
       {rendered}
@@ -119,7 +119,7 @@ export function useBlock(
  * Hook for rendering multiple blocks from an array of IDs.
  *
  * Takes an array of DefinitionRef IDs and returns rendered React elements.
- * Each block is fetched via useOlxJsonMultiple and rendered via renderOlxJson.
+ * Each block is fetched via useOlxJsonMultiple and rendered via render().
  * Placeholders (Spinner/ErrorNode) are automatically returned for loading/error states
  * by useOlxJsonMultiple's contract.
  *
@@ -142,7 +142,7 @@ export function useRenderedBlocksMultiple(
 
   // useOlxJsonMultiple guarantees non-null entries (Spinner/ErrorNode OlxJson for loading/error)
   // Just render each one through the normal block pipeline
-  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
 
   return { blocks, allReady };
 }
@@ -162,7 +162,7 @@ export function getRenderedBlocksMultiple(
   allReady: boolean;
 } {
   const { olxJsons, allReady } = getOlxJsonMultiple(props, ids, source);
-  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
   return { blocks, allReady };
 }
 
