@@ -88,7 +88,10 @@ function exampleRootId(
 ): string | null {
   if (!examplePath.startsWith(`${BLOCKS_DIR}/`)) return null;
   const rel = examplePath.slice(BLOCKS_DIR.length + 1);
-  return parsedFiles[`file:docs://${rel}`]?.blockIds[0] ?? null;
+  // blockIds are recorded in parse-completion (post-)order — kids before
+  // parents — so the file's top-level block is the LAST entry.
+  const ids = parsedFiles[`file:docs://${rel}`]?.blockIds;
+  return ids?.length ? ids[ids.length - 1] : null;
 }
 
 // ---------------------------------------------------------------------------
