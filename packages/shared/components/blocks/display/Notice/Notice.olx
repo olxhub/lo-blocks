@@ -1,0 +1,4 @@
+<Vertical id="NoticeDemo">
+  <Notice/>
+  <Notice content="This course is licensed under CC BY-SA 4.0."/>
+</Vertical>
