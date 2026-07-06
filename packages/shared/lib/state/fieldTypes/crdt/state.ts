@@ -65,5 +65,11 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     ...(opts?.read ? { read: opts.read } : {}),
     ...(opts?.equality ? { equality: opts.equality } : {}),
     ...(opts?.batching ? { batching: opts.batching } : {}),
+    // URL-sync flags travel with the field (fields.ts passes them as opts;
+    // dropping them silently un-URLs every url:true field under CRDT —
+    // studio's ?source=&file= read as empty).
+    ...(opts?.url ? { url: opts.url } : {}),
+    ...(opts?.urlDefault ? { urlDefault: opts.urlDefault } : {}),
+    ...(opts?.urlPush ? { urlPush: opts.urlPush } : {}),
   };
 }
