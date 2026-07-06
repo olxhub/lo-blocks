@@ -347,6 +347,11 @@ export default function _Studio(props: RuntimeProps) {
       if (cached) {
         fileStateRef.current.delete(fileRef(source, oldPath));
         fileStateRef.current.set(fileRef(source, newPath), cached);
+        // Move the LIVE redux buffer too — the cache move alone makes
+        // FileEditorPane skip its storage read for the new ref, so without
+        // this the renamed file opens on the empty fallback buffer and a
+        // save would blank it.
+        setStudioContent(fileRef(source, newPath), getStudioContent(fileRef(source, oldPath)));
       }
       // Renames replace (not push): back shouldn't step through old names.
       if (oldPath === filePath) setLocation(source, newPath, { push: false });

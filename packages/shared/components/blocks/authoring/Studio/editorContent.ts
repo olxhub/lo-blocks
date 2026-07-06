@@ -14,7 +14,7 @@
 // for callers that don't need to re-render (save, the LLM chat, dirty
 // checks).
 
-import { useFieldState, getReduxState, updateField } from '@/lib/state';
+import { useFieldState, getField, updateField } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { asStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types';
@@ -25,9 +25,12 @@ export function useStudioContent(fileId: LofsRef): [string, (v: string) => void]
     [string, (v: string) => void];
 }
 
-/** Read a file's current content synchronously (no subscription). */
+/** Read a file's current content synchronously (no subscription).
+ *  getField, not getReduxState: content is a docField, so the raw redux
+ *  value is an RgaDoc — the DECODED string is what save, the LLM tools,
+ *  and dirty checks need. */
 export function getStudioContent(fileId: LofsRef): string {
-  return getReduxState(null, editorFields.content, '', { stateKey: asStateKey(fileId) });
+  return getField(null, editorFields.content, { fallback: '', stateKey: asStateKey(fileId) });
 }
 
 /** Write a file's content synchronously (the editor's hook re-renders). */
