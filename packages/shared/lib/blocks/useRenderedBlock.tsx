@@ -61,7 +61,15 @@ export function useBlock(
   // Block readiness (lazy engines + component chunks) rides along with OLX
   // loading — every useBlock consumer gets both for free. See
   // useBlocksReady for scope and failure semantics.
-  const depsReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
+  //
+  // LATCHED per instance: the gate holds only the FIRST content render
+  // (cold-start correctness — engines before anything evaluates). Once this
+  // instance has rendered, later content arriving in the source (an editor
+  // insert, a sibling pane's fetch) must not re-suspend it — a cold chunk
+  // then falls to LazyBlock's own spinner for just the new block.
+  const gateReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
+  const renderedOnceRef = React.useRef(false);
+  const depsReady = renderedOnceRef.current || gateReady;
 
   if (!stateKey) {
     return { block: null, olxJson: undefined, ...blockData('ready') };
@@ -105,6 +113,7 @@ export function useBlock(
   }
 
   // Ready from Redux - render the block, wrapped with translation indicator
+  renderedOnceRef.current = true;  // latch: never regress to the deps gate
   const rendered = render({ ...props, node: reduxOlxJson });
   const block = (
     <TranslatingIndicator translationState={translationState}>
