@@ -111,6 +111,13 @@ export default function FileEditorPane({
   // holds the (possibly edited) content — keep it. (Staleness refresh: TODO.)
   useEffect(() => {
     if (cache.has(fileId)) return;
+    // stale: the pane moved to another file while this read was in flight.
+    // Buffer + cache writes stay UNguarded — they're keyed by the captured
+    // fileId, so a stale read correctly populates that file for later
+    // visits. Only the pane-current concerns (loading overlay, error
+    // toast) are guarded: without this, file A's late completion cleared
+    // file B's overlay, inviting typing that B's own read then overwrote.
+    let stale = false;
     setLoading(true);
     let olxPath;
     try {
@@ -130,9 +137,10 @@ export default function FileEditorPane({
       })
       .catch(err => {
         console.error('Failed to load file:', err);
-        onError(`Failed to load ${path}`, err instanceof Error ? err.message : String(err));
+        if (!stale) onError(`Failed to load ${path}`, err instanceof Error ? err.message : String(err));
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!stale) setLoading(false); });
+    return () => { stale = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fileId is the identity; path/storage changes arrive through it
   }, [fileId]);
 
