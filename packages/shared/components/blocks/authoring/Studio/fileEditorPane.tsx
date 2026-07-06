@@ -20,7 +20,7 @@ import CodeEditor, { type CodeEditorHandle } from '@/components/common/CodeEdito
 import { DisplayError } from '@/lib/util/debug';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import { makeAddress, toLofsContentPath } from '@/lib/types/address';
-import type { IdMap, ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
+import type { ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
 import type { NetworkStorageProvider } from '@/lib/lofs';
 import { STUDIO_NS } from './studioNs';
 import { useStudioContent } from './editorContent';
@@ -34,7 +34,6 @@ interface FileEditorPaneProps {
   source: LofsOrigin;
   path: string;
   storage: NetworkStorageProvider;
-  idMap: IdMap | null;
   cache: FileCache;
   /** CodeEditor handle for the parent's insert/scroll actions. */
   editorRef: React.Ref<CodeEditorHandle>;
@@ -45,7 +44,7 @@ interface FileEditorPaneProps {
 }
 
 export default function FileEditorPane({
-  source, path, storage, idMap, cache, editorRef,
+  source, path, storage, cache, editorRef,
   showPreview, previewLayout, onError,
 }: FileEditorPaneProps) {
   // The file's identity — always defined here (component only mounts with both).
@@ -150,11 +149,13 @@ export default function FileEditorPane({
                   }
                 />
               ) : (
+                // No idMap prop: refs the edited file points at resolve from
+                // the olxjson slice through the render pipeline (the shell
+                // dispatched the compiled index there).
                 <PreviewPane
                   path={path}
                   content={content}
                   ns={previewNs}
-                  idMap={idMap}
                   resolveProvider={storage}
                   provenance={fileId}
                 />

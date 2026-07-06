@@ -18,13 +18,14 @@ import { toOlxRelativePath, VersionConflictError } from '@/lib/types/storage';
 import { toLofsOrigin, makeAddress, toLofsContentPath } from '@/lib/types/address';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { useFieldState, updateField, settings } from '@/lib/state';
+import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { setParams } from '@/lib/state/urlFields';
 import { useNotifications, ToastNotifications } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import type { CodeEditorHandle } from '@/components/common/CodeEditor';
-import type { RuntimeProps, IdMap, LofsOrigin, LofsRef } from '@/lib/types';
+import type { RuntimeProps, LofsOrigin, LofsRef } from '@/lib/types';
 import FileEditorPane, { type FileCache } from './fileEditorPane';
 import { getStudioContent, setStudioContent, useStudioContent } from './editorContent';
 import { FilesPanel } from './filesPanel';
@@ -203,7 +204,6 @@ export default function _Studio(props: RuntimeProps) {
   // which lands with the file/sources MCP-ization (backlog). Fields would
   // be the wrong shape: this is derived server data, not user state.
   const [fileTree, setFileTree] = useState<any>(null);              // useState-ok: see above
-  const [idMap, setIdMap] = useState<IdMap | null>(null);           // useState-ok: see above
   const [saving, setSaving] = useFieldState(props, studioFields.studioSaving, false);
   const [newFileOpen, setNewFileOpen] = useFieldState(props, studioFields.studioNewFileOpen, false);
   // Live content of the open file: subscribe to the redux buffer directly
@@ -241,9 +241,16 @@ export default function _Studio(props: RuntimeProps) {
   }, []);
   useEffect(() => { refreshFiles(); }, [source, refreshFiles]);
 
-  // The compiled index (idMap) spans all sources — load once on mount.
+  // The compiled index spans all sources — load once on mount, INTO the
+  // olxjson slice (its canonical home): search reads it via selector, and
+  // the preview resolves refs from the store through the normal render
+  // pipeline. Arriving as a LOAD_OLXJSON event also makes it replayable.
   useEffect(() => {
-    fetchAllOlxJson().then(data => setIdMap(data.idMap)).catch(console.error);
+    fetchAllOlxJson()
+      .then(data => dispatchOlxJson(props, 'content', data.idMap))
+      .catch(console.error);
+    // props identity is stable enough for a mount-only fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- File operations (ported verbatim in logic) ------------------------------
@@ -448,7 +455,6 @@ export default function _Studio(props: RuntimeProps) {
             )}
             {sidebarTab === 'search' && (
               <SearchPanel
-                idMap={idMap}
                 content={openContent}
                 currentPath={filePath}
                 currentSource={source}
@@ -476,7 +482,6 @@ export default function _Studio(props: RuntimeProps) {
             source={source}
             path={filePath}
             storage={storage}
-            idMap={idMap}
             cache={fileStateRef.current}
             editorRef={editorRef}
             showPreview={showPreview}

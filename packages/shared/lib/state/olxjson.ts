@@ -15,6 +15,7 @@
 //
 'use client';
 
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
@@ -35,6 +36,33 @@ export const OLXJSON_LOADING = 'OLXJSON_LOADING';
 export const OLXJSON_TRANSLATING = 'OLXJSON_TRANSLATING';
 export const OLXJSON_ERROR = 'OLXJSON_ERROR';
 export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
+
+// =============================================================================
+// Source-level read
+// =============================================================================
+
+/**
+ * One content source's blocks as a server-shaped idMap
+ * (id → variantMap → OlxJson) — the redux entries unwrapped from their
+ * { olxJson, loadingState } wrappers. Memoized on the source map's
+ * reference, which the reducer replaces only when content loads.
+ *
+ * For consumers that want the whole loaded index (e.g. studio's
+ * cross-content search) rather than one block.
+ */
+export function useOlxJsonSourceIdMap(source: string): IdMap {
+  const sourceMap: OlxJsonSourceState | undefined = useSelector(
+    (state: RootState) => state.application_state?.olxjson?.[source],
+  );
+  return useMemo(() => {
+    if (!sourceMap) return {};
+    const idMap: IdMap = {};
+    for (const [id, entry] of Object.entries(sourceMap)) {
+      if (entry.olxJson) idMap[id] = entry.olxJson;
+    }
+    return idMap;
+  }, [sourceMap]);
+}
 
 // =============================================================================
 // Dispatch Helpers

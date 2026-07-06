@@ -4,12 +4,12 @@
 // Ported from apps/web/app/studio/panels/SearchPanel.tsx.
 
 import { useState } from 'react';
-import type { IdMap, OlxJson, LofsOrigin } from '@/lib/types';
+import type { OlxJson, LofsOrigin } from '@/lib/types';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
+import { useOlxJsonSourceIdMap } from '@/lib/state/olxjson';
 import { source, addressPath } from '@/lib/types/address';
 
 interface SearchPanelProps {
-  idMap: IdMap | null;
   content: string;
   currentPath: string;
   /** The selected source's origin (undefined until one is picked). Search is
@@ -31,16 +31,19 @@ function extractIds(content: string): Array<{ id: string; tag: string }> {
   return results;
 }
 
-export function SearchPanel({ idMap, content, currentPath, currentSource, onFileSelect, onScrollToId }: SearchPanelProps) {
+export function SearchPanel({ content, currentPath, currentSource, onFileSelect, onScrollToId }: SearchPanelProps) {
   // useState-ok: ephemeral inline-edit state — the panel's live search query.
   const [searchQuery, setSearchQuery] = useState('');
   const localIds = extractIds(content);
+  // The compiled index, from its canonical home (the shell dispatched the
+  // union fetch into the olxjson slice under 'content').
+  const idMap = useOlxJsonSourceIdMap('content');
 
   // Filter idMap by search query, scoped to the selected source. The idMap is
   // the union across all sources, but editing is single-source — so results from
   // other sources would open the wrong file. (Cross-source search is a Studio-redo
   // UX decision.) IdMap is { [id]: { [variant]: OlxJson } } — unwrap to the OlxJson.
-  const searchResults: Array<[string, OlxJson]> = idMap && searchQuery.trim() && currentSource
+  const searchResults: Array<[string, OlxJson]> = searchQuery.trim() && currentSource
     ? Object.entries(idMap)
         .map(([id, variantMap]) => [id, extractLocalizedVariant(variantMap, '')] as [string, OlxJson | undefined])
         .filter((pair): pair is [string, OlxJson] => {
