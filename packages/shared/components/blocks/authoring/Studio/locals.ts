@@ -29,4 +29,7 @@ export const studioFields = state.fields([
   'studioSaving',
   'studioNewFileOpen',
   'studioSourceMenuOpen',
+  'studioPaletteOpen',
+  'studioPaletteQuery',
+  'studioPaletteIndex',
 ]);

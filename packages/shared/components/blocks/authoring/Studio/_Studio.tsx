@@ -33,6 +33,7 @@ import { SearchPanel } from './searchPanel';
 import { DocsPanel } from './docsPanel';
 import EditorLLMChat from './editorLLMChat';
 import NewFileDialog from './newFileDialog';
+import { CommandPalette } from './commandPalette';
 import { studioFields } from './locals';
 
 /** Buffer key when no file is open — subscribes to an always-empty scratch
@@ -354,17 +355,33 @@ export default function _Studio(props: RuntimeProps) {
     }
   }, [filePath, source, refreshFiles, notify, setLocation]);
 
-  // --- Keyboard shortcuts -------------------------------------------------------
+  // --- Command palette + keyboard shortcuts ------------------------------------
+  const [paletteOpen, setPaletteOpen] = useFieldState(props, studioFields.studioPaletteOpen, false);
+  const [, setPaletteQuery] = useFieldState(props, studioFields.studioPaletteQuery, '');
+  const [, setPaletteIndex] = useFieldState(props, studioFields.studioPaletteIndex, 0);
+
+  const openPalette = useCallback(() => {
+    // Fresh on open, matching the legacy remount-reset behavior.
+    setPaletteQuery('');
+    setPaletteIndex(0);
+    setPaletteOpen(true);
+    // Field setters are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (mod && e.key === 's') { e.preventDefault(); handleSave(); }
       else if (mod && !e.shiftKey && e.key === 'p') { e.preventDefault(); setShowPreview(!showPreview); }
       else if (mod && e.key === 'n') { e.preventDefault(); if (canWrite) setNewFileOpen(true); }
+      else if (mod && e.key === 'k') { e.preventDefault(); paletteOpen ? setPaletteOpen(false) : openPalette(); }
+      else if (e.key === 'F1') { e.preventDefault(); window.open('/docs', '_blank'); }
+      else if (e.key === 'Escape' && paletteOpen) { setPaletteOpen(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleSave, setShowPreview, showPreview, canWrite]);
+  }, [handleSave, setShowPreview, showPreview, canWrite, setNewFileOpen, paletteOpen, setPaletteOpen, openPalette]);
 
   // beforeunload: warn when ANY file in the source is dirty, not just the open one.
   useEffect(() => {
@@ -509,6 +526,7 @@ export default function _Studio(props: RuntimeProps) {
       </div>
 
       <footer className="studio-footer">
+        <kbd>⌘K</kbd> Command palette
         <kbd>⌘S</kbd> Save
         <kbd>⌘P</kbd> Preview
         <kbd>⌘N</kbd> New file
@@ -527,6 +545,17 @@ export default function _Studio(props: RuntimeProps) {
         onCreate={handleFileCreate}
         onClose={() => setNewFileOpen(false)}
       />
+
+      {paletteOpen && (
+        <CommandPalette
+          props={props}
+          onClose={() => setPaletteOpen(false)}
+          onSave={() => handleSave()}
+          onTogglePreview={() => setShowPreview(!showPreview)}
+          onInsert={(t) => editorRef.current?.insertAtCursor(t)}
+          onNewFile={() => setNewFileOpen(true)}
+        />
+      )}
 
       <ToastNotifications notifications={notifications} onDismiss={dismissNotification} />
     </div>
