@@ -44,6 +44,7 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
+import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 
 // All fields on the block — including per-annotation scoped fields.
@@ -60,7 +61,7 @@ export const fields = state.fields([
   'start',
   'end',
   'activeNote',
-  'value',
+  docField('value'),
 ]);
 
 const Annotate = test({

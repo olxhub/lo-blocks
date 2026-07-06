@@ -5,7 +5,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector } from '@/lib/state';
+import { fieldSelector, docField, decodeField } from '@/lib/state';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import {
   isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
@@ -25,7 +25,7 @@ export const fields = state.fields([
   'clothingColor',      // Hex color (6 digits, no #)
   'headContrastColor',  // Hair/hat color, hex (6 digits, no #)
   'role',               // Profile: character role/title
-  'bio',                // Profile: character bio
+  docField('bio'),      // Profile: character bio
   'groups',             // Comma-separated group slugs
   'copied',             // Transient: copy-to-clipboard feedback
 ]);
@@ -92,7 +92,7 @@ const AvatarEditor = dev({
     const clothingColor = fieldSelector(reduxState, props, fields.clothingColor, { fallback: '' });
     const headContrastColor = fieldSelector(reduxState, props, fields.headContrastColor, { fallback: '' });
     const role = fieldSelector(reduxState, props, fields.role, { fallback: '' });
-    const bio = fieldSelector(reduxState, props, fields.bio, { fallback: '' });
+    const bio = decodeField(fields.bio, fieldSelector(reduxState, props, fields.bio, { fallback: '' }));
     const groups = fieldSelector(reduxState, props, fields.groups, { fallback: '' });
     return buildYaml(
       characterId, name, seed,

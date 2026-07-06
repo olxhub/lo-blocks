@@ -16,10 +16,10 @@ import { z } from 'zod';
 import { dev, input } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { commonFields } from '@/lib/state';
+import { docField } from '@/lib/state';
 import { z_olx_boolean, z_olx_duration, placeholder } from '@/lib/blocks/attributeSchemas';
 
-export const fields = state.fields([commonFields.value, 'revealed', 'lastKeystrokeTime']);
+export const fields = state.fields([docField('value'), 'revealed', 'lastKeystrokeTime']);
 
 const Freewrite = dev({
   ...parsers.ignore(),

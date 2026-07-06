@@ -8,11 +8,11 @@
 import { z } from 'zod';
 import { test, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { fieldSelector, docField, decodeField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 
-export const fields = state.fields([commonFields.value]);
+export const fields = state.fields([docField('value')]);
 
 const CodeInput = test({
   ...parsers.text.raw(),
@@ -21,7 +21,7 @@ const CodeInput = test({
   description: 'Experimental: CodeMirror editor for in-browser code editing',
   fields,
   selectValue: ((props, reduxState, _stateKey) => {
-    const fieldValue = fieldSelector(reduxState, props, fields.value, { fallback: null });
+    const fieldValue = decodeField(fields.value, fieldSelector(reduxState, props, fields.value, { fallback: null }));
     return fieldValue ?? props.kids ?? null;
   }) as any,
   attributes: z.object({
