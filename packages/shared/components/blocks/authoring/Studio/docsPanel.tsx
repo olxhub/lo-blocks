@@ -6,11 +6,11 @@
 // IS the BlockIndex block, embedded through the standard pipeline — the
 // panel composes the same blocks /docs uses, so the two can't drift.
 
-import { useDocs } from '@/lib/docs/useDocs';
 import { getContentType } from '@/lib/util/fileTypes';
 import RenderOLX from '@/components/common/RenderOLX';
 import { asStateKey } from '@/lib/types/id-grammar';
 import { STUDIO_NS } from './studioNs';
+import { ExpandableBlockDoc, CategorizedBlockList } from './blockDocsList';
 
 export interface DocsPanelProps {
   filePath: string;
@@ -37,10 +37,6 @@ export function DocsPanel({ filePath, content, cursorTag, onInsert }: DocsPanelP
   const docType = getContentType(filePath);
   const elements = extractElements(content);
 
-  // Elements used in the file, with their insert templates.
-  const { blocks: elementBlocks } = useDocs(elements, ['template']);
-  const templateFor = (name: string): string | null =>
-    elementBlocks.find(b => b.name === name)?.template ?? null;
 
   return (
     <div className="sidebar-panel docs-panel">
@@ -82,37 +78,22 @@ export function DocsPanel({ filePath, content, cursorTag, onInsert }: DocsPanelP
           </div>
         )}
 
-        {/* Elements used in current file */}
+        {/* Elements used in current file — expandable rows with template
+            insert and Full docs links, same rows as the full list below. */}
         {elements.length > 0 && (
           <div className="elements-in-file">
             <div className="elements-in-file__header">Elements in file</div>
             <div className="elements-in-file__list">
-              {elements.map(tag => {
-                const template = templateFor(tag);
-                return (
-                  <button
-                    key={tag}
-                    className="docs-item"
-                    title={template ? 'Insert template into editor' : 'Insert into editor'}
-                    onClick={() => onInsert?.(template ?? `<${tag}></${tag}>`)}
-                  >
-                    {tag}
-                  </button>
-                );
-              })}
+              {elements.map(tag => (
+                <ExpandableBlockDoc key={tag} name={tag} onInsert={onInsert} />
+              ))}
             </div>
           </div>
         )}
 
-        {/* All blocks — the BlockIndex block, embedded (same listing as /docs) */}
-        <div className="docs-blocks">
-          <RenderOLX
-            ns={STUDIO_NS}
-            id={asStateKey('studio/docsPanelIndex')}
-            inline={'<BlockIndex/>'}
-            eventContext="studio"
-          />
-        </div>
+        {/* All blocks, categorized — expandable rows with "+ Insert"
+            (the majority authoring flow) and Full docs links. */}
+        <CategorizedBlockList onInsert={onInsert} />
       </div>
     </div>
   );
