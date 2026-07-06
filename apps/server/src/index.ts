@@ -8,6 +8,7 @@ import fs from 'fs';
 import { loadServerConfig, getConfig } from '@/lib/config';
 import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
 import { startServer, type ServerHandle } from './server.js';
+import { startBoot } from './boot.js';
 import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
@@ -125,13 +126,23 @@ async function initTools() {
 async function main() {
   console.log('Learning Opus server starting...');
 
-  await loadConfig();
-  validateLLMProvider();
-  const { idMap } = await syncContentFromStorage();
-  console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
-  const kvs = await initStorage();
-  const registry = await initTools();
-  const handle = await startServer(kvs, registry);
+  // Bind the port FIRST: a boot page owns the window (a live task
+  // checklist at / and JSON at /boot-status) until every task below is
+  // done — no "connection refused" during cold start, and no partially-
+  // initialized states: the app handler only exists once everything does.
+  const port = Number(process.env.PORT ?? 8888);
+  const boot = await startBoot(port);
+
+  await boot.task('Load configuration', loadConfig);
+  await boot.task('Validate LLM provider', () => validateLLMProvider());
+  await boot.task('Sync content (clone, scan, parse)', async () => {
+    const { idMap } = await syncContentFromStorage();
+    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
+  });
+  const kvs = await boot.task('Initialize storage', initStorage);
+  const registry = await boot.task('Register MCP tools', initTools);
+  const handle = await boot.task('Start server (vite, websockets, routes)',
+    () => startServer(kvs, registry, boot.handoff()));
 
   console.log('\nReady. Press Ctrl+C to stop.\n');
 

@@ -82,7 +82,9 @@ export interface ServerHandle {
 
 export async function startServer(
   kvs: KVStore,
-  registry: ToolRegistry
+  registry: ToolRegistry,
+  /** An already-listening server to adopt (the boot server — boot.ts). */
+  existingServer?: Server,
 ): Promise<ServerHandle> {
   // Dev serves the client through Vite's dev middleware on this port —
   // on-demand transforms + HMR, no build step. Production serves the
@@ -179,8 +181,11 @@ export async function startServer(
   });
 
   // --- HTTP server ---------------------------------------------------------
-  // Prefixes owned by this server. Everything else proxies to Next.js.
-  const server = createServer(async (req, res) => {
+  // Adopt the boot server's already-listening socket when provided (the
+  // boot page owned the port during startup — see boot.ts); otherwise
+  // create and listen here (tests boot startServer directly).
+  const server = existingServer ?? createServer();
+  server.on('request', async (req, res) => {
     const url = req.url || '/';
 
     // MCP endpoint — handled at raw HTTP level (needs Node.js req/res for
@@ -320,9 +325,12 @@ export async function startServer(
   });
 
   // --- Listen --------------------------------------------------------------
-  await new Promise<void>((resolve) => {
-    server.listen(PORT, resolve);
-  });
+  // The adopted boot server is already listening; only bind when standalone.
+  if (!existingServer) {
+    await new Promise<void>((resolve) => {
+      server.listen(PORT, resolve);
+    });
+  }
 
   console.log(`  Listening on http://localhost:${PORT}`);
   console.log(`    WebSocket: ws://localhost:${PORT}${WS_PATH}`);
