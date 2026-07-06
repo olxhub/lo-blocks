@@ -2,11 +2,15 @@
 // packages/shared/components/blocks/authoring/Studio/docsPanel.tsx
 //
 // Documentation sidebar panel. Ported from apps/web/app/studio/panels/
-// DocsPanel.tsx, rebuilt on the MCP-backed docs layer (useDocs) instead of
-// the retired /api/docs REST routes (useDocsData/BlockList).
+// DocsPanel.tsx, rebuilt on the MCP-backed docs layer. The block listing
+// IS the BlockIndex block, embedded through the standard pipeline — the
+// panel composes the same blocks /docs uses, so the two can't drift.
 
 import { useDocs } from '@/lib/docs/useDocs';
 import { getContentType } from '@/lib/util/fileTypes';
+import RenderOLX from '@/components/common/RenderOLX';
+import { asStateKey } from '@/lib/types/id-grammar';
+import { STUDIO_NS } from './studioNs';
 
 export interface DocsPanelProps {
   filePath: string;
@@ -30,8 +34,6 @@ export function DocsPanel({ filePath, content, onInsert }: DocsPanelProps) {
   const docType = getContentType(filePath);
   const elements = extractElements(content);
 
-  // Full listing (descriptor level: name + description).
-  const { blocks: allBlocks, loading } = useDocs('*');
   // Elements used in the file, with their insert templates.
   const { blocks: elementBlocks } = useDocs(elements, ['template']);
   const templateFor = (name: string): string | null =>
@@ -79,27 +81,15 @@ export function DocsPanel({ filePath, content, onInsert }: DocsPanelProps) {
           </div>
         )}
 
-        {/* All blocks (name + description, linking to full docs) */}
-        {loading ? (
-          <div className="search-hint">Loading blocks...</div>
-        ) : (
-          <div className="docs-blocks">
-            {allBlocks.map(block => (
-              <a
-                key={block.name}
-                href={`/docs/${block.name}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="docs-item"
-              >
-                <span className="docs-item-name">{block.name}</span>
-                {block.description && (
-                  <span className="docs-item-desc">{block.description}</span>
-                )}
-              </a>
-            ))}
-          </div>
-        )}
+        {/* All blocks — the BlockIndex block, embedded (same listing as /docs) */}
+        <div className="docs-blocks">
+          <RenderOLX
+            ns={STUDIO_NS}
+            id={asStateKey('studio/docsPanelIndex')}
+            inline={'<BlockIndex/>'}
+            eventContext="studio"
+          />
+        </div>
       </div>
     </div>
   );
