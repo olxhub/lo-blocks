@@ -88,10 +88,33 @@ export async function startServer(
 ): Promise<ServerHandle> {
   // Dev serves the client through Vite's dev middleware on this port —
   // on-demand transforms + HMR, no build step. Production serves the
-  // prebuilt apps/client/dist. `vite` is assigned after the http server
-  // exists (its HMR websocket attaches to it); Hono handlers close over it.
+  // prebuilt apps/client/dist. `vite` MUST be assigned before the request
+  // handler attaches: with an adopted (already-listening) boot server, a
+  // request in the gap would see vite undefined and silently serve a stale
+  // dist build. Created right after the server exists (HMR needs it).
   const clientDev = process.env.NODE_ENV !== 'production';
   let vite: ViteDevServer | undefined;
+
+  const server = existingServer ?? createServer();
+
+  // --- Vite dev middleware (dev only) ----------------------------------------
+  // await-imported so production never loads Vite. The config is imported
+  // as a module rather than passed as configFile: Vite's config loader
+  // bundles configFile to a temp .mjs and imports it in-process, which
+  // lands the (immediately deleted) temp file in tsx --watch's module
+  // graph and restart-loops the server. appType 'custom' disables Vite's
+  // own HTML fallback: unmatched paths must keep flowing to the
+  // fallthrough (404 or, with NEXT_FALLBACK, the legacy proxy).
+  if (clientDev) {
+    const { createServer: createViteServer } = await import('vite');
+    const { default: clientViteConfig } = await import('../../client/vite.config');
+    vite = await createViteServer({
+      ...clientViteConfig,
+      configFile: false,
+      appType: 'custom',
+      server: { middlewareMode: true, hmr: { server } },
+    });
+  }
 
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
@@ -180,11 +203,9 @@ export async function startServer(
     proxyRes.headers['set-cookie'] = cookies;
   });
 
-  // --- HTTP server ---------------------------------------------------------
-  // Adopt the boot server's already-listening socket when provided (the
-  // boot page owned the port during startup — see boot.ts); otherwise
-  // create and listen here (tests boot startServer directly).
-  const server = existingServer ?? createServer();
+  // --- HTTP request handler --------------------------------------------------
+  // The server was created (or adopted from the boot page — boot.ts) above,
+  // BEFORE vite, so no request can see a half-initialized closure.
   server.on('request', async (req, res) => {
     const url = req.url || '/';
 
@@ -244,25 +265,8 @@ export async function startServer(
     }
   });
 
-  // --- Vite dev middleware (dev only) ---------------------------------------
-  // await-imported so production never loads Vite (or the client's plugin
-  // chain) — the client is served from dist there.
-  // The config is imported as a module rather than passed as configFile:
-  // Vite's config loader bundles configFile to a temp .mjs next to it and
-  // imports it in-process, which lands the (immediately deleted) temp file
-  // in tsx --watch's module graph and restart-loops the server.
-  // appType 'custom' disables Vite's own HTML fallback: unmatched paths must
-  // keep flowing to the Next.js proxy during the migration.
-  if (clientDev) {
-    const { createServer: createViteServer } = await import('vite');
-    const { default: clientViteConfig } = await import('../../client/vite.config');
-    vite = await createViteServer({
-      ...clientViteConfig,
-      configFile: false,
-      appType: 'custom',
-      server: { middlewareMode: true, hmr: { server } },
-    });
-  }
+  // (Vite dev middleware is created near the top of startServer — before
+  // the request handler attaches — see the comment there.)
 
   // --- WebSocket server (via ws, not Hono) ---------------------------------
   // TODO: We use the raw `ws` library here because we need to selectively
