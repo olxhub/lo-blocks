@@ -178,6 +178,12 @@ export const getField = <T>(
  * // fieldSelector would return RawFieldValue, decodeField would return DecodedFieldValue
  */
 export function decodeField(field: FieldInfo, raw: any): any {
+  // Absence passes through: read decodes PRESENT values. Running read on
+  // undefined would manufacture a value from nothing (docField's
+  // read(undefined) → ''), swallowing the caller's fallback — which broke
+  // "no state yet → use initial text" logic (TextArea/Mermaid) the moment
+  // CRDT fields became the default.
+  if (raw === undefined) return undefined;
   return field.read ? field.read(raw) : raw;
 }
 
