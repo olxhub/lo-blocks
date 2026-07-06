@@ -52,6 +52,10 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   const events = opts?.events ?? (opts?.event ? [opts.event as FieldEvent] : [defaultEv]);
   const event = events[0];
   return {
+    // Caller opts pass through WHOLESALE — the previous allow-list here
+    // dropped the url* flags and silently un-URL'd every url:true field
+    // under CRDT. Constructor-owned keys follow, each opts-aware.
+    ...opts,
     type: 'field',
     kind: 'state',
     name: name as FieldName,
@@ -61,15 +65,5 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     write: opts?.write ?? lwwWrite(name, event),
     reduce: opts?.reduce ?? lwwReduce,
     display: opts?.display ?? defaultDisplay,
-    ...(opts?.schema ? { schema: opts.schema } : {}),
-    ...(opts?.read ? { read: opts.read } : {}),
-    ...(opts?.equality ? { equality: opts.equality } : {}),
-    ...(opts?.batching ? { batching: opts.batching } : {}),
-    // URL-sync flags travel with the field (fields.ts passes them as opts;
-    // dropping them silently un-URLs every url:true field under CRDT —
-    // studio's ?source=&file= read as empty).
-    ...(opts?.url ? { url: opts.url } : {}),
-    ...(opts?.urlDefault ? { urlDefault: opts.urlDefault } : {}),
-    ...(opts?.urlPush ? { urlPush: opts.urlPush } : {}),
   };
 }

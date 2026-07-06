@@ -27,17 +27,15 @@ export function stateField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   const event = opts?.event ?? fieldNameToDefaultEventName(name);
   const events = opts?.events ?? [event as FieldEvent];
   return {
+    // Caller opts pass through WHOLESALE — an allow-list here silently
+    // drops any option it doesn't name (that's how url* flags got lost
+    // under the CRDT constructor and un-URL'd every url:true field).
+    // Constructor-owned keys follow, each opts-aware.
+    ...opts,
     type: 'field',
     name: name as FieldName,
     event: events[0] as string,
     events,
     scope: opts?.scope ?? scopes.component,
-    ...(opts?.schema ? { schema: opts.schema } : {}),
-    ...(opts?.read ? { read: opts.read } : {}),
-    ...(opts?.equality ? { equality: opts.equality } : {}),
-    ...(opts?.batching ? { batching: opts.batching } : {}),
-    ...(opts?.url ? { url: opts.url } : {}),
-    ...(opts?.urlDefault ? { urlDefault: opts.urlDefault } : {}),
-    ...(opts?.urlPush ? { urlPush: opts.urlPush } : {}),
   };
 }

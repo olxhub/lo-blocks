@@ -26,6 +26,9 @@ import type { FieldInfo, FieldName, FieldEvent } from '../../../types';
 export function setField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   const events = opts?.events ?? ['SET_ADD' as FieldEvent, 'SET_REMOVE' as FieldEvent];
   return {
+    // Caller opts pass through WHOLESALE (see classic/state.ts — allow-
+    // lists silently drop options). Constructor-owned keys follow.
+    ...opts,
     type: 'field',
     kind: 'set',
     name: name as FieldName,
@@ -37,7 +40,5 @@ export function setField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     reduce: opts?.reduce ?? setReduce,
     display: opts?.display ?? setDisplay,
     equality: opts?.equality ?? Object.is,
-    ...(opts?.schema ? { schema: opts.schema } : {}),
-    ...(opts?.batching ? { batching: opts.batching } : {}),
   };
 }

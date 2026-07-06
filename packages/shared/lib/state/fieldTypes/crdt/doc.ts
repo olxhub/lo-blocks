@@ -37,25 +37,29 @@ import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../../typ
  */
 export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   return {
+    // Caller opts pass through WHOLESALE (see classic/state.ts — allow-
+    // lists silently drop options; this constructor also ignored
+    // opts.scope entirely). Constructor-owned keys follow, opts-aware.
+    ...opts,
     type: 'field',
     kind: 'doc',
     name: name as FieldName,
-    events: ['SPLICE_INPUT' as FieldEvent],
-    event: 'SPLICE_INPUT',
-    scope: scopes.component,
-    read: (raw: any): string => {
+    events: opts?.events ?? ['SPLICE_INPUT' as FieldEvent],
+    event: opts?.event ?? 'SPLICE_INPUT',
+    scope: opts?.scope ?? scopes.component,
+    read: opts?.read ?? ((raw: any): string => {
       if (!raw) return '';
       if (typeof raw === 'string') return raw;
       if (raw.ops) return rgaText(raw);
       return '';
-    },
-    display: (raw: any): string => {
+    }),
+    display: opts?.display ?? ((raw: any): string => {
       if (!raw) return '';
       if (typeof raw === 'string') return raw;
       if (raw.ops) return rgaText(raw);
       return '';
-    },
-    write: (oldRaw: any, newValue: any): WriteResult[] => {
+    }),
+    write: opts?.write ?? ((oldRaw: any, newValue: any): WriteResult[] => {
       const newText = String(newValue ?? '');
       const oldText = oldRaw?.ops ? rgaText(oldRaw) : (typeof oldRaw === 'string' ? oldRaw : '');
       const splice = computeSplice(oldText, newText);
@@ -71,8 +75,8 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
           ...(needsInit ? { initText: oldText, actor: getActorId() } : {}),
         }
       }];
-    },
-    reduce: (componentState: Record<string, any>, action: any, fieldName: string) => {
+    }),
+    reduce: opts?.reduce ?? ((componentState: Record<string, any>, action: any, fieldName: string) => {
       const { index, deleteCount, inserted, initText, actor } = action;
       // Selection keys are prefixed by useInputField: "value.selectionStart"
       const selectionStart = action[`${fieldName}.selectionStart`];
@@ -93,9 +97,7 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       if (selectionStart !== undefined) patch[`${fieldName}.selectionStart`] = selectionStart;
       if (selectionEnd !== undefined) patch[`${fieldName}.selectionEnd`] = selectionEnd;
       return patch;
-    },
+    }),
     equality: opts?.equality ?? Object.is,
-    ...(opts?.schema ? { schema: opts.schema } : {}),
-    ...(opts?.batching ? { batching: opts.batching } : {}),
   };
 }
