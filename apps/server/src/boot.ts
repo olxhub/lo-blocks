@@ -48,19 +48,32 @@ const PAGE = `<!doctype html>
 <ul id="tasks"></ul>
 <p id="note" style="color:#64748b">This page reloads into the app when everything is ready.</p>
 <script>
+  let failures = 0;
+  const note = (msg) => { document.getElementById('note').textContent = msg; };
   async function poll() {
     try {
       const r = await fetch('/boot-status');
+      // 404 = the boot handler is gone, so handoff happened (an app
+      // without this endpoint took the port) — reload into it.
+      if (r.status === 404) { location.reload(); return; }
+      if (!r.ok) throw new Error('boot-status ' + r.status);
       const s = await r.json();
+      failures = 0;
       if (s.ready) { location.reload(); return; }
       document.getElementById('tasks').innerHTML = s.tasks.map(t =>
         '<li class="' + t.status + '">' + t.name +
         (t.ms ? ' <span class="ms">' + (t.ms/1000).toFixed(1) + 's</span>' : '') +
         (t.detail ? ' <span class="ms">— ' + t.detail + '</span>' : '') + '</li>'
       ).join('');
-      if (s.tasks.some(t => t.status === 'failed'))
-        document.getElementById('note').textContent = 'A startup task failed — check the server console.';
-    } catch (e) { /* server restarting between polls — keep trying */ }
+      note(s.tasks.some(t => t.status === 'failed')
+        ? 'A startup task failed — check the server console.'
+        : 'This page reloads into the app when everything is ready.');
+    } catch (e) {
+      // Network error (server restarting) or a 5xx/garbage response —
+      // keep polling, but say so instead of sitting silent.
+      failures++;
+      if (failures >= 4) note('Can\\'t reach the server (' + e.message + ') — retrying…');
+    }
     setTimeout(poll, 500);
   }
   poll();

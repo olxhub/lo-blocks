@@ -141,8 +141,10 @@ async function main() {
   });
   const kvs = await boot.task('Initialize storage', initStorage);
   const registry = await boot.task('Register MCP tools', initTools);
+  // startServer calls boot.handoff() itself, synchronously adjacent to the
+  // request-handler attach — the swap must be atomic (see server.ts).
   const handle = await boot.task('Start server (vite, websockets, routes)',
-    () => startServer(kvs, registry, boot.handoff()));
+    () => startServer(kvs, registry, boot));
 
   console.log('\nReady. Press Ctrl+C to stop.\n');
 

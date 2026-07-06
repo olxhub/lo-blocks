@@ -63,7 +63,7 @@ const WS_PATH = '/wsapi/in/';
 const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/api/file', '/api/files',
-  '/api/grep', '/api/sources',
+  '/api/grep', '/api/sources', '/boot-status',
   '/assets/', '/preview/', '/repo/', '/docs', '/studio',
 ];
 
@@ -83,8 +83,11 @@ export interface ServerHandle {
 export async function startServer(
   kvs: KVStore,
   registry: ToolRegistry,
-  /** An already-listening server to adopt (the boot server — boot.ts). */
-  existingServer?: Server,
+  /** The boot tracker to adopt (already-listening server + handoff — see
+   *  boot.ts). handoff() is called HERE, synchronously adjacent to the
+   *  request-handler attach: detaching the boot handler any earlier leaves
+   *  a listener-less window where requests hang forever. */
+  boot?: { server: Server; handoff: () => Server },
 ): Promise<ServerHandle> {
   // Dev serves the client through Vite's dev middleware on this port —
   // on-demand transforms + HMR, no build step. Production serves the
@@ -95,7 +98,7 @@ export async function startServer(
   const clientDev = process.env.NODE_ENV !== 'production';
   let vite: ViteDevServer | undefined;
 
-  const server = existingServer ?? createServer();
+  const server = boot?.server ?? createServer();
 
   // --- Vite dev middleware (dev only) ----------------------------------------
   // await-imported so production never loads Vite. The config is imported
@@ -119,6 +122,10 @@ export async function startServer(
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
 
+  // Boot pages poll this until ready and then reload into the app — it
+  // must keep answering AFTER handoff (boot.ts serves it during boot; a
+  // 404 here strands open boot pages in their retry loop forever).
+  app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
   app.get('/api/olxjson', handleOlxJson);
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
@@ -205,7 +212,9 @@ export async function startServer(
 
   // --- HTTP request handler --------------------------------------------------
   // The server was created (or adopted from the boot page — boot.ts) above,
-  // BEFORE vite, so no request can see a half-initialized closure.
+  // BEFORE vite, so no request can see a half-initialized closure. The
+  // boot→app swap is atomic: detach and attach in the same synchronous tick.
+  boot?.handoff();
   server.on('request', async (req, res) => {
     const url = req.url || '/';
 
@@ -330,7 +339,7 @@ export async function startServer(
 
   // --- Listen --------------------------------------------------------------
   // The adopted boot server is already listening; only bind when standalone.
-  if (!existingServer) {
+  if (!boot) {
     await new Promise<void>((resolve) => {
       server.listen(PORT, resolve);
     });
