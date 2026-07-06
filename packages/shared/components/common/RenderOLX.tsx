@@ -56,7 +56,6 @@ import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
 import { useBlock } from '@/lib/blocks/useRenderedBlock';
-import { useBlocksReady } from '@/lib/blocks/useBlocksReady';
 import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
@@ -353,14 +352,9 @@ export default function RenderOLX({
     onError
   );
 
-  // Merge parsed content into runtime context
+  // Merge parsed content into runtime context. (Block readiness — lazy
+  // engines + component chunks — is gated inside useBlock below.)
   const renderProps = mergeContentIntoProps(runtimeContext, parsed, baseIdMap);
-
-  // Dependency gate: pre-parsed content (baseIdMap from /api/olxjson) never
-  // ran parseOLX's per-tag ensureReady await on this client — without this,
-  // the first when= evaluation or grader render hits a lazy engine (mathjs)
-  // cold. See useBlocksReady.
-  const depsReady = useBlocksReady(renderProps.mergedIdMap, renderProps.blockRegistry);
 
   // Notify parent when content is parsed
   useEffect(() => {
@@ -436,10 +430,6 @@ export default function RenderOLX({
   // we never render with undefined locale, which would break all selectValue logic)
   if (!localeReady) {
     return <Spinner>Loading language settings...</Spinner>;
-  }
-
-  if (!depsReady) {
-    return <Spinner>Loading block dependencies...</Spinner>;
   }
 
   // Fatal parse error (e.g. malformed XML — no tree to render). Route through

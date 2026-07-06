@@ -178,6 +178,12 @@ export const getField = <T>(
  * // fieldSelector would return RawFieldValue, decodeField would return DecodedFieldValue
  */
 export function decodeField(field: FieldInfo, raw: any): any {
+  // Absence passes through: read decodes PRESENT values. Running read on
+  // undefined would manufacture a value from nothing (docField's
+  // read(undefined) → ''), swallowing the caller's fallback — which broke
+  // "no state yet → use initial text" logic (TextArea/Mermaid) the moment
+  // CRDT fields became the default.
+  if (raw === undefined) return undefined;
   return field.read ? field.read(raw) : raw;
 }
 
@@ -328,8 +334,8 @@ export function useFieldState(
 
   const value = useFieldSelector(props, field, { fallback: effectiveFallback, stateKey, tag });
 
-  const ref = useRef({ props, field, stateKey, tag });
-  ref.current = { props, field, stateKey, tag };
+  const ref = useRef({ props, field, stateKey, tag, fallback });
+  ref.current = { props, field, stateKey, tag, fallback };
   const setValue = useCallback(
     (newValue: any) => {
       const { props, field, stateKey, tag } = ref.current;
@@ -341,6 +347,24 @@ export function useFieldState(
     },
     []
   );
+
+  // Browser back/forward: re-sync url-enabled fields from the URL. The
+  // popstate URL is already what the user navigated to, so update the field
+  // only — going through setValue would write history again (and urlPush
+  // fields would push a new entry, breaking further back-navigation).
+  // A field whose param is absent after navigation reverts to its fallback.
+  useEffect(() => {
+    if (!field.url || typeof window === 'undefined') return;
+    const onPop = () => {
+      const { props, field, stateKey, tag, fallback } = ref.current;
+      const urlValue = getUrlOverride((props as any)?.id, field);
+      updateField(props, field, urlValue !== undefined ? urlValue : fallback, { stateKey, tag });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+    // field.url/name are stable per field declaration.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field.url, field.name]);
 
   return [value, setValue];
 }

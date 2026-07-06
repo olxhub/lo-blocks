@@ -2,8 +2,9 @@
 // Preview pane for PEG content files (.chatpeg, .sortpeg, etc.)
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { getParserForExtension } from '@/generated/parserRegistry';
+import { useFormats } from '@/lib/docs/useDocs';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
@@ -37,52 +38,16 @@ type TabType = 'parse' | 'preview';
  */
 export default function PEGPreviewPane({ path, content }: PEGPreviewPaneProps) {
   const [activeTab, setActiveTab] = useState<TabType>('preview');
-  const [previewOLX, setPreviewOLX] = useState<string | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const ext = useMemo(() => getExtension(path), [path]);
 
-  // Load grammar metadata including preview template
-  useEffect(() => {
-    if (!ext) {
-      setPreviewOLX(null);
-      setPreviewError(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    fetch(`/api/docs/grammar/${encodeURIComponent(ext)}?context=studio`)
-      .then(res => {
-        if (!res.ok) {
-          if (res.status === 404) {
-            setPreviewOLX(null);
-            setPreviewError(`Grammar '${ext}' not found`);
-          } else {
-            throw new Error(`Failed to load grammar: ${res.status}`);
-          }
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data?.grammar?.preview) {
-          setPreviewOLX(data.grammar.preview);
-          setPreviewError(null);
-        } else if (data) {
-          setPreviewOLX(null);
-          setPreviewError(null); // Grammar exists but no preview template
-        }
-      })
-      .catch(err => {
-        setPreviewError(err.message);
-        setPreviewOLX(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [ext]);
+  // Grammar preview template via the get_formats MCP tool (the legacy
+  // /api/docs/grammar REST route is retired). get_formats filter matches
+  // extensions; the 'preview' facet is the OLX template.
+  const { formats, loading, error } = useFormats(ext ? { match: [ext] } : { match: [] }, ['preview']);
+  const format = formats.find(f => f.extension === ext || f.name === ext);
+  const previewOLX = format?.preview ?? null;
+  const previewError = error ?? (!loading && ext && !format ? `Grammar '${ext}' not found` : null);
 
   const parseResult = useMemo((): ParseResult | null => {
     if (!content.trim()) return null;

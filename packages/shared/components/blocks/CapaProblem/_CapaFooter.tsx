@@ -11,7 +11,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
-import { renderBlock } from '@/lib/render';
+import { Block } from '@/lib/render';
 import {
   getButtonLabel,
   shouldShowAnswer,
@@ -60,18 +60,18 @@ export default function _CapaFooter(props: RuntimeProps) {
   return (
     <div className="lo-capafooter">
       <div className="lo-capafooter__actions">
-        {renderBlock(props, 'ActionButton', {
-          id: buttonId,
-          label: buttonLabel,
-          target,
-          disabled: submitDisabled ? 'true' : undefined,
-        })}
-        {hintsTarget && renderBlock(props, 'HintButton', { id: hintButtonId, target: hintsTarget })}
-        {showAnswerVisible && renderBlock(props, 'ShowAnswerButton', { id: showAnswerId, target })}
+        <Block props={props} tag="ActionButton"
+          id={buttonId}
+          label={buttonLabel}
+          target={target}
+          disabled={submitDisabled ? 'true' : undefined}
+        />
+        {hintsTarget && <Block props={props} tag="HintButton" id={hintButtonId} target={hintsTarget} />}
+        {showAnswerVisible && <Block props={props} tag="ShowAnswerButton" id={showAnswerId} target={target} />}
       </div>
       <div className="lo-capafooter__status">
-        {renderBlock(props, 'Correctness', { id: statusIconId })}
-        {renderBlock(props, 'StatusText', { id: statusTextId, field: 'message' })}
+        <Block props={props} tag="Correctness" id={statusIconId} />
+        <Block props={props} tag="StatusText" id={statusTextId} field="message" />
         {attemptsDisplay && (
           <span className="lo-capafooter__attempts">{attemptsDisplay}</span>
         )}

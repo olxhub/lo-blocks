@@ -17,8 +17,9 @@
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useBlocksReadyForSources } from '@/lib/blocks/useBlocksReady';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { renderOlxJson, renderCompiledKids } from '@/lib/render';
+import { render, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
@@ -57,13 +58,25 @@ export function useBlock(
   const olxResult = useOlxJson(props, defRef, source);
   const { olxJson: reduxOlxJson } = olxResult;
   const translationState = useTranslation(props, reduxOlxJson, source);
+  // Block readiness (lazy engines + component chunks) rides along with OLX
+  // loading — every useBlock consumer gets both for free. See
+  // useBlocksReady for scope and failure semantics.
+  //
+  // LATCHED per instance: the gate holds only the FIRST content render
+  // (cold-start correctness — engines before anything evaluates). Once this
+  // instance has rendered, later content arriving in the source (an editor
+  // insert, a sibling pane's fetch) must not re-suspend it — a cold chunk
+  // then falls to LazyBlock's own spinner for just the new block.
+  const gateReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
+  const renderedOnceRef = React.useRef(false);
+  const depsReady = renderedOnceRef.current || gateReady;
 
   if (!stateKey) {
     return { block: null, olxJson: undefined, ...blockData('ready') };
   }
 
   // Check Redux state
-  if (olxResult.loading) {
+  if (olxResult.loading || !depsReady) {
     return {
       block: <Spinner>{`Loading ${stateKey}...`}</Spinner>,
       ...blockData('loading')
@@ -100,7 +113,8 @@ export function useBlock(
   }
 
   // Ready from Redux - render the block, wrapped with translation indicator
-  const rendered = renderOlxJson({ ...props, node: reduxOlxJson });
+  renderedOnceRef.current = true;  // latch: never regress to the deps gate
+  const rendered = render({ ...props, node: reduxOlxJson });
   const block = (
     <TranslatingIndicator translationState={translationState}>
       {rendered}
@@ -119,7 +133,7 @@ export function useBlock(
  * Hook for rendering multiple blocks from an array of IDs.
  *
  * Takes an array of DefinitionRef IDs and returns rendered React elements.
- * Each block is fetched via useOlxJsonMultiple and rendered via renderOlxJson.
+ * Each block is fetched via useOlxJsonMultiple and rendered via render().
  * Placeholders (Spinner/ErrorNode) are automatically returned for loading/error states
  * by useOlxJsonMultiple's contract.
  *
@@ -142,7 +156,7 @@ export function useRenderedBlocksMultiple(
 
   // useOlxJsonMultiple guarantees non-null entries (Spinner/ErrorNode OlxJson for loading/error)
   // Just render each one through the normal block pipeline
-  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
 
   return { blocks, allReady };
 }
@@ -162,7 +176,7 @@ export function getRenderedBlocksMultiple(
   allReady: boolean;
 } {
   const { olxJsons, allReady } = getOlxJsonMultiple(props, ids, source);
-  const blocks = olxJsons.map(olxJson => renderOlxJson({ ...props, node: olxJson }));
+  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
   return { blocks, allReady };
 }
 

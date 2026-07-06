@@ -17,17 +17,21 @@ import { test, expect } from 'vitest';
 import { spawn } from 'child_process';
 import getPort from 'get-port';
 
-/** Poll until the server answers or the deadline passes. */
+/** Poll until the server answers 200 or the deadline passes. During boot
+ *  the port answers 503 (the boot page — boot.ts), so "any response" is no
+ *  longer "ready"; readiness is the app handler actually serving. */
 async function waitForServer(url: string, { timeout = 90000, interval = 1000 } = {}) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     try {
-      return await fetch(url, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (res.status === 200) return res;
     } catch {
-      await new Promise(r => setTimeout(r, interval));
+      // connection refused / timeout — keep polling
     }
+    await new Promise(r => setTimeout(r, interval));
   }
-  throw new Error(`Server did not answer at ${url} within ${timeout}ms`);
+  throw new Error(`Server did not become ready at ${url} within ${timeout}ms`);
 }
 
 test('app server boots and serves SPA + API endpoints', async () => {

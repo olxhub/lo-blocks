@@ -457,60 +457,28 @@ export function renderCompiledKids(props): React.ReactNode[] {
 export { useBlock, useKids, useKidsWithState, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
 
 /**
- * Render an OlxJson node directly (no idMap lookup needed).
+ * Render a virtual block as JSX — the composition form of the render
+ * pipeline, for blocks that programmatically create sub-blocks
+ * (e.g. CapaProblem's status icons):
  *
- * Use this when you have the OlxJson object already (e.g., from useOlxJson hook).
- * This is the preferred method for components that use hooks to access content.
+ *   <Block props={props} tag="Correctness" id={`${id}_status`} />
  *
- * @param props - Render props (nodeInfo, blockRegistry, idPrefix, etc.)
- * @param props.node - The OlxJson to render
+ * `props` is the hosting block's RuntimeProps (nodeInfo + runtime);
+ * remaining JSX attributes become the virtual block's OLX attributes.
+ * Being a component (not an in-body call), each instance owns its hooks —
+ * so dynamic lists of <Block>s stay rules-of-hooks-legal where per-kid
+ * hooks in the parent would not.
  */
-export function renderOlxJson(props: {
-  node: any;
-  nodeInfo: any;
-  runtime: LoBlockRuntimeContext;
+export function Block({ props, tag, kids = [], ...attributes }: {
+  props: { nodeInfo: any; runtime: LoBlockRuntimeContext };
+  tag: string;
+  kids?: any[];
+  [attribute: string]: any;
 }): React.ReactNode {
-  const { node, nodeInfo, runtime } = props;
-
-  if (!runtime) {
-    throw new Error(
-      'renderOlxJson() requires runtime context. ' +
-      'This indicates incomplete prop threading.'
-    );
-  }
-
+  const { id, ...rest } = attributes;
   return render({
-    node,
-    nodeInfo,
-    runtime
-  });
-}
-
-/**
- * Helper to render a virtual block without exposing OLX node shape.
- * Used for programmatically creating blocks (e.g., CapaProblem status icons).
- *
- * @param {object} props - Component props (must include nodeInfo, runtime)
- * @param {string} tag - The component tag (e.g., 'Correctness')
- * @param {object} options - { id, ...attributes }
- * @param {Array} kids - Child nodes
- * @returns Rendered React element
- *
- * @example
- * renderBlock(props, 'Correctness', { id: 'x_status', target: '...' })
- */
-export function renderBlock(props, tag, options: { id?: string;[key: string]: any } = {}, kids = []): React.ReactNode {
-  if (!props.runtime) {
-    throw new Error(
-      'renderBlock() requires runtime context in props. ' +
-      'This indicates incomplete prop threading.'
-    );
-  }
-  const { id, ...attributes } = options;
-  const node = { id, tag, attributes, kids };
-  return render({
-    node,
+    node: { id, tag, attributes: rest, kids },
     nodeInfo: props.nodeInfo,
-    runtime: props.runtime
+    runtime: props.runtime,
   });
 }

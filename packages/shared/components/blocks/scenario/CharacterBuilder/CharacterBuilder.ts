@@ -46,7 +46,7 @@
 import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector } from '@/lib/state';
+import { fieldSelector, docField, decodeField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
@@ -70,8 +70,8 @@ export const fields = state.fields([
   // Per-card (scoped):
   'cardType',
   'dimensionKey',
-  'value',
-  'customPrompt',
+  docField('value'),
+  docField('customPrompt'),
   'statPreset',
   'statValues',
   'statUnits',        // JSON: {"height":"cm","weight":"kg"} — selected unit per stat
@@ -181,8 +181,8 @@ function readCardData(
   return {
     cardType:     fieldSelector(reduxState, scoped, fields.cardType,     { fallback: '' }),
     dimensionKey: fieldSelector(reduxState, scoped, fields.dimensionKey, { fallback: '' }),
-    value:        fieldSelector(reduxState, scoped, fields.value,        { fallback: '' }),
-    customPrompt: fieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' }),
+    value:        decodeField(fields.value,        fieldSelector(reduxState, scoped, fields.value,        { fallback: '' })),
+    customPrompt: decodeField(fields.customPrompt, fieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' })),
     statPreset:   fieldSelector(reduxState, scoped, fields.statPreset,   { fallback: '' }),
     statValues:   fieldSelector(reduxState, scoped, fields.statValues,   { fallback: '' }),
   };
