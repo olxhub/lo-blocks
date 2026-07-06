@@ -27,15 +27,18 @@ import * as crdt from './crdt';
 // ---------------------------------------------------------------------------
 // Active field type strategy
 // ---------------------------------------------------------------------------
-// Env var checked at module load time. Default: classic.
-// Set NEXT_PUBLIC_LO_FIELD_STRATEGY=crdt to enable CRDT field types.
+// Env var checked at module load time. Default: crdt (flipped 2026-07 for
+// the pre-rollout soak — the storage model's live layer is CRDT, so the
+// default exercises it everywhere, including the full test gate).
+// Set NEXT_PUBLIC_LO_FIELD_STRATEGY=classic for the escape hatch.
 //
-// IMPORTANT: Use `process.env.NEXT_PUBLIC_*` (direct access, no optional chaining).
-// Next.js/Turbopack replaces this exact pattern with a literal string at compile time.
-// Optional chaining (`process.env?.`) breaks the pattern match and the value
-// becomes undefined on the client, silently falling back to 'classic'.
+// IMPORTANT: Use `process.env.NEXT_PUBLIC_*` (direct access, no optional
+// chaining) — both bundlers replace this exact pattern at compile time:
+// Next.js/Turbopack natively; the vite client via a `define` entry in
+// apps/client/vite.config.ts (which substitutes null when the var is
+// unset, so the ?? default below applies).
 export const NEXT_PUBLIC_LO_FIELD_STRATEGY: 'classic' | 'crdt' =
-  (process.env.NEXT_PUBLIC_LO_FIELD_STRATEGY as 'classic' | 'crdt' | undefined) ?? 'classic';
+  (process.env.NEXT_PUBLIC_LO_FIELD_STRATEGY as 'classic' | 'crdt' | undefined | null) ?? 'crdt';
 
 const active = NEXT_PUBLIC_LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
 
