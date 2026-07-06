@@ -22,8 +22,9 @@
 // retriable error), and a rejected chunk load falls through to LazyBlock's
 // error handling. Both are strictly better than a permanent spinner.
 
-import { useEffect, useState } from 'react';
-import type { LoBlock } from '@/lib/types';
+import { useEffect, useMemo, useState } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
+import type { LoBlock, RootState } from '@/lib/types';
 
 /** True when a block still has readiness work: an unresolved ensureReady
  *  or an unloaded component chunk. */
@@ -55,7 +56,15 @@ function resolveBlock(block: LoBlock): Promise<unknown> {
   return Promise.allSettled(work);
 }
 
-/** Blocks in the registry with unresolved readiness, for the tags in idMap. */
+/** Registry blocks with unresolved readiness, for a set of tags. */
+function pendingForTags(tags: Set<string>, registry: Record<string, LoBlock>): LoBlock[] {
+  return [...tags]
+    .map(tag => registry[tag])
+    .filter((b): b is LoBlock => !!b && isPending(b));
+}
+
+/** Blocks with unresolved readiness for the tags in a server-shaped idMap
+ *  (id → variantMap → OlxJson). */
 function pendingBlocks(
   idMap: Record<string, any> | undefined,
   registry: Record<string, LoBlock>,
@@ -68,19 +77,30 @@ function pendingBlocks(
       if (tag) tags.add(tag);
     }
   }
-  return [...tags]
-    .map(tag => registry[tag])
-    .filter((b): b is LoBlock => !!b && isPending(b));
+  return pendingForTags(tags, registry);
 }
 
-/** True once every block type in idMap has its dependencies ready. */
-export function useBlocksReady(
-  idMap: Record<string, any> | undefined,
-  registry: Record<string, LoBlock>,
-): boolean {
-  const pending = pendingBlocks(idMap, registry);
+/** Tags in a redux olxjson source map — one wrapper deeper than the server
+ *  shape: id → { olxJson: variantMap, loadingState } (OlxJsonBlockEntry). */
+function tagsInSourceMap(sourceMap: Record<string, any>): Set<string> {
+  const tags = new Set<string>();
+  for (const entry of Object.values(sourceMap)) {
+    for (const olx of Object.values((entry as { olxJson?: Record<string, any> })?.olxJson ?? {})) {
+      const tag = (olx as { tag?: string })?.tag;
+      if (tag) tags.add(tag);
+    }
+  }
+  return tags;
+}
+
+/** Gate core: resolve the pending blocks' readiness; true once every one
+ *  is ready or its round settled (failures land with their per-path
+ *  handlers — requireCalc's retriable error for engines, LazyBlock's
+ *  error path incl. stale-chunk healing for chunks — never a stuck
+ *  spinner). */
+function useGate(pending: LoBlock[]): boolean {
   // Re-render trigger only — the source of truth is the cached flags on
-  // the blocks (._ensureReadyDone / .component).
+  // the blocks (._ensureReadyDone / .component / ._gateSettled).
   const [, bump] = useState(0);
 
   const pendingKey = pending.map(b => b.name).sort().join(',');
@@ -88,17 +108,55 @@ export function useBlocksReady(
     if (!pendingKey) return;
     let alive = true;
     Promise.allSettled(
-      // _gateSettled: this block's readiness round completed (success or
-      // not) — releases the gate so failures land with their per-path
-      // handlers (requireCalc's retriable error for engines; LazyBlock's
-      // error path, incl. stale-chunk healing, for chunks) instead of a
-      // permanent spinner.
       pending.map(b => resolveBlock(b).then(() => { b._gateSettled = true; })),
     ).then(() => { if (alive) bump(n => n + 1); });
     return () => { alive = false; };
-    // pending is derived from idMap+registry; pendingKey captures its identity.
+    // pending is derived state; pendingKey captures its identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingKey]);
 
   return pending.every(b => !isPending(b) || b._gateSettled);
+}
+
+/** True once every block type in idMap has its dependencies ready. */
+export function useBlocksReady(
+  idMap: Record<string, any> | undefined,
+  registry: Record<string, LoBlock>,
+): boolean {
+  return useGate(pendingBlocks(idMap, registry));
+}
+
+/**
+ * Readiness gate scoped to everything loaded in Redux for the given
+ * sources — the useBlock form: OLX loading put content in the olxjson
+ * slice; this gates on the block types that content uses. A superset of
+ * any one subtree, deliberately: preloading a sibling's chunk is warm
+ * cache, not waste, and it keeps the walk selector-cheap.
+ *
+ * Subscription cost: per-source maps are replaced (new reference) only
+ * when content loads, so shallowEqual on the map refs means the tag walk
+ * re-runs on content changes, not on every dispatch (e.g. keystrokes).
+ */
+export function useBlocksReadyForSources(
+  sources: string[],
+  registry: Record<string, LoBlock>,
+): boolean {
+  const sourcesKey = sources.join(',');
+  const sourceMaps = useSelector(
+    (state: RootState) => sources.map(src => state.application_state?.olxjson?.[src]),
+    shallowEqual,
+  );
+  const pending = useMemo(
+    () => {
+      const tags = new Set<string>();
+      for (const m of sourceMaps) {
+        if (m) tagsInSourceMap(m).forEach(t => tags.add(t));
+      }
+      return pendingForTags(tags, registry);
+    },
+    // registry is module-stable; sourceMaps refs change only on content loads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sourceMaps, sourcesKey],
+  );
+  return useGate(pending);
 }

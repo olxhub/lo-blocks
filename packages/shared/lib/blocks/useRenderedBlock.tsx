@@ -17,6 +17,7 @@
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useBlocksReadyForSources } from '@/lib/blocks/useBlocksReady';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { render, renderCompiledKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -57,13 +58,17 @@ export function useBlock(
   const olxResult = useOlxJson(props, defRef, source);
   const { olxJson: reduxOlxJson } = olxResult;
   const translationState = useTranslation(props, reduxOlxJson, source);
+  // Block readiness (lazy engines + component chunks) rides along with OLX
+  // loading — every useBlock consumer gets both for free. See
+  // useBlocksReady for scope and failure semantics.
+  const depsReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
 
   if (!stateKey) {
     return { block: null, olxJson: undefined, ...blockData('ready') };
   }
 
   // Check Redux state
-  if (olxResult.loading) {
+  if (olxResult.loading || !depsReady) {
     return {
       block: <Spinner>{`Loading ${stateKey}...`}</Spinner>,
       ...blockData('loading')
