@@ -32,4 +32,8 @@ export const studioFields = state.fields([
   'studioPaletteOpen',
   'studioPaletteQuery',
   'studioPaletteIndex',
+  // The block tag enclosing the editor cursor — drives the docs panel's
+  // context-sensitive attribute reference. Written only when the tag
+  // changes, not per cursor movement.
+  'studioCursorTag',
 ]);

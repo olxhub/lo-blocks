@@ -15,6 +15,9 @@ import { STUDIO_NS } from './studioNs';
 export interface DocsPanelProps {
   filePath: string;
   content: string;
+  /** Block tag enclosing the editor cursor — shows its attribute reference
+   *  at the top of the panel (the DocAttributes block, embedded). */
+  cursorTag?: string | null;
   onInsert?: (olx: string) => void;
 }
 
@@ -30,7 +33,7 @@ function extractElements(content: string): string[] {
   return Array.from(tags).sort();
 }
 
-export function DocsPanel({ filePath, content, onInsert }: DocsPanelProps) {
+export function DocsPanel({ filePath, content, cursorTag, onInsert }: DocsPanelProps) {
   const docType = getContentType(filePath);
   const elements = extractElements(content);
 
@@ -44,6 +47,26 @@ export function DocsPanel({ filePath, content, onInsert }: DocsPanelProps) {
       <div className="sidebar-panel-header">Documentation</div>
       <div className="docs-list">
         <a href="/docs" target="_blank" className="docs-link">Full Documentation</a>
+
+        {/* Context: attribute reference for the block at the cursor —
+            the DocAttributes block, embedded (same source as /docs).
+            Keyed per tag so each block's reference gets its own state.
+            Safe to interpolate: cursorTag comes from enclosingBlockTag's
+            [A-Za-z]\w* match — no quotes or angle brackets possible. */}
+        {cursorTag && (
+          <div className="docs-cursor-context">
+            <div className="elements-in-file__header">
+              At cursor: <a href={`/docs/${cursorTag}`} target="_blank" rel="noopener noreferrer">{cursorTag}</a>
+            </div>
+            <RenderOLX
+              key={cursorTag}
+              ns={STUDIO_NS}
+              id={asStateKey('studio/docsPanelCursor')}
+              inline={`<DocAttributes block="${cursorTag}"/>`}
+              eventContext="studio"
+            />
+          </div>
+        )}
 
         {/* File-type specific docs */}
         {/* TODO: Add general PEG syntax guide page. For now, link to specific grammars. */}

@@ -211,6 +211,9 @@ export default function _Studio(props: RuntimeProps) {
   // (the same field FileEditorPane's editor writes) — drives dirty state
   // and content-derived sidebars with no mirror state.
   const openContent = useStudioContent(fileId ?? SCRATCH_REF)[0];
+  // Block tag enclosing the editor cursor (change-frequency writes — see
+  // FileEditorPane's listener) — drives the docs panel's context reference.
+  const [cursorTag, setCursorTag] = useFieldState(props, studioFields.studioCursorTag, '');
 
   const editorRef = useRef<CodeEditorHandle>(null);
   // Per-source cache of loaded files (saved snapshot + conflict metadata +
@@ -467,6 +470,7 @@ export default function _Studio(props: RuntimeProps) {
               <DocsPanel
                 filePath={filePath}
                 content={openContent}
+                cursorTag={cursorTag || null}
                 onInsert={(t) => editorRef.current?.insertAtCursor(t)}
               />
             )}
@@ -503,6 +507,7 @@ export default function _Studio(props: RuntimeProps) {
             editorRef={editorRef}
             showPreview={showPreview}
             previewLayout={previewLayout}
+            onCursorTag={(tag) => setCursorTag(tag ?? '')}
             onError={(title, message) => notify('error', title, message)}
           />
         ) : (
