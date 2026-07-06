@@ -50,6 +50,10 @@ import { ToolRegistry } from '@/lib/mcp/registry';
 // Overridable for tests (the smoke test boots a second instance beside a
 // running dev server); 8888 is the canonical port — see docs/README.md.
 const PORT = Number(process.env.PORT ?? 8888);
+// Trial mode for killing Next.js: by default unclaimed paths 404 instead of
+// proxying to the legacy server. NEXT_FALLBACK=1 restores the proxy (pair
+// with `npm run dev:hybrid`, which still starts Next).
+const NEXT_FALLBACK = process.env.NEXT_FALLBACK === '1';
 const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
 // The legacy Next.js pages remain reachable at paths not claimed by this
@@ -203,10 +207,23 @@ export async function startServer(
     if (url === '/' || url.startsWith('/?') || SERVER_PREFIXES.some(p => url.startsWith(p))) {
       await handleWithSession(req, res);
     } else {
-      // Resolve session before proxying so the cookie gets set on the
-      // first page load (which is served by Next.js). The proxyRes handler
-      // above picks up the stashed cookie value.
-      const proxyToNext = async () => {
+      // Unclaimed path. Default: explicit 404 — the legacy Next.js pages
+      // are retired from the dev loop (trial run before deleting apps/web;
+      // NEXT_FALLBACK=1 + `npm run dev:hybrid` restores the proxy).
+      const fallthrough = async () => {
+        if (!NEXT_FALLBACK) {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end(
+            `No route for ${url}\n\n` +
+            `The legacy Next.js pages are disabled. If this path should ` +
+            `exist, it needs a route in apps/server or apps/client. ` +
+            `(Transition setup: NEXT_FALLBACK=1 with npm run dev:hybrid.)`
+          );
+          return;
+        }
+        // Resolve session before proxying so the cookie gets set on the
+        // first page load (served by Next.js). The proxyRes handler above
+        // picks up the stashed cookie value.
         const { needsCookie, user } = await resolveUserWithSession(req);
         if (needsCookie) {
           const token = await createSessionToken(user);
@@ -215,10 +232,10 @@ export async function startServer(
         proxy.web(req, res);
       };
       // In dev, Vite's middleware serves its module/asset URLs (/src/*,
-      // /@vite/*, /@fs/*, prebundled deps) and calls next() for anything it
-      // doesn't own — which continues to the Next.js proxy as before.
-      if (vite) vite.middlewares(req, res, () => { void proxyToNext(); });
-      else await proxyToNext();
+      // /@vite/*, /@fs/*, prebundled deps) and calls next() for anything
+      // it doesn't own — which continues to the fallthrough.
+      if (vite) vite.middlewares(req, res, () => { void fallthrough(); });
+      else await fallthrough();
     }
   });
 
@@ -311,7 +328,9 @@ export async function startServer(
   console.log(`    WebSocket: ws://localhost:${PORT}${WS_PATH}`);
   console.log(`    Client:    ${vite ? 'Vite dev middleware (HMR, on-demand transforms)' : 'apps/client/dist/ (prebuilt)'}`);
   console.log(`    MCP:       http://localhost:${PORT}/mcp`);
-  console.log(`    Fallback:  proxy → Next.js at http://127.0.0.1:3000`);
+  console.log(NEXT_FALLBACK
+    ? `    Fallback:  proxy → Next.js at http://127.0.0.1:3000`
+    : `    Fallback:  none — unclaimed paths 404 (NEXT_FALLBACK=1 to restore)`);
 
   return { server, activeConnections };
 }
