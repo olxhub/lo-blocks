@@ -2,7 +2,6 @@
 'use client';
 
 import { useMemo, useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { xml } from '@codemirror/lang-xml';
 import { markdown } from '@codemirror/lang-markdown';
 import { yaml } from '@codemirror/lang-yaml';
@@ -17,11 +16,25 @@ import { getExtension, getContentType, isPEGFile, isOLXFile } from '@/lib/util/f
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { generateOlxSchema } from './olxSchema';
 
-// Dynamic import for CodeMirror to avoid SSR issues
-const CodeMirror = dynamic(
-  () => import('@uiw/react-codemirror').then(mod => mod.default),
-  { ssr: false }
-);
+// Lazy-loaded CodeMirror, hand-rolled (LazyBlock-style — no React.lazy/
+// Suspense: suspension aborts-and-replays renders, which made whole pages
+// slow when these lived in render(); see lazyBlockComponent.tsx). Also NOT
+// next/dynamic: its loadable wrapper swallows the forwarded ref
+// (editorRef.current became its { retry } shim under the vite client), so
+// view was always undefined — insertAtCursor silently fell back to
+// append-at-end and scrollToId always failed.
+// Module-level cache: the chunk loads once; all later mounts render
+// synchronously.
+let _CodeMirror: (typeof import('@uiw/react-codemirror'))['default'] | null = null;
+function useCodeMirrorComponent() {
+  const [comp, setComp] = useState(() => _CodeMirror);
+  useEffect(() => {
+    if (!comp) {
+      import('@uiw/react-codemirror').then(m => { _CodeMirror = m.default; setComp(() => m.default); });
+    }
+  }, [comp]);
+  return comp;
+}
 
 // OLX schema for CodeMirror autocompletion — lazy singleton to avoid
 // circular-init issues (BLOCK_REGISTRY is a module-level const too).
@@ -328,6 +341,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   extensions: additionalExtensions = [],
 }, ref) {
   const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const CodeMirror = useCodeMirrorComponent();
   const resolvedTheme = useResolvedTheme(theme);
   const effectiveLanguage = language ?? detectLanguageFromPath(path);
   const ext = getExtension(path);
@@ -338,7 +352,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     insertAtCursor: (text: string) => {
       const view = editorRef.current?.view;
       if (!view) {
-        // Fallback: append to end if no view available
+        // Fallback: append to end if no view available (chunk still loading)
         onChange(value + '\n\n' + text);
         return;
       }
@@ -425,6 +439,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     return exts;
   }, [lineWrapping, effectiveLanguage, isPegContent, ext, additionalExtensions]);
 
+  if (!CodeMirror) return null;  // chunk loading (first mount in a session only)
   return (
     <CodeMirror
       ref={editorRef}
