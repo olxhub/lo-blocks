@@ -24,7 +24,7 @@ import { makeAddress, toLofsContentPath } from '@/lib/types/address';
 import type { ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
 import type { NetworkStorageProvider } from '@/lib/lofs';
 import { STUDIO_NS } from './studioNs';
-import { useStudioContent } from './editorContent';
+import { useStudioContent, setStudioContent } from './editorContent';
 
 /** Per-source cache of loaded files, keyed by LofsRef (owned by the parent,
  *  shared here). Holds the saved snapshot: content for dirty derivation,
@@ -122,7 +122,10 @@ export default function FileEditorPane({
     }
     storage.read(olxPath)
       .then(result => {
-        setContent(result.content);
+        // Write to the CAPTURED fileId, not the hook setter: the setter
+        // follows the currently-open file, so a slow read for file A
+        // resolving after the user switched to B would clobber B's buffer.
+        setStudioContent(fileId, result.content);
         cache.set(fileId, { content: result.content, metadata: result.metadata, ns: result.ns });
       })
       .catch(err => {

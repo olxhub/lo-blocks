@@ -64,7 +64,7 @@ const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/api/file', '/api/files',
   '/api/grep', '/api/sources', '/boot-status',
-  '/assets/', '/preview/', '/repo/', '/docs', '/studio',
+  '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
 
 // Symbols for annotating request objects between middleware stages
@@ -142,6 +142,11 @@ export async function startServer(
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
+  // Content assets (images, PDFs, video): copyAssetsToPublic still writes
+  // to apps/web/public (Next served these at /content/*). Served here so
+  // the no-Next default keeps assets working; the copy target moves out of
+  // apps/web in the kill-next PR.
+  app.use('/content/*', serveStatic({ root: './apps/web/public' }));
 
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.
