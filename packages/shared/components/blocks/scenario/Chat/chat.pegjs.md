@@ -370,6 +370,66 @@ Alex: Now complete this activity.
 --- wait activity_input ---
 ```
 
+### LLM Interlude
+
+Parks the script and opens the floor to a live LLM participant. The user and
+the agent converse freely; the script resumes when the interlude ends.
+
+```
+>>> llm tutor [until="@quiz.correct === correctness.correct" maxTurns=6 tools="content-read"]
+  You are a patient Socratic tutor. Ask one guiding question at a time.
+  The student's essay so far: {{@essay.value}}
+```
+
+The participant name (`tutor`) resolves against the cast for its avatar, like
+any speaker. The indented block (same rules as rich content) is the agent's
+system prompt; `{{...}}` interpolations are [state language](../../../lib/stateLanguage/expr.pegjs.md),
+re-resolved at **every turn**, so the agent always sees current state —
+point them at whatever blocks hold the context the agent should know.
+
+| Metadata | Purpose |
+|----------|---------|
+| `until` | State expression that must be truthy before the script can advance past the interlude — `wait`, but conversational |
+| `maxTurns` | Hard cap on user turns; input closes when spent |
+| `tools` | Comma-separated toolset names the agent may use (e.g. `content-read`, `docs`); omit for a plain conversation |
+| `profile` | Reserved for server-side LLM profile selection |
+
+**Ending the conversation.** The agent always has an `end_conversation` tool,
+so the prompt can delegate the ending:
+
+```
+>>> llm mentor [maxTurns=10]
+  You're advising a coworker at the lab, but you have a meeting in half an
+  hour. We have a target of 5 messages; past that, continue only if it's
+  productive — maxTurns is the hard stop. When they figure out the control
+  group is missing, congratulate them and call end_conversation. If you hit
+  the limit first, say you need to run to your meeting and call
+  end_conversation.
+```
+
+Calling it says goodbye, closes the input, and resumes the script
+automatically. The user's exit is the Continue button, enabled when `until`
+is satisfied, the agent ended the conversation, or `maxTurns` is exhausted —
+a hard stop never strands the user behind an unsatisfied `until`.
+
+The agent has **no script privileges**: it cannot run set commands, and it
+affects other blocks only through its declared toolsets. Runtime turns are
+stored in the Chat block's `messages` log field (actor-stamped, append-only)
+— the script stays static content.
+
+**In courseware**, compose the chat with the blocks it references:
+
+```xml
+<Vertical id="lesson">
+  <Chat id="tutoring" src="tutoring.chatpeg" />
+  <TextArea id="essay" placeholder="Draft your answer here" />
+</Vertical>
+```
+
+Any `{{@essay.value}}` in the interlude prompt and any `until="@essay..."`
+gate now follow the student's live work. See the `ChatWithAgent` example on
+the Chat block's documentation page for a complete runnable version.
+
 ## Comments
 
 Lines starting with `//` are ignored:
@@ -451,7 +511,8 @@ The parser produces a structure with header and body:
     { "type": "Line", "speaker": "Kim", "text": "...", "metadata": { "id": "..." } },
     { "type": "PauseCommand" },
     { "type": "WaitCommand", "expression": "@quiz.done" },
-    { "type": "ArrowCommand", "source": "sidebar", "target": "panel" }
+    { "type": "SetField", "scope": "ref", "ref": "sidebar", "field": "value", "value": "panel" },
+    { "type": "LlmCommand", "participant": "tutor", "metadata": { "maxTurns": "6" }, "prompt": "You are..." }
   ]
 }
 ```
