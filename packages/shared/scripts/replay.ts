@@ -132,7 +132,6 @@ function printState(state: AppState) {
   printScope('storage', state.storage);
   printScope('componentSetting', state.componentSetting);
   printScope('system', state.system);
-  printScope('chat', state.chat);
 
   // Summary line
   const counts = {

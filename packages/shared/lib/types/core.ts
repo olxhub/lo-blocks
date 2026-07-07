@@ -345,7 +345,7 @@ export interface FieldInfo {
    *  Absent for classic fields (no validation — classic stateField omits kind).
    *  Present on CRDT fields (crdt/state.ts sets 'state', crdt/doc.ts sets 'doc',
    *  crdt/set.ts sets 'set'). */
-  kind?: 'state' | 'set' | 'doc' | 'id';
+  kind?: 'state' | 'set' | 'doc' | 'id' | 'log';
 
   /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
    *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
@@ -1712,10 +1712,6 @@ export interface AppState {
   storage: Record<string, any>;
   /** Parsed OLX content by source namespace. */
   olxjson: OlxJsonState;
-  /** Chat sessions (LLM tutoring, simulated conversations, etc.).
-   *  Interim: the Studio Redux chat will become field data; the
-   *  conversation types above will persist for other chat surfaces. */
-  chat: Record<string, { messages: ChatMessage[]; status: string }>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
   /** Block documentation (get_blocks results). Interim — converges with

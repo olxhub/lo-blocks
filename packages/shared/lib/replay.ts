@@ -95,7 +95,6 @@ export const initialReplayState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,
