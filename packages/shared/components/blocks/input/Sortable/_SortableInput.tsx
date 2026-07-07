@@ -29,20 +29,13 @@ function SortableItemContent({ props, kid, itemIdPrefix }) {
 export default function SortableInput(props: RuntimeProps) {
   const { kids = [], dragMode = 'whole', fields, shuffle = true } = props;
 
-  // Validation
-  if (!isKidArray(kids) || kids.length === 0) {
-    return (
-      <DisplayError
-        props={props}
-        title="SortableInput Error"
-        message="No items provided"
-      />
-    );
-  }
+  // Validation. Captured (not returned) so the hooks below run unconditionally;
+  // the DisplayError guard is emitted after all hooks.
+  const kidsValid = isKidArray(kids) && kids.length > 0;
 
   // Fetch block definitions to get attributes
   type BlockKid = Extract<import('@/lib/types').KidEntry, { type: 'block' }>;
-  const blockKids = kids.filter((k): k is BlockKid => k.type === 'block');
+  const blockKids = kidsValid ? kids.filter((k): k is BlockKid => k.type === 'block') : [];
   const kidIds = blockKids.map((k) => k.id);
   const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
@@ -53,6 +46,16 @@ export default function SortableInput(props: RuntimeProps) {
   const [dragOverIndex, setDragOverIndex] = useFieldState(props, fields.dragOverIndex, null);
   const { showAnswer } = useGraderAnswer(props);
   const readOnly = isInputReadOnly(props);
+
+  if (!kidsValid) {
+    return (
+      <DisplayError
+        props={props}
+        title="SortableInput Error"
+        message="No items provided"
+      />
+    );
+  }
 
   // Initialize arrangement if empty
   let currentArrangement = arrangement;

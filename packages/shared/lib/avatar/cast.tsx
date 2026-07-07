@@ -327,6 +327,12 @@ export interface AvatarResult {
  *   const { avatar, name } = cast.avatar(props, { size: 48 });
  */
 export function avatar(props: any, options?: AvatarOptions): AvatarResult {
+  // useCast is hook-NAMED but currently pure (mergeCasts over props) — cast
+  // context is props-threaded today. The name is deliberate: as maintained
+  // context grows beyond cast-of-characters (learning objectives, narrative
+  // arcs), useCast becomes a real hook and avatar() becomes useAvatar. Until
+  // then this "conditional hook call" is a false positive (2026-07).
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const resolvedCast = options?.cast ?? useCast(props);
   const who = options?.who ?? props.who;
   const face = options?.face ?? props.face;

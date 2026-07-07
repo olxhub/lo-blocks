@@ -257,18 +257,10 @@ export default function MatchingInput(props: RuntimeProps) {
   // Parse pairs
   const pairs = parseMatchingPairs(kids);
 
-  if (!pairs) {
-    return (
-      <DisplayError
-        props={props}
-        title="MatchingInput Error"
-        message="MatchingInput requires an even number of children (left/right pairs)"
-      />
-    );
-  }
-
-  // Fetch block definitions to get attributes for right-side items
-  const rightKidIds = pairs.map((p) => p.rightKid.id).filter((id) => id);
+  // Fetch block definitions to get attributes for right-side items.
+  // pairs may be null (invalid child count); use [] so the hooks below run
+  // unconditionally — we render the DisplayError guard after all hooks.
+  const rightKidIds = pairs ? pairs.map((p) => p.rightKid.id).filter((id) => id) : [];
   const { olxJsons: rightKidBlocks } = useOlxJsonMultiple(props, rightKidIds);
   const rightKidBlockMap = Object.fromEntries(rightKidIds.map((id, i) => [id, rightKidBlocks[i]]));
 
@@ -278,8 +270,11 @@ export default function MatchingInput(props: RuntimeProps) {
   const [selectedSide, setSelectedSide] = useFieldState(props, fields.selectedSide, null);
   let [endOrder, setEndOrder] = useFieldState(props, fields.endOrder, []);
 
-  // Compute endOrder with positioned items if not already set
-  if ((!endOrder || endOrder.length === 0)) {
+  // Compute endOrder with positioned items if not already set.
+  // Captured (not returned) so the remaining hooks below still run; the
+  // DisplayError guard is emitted after all hooks.
+  let arrangementError: any = null;
+  if (pairs && (!endOrder || endOrder.length === 0)) {
     const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]);
 
     const result = buildArrangementWithPositions(rightKidBlocks, {
@@ -289,15 +284,15 @@ export default function MatchingInput(props: RuntimeProps) {
     });
 
     if ('error' in result) {
-      return <DisplayError {...result.error} props={props} />;
+      arrangementError = result.error;
+    } else {
+      // Map arranged blocks back to their rightIds and store for future renders
+      const blockIdToRightId = new Map(pairs.map((p) => [p.rightKid.id, p.rightId]));
+      const arrangedOrder = result.arrangement.map((block) => blockIdToRightId.get(block.id));
+      setEndOrder(arrangedOrder);
+      // Use the computed order immediately in this render
+      endOrder = arrangedOrder;
     }
-
-    // Map arranged blocks back to their rightIds and store for future renders
-    const blockIdToRightId = new Map(pairs.map((p) => [p.rightKid.id, p.rightId]));
-    const arrangedOrder = result.arrangement.map((block) => blockIdToRightId.get(block.id));
-    setEndOrder(arrangedOrder);
-    // Use the computed order immediately in this render
-    endOrder = arrangedOrder;
   }
 
   // useState-ok: ephemeral visual feedback state (mouse position for preview line only)
@@ -356,6 +351,20 @@ export default function MatchingInput(props: RuntimeProps) {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedId]);
+
+  if (!pairs) {
+    return (
+      <DisplayError
+        props={props}
+        title="MatchingInput Error"
+        message="MatchingInput requires an even number of children (left/right pairs)"
+      />
+    );
+  }
+
+  if (arrangementError) {
+    return <DisplayError {...arrangementError} props={props} />;
+  }
 
   // Build correct arrangement (odd indices match with their right neighbors)
   const correctArrangement: MatchingArrangement = {};

@@ -38,16 +38,6 @@ export default function DropdownSelect(props: RuntimeProps) {
   const hasParsedContent = parsedOptions.length > 0;
   const hasAttrOptions = attrOptions.length > 0;
 
-  if (hasParsedContent && hasAttrOptions) {
-    return (
-      <DisplayError
-        title="DropdownInput"
-        message="Cannot specify both content and options attribute"
-        data={{ id: props.id }}
-      />
-    );
-  }
-
   const options = hasParsedContent ? parsedOptions : attrOptions;
 
   const value = useFieldSelector(
@@ -62,6 +52,16 @@ export default function DropdownSelect(props: RuntimeProps) {
   const handleChange = useCallback((e) => {
     updateField(props, fields.value, e.target.value);
   }, [props, fields]);
+
+  if (hasParsedContent && hasAttrOptions) {
+    return (
+      <DisplayError
+        title="DropdownInput"
+        message="Cannot specify both content and options attribute"
+        data={{ id: props.id }}
+      />
+    );
+  }
 
   // Find display text for the correct answer
   const correctOptionText = displayAnswer
