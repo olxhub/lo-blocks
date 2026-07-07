@@ -216,18 +216,28 @@ export const updateResponseReducer = (state = initialState, action) => {
   }
 
   // Server-provided field state riding a content fetch (fields-design
-  // step 2b): adopt buckets this session has NOT touched. A bucket that
-  // exists locally is newer or equal — it came from this session's events
-  // or the connect-time load — so local wins; absent means the block has
-  // never been seen here, so the server's copy is the truth.
+  // step 2b/2c). Two adoption rules by authority:
+  // - Per-user buckets (`component`): adopt only when locally ABSENT — a
+  //   bucket that exists locally came from this session's events or the
+  //   connect-time load, so local wins.
+  // - Shared fields (`sharedComponent`): server-authoritative; merge at
+  //   FIELD granularity into whatever bucket exists — everyone reads one
+  //   truth, and this session's copy may be stale the moment it loads.
   if (eventType === ADOPT_FIELD_STATE) {
-    const incoming: Record<string, any> = action.fieldState?.component ?? {};
     const local = state.component ?? {};
+    const incoming: Record<string, any> = action.fieldState?.component ?? {};
     const adopted = Object.fromEntries(
       Object.entries(incoming).filter(([key]) => !(key in local)),
     );
-    if (Object.keys(adopted).length === 0) return state;
-    return { ...state, component: { ...adopted, ...local } };
+    const shared: Record<string, any> = action.fieldState?.sharedComponent ?? {};
+    if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0) {
+      return state;
+    }
+    const component = { ...adopted, ...local };
+    for (const [key, bucket] of Object.entries(shared)) {
+      component[key] = { ...component[key], ...(bucket as Record<string, any>) };
+    }
+    return { ...state, component };
   }
 
   // Field-level reducers — route events to field.reduce when registered.

@@ -13,6 +13,7 @@ import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { AuthUser } from '../auth.js';
 import type { UserStateRegistry } from '../userState.js';
+import { SHARED_STATE_ID } from '../userState.js';
 
 // How much of the idMap a single-block request returns:
 //   'single'      → just the requested block
@@ -82,10 +83,19 @@ export function createOlxJsonHandler(stateRegistry: UserStateRegistry) {
       let fieldState: Record<string, any> | null = null;
       const user: AuthUser | undefined = (c.env as any).incoming?.__user;
       if (user) {
-        fieldState = fieldStateForIds(
-          await stateRegistry.read(user.safe_user_id),
-          Object.keys(responseIdMap),
-        );
+        const ids = Object.keys(responseIdMap);
+        const own = fieldStateForIds(await stateRegistry.read(user.safe_user_id), ids);
+        // Shared buckets (authority: 'shared' fields) travel under their
+        // own key: the client adopts per-user buckets only when locally
+        // absent, but shared FIELDS are server-authoritative and merge at
+        // field granularity regardless of local bucket presence.
+        const shared = fieldStateForIds(await stateRegistry.read(SHARED_STATE_ID), ids);
+        if (own || shared) {
+          fieldState = {
+            ...(own ? { component: own.component } : {}),
+            ...(shared ? { sharedComponent: shared.component } : {}),
+          };
+        }
       }
 
       return c.json({ ok: true, idMap: responseIdMap, ...(fieldState ? { fieldState } : {}) });

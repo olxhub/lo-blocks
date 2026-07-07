@@ -186,6 +186,40 @@ test('LWW wins by timestamp, not by which connection closes last', async () => {
   expect(JSON.parse(stored!).value).toBe('newer');
 });
 
+test('shared authority: two DIFFERENT users fold into one value', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: 'shared-block', value: 'ours' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // A different user hears the shared event (per-user fan-out would not
+  // cross users)...
+  const relayed = wsB.sent.find(m => m.status === 'browser_event');
+  expect(relayed.detail.value).toBe('ours');
+  // ...and it landed in the SHARED materialization, not user A's.
+  const shared = await registry.read('_shared' as SafeUserId);
+  expect(shared!.component['shared-block'].value).toBe('ours');
+  const own = await registry.read(USER.safe_user_id);
+  expect(own?.component?.['shared-block']).toBeUndefined();
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+
+  // Persisted under the shared pseudo-user for the next cold start.
+  const stored = await kvs.get(kvsKey.field('_shared' as SafeUserId, 'component', 'shared-block'));
+  expect(JSON.parse(stored!).value).toBe('ours');
+});
+
 test('registry.read: live state when connected, stored state when not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

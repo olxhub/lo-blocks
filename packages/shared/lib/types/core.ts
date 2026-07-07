@@ -354,6 +354,26 @@ export interface FieldInfo {
 
   scope: import('../state/scopes').Scope;
 
+  /** Who reduces and who sees this field — the authority axis
+   *  (docs/fields-design.md). Scope says WHERE in the state tree; authority
+   *  says WHOSE truth it is:
+   *
+   *    (absent)   → per-user (today's default): each user has their own
+   *                 value; client reduces optimistically, server reduces
+   *                 the same events into that user's materialization.
+   *    'shared'   → one value for everyone viewing the block (group
+   *                 scoping later): events are stamped `authority: 'shared'`
+   *                 on the wire, the server folds them into a SHARED
+   *                 materialization instead of the sender's, and fans them
+   *                 to every connection. Group editing, chat, polls.
+   *
+   *  Future values ('aggregate', hybrid placements) land here as the
+   *  design builds out. Example:
+   *
+   *    stateField('votes', { authority: 'shared' })
+   */
+  authority?: 'shared';
+
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
 

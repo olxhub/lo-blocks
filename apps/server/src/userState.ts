@@ -24,6 +24,16 @@ import type { SafeUserId } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
 import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './fieldStore.js';
 
+/**
+ * Pseudo-user for SHARED field state (fields-design 2c): fields declared
+ * `authority: 'shared'` fold into one materialization everyone reads,
+ * keyed in the registry and the field store under this id instead of a
+ * real user. Underscore prefix cannot collide with real safe_user_ids
+ * (they are provenance-prefixed, e.g. `guest-…`). Group-scoped sharing
+ * later becomes `_shared:{group}`.
+ */
+export const SHARED_STATE_ID = '_shared' as SafeUserId;
+
 export interface UserStateEntry {
   serverState: ServerState;
   persister: FieldPersister;

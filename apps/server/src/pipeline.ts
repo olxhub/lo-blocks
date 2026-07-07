@@ -31,6 +31,7 @@ import type { ServerState } from './serverState.js';
 import type { FieldPersister } from './fieldStore.js';
 import { assembleFieldState, compareToBlob } from './fieldStore.js';
 import type { UserStateRegistry, UserStateEntry } from './userState.js';
+import { SHARED_STATE_ID } from './userState.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -59,6 +60,9 @@ export interface PipelineContext {
   stateRegistry: UserStateRegistry;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
+  /** The acquired SHARED entry (authority: 'shared' fields fold here;
+   * every connection attaches — fields-design 2c). Set by runPipeline. */
+  sharedState?: UserStateEntry;
   /** Aliases into userState (same objects, shared across the user's
    * connections). */
   serverState?: ServerState;
@@ -69,8 +73,16 @@ export interface PipelineContext {
 // Stage 0: Raw messages from WebSocket → parsed events
 // =============================================================================
 
-/** Yield parsed JSON events from the WebSocket. Closes when the socket closes. */
-async function* messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
+/** Yield parsed JSON events from the WebSocket. Closes when the socket
+ * closes.
+ *
+ * NOT an async generator function itself: generator bodies are lazy (the
+ * first `next()` runs them), so listeners would attach only when the
+ * drain loop first pulls — and any `await` between connection and drain
+ * would drop the messages arriving in the gap. This plain function
+ * attaches the listeners SYNCHRONOUSLY and returns a generator over the
+ * already-live queue. */
+function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   // Bridge the callback-based ws API into an async generator.
   // Events are queued; the generator pulls them one at a time.
   const queue: PipelineEvent[] = [];
@@ -90,14 +102,16 @@ async function* messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   ws.on('close', () => { done = true; if (resolve) { resolve(); resolve = null; } });
   ws.on('error', () => { done = true; if (resolve) { resolve(); resolve = null; } });
 
-  while (true) {
-    while (queue.length > 0) {
-      yield queue.shift()!;
+  return (async function* () {
+    while (true) {
+      while (queue.length > 0) {
+        yield queue.shift()!;
+      }
+      if (done) return;
+      await new Promise<void>(r => { resolve = r; });
+      if (done && queue.length === 0) return;
     }
-    if (done) return;
-    await new Promise<void>(r => { resolve = r; });
-    if (done && queue.length === 0) return;
-  }
+  })();
 }
 
 // =============================================================================
@@ -279,14 +293,18 @@ async function* runReducers(
   ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    ctx.serverState!.dispatch(event);
-    ctx.persister?.note(ctx.serverState!.state);
-    // Step 2a fan-out: the user's other tabs/devices hear this event and
-    // fold it with the same reducer. Origin excluded — it already applied
-    // the event optimistically. Requires tab-sync off (system.pmss), or
-    // sibling tabs would receive events twice and double-apply RGA
-    // splices.
-    ctx.userState!.fanOut(event, ctx.ws);
+    // Authority routing (fields-design 2c): shared-field events fold into
+    // the SHARED materialization — one truth for everyone — and fan to
+    // every attached connection. They never touch the sender's per-user
+    // state, so per-user persistence stays free of shared fields.
+    const entry = event.authority === 'shared' ? ctx.sharedState! : ctx.userState!;
+    entry.serverState.dispatch(event);
+    entry.persister.note(entry.serverState.state);
+    // Fan-out: other connections hear this event and fold it with the
+    // same reducer. Origin excluded — it already applied the event
+    // optimistically. Requires tab-sync off (system.pmss), or sibling
+    // tabs would receive events twice and double-apply RGA splices.
+    entry.fanOut(event, ctx.ws);
     yield event;
   }
 }
@@ -300,14 +318,31 @@ async function* runReducers(
  * Returns when the connection closes.
  */
 export async function runPipeline(ctx: PipelineContext) {
-  // Acquire the per-USER shared state — all of this user's connections
-  // fold into one materialization (userState.ts).
+  // Acquire the per-USER state — all of this user's connections fold
+  // into one materialization (userState.ts).
   const userState = ctx.stateRegistry.acquire(ctx.user.safe_user_id, ctx.ws);
   ctx.userState = userState;
   ctx.serverState = userState.serverState;
   ctx.persister = userState.persister;
 
+  // And the SHARED entry (authority: 'shared' fields — fields-design 2c).
+  // Every connection attaches; seeded once from the field store (no blob
+  // legacy: shared fields never lived in blobs).
+  const sharedState = ctx.stateRegistry.acquire(SHARED_STATE_ID, ctx.ws);
+  ctx.sharedState = sharedState;
+
+  // The message listener must attach SYNCHRONOUSLY with the connection —
+  // an await before messagesFrom() would drop events arriving in the gap
+  // (same race the upgrade handler documents in server.ts). messagesFrom
+  // queues, so awaiting the shared seed after this is safe.
   const raw = messagesFrom(ctx.ws);
+  await sharedState.ensureSeeded(async () => {
+    const scopes = await assembleFieldState(ctx.kvs, SHARED_STATE_ID);
+    if (scopes) {
+      sharedState.serverState.seed(scopes);
+      sharedState.persister.rebase(sharedState.serverState.state);
+    }
+  });
   const logged = decodeAndLog(raw, ctx);
   const withLockFields = decodeLockFields(logged, ctx);
   const authenticated = resolveAuth(withLockFields, ctx);
@@ -320,7 +355,8 @@ export async function runPipeline(ctx: PipelineContext) {
     // Each stage does its own work; nothing to do at the end.
   }
 
-  // Connection closed: release the shared entry — the LAST connection's
-  // release flushes pending field writes and drops the entry.
+  // Connection closed: release both entries — the LAST connection's
+  // release flushes pending field writes and drops each entry.
   await userState.release();
+  await sharedState.release();
 }

@@ -97,18 +97,14 @@ function normalize(decl: FieldDecl): FieldInfo[] {
   if ('type' in decl && decl.type === 'field' && 'events' in decl && decl.events) {
     return [decl as FieldInfo];
   }
-  // Object with name — fill in defaults via stateField
-  return [stateField(decl.name, {
-    ...('events' in decl && decl.events ? { events: decl.events as FieldEvent[] } : {}),
-    ...('event' in decl && decl.event ? { events: [decl.event as FieldEvent], event: decl.event } : {}),
-    ...('scope' in decl && decl.scope ? { scope: decl.scope } : {}),
-    ...('schema' in decl && decl.schema ? { schema: decl.schema } : {}),
-    ...('read' in decl && decl.read ? { read: decl.read } : {}),
-    ...('equality' in decl && decl.equality ? { equality: decl.equality } : {}),
-    ...('batching' in decl && decl.batching ? { batching: decl.batching } : {}),
-    ...('url' in decl && decl.url ? { url: decl.url } : {}),
-    ...('urlDefault' in decl && decl.urlDefault ? { urlDefault: decl.urlDefault } : {}),
-    ...('urlPush' in decl && decl.urlPush ? { urlPush: decl.urlPush } : {}),
+  // Object with name — fill in defaults via stateField. Options pass
+  // through WHOLESALE (the previous allow-list here silently dropped any
+  // new field axis — the same bug class that once un-URL'd every url:true
+  // field). `event` keeps its special expansion into `events`.
+  const { name, event, ...rest } = decl as { name: string; event?: FieldEvent } & Record<string, any>;
+  return [stateField(name, {
+    ...rest,
+    ...(event ? { events: [event], event } : {}),
   })];
 }
 
