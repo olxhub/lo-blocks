@@ -142,11 +142,10 @@ export async function startServer(
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));
-  // Content assets (images, PDFs, video): copyAssetsToPublic still writes
-  // to apps/web/public (Next served these at /content/*). Served here so
-  // the no-Next default keeps assets working; the copy target moves out of
-  // apps/web in the kill-next PR.
-  app.use('/content/*', serveStatic({ root: './apps/web/public' }));
+  // Content assets (images, PDFs, video) — copied by copyAssetsToPublic
+  // into apps/server/public/content during content sync. Interim: assets
+  // serve by hash from the lake once content lives there.
+  app.use('/content/*', serveStatic({ root: './apps/server/public' }));
 
   // SPA fallback: client-side routes serve index.html.
   // Add route patterns here as they migrate from Next.js.

@@ -1,11 +1,12 @@
 // packages/shared/lib/content/staticAssetSync.ts
 //
-// Static asset synchronization - copies content assets to Next.js public directory.
+// Static asset synchronization - copies content assets to the server's
+// public directory, served at /content/* by apps/server (Hono serveStatic).
 //
 // Handles the automatic copying of static files (images, documents, media)
-// from the content directory to the public directory where Next.js can serve
-// them. This bridges Learning Observer's content storage system with Next.js's
-// static file serving requirements.
+// from the content directory to the public directory. Interim measure: once
+// content lives in the git object lake, assets are served by hash and this
+// copy step dissolves.
 //
 // The sync process preserves directory structure and only copies recognized
 // asset files, avoiding unnecessary files in the public directory.
@@ -42,7 +43,7 @@ function assetRoots(provider: StorageProvider): { dir: string; prefix: string }[
   return [];
 }
 
-export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/web/public/content') {
+export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/server/public/content') {
   const publicContentDir = targetDir;
 
   try {
