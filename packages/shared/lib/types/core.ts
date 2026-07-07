@@ -385,6 +385,23 @@ export interface FieldInfo {
    */
   authority?: 'shared' | 'server';
 
+  /** The ENCODE axis (docs/fields-design.md "Aggregating fields"): batch
+   *  this field's high-frequency writes (video position, scrubbing,
+   *  dragging) into one aggregate event per quiet period. Local Redux
+   *  updates per sample (UI stays live); the wire and the event log see
+   *  `{field, startTs, endTs, samples: [[dt, value], ...]}`; replay
+   *  expands samples back into per-timestamp events (lib/state/encode.ts).
+   *  Orthogonal to authority — a shared scrubber declares both.
+   *
+   *    stateField('currentTime', { encode: { debounceMs: 5000 } })
+   */
+  encode?: {
+    /** Quiet period that closes a batch. Default 5000ms. */
+    debounceMs?: number;
+    /** Flush early when this many samples buffer. Default 100. */
+    maxPoints?: number;
+  };
+
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
 

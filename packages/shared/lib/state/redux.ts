@@ -55,6 +55,7 @@ import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
+import { writeEncoded } from './encode';
 
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
@@ -302,6 +303,14 @@ export function updateField(
   // Schema validation runs before write — coerce/validate regardless of field type.
   if (field.schema) {
     newValue = field.schema.parse(newValue);
+  }
+
+  // Encoded fields (the encode axis — lib/state/encode.ts): local Redux
+  // updates per sample, the wire sees one aggregate event per quiet
+  // period. Replaces the write/dispatch path entirely.
+  if (field.encode) {
+    writeEncoded(props, field, newValue, { stateKey, tag });
+    return;
   }
 
   if (field.write) {
