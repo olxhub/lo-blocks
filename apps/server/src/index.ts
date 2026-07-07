@@ -13,6 +13,7 @@ import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { registerCatalogTools } from '@/lib/catalog/tool';
+import { registerLofsTools } from '@/lib/lofs/tools';
 import {
   validateProviderConfig,
   availableProviders,
@@ -114,8 +115,8 @@ async function initTools() {
   const registry = createToolRegistry();
   registerDocsTools(registry);
   registerCatalogTools(registry);
-  // TODO: registerLofsTools(registry, storage);
-  console.log('  Tools: docs, catalog');
+  registerLofsTools(registry);
+  console.log('  Tools: docs, catalog, lofs');
   return registry;
 }
 

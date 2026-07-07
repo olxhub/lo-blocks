@@ -19,7 +19,7 @@
 
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
-import { NetworkStorageProvider } from '@/lib/lofs/providers/network';
+import { McpStorageProvider } from '@/lib/lofs/providers/mcp';
 import { type StorageProvider, toOlxRelativePath } from '@/lib/types/storage';
 import { toLofsRef } from '@/lib/types/address';
 import { asContentNamespace } from '@/lib/types/id-grammar';
@@ -32,7 +32,7 @@ import type { LlmTool } from '@/lib/llm/types';
 const EDITOR_VALIDATION_NS = asContentNamespace('studio');
 
 // Default storage provider for client-side use
-const defaultStorage = new NetworkStorageProvider();
+const defaultStorage = new McpStorageProvider();
 
 const errMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
@@ -48,7 +48,7 @@ interface EditorToolsParams {
   getFileType?: () => string;
   /** Returns current file path */
   getCurrentPath?: () => string;
-  /** Storage provider for file operations (defaults to NetworkStorageProvider) */
+  /** Storage provider for file operations (defaults to McpStorageProvider) */
   storage?: StorageProvider;
 }
 

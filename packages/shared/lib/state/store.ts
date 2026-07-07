@@ -57,6 +57,11 @@ import {
   DOCS_EVENT_TYPES,
   initialDocsState,
 } from './docs';
+import {
+  sourcesReducer,
+  SOURCES_EVENT_TYPES,
+  initialSourcesState,
+} from './sources';
 // Chat event types
 export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
 export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
@@ -168,6 +173,7 @@ const initialState: AppState = {
   chat: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
+  sources: initialSourcesState,
 };
 
 
@@ -242,6 +248,14 @@ export const updateResponseReducer = (state = initialState, action) => {
     return {
       ...state,
       docs: docsReducer(state.docs, { ...action, type: eventType }),
+    };
+  }
+
+  // Handle sources events (MCP-sourced content-source list) — same family.
+  if (SOURCES_EVENT_TYPES.includes(eventType)) {
+    return {
+      ...state,
+      sources: sourcesReducer(state.sources, { ...action, type: eventType }),
     };
   }
 
@@ -454,6 +468,7 @@ function collectEventTypes(
     ...CHAT_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
+    ...SOURCES_EVENT_TYPES,
   ]));
 }
 

@@ -13,7 +13,8 @@
 // in a single history entry.
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { NetworkStorageProvider } from '@/lib/lofs';
+import { McpStorageProvider } from '@/lib/lofs';
+import { useSources } from '@/lib/state/sources';
 import { toOlxRelativePath, VersionConflictError } from '@/lib/types/storage';
 import { toLofsOrigin, makeAddress, toLofsContentPath } from '@/lib/types/address';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
@@ -25,7 +26,7 @@ import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import type { CodeEditorHandle } from '@/components/common/CodeEditor';
-import type { RuntimeProps, LofsOrigin, LofsRef } from '@/lib/types';
+import type { RuntimeProps, LofsOrigin, LofsRef, SourceOption } from '@/lib/types';
 import FileEditorPane, { type FileCache } from './fileEditorPane';
 import { getStudioContent, setStudioContent, useStudioContent } from './editorContent';
 import { FilesPanel } from './filesPanel';
@@ -75,7 +76,6 @@ const fileRef = (source: LofsOrigin, path: string): LofsRef =>
 export type SidebarTab = 'chat' | 'docs' | 'search' | 'files';
 const SIDEBAR_TABS: SidebarTab[] = ['chat', 'docs', 'search', 'files'];
 
-interface SourceOption { origin: LofsOrigin; label: string; writable: boolean }
 
 // ---------------------------------------------------------------------------
 // Source selector (ported from SourceSelector.tsx: writable sources first,
@@ -103,7 +103,7 @@ function SourceSelector({ props, sources, current, onChange }: {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   const writable = sources.filter(s => s.writable);
   const readOnly = sources.filter(s => !s.writable);
@@ -161,21 +161,8 @@ export default function Studio(props: RuntimeProps) {
   }, []);
 
   // --- Sources / provider ---------------------------------------------------
-  // useState-ok: server data cache — becomes a normalized redux slice when
-  // sources/files move to MCP tools (backlog: post-storage-model).
-  const [sources, setSources] = useState<SourceOption[]>([]);
-  useEffect(() => {
-    fetch('/api/sources')
-      .then(r => r.json())
-      .then(j => {
-        if (!j.ok) return;
-        // JSON drops the LofsOrigin brand — re-brand on receipt.
-        setSources(j.sources.map((s: { origin: string; label: string; writable: boolean }) => ({
-          ...s, origin: toLofsOrigin(s.origin),
-        })));
-      })
-      .catch(console.error);
-  }, []);
+  // get_sources MCP tool → redux cache → hook (lib/state/sources.ts).
+  const { sources } = useSources();
 
   // Undefined when nothing's picked or the URL named an unoffered source —
   // both legitimate "can't write" states.
@@ -184,7 +171,7 @@ export default function Studio(props: RuntimeProps) {
 
   // Origin-scoped provider: all file ops target this one source. Ref-mirrored
   // so callbacks skip dependency churn.
-  const storage = useMemo(() => new NetworkStorageProvider(source), [source]);
+  const storage = useMemo(() => new McpStorageProvider(source), [source]);
   const storageRef = useRef(storage);
   storageRef.current = storage;
 
