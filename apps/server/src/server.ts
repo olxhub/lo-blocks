@@ -293,6 +293,12 @@ export async function startServer(
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);
+      // A dead pipeline must not leave a live socket: the client would
+      // hang on "Loading user state…" waiting for a fetch_blob response
+      // that can never come. 1011 = server error; the client reconnects
+      // or fails visibly. (Observed 2026-07-07 with a mixed-generation
+      // hot reload.)
+      try { ws.close(1011, 'pipeline failed'); } catch { /* already gone */ }
     }).finally(() => {
       saveConnectionLog(conn)
         .catch((err) => console.error(`[${conn.id}] Error saving event log:`, err))

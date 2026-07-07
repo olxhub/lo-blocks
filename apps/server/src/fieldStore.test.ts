@@ -86,6 +86,22 @@ test('assembleFieldState round-trips what the persister wrote', async () => {
   expect(assembled).toEqual(state1);
 });
 
+test('bucket ids with /, #, :, spaces survive the KVS round trip', async () => {
+  // Real OLX ids look like 'edu.memphis.psych/operant_mastery/#attempt_0' —
+  // unencoded, FileKVStore exploded these into directory trees (ENOTDIR,
+  // 2026-07-07). kvsKey.field percent-encodes the bucket name.
+  const kvs = new MemoryKVStore();
+  const p = new FieldPersister(kvs, USER, 0);
+  const uglyId = 'edu.memphis.psych/operant_mastery/#attempt 0:v2';
+  p.note({ system: {}, component: { [uglyId]: { value: 'survived' } }, componentSetting: {} });
+  await p.close();
+
+  const assembled = await assembleFieldState(kvs, USER);
+  expect(assembled!.component![uglyId].value).toBe('survived');
+  expect(kvsKey.field(USER, 'component', uglyId)).not.toContain('/');
+  expect(kvsKey.field(USER, 'component', uglyId)).not.toContain('#');
+});
+
 test('assembleFieldState returns null for unknown users', async () => {
   expect(await assembleFieldState(new MemoryKVStore(), USER)).toBeNull();
 });

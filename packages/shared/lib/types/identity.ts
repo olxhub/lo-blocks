@@ -101,9 +101,14 @@ export const kvsKey = {
     return asKVSKey(`blob:${safeUserId}`);
   },
 
-  /** Individual state field: `field:{safeUserId}:{scope}:{name}` */
+  /** Individual state field: `field:{safeUserId}:{scope}:{name}`.
+   * The name is a state-bucket key (usually an OLX block id) and can
+   * contain `/`, `#`, `:`, spaces — anything. It is percent-encoded so
+   * the key stays a flat token: FileKVStore maps `:` to directories, and
+   * a raw id like `repo/course/#attempt_0` would explode into nested
+   * paths that collide with sibling keys (ENOTDIR, found 2026-07-07). */
   field(safeUserId: SafeUserId, scope: string, name: string): KVSKey {
-    return asKVSKey(`field:${safeUserId}:${scope}:${name}`);
+    return asKVSKey(`field:${safeUserId}:${scope}:${encodeURIComponent(name)}`);
   },
 
   /** Index of a user's field buckets (the KVS has no key enumeration):
