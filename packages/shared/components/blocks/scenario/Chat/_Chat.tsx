@@ -13,6 +13,7 @@ import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions } from './waitConditions';
+import { useLlmInterlude } from './llmInterlude';
 
 import * as chatUtils from './chatUtils';
 import type { ClipResolution } from './chatUtils';
@@ -114,12 +115,19 @@ export default function Chat(props: RuntimeProps) {
   // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window
   // with the same filter logic. A Map<DefinitionRef, ReactNode> keyed by entry.ref would be
   // more robust against dependency/closure mismatches, at the cost of a bit more memory.
+  /* LLM interludes (>>> llm): runtime turns live in the `messages` log
+   * field, keyed by the body index of their interlude. The script transcript
+   * stays derived; interlude turns splice in at their interlude's position. */
+  const interlude = useLlmInterlude(props, allEntries, windowedIndex);
+
   const visibleMessages: ChatDisplayEntry[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
     const messages: ChatDisplayEntry[] = [];
     let embedIndex = 0;
 
-    for (const entry of window) {
+    for (let i = 0; i < window.length; i++) {
+      const entry = window[i];
+      const bodyIndex = windowRange.start + i;
       if (entry.type === 'Line') {
         messages.push(entry);
       } else if (entry.type === 'EmbedCommand') {
@@ -127,10 +135,14 @@ export default function Chat(props: RuntimeProps) {
           type: 'Element',
           element: renderedBlocks[embedIndex++],
         });
+      } else if (entry.type === 'LlmCommand') {
+        for (const item of interlude.logItems) {
+          if (item.atIndex === bodyIndex) messages.push(item.message);
+        }
       }
     }
     return messages;
-  }, [allEntries, windowRange, windowedIndex, renderedBlocks]);
+  }, [allEntries, windowRange, windowedIndex, renderedBlocks, interlude.logItems]);
 
   /** Total number of visible entries (lines + embeds; commands excluded) */
   const totalDialogueLines = useMemo(() => {
@@ -138,6 +150,14 @@ export default function Chat(props: RuntimeProps) {
       .slice(windowRange.start, windowRange.end + 1)
       .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
   }, [allEntries, windowRange]);
+
+  /** Script-derived entries shown so far — the "N" in "N of M". Interlude
+   *  turns are live conversation, not script progress, so they don't count. */
+  const scriptMessagesShown = useMemo(() => {
+    return allEntries
+      .slice(windowRange.start, windowedIndex + 1)
+      .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
+  }, [allEntries, windowRange, windowedIndex]);
 
   const conversationFinished = windowedIndex >= clipRange.end;
 
@@ -174,13 +194,35 @@ export default function Chat(props: RuntimeProps) {
    * Footers
    * -------------------------------------------------------------- */
 
+  const interludeSendDisabled = interlude.busy
+    || (interlude.maxTurns !== null && interlude.turnsUsed >= interlude.maxTurns);
+
   const footer = conversationFinished ? (
     <InputFooter id={`${id}_footer`} disabled />
+  ) : interlude.active ? (
+    // Open floor: talk to the LLM participant; Continue (when the exit
+    // gate allows) resumes the script.
+    <>
+      {!isDisabled && (
+        <AdvanceFooter
+          id={`${id}_advance`}
+          onAdvance={handleAdvance}
+          currentMessageIndex={scriptMessagesShown}
+          totalMessages={totalDialogueLines}
+        />
+      )}
+      <InputFooter
+        id={`${id}_footer`}
+        onSendMessage={(text) => { void interlude.sendMessage(text); }}
+        disabled={interludeSendDisabled}
+        placeholder={interlude.busy ? `${interlude.active.participant} is thinking…` : `Message ${interlude.active.participant}…`}
+      />
+    </>
   ) : (
     <AdvanceFooter
       id={`${id}_footer`}
       onAdvance={handleAdvance}
-      currentMessageIndex={visibleMessages.length}
+      currentMessageIndex={scriptMessagesShown}
       totalMessages={totalDialogueLines}
       disabled={isDisabled}
     />

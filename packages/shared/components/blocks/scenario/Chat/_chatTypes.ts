@@ -220,6 +220,29 @@ export interface EmbedBlock extends HasMetadata {
   content: string;
 }
 
+/**
+ * An LLM interlude — the script parks and opens the floor to a live LLM
+ * participant. The user and agent converse; the script resumes when the
+ * `until` state expression is satisfied (or on Continue when there is none).
+ *
+ *   >>> llm tutor [until="@quiz.done" maxTurns=6 tools="content-read"]
+ *     You are a patient Socratic tutor. The student's essay:
+ *     {{@essay.value}}
+ *
+ * `participant` names the speaker (resolved against the cast for avatars).
+ * `prompt` is the system prompt; {{...}} interpolations are state language,
+ * re-resolved live each turn. Metadata keys: until, maxTurns, tools, profile.
+ *
+ * Runtime turns are NOT part of the script: they append to the Chat block's
+ * `messages` log field (actor-stamped CRDT), keyed to this entry's body
+ * index — the script stays static content, the transcript accumulates state.
+ */
+export interface LlmCommand extends HasMetadata {
+  type: 'LlmCommand';
+  participant: string;
+  prompt: string;
+}
+
 /** All possible entries in a chatpeg body. */
 export type ConversationEntry =
   | DialogueLine
@@ -229,7 +252,8 @@ export type ConversationEntry =
   | SetField
   | CommandBlock
   | EmbedCommand
-  | EmbedBlock;
+  | EmbedBlock
+  | LlmCommand;
 
 /**
  * Parsed YAML header.  Raw header text is parsed as YAML in Chat.ts

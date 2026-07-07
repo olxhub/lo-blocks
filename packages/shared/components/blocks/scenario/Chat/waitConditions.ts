@@ -13,7 +13,22 @@ import {
   EMPTY_REFS
 } from '@/lib/stateLanguage';
 import type { References, ContextData } from '@/lib/stateLanguage';
-import type { ConversationEntry, WaitCommand } from './_chatTypes';
+import type { ConversationEntry, WaitCommand, LlmCommand } from './_chatTypes';
+
+/**
+ * May the script advance PAST an LLM interlude? Gated by its `until`
+ * expression when present; free otherwise (Continue ends the interlude).
+ */
+export function llmExitSatisfied(entry: LlmCommand, context: ContextData): boolean {
+  const until = entry.metadata.until;
+  if (!until) return true;
+  try {
+    return Boolean(evaluate(parse(until), context));
+  } catch (e) {
+    console.warn('[Chat] Failed to evaluate llm until:', until, e);
+    return false;
+  }
+}
 
 /**
  * Extract all references from wait commands in a chat script.
@@ -24,6 +39,9 @@ export function extractWaitRefs(entries: ConversationEntry[]): References {
   for (const entry of entries) {
     if (entry.type === 'WaitCommand' && entry.expression) {
       expressions.push(entry.expression);
+    }
+    if (entry.type === 'LlmCommand' && entry.metadata.until) {
+      expressions.push(entry.metadata.until);
     }
   }
 
@@ -74,8 +92,9 @@ export function canAdvanceToContent(
       continue;
     }
 
-    // Line, Pause, or Embed - we can definitely advance to show this
-    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand') {
+    // Line, Pause, Embed, or LLM interlude - we can definitely advance to show this
+    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand'
+        || entry.type === 'LlmCommand') {
       return true;
     }
   }
@@ -113,8 +132,13 @@ export function useWaitConditions(
   const resolved = useReferences(props, allRefs);
   const context = useMemo(() => createContext(resolved), [resolved]);
 
-  // Check if we can advance (first wait before next content is satisfied)
-  const canAdvance = canAdvanceToContent(entries, currentIndex, endIndex, context);
+  // Check if we can advance. Parked on an LLM interlude, leaving is gated
+  // by its `until` expression; otherwise the first wait before the next
+  // content must be satisfied.
+  const current = entries[currentIndex];
+  const canAdvance = (current?.type === 'LlmCommand' && !llmExitSatisfied(current as LlmCommand, context))
+    ? false
+    : canAdvanceToContent(entries, currentIndex, endIndex, context);
 
   // Stable reference for evaluating a specific wait entry
   const isWaitSatisfied = useCallback(

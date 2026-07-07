@@ -192,6 +192,23 @@ caption.value <- "It's a \"big\" deal.\nLine two."   # quoted, with escapes
 
 Place set commands **before** the dialogue that references the new content.
 
+**LLM interlude** — Parks the script and opens the floor to a live LLM participant. The user and the agent converse; the script resumes on Continue, gated by an optional `until` state expression:
+
+```
+>>> llm tutor [until="@quiz.correct === correctness.correct" maxTurns=6 tools="content-read"]
+  You are a patient Socratic tutor. Ask one guiding question at a time.
+  The student's essay so far: {{@essay.value}}
+```
+
+The indented block is the agent's system prompt; `{{...}}` interpolations are state language, re-resolved at every turn so the agent sees current state. The participant name (`tutor`) resolves against the cast for its avatar. Metadata:
+
+- `until` — state expression that must be truthy before the script can advance past the interlude (like `wait`, but conversational)
+- `maxTurns` — cap on user turns
+- `tools` — comma-separated toolset names from the browser tool plane (e.g. `content-read`, `docs`); omit for a plain conversation
+- `profile` — reserved for server-side LLM profile selection
+
+The agent has no script privileges: it cannot run set commands and affects other blocks only through its declared toolsets. Runtime turns are stored in the block's `messages` log field (actor-stamped, append-only), not in the script — the script stays static content.
+
 ## Activities Pattern
 
 Integrate student activities into conversation flow:
@@ -260,6 +277,7 @@ The `history` attribute provides earlier context so the conversation flows natur
 - `value` — Current position in dialogue
 - `isDisabled` — Whether advance is blocked (waiting)
 - `sectionHeader` — Current section title
+- `messages` — Append-only log of live LLM-interlude turns (`{ atIndex, message }`)
 
 ## Pedagogical Applications
 

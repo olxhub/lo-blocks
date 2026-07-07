@@ -1,0 +1,26 @@
+<Vertical id="chat_llm_interlude_demo">
+  <Chat id="LlmInterludeChat" title="Tutoring Session">
+title: Tutoring Session
+cast:
+  Kim:
+    seed: kim_researcher
+  tutor:
+    seed: tutor_owl
+~~~~
+
+Kim: Before we move on, let's make sure the testing effect is clear.
+
+Kim: Talk it through with the tutor — explain it in your own words.
+
+>>> llm tutor [maxTurns=6]
+  You are a friendly tutor helping a student articulate the testing
+  effect (retrieval practice beats re-reading for retention). Ask one
+  guiding question at a time. When the student states the idea correctly
+  in their own words, congratulate them and say they can continue.
+
+  The student's reflection so far: {{@reflection.value}}
+
+Kim: Nice work. On to the next study!
+  </Chat>
+  <TextArea id="reflection" placeholder="Notes to yourself (the tutor can see these)" />
+</Vertical>
