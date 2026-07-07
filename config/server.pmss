@@ -24,9 +24,9 @@
     /* Which store serves state on fetch_blob: blob (client-saved, canonical
      * since the beginning) or fields (server-materialized per-field state,
      * docs/fields-design.md). Both are WRITTEN regardless; this key picks
-     * the read side. Flip to fields after the parallel-run agreement log
-     * looks clean. */
-    state-canonical: blob;
+     * the read side. Flipped to fields 2026-07-07 — destabilize on purpose
+     * and flush the bugs out at once; blob remains the escape hatch. */
+    state-canonical: fields;
 }
 
 /* Auto-select based on available credentials (last wins at equal specificity) */
