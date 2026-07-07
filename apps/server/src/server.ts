@@ -33,6 +33,7 @@ import {
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from './userState.js';
+import { SubscriptionRegistry } from './subscriptions.js';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
@@ -115,6 +116,9 @@ export async function startServer(
   // Created before the routes: /api/olxjson reads it for initial field
   // state, the WS pipeline writes it.
   const stateRegistry = new UserStateRegistry(kvs);
+  // Content fetches subscribe connections to the blocks they serve;
+  // shared/server fan-out targets subscribers only (subscriptions.ts).
+  const subscriptions = new SubscriptionRegistry();
 
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
@@ -123,7 +127,7 @@ export async function startServer(
   // must keep answering AFTER handoff (boot.ts serves it during boot; a
   // 404 here strands open boot pages in their retry loop forever).
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
-  app.get('/api/olxjson', createOlxJsonHandler(stateRegistry));
+  app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
@@ -291,7 +295,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

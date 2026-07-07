@@ -32,6 +32,7 @@ import type { FieldPersister } from './fieldStore.js';
 import { assembleFieldState, compareToBlob } from './fieldStore.js';
 import type { UserStateRegistry, UserStateEntry } from './userState.js';
 import { SHARED_STATE_ID } from './userState.js';
+import type { SubscriptionRegistry } from './subscriptions.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -58,6 +59,9 @@ export interface PipelineContext {
   /** Per-user shared state; every connection for a user folds into one
    * materialization (userState.ts). Owned by server.ts. */
   stateRegistry: UserStateRegistry;
+  /** Which connections care about which blocks (content fetch =
+   * subscription). Shared/server fan-out targets subscribers only. */
+  subscriptions: SubscriptionRegistry;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
   /** The acquired SHARED entry (authority: 'shared' fields fold here;
@@ -301,18 +305,30 @@ async function* runReducers(
     const entry = authority ? ctx.sharedState! : ctx.userState!;
     entry.serverState.dispatch(event);
     entry.persister.note(entry.serverState.state);
-    if (authority === 'server') {
-      // Server-reduced fields are privacy-structural: the raw contribution
-      // event is never fanned; everyone (origin included — its optimistic
-      // local fold gets replaced) receives the authoritative derived
-      // bucket — the reducer's output, not its inputs.
-      const bucket = (entry.serverState.state as any).component?.[event.id];
-      if (bucket !== undefined) entry.fanState(event.id, bucket);
+    if (authority) {
+      // Shared/server fan-out is SUBSCRIPTION-scoped: recipients are the
+      // connections whose content fetches served this block (plus
+      // writers, who self-subscribe here) — not every socket on the
+      // server.
+      ctx.subscriptions.subscribe(ctx.ws, [event.id]);
+      const to = ctx.subscriptions.subscribers(event.id);
+      if (authority === 'server') {
+        // Server-reduced fields are privacy-structural: the raw
+        // contribution event is never fanned; subscribers (origin
+        // included — its optimistic local fold gets replaced) receive
+        // the authoritative derived bucket — the reducer's output, not
+        // its inputs.
+        const bucket = (entry.serverState.state as any).component?.[event.id];
+        if (bucket !== undefined) entry.fanState(event.id, bucket, to);
+      } else {
+        entry.fanOut(event, ctx.ws, to);
+      }
     } else {
-      // Fan-out: other connections hear this event and fold it with the
-      // same reducer. Origin excluded — it already applied the event
-      // optimistically. Requires tab-sync off (system.pmss), or sibling
-      // tabs would receive events twice and double-apply RGA splices.
+      // Per-user fan-out (2a): the user's other tabs/devices hear the
+      // event and fold it with the same reducer. Origin excluded — it
+      // already applied the event optimistically. Requires tab-sync off
+      // (system.pmss), or sibling tabs would receive events twice and
+      // double-apply RGA splices.
       entry.fanOut(event, ctx.ws);
     }
     yield event;
@@ -365,8 +381,10 @@ export async function runPipeline(ctx: PipelineContext) {
     // Each stage does its own work; nothing to do at the end.
   }
 
-  // Connection closed: release both entries — the LAST connection's
-  // release flushes pending field writes and drops each entry.
+  // Connection closed: drop subscriptions and release both entries —
+  // the LAST connection's release flushes pending writes and drops each
+  // entry.
+  ctx.subscriptions.unsubscribeAll(ctx.ws);
   await userState.release();
   await sharedState.release();
 }

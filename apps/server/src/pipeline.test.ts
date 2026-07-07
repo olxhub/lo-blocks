@@ -12,6 +12,7 @@ import { runPipeline, type PipelineContext } from './pipeline.js';
 import { MemoryKVStore, type KVStore } from './kvs.js';
 import { FieldPersister } from './fieldStore.js';
 import { UserStateRegistry } from './userState.js';
+import { SubscriptionRegistry } from './subscriptions.js';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
@@ -51,6 +52,7 @@ async function drive(
   const full: PipelineContext = {
     ws: ws as any, user: USER, conn: fakeConn(),
     stateRegistry: ctx.stateRegistry ?? new UserStateRegistry(ctx.kvs),
+    subscriptions: ctx.subscriptions ?? new SubscriptionRegistry(),
     ...ctx,
   };
   const run = runPipeline(full);
@@ -110,12 +112,13 @@ test('fields canonical falls back to blob for users without field state', async 
 test('two live connections fold into ONE user state', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
 
   // Open two overlapping connections for the same user.
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
@@ -136,11 +139,12 @@ test('two live connections fold into ONE user state', async () => {
 test('fan-out: other connections hear an event; the origin does not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
@@ -161,11 +165,12 @@ test('fan-out: other connections hear an event; the origin does not', async () =
 test('LWW wins by timestamp, not by which connection closes last', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
@@ -189,14 +194,22 @@ test('LWW wins by timestamp, not by which connection closes last', async () => {
 test('shared authority: two DIFFERENT users fold into one value', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
+
+  // B's content fetch subscribed it to the block (subscription-scoped
+  // fan-out); C is connected but NOT subscribed and must hear nothing.
+  subs.subscribe(wsB as any, ['shared-block']);
+  const wsC = new FakeWs();
+  const ctxC: PipelineContext = { ws: wsC as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const runC = runPipeline(ctxC);
 
   wsA.emit('message', Buffer.from(JSON.stringify({
     ...UPDATE, authority: 'shared', id: 'shared-block', value: 'ours' })));
@@ -206,6 +219,10 @@ test('shared authority: two DIFFERENT users fold into one value', async () => {
   // cross users)...
   const relayed = wsB.sent.find(m => m.status === 'browser_event');
   expect(relayed.detail.value).toBe('ours');
+  // ...an unsubscribed connection does not...
+  expect(wsC.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+  wsC.emit('close');
+  await runC;
   // ...and it landed in the SHARED materialization, not user A's.
   const shared = await registry.read('_shared' as SafeUserId);
   expect(shared!.component['shared-block'].value).toBe('ours');
@@ -223,14 +240,18 @@ test('shared authority: two DIFFERENT users fold into one value', async () => {
 test('server authority: contributions stay private; everyone gets the derived state', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
+
+  // B's content fetch subscribed it to the poll block.
+  subs.subscribe(wsB as any, ['poll-block']);
 
   // A "votes": a raw contribution event with authority: 'server'.
   // (No registered fold for this event in the test registry, so the
@@ -259,10 +280,11 @@ test('server authority: contributions stay private; everyone gets the derived st
 test('registry.read: live state when connected, stored state when not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
 
   // Live: an open connection's unsaved event is visible immediately.
   const ws = new FakeWs();
-  const ctx: PipelineContext = { ws: ws as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctx: PipelineContext = { ws: ws as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
   const run = runPipeline(ctx);
   ws.emit('message', Buffer.from(JSON.stringify(UPDATE)));
   await new Promise(r => setTimeout(r, 20));

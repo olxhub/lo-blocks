@@ -49,23 +49,27 @@ export interface UserStateEntry {
    * or null if nothing has ever been stored or dispatched. */
   liveState(): { application_state: Record<string, any> } | null;
   /**
-   * Fan an event out to the user's OTHER connections (never the origin —
-   * it already applied the event optimistically). Rides lo_event's
-   * existing `browser_event` channel: the client re-dispatches the
-   * detail as a `lo_server_event` CustomEvent, which the store consumes
-   * (see store.ts). This is inbound-dataflow step 2a
-   * (docs/fields-design.md): tabs and devices of one user converge live.
+   * Fan an event out to OTHER connections (never the origin — it already
+   * applied the event optimistically). Rides lo_event's existing
+   * `browser_event` channel: the client re-dispatches the detail as a
+   * `lo_server_event` CustomEvent, which the store consumes (see
+   * store.ts). This is inbound-dataflow step 2a (docs/fields-design.md):
+   * tabs and devices of one user converge live.
+   *
+   * `to` overrides the recipient set (subscription-scoped fan-out for
+   * shared fields); default is the entry's own connections.
    */
-  fanOut(event: Record<string, any>, origin: WebSocket): void;
+  fanOut(event: Record<string, any>, origin: WebSocket, to?: Iterable<WebSocket>): void;
   /**
    * Fan a derived STATE patch to ALL connections, origin included —
    * aggregate fields (fields-design 2d): raw contribution events are
    * private, so what everyone receives (and what replaces the origin's
    * optimistic local fold) is the authoritative folded result. The
    * detail is an adoptFieldState payload; the client merges it
-   * field-level, server-wins.
+   * field-level, server-wins. `to` overrides the recipient set
+   * (subscription-scoped fan-out); default is the entry's connections.
    */
-  fanState(bucketKey: string, bucket: Record<string, any>): void;
+  fanState(bucketKey: string, bucket: Record<string, any>, to?: Iterable<WebSocket>): void;
   release(): Promise<void>;
 }
 
@@ -116,28 +120,27 @@ export class UserStateRegistry {
         return hasContent ? { application_state: scopes } : null;
       },
 
-      fanOut(event, origin) {
-        for (const sock of e.sockets) {
+      fanOut(event, origin, to) {
+        const message = JSON.stringify({
+          status: 'browser_event',
+          event_type: 'lo_server_event',
+          detail: event,
+        });
+        for (const sock of to ?? e.sockets) {
           if (sock === origin) continue;
           try {
-            if (sock.readyState === sock.OPEN) {
-              sock.send(JSON.stringify({
-                status: 'browser_event',
-                event_type: 'lo_server_event',
-                detail: event,
-              }));
-            }
+            if (sock.readyState === sock.OPEN) sock.send(message);
           } catch { /* receiver gone — its release will drop it */ }
         }
       },
 
-      fanState(bucketKey, bucket) {
+      fanState(bucketKey, bucket, to) {
         const message = JSON.stringify({
           status: 'browser_event',
           event_type: 'lo_server_state',
           detail: { sharedComponent: { [bucketKey]: bucket } },
         });
-        for (const sock of e.sockets) {
+        for (const sock of to ?? e.sockets) {
           try {
             if (sock.readyState === sock.OPEN) sock.send(message);
           } catch { /* receiver gone — its release will drop it */ }
@@ -161,6 +164,13 @@ export class UserStateRegistry {
 
   /** Live entry count — for tests and eventually /boot-status style stats. */
   size() { return this.entries.size; }
+
+  /** A user's currently connected sockets — the content fetch uses this
+   * to subscribe the caller's live connections to the ids it serves
+   * (subscriptions.ts). Empty when the user has no open connections. */
+  socketsOf(user: SafeUserId): ReadonlySet<WebSocket> {
+    return this.entries.get(user)?.sockets ?? new Set();
+  }
 
   /**
    * Read a user's current state without acquiring: the live

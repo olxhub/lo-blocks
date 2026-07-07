@@ -14,6 +14,7 @@ import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { AuthUser } from '../auth.js';
 import type { UserStateRegistry } from '../userState.js';
 import { SHARED_STATE_ID } from '../userState.js';
+import type { SubscriptionRegistry } from '../subscriptions.js';
 
 // How much of the idMap a single-block request returns:
 //   'single'      → just the requested block
@@ -41,7 +42,10 @@ export function fieldStateForIds(
   return Object.keys(component).length > 0 ? { component } : null;
 }
 
-export function createOlxJsonHandler(stateRegistry: UserStateRegistry) {
+export function createOlxJsonHandler(
+  stateRegistry: UserStateRegistry,
+  subscriptions: SubscriptionRegistry,
+) {
   return async function handleOlxJson(c: Context): Promise<Response> {
     const id = c.req.query('id');
 
@@ -84,6 +88,12 @@ export function createOlxJsonHandler(stateRegistry: UserStateRegistry) {
       const user: AuthUser | undefined = (c.env as any).incoming?.__user;
       if (user) {
         const ids = Object.keys(responseIdMap);
+        // The content fetch IS the subscription (fields-design 2b):
+        // fetching a page declares what the caller renders, so their live
+        // connections now hear shared/server events for these blocks.
+        for (const ws of stateRegistry.socketsOf(user.safe_user_id)) {
+          subscriptions.subscribe(ws, ids);
+        }
         const own = fieldStateForIds(await stateRegistry.read(user.safe_user_id), ids);
         // Shared buckets (authority: 'shared' fields) travel under their
         // own key: the client adopts per-user buckets only when locally
