@@ -77,3 +77,30 @@ export async function callMcpTool<T = unknown>(
     return await callOnce(name, args, signal) as T;
   }
 }
+
+/** One server tool as advertised by MCP tools/list. */
+export interface McpToolInfo {
+  name: string;
+  description?: string;
+  /** JSON Schema for the tool's input (the server's wire schema). */
+  inputSchema: Record<string, unknown>;
+  annotations?: { readOnlyHint?: boolean; idempotentHint?: boolean; destructiveHint?: boolean };
+}
+
+/**
+ * List the server's tools (read-only; retries once on a dead session).
+ * Feeds the browser-side passthrough registry (browserTools.ts).
+ */
+export async function listMcpTools(): Promise<McpToolInfo[]> {
+  const attempt = async (): Promise<McpToolInfo[]> => {
+    const client = await connect();
+    const { tools } = await client.listTools();
+    return tools as unknown as McpToolInfo[];
+  };
+  try {
+    return await attempt();
+  } catch {
+    reset();
+    return await attempt();
+  }
+}

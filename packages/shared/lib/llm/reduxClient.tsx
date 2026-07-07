@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import * as lo_event from 'lo_event';
 import { hashContent } from '@/lib/util/index';
@@ -92,7 +92,9 @@ export async function callLLM(params: CallLLMParams): Promise<CallLLMResult> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, ...newMessages],
-          tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
+          // OpenAI wire format requires type on every tool — providers that
+          // pass the body through untransformed (azure/openai) 400 without it.
+          tools: tools ? tools.map(({ callback, ...rest }) => ({ type: 'function', ...rest })) : [],
         }),
       });
       const json = ((await res.json()) as ChatCompletionResponse).choices?.[0];
@@ -198,7 +200,7 @@ export function useChat(params: UseChatParams = {}) {
   const chatState = useSelector(
     (state: RootState) => state.application_state.chat?.[chatId]
   );
-  const messages: ChatMessage[] = chatState?.messages ?? [];
+  const messages: ChatMessage[] = useMemo(() => chatState?.messages ?? [], [chatState?.messages]);
   const status: string = chatState?.status ?? LLM_STATUS.INIT;
 
   // Dispatch helpers

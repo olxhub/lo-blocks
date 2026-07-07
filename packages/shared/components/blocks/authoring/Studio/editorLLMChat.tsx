@@ -9,9 +9,9 @@
 import { useCallback } from 'react';
 import { ChatComponent, InputFooter, type FileAttachment } from '@/components/common/ChatComponent';
 import { useChat } from '@/lib/llm/reduxClient';
-import type { StorageProvider } from '@/lib/types/storage';
+import type { LofsOrigin } from '@/lib/types';
 import { buildSystemPrompt, getFileType } from './llmContext';
-import { createEditorTools } from './llmTools';
+import { studioChatTools } from './llmTools';
 import { STUDIO_NS } from './studioNs';
 
 export interface EditorLLMChatProps {
@@ -23,11 +23,11 @@ export interface EditorLLMChatProps {
   onApplyEdit?: (content: string) => void;
   /** Called when the LLM wants to open a file */
   onOpenFile?: (path: string) => void;
-  /** Origin-scoped provider the LLM's file tools read/write through */
-  storage: StorageProvider;
+  /** The source Studio is editing — bound into the chat's content tools */
+  source?: LofsOrigin;
 }
 
-export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile, storage }: EditorLLMChatProps) {
+export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFile, source }: EditorLLMChatProps) {
   const initialMessage = path
     ? `Editing: ${path}. Ask me to help with this content.`
     : 'Select a file to edit, then ask me for help.';
@@ -38,19 +38,18 @@ export default function EditorLLMChat({ path, getContent, onApplyEdit, onOpenFil
   // Build tools and context fresh at call time - no stale closures
   const handleSendMessage = useCallback(async (text: string, attachedFile: FileAttachment | null) => {
     const currentContent = getContent();
-    const tools = createEditorTools({
-      onApplyEdit,
-      onOpenFile,
+    const tools = await studioChatTools({
       getCurrentContent: getContent,
       getFileType: () => getFileType(path),
-      getCurrentPath: () => path ?? '',
-      storage,
+      onApplyEdit,
+      onOpenFile,
+      source,
     });
     const systemPrompt = await buildSystemPrompt({ path, content: currentContent });
     const attachments = attachedFile ? [attachedFile] : [];
 
     sendMessage(text, { attachments, tools, systemPrompt });
-  }, [path, getContent, onApplyEdit, onOpenFile, storage, sendMessage]);
+  }, [path, getContent, onApplyEdit, onOpenFile, source, sendMessage]);
 
   const footer = <InputFooter onSendMessage={handleSendMessage} allowFileUpload />;
 

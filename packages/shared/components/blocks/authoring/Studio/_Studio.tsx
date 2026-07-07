@@ -454,7 +454,7 @@ export default function Studio(props: RuntimeProps) {
                   getContent={() => (fileId ? getStudioContent(fileId) : '')}
                   onApplyEdit={(v) => { if (fileId) setStudioContent(fileId, v); }}
                   onOpenFile={handleFileSelect}
-                  storage={storage}
+                  source={source}
                 />
               </div>
             )}

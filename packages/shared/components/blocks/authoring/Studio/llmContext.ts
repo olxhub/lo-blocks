@@ -86,12 +86,14 @@ ${blockList}
 
 ## Tools
 You can use these tools:
-- Edit: Make changes to the current file using search-and-replace (applied immediately)
+- Edit: Make changes to the current file using search-and-replace (applied immediately to the editor; the author saves)
 - Read: Read another file from the content library
 - Glob: Find files by pattern
 - Grep: Search file contents
-- Write: Create or overwrite a file
+- Write: Create or overwrite a file (create: true refuses to clobber an existing file)
+- Delete / Move: Delete or rename files
 - OpenFile: Open a file in the editor
-- GetBlockInfo: Get detailed docs for a specific block
+- get_blocks: Detailed docs for OLX blocks (filter by name; include readme/template/examples)
+- get_formats: Docs for content formats (PEG grammars, YAML schemas)
 `;
 }
