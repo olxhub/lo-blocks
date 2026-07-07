@@ -9,8 +9,9 @@ import { test, expect } from 'vitest';
 import { EventEmitter } from 'node:events';
 import zlib from 'node:zlib';
 import { runPipeline, type PipelineContext } from './pipeline.js';
-import { MemoryKVStore } from './kvs.js';
+import { MemoryKVStore, type KVStore } from './kvs.js';
 import { FieldPersister } from './fieldStore.js';
+import { UserStateRegistry } from './userState.js';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
@@ -39,12 +40,18 @@ function fakeConn(): ConnectionLog {
   };
 }
 
-/** Run the pipeline over a scripted message sequence; return sent frames. */
-async function drive(ctx: Partial<PipelineContext>, messages: object[]) {
+/** Run the pipeline over a scripted message sequence; return sent frames.
+ * Each call gets its own registry unless one is passed (multi-connection
+ * tests share a registry the way one server process does). */
+async function drive(
+  ctx: Partial<PipelineContext> & { kvs: KVStore },
+  messages: object[],
+) {
   const ws = new FakeWs();
   const full: PipelineContext = {
     ws: ws as any, user: USER, conn: fakeConn(),
-    kvs: new MemoryKVStore(), ...ctx,
+    stateRegistry: ctx.stateRegistry ?? new UserStateRegistry(ctx.kvs),
+    ...ctx,
   };
   const run = runPipeline(full);
   for (const m of messages) ws.emit('message', Buffer.from(JSON.stringify(m)));
@@ -98,6 +105,60 @@ test('fields canonical falls back to blob for users without field state', async 
   const { sent } = await drive({ kvs, canonical: 'fields' }, [{ event: 'fetch_blob' }]);
   const fetch = sent.find(m => m.status === 'fetch_blob');
   expect(fetch.data.application_state.component.b.value).toBe('legacy-blob');
+});
+
+test('two live connections fold into ONE user state', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+
+  // Open two overlapping connections for the same user.
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // A writes without saving; B fetches and must see A's live event.
+  wsA.emit('message', Buffer.from(JSON.stringify(UPDATE)));
+  await new Promise(r => setTimeout(r, 20));
+  wsB.emit('message', Buffer.from(JSON.stringify({ event: 'fetch_blob' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  const fetched = wsB.sent.find(m => m.status === 'fetch_blob');
+  expect(fetched.data.application_state.component['pipe-block'].value).toBe('v1');
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+  expect(registry.size()).toBe(0); // last release dropped the entry
+});
+
+test('LWW wins by timestamp, not by which connection closes last', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // B writes the NEWER value first; A then writes an OLDER one and is the
+  // last connection to close. Pre-registry, A's private state flushed last
+  // and clobbered B's. Now LWW rejects the stale write in the shared state.
+  wsB.emit('message', Buffer.from(JSON.stringify({ ...UPDATE, value: 'newer', ts: 200 })));
+  await new Promise(r => setTimeout(r, 20));
+  wsA.emit('message', Buffer.from(JSON.stringify({ ...UPDATE, value: 'older', ts: 100 })));
+  await new Promise(r => setTimeout(r, 20));
+
+  wsB.emit('close');
+  await runB;
+  wsA.emit('close');
+  await runA;
+
+  const stored = await kvs.get(kvsKey.field(USER.safe_user_id, 'component', 'pipe-block'));
+  expect(JSON.parse(stored!).value).toBe('newer');
 });
 
 test('fetch seed + events: assembled state accumulates across sessions', async () => {

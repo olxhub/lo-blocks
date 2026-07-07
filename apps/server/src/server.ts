@@ -32,6 +32,7 @@ import {
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { runPipeline } from './pipeline.js';
+import { UserStateRegistry } from './userState.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
@@ -262,6 +263,10 @@ export async function startServer(
     }
   });
 
+  // One shared per-user state registry for the whole server — all of a
+  // user's connections fold into a single materialization (userState.ts).
+  const stateRegistry = new UserStateRegistry(kvs);
+
   // Which store serves state on fetch_blob (config/server.pmss). Read per
   // connection so a config change applies to new sessions without restart.
   const readCanonical = (): 'blob' | 'fields' => {
@@ -284,7 +289,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

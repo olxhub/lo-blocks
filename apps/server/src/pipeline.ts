@@ -27,8 +27,10 @@ import { appendEvent } from './eventLog.js';
 import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
-import { ServerState } from './serverState.js';
-import { FieldPersister, assembleFieldState, compareToBlob } from './fieldStore.js';
+import type { ServerState } from './serverState.js';
+import type { FieldPersister } from './fieldStore.js';
+import { assembleFieldState, compareToBlob } from './fieldStore.js';
+import type { UserStateRegistry, UserStateEntry } from './userState.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -52,6 +54,13 @@ export interface PipelineContext {
   kvs: KVStore;
   /** Which store serves state on fetch_blob (config: state-canonical). */
   canonical?: 'blob' | 'fields';
+  /** Per-user shared state; every connection for a user folds into one
+   * materialization (userState.ts). Owned by server.ts. */
+  stateRegistry: UserStateRegistry;
+  /** The acquired per-user entry — set by runPipeline. */
+  userState?: UserStateEntry;
+  /** Aliases into userState (same objects, shared across the user's
+   * connections). */
   serverState?: ServerState;
   persister?: FieldPersister;
 }
@@ -185,39 +194,41 @@ async function* handleBlobs(
 
     if (eventType === 'fetch_blob') {
       try {
-        let data: any = null;
-        let source = 'blob';
-        if (ctx.canonical === 'fields') {
-          const assembled = await assembleFieldState(kvs, user.safe_user_id);
-          if (assembled) {
-            data = { application_state: assembled };
-            source = 'fields';
+        const entry = ctx.userState!;
+        // Seed the shared materialization from storage, once per user
+        // entry (single-flight: a second tab fetching concurrently awaits
+        // the same seed rather than re-seeding over live events). A
+        // blob-sourced seed is adopted into the field store (migration,
+        // once per user); a fields-sourced seed only rebases.
+        await entry.ensureSeeded(async () => {
+          let scopes: Record<string, any> | null = null;
+          let source = 'blob';
+          if (ctx.canonical === 'fields') {
+            scopes = await assembleFieldState(kvs, user.safe_user_id);
+            if (scopes) source = 'fields';
+            // No per-field state yet (user predates the field store):
+            // fall back to the blob — adopt() below writes it into the
+            // field store, so the fallback runs once per user.
           }
-          // No per-field state yet (user predates the field store): fall
-          // back to the blob below — its seed will populate the field keys,
-          // so the fallback runs once per user. Migration, not redundancy.
-        }
-        if (!data) {
-          const raw = await kvs.get(key);
-          data = raw ? JSON.parse(raw) : null;
-        }
-        // Seed the server-side materialization with the persisted scopes,
-        // exactly as the client will (deserializeOnLoad) — from here on the
-        // two fold the same events over the same base. A blob-sourced seed
-        // is adopted into the field store (migrates it, one session per
-        // user); a fields-sourced seed only rebases — it's already there.
-        if (data?.application_state) {
-          ctx.serverState?.seed(data.application_state);
-          if (ctx.serverState && ctx.persister) {
-            if (source === 'fields') ctx.persister.rebase(ctx.serverState.state);
-            else ctx.persister.adopt(ctx.serverState.state);
+          if (!scopes) {
+            const raw = await kvs.get(key);
+            scopes = raw ? JSON.parse(raw)?.application_state ?? null : null;
           }
-        }
+          if (scopes) {
+            entry.serverState.seed(scopes);
+            if (source === 'fields') entry.persister.rebase(entry.serverState.state);
+            else entry.persister.adopt(entry.serverState.state);
+          }
+          console.log(`[${ctx.conn.id}] user state seeded from ${scopes ? source : 'nothing'}`);
+        });
+        // Serve the LIVE materialization — for a second connection this is
+        // fresher than storage by up to a flush debounce, and it already
+        // includes the user's other-tab events.
+        const data = entry.liveState();
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
         appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
-        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${
-          data ? `served from ${source}` : 'empty'}`);
+        console.log(`[${ctx.conn.id}] fetch_blob: ${data ? 'served live state' : 'empty'}`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
         safeSend(ws, { status: 'fetch_blob', data: null });
@@ -283,10 +294,12 @@ async function* runReducers(
  * Returns when the connection closes.
  */
 export async function runPipeline(ctx: PipelineContext) {
-  // Created here (not in runReducers) so handleBlobs can seed the state
-  // from fetch_blob, which it consumes before the reducer stage sees it.
-  ctx.serverState = new ServerState();
-  ctx.persister = new FieldPersister(ctx.kvs, ctx.user.safe_user_id);
+  // Acquire the per-USER shared state — all of this user's connections
+  // fold into one materialization (userState.ts).
+  const userState = ctx.stateRegistry.acquire(ctx.user.safe_user_id);
+  ctx.userState = userState;
+  ctx.serverState = userState.serverState;
+  ctx.persister = userState.persister;
 
   const raw = messagesFrom(ctx.ws);
   const logged = decodeAndLog(raw, ctx);
@@ -301,6 +314,7 @@ export async function runPipeline(ctx: PipelineContext) {
     // Each stage does its own work; nothing to do at the end.
   }
 
-  // Connection closed: write any per-field state still in the debounce.
-  await ctx.persister.close();
+  // Connection closed: release the shared entry — the LAST connection's
+  // release flushes pending field writes and drops the entry.
+  await userState.release();
 }
