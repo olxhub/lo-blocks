@@ -133,6 +133,31 @@ test('two live connections fold into ONE user state', async () => {
   expect(registry.size()).toBe(0); // last release dropped the entry
 });
 
+test('fan-out: other connections hear an event; the origin does not', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  wsA.emit('message', Buffer.from(JSON.stringify(UPDATE)));
+  await new Promise(r => setTimeout(r, 20));
+
+  const relayed = wsB.sent.find(m => m.status === 'browser_event');
+  expect(relayed.event_type).toBe('lo_server_event');
+  expect(relayed.detail.event).toBe('UPDATE_VALUE');
+  expect(relayed.detail.value).toBe('v1');
+  // Echo suppression: the origin never hears its own event back.
+  expect(wsA.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
 test('LWW wins by timestamp, not by which connection closes last', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

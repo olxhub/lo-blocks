@@ -17,7 +17,11 @@
     translanguaging: true;
     debug-panel: true;   /* on by default; ctrl-` toggles it. Rarely disabled. */
     copyright: "";
-    tab-sync: true;
+    /* Off since 2026-07-07: server fan-out (fields-design step 2a)
+     * subsumes tab-sync — sibling tabs receive each other's events over
+     * their own sockets. Running both double-applies events (RGA splices
+     * duplicate text). Retire tab-sync fully once fan-out soaks. */
+    tab-sync: false;
 }
 
 /* Server-backed apps: websocket + session persistence */

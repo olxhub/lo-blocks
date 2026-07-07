@@ -281,6 +281,12 @@ async function* runReducers(
   for await (const event of events) {
     ctx.serverState!.dispatch(event);
     ctx.persister?.note(ctx.serverState!.state);
+    // Step 2a fan-out: the user's other tabs/devices hear this event and
+    // fold it with the same reducer. Origin excluded — it already applied
+    // the event optimistically. Requires tab-sync off (system.pmss), or
+    // sibling tabs would receive events twice and double-apply RGA
+    // splices.
+    ctx.userState!.fanOut(event, ctx.ws);
     yield event;
   }
 }
@@ -296,7 +302,7 @@ async function* runReducers(
 export async function runPipeline(ctx: PipelineContext) {
   // Acquire the per-USER shared state — all of this user's connections
   // fold into one materialization (userState.ts).
-  const userState = ctx.stateRegistry.acquire(ctx.user.safe_user_id);
+  const userState = ctx.stateRegistry.acquire(ctx.user.safe_user_id, ctx.ws);
   ctx.userState = userState;
   ctx.serverState = userState.serverState;
   ctx.persister = userState.persister;

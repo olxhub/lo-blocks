@@ -18,6 +18,7 @@
 // arriving mid-flush finds the entry still in the map and reuses it (the
 // refcount check after the flush notices and keeps it).
 
+import type { WebSocket } from 'ws';
 import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
@@ -37,6 +38,15 @@ export interface UserStateEntry {
   /** Serialize the live materialization in the fetch_blob data shape,
    * or null if nothing has ever been stored or dispatched. */
   liveState(): { application_state: Record<string, any> } | null;
+  /**
+   * Fan an event out to the user's OTHER connections (never the origin —
+   * it already applied the event optimistically). Rides lo_event's
+   * existing `browser_event` channel: the client re-dispatches the
+   * detail as a `lo_server_event` CustomEvent, which the store consumes
+   * (see store.ts). This is inbound-dataflow step 2a
+   * (docs/fields-design.md): tabs and devices of one user converge live.
+   */
+  fanOut(event: Record<string, any>, origin: WebSocket): void;
   release(): Promise<void>;
 }
 
@@ -46,11 +56,12 @@ export class UserStateRegistry {
     persister: FieldPersister;
     refs: number;
     seedPromise: Promise<void> | null;
+    sockets: Set<WebSocket>;
   }>();
 
   constructor(private kvs: KVStore) {}
 
-  acquire(user: SafeUserId): UserStateEntry {
+  acquire(user: SafeUserId, ws?: WebSocket): UserStateEntry {
     let entry = this.entries.get(user);
     if (!entry) {
       entry = {
@@ -58,10 +69,12 @@ export class UserStateRegistry {
         persister: new FieldPersister(this.kvs, user),
         refs: 0,
         seedPromise: null,
+        sockets: new Set(),
       };
       this.entries.set(user, entry);
     }
     entry.refs++;
+    if (ws) entry.sockets.add(ws);
     const e = entry;
 
     return {
@@ -84,8 +97,24 @@ export class UserStateRegistry {
         return hasContent ? { application_state: scopes } : null;
       },
 
+      fanOut(event, origin) {
+        for (const sock of e.sockets) {
+          if (sock === origin) continue;
+          try {
+            if (sock.readyState === sock.OPEN) {
+              sock.send(JSON.stringify({
+                status: 'browser_event',
+                event_type: 'lo_server_event',
+                detail: event,
+              }));
+            }
+          } catch { /* receiver gone — its release will drop it */ }
+        }
+      },
+
       release: async () => {
         e.refs--;
+        if (ws) e.sockets.delete(ws);
         if (e.refs > 0) return;
         await e.persister.close();
         // A connection may have arrived during the flush — keep the entry

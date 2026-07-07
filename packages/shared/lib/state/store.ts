@@ -35,6 +35,7 @@ function createArrayLogger() {
   return logEvent;
 }
 import { websocketLogger } from 'lo_event/websocket';
+import { consumeCustomEvent } from 'lo_event/util';
 import { scopes, Scope } from './scopes';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields, AppState } from '../types';
@@ -506,6 +507,11 @@ function configureStore({
   // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
   const CONTENT_EVENTS = new Set<string>([...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES]);
   const syncFilter = (action: any): boolean => {
+    // Server-fanned events must not re-broadcast: sibling tabs have their
+    // own sockets and receive the fan-out directly — a BroadcastChannel
+    // copy would double-apply (RGA splices duplicate text). This guard
+    // matters only if tab-sync is ever re-enabled alongside fan-out.
+    if (action?.__fromServer) return false;
     if (action?.redux_type !== 'EMIT_EVENT' || typeof action.payload !== 'string') return true;
     try { return !CONTENT_EVENTS.has(JSON.parse(action.payload).event); }
     catch { return true; }
@@ -572,6 +578,26 @@ function configureStore({
 
   // Store the reference for getReduxState to use
   reduxStoreInstance = reduxLogger.store;
+
+  // Inbound fan-out (docs/fields-design.md step 2a): the server relays
+  // events from this user's OTHER tabs/devices over lo_event's
+  // browser_event channel as `lo_server_event` CustomEvents. Fold each
+  // into Redux with the same reducer that handles local writes —
+  // dispatched directly on the store (NOT lo_event.logEvent), so it is
+  // never re-sent to the server. __fromServer keeps tab-sync (if ever
+  // re-enabled) from re-broadcasting it — see syncFilter above.
+  if (useWebsocket) {
+    consumeCustomEvent('lo_server_event', (event: any) => {
+      if (!event?.event) return; // not a field event; nothing to fold
+      reduxStoreInstance.dispatch({
+        redux_type: 'EMIT_EVENT',
+        type: event.event,
+        payload: JSON.stringify(event),
+        __fromServer: true,
+      });
+    });
+  }
+
   return reduxStoreInstance;
 }
 
