@@ -11,11 +11,11 @@ import { test, expect, type Page, type APIRequestContext } from '@playwright/tes
  * failures, bundle errors, browser-specific bugs).
  *
  * HOW IT WORKS: Rather than maintaining a list of URLs, the test asks the
- * server's own APIs (/api/activities, /api/docs) what pages exist and
+ * server's own APIs (/api/activities) what pages exist and
  * visits each one. New content is automatically covered.
  *
  * RUNNING:
- *   npm run smoke                          # against localhost:3000
+ *   npm run smoke                          # against localhost:8888 (npm run dev)
  *   SMOKE_URL=https://host SMOKE_USER=u SMOKE_PASS=p npm run smoke
  *
  * NOT part of `npm run test` — this requires a running server and takes
