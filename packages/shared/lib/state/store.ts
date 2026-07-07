@@ -305,6 +305,17 @@ export const updateResponseReducer = (state = initialState, action) => {
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
+  // Actions with no bucket key are not ours: redux internals (@@INIT,
+  // @@redux/INIT) and stray events used to legacy-spread into a literal
+  // component["undefined"] bucket here, which then leaked into every saved
+  // blob. Foreign actions leave state untouched.
+  if ((scope === scopes.component || scope === scopes.storage) && id === undefined) {
+    return state;
+  }
+  if (scope === scopes.componentSetting && tag === undefined) {
+    return state;
+  }
+
   switch (scope) {
     case scopes.componentSetting:
       return {
