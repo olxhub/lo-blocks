@@ -7,23 +7,16 @@
     }
   },
   "include": [
-    "apps/web/next-env.d.ts",
-    "apps/web/.next/types/**/*.ts",
     "packages/**/*.ts",
     "packages/**/*.tsx",
     "apps/**/*.ts",
-    "apps/**/*.tsx",
-    "apps/web/.next/dev/types/**/*.ts",
-    "apps/web/.next-test/types/**/*.ts",
-    "apps/web/.next-test/dev/types/**/*.ts"
+    "apps/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     "obsolete",
     "old",
     "local",
-    "**/.next/**",
-    "**/.next-test/**",
     "**/dist/**",
     "**/*.test.ts",
     "**/*.test.tsx"
