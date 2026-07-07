@@ -119,11 +119,7 @@ const _fieldReducers = new Map<string, FieldReducerEntry>();
 // to event-server. Unlisted ports fail loudly.
 const WS_PORT_MAP = new Map([
   [8810, 0],    // local nginx (Basic Auth)
-  [8888, 0],    // app server direct (proxies HTTP to Next.js)
-  [3000, 8888], // Next.js dev direct
-  [3001, 8888],
-  [3002, 8888],
-  [3003, 8888],
+  [8888, 0],    // app server direct
 ]);
 
 const isBrowser = typeof window !== 'undefined';

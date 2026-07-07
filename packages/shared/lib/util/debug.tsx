@@ -80,7 +80,7 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = olxJson?.source
     ? [olxJson.source, ...(olxJson.parseDeps ?? [])]
     : [];
-  const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
+  const prefix = process.env.LO_DEBUG_LINK_PREFIX ?? '';
 
   const links = provenance.map((uri, idx) => {
     // Reuse the address grammar instead of hand-splitting: origin = source(),

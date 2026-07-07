@@ -198,7 +198,7 @@ Please talk to us! We're education nerds, and talking is fun.
 
 ## Technologies Used
 
-- **Runtime**: [Next.js](https://nextjs.org) (`react`)
+- **Runtime**: [Vite](https://vite.dev) + [Hono](https://hono.dev) (`react`)
 - **State management**: [`redux`](https://redux.js.org) via [`lo_event`](https://github.com/ArgLab/writing_observer/tree/master/modules/lo_event)
 - **Styling**: [`Tailwind CSS 4`](https://tailwindcss.com)
 - **XML parsing**: [`fast-xml-parser`](https://github.com/NaturalIntelligence/fast-xml-parser)

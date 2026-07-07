@@ -35,6 +35,13 @@ import { getTextDirection } from '@/lib/i18n/getTextDirection';
 import { mockRuntime, TEST_NS } from '@/lib/test-utils';
 import { toUserLocale } from '@/lib/types/i18n';
 import type { SafeRelativePath } from '@/lib/types';
+import { initConfig } from '@/lib/config';
+
+// Rendering reads config (needsTranslation → getConfigBool), which fails
+// fast when uninitialized. Empty PMSS: every getConfig resolves to null,
+// so translanguaging etc. are off — same as the pre-2026-07 behavior when
+// the Next.js process (which never initialized config) rendered these.
+initConfig('', ['client', 'test']);
 
 export const BLOCKS_DIR = path.resolve('./packages/shared/components/blocks');
 
