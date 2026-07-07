@@ -186,6 +186,28 @@ test('LWW wins by timestamp, not by which connection closes last', async () => {
   expect(JSON.parse(stored!).value).toBe('newer');
 });
 
+test('registry.read: live state when connected, stored state when not', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+
+  // Live: an open connection's unsaved event is visible immediately.
+  const ws = new FakeWs();
+  const ctx: PipelineContext = { ws: ws as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const run = runPipeline(ctx);
+  ws.emit('message', Buffer.from(JSON.stringify(UPDATE)));
+  await new Promise(r => setTimeout(r, 20));
+  const live = await registry.read(USER.safe_user_id);
+  expect(live!.component['pipe-block'].value).toBe('v1');
+
+  ws.emit('close');
+  await run;
+
+  // Cold: after the last release flushed, the same state reads from KVS.
+  expect(registry.size()).toBe(0);
+  const cold = await registry.read(USER.safe_user_id);
+  expect(cold!.component['pipe-block'].value).toBe('v1');
+});
+
 test('fetch seed + events: assembled state accumulates across sessions', async () => {
   const kvs = new MemoryKVStore();
   await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({

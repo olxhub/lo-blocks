@@ -22,7 +22,7 @@ import type { WebSocket } from 'ws';
 import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
-import { FieldPersister, PERSISTED_SCOPES } from './fieldStore.js';
+import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './fieldStore.js';
 
 export interface UserStateEntry {
   serverState: ServerState;
@@ -129,4 +129,22 @@ export class UserStateRegistry {
 
   /** Live entry count — for tests and eventually /boot-status style stats. */
   size() { return this.entries.size; }
+
+  /**
+   * Read a user's current state without acquiring: the live
+   * materialization when the user has open connections (fresher than
+   * storage by up to a flush debounce), else the persisted field state.
+   * Read-only — no refcounts, no seeding. Serves the content-fetch
+   * initial-state path (fields-design step 2b).
+   */
+  async read(user: SafeUserId): Promise<Record<string, any> | null> {
+    const live = this.entries.get(user);
+    if (live) {
+      const state = live.serverState.state as Record<string, any>;
+      const scopes: Record<string, any> = {};
+      for (const scope of PERSISTED_SCOPES) scopes[scope] = state[scope] ?? {};
+      return scopes;
+    }
+    return assembleFieldState(this.kvs, user);
+  }
 }

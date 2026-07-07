@@ -19,6 +19,7 @@ import {
   dispatchOlxJson,
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
+import { adoptFieldState } from '@/lib/state/store';
 import { qualifyDefinitionRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
@@ -119,6 +120,10 @@ export function ensureBlock(
         // Key stays in ensuredIds to prevent retry storms.
         dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`);
       } else {
+        // Field state rides the content response (fields-design 2b):
+        // adopt BEFORE the content dispatch so blocks never render from
+        // defaults and then flicker to saved state.
+        adoptFieldState(data.fieldState);
         dispatchOlxJson(props, source, data.idMap);
         // Recursively ensure blocks referenced by ref-typed attributes
         ensureReferencedBlocks(props, data.idMap, source);

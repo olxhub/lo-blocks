@@ -33,7 +33,7 @@ import {
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from './userState.js';
-import { handleOlxJson } from './routes/olxjson.js';
+import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
@@ -110,6 +110,12 @@ export async function startServer(
     });
   }
 
+  // One shared per-user state registry for the whole server — all of a
+  // user's connections fold into a single materialization (userState.ts).
+  // Created before the routes: /api/olxjson reads it for initial field
+  // state, the WS pipeline writes it.
+  const stateRegistry = new UserStateRegistry(kvs);
+
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
 
@@ -117,7 +123,7 @@ export async function startServer(
   // must keep answering AFTER handoff (boot.ts serves it during boot; a
   // 404 here strands open boot pages in their retry loop forever).
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
-  app.get('/api/olxjson', handleOlxJson);
+  app.get('/api/olxjson', createOlxJsonHandler(stateRegistry));
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
@@ -262,10 +268,6 @@ export async function startServer(
       socket.destroy();  // unknown upgrade path — nothing to hand it to
     }
   });
-
-  // One shared per-user state registry for the whole server — all of a
-  // user's connections fold into a single materialization (userState.ts).
-  const stateRegistry = new UserStateRegistry(kvs);
 
   // Which store serves state on fetch_blob (config/server.pmss). Read per
   // connection so a config change applies to new sessions without restart.

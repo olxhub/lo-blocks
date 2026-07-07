@@ -173,6 +173,9 @@ const initialState: AppState = {
 // Event types for olxjson state
 const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];
 
+// Server-provided field state riding a content fetch (fields-design 2b).
+export const ADOPT_FIELD_STATE = 'ADOPT_FIELD_STATE';
+
 // Combined reducer handling both component state and olxjson
 export const updateResponseReducer = (state = initialState, action) => {
   // Handle olxjson events first (they don't use scope)
@@ -210,6 +213,21 @@ export const updateResponseReducer = (state = initialState, action) => {
       ...state,
       sources: sourcesReducer(state.sources, { ...action, type: eventType }),
     };
+  }
+
+  // Server-provided field state riding a content fetch (fields-design
+  // step 2b): adopt buckets this session has NOT touched. A bucket that
+  // exists locally is newer or equal — it came from this session's events
+  // or the connect-time load — so local wins; absent means the block has
+  // never been seen here, so the server's copy is the truth.
+  if (eventType === ADOPT_FIELD_STATE) {
+    const incoming: Record<string, any> = action.fieldState?.component ?? {};
+    const local = state.component ?? {};
+    const adopted = Object.fromEntries(
+      Object.entries(incoming).filter(([key]) => !(key in local)),
+    );
+    if (Object.keys(adopted).length === 0) return state;
+    return { ...state, component: { ...adopted, ...local } };
   }
 
   // Field-level reducers — route events to field.reduce when registered.
@@ -446,6 +464,7 @@ function collectEventTypes(
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
     ...SOURCES_EVENT_TYPES,
+    ADOPT_FIELD_STATE,
   ]));
 }
 
@@ -602,6 +621,22 @@ function configureStore({
 }
 
 export const store = { init: configureStore };
+
+/**
+ * Adopt server-provided field state that rode a content fetch
+ * (fields-design step 2b). Buckets already present locally win — adopt
+ * only fills blocks this session has never touched. Dispatched directly
+ * (not logEvent): it's server→client state, never an event to record.
+ */
+export function adoptFieldState(fieldState: Record<string, any> | undefined) {
+  if (!fieldState || !reduxStoreInstance) return;
+  reduxStoreInstance.dispatch({
+    redux_type: 'EMIT_EVENT',
+    type: ADOPT_FIELD_STATE,
+    payload: JSON.stringify({ event: ADOPT_FIELD_STATE, fieldState }),
+    __fromServer: true,
+  });
+}
 
 // Singleton access for getReduxState - internal to /state/
 export const getReduxStoreInstance = () => {
