@@ -13,7 +13,7 @@
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
 //                 ├→ /repo/*        → SPA fallback (Hono serveStatic)
-//                 └→ everything else → proxy to Next.js :3000 (transition)
+//                 └→ everything else → 404
 
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { existsSync } from 'node:fs';
@@ -31,7 +31,6 @@ import {
   resolveUserWithSession, createSessionToken, buildSetCookie
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
-import { proxy } from './proxy.js';
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
@@ -50,14 +49,8 @@ import { ToolRegistry } from '@/lib/mcp/registry';
 // Overridable for tests (the smoke test boots a second instance beside a
 // running dev server); 8888 is the canonical port — see docs/README.md.
 const PORT = Number(process.env.PORT ?? 8888);
-// Trial mode for killing Next.js: by default unclaimed paths 404 instead of
-// proxying to the legacy server. NEXT_FALLBACK=1 restores the proxy (pair
-// with `npm run dev:hybrid`, which still starts Next).
-const NEXT_FALLBACK = process.env.NEXT_FALLBACK === '1';
 const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
-// The legacy Next.js pages remain reachable at paths not claimed by this
-// server (i.e. not '/' and not one of SERVER_PREFIXES) during the migration.
 // The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
 // transport) — there is no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
 const SERVER_PREFIXES = [
@@ -68,7 +61,6 @@ const SERVER_PREFIXES = [
 ];
 
 // Symbols for annotating request objects between middleware stages
-const PENDING_COOKIE = Symbol('pendingSessionCookie');
 const RESOLVED_USER = Symbol('resolvedUser');
 
 // --- Types -------------------------------------------------------------------
@@ -107,7 +99,7 @@ export async function startServer(
   // lands the (immediately deleted) temp file in tsx --watch's module
   // graph and restart-loops the server. appType 'custom' disables Vite's
   // own HTML fallback: unmatched paths must keep flowing to the
-  // fallthrough (404 or, with NEXT_FALLBACK, the legacy proxy).
+  // 404 fallthrough.
   if (clientDev) {
     const { createServer: createViteServer } = await import('vite');
     const { default: clientViteConfig } = await import('../../client/vite.config');
@@ -148,7 +140,7 @@ export async function startServer(
   app.use('/content/*', serveStatic({ root: './apps/server/public' }));
 
   // SPA fallback: client-side routes serve index.html.
-  // Add route patterns here as they migrate from Next.js.
+  // Add route patterns here as new client pages appear.
   //
   // Dev: index.html comes from Vite (transformIndexHtml injects the HMR
   // client and module scripts; modules are transformed on demand).
@@ -199,21 +191,6 @@ export async function startServer(
     await honoHandler(req, res);
   }
 
-  // --- Session cookie for proxied responses --------------------------------
-  // The proxy.web() call forwards the response from Next.js. We can't set
-  // headers after the proxy writes them, so we use the 'proxyRes' event to
-  // inject Set-Cookie into the upstream response before it reaches the client.
-
-  proxy.on('proxyRes', (proxyRes, req) => {
-    const cookie = (req as any)[PENDING_COOKIE] as string | undefined;
-    if (!cookie) return;
-
-    const existing = proxyRes.headers['set-cookie'] || [];
-    const cookies = Array.isArray(existing) ? existing : [existing];
-    cookies.push(cookie);
-    proxyRes.headers['set-cookie'] = cookies;
-  });
-
   // --- HTTP request handler --------------------------------------------------
   // The server was created (or adopted from the boot page — boot.ts) above,
   // BEFORE vite, so no request can see a half-initialized closure. The
@@ -246,35 +223,19 @@ export async function startServer(
     if (url === '/' || url.startsWith('/?') || SERVER_PREFIXES.some(p => url.startsWith(p))) {
       await handleWithSession(req, res);
     } else {
-      // Unclaimed path. Default: explicit 404 — the legacy Next.js pages
-      // are retired from the dev loop (trial run before deleting apps/web;
-      // NEXT_FALLBACK=1 + `npm run dev:hybrid` restores the proxy).
-      const fallthrough = async () => {
-        if (!NEXT_FALLBACK) {
-          res.writeHead(404, { 'Content-Type': 'text/plain' });
-          res.end(
-            `No route for ${url}\n\n` +
-            `The legacy Next.js pages are disabled. If this path should ` +
-            `exist, it needs a route in apps/server or apps/client. ` +
-            `(Transition setup: NEXT_FALLBACK=1 with npm run dev:hybrid.)`
-          );
-          return;
-        }
-        // Resolve session before proxying so the cookie gets set on the
-        // first page load (served by Next.js). The proxyRes handler above
-        // picks up the stashed cookie value.
-        const { needsCookie, user } = await resolveUserWithSession(req);
-        if (needsCookie) {
-          const token = await createSessionToken(user);
-          (req as any)[PENDING_COOKIE] = buildSetCookie(token);
-        }
-        proxy.web(req, res);
+      // Unclaimed path → explicit 404. (In dev, Vite's middleware first
+      // serves its module/asset URLs — /src/*, /@vite/*, /@fs/*,
+      // prebundled deps — and calls next() for anything it doesn't own.)
+      const notFound = () => {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end(
+          `No route for ${url}\n\n` +
+          `If this path should exist, it needs a route in apps/server ` +
+          `or apps/client.`
+        );
       };
-      // In dev, Vite's middleware serves its module/asset URLs (/src/*,
-      // /@vite/*, /@fs/*, prebundled deps) and calls next() for anything
-      // it doesn't own — which continues to the fallthrough.
-      if (vite) vite.middlewares(req, res, () => { void fallthrough(); });
-      else await fallthrough();
+      if (vite) vite.middlewares(req, res, notFound);
+      else notFound();
     }
   });
 
@@ -282,10 +243,10 @@ export async function startServer(
   // the request handler attaches — see the comment there.)
 
   // --- WebSocket server (via ws, not Hono) ---------------------------------
-  // TODO: We use the raw `ws` library here because we need to selectively
-  // proxy non-matching WS upgrades to Next.js (e.g. HMR). @hono/node-ws
-  // intercepts ALL upgrades, breaking that. Once Next.js is removed, switch
-  // to @hono/node-ws so WebSocket handling lives inside Hono.
+  // TODO: raw `ws` predates Hono here; the only other upgrade consumer is
+  // Vite HMR (its own listener). @hono/node-ws intercepts ALL upgrades, so
+  // switching means routing HMR through it too — worth doing when WebSocket
+  // handling next changes, not before.
   const wss = new WebSocketServer({ noServer: true });
   const activeConnections = new Map<WebSocket, ConnectionLog>();
 
@@ -306,7 +267,7 @@ export async function startServer(
         wss.emit('connection', ws, req);
       });
     } else {
-      proxy.ws(req, socket, head);
+      socket.destroy();  // unknown upgrade path — nothing to hand it to
     }
   });
 
@@ -353,9 +314,7 @@ export async function startServer(
   console.log(`    WebSocket: ws://localhost:${PORT}${WS_PATH}`);
   console.log(`    Client:    ${vite ? 'Vite dev middleware (HMR, on-demand transforms)' : 'apps/client/dist/ (prebuilt)'}`);
   console.log(`    MCP:       http://localhost:${PORT}/mcp`);
-  console.log(NEXT_FALLBACK
-    ? `    Fallback:  proxy → Next.js at http://127.0.0.1:3000`
-    : `    Fallback:  none — unclaimed paths 404 (NEXT_FALLBACK=1 to restore)`);
+  console.log(`    Fallback:  unclaimed paths 404`);
 
   return { server, activeConnections };
 }
