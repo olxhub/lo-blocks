@@ -200,16 +200,25 @@ export default function Chat(props: RuntimeProps) {
    * Footers
    * -------------------------------------------------------------- */
 
-  const interludeSendDisabled = interlude.busy || interlude.ended
-    || (interlude.maxTurns !== null && interlude.turnsUsed >= interlude.maxTurns);
+  const interludeMaxed = interlude.maxTurns !== null && interlude.turnsUsed >= interlude.maxTurns;
+  const interludeSendDisabled = interlude.busy || interlude.ended || interludeMaxed;
 
-  // Order matters: a script can END on an interlude (a pure-LLM chat is a
-  // single >>> llm entry), so "parked on an interlude" wins over "finished".
-  const footer = interlude.active ? (
+  // A FINAL interlude (the script's last entry — a pure-LLM chat is exactly
+  // that) has nothing to Continue to: never show the advance button, and
+  // once the agent ends it (or maxTurns closes the input) the chat is
+  // simply finished. advance() holds the parent until then (its interlude
+  // gate runs before the finished check).
+  const finalInterlude = interlude.active && windowedIndex >= clipRange.end;
+  const interludeClosed = finalInterlude && (interlude.ended || interludeMaxed);
+
+  // Order matters: "parked on an interlude" wins over "finished".
+  const footer = interludeClosed ? (
+    <InputFooter id={`${id}_footer`} disabled />
+  ) : interlude.active ? (
     // Open floor: talk to the LLM participant; Continue (when the exit
-    // gate allows) resumes the script.
+    // gate allows, and there is somewhere to go) resumes the script.
     <>
-      {!isDisabled && (
+      {!isDisabled && !finalInterlude && (
         <AdvanceFooter
           id={`${id}_advance`}
           onAdvance={handleAdvance}

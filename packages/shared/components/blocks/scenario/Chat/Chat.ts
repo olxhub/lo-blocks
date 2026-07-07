@@ -135,14 +135,16 @@ function canAdvance(props: RuntimeProps, reduxState: any): boolean {
 function advance(props: RuntimeProps, reduxState: any): boolean {
   const { allEntries, windowedIndex, clipEnd, waitContext, ignoreWaits } = getState(props, reduxState);
 
-  // Conversation finished
-  if (windowedIndex >= clipEnd) return false;
-
   // Parked on an LLM interlude: the floor is open. Leaving it is allowed
   // when the `until` expression is satisfied, the agent called its
   // end_conversation tool (durable exit marker in the log), or maxTurns is
   // exhausted (a hard stop must never strand the user behind an
   // unsatisfied until). Instructor ignore-waits overrides.
+  //
+  // Checked BEFORE the finished early-return: an interlude can be the
+  // script's LAST entry (a pure-LLM chat is exactly that), and an open
+  // final interlude must still hold the advance — otherwise a parent
+  // container would walk past a student mid-conversation.
   const current = allEntries[windowedIndex];
   if (current?.type === 'LlmCommand' && !ignoreWaits) {
     // fieldSelector returns the RAW field value — materialize the log doc
@@ -154,6 +156,9 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
       return true; // interlude still active — don't let parent advance past us
     }
   }
+
+  // Conversation finished
+  if (windowedIndex >= clipEnd) return false;
 
   // Check if next content is reachable (may be blocked by wait)
   if (!ignoreWaits && !canAdvanceToContent(allEntries, windowedIndex, clipEnd, waitContext)) {

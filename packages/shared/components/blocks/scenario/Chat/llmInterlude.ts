@@ -150,8 +150,10 @@ export function useLlmInterlude(
         }
         tools = llmToolsFor(toolsetNames);
       }
+      // exit=none (e.g. an open-ended assistant): no end tool — an exit
+      // marker is durable, and a stray call would close the chat forever.
       let exitRequested = false;
-      tools = [...tools, {
+      if (active.metadata.exit !== 'none') tools = [...tools, {
         function: {
           name: 'end_conversation',
           description:

@@ -392,6 +392,7 @@ point them at whatever blocks hold the context the agent should know.
 | `until` | State expression that must be truthy before the script can advance past the interlude — `wait`, but conversational |
 | `maxTurns` | Hard cap on user turns; input closes when spent |
 | `tools` | Comma-separated toolset names the agent may use (e.g. `content-read`, `docs`); omit for a plain conversation |
+| `exit` | `none` removes the agent's end tool — for open-ended assistants where an accidental (durable) exit would close the chat forever |
 | `profile` | Reserved for server-side LLM profile selection |
 
 **Ending the conversation.** The agent always has an `end_conversation` tool,
