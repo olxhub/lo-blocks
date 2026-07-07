@@ -2,15 +2,17 @@
 //
 // GET /api/olxjson?id=X
 //
-// Serves parsed OLX content. Same logic as the Next.js API route,
-// using the same shared code — no duplication.
+// Serves parsed OLX content.
 
 import type { Context } from 'hono';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
 
-// See apps/web/app/api/olxjson/[id]/route.ts for mode documentation.
+// How much of the idMap a single-block request returns:
+//   'single'      → just the requested block
+//   'static-kids' → the block plus its statically-reachable kids
+//   'all'         → the entire idMap
 const SINGLE_BLOCK_MODE: string = 'static-kids';
 
 export async function handleOlxJson(c: Context): Promise<Response> {

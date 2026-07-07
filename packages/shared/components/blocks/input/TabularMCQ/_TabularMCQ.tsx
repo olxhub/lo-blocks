@@ -8,7 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useGraderAnswer } from '@/lib/blocks/useGraderAnswer';
 import { assertNamedObject } from '@/lib/util/kids';
 
-export default function _TabularMCQ(props: RuntimeProps) {
+export default function TabularMCQ(props: RuntimeProps) {
   const { fields, kids } = props;
   assertNamedObject(kids, ['type', 'parsed', 'message', 'technical']);
 

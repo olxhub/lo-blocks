@@ -9,7 +9,7 @@ import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 // OLX attributes → React DOM props (rename where conventions differ)
 const attrMap: Record<string, string> = { placeholder: 'placeholder', rows: 'rows' };
 
-function _TextArea( props: RuntimeProps ) {
+function TextArea( props: RuntimeProps ) {
   // Note: updateValidator is a function, and so can't come from OLX or JSON.
   const { className, fields, kids, updateValidator, ...rest } = props;
 
@@ -42,4 +42,4 @@ function _TextArea( props: RuntimeProps ) {
   );
 }
 
-export default _TextArea;
+export default TextArea;

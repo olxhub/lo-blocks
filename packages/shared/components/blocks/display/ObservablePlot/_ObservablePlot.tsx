@@ -71,7 +71,7 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
   return fn(plotLib);
 }
 
-export default function _ObservablePlot(props: RuntimeProps) {
+export default function ObservablePlot(props: RuntimeProps) {
   const { format, width, height } = props;
   const { text, loading } = useTextContent(props);
   const containerRef = useRef<HTMLDivElement>(null);

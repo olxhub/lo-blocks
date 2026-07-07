@@ -46,7 +46,7 @@ export function analyzeText(text: string, mode: string) {
   return data;
 }
 
-export default function _WritingRhythmPlot(props: RuntimeProps) {
+export default function WritingRhythmPlot(props: RuntimeProps) {
   const { target, width, height, xrange, yrange, mode = 'characters' } = props;
   const containerRef = useRef<HTMLDivElement>(null);
 

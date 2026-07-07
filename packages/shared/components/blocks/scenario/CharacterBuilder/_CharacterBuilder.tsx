@@ -34,7 +34,7 @@ import type { RuntimeProps } from '@/lib/types';
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function _CharacterBuilder(props: RuntimeProps) {
+export default function CharacterBuilder(props: RuntimeProps) {
   const { locals } = props;
 
   const cards = useSet(props, fields.cards);

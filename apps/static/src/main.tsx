@@ -21,7 +21,7 @@ async function resolveOlxKey(): Promise<string> {
   }
 
   // Dev mode: fetch manifest and match against current pathname
-  const basePath = (process.env.NEXT_PUBLIC_BASE_PATH as string) || '';
+  const basePath = (process.env.LO_BASE_PATH as string) || '';
   const res = await fetch(`${basePath}/static-content/manifest.json`);
   if (!res.ok) {
     throw new Error(`Failed to load manifest: HTTP ${res.status}`);

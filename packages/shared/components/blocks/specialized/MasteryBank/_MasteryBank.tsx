@@ -188,7 +188,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   );
 }
 
-export default function _MasteryBank(props: RuntimeProps) {
+export default function MasteryBank(props: RuntimeProps) {
   const { id, fields, kids, goal, mode } = props;
 
   const { t } = useBlockTranslation(props);

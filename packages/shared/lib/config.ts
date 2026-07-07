@@ -86,8 +86,8 @@ export function getDefaultClasses(): string[] {
  * Reads system.pmss (required) + server.pmss (required) + local.pmss
  * (optional), detects credential classes, and calls initConfig.
  *
- * @param readFileSync - fs.readFileSync (passed in so callers that must
- *   dynamic-import fs, like Next.js instrumentation, can do so)
+ * @param readFileSync - fs.readFileSync (passed in because this module is
+ *   shared with the client bundle, which can't import node:fs)
  * @returns The assembled class list (for logging)
  */
 export function loadServerConfig(

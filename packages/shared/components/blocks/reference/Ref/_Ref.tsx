@@ -1,7 +1,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-// src/components/blocks/_Ref.tsx
+// src/components/blocks/Ref.tsx
 import React from 'react';
 import { useValue } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
@@ -10,7 +10,7 @@ import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 const VALID_FORMATS = ['code'];
 
-export default function _Ref(props: RuntimeProps) {
+export default function Ref(props: RuntimeProps) {
   const { visible = true, fallback = '', format } = props;
   const { t } = useBlockTranslation(props);
 

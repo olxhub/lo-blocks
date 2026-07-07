@@ -14,7 +14,7 @@ import {
   EMPTY_REFS
 } from '@/lib/stateLanguage';
 
-function _ActionButton(props: RuntimeProps) {
+function ActionButton(props: RuntimeProps) {
   const { label, dependsOn, disabled: disabledAttr } = props;
 
   // Parse expression and extract refs once
@@ -59,4 +59,4 @@ function _ActionButton(props: RuntimeProps) {
   );
 }
 
-export default _ActionButton;
+export default ActionButton;

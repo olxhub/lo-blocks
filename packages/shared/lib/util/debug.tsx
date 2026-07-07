@@ -2,7 +2,7 @@
 'use client';
 
 import React, { ReactNode, useState, useCallback, useRef } from 'react';
-import Link from 'next/link';
+
 import type { AppError } from '@/lib/types/errors';
 import { source, addressPath, scheme } from '@/lib/types/address';
 import { getExtension } from '@/lib/util/fileTypes';
@@ -80,7 +80,7 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
   const provenance = olxJson?.source
     ? [olxJson.source, ...(olxJson.parseDeps ?? [])]
     : [];
-  const prefix = process.env.NEXT_PUBLIC_DEBUG_LINK_PREFIX ?? '';
+  const prefix = process.env.LO_DEBUG_LINK_PREFIX ?? '';
 
   const links = provenance.map((uri, idx) => {
     // Reuse the address grammar instead of hand-splitting: origin = source(),
@@ -93,7 +93,7 @@ export const DebugWrapper = ({ props = {}, loBlock, children }: DebugWrapperProp
       // not the picker.
       const href = `/studio?source=${encodeURIComponent(origin)}&file=${encodeURIComponent(rel)}`;
       const fileType = getExtension(rel) || 'file';
-      return <Link key={idx} href={href} title={rel}>{fileType}</Link>;
+      return <a key={idx} href={href} title={rel}>{fileType}</a>;
     }
     // Fallback for non-file provenances (git, etc.) — link to the raw ref.
     return <a key={idx} href={`${prefix}${uri}`}>{String(origin)}</a>;

@@ -17,9 +17,7 @@ Ports:
   ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
   │ 8810   │ nginx (dev)     │ nginx config (outside repo)                                            │
   ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
-  │ 8888   │ App server      │ Master entry point. Proxies to Next.js, serves client dist, handles WS │
-  ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
-  │ 3000   │ Next.js dev     │ Default, goes away when Next.js is removed                             │
+  │ 8888   │ App server      │ Master entry point. Vite dev middleware, API routes, WS               │
   ├────────┼─────────────────┼────────────────────────────────────────────────────────────────────────┤
   │ 5173   │ Vite static dev │ Vite's default. Only used for standalone static dev, rarely needed     │
   └────────┴─────────────────┴────────────────────────────────────────────────────────────────────────┘
@@ -886,7 +884,7 @@ Types generally live in `/lib/types/` rather than locally.
 # Tools
 
 * All npm scripts automatically use firejail sandboxing when available (see `sandbox.sh`). On Ubuntu, `sudo apt-get install firejail` is recommended but not required. On macOS or other systems, everything works without it.
-* The system uses `next.js`. We like `next.js`, but the rather unusual dynamic development requirements (e.g. ability to dynamically edit and reload blocks) may make this type of framework a poor fit. At some point, we should evaluate `vite`, other frameworks, or rolling our own.
+* The system uses `vite` (dev middleware inside the Hono app server). We used `next.js` until 2026-07; the dynamic development requirements (e.g. ability to dynamically edit and reload blocks) made that kind of framework a poor fit.
 * Data streams into the [Learning Observer](https://github.com/ArgLab/writing_observer), which allows for rather rich, real-time dashboard.
 
 Redux
@@ -940,7 +938,7 @@ level of expertise:
 
 ## Vertical Integration
 
-Traditional web apps are horizontally-integrated. In redux, we have files for `events`, `actions`, `reducers`, etc. In `next.js`, we have logic in `/lib`, associated UX in `/components/`, and pages in `/app/`. This is the **opposite** of what we want in this codebase.
+Traditional web apps are horizontally-integrated. In redux, we have files for `events`, `actions`, `reducers`, etc. In typical web frameworks, we have logic in `/lib`, associated UX in `/components/`, and pages in `/app/`. This is the **opposite** of what we want in this codebase.
 
 The code is structured, as much as possible, in **atomic, independent, self-contained apps**. The split between e.g. business logic and UX is **within an app** (be that a block, a major page, or otherwise). `redux` is organized around related events, actions, and reducers. Etc.
 

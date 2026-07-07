@@ -41,7 +41,7 @@ function firstChapterId(sections: any[], isVisible: (id: string) => boolean): st
   return null;
 }
 
-function _Course(props: RuntimeProps) {
+function Course(props: RuntimeProps) {
   const { kids, fields, title } = props;
   const { t } = useBlockTranslation(props);
   const resolvedTitle = title || t('defaultCourseTitle');
@@ -181,4 +181,4 @@ function _Course(props: RuntimeProps) {
   );
 }
 
-export default _Course;
+export default Course;

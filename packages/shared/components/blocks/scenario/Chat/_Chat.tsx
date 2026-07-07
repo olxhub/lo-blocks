@@ -21,7 +21,7 @@ import type { ClipResolution } from './chatUtils';
  * Main Component
  * -------------------------------------------------------------- */
 
-export function _Chat(props: RuntimeProps) {
+export default function Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
 
   const parsed = (kids as unknown as PeggyKids<ParsedConversation>).parsed;

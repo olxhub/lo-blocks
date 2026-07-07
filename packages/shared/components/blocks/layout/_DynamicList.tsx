@@ -25,7 +25,7 @@ function DynamicListEntry({ props, template, index, id }) {
   return <div className="mb-2">{kids}</div>;
 }
 
-export default function _DynamicList(props: RuntimeProps) {
+export default function DynamicList(props: RuntimeProps) {
   assertKidArray(props.kids);
   const {
     fields,

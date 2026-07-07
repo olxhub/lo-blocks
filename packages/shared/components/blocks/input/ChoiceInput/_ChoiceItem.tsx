@@ -11,11 +11,13 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import * as state from '@/lib/state';
+import { value as valueFieldCommon } from '@/lib/state/commonFields';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
 
-export default function _ChoiceItem(props: RuntimeProps) {
+export default function ChoiceItem(props: RuntimeProps) {
   // Find parent input - could be ChoiceInput (radio) or CheckboxInput (checkbox)
   const { parentId, isCheckbox } = useMemo(() => {
     // First try CheckboxInput
@@ -37,17 +39,15 @@ export default function _ChoiceItem(props: RuntimeProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!parentId) {
-    return (
-      <DisplayError title="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
-    );
-  }
-
-  // parentId is already a StateKey from inferRelatedNodes
-  const parentStateKey = parentId;
+  // parentId is already a StateKey from inferRelatedNodes. When no parent is
+  // found, fall back to the block's own key + the global value field for hook
+  // stability — the value is unused since we render DisplayError below.
+  const parentStateKey = parentId ?? scopedStateKeyForBlock(props);
 
   // Get the parent input's value field dynamically
-  const valueField = state.componentFieldByStateKey(props, parentId, 'value');
+  const valueField = parentId
+    ? state.componentFieldByStateKey(props, parentId, 'value')
+    : valueFieldCommon;
   // For checkboxes, fallback to empty array; for radio, fallback to empty string
   const selected = state.useFieldSelector(
     props,
@@ -85,6 +85,12 @@ export default function _ChoiceItem(props: RuntimeProps) {
   const scopedParentId = parentStateKey;
 
   const { kids: renderedKids } = useKids(props);
+
+  if (!parentId) {
+    return (
+      <DisplayError title="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
+    );
+  }
 
   const labelClasses = [
     'lo-choice-item',

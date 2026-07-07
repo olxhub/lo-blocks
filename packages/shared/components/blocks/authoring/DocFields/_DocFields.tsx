@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/authoring/DocFields/_DocFields.tsx
+// packages/shared/components/blocks/authoring/DocFields/DocFields.tsx
 
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
@@ -7,7 +7,7 @@ import { useDocs } from '@/lib/docs/useDocs';
 import Spinner from '@/components/common/Spinner';
 import { FieldsSection } from '../BlockDoc/docPanels';
 
-export default function _DocFields(props: RuntimeProps) {
+export default function DocFields(props: RuntimeProps) {
   const name = typeof props.block === 'string' ? props.block : '';
   const { blocks, loading, error } = useDocs([name], ['fields']);
 

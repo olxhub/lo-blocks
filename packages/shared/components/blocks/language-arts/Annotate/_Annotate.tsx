@@ -340,7 +340,7 @@ function NoteCard({
 // Main Annotate component
 // ---------------------------------------------------------------------------
 
-export default function _Annotate(props: RuntimeProps) {
+export default function Annotate(props: RuntimeProps) {
   assertKidArray(props.kids);
   const { fields, id } = props;
 

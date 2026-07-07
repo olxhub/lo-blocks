@@ -1,4 +1,4 @@
-// _Trigger - fires related actions when a DSL expression becomes true.
+// packages/shared/components/blocks/action/Trigger/_Trigger.tsx
 //
 // Edge-triggered: fires on false→true transitions, not while true.
 // mode="once" (default): fires once, persists across remounts.
@@ -16,7 +16,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
-function _Trigger(props: RuntimeProps) {
+function Trigger(props: RuntimeProps) {
   const { watch, mode = 'once' } = props;
 
   // Add triggered actions to the OlxDom so executeNodeActions can find them.
@@ -78,4 +78,4 @@ function _Trigger(props: RuntimeProps) {
   return null;
 }
 
-export default _Trigger;
+export default Trigger;

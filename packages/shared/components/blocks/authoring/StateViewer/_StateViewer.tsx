@@ -9,7 +9,7 @@ import { scopedStateKeyForBlock, stateKeyForGlobalRef, parseAnyStateRef } from '
 import { useOlxJson } from '@/lib/blocks/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
-export default function _StateViewer(props: RuntimeProps) {
+export default function StateViewer(props: RuntimeProps) {
   const { target, scope, kids = '' } = props;
 
   // Target can come from attribute or children text (like Ref)

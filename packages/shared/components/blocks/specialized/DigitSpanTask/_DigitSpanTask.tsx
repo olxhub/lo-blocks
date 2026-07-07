@@ -8,7 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 
-export function _DigitSpanTask( props: RuntimeProps ) {
+export default function DigitSpanTask( props: RuntimeProps ) {
   const { id, kids = [], attributes = {}, fields } = props;
   const { t } = useBlockTranslation(props);
   const mode = attributes.mode ?? 'forward'; // 'forward' | 'backward' | 'ascending'

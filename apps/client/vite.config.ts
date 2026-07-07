@@ -27,13 +27,13 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env.NEXT_PUBLIC_BASE_PATH': JSON.stringify(''),
+    'process.env.LO_BASE_PATH': JSON.stringify(''),
     // Field strategy (fieldTypes/index.ts). null when unset so the module
-    // default (crdt) applies; NEXT_PUBLIC_LO_FIELD_STRATEGY=classic is the
+    // default (crdt) applies; LO_FIELD_STRATEGY=classic is the
     // escape hatch. Without this define the vite client silently saw
     // undefined→classic no matter the environment.
-    'process.env.NEXT_PUBLIC_LO_FIELD_STRATEGY':
-      JSON.stringify(process.env.NEXT_PUBLIC_LO_FIELD_STRATEGY ?? null),
+    'process.env.LO_FIELD_STRATEGY':
+      JSON.stringify(process.env.LO_FIELD_STRATEGY ?? null),
   },
   optimizeDeps: {
     // Deps reached only through lazy componentLoader chunks (i18next enters

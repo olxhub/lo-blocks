@@ -24,7 +24,7 @@ const HH = test({
   name: 'HH',
   description: 'Visual section divider — horizontal rule with optional heading',
   // Non-conventional: HH reuses Markdown's renderer rather than its own sibling file.
-  componentLoader: () => import('./Markdown/_Markdown').then(m => m._Markdown),
+  componentLoader: () => import('./Markdown/_Markdown').then(m => m.default),
   internal: true,
   requiresUniqueId: false,
 });

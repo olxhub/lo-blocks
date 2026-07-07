@@ -8,7 +8,7 @@ import { useKids, useKidsJson } from '@/lib/render';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
-export default function _Tabs(props: RuntimeProps) {
+export default function Tabs(props: RuntimeProps) {
   const { fields } = props;
   const { t } = useBlockTranslation(props);
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);

@@ -15,7 +15,7 @@ function TemplateContent({ props, node }) {
   return <>{kids}</>;
 }
 
-function _Navigator(props: RuntimeProps) {
+function Navigator(props: RuntimeProps) {
   const {
     fields,
     kids,
@@ -216,4 +216,4 @@ function _Navigator(props: RuntimeProps) {
   );
 }
 
-export default _Navigator;
+export default Navigator;

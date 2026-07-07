@@ -37,7 +37,7 @@ export default function StaticContentProvider({ children }: { children: React.Re
   const baselineProps = useBaselineProps();
 
   useEffect(() => {
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    const basePath = process.env.LO_BASE_PATH || '';
     globalThis.fetch(`${basePath}/static-content/all.json`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -5,11 +5,7 @@
  * master entry point: does it boot, serve the catalog SPA through the Vite
  * dev middleware, and answer its own API routes without 500s.
  *
- * This covers the post-Next architecture. The legacy Next.js smoke lives
- * in apps/web/integration/server-smoke.test.ts and runs via
- * `npm run test:next` (and test:ci), not the default gate — Next is being
- * removed, and its smoke pays a ~90s build each run.
- *
+
  * Spawned as a real subprocess (like the xml2json CLI tests): startup
  * ordering, config loading, and content sync are part of what breaks.
  */

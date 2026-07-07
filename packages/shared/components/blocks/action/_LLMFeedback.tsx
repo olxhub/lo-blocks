@@ -11,7 +11,7 @@ import { DisplayError } from '@/lib/util/debug';
 
 import Spinner from '@/components/common/Spinner';
 
-function _LLMFeedback(props: RuntimeProps) {
+function LLMFeedback(props: RuntimeProps) {
   const { id, fields, render } = props;
 
   const feedback = useFieldSelector(props, fields.value, { fallback: '' });
@@ -60,4 +60,4 @@ function _LLMFeedback(props: RuntimeProps) {
 }
 
 
-export default _LLMFeedback;
+export default LLMFeedback;

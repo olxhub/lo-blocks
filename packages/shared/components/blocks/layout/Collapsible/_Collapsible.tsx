@@ -8,7 +8,7 @@ import { useKids } from '@/lib/render';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
-export default function _Collapsible(props: RuntimeProps) {
+export default function Collapsible(props: RuntimeProps) {
   const { fields, title, label } = props;
   const { t } = useBlockTranslation(props);
   const [expanded, setExpanded] = useFieldState(props, fields.expanded, false);

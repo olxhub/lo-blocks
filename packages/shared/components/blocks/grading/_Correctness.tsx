@@ -9,7 +9,7 @@ import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useFieldSelector } from '@/lib/state';
 
-function _Correctness(props: RuntimeProps) {
+function Correctness(props: RuntimeProps) {
   const { fields, graderId } = props;
   // graderId is a StateKey injected by render (requiresGrader: true)
   const graderStateKey = graderId;
@@ -77,4 +77,4 @@ function _Correctness(props: RuntimeProps) {
   );
 }
 
-export default _Correctness;
+export default Correctness;

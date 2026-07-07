@@ -41,71 +41,37 @@ function targetsToExpressions(ids: StateRef[]): { ready: string; loading: string
   return { ready, loading };
 }
 
-function _IntakeGate(props: RuntimeProps) {
+function IntakeGate(props: RuntimeProps) {
   const { kids = [], targets, ready: readyProp, loading: loadingProp, id } = props;
   assertKidArray(kids);
 
-  // Validate: exactly 2 children required
-  if (kids.length !== 2) {
-    return (
-      <DisplayError
-        id={id}
-        title="IntakeGate"
-        message={`IntakeGate requires exactly 2 children (intake and content), but got ${kids.length}`}
-        technical={{ kids }}
-      />
-    );
-  }
+  // Validation conditions are captured (not returned) so the hooks below run
+  // unconditionally; the DisplayError guards are emitted after all hooks.
 
-  // Validate: must have targets or ready
   // targets is string[] (from z_stateRefList), so check length not truthiness
-  if ((!targets || (Array.isArray(targets) && targets.length === 0)) && !readyProp) {
-    return (
-      <DisplayError
-        id={id}
-        title="IntakeGate"
-        message='IntakeGate requires either a "targets" or "ready" attribute'
-        technical={{ example: '<IntakeGate ready="@output.value">' }}
-      />
-    );
-  }
+  const missingTarget = (!targets || (Array.isArray(targets) && targets.length === 0)) && !readyProp;
 
-  // Resolve expressions: explicit props take precedence over targets-generated ones
-  let readyExpr: string;
+  // Resolve expressions: explicit props take precedence over targets-generated ones.
+  // Only build from targets when present, so targetsToExpressions never runs on
+  // undefined in the guard case.
+  let readyExpr = '';
   let loadingExpr: string | undefined;
   if (readyProp) {
     readyExpr = readyProp;
     loadingExpr = loadingProp;
-  } else {
+  } else if (targets && (!Array.isArray(targets) || targets.length > 0)) {
     const generated = targetsToExpressions(targets as StateRef[]);
     readyExpr = generated.ready;
     loadingExpr = loadingProp ?? generated.loading;
   }
 
-  // Validate: targets must resolve to at least one ID
-  if (!readyExpr) {
-    return (
-      <DisplayError
-        id={id}
-        title="IntakeGate"
-        message='"targets" attribute is empty or contains only whitespace'
-        technical={{ targets }}
-      />
-    );
-  }
-
   // Validate: authored expressions must be valid syntax
+  let syntaxError: { name: string; expr: string; message: string } | null = null;
   for (const [name, expr] of [['ready', readyProp], ['loading', loadingProp]] as const) {
     if (expr) {
       try { parse(expr); } catch (e: any) {
-        return (
-          <DisplayError
-            id={id}
-            title="IntakeGate"
-            message={`Invalid "${name}" expression: ${e.message}`}
-            technical={{ expression: expr }}
-          />
-        );
+        syntaxError = { name, expr, message: e.message };
+        break;
       }
     }
   }
@@ -116,7 +82,7 @@ function _IntakeGate(props: RuntimeProps) {
   // locked with no visible error. See componentFieldByStateKey() for a pattern
   // that validates component existence and gives helpful error messages.
 
-  // Evaluate phase expressions
+  // Evaluate phase expressions (useDSLExpression tolerates empty/undefined)
   const isReady = useDSLExpression(props, readyExpr, false);
   const isLoading = useDSLExpression(props, loadingExpr, false);
 
@@ -131,6 +97,53 @@ function _IntakeGate(props: RuntimeProps) {
   // useKids must be called unconditionally
   const { kids: gateRendered } = useKids({ ...props, kids: gateKids });
   const { kids: contentRendered } = useKids({ ...props, kids: contentKids });
+
+  // Validate: exactly 2 children required
+  if (kids.length !== 2) {
+    return (
+      <DisplayError
+        id={id}
+        title="IntakeGate"
+        message={`IntakeGate requires exactly 2 children (intake and content), but got ${kids.length}`}
+        technical={{ kids }}
+      />
+    );
+  }
+
+  // Validate: must have targets or ready
+  if (missingTarget) {
+    return (
+      <DisplayError
+        id={id}
+        title="IntakeGate"
+        message='IntakeGate requires either a "targets" or "ready" attribute'
+        technical={{ example: '<IntakeGate ready="@output.value">' }}
+      />
+    );
+  }
+
+  // Validate: targets must resolve to at least one ID
+  if (!readyExpr) {
+    return (
+      <DisplayError
+        id={id}
+        title="IntakeGate"
+        message='"targets" attribute is empty or contains only whitespace'
+        technical={{ targets }}
+      />
+    );
+  }
+
+  if (syntaxError) {
+    return (
+      <DisplayError
+        id={id}
+        title="IntakeGate"
+        message={`Invalid "${syntaxError.name}" expression: ${syntaxError.message}`}
+        technical={{ expression: syntaxError.expr }}
+      />
+    );
+  }
 
   if (phase === 'gate') {
     return (
@@ -155,4 +168,4 @@ function _IntakeGate(props: RuntimeProps) {
   );
 }
 
-export default _IntakeGate;
+export default IntakeGate;

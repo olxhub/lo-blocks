@@ -6,6 +6,7 @@ import React, { useMemo } from 'react';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
 import { stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByStateKey } from '@/lib/state';
+import { value as valueFieldCommon } from '@/lib/state/commonFields';
 
 function normalizeTargets(rawTargets) {
   if (!rawTargets) return [];
@@ -66,7 +67,7 @@ function resolveTargetIds(props, targetIds) {
  * hook reads the same field across each target and renders the results in a
  * list for quick inspection.
  */
-export function _AggregatedInputs(props: RuntimeProps) {
+export function AggregatedInputs(props: RuntimeProps) {
   const {
     target,
     field = 'value',
@@ -86,22 +87,28 @@ export function _AggregatedInputs(props: RuntimeProps) {
     [props, targetIds]
   );
 
-  if (resolvedTargetIds.length === 0) {
+  const hasTargets = resolvedTargetIds.length > 0;
+
+  // Validate that each target exposes the requested field; use the first
+  // field reference for the hook invocation. When there are no targets, fall
+  // back to the global value field for hook stability — the aggregate is unused
+  // since we render the error guard below.
+  // resolvedTargetIds are already StateKeys (from inferRelatedNodes or stateKeyForGlobalRef)
+  const fieldInfo = hasTargets
+    ? componentFieldByStateKey(props, resolvedTargetIds[0], field)
+    : valueFieldCommon;
+  resolvedTargetIds.slice(1).forEach((id) => componentFieldByStateKey(props, id, field));
+
+  const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');
+  const values = useAggregate(props, fieldInfo, resolvedTargetIds, { fallback, aggregate: aggregateMode });
+
+  if (!hasTargets) {
     return (
       <pre className="text-error">
         [useAggregate requires at least one target id]
       </pre>
     );
   }
-
-  // Validate that each target exposes the requested field; use the first
-  // field reference for the hook invocation.
-  // resolvedTargetIds are already StateKeys (from inferRelatedNodes or stateKeyForGlobalRef)
-  const fieldInfo = componentFieldByStateKey(props, resolvedTargetIds[0], field);
-  resolvedTargetIds.slice(1).forEach((id) => componentFieldByStateKey(props, id, field));
-
-  const aggregateMode = aggregate ?? (asObject ? 'object' : 'list');
-  const values = useAggregate(props, fieldInfo, resolvedTargetIds, { fallback, aggregate: aggregateMode });
 
   const entries = Array.isArray(values)
     ? resolvedTargetIds.map((id, index) => [id, values[index]])
@@ -123,4 +130,4 @@ export function _AggregatedInputs(props: RuntimeProps) {
   );
 }
 
-export default _AggregatedInputs;
+export default AggregatedInputs;

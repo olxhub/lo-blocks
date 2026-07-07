@@ -5,7 +5,7 @@ import React from 'react';
 import { useReduxInput } from '@/lib/state';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
-function _NumberInput(props: RuntimeProps) {
+function NumberInput(props: RuntimeProps) {
   const { className, fields, children, min, max, step, placeholder } = props;
   const [value, inputProps] = useReduxInput(props, fields.value, '');
 
@@ -26,4 +26,4 @@ function _NumberInput(props: RuntimeProps) {
   );
 }
 
-export default _NumberInput;
+export default NumberInput;

@@ -9,7 +9,6 @@ export default defineConfig({
     globals: true,
     include: [
       'packages/shared/**/*.test.{js,ts,jsx,tsx}',
-      'apps/web/**/*.test.{js,ts,jsx,tsx}',
       'apps/server/**/*.test.{js,ts,jsx,tsx}'
     ],
   },

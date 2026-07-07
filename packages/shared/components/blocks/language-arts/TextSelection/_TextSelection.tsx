@@ -79,23 +79,15 @@ type SelectionGroup = {
 // Groups array with byToken lookup map
 type GroupsWithLookup = SelectionGroup[] & { byToken: Map<number, SelectionGroup> };
 
-export default function _TextSelection(props: RuntimeProps) {
+export default function TextSelection(props: RuntimeProps) {
   const { kids, mode = 'immediate', showRealtimeFeedback = false, fields } = props;
   const { t } = useBlockTranslation(props);
   assertNamedObject(kids, ['parsed', 'prompt', 'segments']);
 
-  // Validate mode
+  // Validate mode. Captured (not returned) so the hooks below run
+  // unconditionally; the DisplayError guard is emitted after all hooks.
   const validModes = ['immediate', 'graded', 'selfcheck'];
-  if (!validModes.includes(mode)) {
-    return (
-      <DisplayError
-        props={props}
-        title="TextSelection Mode Error"
-        message={`Mode must be one of: ${validModes.join(', ')}`}
-        technical={`Received mode: "${mode}"`}
-      />
-    );
-  }
+  const isValidMode = validModes.includes(mode);
 
   // Parse the content from kids
   const parsed: any = useMemo(() => {
@@ -404,6 +396,8 @@ export default function _TextSelection(props: RuntimeProps) {
 
   // Track browser selection changes
   useEffect(() => {
+    // Invalid mode renders DisplayError; don't register the global listener.
+    if (!isValidMode) return;
     const handleSelectionChange = () => {
       if (isSelecting.current) {
         // Update last browser selection while selecting
@@ -422,7 +416,7 @@ export default function _TextSelection(props: RuntimeProps) {
       document.removeEventListener('selectionchange', handleSelectionChange);
       refs.clear();
     };
-  }, []);
+  }, [isValidMode]);
 
   // Check answers for graded mode
   const checkAnswers = () => {
@@ -531,6 +525,18 @@ export default function _TextSelection(props: RuntimeProps) {
       cursor
     };
   };
+
+  // Mode validation error display
+  if (!isValidMode) {
+    return (
+      <DisplayError
+        props={props}
+        title="TextSelection Mode Error"
+        message={`Mode must be one of: ${validModes.join(', ')}`}
+        technical={`Received mode: "${mode}"`}
+      />
+    );
+  }
 
   // Error display
   if (parsed.error) {

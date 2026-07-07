@@ -18,7 +18,7 @@ function SequentialItem({ props, node }) {
   return <>{kids}</>;
 }
 
-export default function _Sequential(props: RuntimeProps) {
+export default function Sequential(props: RuntimeProps) {
   const { fields } = props;
   const { t } = useBlockTranslation(props);
   // Get current index from Redux state

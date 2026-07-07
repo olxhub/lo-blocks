@@ -60,7 +60,7 @@ export function createEditorTools({
   onOpenFile,
   getCurrentContent,
   getFileType,
-  getCurrentPath,  // eslint-disable-line @typescript-eslint/no-unused-vars
+  getCurrentPath,  // accepted but unused: kept in EditorToolsParams for future tools
   storage = defaultStorage,
 }: EditorToolsParams): LlmTool[] {
   return [

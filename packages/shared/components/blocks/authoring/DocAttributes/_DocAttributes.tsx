@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/authoring/DocAttributes/_DocAttributes.tsx
+// packages/shared/components/blocks/authoring/DocAttributes/DocAttributes.tsx
 
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
@@ -8,7 +8,7 @@ import { useDocs } from '@/lib/docs/useDocs';
 import Spinner from '@/components/common/Spinner';
 import { AttributesSection } from '../BlockDoc/docPanels';
 
-export default function _DocAttributes(props: RuntimeProps) {
+export default function DocAttributes(props: RuntimeProps) {
   const name = typeof props.block === 'string' ? props.block : '';
   const { blocks, loading, error } = useDocs([name], ['attributes']);
 

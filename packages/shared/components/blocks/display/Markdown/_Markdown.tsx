@@ -14,7 +14,7 @@ import {
   createContext,
 } from '@/lib/stateLanguage';
 
-export function _Markdown(props: RuntimeProps) {
+export default function Markdown(props: RuntimeProps) {
   let { text: content, loading } = useTextContent(props);
 
   /*** HACK HACK HACK ***/

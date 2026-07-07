@@ -74,14 +74,7 @@ function needsTranslation(
   contentLang: ContentVariant | undefined,
   translatable?: boolean,
 ): boolean {
-  // TODO: Remove try/catch once Next.js is fully eliminated. The Next.js
-  // process never calls initConfig(), so getConfigBool throws there.
-  try {
-    if (!getConfigBool('translanguaging')) return false;
-  } catch (err: any) {
-    if (err?.message?.includes('Config not initialized')) return false;
-    throw err;
-  }
+  if (!getConfigBool('translanguaging')) return false;
   if (translatable === false) return false;
   if (!contentLang || contentLang === '*') return false;
   return scoreBCP47Match(userLocale, contentLang) < 1;

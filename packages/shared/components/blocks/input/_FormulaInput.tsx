@@ -9,7 +9,7 @@ import { useKids } from '@/lib/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 import { latexPreview } from '@/lib/util/calc/index.js';
 
-export default function _FormulaInput(props: RuntimeProps) {
+export default function FormulaInput(props: RuntimeProps) {
   const { fields, ...rest } = props;
 
   const [value, inputProps] = useReduxInput(props, fields.value, '');
