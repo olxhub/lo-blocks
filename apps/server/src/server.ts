@@ -34,6 +34,8 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from './userState.js';
 import { SubscriptionRegistry } from './subscriptions.js';
+import { makeGroupedByLookup } from './groups.js';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
@@ -119,6 +121,10 @@ export async function startServer(
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
+  // Block id → grouped-by spec, TTL-cached from content (groups.ts).
+  const groupedBy = makeGroupedByLookup(
+    async () => (await syncContentFromStorage()).idMap as any,
+  );
 
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
@@ -295,7 +301,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, groupedBy }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

@@ -277,6 +277,57 @@ test('server authority: contributions stay private; everyone gets the derived st
   await Promise.all([runA, runB]);
 });
 
+test('grouped-by: users partition by their own picker field', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  // Content declares the chat block grouped by each user's topic choice.
+  const groupedBy = async (id: string) =>
+    id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined;
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, groupedBy };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, groupedBy };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // A picks Cats (0), B picks Dogs (1) — ordinary per-user events.
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 0, ts: 1, actor: 'a' })));
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 1, actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // B subscribed to ITS partition (as its content fetch would).
+  subs.subscribe(wsB as any, ['demos/chat::1']);
+
+  // A writes into the shared chat — lands in partition 0.
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: 'demos/chat', value: 'cats only' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // The shared materialization bucketed by partition key...
+  const shared = await registry.read('_shared' as SafeUserId);
+  expect(shared!.component['demos/chat::0'].value).toBe('cats only');
+  expect(shared!.component['demos/chat']).toBeUndefined();
+  // ...and B (Dogs partition) heard NOTHING.
+  expect(wsB.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+
+  // B writes; A (subscribed to partition 0 via its own write) is silent.
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: 'demos/chat', value: 'dogs only', actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect((await registry.read('_shared' as SafeUserId))!.component['demos/chat::1'].value).toBe('dogs only');
+  expect(wsA.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
 test('registry.read: live state when connected, stored state when not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

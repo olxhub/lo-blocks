@@ -15,6 +15,7 @@ import type { AuthUser } from '../auth.js';
 import type { UserStateRegistry } from '../userState.js';
 import { SHARED_STATE_ID } from '../userState.js';
 import type { SubscriptionRegistry } from '../subscriptions.js';
+import { parsePartitionSpec, groupFor, partitionedId } from '../groups.js';
 
 // How much of the idMap a single-block request returns:
 //   'single'      → just the requested block
@@ -88,22 +89,50 @@ export function createOlxJsonHandler(
       const user: AuthUser | undefined = (c.env as any).incoming?.__user;
       if (user) {
         const ids = Object.keys(responseIdMap);
+        const ownScopes = await stateRegistry.read(user.safe_user_id);
+        // Grouped blocks (grouped-by attribute): resolve THIS caller's
+        // partition from their own state, and use the partitioned key for
+        // subscription and for the shared bucket served below. Ungrouped
+        // ids use the plain id.
+        const keyOf = new Map<string, string>();
+        for (const id of ids) {
+          let key = id;
+          for (const variant of Object.values(responseIdMap[id] ?? {})) {
+            const spec = (variant as any)?.attributes?.['grouped-by'];
+            if (spec) {
+              const parsed = parsePartitionSpec(spec, id);
+              const group = parsed ? groupFor(ownScopes, parsed) : undefined;
+              if (group !== undefined) key = partitionedId(id, group);
+              break;
+            }
+          }
+          keyOf.set(id, key);
+        }
         // The content fetch IS the subscription (fields-design 2b):
         // fetching a page declares what the caller renders, so their live
-        // connections now hear shared/server events for these blocks.
+        // connections now hear shared/server events for these blocks —
+        // scoped to their partition for grouped blocks.
+        const keys = [...keyOf.values()];
         for (const ws of stateRegistry.socketsOf(user.safe_user_id)) {
-          subscriptions.subscribe(ws, ids);
+          subscriptions.subscribe(ws, keys);
         }
-        const own = fieldStateForIds(await stateRegistry.read(user.safe_user_id), ids);
-        // Shared buckets (authority: 'shared' fields) travel under their
-        // own key: the client adopts per-user buckets only when locally
-        // absent, but shared FIELDS are server-authoritative and merge at
-        // field granularity regardless of local bucket presence.
-        const shared = fieldStateForIds(await stateRegistry.read(SHARED_STATE_ID), ids);
-        if (own || shared) {
+        const own = fieldStateForIds(ownScopes, ids);
+        // Shared buckets (authority: 'shared'/'server' fields) travel
+        // under their own key: the client adopts per-user buckets only
+        // when locally absent, but shared FIELDS are server-authoritative
+        // and merge at field granularity regardless of local bucket
+        // presence. Grouped buckets serve the caller's partition, mapped
+        // back to the plain id (clients are partition-oblivious).
+        const sharedScopes = await stateRegistry.read(SHARED_STATE_ID);
+        const sharedComponent: Record<string, any> = {};
+        for (const id of ids) {
+          const bucket = sharedScopes?.component?.[keyOf.get(id)!];
+          if (bucket !== undefined) sharedComponent[id] = bucket;
+        }
+        if (own || Object.keys(sharedComponent).length > 0) {
           fieldState = {
             ...(own ? { component: own.component } : {}),
-            ...(shared ? { sharedComponent: shared.component } : {}),
+            ...(Object.keys(sharedComponent).length > 0 ? { sharedComponent } : {}),
           };
         }
       }

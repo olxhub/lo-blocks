@@ -33,6 +33,7 @@ import { assembleFieldState, compareToBlob } from './fieldStore.js';
 import type { UserStateRegistry, UserStateEntry } from './userState.js';
 import { SHARED_STATE_ID } from './userState.js';
 import type { SubscriptionRegistry } from './subscriptions.js';
+import { parsePartitionSpec, groupFor, partitionedId } from './groups.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -62,6 +63,9 @@ export interface PipelineContext {
   /** Which connections care about which blocks (content fetch =
    * subscription). Shared/server fan-out targets subscribers only. */
   subscriptions: SubscriptionRegistry;
+  /** Block id → grouped-by spec from content (groups.ts). Absent = no
+   * grouping (tests that don't care omit it). */
+  groupedBy?: (id: string) => Promise<string | undefined>;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
   /** The acquired SHARED entry (authority: 'shared' fields fold here;
@@ -303,27 +307,45 @@ async function* runReducers(
     // persistence stays free of them.
     const authority = event.authority;
     const entry = authority ? ctx.sharedState! : ctx.userState!;
-    entry.serverState.dispatch(event);
-    entry.persister.note(entry.serverState.state);
     if (authority) {
+      // Group resolution (groups.ts): if the block is grouped, the
+      // partition comes from the SENDER's own per-user state — never
+      // from the wire. Ungrouped blocks (or users who haven't picked
+      // yet) use the plain block id.
+      let key = event.id;
+      const spec = ctx.groupedBy ? await ctx.groupedBy(event.id) : undefined;
+      if (spec) {
+        const parsed = parsePartitionSpec(spec, event.id);
+        const group = parsed
+          ? groupFor(ctx.userState!.serverState.state as any, parsed)
+          : undefined;
+        if (group !== undefined) key = partitionedId(event.id, group);
+      }
+      // The SHARED materialization buckets by partition key; each client
+      // keeps its plain-id bucket (it only ever sees its own partition),
+      // so the folded clone is re-keyed but fanned events are not.
+      entry.serverState.dispatch(key === event.id ? event : { ...event, id: key });
+      entry.persister.note(entry.serverState.state);
       // Shared/server fan-out is SUBSCRIPTION-scoped: recipients are the
-      // connections whose content fetches served this block (plus
+      // connections whose content fetches served this partition (plus
       // writers, who self-subscribe here) — not every socket on the
       // server.
-      ctx.subscriptions.subscribe(ctx.ws, [event.id]);
-      const to = ctx.subscriptions.subscribers(event.id);
+      ctx.subscriptions.subscribe(ctx.ws, [key]);
+      const to = ctx.subscriptions.subscribers(key);
       if (authority === 'server') {
         // Server-reduced fields are privacy-structural: the raw
         // contribution event is never fanned; subscribers (origin
         // included — its optimistic local fold gets replaced) receive
         // the authoritative derived bucket — the reducer's output, not
         // its inputs.
-        const bucket = (entry.serverState.state as any).component?.[event.id];
+        const bucket = (entry.serverState.state as any).component?.[key];
         if (bucket !== undefined) entry.fanState(event.id, bucket, to);
       } else {
         entry.fanOut(event, ctx.ws, to);
       }
     } else {
+      entry.serverState.dispatch(event);
+      entry.persister.note(entry.serverState.state);
       // Per-user fan-out (2a): the user's other tabs/devices hear the
       // event and fold it with the same reducer. Origin excluded — it
       // already applied the event optimistically. Requires tab-sync off
