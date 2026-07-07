@@ -50,20 +50,43 @@ const emptyIndex = (): FieldIndex =>
   ({ system: [], component: [], componentSetting: [] });
 
 /**
- * Tracks which state buckets change as events reduce, and writes them to
- * the KVS, debounced. One instance per USER (shared by all of that user's
- * connections — see userState.ts).
+ * THE BIG PICTURE. The server keeps each user's state in memory as a
+ * plain object (their "materialization" — userState.ts), updated by
+ * folding every incoming event through the reducers. That in-memory
+ * state dies with the process, so something has to write it to the KVS.
+ * That something is this class. One instance per user.
  *
- * Usage:
- *   const persister = new FieldPersister(kvs, user.safe_user_id);
- *   persister.rebase(serverState.state);   // seed came from the field store
- *   persister.adopt(serverState.state);    // seed came from the blob
- *   persister.note(serverState.state);     // after each dispatch
- *   await persister.close();               // last connection closed
+ * HOW IT KNOWS WHAT TO WRITE. It never diffs values. The reducer updates
+ * state immutably — every event replaces exactly ONE bucket object (one
+ * block's state) and leaves every other bucket as the same JS object.
+ * So the persister just remembers the last state object it saw
+ * (`lastSeen`) and compares bucket references: a bucket that is not the
+ * same object as before is dirty. Dirty buckets are collected in a set.
+ *
+ * WHEN IT WRITES. Not per event — that would be one KVS write per
+ * keystroke. A debounce timer starts when the first bucket goes dirty;
+ * when writes go quiet for `debounceMs`, everything dirty flushes as one
+ * batch (one KVS write per dirty bucket, plus the index when a bucket is
+ * new). `close()` flushes whatever is pending when the user's last
+ * connection drops.
+ *
+ * THE LIFECYCLE, in call order:
+ *   const persister = new FieldPersister(kvs, userId);
+ *   // At connect, the materialization is seeded from storage. Tell the
+ *   // persister where that seed came from:
+ *   persister.startFromPersisted(state);   // seed came from THIS store —
+ *                                          // already on disk, write nothing
+ *   persister.startFromUnpersisted(state); // seed came from the legacy
+ *                                          // blob — migrate it: everything
+ *                                          // is dirty, write it all
+ *   // Then, after every event fold:
+ *   persister.stateChanged(state);         // reference-diff, mark dirty
+ *   // And when the user's last connection closes:
+ *   await persister.close();               // flush the stragglers
  */
 export class FieldPersister {
-  private prev: AppStateLike;
-  private latest: AppStateLike;
+  private lastFlushed: AppStateLike;
+  private lastSeen: AppStateLike;
   private dirty = new Set<string>(); // `${scope}${SEP}${bucket}`
   private timer: ReturnType<typeof setTimeout> | null = null;
   private index: FieldIndex | null = null; // lazy-loaded from KVS
@@ -75,37 +98,38 @@ export class FieldPersister {
     // 1000ms matches the client's save debounce (lo_event, measured 2026-07).
     private debounceMs = 1000,
   ) {
-    this.prev = {};
-    this.latest = {};
+    this.lastFlushed = {};
+    this.lastSeen = {};
   }
 
-  /** Adopt a state snapshot without marking anything dirty — used when the
-   * seed came FROM the field store, so it's already persisted. */
-  rebase(state: AppStateLike) {
-    this.prev = state;
-    this.latest = state;
+  /** Start from a snapshot that is ALREADY in this store (the connect-time
+   * seed came from here) — nothing to write. */
+  startFromPersisted(state: AppStateLike) {
+    this.lastFlushed = state;
+    this.lastSeen = state;
   }
 
-  /** Adopt a state snapshot AND queue all of it for persistence — used when
-   * the seed came from the blob, migrating it into the field store so the
+  /** Start from a snapshot that is NOT in this store yet (the seed came
+   * from the legacy blob): everything is dirty, migrate it all — so the
    * blob fallback runs once per user, not once per session. */
-  adopt(state: AppStateLike) {
-    this.rebase(state);
+  startFromUnpersisted(state: AppStateLike) {
+    this.startFromPersisted(state);
     for (const scope of PERSISTED_SCOPES) {
       const bucketMap = state[scope];
       if (bucketMap === undefined) continue;
       if (scope === 'system') { this.dirty.add(`${scope}${SEP}${SYSTEM_BUCKET}`); continue; }
       for (const bucket of Object.keys(bucketMap)) this.dirty.add(`${scope}${SEP}${bucket}`);
     }
-    this.arm();
+    this.scheduleFlushSoon();
   }
 
-  /** Record a post-dispatch state; identity-diff against the last one. */
-  note(state: AppStateLike) {
-    if (state === this.latest) return;
+  /** Call after every event fold: reference-diffs the new state against
+   * the last one seen and marks replaced buckets dirty. */
+  stateChanged(state: AppStateLike) {
+    if (state === this.lastSeen) return;
     for (const scope of PERSISTED_SCOPES) {
       const next = state[scope];
-      const before = this.prev[scope];
+      const before = this.lastFlushed[scope];
       if (next === before || next === undefined) continue;
       if (scope === 'system') {
         this.dirty.add(`${scope}${SEP}${SYSTEM_BUCKET}`);
@@ -117,12 +141,12 @@ export class FieldPersister {
         }
       }
     }
-    this.latest = state;
-    this.arm();
+    this.lastSeen = state;
+    this.scheduleFlushSoon();
   }
 
-  /** Start the debounce if there is dirt and no timer running. */
-  private arm() {
+  /** Start the flush debounce if there is dirt and no timer running. */
+  private scheduleFlushSoon() {
     if (this.dirty.size > 0 && !this.timer) {
       this.timer = setTimeout(() => { this.timer = null; this.scheduleFlush(); },
         this.debounceMs);
@@ -148,8 +172,8 @@ export class FieldPersister {
     if (this.dirty.size === 0) return;
     const batch = [...this.dirty];
     this.dirty.clear();
-    const state = this.latest;
-    this.prev = state;
+    const state = this.lastSeen;
+    this.lastFlushed = state;
 
     const index = await this.loadIndex();
     let indexChanged = false;

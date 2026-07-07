@@ -33,7 +33,7 @@ test('persists dirty buckets and maintains the index', async () => {
   const kvs = new CountingKVS();
   const p = new FieldPersister(kvs, USER, 0);
 
-  p.note(state1);
+  p.stateChanged(state1);
   await p.close();
 
   expect(await kvs.get(kvsKey.field(USER, 'component', 'block1'))).toBe(
@@ -49,7 +49,7 @@ test('persists dirty buckets and maintains the index', async () => {
 test('identity diff: only the changed bucket is rewritten', async () => {
   const kvs = new CountingKVS();
   const p = new FieldPersister(kvs, USER, 0);
-  p.note(state1);
+  p.stateChanged(state1);
   await p.close();
   kvs.sets = [];
 
@@ -59,7 +59,7 @@ test('identity diff: only the changed bucket is rewritten', async () => {
     ...state1,
     component: { ...state1.component, block1: { value: 'a2' } },
   };
-  p.note(state2);
+  p.stateChanged(state2);
   await p.close();
 
   expect(kvs.sets).toEqual([kvsKey.field(USER, 'component', 'block1')]);
@@ -70,8 +70,8 @@ test('identity diff: only the changed bucket is rewritten', async () => {
 test('rebase adopts a snapshot without writing it', async () => {
   const kvs = new CountingKVS();
   const p = new FieldPersister(kvs, USER, 0);
-  p.rebase(state1);
-  p.note(state1);
+  p.startFromPersisted(state1);
+  p.stateChanged(state1);
   await p.close();
   expect(kvs.sets).toEqual([]);
 });
@@ -79,7 +79,7 @@ test('rebase adopts a snapshot without writing it', async () => {
 test('assembleFieldState round-trips what the persister wrote', async () => {
   const kvs = new MemoryKVStore();
   const p = new FieldPersister(kvs, USER, 0);
-  p.note(state1);
+  p.stateChanged(state1);
   await p.close();
 
   const assembled = await assembleFieldState(kvs, USER);
@@ -93,7 +93,7 @@ test('bucket ids with /, #, :, spaces survive the KVS round trip', async () => {
   const kvs = new MemoryKVStore();
   const p = new FieldPersister(kvs, USER, 0);
   const uglyId = 'edu.memphis.psych/operant_mastery/#attempt 0:v2';
-  p.note({ system: {}, component: { [uglyId]: { value: 'survived' } }, componentSetting: {} });
+  p.stateChanged({ system: {}, component: { [uglyId]: { value: 'survived' } }, componentSetting: {} });
   await p.close();
 
   const assembled = await assembleFieldState(kvs, USER);

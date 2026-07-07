@@ -91,7 +91,7 @@ test('fields canonical: fetch_blob serves assembled field state', async () => {
   const kvs = new MemoryKVStore();
   // A previous session persisted per-field state.
   const p = new FieldPersister(kvs, USER.safe_user_id, 0);
-  p.note({ system: {}, component: { b: { value: 'from-fields' } }, componentSetting: {} });
+  p.stateChanged({ system: {}, component: { b: { value: 'from-fields' } }, componentSetting: {} });
   await p.close();
 
   const { sent } = await drive({ kvs, canonical: 'fields' }, [{ event: 'fetch_blob' }]);

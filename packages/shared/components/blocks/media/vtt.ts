@@ -17,6 +17,51 @@ function parseTime(raw: string): number | null {
   return (Number(h ?? 0) * 3600) + (Number(mm) * 60) + Number(ss) + Number(ms) / 1000;
 }
 
+// ─── Cue cache ───────────────────────────────────────────────────────────────
+// Transcripts are static assets: fetch + parse once per URL, share across
+// every Transcript instance and remount. Same hand-rolled lazy pattern as
+// componentLoader (module cache + a useState render trigger) — the
+// useState here is the loader's internal plumbing, not block state.
+
+import { useEffect, useState } from 'react';
+
+const cueCache = new Map<string, VttCue[] | Promise<VttCue[]>>();
+
+function loadVtt(src: string): VttCue[] | Promise<VttCue[]> {
+  const cached = cueCache.get(src);
+  if (cached) return cached;
+  const promise = globalThis.fetch(src)
+    .then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    .then((text) => {
+      const cues = parseVtt(text);
+      cueCache.set(src, cues);
+      return cues;
+    })
+    .catch((err) => {
+      console.warn('[vtt] failed to load', src, err);
+      cueCache.delete(src); // allow retry on next mount
+      return [] as VttCue[];
+    });
+  cueCache.set(src, promise);
+  return promise;
+}
+
+/** Cues for a VTT URL: [] while loading, cached forever after. */
+export function useVttCues(src: string | undefined): VttCue[] {
+  const cached = src ? cueCache.get(src) : undefined;
+  // useState-ok: loader-internal render trigger (componentLoader pattern)
+  const [cues, setCues] = useState<VttCue[]>(Array.isArray(cached) ? cached : []);
+  useEffect(() => {
+    if (!src) return;
+    const result = loadVtt(src);
+    if (Array.isArray(result)) { setCues(result); return; }
+    let stale = false;
+    result.then((loaded) => { if (!stale) setCues(loaded); });
+    return () => { stale = true; };
+  }, [src]);
+  return cues;
+}
+
 export function parseVtt(source: string): VttCue[] {
   const cues: VttCue[] = [];
   const blocks = source.replace(/\r/g, '').split('\n\n');

@@ -9,9 +9,11 @@
 // lands in arrival order, and CRDT reduce makes that order irrelevant
 // across devices.
 //
-// What this does NOT yet do: fan events back out to the user's other
-// connections. Connection B's Redux converges on its next fetch, not in
-// real time — that's the rebroadcast step (docs/fields-design.md step 2).
+// Entries also DELIVER: broadcastEvent relays an event to the entry's
+// other connections (tabs/devices converge live), and
+// broadcastStatePatch sends a folded result (server-reduced fields,
+// whose raw inputs are private). The pipeline decides who receives what
+// (pipeline.ts, subscription-scoped).
 //
 // Lifecycle: acquire() on connect, entry.release() on disconnect. The
 // last release flushes the persister and drops the entry; a connection
@@ -49,27 +51,28 @@ export interface UserStateEntry {
    * or null if nothing has ever been stored or dispatched. */
   liveState(): { application_state: Record<string, any> } | null;
   /**
-   * Fan an event out to OTHER connections (never the origin — it already
-   * applied the event optimistically). Rides lo_event's existing
-   * `browser_event` channel: the client re-dispatches the detail as a
-   * `lo_server_event` CustomEvent, which the store consumes (see
-   * store.ts). This is inbound-dataflow step 2a (docs/fields-design.md):
-   * tabs and devices of one user converge live.
+   * Send an event to OTHER connections so they fold it with the same
+   * reducer the sender used — this is how one user's tabs and devices
+   * (and, for shared fields, other users) converge live
+   * (docs/fields-design.md, inbound dataflow). The origin never gets its
+   * own event back: it already applied it optimistically. Rides
+   * lo_event's existing `browser_event` channel; the client re-dispatches
+   * the detail as a `lo_server_event` CustomEvent (see store.ts).
    *
-   * `to` overrides the recipient set (subscription-scoped fan-out for
+   * `to` overrides the recipient set (subscription-scoped delivery for
    * shared fields); default is the entry's own connections.
    */
-  fanOut(event: Record<string, any>, origin: WebSocket, to?: Iterable<WebSocket>): void;
+  broadcastEvent(event: Record<string, any>, origin: WebSocket, to?: Iterable<WebSocket>): void;
   /**
-   * Fan a derived STATE patch to ALL connections, origin included —
-   * aggregate fields (fields-design 2d): raw contribution events are
-   * private, so what everyone receives (and what replaces the origin's
-   * optimistic local fold) is the authoritative folded result. The
-   * detail is an adoptFieldState payload; the client merges it
+   * Send a derived STATE patch to connections, origin included —
+   * server-reduced fields (fields-design 2d): raw contribution events
+   * are private, so what everyone receives (and what replaces the
+   * origin's optimistic local fold) is the authoritative folded result.
+   * The detail is an adoptFieldState payload; the client merges it
    * field-level, server-wins. `to` overrides the recipient set
-   * (subscription-scoped fan-out); default is the entry's connections.
+   * (subscription-scoped delivery); default is the entry's connections.
    */
-  fanState(bucketKey: string, bucket: Record<string, any>, to?: Iterable<WebSocket>): void;
+  broadcastStatePatch(bucketKey: string, bucket: Record<string, any>, to?: Iterable<WebSocket>): void;
   release(): Promise<void>;
 }
 
@@ -120,7 +123,7 @@ export class UserStateRegistry {
         return hasContent ? { application_state: scopes } : null;
       },
 
-      fanOut(event, origin, to) {
+      broadcastEvent(event, origin, to) {
         const message = JSON.stringify({
           status: 'browser_event',
           event_type: 'lo_server_event',
@@ -134,7 +137,7 @@ export class UserStateRegistry {
         }
       },
 
-      fanState(bucketKey, bucket, to) {
+      broadcastStatePatch(bucketKey, bucket, to) {
         const message = JSON.stringify({
           status: 'browser_event',
           event_type: 'lo_server_state',

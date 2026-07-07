@@ -5,6 +5,16 @@
 // cue writes seekTarget (source: 'transcript'). Attaches to any player
 // by target="playerId", or shares its own bucket when composed inside
 // <Video>.
+//
+// i18n (designed, not built): transcripts are CONTENT, so language
+// variants ride the same machinery as everything else — the src
+// attribute varies per content variant (foo.en.vtt / foo.es.vtt beside
+// foo.en.olx / foo.es.olx), and translanguaging selects the variant by
+// the user's locale exactly as it does for block text. A per-user
+// language override (viewing the video in English with Spanish
+// subtitles) would be one more media field ('transcriptLang') resolving
+// which src to load — same getBestVariant scoring, block-local. Neither
+// requires changes here beyond reading the resolved src.
 
 import { z } from 'zod';
 import { core } from '@/lib/blocks';

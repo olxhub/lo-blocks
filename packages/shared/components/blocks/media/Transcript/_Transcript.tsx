@@ -2,10 +2,10 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { mediaFields, mediaStateKeyFor, mediaLocals } from '../mediaSync';
-import { parseVtt, type VttCue } from '../vtt';
+import { useVttCues } from '../vtt';
 
 export default function Transcript(props: RuntimeProps) {
   const { src, target } = props as any;
@@ -16,20 +16,11 @@ export default function Transcript(props: RuntimeProps) {
   // updates are local Redux only, never per-tick network).
   const [currentTime] = useFieldState(props, mediaFields.currentTime, 0, { stateKey });
 
-  // useState-ok: parsed VTT cues — a static-asset cache, not user state
-  const [cues, setCues] = useState<VttCue[]>([]);
+  // Cues come from the module-level VTT cache (vtt.ts) — a static asset,
+  // shared across instances and remounts. The active cue is DERIVED, not
+  // stored: replay recomputes it from currentTime for free.
+  const cues = useVttCues(src);
   const activeCueRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    if (!src) return;
-    let stale = false;
-    globalThis.fetch(src)
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((text) => { if (!stale) setCues(parseVtt(text)); })
-      .catch((err) => console.warn('[Transcript] failed to load', src, err));
-    return () => { stale = true; };
-  }, [src]);
-
   const activeCue = cues.findIndex((c) => currentTime >= c.start && currentTime < c.end);
 
   useEffect(() => {

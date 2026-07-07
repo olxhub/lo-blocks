@@ -31,6 +31,7 @@ import type { ServerState } from './serverState.js';
 import type { FieldPersister } from './fieldStore.js';
 import { assembleFieldState, compareToBlob } from './fieldStore.js';
 import type { UserStateRegistry, UserStateEntry } from './userState.js';
+import type { GroupingIndex } from './groups.js';
 import { SHARED_STATE_ID } from './userState.js';
 import type { SubscriptionRegistry } from './subscriptions.js';
 import { parsePartitionSpec, groupFor, partitionedId } from './groups.js';
@@ -65,7 +66,7 @@ export interface PipelineContext {
   subscriptions: SubscriptionRegistry;
   /** Grouping index from content (groups.ts). Absent = no grouping
    * (tests that don't care omit it). */
-  grouping?: import('./groups.js').GroupingIndex;
+  grouping?: GroupingIndex;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
   /** The acquired SHARED entry (authority: 'shared' fields fold here;
@@ -129,14 +130,14 @@ function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
 /** Log each event to the connection log and save to disk. */
 async function* decodeAndLog(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    appendEvent(ctx.conn, event);
+    appendEvent(context.conn, event);
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';
-    console.log(`[${ctx.conn.id}:${ctx.conn.log.eventCount}] ${eventType}${id}`);
+    console.log(`[${context.conn.id}:${context.conn.log.eventCount}] ${eventType}${id}`);
 
     yield event;
   }
@@ -152,7 +153,7 @@ async function* decodeAndLog(
 
 async function* decodeLockFields(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  _context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   // TODO: extract lock_fields events, attach to subsequent events.
   for await (const event of events) {
@@ -180,7 +181,7 @@ async function* decodeLockFields(
 
 async function* resolveAuth(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  _context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   // TODO: backlog + in-stream auth resolution
   for await (const event of events) {
@@ -206,9 +207,9 @@ async function* resolveAuth(
 
 async function* handleBlobs(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  const { ws, user, kvs } = ctx;
+  const { ws, user, kvs } = context;
   const key = kvsKey.blob(user.safe_user_id);
 
   for await (const event of events) {
@@ -216,7 +217,7 @@ async function* handleBlobs(
 
     if (eventType === 'fetch_blob') {
       try {
-        const entry = ctx.userState!;
+        const entry = context.userState!;
         // Seed the shared materialization from storage, once per user
         // entry (single-flight: a second tab fetching concurrently awaits
         // the same seed rather than re-seeding over live events). A
@@ -225,7 +226,7 @@ async function* handleBlobs(
         await entry.ensureSeeded(async () => {
           let scopes: Record<string, any> | null = null;
           let source = 'blob';
-          if (ctx.canonical === 'fields') {
+          if (context.canonical === 'fields') {
             scopes = await assembleFieldState(kvs, user.safe_user_id);
             if (scopes) source = 'fields';
             // No per-field state yet (user predates the field store):
@@ -238,10 +239,10 @@ async function* handleBlobs(
           }
           if (scopes) {
             entry.serverState.seed(scopes);
-            if (source === 'fields') entry.persister.rebase(entry.serverState.state);
-            else entry.persister.adopt(entry.serverState.state);
+            if (source === 'fields') entry.persister.startFromPersisted(entry.serverState.state);
+            else entry.persister.startFromUnpersisted(entry.serverState.state);
           }
-          console.log(`[${ctx.conn.id}] user state seeded from ${scopes ? source : 'nothing'}`);
+          console.log(`[${context.conn.id}] user state seeded from ${scopes ? source : 'nothing'}`);
         });
         // Serve the LIVE materialization — for a second connection this is
         // fresher than storage by up to a flush debounce, and it already
@@ -249,12 +250,12 @@ async function* handleBlobs(
         const data = entry.liveState();
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
-        appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
-        console.log(`[${ctx.conn.id}] fetch_blob: ${data ? 'served live state' : 'empty'}`);
+        appendEvent(context.conn, { event: 'fetch_blob_response', data });
+        console.log(`[${context.conn.id}] fetch_blob: ${data ? 'served live state' : 'empty'}`);
       } catch (err) {
-        console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
+        console.error(`[${context.conn.id}] fetch_blob error:`, err);
         safeSend(ws, { status: 'fetch_blob', data: null });
-        appendEvent(ctx.conn, { event: 'fetch_blob_response', data: null });
+        appendEvent(context.conn, { event: 'fetch_blob_response', data: null });
       }
       // fetch_blob is consumed here — not yielded downstream
       continue;
@@ -265,17 +266,17 @@ async function* handleBlobs(
         const blob = JSON.stringify(event.blob);
         await kvs.set(key, blob);
         safeSend(ws, { status: 'save_blob_ack', token: event.token });
-        console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+        console.log(`[${context.conn.id}] save_blob ${key}: ${blob.length} bytes`);
         // Parallel-run validation: how well does the server-materialized
         // state agree with what the client just saved? Divergence is
         // expected with multiple tabs/devices (the blob merges them, this
         // connection sees only its own events) — a signal, not an error.
-        if (ctx.serverState) {
-          console.log(`[${ctx.conn.id}] field-store agreement — ${
-            compareToBlob(ctx.serverState.state, event.blob?.application_state)}`);
+        if (context.serverState) {
+          console.log(`[${context.conn.id}] field-store agreement — ${
+            compareToBlob(context.serverState.state, event.blob?.application_state)}`);
         }
       } catch (err) {
-        console.error(`[${ctx.conn.id}] save_blob error:`, err);
+        console.error(`[${context.conn.id}] save_blob error:`, err);
         // Tell the client the write failed so it can surface it instead of
         // sitting at 'modified' indefinitely (indistinguishable from "saving").
         safeSend(ws, { status: 'save_blob_nack', token: event.token });
@@ -296,99 +297,127 @@ async function* handleBlobs(
 // client, producing a server-authoritative state. Enables conflict
 // resolution, validation, and eventually CRDT merging.
 
+/**
+ * Resolve which SHARED bucket an authority event belongs to. Grouped
+ * blocks (grouped-by attribute) partition by the SENDER's own per-user
+ * state — the partition never comes from the wire (groups.ts). Ungrouped
+ * blocks, and users who haven't picked yet, use the plain block id.
+ */
+async function resolvePartitionKey(context: PipelineContext, blockId: string): Promise<string> {
+  const spec = context.grouping ? await context.grouping.specOf(blockId) : undefined;
+  if (!spec) return blockId;
+  const parsed = parsePartitionSpec(spec, blockId);
+  const group = parsed
+    ? groupFor(context.userState!.serverState.state as any, parsed)
+    : undefined;
+  return group !== undefined ? partitionedId(blockId, group) : blockId;
+}
+
+/**
+ * Who should hear about an authority event: the connections subscribed
+ * to its partition (content fetch = subscription; writers self-subscribe
+ * so a client that writes without fetching still hears responses).
+ * Scoped state keys (`defId#anchor`) also reach BASE-id subscribers —
+ * content fetches subscribe by definition id, so a shared field inside a
+ * scoped/repeated block would otherwise only ever reach its writer
+ * (found by review 2026-07).
+ */
+function subscribersForPartition(
+  context: PipelineContext,
+  eventId: string,
+  partitionKey: string,
+): Set<WebSocket> {
+  context.subscriptions.subscribe(context.ws, [partitionKey]);
+  const recipients = new Set(context.subscriptions.subscribers(partitionKey));
+  const hash = eventId.indexOf('#');
+  if (hash > 0) {
+    const baseKey = partitionKey.replace(eventId, eventId.slice(0, hash));
+    for (const sock of context.subscriptions.subscribers(baseKey)) recipients.add(sock);
+  }
+  return recipients;
+}
+
+/**
+ * A shared or server-reduced event: fold it into the SHARED
+ * materialization (one truth for everyone — never the sender's per-user
+ * state), then deliver. Shared fields deliver the EVENT (recipients fold
+ * it themselves; the origin already did, optimistically). Server-reduced
+ * fields deliver the folded BUCKET instead — the raw contribution is
+ * private, so everyone (origin included) receives only the reducer's
+ * output.
+ */
+async function foldAndDeliverAuthorityEvent(context: PipelineContext, event: PipelineEvent) {
+  const shared = context.sharedState!;
+  const partitionKey = await resolvePartitionKey(context, event.id);
+  // The shared materialization buckets by partition key; each CLIENT
+  // keeps its plain-id bucket (it only ever sees its own partition), so
+  // the folded clone is re-keyed but delivered events are not.
+  shared.serverState.dispatch(
+    partitionKey === event.id ? event : { ...event, id: partitionKey });
+  shared.persister.stateChanged(shared.serverState.state);
+
+  const recipients = subscribersForPartition(context, event.id, partitionKey);
+  if (event.authority === 'server') {
+    const bucket = (shared.serverState.state as any).component?.[partitionKey];
+    if (bucket !== undefined) shared.broadcastStatePatch(event.id, bucket, recipients);
+  } else {
+    shared.broadcastEvent(event, context.ws, recipients);
+  }
+}
+
+/**
+ * A per-user event: fold it into the sender's materialization and relay
+ * it to their other tabs/devices (origin excluded — it already applied
+ * the event optimistically; requires tab-sync off, or siblings would
+ * double-apply RGA splices). If the write hit a PICKER field that
+ * partitions grouped blocks, the user's group just changed — move their
+ * subscriptions and show them the new partition.
+ */
+async function foldAndDeliverUserEvent(context: PipelineContext, event: PipelineEvent) {
+  const own = context.userState!;
+  own.serverState.dispatch(event);
+  own.persister.stateChanged(own.serverState.state);
+  own.broadcastEvent(event, context.ws);
+  if (context.grouping && event.id && event.field) {
+    const regrouped = await context.grouping.groupedBlocksFor(event.id, event.field);
+    for (const blockId of regrouped) await switchGroup(context, blockId);
+  }
+}
+
+/**
+ * A user's partition for `blockId` changed (they re-picked): move ALL
+ * their sockets' subscriptions to the new partition and push its bucket
+ * so their UI switches content now, not at next reload. Fields present
+ * in old partitions but absent in the new bucket are blanked — otherwise
+ * the old group's text would linger on screen.
+ */
+async function switchGroup(context: PipelineContext, blockId: string) {
+  const newKey = await resolvePartitionKey(context, blockId);
+  const sharedComponents = (context.sharedState!.serverState.state as any).component ?? {};
+  const blanks: Record<string, any> = {};
+  for (const key of Object.keys(sharedComponents)) {
+    if (key !== blockId && !key.startsWith(`${blockId}::`)) continue;
+    for (const field of Object.keys(sharedComponents[key] ?? {})) blanks[field] = '';
+  }
+  const patch = { ...blanks, ...(sharedComponents[newKey] ?? {}) };
+  const sockets = context.stateRegistry.socketsOf(context.user.safe_user_id);
+  for (const sock of sockets) context.subscriptions.resubscribe(sock, blockId, newKey);
+  if (Object.keys(patch).length > 0) {
+    context.sharedState!.broadcastStatePatch(blockId, patch, sockets);
+  }
+}
+
 async function* runReducers(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    // Authority routing (fields-design 2c/2d): shared and aggregate
-    // events fold into the SHARED materialization — one truth for
-    // everyone — never the sender's per-user state, so per-user
-    // persistence stays free of them.
-    const authority = event.authority;
-    const entry = authority ? ctx.sharedState! : ctx.userState!;
-    if (authority) {
-      // Group resolution (groups.ts): if the block is grouped, the
-      // partition comes from the SENDER's own per-user state — never
-      // from the wire. Ungrouped blocks (or users who haven't picked
-      // yet) use the plain block id.
-      let key = event.id;
-      const spec = ctx.grouping ? await ctx.grouping.specOf(event.id) : undefined;
-      if (spec) {
-        const parsed = parsePartitionSpec(spec, event.id);
-        const group = parsed
-          ? groupFor(ctx.userState!.serverState.state as any, parsed)
-          : undefined;
-        if (group !== undefined) key = partitionedId(event.id, group);
-      }
-      // The SHARED materialization buckets by partition key; each client
-      // keeps its plain-id bucket (it only ever sees its own partition),
-      // so the folded clone is re-keyed but fanned events are not.
-      entry.serverState.dispatch(key === event.id ? event : { ...event, id: key });
-      entry.persister.note(entry.serverState.state);
-      // Shared/server fan-out is SUBSCRIPTION-scoped: recipients are the
-      // connections whose content fetches served this partition (plus
-      // writers, who self-subscribe here) — not every socket on the
-      // server. Scoped state keys (`defId#anchor`) also reach BASE-id
-      // subscribers: content fetches subscribe by definition id, so a
-      // shared field inside a scoped/repeated block would otherwise only
-      // ever reach its writer (found by review 2026-07).
-      ctx.subscriptions.subscribe(ctx.ws, [key]);
-      const to = new Set(ctx.subscriptions.subscribers(key));
-      const hash = event.id.indexOf('#');
-      if (hash > 0) {
-        const baseKey = key.replace(event.id, event.id.slice(0, hash));
-        for (const sock of ctx.subscriptions.subscribers(baseKey)) to.add(sock);
-      }
-      if (authority === 'server') {
-        // Server-reduced fields are privacy-structural: the raw
-        // contribution event is never fanned; subscribers (origin
-        // included — its optimistic local fold gets replaced) receive
-        // the authoritative derived bucket — the reducer's output, not
-        // its inputs.
-        const bucket = (entry.serverState.state as any).component?.[key];
-        if (bucket !== undefined) entry.fanState(event.id, bucket, to);
-      } else {
-        entry.fanOut(event, ctx.ws, to);
-      }
+    // Authority routing (fields-design 2c/2d): shared/server events fold
+    // into the SHARED materialization; everything else into the sender's.
+    if (event.authority) {
+      await foldAndDeliverAuthorityEvent(context, event);
     } else {
-      entry.serverState.dispatch(event);
-      entry.persister.note(entry.serverState.state);
-      // Per-user fan-out (2a): the user's other tabs/devices hear the
-      // event and fold it with the same reducer. Origin excluded — it
-      // already applied the event optimistically. Requires tab-sync off
-      // (system.pmss), or sibling tabs would receive events twice and
-      // double-apply RGA splices.
-      entry.fanOut(event, ctx.ws);
-      // Group switch (groups.ts): if this write was a PICKER field for
-      // grouped blocks, the user's partition changed — move ALL their
-      // sockets to the new partition and push its bucket so their UI
-      // switches content now, not at next reload. Old-partition fields
-      // absent in the new bucket are blanked, or stale text lingers.
-      if (ctx.grouping && event.id && event.field) {
-        const affected = await ctx.grouping.groupedBlocksFor(event.id, event.field);
-        for (const blockId of affected) {
-          const specStr = await ctx.grouping.specOf(blockId);
-          const parsed = specStr ? parsePartitionSpec(specStr, blockId) : null;
-          const group = parsed
-            ? groupFor(ctx.userState!.serverState.state as any, parsed)
-            : undefined;
-          const newKey = group !== undefined ? partitionedId(blockId, group) : blockId;
-          const sharedState = ctx.sharedState!.serverState.state as any;
-          const oldBuckets = Object.keys(sharedState.component ?? {})
-            .filter((k) => k === blockId || k.startsWith(`${blockId}::`));
-          const blanks: Record<string, any> = {};
-          for (const old of oldBuckets) {
-            for (const f of Object.keys(sharedState.component[old] ?? {})) blanks[f] = '';
-          }
-          const patch = { ...blanks, ...(sharedState.component?.[newKey] ?? {}) };
-          const sockets = ctx.stateRegistry.socketsOf(ctx.user.safe_user_id);
-          for (const sock of sockets) ctx.subscriptions.resubscribe(sock, blockId, newKey);
-          if (Object.keys(patch).length > 0) {
-            ctx.sharedState!.fanState(blockId, patch, sockets);
-          }
-        }
-      }
+      await foldAndDeliverUserEvent(context, event);
     }
     yield event;
   }
@@ -402,38 +431,38 @@ async function* runReducers(
  * Run the full event pipeline for a WebSocket connection.
  * Returns when the connection closes.
  */
-export async function runPipeline(ctx: PipelineContext) {
+export async function runPipeline(context: PipelineContext) {
   // Acquire the per-USER state — all of this user's connections fold
   // into one materialization (userState.ts).
-  const userState = ctx.stateRegistry.acquire(ctx.user.safe_user_id, ctx.ws);
-  ctx.userState = userState;
-  ctx.serverState = userState.serverState;
-  ctx.persister = userState.persister;
+  const userState = context.stateRegistry.acquire(context.user.safe_user_id, context.ws);
+  context.userState = userState;
+  context.serverState = userState.serverState;
+  context.persister = userState.persister;
 
   // And the SHARED entry (authority: 'shared' fields — fields-design 2c).
   // Every connection attaches; seeded once from the field store (no blob
   // legacy: shared fields never lived in blobs).
-  const sharedState = ctx.stateRegistry.acquire(SHARED_STATE_ID, ctx.ws);
-  ctx.sharedState = sharedState;
+  const sharedState = context.stateRegistry.acquire(SHARED_STATE_ID, context.ws);
+  context.sharedState = sharedState;
 
   // The message listener must attach SYNCHRONOUSLY with the connection —
   // an await before messagesFrom() would drop events arriving in the gap
   // (same race the upgrade handler documents in server.ts). messagesFrom
   // queues, so awaiting the shared seed after this is safe.
-  const raw = messagesFrom(ctx.ws);
+  const raw = messagesFrom(context.ws);
   try {
     await sharedState.ensureSeeded(async () => {
-      const scopes = await assembleFieldState(ctx.kvs, SHARED_STATE_ID);
+      const scopes = await assembleFieldState(context.kvs, SHARED_STATE_ID);
       if (scopes) {
         sharedState.serverState.seed(scopes);
-        sharedState.persister.rebase(sharedState.serverState.state);
+        sharedState.persister.startFromPersisted(sharedState.serverState.state);
       }
     });
-    const logged = decodeAndLog(raw, ctx);
-    const withLockFields = decodeLockFields(logged, ctx);
-    const authenticated = resolveAuth(withLockFields, ctx);
-    const withBlobs = handleBlobs(authenticated, ctx);
-    const reduced = runReducers(withBlobs, ctx);
+    const logged = decodeAndLog(raw, context);
+    const withLockFields = decodeLockFields(logged, context);
+    const authenticated = resolveAuth(withLockFields, context);
+    const withBlobs = handleBlobs(authenticated, context);
+    const reduced = runReducers(withBlobs, context);
 
     // Drain the pipeline — pull events through all stages until the
     // connection closes.
@@ -445,7 +474,7 @@ export async function runPipeline(ctx: PipelineContext) {
     // say): without it, a crashed pipeline leaked its registry refs
     // (phantom live entries), its subscriptions, and its pending field
     // writes (found by review 2026-07).
-    ctx.subscriptions.unsubscribeAll(ctx.ws);
+    context.subscriptions.unsubscribeAll(context.ws);
     await userState.release();
     await sharedState.release();
   }
