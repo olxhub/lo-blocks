@@ -1,5 +1,5 @@
 // @vitest-environment node
-// apps/web/app/graph/parseIdMap.test.ts
+// packages/shared/lib/graph/parseIdMap.test.ts
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
