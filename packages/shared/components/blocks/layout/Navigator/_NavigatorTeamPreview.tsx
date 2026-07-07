@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import NextImage from 'next/image';
+
 import { resolveContentPath } from '@/lib/content/contentPaths';
 
 export default function _NavigatorTeamPreview(props: RuntimeProps) {
@@ -20,7 +20,7 @@ export default function _NavigatorTeamPreview(props: RuntimeProps) {
       <div className="flex items-center space-x-3">
         <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
           {photoUrl ? (
-            <NextImage
+            <img
               src={photoUrl}
               alt={name}
               width={40}

@@ -29,7 +29,7 @@
 import { NextRequest } from 'next/server';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards } from '@/lib/content/buildActivityCards';
-import { getBestVariantServer } from '@/lib/i18n/getBestVariant';
+import { getBestVariantFromHeader } from '@/lib/i18n/getBestVariant';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const { cards: activities, warnings } = buildActivityCards(
       idMap,
-      (variants) => getBestVariantServer(request, variants)
+      (variants) => getBestVariantFromHeader(request.headers.get('accept-language'), variants)
     );
 
     return Response.json({

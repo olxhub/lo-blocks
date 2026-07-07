@@ -1,7 +1,6 @@
 // TODO: Are we reinventing wheels? Should this call into @formatjs/intl-localematcher
 // And how will we handle more complex types? en:noaudio es:lowbandwidth, etc.
 
-import type { NextRequest } from 'next/server';
 import type { RuntimeProps, UserLocale, ContentVariant, RenderedVariant } from '@/lib/types';
 import {
   toContentVariant,
@@ -13,26 +12,8 @@ import {
 
 const WILDCARD_VARIANT = toContentVariant('*');
 
-/**
- * Select best variant on the server from Accept-Language header.
- *
- * Requires availableVariants to be non-empty. Throws if empty (indicates malformed content).
- *
- * @param request - NextRequest with headers
- * @param availableVariants - Available content variants, e.g. "en-US", "es", or "*"
- * @returns The best matching variant
- */
-export function getBestVariantServer(
-  request: NextRequest,
-  availableVariants: ContentVariant[]
-): RenderedVariant {
-  if (!availableVariants || availableVariants.length === 0) {
-    throw new Error('getBestVariantServer: availableVariants cannot be empty');
-  }
-
-  const preferredLocale = userLocaleFromAcceptLanguage(request.headers.get('accept-language'));
-  return pickBestVariant(preferredLocale, availableVariants);
-}
+// (getBestVariantServer, the NextRequest-taking variant, was deleted with
+// Next.js — getBestVariantFromHeader below is the server-side entry point.)
 
 /**
  * Select best variant on the client from Redux.
