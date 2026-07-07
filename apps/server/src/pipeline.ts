@@ -28,6 +28,7 @@ import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
+import { FieldPersister, compareToBlob } from './fieldStore.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -50,6 +51,7 @@ export interface PipelineContext {
   conn: ConnectionLog;
   kvs: KVStore;
   serverState?: ServerState;
+  persister?: FieldPersister;
 }
 
 // =============================================================================
@@ -183,6 +185,14 @@ async function* handleBlobs(
       try {
         const raw = await kvs.get(key);
         const data = raw ? JSON.parse(raw) : null;
+        // Seed the server-side materialization with the persisted scopes,
+        // exactly as the client will (deserializeOnLoad) — from here on the
+        // two fold the same events over the same base. The persister rebases
+        // so already-persisted state isn't re-marked dirty.
+        if (data?.application_state) {
+          ctx.serverState?.seed(data.application_state);
+          if (ctx.serverState) ctx.persister?.rebase(ctx.serverState.state);
+        }
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
         appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
@@ -202,6 +212,14 @@ async function* handleBlobs(
         await kvs.set(key, blob);
         safeSend(ws, { status: 'save_blob_ack', token: event.token });
         console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+        // Parallel-run validation: how well does the server-materialized
+        // state agree with what the client just saved? Divergence is
+        // expected with multiple tabs/devices (the blob merges them, this
+        // connection sees only its own events) — a signal, not an error.
+        if (ctx.serverState) {
+          console.log(`[${ctx.conn.id}] field-store agreement — ${
+            compareToBlob(ctx.serverState.state, event.blob?.application_state)}`);
+        }
       } catch (err) {
         console.error(`[${ctx.conn.id}] save_blob error:`, err);
         // Tell the client the write failed so it can surface it instead of
@@ -228,11 +246,9 @@ async function* runReducers(
   events: AsyncIterable<PipelineEvent>,
   ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  const serverState = new ServerState();
-  ctx.serverState = serverState;
-
   for await (const event of events) {
-    serverState.dispatch(event);
+    ctx.serverState!.dispatch(event);
+    ctx.persister?.note(ctx.serverState!.state);
     yield event;
   }
 }
@@ -246,6 +262,11 @@ async function* runReducers(
  * Returns when the connection closes.
  */
 export async function runPipeline(ctx: PipelineContext) {
+  // Created here (not in runReducers) so handleBlobs can seed the state
+  // from fetch_blob, which it consumes before the reducer stage sees it.
+  ctx.serverState = new ServerState();
+  ctx.persister = new FieldPersister(ctx.kvs, ctx.user.safe_user_id);
+
   const raw = messagesFrom(ctx.ws);
   const logged = decodeAndLog(raw, ctx);
   const withLockFields = decodeLockFields(logged, ctx);
@@ -258,4 +279,7 @@ export async function runPipeline(ctx: PipelineContext) {
   for await (const _ of reduced) {
     // Each stage does its own work; nothing to do at the end.
   }
+
+  // Connection closed: write any per-field state still in the debounce.
+  await ctx.persister.close();
 }

@@ -106,6 +106,12 @@ export const kvsKey = {
     return asKVSKey(`field:${safeUserId}:${scope}:${name}`);
   },
 
+  /** Index of a user's field buckets (the KVS has no key enumeration):
+   * `fieldindex:{safeUserId}` — JSON of scope → bucket-name list. */
+  fieldIndex(safeUserId: SafeUserId): KVSKey {
+    return asKVSKey(`fieldindex:${safeUserId}`);
+  },
+
   /** Rate limit RPM counter: `rate:{safeUserId}:rpm` */
   rateRpm(safeUserId: SafeUserId): KVSKey {
     return asKVSKey(`rate:${safeUserId}:rpm`);

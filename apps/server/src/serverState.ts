@@ -35,4 +35,15 @@ export class ServerState {
   dispatch(event: Record<string, any>) {
     this.state = updateResponseReducer(this.state, event);
   }
+
+  /**
+   * Adopt previously persisted scopes (from the user's stored blob or the
+   * per-field store). The client does the same on load (deserializeOnLoad
+   * in store.ts) — without this, a connection's materialized state covers
+   * only this session's events and can never match the client's.
+   */
+  seed(persistedScopes: Record<string, any> | null | undefined) {
+    if (!persistedScopes) return;
+    this.state = { ...this.state, ...persistedScopes };
+  }
 }
