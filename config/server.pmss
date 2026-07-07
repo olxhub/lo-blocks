@@ -21,6 +21,12 @@
     llm-token-budget: 100000;
     kvs-backend: file;
     kvs-prefix: dev-local;
+    /* Which store serves state on fetch_blob: blob (client-saved, canonical
+     * since the beginning) or fields (server-materialized per-field state,
+     * docs/fields-design.md). Both are WRITTEN regardless; this key picks
+     * the read side. Flip to fields after the parallel-run agreement log
+     * looks clean. */
+    state-canonical: blob;
 }
 
 /* Auto-select based on available credentials (last wins at equal specificity) */

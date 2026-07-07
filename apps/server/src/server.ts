@@ -34,6 +34,7 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { runPipeline } from './pipeline.js';
 import { handleOlxJson } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
+import { getConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
 import { handleActivities } from './routes/activities.js';
@@ -261,7 +262,18 @@ export async function startServer(
     }
   });
 
+  // Which store serves state on fetch_blob (config/server.pmss). Read per
+  // connection so a config change applies to new sessions without restart.
+  const readCanonical = (): 'blob' | 'fields' => {
+    const v = getConfig('state-canonical');
+    if (v !== 'blob' && v !== 'fields') {
+      throw new Error(`state-canonical must be blob or fields, got: ${v}`);
+    }
+    return v;
+  };
+
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    const canonical = readCanonical();
     const user: AuthUser = (req as any)[RESOLVED_USER];
     const conn = createConnectionLog(user);
     activeConnections.set(ws, conn);
@@ -272,7 +284,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

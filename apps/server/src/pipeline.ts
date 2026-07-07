@@ -28,7 +28,7 @@ import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
 import { ServerState } from './serverState.js';
-import { FieldPersister, compareToBlob } from './fieldStore.js';
+import { FieldPersister, assembleFieldState, compareToBlob } from './fieldStore.js';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -50,6 +50,8 @@ export interface PipelineContext {
   user: AuthUser;
   conn: ConnectionLog;
   kvs: KVStore;
+  /** Which store serves state on fetch_blob (config: state-canonical). */
+  canonical?: 'blob' | 'fields';
   serverState?: ServerState;
   persister?: FieldPersister;
 }
@@ -183,20 +185,39 @@ async function* handleBlobs(
 
     if (eventType === 'fetch_blob') {
       try {
-        const raw = await kvs.get(key);
-        const data = raw ? JSON.parse(raw) : null;
+        let data: any = null;
+        let source = 'blob';
+        if (ctx.canonical === 'fields') {
+          const assembled = await assembleFieldState(kvs, user.safe_user_id);
+          if (assembled) {
+            data = { application_state: assembled };
+            source = 'fields';
+          }
+          // No per-field state yet (user predates the field store): fall
+          // back to the blob below — its seed will populate the field keys,
+          // so the fallback runs once per user. Migration, not redundancy.
+        }
+        if (!data) {
+          const raw = await kvs.get(key);
+          data = raw ? JSON.parse(raw) : null;
+        }
         // Seed the server-side materialization with the persisted scopes,
         // exactly as the client will (deserializeOnLoad) — from here on the
-        // two fold the same events over the same base. The persister rebases
-        // so already-persisted state isn't re-marked dirty.
+        // two fold the same events over the same base. A blob-sourced seed
+        // is adopted into the field store (migrates it, one session per
+        // user); a fields-sourced seed only rebases — it's already there.
         if (data?.application_state) {
           ctx.serverState?.seed(data.application_state);
-          if (ctx.serverState) ctx.persister?.rebase(ctx.serverState.state);
+          if (ctx.serverState && ctx.persister) {
+            if (source === 'fields') ctx.persister.rebase(ctx.serverState.state);
+            else ctx.persister.adopt(ctx.serverState.state);
+          }
         }
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
         appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
-        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
+        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${
+          data ? `served from ${source}` : 'empty'}`);
       } catch (err) {
         console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
         safeSend(ws, { status: 'fetch_blob', data: null });
