@@ -31,7 +31,9 @@ export const EXT = {
   // Media
   image: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'] as const,
   video: ['mp4', 'avi', 'webm'] as const,
-  document: ['pdf'] as const,
+  // vtt: WebVTT subtitles ride alongside video as static assets (Video
+  // block transcripts, 2026-07).
+  document: ['pdf', 'vtt'] as const,
 } as const;
 
 // ============================================================
