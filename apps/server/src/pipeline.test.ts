@@ -283,13 +283,18 @@ test('grouped-by: users partition by their own picker field', async () => {
   const subs = new SubscriptionRegistry();
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
   // Content declares the chat block grouped by each user's topic choice.
-  const groupedBy = async (id: string) =>
-    id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined;
+  const grouping = {
+    specOf: async (id: string) =>
+      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+    groupedBlocksFor: async (pickerKey: string, field: string) =>
+      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
+        ? ['demos/chat'] : [],
+  };
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, groupedBy };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, groupedBy };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, grouping };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, grouping };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
@@ -302,8 +307,12 @@ test('grouped-by: users partition by their own picker field', async () => {
     id: 'demos/topic_picker', activeIndex: 1, ts: 1, actor: 'b' })));
   await new Promise(r => setTimeout(r, 20));
 
-  // B subscribed to ITS partition (as its content fetch would).
-  subs.subscribe(wsB as any, ['demos/chat::1']);
+  // Picking moved each user's sockets to their partition automatically
+  // (the group-switch path) — no manual subscription needed. This is the
+  // exact flow that failed in the first browser test: subscribe at
+  // fetch, pick later.
+  expect([...subs.subscribers('demos/chat::0')]).toContain(wsA);
+  expect([...subs.subscribers('demos/chat::1')]).toContain(wsB);
 
   // A writes into the shared chat — lands in partition 0.
   wsA.emit('message', Buffer.from(JSON.stringify({
@@ -323,6 +332,17 @@ test('grouped-by: users partition by their own picker field', async () => {
   await new Promise(r => setTimeout(r, 20));
   expect((await registry.read('_shared' as SafeUserId))!.component['demos/chat::1'].value).toBe('dogs only');
   expect(wsA.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+
+  // A switches to Dogs: subscriptions swap AND A receives the Dogs
+  // partition's bucket as a state patch (its UI updates without reload).
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 2, actor: 'a' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect([...subs.subscribers('demos/chat::1')]).toContain(wsA);
+  expect([...subs.subscribers('demos/chat::0')]).not.toContain(wsA);
+  const switchPatch = wsA.sent.find(m => m.event_type === 'lo_server_state');
+  expect(switchPatch.detail.sharedComponent['demos/chat'].value).toBe('dogs only');
 
   wsA.emit('close'); wsB.emit('close');
   await Promise.all([runA, runB]);

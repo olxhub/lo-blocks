@@ -63,9 +63,9 @@ export interface PipelineContext {
   /** Which connections care about which blocks (content fetch =
    * subscription). Shared/server fan-out targets subscribers only. */
   subscriptions: SubscriptionRegistry;
-  /** Block id → grouped-by spec from content (groups.ts). Absent = no
-   * grouping (tests that don't care omit it). */
-  groupedBy?: (id: string) => Promise<string | undefined>;
+  /** Grouping index from content (groups.ts). Absent = no grouping
+   * (tests that don't care omit it). */
+  grouping?: import('./groups.js').GroupingIndex;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
   /** The acquired SHARED entry (authority: 'shared' fields fold here;
@@ -313,7 +313,7 @@ async function* runReducers(
       // from the wire. Ungrouped blocks (or users who haven't picked
       // yet) use the plain block id.
       let key = event.id;
-      const spec = ctx.groupedBy ? await ctx.groupedBy(event.id) : undefined;
+      const spec = ctx.grouping ? await ctx.grouping.specOf(event.id) : undefined;
       if (spec) {
         const parsed = parsePartitionSpec(spec, event.id);
         const group = parsed
@@ -352,6 +352,35 @@ async function* runReducers(
       // (system.pmss), or sibling tabs would receive events twice and
       // double-apply RGA splices.
       entry.fanOut(event, ctx.ws);
+      // Group switch (groups.ts): if this write was a PICKER field for
+      // grouped blocks, the user's partition changed — move ALL their
+      // sockets to the new partition and push its bucket so their UI
+      // switches content now, not at next reload. Old-partition fields
+      // absent in the new bucket are blanked, or stale text lingers.
+      if (ctx.grouping && event.id && event.field) {
+        const affected = await ctx.grouping.groupedBlocksFor(event.id, event.field);
+        for (const blockId of affected) {
+          const specStr = await ctx.grouping.specOf(blockId);
+          const parsed = specStr ? parsePartitionSpec(specStr, blockId) : null;
+          const group = parsed
+            ? groupFor(ctx.userState!.serverState.state as any, parsed)
+            : undefined;
+          const newKey = group !== undefined ? partitionedId(blockId, group) : blockId;
+          const sharedState = ctx.sharedState!.serverState.state as any;
+          const oldBuckets = Object.keys(sharedState.component ?? {})
+            .filter((k) => k === blockId || k.startsWith(`${blockId}::`));
+          const blanks: Record<string, any> = {};
+          for (const old of oldBuckets) {
+            for (const f of Object.keys(sharedState.component[old] ?? {})) blanks[f] = '';
+          }
+          const patch = { ...blanks, ...(sharedState.component?.[newKey] ?? {}) };
+          const sockets = ctx.stateRegistry.socketsOf(ctx.user.safe_user_id);
+          for (const sock of sockets) ctx.subscriptions.resubscribe(sock, blockId, newKey);
+          if (Object.keys(patch).length > 0) {
+            ctx.sharedState!.fanState(blockId, patch, sockets);
+          }
+        }
+      }
     }
     yield event;
   }

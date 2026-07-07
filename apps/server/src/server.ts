@@ -34,7 +34,7 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from './userState.js';
 import { SubscriptionRegistry } from './subscriptions.js';
-import { makeGroupedByLookup } from './groups.js';
+import { makeGroupingIndex } from './groups.js';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
@@ -121,8 +121,8 @@ export async function startServer(
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
-  // Block id → grouped-by spec, TTL-cached from content (groups.ts).
-  const groupedBy = makeGroupedByLookup(
+  // Grouping index (specs + picker reverse map), TTL-cached from content.
+  const grouping = makeGroupingIndex(
     async () => (await syncContentFromStorage()).idMap as any,
   );
 
@@ -301,7 +301,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, groupedBy }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, grouping }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);
