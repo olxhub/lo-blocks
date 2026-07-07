@@ -125,6 +125,17 @@ export function flushEncoded() {
   for (const buf of [...buffers.values()]) buf.flushNow();
 }
 
+// Navigating away inside the debounce window must not lose the tail of a
+// gesture: flush on pagehide (unload path) and on tab-hide (long before
+// unload, and reliably deliverable — pagehide sends race the socket
+// closing, so visibilitychange is the one that usually saves the data).
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flushEncoded);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushEncoded();
+  });
+}
+
 /**
  * Expand aggregate events into per-sample synthetic events for replay.
  * Generic on the wire shape ({field, startTs, samples}) — no registry

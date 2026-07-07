@@ -182,10 +182,23 @@ export class UserStateRegistry {
   async read(user: SafeUserId): Promise<Record<string, any> | null> {
     const live = this.entries.get(user);
     if (live) {
+      // A live entry that hasn't seeded yet is EMPTY, not authoritative —
+      // a content fetch racing the connect-time load would read nothing
+      // (found by review 2026-07). Await an in-flight seed; if none has
+      // started, overlay the live buckets (this session's events) on the
+      // stored state.
+      if (live.seedPromise) await live.seedPromise;
       const state = live.serverState.state as Record<string, any>;
       const scopes: Record<string, any> = {};
       for (const scope of PERSISTED_SCOPES) scopes[scope] = state[scope] ?? {};
-      return scopes;
+      if (live.seedPromise) return scopes;
+      const stored = await assembleFieldState(this.kvs, user);
+      if (!stored) return scopes;
+      const merged: Record<string, any> = {};
+      for (const scope of PERSISTED_SCOPES) {
+        merged[scope] = { ...stored[scope], ...scopes[scope] };
+      }
+      return merged;
     }
     return assembleFieldState(this.kvs, user);
   }

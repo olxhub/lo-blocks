@@ -421,29 +421,32 @@ export async function runPipeline(ctx: PipelineContext) {
   // (same race the upgrade handler documents in server.ts). messagesFrom
   // queues, so awaiting the shared seed after this is safe.
   const raw = messagesFrom(ctx.ws);
-  await sharedState.ensureSeeded(async () => {
-    const scopes = await assembleFieldState(ctx.kvs, SHARED_STATE_ID);
-    if (scopes) {
-      sharedState.serverState.seed(scopes);
-      sharedState.persister.rebase(sharedState.serverState.state);
+  try {
+    await sharedState.ensureSeeded(async () => {
+      const scopes = await assembleFieldState(ctx.kvs, SHARED_STATE_ID);
+      if (scopes) {
+        sharedState.serverState.seed(scopes);
+        sharedState.persister.rebase(sharedState.serverState.state);
+      }
+    });
+    const logged = decodeAndLog(raw, ctx);
+    const withLockFields = decodeLockFields(logged, ctx);
+    const authenticated = resolveAuth(withLockFields, ctx);
+    const withBlobs = handleBlobs(authenticated, ctx);
+    const reduced = runReducers(withBlobs, ctx);
+
+    // Drain the pipeline — pull events through all stages until the
+    // connection closes.
+    for await (const _ of reduced) {
+      // Each stage does its own work; nothing to do at the end.
     }
-  });
-  const logged = decodeAndLog(raw, ctx);
-  const withLockFields = decodeLockFields(logged, ctx);
-  const authenticated = resolveAuth(withLockFields, ctx);
-  const withBlobs = handleBlobs(authenticated, ctx);
-  const reduced = runReducers(withBlobs, ctx);
-
-  // Drain the pipeline — pull events through all stages until the
-  // connection closes.
-  for await (const _ of reduced) {
-    // Each stage does its own work; nothing to do at the end.
+  } finally {
+    // Runs on normal close AND when a stage throws (a malformed event,
+    // say): without it, a crashed pipeline leaked its registry refs
+    // (phantom live entries), its subscriptions, and its pending field
+    // writes (found by review 2026-07).
+    ctx.subscriptions.unsubscribeAll(ctx.ws);
+    await userState.release();
+    await sharedState.release();
   }
-
-  // Connection closed: drop subscriptions and release both entries —
-  // the LAST connection's release flushes pending writes and drops each
-  // entry.
-  ctx.subscriptions.unsubscribeAll(ctx.ws);
-  await userState.release();
-  await sharedState.release();
 }
