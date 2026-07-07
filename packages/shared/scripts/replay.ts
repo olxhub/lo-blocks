@@ -22,6 +22,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
+import { BLOCK_REGISTRY } from '../components/blockRegistry';
+import { initReducers } from '../lib/state/store';
+import { fieldInfosFrom } from '../lib/state/fields';
+import { chatFields } from '../lib/state/chatFields';
+import { editorFields } from '../lib/state/editorFields';
+
+// Field events (LOG_APPEND, SPLICE_INPUT, SET_ADD, …) route through the
+// field-reducer registry, which pure replay does NOT populate — without
+// this init they'd fall to the legacy spread path and replay wrong (chat
+// transcripts, editor buffers, sets). Same registration as serverState.ts.
+initReducers(BLOCK_REGISTRY, [...fieldInfosFrom(chatFields), ...fieldInfosFrom(editorFields)]);
 
 import {
   replayToEvent,
