@@ -97,7 +97,7 @@ function MemberTab({
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function _CastEditor(props: RuntimeProps) {
+export default function CastEditor(props: RuntimeProps) {
   const { locals } = props;
 
   const members = useSet(props, fields.members);

@@ -17,7 +17,7 @@ import OpenPeepsSelector from '@/components/common/avatar/OpenPeepsSelector';
 import CopyableYaml from '@/components/common/avatar/CopyableYaml';
 import type { RuntimeProps } from '@/lib/types';
 
-function _AvatarEditor(props: RuntimeProps) {
+function AvatarEditor(props: RuntimeProps) {
   const { fields, locals } = props;
   const compact = props.compact;
 
@@ -128,4 +128,4 @@ function _AvatarEditor(props: RuntimeProps) {
   );
 }
 
-export default _AvatarEditor;
+export default AvatarEditor;

@@ -14,7 +14,7 @@ import { useKids } from '@/lib/render';
 import { updateCast } from '@/lib/avatar/cast';
 import type { RuntimeProps } from '@/lib/types';
 
-export default function _Cast(props: RuntimeProps) {
+export default function Cast(props: RuntimeProps) {
   const { kids } = useKids(updateCast(props));
   return <>{kids}</>;
 }

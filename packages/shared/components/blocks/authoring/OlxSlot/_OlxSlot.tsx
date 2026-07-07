@@ -52,7 +52,7 @@ function ChromeLabel({ title }: { title?: string }) {
   return <span style={CHROME_LABEL_STYLE}>{title}</span>;
 }
 
-function _OlxSlot(props: RuntimeProps) {
+function OlxSlot(props: RuntimeProps) {
   const { id, fields, target, title, debounce: debounceMs = 150, chrome = false } = props;
   const stateKey = scopedStateKeyForBlock(props);
 
@@ -217,4 +217,4 @@ function _OlxSlot(props: RuntimeProps) {
   );
 }
 
-export default _OlxSlot;
+export default OlxSlot;

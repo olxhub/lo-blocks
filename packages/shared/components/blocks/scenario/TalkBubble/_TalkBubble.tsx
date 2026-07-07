@@ -1,11 +1,11 @@
-// packages/shared/components/blocks/scenario/TalkBubble/_TalkBubble.jsx
+// packages/shared/components/blocks/scenario/TalkBubble/_TalkBubble.tsx
 'use client';
 
 import React from 'react';
 import { useKids } from '@/lib/render';
 import * as cast from '@/lib/avatar/cast';
 
-export default function _TalkBubble(props) {
+export default function TalkBubble(props) {
   const { side } = props;
   const { kids } = useKids(props);
   const { avatar, name } = cast.avatar(props, { size: 48 });

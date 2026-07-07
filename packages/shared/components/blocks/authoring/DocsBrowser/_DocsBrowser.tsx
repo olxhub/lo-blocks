@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/authoring/DocsBrowser/_DocsBrowser.tsx
+// packages/shared/components/blocks/authoring/DocsBrowser/DocsBrowser.tsx
 //
 // Category sidebar (search + collapsible categories + a Grammars section,
 // à la the legacy Next.js docs page) plus a main pane rendering the selected
@@ -190,7 +190,7 @@ function WelcomePane() {
   );
 }
 
-export default function _DocsBrowser(props: RuntimeProps) {
+export default function DocsBrowser(props: RuntimeProps) {
   const initialSelected = typeof props.selected === 'string' ? props.selected : '';
   const [selected, setSelected] = useFieldState(
     props, docsBrowserFields.docsSelected, initialSelected);

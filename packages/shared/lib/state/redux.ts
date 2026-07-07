@@ -699,15 +699,16 @@ export function useValue(
   );
 
   // Trigger async load if block is unknown in Redux.
-  // eslint-disable-next-line react-hooks/exhaustive-deps — props is intentionally
-  // omitted: ensureBlock deduplicates via module-level Set, so stale props cannot
-  // cause duplicate fetches. Including props would cause spurious effect re-runs.
+  // props is intentionally omitted from the deps: ensureBlock deduplicates via
+  // module-level Set, so stale props cannot cause duplicate fetches. Including
+  // props would cause spurious effect re-runs.
   const source = props.runtime.olxJsonSources?.[0] ?? 'content';
   const sideEffectFree = props.runtime.sideEffectFree;
   useEffect(() => {
     if (resolvedKey && result.loading) {
       ensureBlock(props, leafDefinitionKeyFromStateKey(resolvedKey), source);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedKey, result.status, source, sideEffectFree]);
 
   return result;

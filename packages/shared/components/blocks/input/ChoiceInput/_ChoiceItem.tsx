@@ -15,7 +15,7 @@ import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
 
-export default function _ChoiceItem(props: RuntimeProps) {
+export default function ChoiceItem(props: RuntimeProps) {
   // Find parent input - could be ChoiceInput (radio) or CheckboxInput (checkbox)
   const { parentId, isCheckbox } = useMemo(() => {
     // First try CheckboxInput

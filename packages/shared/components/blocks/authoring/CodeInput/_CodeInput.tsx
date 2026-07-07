@@ -11,7 +11,7 @@ import React, { useCallback } from 'react';
 import { useFieldState, useValue } from '@/lib/state';
 import CodeEditor from '@/components/common/CodeEditor';
 
-function _CodeInput(props: RuntimeProps) {
+function CodeInput(props: RuntimeProps) {
   const { id, fields, language = 'olx', height = '300px' } = props;
 
   const [, setValue] = useFieldState(props, fields.value, null);
@@ -32,4 +32,4 @@ function _CodeInput(props: RuntimeProps) {
   );
 }
 
-export default _CodeInput;
+export default CodeInput;

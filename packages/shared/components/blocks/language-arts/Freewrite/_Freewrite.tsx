@@ -1,4 +1,4 @@
-// _Freewrite - freewriting input with optional constraints.
+// packages/shared/components/blocks/language-arts/Freewrite/_Freewrite.tsx
 //
 // A textarea with composable writing constraints:
 //   invisible - text hidden while typing (revealed when parent goes inert)
@@ -32,7 +32,7 @@ function countWords(text: string): number {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-function _Freewrite(props: RuntimeProps) {
+function Freewrite(props: RuntimeProps) {
   const {
     fields,
     invisible, nodelete,
@@ -214,4 +214,4 @@ function _Freewrite(props: RuntimeProps) {
   );
 }
 
-export default _Freewrite;
+export default Freewrite;

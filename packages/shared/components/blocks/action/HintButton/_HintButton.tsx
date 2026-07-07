@@ -31,7 +31,7 @@ function findDemandHints(props) {
   return hintsNodes.length > 0 ? hintsNodes[0].olxJson?.id : null;
 }
 
-export default function _HintButton(props: RuntimeProps) {
+export default function HintButton(props: RuntimeProps) {
   const { id } = props;
 
   // Find target DemandHints component

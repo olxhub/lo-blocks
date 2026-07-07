@@ -225,7 +225,7 @@ function FooterWrapper({ children }) {
 
 // --- Main Component ---
 
-export default function _CapaProblem(props: RuntimeProps) {
+export default function CapaProblem(props: RuntimeProps) {
   const { id } = props;
 
   // Render content first to populate dynamic OLX DOM

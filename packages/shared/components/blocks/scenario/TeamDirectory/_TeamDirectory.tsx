@@ -1,4 +1,4 @@
-// packages/shared/components/blocks/scenario/TeamDirectory/_TeamDirectory.jsx
+// packages/shared/components/blocks/scenario/TeamDirectory/_TeamDirectory.tsx
 'use client';
 
 import { useFieldState } from '@/lib/state';
@@ -14,7 +14,7 @@ type TeamMember = CastMember & { id: string };
 /** Block translation function (from useBlockTranslation). */
 type TFn = (key: string, vars?: Record<string, unknown>) => string;
 
-function _TeamDirectory(props: RuntimeProps) {
+function TeamDirectory(props: RuntimeProps) {
   const { fields, group, title, kids } = props;
   const { t } = useBlockTranslation(props);
   const resolvedTitle = title || t('teamDirectoryTitle');
@@ -196,4 +196,4 @@ function MemberDetail({ member, onClose, t }: {
   );
 }
 
-export default _TeamDirectory;
+export default TeamDirectory;

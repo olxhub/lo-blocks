@@ -9,7 +9,7 @@ import React from 'react';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
 
-function _StatusText(props: RuntimeProps) {
+function StatusText(props: RuntimeProps) {
   const { field = 'message', graderId } = props;
 
   // Get the field from the target component (not from our own fields)
@@ -24,4 +24,4 @@ function _StatusText(props: RuntimeProps) {
   return <span>{text}</span>;
 }
 
-export default _StatusText;
+export default StatusText;

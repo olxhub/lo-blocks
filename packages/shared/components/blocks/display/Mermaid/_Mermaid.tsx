@@ -9,7 +9,7 @@ import { fields } from './Mermaid';
 
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
-export default function _Mermaid(props: RuntimeProps) {
+export default function Mermaid(props: RuntimeProps) {
   const { text, loading } = useTextContent(props);
   const containerRef = useRef<HTMLDivElement>(null);
   // mermaid.render() needs a unique DOM ID for its internal temp element.

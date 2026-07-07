@@ -1,4 +1,4 @@
-// _WordUsage — reads a target block's text, runs analysis, and renders
+// packages/shared/components/blocks/language-arts/WordUsage/_WordUsage.tsx
 // highlighted spans via TextHighlightRenderer.
 
 'use client';
@@ -10,7 +10,7 @@ import { DisplayError } from '@/lib/util/debug';
 import TextHighlightRenderer from '@/components/common/TextHighlightRenderer';
 import { analyzeHighlights, type AnalysisMode } from './analysis';
 
-export default function _WordUsage(props: RuntimeProps) {
+export default function WordUsage(props: RuntimeProps) {
   const { target, mode, summary, highlight, words } = props;
 
   // Hooks must be called unconditionally (React rules of hooks), so useValue

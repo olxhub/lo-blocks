@@ -109,6 +109,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/ws": "^8.18.1",
+    "@typescript-eslint/parser": "^8.63.0",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9",
     "eslint-plugin-react": "^7.37.0",

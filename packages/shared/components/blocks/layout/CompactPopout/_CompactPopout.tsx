@@ -35,7 +35,7 @@ import { useKids } from '@/lib/render';
 import type { RuntimeProps, StateRef } from '@/lib/types';
 import { fields } from './CompactPopout';
 
-export default function _CompactPopout(props: RuntimeProps) {
+export default function CompactPopout(props: RuntimeProps) {
   const { kids } = useKids(props);
 
   const mode = (props.mode ?? 'window') as 'fullscreen' | 'window' | 'target';

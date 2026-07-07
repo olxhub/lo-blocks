@@ -9,7 +9,7 @@ import type { RuntimeProps } from '@/lib/types';
 import { useFieldSelector } from '@/lib/state';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 
-function _TextSlot(props: RuntimeProps) {
+function TextSlot(props: RuntimeProps) {
   const { id, fields } = props;
 
   const text = useFieldSelector(props, fields.value, { fallback: '' });
@@ -29,4 +29,4 @@ function _TextSlot(props: RuntimeProps) {
   return <span className="text-slot">{text}</span>;
 }
 
-export default _TextSlot;
+export default TextSlot;

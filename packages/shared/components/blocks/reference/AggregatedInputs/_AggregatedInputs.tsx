@@ -66,7 +66,7 @@ function resolveTargetIds(props, targetIds) {
  * hook reads the same field across each target and renders the results in a
  * list for quick inspection.
  */
-export function _AggregatedInputs(props: RuntimeProps) {
+export function AggregatedInputs(props: RuntimeProps) {
   const {
     target,
     field = 'value',
@@ -123,4 +123,4 @@ export function _AggregatedInputs(props: RuntimeProps) {
   );
 }
 
-export default _AggregatedInputs;
+export default AggregatedInputs;

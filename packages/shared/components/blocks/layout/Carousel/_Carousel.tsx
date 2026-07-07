@@ -1,4 +1,4 @@
-// _Carousel.tsx - Browse and select from a list of referenced items.
+// packages/shared/components/blocks/layout/Carousel/_Carousel.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -26,7 +26,7 @@ function isOrderValid(order: string[] | null, itemIds: string[]): boolean {
   return order.every(id => expected.has(id));
 }
 
-export default function _Carousel(props: RuntimeProps) {
+export default function Carousel(props: RuntimeProps) {
   const { id, fields, kids, wrap = false, randomize = false } = props;
   const { t } = useBlockTranslation(props);
   assertNamedObject(kids, ['itemIds']);

@@ -27,7 +27,7 @@ function parseOptionsAttribute(optionsStr) {
   }).filter(opt => opt.text);
 }
 
-export default function _DropdownSelect(props: RuntimeProps) {
+export default function DropdownSelect(props: RuntimeProps) {
   const { placeholder, kids, options: optionsAttr, fields } = props;
   assertNamedObject(kids, ['parsed']);
 

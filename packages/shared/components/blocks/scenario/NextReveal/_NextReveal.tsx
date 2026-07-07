@@ -1,4 +1,4 @@
-// packages/shared/components/blocks/scenario/NextReveal/_NextReveal.jsx
+// packages/shared/components/blocks/scenario/NextReveal/_NextReveal.tsx
 'use client';
 
 import React, { useEffect, useRef } from 'react';
@@ -9,7 +9,7 @@ function RevealedItem({ props, node }) {
   return <>{kids}</>;
 }
 
-export default function _NextReveal(props) {
+export default function NextReveal(props) {
   const { fields } = props;
   const [currentStep, setCurrentStep] = useFieldState(
     props,

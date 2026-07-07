@@ -250,7 +250,7 @@ function ConnectionLines({
 /**
  * Main MatchingInput component
  */
-export default function _MatchingInput(props: RuntimeProps) {
+export default function MatchingInput(props: RuntimeProps) {
   const { kids = [], shuffle = true, idPrefix, idMap = {} } = props;
   assertKidArray(kids);
 

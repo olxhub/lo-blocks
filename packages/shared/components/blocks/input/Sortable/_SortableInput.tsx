@@ -26,7 +26,7 @@ function SortableItemContent({ props, kid, itemIdPrefix }) {
   return <>{kids}</>;
 }
 
-export default function _SortableInput(props: RuntimeProps) {
+export default function SortableInput(props: RuntimeProps) {
   const { kids = [], dragMode = 'whole', fields, shuffle = true } = props;
 
   // Validation

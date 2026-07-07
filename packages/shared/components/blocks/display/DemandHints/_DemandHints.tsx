@@ -7,7 +7,7 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { isKidArray } from '@/lib/util/kids';
 
-export default function _DemandHints(props: RuntimeProps) {
+export default function DemandHints(props: RuntimeProps) {
   const { fields, kids } = props;
 
   // Track how many hints have been revealed (0 = none shown)

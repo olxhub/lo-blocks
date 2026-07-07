@@ -79,7 +79,7 @@ type SelectionGroup = {
 // Groups array with byToken lookup map
 type GroupsWithLookup = SelectionGroup[] & { byToken: Map<number, SelectionGroup> };
 
-export default function _TextSelection(props: RuntimeProps) {
+export default function TextSelection(props: RuntimeProps) {
   const { kids, mode = 'immediate', showRealtimeFeedback = false, fields } = props;
   const { t } = useBlockTranslation(props);
   assertNamedObject(kids, ['parsed', 'prompt', 'segments']);

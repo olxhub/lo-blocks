@@ -13,7 +13,7 @@ import { DisplayError } from '@/lib/util/debug';
  * Button that toggles the showAnswer field on grader(s).
  * Supports explicit target attribute or parent grader inference.
  */
-function _ShowAnswerButton(props: RuntimeProps) {
+function ShowAnswerButton(props: RuntimeProps) {
   const { label = 'Show Answer', target } = props;
 
   // Resolve target grader StateKeys - explicit target or parent inference
@@ -72,4 +72,4 @@ function _ShowAnswerButton(props: RuntimeProps) {
   );
 }
 
-export default _ShowAnswerButton;
+export default ShowAnswerButton;

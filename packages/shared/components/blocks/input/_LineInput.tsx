@@ -9,7 +9,7 @@ import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 const allowedAttrs = ['min', 'max', 'placeholder', 'type', 'step'];
 
-export default function _LineInput( props: RuntimeProps ) {
+export default function LineInput( props: RuntimeProps ) {
   const { fields, updateValidator, ...rest } = props;
 
   const [value, inputProps] = useReduxInput(

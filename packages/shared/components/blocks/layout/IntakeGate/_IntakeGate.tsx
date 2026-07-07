@@ -41,7 +41,7 @@ function targetsToExpressions(ids: StateRef[]): { ready: string; loading: string
   return { ready, loading };
 }
 
-function _IntakeGate(props: RuntimeProps) {
+function IntakeGate(props: RuntimeProps) {
   const { kids = [], targets, ready: readyProp, loading: loadingProp, id } = props;
   assertKidArray(kids);
 
@@ -155,4 +155,4 @@ function _IntakeGate(props: RuntimeProps) {
   );
 }
 
-export default _IntakeGate;
+export default IntakeGate;

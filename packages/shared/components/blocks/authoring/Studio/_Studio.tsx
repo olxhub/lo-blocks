@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/authoring/Studio/_Studio.tsx
+// packages/shared/components/blocks/authoring/Studio/Studio.tsx
 //
 // The studio shell: header (source selector, file path, preview/save),
 // resizable tabbed sidebar, editor+preview main pane, footer. Rebuilt from
@@ -139,7 +139,7 @@ function SourceSelector({ props, sources, current, onChange }: {
 // Shell
 // ---------------------------------------------------------------------------
 
-export default function _Studio(props: RuntimeProps) {
+export default function Studio(props: RuntimeProps) {
   // --- Location: system-scoped URL fields ---------------------------------
   const [rawSource] = useFieldState(props, studioFields.source, '');
   const [rawFile] = useFieldState(props, studioFields.file, '');

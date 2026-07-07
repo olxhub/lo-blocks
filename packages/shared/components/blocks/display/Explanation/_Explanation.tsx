@@ -20,7 +20,7 @@ import { useKids } from '@/lib/render';
  * Note: requiresGrader=true in block definition means graderId is injected by render.
  * showWhen is validated by attributes schema at parse time.
  */
-function _Explanation(props: RuntimeProps) {
+function Explanation(props: RuntimeProps) {
   // graderId is a StateKey injected by render (requiresGrader: true)
   // showWhen validated by attributes schema
   const { showWhen = 'correct', title, graderId } = props;
@@ -53,4 +53,4 @@ function _Explanation(props: RuntimeProps) {
   );
 }
 
-export default _Explanation;
+export default Explanation;

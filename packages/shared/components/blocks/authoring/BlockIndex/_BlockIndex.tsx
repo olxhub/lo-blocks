@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/components/blocks/authoring/BlockIndex/_BlockIndex.tsx
+// packages/shared/components/blocks/authoring/BlockIndex/BlockIndex.tsx
 //
 // Renders the block listing: name (linked to its documentation page),
 // description, category chips. Data via useDocs (get_blocks MCP).
@@ -15,7 +15,7 @@ function csv(value: unknown): string[] {
   return value.split(',').map(s => s.trim()).filter(Boolean);
 }
 
-export default function _BlockIndex(props: RuntimeProps) {
+export default function BlockIndex(props: RuntimeProps) {
   // `match` OR-matches each entry against names and categories, so the two
   // attributes combine into one list.
   const filter = [...csv(props.categories), ...csv(props.blocks)];

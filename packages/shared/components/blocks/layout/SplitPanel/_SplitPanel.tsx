@@ -55,7 +55,7 @@ function MissingPane({ paneType }) {
   );
 }
 
-export default function _SplitPanel(props: RuntimeProps) {
+export default function SplitPanel(props: RuntimeProps) {
   const { kids, sizes = '50,50' } = props;
   assertNamedObject(kids, ['start', 'end', 'left', 'right']);
   const { dir } = useLocaleAttributes();

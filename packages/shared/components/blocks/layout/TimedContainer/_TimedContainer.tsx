@@ -1,4 +1,4 @@
-// _TimedContainer - container with time limit that disables interaction
+// packages/shared/components/blocks/layout/TimedContainer/_TimedContainer.tsx
 // when time expires.
 //
 // Timer logic uses wall-clock time (Date.now() - startTime) for accuracy.
@@ -131,7 +131,7 @@ function urgencyColor(fraction) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-function _TimedContainer(props: RuntimeProps) {
+function TimedContainer(props: RuntimeProps) {
   const {
     fields, duration,
     start = 'go', label = 'Start',
@@ -277,4 +277,4 @@ function _TimedContainer(props: RuntimeProps) {
   );
 }
 
-export default _TimedContainer;
+export default TimedContainer;

@@ -11,7 +11,7 @@ import React from 'react';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
 
-export default function _Hidden(props: RuntimeProps) {
+export default function Hidden(props: RuntimeProps) {
   // Render the children to ensure they're included in the OLX DOM
   // useKids must be called unconditionally
   const { kids: _kids } = useKids(props);

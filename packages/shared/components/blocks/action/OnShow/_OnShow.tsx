@@ -1,4 +1,4 @@
-// _OnShow - triggers child action blocks on first view (default) or every view.
+// packages/shared/components/blocks/action/OnShow/_OnShow.tsx
 
 'use client';
 import type { RuntimeProps } from '@/lib/types';
@@ -8,7 +8,7 @@ import { executeNodeActions } from '@/lib/blocks';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 
-function _OnShow(props: RuntimeProps) {
+function OnShow(props: RuntimeProps) {
   const { mode = 'once' } = props;
 
   // Side-effect: registers child nodes in OLX DOM for executeNodeActions
@@ -39,4 +39,4 @@ function _OnShow(props: RuntimeProps) {
   return null;
 }
 
-export default _OnShow;
+export default OnShow;

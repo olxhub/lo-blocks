@@ -4,6 +4,9 @@
 // react plugin carries the JSX rules we kept from the old config.
 import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+// Espree can't parse TypeScript syntax; without this parser every .ts/.tsx
+// file dies with "Parsing error" before any rule runs.
+import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
@@ -14,6 +17,7 @@ export default [
       'react-hooks': reactHooks,
     },
     languageOptions: {
+      parser: tsParser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     settings: { react: { version: 'detect' } },
