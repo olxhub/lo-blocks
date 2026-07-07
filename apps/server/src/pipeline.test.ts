@@ -220,6 +220,42 @@ test('shared authority: two DIFFERENT users fold into one value', async () => {
   expect(JSON.parse(stored!).value).toBe('ours');
 });
 
+test('server authority: contributions stay private; everyone gets the derived state', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // A "votes": a raw contribution event with authority: 'server'.
+  // (No registered fold for this event in the test registry, so the
+  // legacy-spread path materializes { contribution } into the bucket —
+  // enough to verify routing and the state-not-event fan.)
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_TESTCOUNTS', scope: 'component', authority: 'server',
+    id: 'poll-block', contribution: 'Alpha',
+  })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // B receives a STATE patch (lo_server_state), never the raw event.
+  const stateMsg = wsB.sent.find(m => m.event_type === 'lo_server_state');
+  expect(stateMsg.detail.sharedComponent['poll-block'].contribution).toBe('Alpha');
+  expect(wsB.sent.find(m => m.event_type === 'lo_server_event')).toBeUndefined();
+  // The ORIGIN gets the authoritative state too (replaces optimistic fold).
+  expect(wsA.sent.find(m => m.event_type === 'lo_server_state')).toBeTruthy();
+  // Nothing landed in A's per-user state.
+  const own = await registry.read(USER.safe_user_id);
+  expect(own?.component?.['poll-block']).toBeUndefined();
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
 test('registry.read: live state when connected, stored state when not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

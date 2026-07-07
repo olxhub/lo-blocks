@@ -81,8 +81,11 @@ export function fieldInfosFrom(f: Fields): FieldInfo[] {
  * Strings become stateFields with default events. Objects with a `name`
  * property get missing defaults filled in. Arrays are flattened recursively.
  */
+// Object form: a name plus any FieldInfo options — the runtime passes
+// them through wholesale (see normalize), so the type must too, or a new
+// axis type-errors here while working everywhere else.
 type FieldDecl = string | FieldInfo
-  | { name: string; event?: string; events?: string[]; scope?: Scope; schema?: FieldInfo['schema']; read?: FieldInfo['read']; equality?: FieldInfo['equality']; batching?: FieldInfo['batching']; url?: boolean; urlDefault?: boolean; urlPush?: boolean }
+  | ({ name: string; event?: string } & Partial<Omit<FieldInfo, 'type' | 'name' | 'events'>> & { events?: string[] })
   | FieldDecl[];
 
 /** Recursively normalize field declarations into a flat list of FieldInfos. */

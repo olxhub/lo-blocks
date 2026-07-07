@@ -293,18 +293,28 @@ async function* runReducers(
   ctx: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    // Authority routing (fields-design 2c): shared-field events fold into
-    // the SHARED materialization — one truth for everyone — and fan to
-    // every attached connection. They never touch the sender's per-user
-    // state, so per-user persistence stays free of shared fields.
-    const entry = event.authority === 'shared' ? ctx.sharedState! : ctx.userState!;
+    // Authority routing (fields-design 2c/2d): shared and aggregate
+    // events fold into the SHARED materialization — one truth for
+    // everyone — never the sender's per-user state, so per-user
+    // persistence stays free of them.
+    const authority = event.authority;
+    const entry = authority ? ctx.sharedState! : ctx.userState!;
     entry.serverState.dispatch(event);
     entry.persister.note(entry.serverState.state);
-    // Fan-out: other connections hear this event and fold it with the
-    // same reducer. Origin excluded — it already applied the event
-    // optimistically. Requires tab-sync off (system.pmss), or sibling
-    // tabs would receive events twice and double-apply RGA splices.
-    entry.fanOut(event, ctx.ws);
+    if (authority === 'server') {
+      // Server-reduced fields are privacy-structural: the raw contribution
+      // event is never fanned; everyone (origin included — its optimistic
+      // local fold gets replaced) receives the authoritative derived
+      // bucket — the reducer's output, not its inputs.
+      const bucket = (entry.serverState.state as any).component?.[event.id];
+      if (bucket !== undefined) entry.fanState(event.id, bucket);
+    } else {
+      // Fan-out: other connections hear this event and fold it with the
+      // same reducer. Origin excluded — it already applied the event
+      // optimistically. Requires tab-sync off (system.pmss), or sibling
+      // tabs would receive events twice and double-apply RGA splices.
+      entry.fanOut(event, ctx.ws);
+    }
     yield event;
   }
 }

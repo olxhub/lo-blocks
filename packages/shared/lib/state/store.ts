@@ -625,6 +625,12 @@ function configureStore({
         __fromServer: true,
       });
     });
+    // Derived STATE patches (aggregate fields, fields-design 2d): the
+    // server sends the folded result, not the raw contributions — merge
+    // it field-level, server-wins, same as content-fetch shared state.
+    consumeCustomEvent('lo_server_state', (fieldState: any) => {
+      adoptFieldState(fieldState);
+    });
   }
 
   return reduxStoreInstance;

@@ -364,15 +364,26 @@ export interface FieldInfo {
    *    'shared'   → one value for everyone viewing the block (group
    *                 scoping later): events are stamped `authority: 'shared'`
    *                 on the wire, the server folds them into a SHARED
-   *                 materialization instead of the sender's, and fans them
-   *                 to every connection. Group editing, chat, polls.
+   *                 materialization instead of the sender's, and fans the
+   *                 EVENTS to every connection. Group editing, chat.
+   *    'server'   → a server-side reducer + getter: many users'
+   *                 contributions fold into one derived value (word cloud,
+   *                 poll counts, percentiles). The fold is the field's
+   *                 `reduce` — blueprints are shared code, so the server
+   *                 has it. Privacy is structural: raw contribution events
+   *                 are NEVER fanned out; clients see only the reducer's
+   *                 OUTPUT (a state patch, to everyone — origin included,
+   *                 its optimistic local fold replaced by the
+   *                 authoritative result). Not to be confused with event
+   *                 AGGREGATION (the encode axis), which batches one
+   *                 user's high-frequency events, e.g. video scrubbing.
    *
-   *  Future values ('aggregate', hybrid placements) land here as the
-   *  design builds out. Example:
+   *  Hybrid placements land here as the design builds out. Examples:
    *
-   *    stateField('votes', { authority: 'shared' })
+   *    stateField('notes', { authority: 'shared' })
+   *    stateField('counts', { authority: 'server', write: …, reduce: fold })
    */
-  authority?: 'shared';
+  authority?: 'shared' | 'server';
 
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;

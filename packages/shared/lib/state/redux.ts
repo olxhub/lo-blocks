@@ -279,11 +279,11 @@ export function dispatchFieldEvent(
     scope,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-    // Authority stamp (fields-design): shared-field events are
+    // Authority stamp (fields-design): shared/aggregate events are
     // self-describing on the wire — the server routes them into the shared
     // materialization instead of the sender's, and replay can tell whose
     // truth an event was.
-    ...(field.authority === 'shared' ? { authority: 'shared' } : {}),
+    ...(field.authority ? { authority: field.authority } : {}),
     ...payload,
   });
 }

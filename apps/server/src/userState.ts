@@ -57,6 +57,15 @@ export interface UserStateEntry {
    * (docs/fields-design.md): tabs and devices of one user converge live.
    */
   fanOut(event: Record<string, any>, origin: WebSocket): void;
+  /**
+   * Fan a derived STATE patch to ALL connections, origin included —
+   * aggregate fields (fields-design 2d): raw contribution events are
+   * private, so what everyone receives (and what replaces the origin's
+   * optimistic local fold) is the authoritative folded result. The
+   * detail is an adoptFieldState payload; the client merges it
+   * field-level, server-wins.
+   */
+  fanState(bucketKey: string, bucket: Record<string, any>): void;
   release(): Promise<void>;
 }
 
@@ -118,6 +127,19 @@ export class UserStateRegistry {
                 detail: event,
               }));
             }
+          } catch { /* receiver gone — its release will drop it */ }
+        }
+      },
+
+      fanState(bucketKey, bucket) {
+        const message = JSON.stringify({
+          status: 'browser_event',
+          event_type: 'lo_server_state',
+          detail: { sharedComponent: { [bucketKey]: bucket } },
+        });
+        for (const sock of e.sockets) {
+          try {
+            if (sock.readyState === sock.OPEN) sock.send(message);
           } catch { /* receiver gone — its release will drop it */ }
         }
       },
