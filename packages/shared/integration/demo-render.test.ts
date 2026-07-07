@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// apps/web/integration/demo-render.test.ts
+// packages/shared/integration/demo-render.test.ts
 //
 // Coverage guardrail + error-pipeline canary for the demo-render sweep.
 //

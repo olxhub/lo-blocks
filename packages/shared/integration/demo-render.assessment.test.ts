@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// apps/web/integration/demo-render.assessment.test.ts
+// packages/shared/integration/demo-render.assessment.test.ts
 //
 // One shard of the demo-render sweep — see demoRenderHarness.ts for the
 // machinery and DEMO_RENDER_SHARDS for the category assignment;

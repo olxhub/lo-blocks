@@ -35,7 +35,6 @@
     "lint": "./sandbox.sh next lint apps/web",
     "test": "npm run typecheck && ./sandbox.sh vitest run --exclude=apps/web/integration/server-smoke.test.ts",
     "test:ci": "npm run typecheck && ./sandbox.sh vitest run",
-    "test:next": "./sandbox.sh vitest run apps/web/integration/server-smoke.test.ts",
     "test:unit": "./sandbox.sh vitest run --exclude='**/integration/**'",
     "test:ui": "./sandbox.sh vitest --ui",
     "smoke": "playwright test --config apps/web/playwright.smoke.config.ts",

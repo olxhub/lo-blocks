@@ -1,4 +1,4 @@
-// apps/web/integration/demoRenderHarness.ts
+// packages/shared/integration/demoRenderHarness.ts
 //
 // Shared harness for the demo-render sweep: parse and mount every .olx
 // example under a set of block categories, collecting errors.
