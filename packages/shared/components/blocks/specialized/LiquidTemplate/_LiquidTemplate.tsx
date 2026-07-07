@@ -3,7 +3,7 @@ import React from 'react';
 import { useKids } from '@/lib/render';
 import type { RuntimeProps } from '@/lib/types';
 
-export function _LiquidTemplate(props: RuntimeProps) {
+export default function LiquidTemplate(props: RuntimeProps) {
   const { kids } = useKids(props);
   return (
     <div className="liquid-template-container">

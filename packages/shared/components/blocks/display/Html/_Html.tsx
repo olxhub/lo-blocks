@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { isKidArray } from '@/lib/util/kids';
 
-export function _Html({ kids }: RuntimeProps) {
+export default function Html({ kids }: RuntimeProps) {
   const sanitized = useMemo(() => {
     let content = kids;
     if (isKidArray(kids) && kids.length > 0) {

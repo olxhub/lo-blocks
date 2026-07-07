@@ -7,7 +7,7 @@ import React from 'react';
 
 import { useFieldState } from '@/lib/state';
 
-export function _DevQuestion( props: RuntimeProps ) {
+export default function DevQuestion( props: RuntimeProps ) {
   const { prompt, options = [], fields } = props;
   const optionList = typeof options === 'string' ? options.split(',') : options;
   const [activeIndex, setActiveIndex] = useFieldState(

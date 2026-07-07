@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useKids } from '@/lib/render';
 
-export function _DevProblem(props: RuntimeProps) {
+export default function DevProblem(props: RuntimeProps) {
   const { kids } = useKids(props);
   return (
     <div className="border p-4 space-y-2">

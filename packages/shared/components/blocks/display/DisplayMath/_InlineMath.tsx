@@ -9,7 +9,7 @@ import { useTextContent } from '@/lib/state/redux';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 
-export function _InlineMath( props: RuntimeProps ) {
+export default function InlineMath( props: RuntimeProps ) {
   const { text, loading } = useTextContent(props);
   const latex = text.trim();
 

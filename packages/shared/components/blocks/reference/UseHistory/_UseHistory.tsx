@@ -15,7 +15,7 @@ function HistoryContent({ props, current }: { props: RuntimeProps; current: Stat
   return <>{block}</>;
 }
 
-export function _UseHistory(props: RuntimeProps) {
+export default function UseHistory(props: RuntimeProps) {
   const { target, targetRef, fields, initial } = props;
 
   // If targetRef is provided, get the target from another component's value

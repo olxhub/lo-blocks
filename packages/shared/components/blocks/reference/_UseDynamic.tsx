@@ -11,7 +11,7 @@ function DynamicContent({ props, value }: { props: RuntimeProps; value: StateRef
   return <>{block}</>;
 }
 
-export function _UseDynamic( props: RuntimeProps ) {
+export default function UseDynamic( props: RuntimeProps ) {
   const { fields, target, targetRef } = props;
 
   // If targetRef is provided, get the target from another component's value
