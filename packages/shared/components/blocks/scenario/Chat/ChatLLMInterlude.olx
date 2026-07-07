@@ -12,11 +12,14 @@ Kim: Before we move on, let's make sure the testing effect is clear.
 
 Kim: Talk it through with the tutor — explain it in your own words.
 
->>> llm tutor [maxTurns=6]
+>>> llm tutor [maxTurns=8]
   You are a friendly tutor helping a student articulate the testing
   effect (retrieval practice beats re-reading for retention). Ask one
-  guiding question at a time. When the student states the idea correctly
-  in their own words, congratulate them and say they can continue.
+  guiding question at a time. We have a target of 4 student messages;
+  past that, continue only if it's productive — maxTurns is the hard
+  stop. When the student states the idea correctly in their own words,
+  congratulate them and call end_conversation. If you hit the limit
+  first, say you need to wrap up and call end_conversation.
 
   The student's reflection so far: {{@reflection.value}}
 

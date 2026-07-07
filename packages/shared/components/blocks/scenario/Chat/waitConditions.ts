@@ -15,6 +15,36 @@ import {
 import type { References, ContextData } from '@/lib/stateLanguage';
 import type { ConversationEntry, WaitCommand, LlmCommand } from './_chatTypes';
 
+/** The shape of interlude log items this module needs (see llmInterlude.ts). */
+interface InterludeItemish {
+  atIndex: number;
+  control?: string;
+  message: { type: string; speaker?: string };
+}
+
+/**
+ * May the script advance PAST an LLM interlude?
+ *   - `until` satisfied (when present; free otherwise), OR
+ *   - the agent called end_conversation (durable exit marker in the log), OR
+ *   - maxTurns is exhausted (a hard stop must never strand the user
+ *     behind an unsatisfied until).
+ */
+export function interludeExitAllowed(
+  entry: LlmCommand,
+  context: ContextData,
+  items: InterludeItemish[],
+  atIndex: number,
+): boolean {
+  const mine = items.filter(it => it.atIndex === atIndex);
+  if (mine.some(it => it.control === 'exit')) return true;
+  const maxTurns = entry.metadata.maxTurns ? parseInt(entry.metadata.maxTurns, 10) : null;
+  if (maxTurns !== null) {
+    const turns = mine.filter(it => it.message.type === 'Line' && it.message.speaker === 'You').length;
+    if (turns >= maxTurns) return true;
+  }
+  return llmExitSatisfied(entry, context);
+}
+
 /**
  * May the script advance PAST an LLM interlude? Gated by its `until`
  * expression when present; free otherwise (Continue ends the interlude).
@@ -132,13 +162,10 @@ export function useWaitConditions(
   const resolved = useReferences(props, allRefs);
   const context = useMemo(() => createContext(resolved), [resolved]);
 
-  // Check if we can advance. Parked on an LLM interlude, leaving is gated
-  // by its `until` expression; otherwise the first wait before the next
-  // content must be satisfied.
-  const current = entries[currentIndex];
-  const canAdvance = (current?.type === 'LlmCommand' && !llmExitSatisfied(current as LlmCommand, context))
-    ? false
-    : canAdvanceToContent(entries, currentIndex, endIndex, context);
+  // Check if we can advance (first wait before next content is satisfied).
+  // NOTE: parked ON an LLM interlude, the exit gate (until/agent-exit/
+  // maxTurns) is applied by the caller — it needs the interlude's log.
+  const canAdvance = canAdvanceToContent(entries, currentIndex, endIndex, context);
 
   // Stable reference for evaluating a specific wait entry
   const isWaitSatisfied = useCallback(

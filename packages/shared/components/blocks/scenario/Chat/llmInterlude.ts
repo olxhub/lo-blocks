@@ -17,6 +17,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFieldState, appendToLog } from '@/lib/state';
 import { callLLM } from '@/lib/llm/reduxClient';
 import { ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
+import { advanceFrom } from '@/lib/advance';
 import {
   extractInterpolations, extractInterpolationRefs, useReferences, createContext,
   parse, evaluate,
@@ -29,6 +30,9 @@ import type { ConversationEntry, LlmCommand } from './_chatTypes';
 export interface InterludeLogItem {
   atIndex: number;
   message: ChatMessage;
+  /** 'exit' — the agent ended the conversation (end_conversation tool).
+   *  A durable, replayable marker: the exit gate reads it from the log. */
+  control?: 'exit';
 }
 
 export interface InterludeState {
@@ -40,6 +44,8 @@ export interface InterludeState {
   turnsUsed: number;
   maxTurns: number | null;
   busy: boolean;
+  /** The agent ended this interlude (end_conversation). Input closes. */
+  ended: boolean;
   sendMessage: (text: string) => Promise<void>;
 }
 
@@ -75,9 +81,10 @@ export function useLlmInterlude(
     it => it.message.type === 'Line' && it.message.speaker === 'You',
   ).length;
   const maxTurns = active?.metadata.maxTurns ? parseInt(active.metadata.maxTurns, 10) : null;
+  const ended = interludeItems.some(it => it.control === 'exit');
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!active || busy || !text.trim()) return;
+    if (!active || busy || ended || !text.trim()) return;
     setBusy(true);
     try {
       appendToLog(props, props.fields.messages, {
@@ -130,7 +137,9 @@ export function useLlmInterlude(
       ];
 
       // Tools: named toolsets from the browser tool plane. No toolsets
-      // declared → a plain conversation.
+      // declared → conversation only. The agent ALWAYS gets its exit tool:
+      // authors delegate "when to stop" in the prompt ("call end_conversation
+      // once the student states the idea correctly").
       let tools: LlmTool[] = [];
       const toolsetNames = (active.metadata.tools ?? '').split(',').map(t => t.trim()).filter(Boolean);
       if (toolsetNames.length > 0) {
@@ -141,19 +150,47 @@ export function useLlmInterlude(
         }
         tools = llmToolsFor(toolsetNames);
       }
+      let exitRequested = false;
+      tools = [...tools, {
+        function: {
+          name: 'end_conversation',
+          description:
+            'End this conversation and let the scripted lesson resume. Call when the goal in your ' +
+            'instructions is reached, the turn budget is spent, or you need to leave. Say your ' +
+            'goodbye in the same reply.',
+          parameters: { type: 'object', properties: {} },
+        },
+        callback: async () => {
+          exitRequested = true;
+          return 'The conversation will end after this reply.';
+        },
+      }];
 
       const { messages: newMessages } = await callLLM({ history, tools });
       for (const m of newMessages) {
+        // The exit tool call is control flow, not conversation — don't display.
+        if (m.type === 'ToolCall' && m.name === 'end_conversation') continue;
         // The loop labels replies 'LLM'; re-attribute to the cast participant.
         const message: ChatMessage = m.type === 'Line' && m.speaker === 'LLM'
           ? { ...m, speaker: active.participant }
           : m;
         appendToLog(props, props.fields.messages, { atIndex: activeIndex, message });
       }
+
+      if (exitRequested) {
+        // Durable exit marker (drives the exit gate + closes the input),
+        // then resume the script — same path as the Continue button.
+        appendToLog(props, props.fields.messages, {
+          atIndex: activeIndex,
+          control: 'exit',
+          message: { type: 'SystemMessage', text: `${active.participant} ended the conversation.` },
+        });
+        advanceFrom(props.nodeInfo, props.runtime.store.getState());
+      }
     } finally {
       setBusy(false);
     }
-  }, [active, activeIndex, busy, props, promptText, interpolations, resolved, interludeItems, allEntries, windowedIndex]);
+  }, [active, activeIndex, busy, ended, props, promptText, interpolations, resolved, interludeItems, allEntries, windowedIndex]);
 
-  return { logItems, active, activeIndex, turnsUsed, maxTurns, busy, sendMessage };
+  return { logItems, active, activeIndex, turnsUsed, maxTurns, busy, ended, sendMessage };
 }

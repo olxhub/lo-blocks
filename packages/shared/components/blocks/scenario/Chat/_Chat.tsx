@@ -12,7 +12,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
-import { useWaitConditions } from './waitConditions';
+import { useWaitConditions, interludeExitAllowed } from './waitConditions';
 import { useLlmInterlude } from './llmInterlude';
 
 import * as chatUtils from './chatUtils';
@@ -164,7 +164,7 @@ export default function Chat(props: RuntimeProps) {
   /* ----------------------------------------------------------------
    * Wait conditions - check if we can advance past any wait commands
    * -------------------------------------------------------------- */
-  const { canAdvance } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
+  const { canAdvance, context: waitContext } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
 
   /* ----------------------------------------------------------------
    * Advance handler — delegates to the blueprint advance function
@@ -180,7 +180,13 @@ export default function Chat(props: RuntimeProps) {
   const [instructorMode] = useFieldState(null, settings.instructorMode, false);
   const [ignoreWaits, setIgnoreWaits] = useFieldState(props, fields.ignoreWaits, false);
 
-  const isDisabled = !canAdvance && !(instructorMode && ignoreWaits);
+  // Parked on an interlude, "Continue" is the exit gate: until satisfied,
+  // agent ended it, or maxTurns exhausted (see interludeExitAllowed).
+  const interludeCanExit = interlude.active
+    ? interludeExitAllowed(interlude.active, waitContext, interlude.logItems, interlude.activeIndex)
+    : true;
+  const isDisabled = (interlude.active ? !interludeCanExit : !canAdvance)
+    && !(instructorMode && ignoreWaits);
 
   const handleAdvance = useCallback(() => {
     advanceFrom(props.nodeInfo, props.runtime.store.getState());
@@ -194,12 +200,12 @@ export default function Chat(props: RuntimeProps) {
    * Footers
    * -------------------------------------------------------------- */
 
-  const interludeSendDisabled = interlude.busy
+  const interludeSendDisabled = interlude.busy || interlude.ended
     || (interlude.maxTurns !== null && interlude.turnsUsed >= interlude.maxTurns);
 
-  const footer = conversationFinished ? (
-    <InputFooter id={`${id}_footer`} disabled />
-  ) : interlude.active ? (
+  // Order matters: a script can END on an interlude (a pure-LLM chat is a
+  // single >>> llm entry), so "parked on an interlude" wins over "finished".
+  const footer = interlude.active ? (
     // Open floor: talk to the LLM participant; Continue (when the exit
     // gate allows) resumes the script.
     <>
@@ -215,9 +221,15 @@ export default function Chat(props: RuntimeProps) {
         id={`${id}_footer`}
         onSendMessage={(text) => { void interlude.sendMessage(text); }}
         disabled={interludeSendDisabled}
-        placeholder={interlude.busy ? `${interlude.active.participant} is thinking…` : `Message ${interlude.active.participant}…`}
+        placeholder={
+          interlude.ended ? 'Conversation ended — press Continue'
+            : interlude.busy ? `${interlude.active.participant} is thinking…`
+              : `Message ${interlude.active.participant}…`
+        }
       />
     </>
+  ) : conversationFinished ? (
+    <InputFooter id={`${id}_footer`} disabled />
   ) : (
     <AdvanceFooter
       id={`${id}_footer`}

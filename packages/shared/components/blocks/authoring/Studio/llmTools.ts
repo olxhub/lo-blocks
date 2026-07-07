@@ -1,8 +1,7 @@
 // packages/shared/components/blocks/authoring/Studio/llmTools.ts
 //
-// Studio's chat tools, on the browser tool plane (lib/mcp/browserTools).
-//
-// Only what is genuinely editor-local is defined here:
+// Studio's 'studio-editor' toolset on the browser tool plane
+// (lib/mcp/browserTools). Only what is genuinely editor-local lives here:
 //   Edit     — search-and-replace on the OPEN BUFFER (unsaved content the
 //              server can't see), validated client-side before applying.
 //              Shadows the server's Edit: in Studio's chat, "edit" means
@@ -10,17 +9,18 @@
 //   OpenFile — navigate the editor to a file.
 //
 // Everything else (Read/Glob/Grep/Write/Delete/Move, block docs) is the
-// server's MCP tools, passed through with `source` bound to the repo Studio
-// is editing — the same tools external agents use.
+// server's MCP tools — the same tools external agents use. Studio's chat
+// itself is a <Chat> block instance (see _Studio.tsx) whose >>> llm
+// interlude names its toolsets; this module just keeps the editor-local
+// tools registered and their context current.
 
 import { z } from 'zod';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isPEGContentExtension, getParserForExtension } from '@/generated/parserRegistry';
-import { registerClientTool, ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
+import { registerClientTool } from '@/lib/mcp/browserTools';
 import { callMcpTool } from '@/lib/mcp/client';
 import { toLofsRef } from '@/lib/types/address';
 import { asContentNamespace } from '@/lib/types/id-grammar';
-import type { LlmTool } from '@/lib/llm/types';
 import type { LofsOrigin } from '@/lib/types';
 
 /** Synthetic namespace for validation-only parses of editor buffers —
@@ -127,26 +127,16 @@ function registerStudioTools(): void {
 }
 
 // =============================================================================
-// Assembly — what the Studio chat hands to the LLM loop each send.
+// Binding — Studio keeps the editor context current; the chat block's
+// interlude pulls the 'studio-editor' toolset from the tool plane.
 // =============================================================================
 
-const STUDIO_TOOLSETS = ['studio-editor', 'content-read', 'content-write', 'docs'];
-
 /**
- * The Studio chat's LLM tools: editor-local client tools + server MCP
- * passthroughs, with `source` bound to the repo being edited (hidden from
- * the LLM). Called at send time so the context is never stale.
+ * Register Studio's editor-local tools (once) and update the live context
+ * they read through. Call on every render whose deps touch the editor —
+ * cheap after the first call.
  */
-export async function studioChatTools(context: EditorChatContext): Promise<LlmTool[]> {
+export function bindStudioEditorTools(context: EditorChatContext): void {
   ctx = context;
   registerStudioTools();
-  try {
-    await ensureServerTools();
-  } catch (err) {
-    // Offline / server hiccup: the chat still gets the editor-local tools.
-    console.warn('Server tool discovery failed; chat has editor tools only:', err);
-  }
-  return llmToolsFor(STUDIO_TOOLSETS, {
-    bind: context.source ? { source: context.source } : {},
-  });
 }

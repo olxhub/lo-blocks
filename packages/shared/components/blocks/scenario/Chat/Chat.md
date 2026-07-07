@@ -207,6 +207,8 @@ The indented block is the agent's system prompt; `{{...}}` interpolations are st
 - `tools` — comma-separated toolset names from the browser tool plane (e.g. `content-read`, `docs`); omit for a plain conversation
 - `profile` — reserved for server-side LLM profile selection
 
+The agent always has an `end_conversation` tool, so prompts can delegate the ending: *"We have a target of 5 messages; hard stop at 10. When the student states the idea correctly, congratulate them and call end_conversation."* Calling it says goodbye, closes the input, and resumes the script automatically. The user's exit is the Continue button, allowed when `until` is satisfied, the agent ended the conversation, or `maxTurns` is exhausted (a hard stop never strands the user behind an unsatisfied `until`).
+
 The agent has no script privileges: it cannot run set commands and affects other blocks only through its declared toolsets. Runtime turns are stored in the block's `messages` log field (actor-stamped, append-only), not in the script — the script stays static content.
 
 ## Activities Pattern
