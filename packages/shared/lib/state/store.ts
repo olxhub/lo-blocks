@@ -270,7 +270,7 @@ export const updateResponseReducer = (state = initialState, action) => {
     if (!action.field) {
       const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
         type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-        [fieldName]: _fv, ...rest } = action;
+        authority: _auth, [fieldName]: _fv, ...rest } = action;
       extra = rest;
     }
 
@@ -330,7 +330,10 @@ export const updateResponseReducer = (state = initialState, action) => {
   // - context: event hierarchy for filtering (e.g., 'preview.quiz.input')
   // - event: the event type (already extracted above as eventType)
   // - metadata: lo_event timestamps, etc.
-  const { scope = scopes.component, id, tag, context, event, metadata, ...rest } = action;
+  // authority is routing metadata (fields-design), never state — strip it
+  // alongside the other envelope keys or shared/server events would
+  // persist { authority: '…' } into buckets as if it were user data.
+  const { scope = scopes.component, id, tag, context, event, metadata, authority, ...rest } = action;
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
@@ -572,12 +575,23 @@ function configureStore({
         // Merge into the live application_state so scopes we don't persist
         // (olxjson, storage) survive the load instead of being replaced
         // away — set_state_reducer returns the payload wholesale.
+        // Merge FIELD-level within buckets: a content fetch can adopt
+        // state (incl. shared fields, which never live in the loaded
+        // snapshot) BEFORE this load resolves — replacing scope maps or
+        // whole buckets silently dropped it. Loaded values win per field.
+        const mergeBuckets = (curScope: any = {}, loadedScope: any = {}) => {
+          const out: Record<string, any> = { ...curScope };
+          for (const [key, bucket] of Object.entries(loadedScope)) {
+            out[key] = { ...out[key], ...(bucket as Record<string, any>) };
+          }
+          return out;
+        };
         return {
           application_state: {
             ...cur,
-            system: appState.system ?? cur.system ?? {},
-            component: appState.component ?? cur.component ?? {},
-            componentSetting: appState.componentSetting ?? cur.componentSetting ?? {},
+            system: { ...cur.system, ...appState.system },
+            component: mergeBuckets(cur.component, appState.component),
+            componentSetting: mergeBuckets(cur.componentSetting, appState.componentSetting),
           },
         } as any;
       },

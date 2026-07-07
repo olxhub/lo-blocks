@@ -329,9 +329,17 @@ async function* runReducers(
       // Shared/server fan-out is SUBSCRIPTION-scoped: recipients are the
       // connections whose content fetches served this partition (plus
       // writers, who self-subscribe here) — not every socket on the
-      // server.
+      // server. Scoped state keys (`defId#anchor`) also reach BASE-id
+      // subscribers: content fetches subscribe by definition id, so a
+      // shared field inside a scoped/repeated block would otherwise only
+      // ever reach its writer (found by review 2026-07).
       ctx.subscriptions.subscribe(ctx.ws, [key]);
-      const to = ctx.subscriptions.subscribers(key);
+      const to = new Set(ctx.subscriptions.subscribers(key));
+      const hash = event.id.indexOf('#');
+      if (hash > 0) {
+        const baseKey = key.replace(event.id, event.id.slice(0, hash));
+        for (const sock of ctx.subscriptions.subscribers(baseKey)) to.add(sock);
+      }
       if (authority === 'server') {
         // Server-reduced fields are privacy-structural: the raw
         // contribution event is never fanned; subscribers (origin
