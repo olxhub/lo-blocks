@@ -55,6 +55,20 @@ describe('browser tool plane', () => {
     expect(names).toEqual(['Read', 'get_blocks']);
   });
 
+  test('client shadowing is scoped to its own toolset', async () => {
+    registerClientTool('Edit', {
+      description: 'buffer edit',
+      input: z.object({ old_string: z.string() }),
+      output: z.string(),
+    }, async () => 'buffer-edited', ['studio-editor']);
+
+    // A chat asking ONLY for content-write gets the SERVER Edit — Studio's
+    // buffer editor must not hijack it just by being registered.
+    const tools = llmToolsFor(['content-write']);
+    const edit = tools.find(t => t.function.name === 'Edit')!;
+    expect(edit.function.description).toBe('server edit');
+  });
+
   test('client tool shadows a same-named server tool', async () => {
     registerClientTool('Edit', {
       description: 'buffer edit',

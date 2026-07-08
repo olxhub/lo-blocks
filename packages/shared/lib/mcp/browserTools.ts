@@ -46,11 +46,16 @@ const toolsetMembers = new Map<string, Set<string>>(
   Object.entries(SERVER_TOOLSETS).map(([k, v]) => [k, new Set(v)]),
 );
 
+/** Which toolsets each CLIENT tool was registered under — shadowing a
+ *  same-named server tool applies only when one of these is requested. */
+const clientToolsets = new Map<string, Set<string>>();
+
 function addToToolsets(toolName: string, toolsets: string[]): void {
   for (const ts of toolsets) {
     if (!toolsetMembers.has(ts)) toolsetMembers.set(ts, new Set());
     toolsetMembers.get(ts)!.add(toolName);
   }
+  clientToolsets.set(toolName, new Set([...(clientToolsets.get(toolName) ?? []), ...toolsets]));
 }
 
 // =============================================================================
@@ -151,13 +156,20 @@ export function llmToolsFor(toolsets: string[], options: LlmToolsOptions = {}): 
   }
   for (const name of omit) wanted.delete(name);
 
-  // Client tools shadow passthrough: index client exports first.
+  // Client tools shadow same-named passthrough tools ONLY when the client
+  // tool's own toolset was requested. Studio's buffer Edit (studio-editor)
+  // must not hijack 'Edit' for a chat that asked only for content-write —
+  // that chat wants the server LOFS Edit.
   const clientTools = new Map(clientRegistry.toLLMTools().map(t => [t.function.name, t]));
   const passthroughTools = new Map(passthroughRegistry.toLLMTools().map(t => [t.function.name, t]));
+  const requested = new Set(toolsets);
+  const clientRequested = (name: string): boolean =>
+    [...(clientToolsets.get(name) ?? [])].some(ts => requested.has(ts));
 
   const result: LlmTool[] = [];
   for (const name of wanted) {
-    const tool: LLMTool | undefined = clientTools.get(name) ?? passthroughTools.get(name);
+    const tool: LLMTool | undefined = (clientRequested(name) ? clientTools.get(name) : undefined)
+      ?? passthroughTools.get(name);
     if (!tool) continue;  // toolset names a server tool the server doesn't serve
     result.push({
       function: {
