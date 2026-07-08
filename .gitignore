@@ -112,3 +112,4 @@ config/content-sources.local.yaml
 # Never commit. Default token file is config/github.pat
 config/*.pat
 /apps/client/test-results/
+.#*
