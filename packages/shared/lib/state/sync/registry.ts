@@ -20,11 +20,11 @@
 // arriving mid-flush finds the entry still in the map and reuses it (the
 // refcount check after the flush notices and keeps it).
 
-import type { WebSocket } from 'ws';
-import type { KVStore } from './kvs.js';
+import type { KVStore } from '@/lib/storage/kvs';
+import { type StateConnection, trySend } from './connection';
 import type { SafeUserId } from '@/lib/types/identity';
-import { ServerState } from './serverState.js';
-import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './fieldStore.js';
+import { ServerState } from './materialization';
+import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './persistence';
 
 /**
  * Pseudo-user for SHARED field state (fields-design 2c): fields declared
@@ -62,7 +62,7 @@ export interface UserStateEntry {
    * `to` overrides the recipient set (subscription-scoped delivery for
    * shared fields); default is the entry's own connections.
    */
-  broadcastEvent(event: Record<string, any>, origin: WebSocket, to?: Iterable<WebSocket>): void;
+  broadcastEvent(event: Record<string, any>, origin: StateConnection, to?: Iterable<StateConnection>): void;
   /**
    * Send a derived STATE patch to connections, origin included —
    * server-reduced fields (fields-design 2d): raw contribution events
@@ -72,7 +72,7 @@ export interface UserStateEntry {
    * field-level, server-wins. `to` overrides the recipient set
    * (subscription-scoped delivery); default is the entry's connections.
    */
-  broadcastStatePatch(bucketKey: string, bucket: Record<string, any>, to?: Iterable<WebSocket>): void;
+  broadcastStatePatch(bucketKey: string, bucket: Record<string, any>, to?: Iterable<StateConnection>): void;
   release(): Promise<void>;
 }
 
@@ -82,12 +82,12 @@ export class UserStateRegistry {
     persister: FieldPersister;
     refs: number;
     seedPromise: Promise<void> | null;
-    sockets: Set<WebSocket>;
+    sockets: Set<StateConnection>;
   }>();
 
   constructor(private kvs: KVStore) {}
 
-  acquire(user: SafeUserId, ws?: WebSocket): UserStateEntry {
+  acquire(user: SafeUserId, ws?: StateConnection): UserStateEntry {
     let entry = this.entries.get(user);
     if (!entry) {
       entry = {
@@ -171,7 +171,7 @@ export class UserStateRegistry {
   /** A user's currently connected sockets — the content fetch uses this
    * to subscribe the caller's live connections to the ids it serves
    * (subscriptions.ts). Empty when the user has no open connections. */
-  socketsOf(user: SafeUserId): ReadonlySet<WebSocket> {
+  socketsOf(user: SafeUserId): ReadonlySet<StateConnection> {
     return this.entries.get(user)?.sockets ?? new Set();
   }
 

@@ -14,13 +14,13 @@
 // Group scoping slots in here later: the key grows from blockId to
 // `{blockId}:{group}` and nothing else changes shape.
 
-import type { WebSocket } from 'ws';
+import type { StateConnection } from './connection';
 
 export class SubscriptionRegistry {
-  private byKey = new Map<string, Set<WebSocket>>();
-  private bySocket = new Map<WebSocket, Set<string>>();
+  private byKey = new Map<string, Set<StateConnection>>();
+  private bySocket = new Map<StateConnection, Set<string>>();
 
-  subscribe(ws: WebSocket, keys: string[]) {
+  subscribe(ws: StateConnection, keys: string[]) {
     let mine = this.bySocket.get(ws);
     if (!mine) { mine = new Set(); this.bySocket.set(ws, mine); }
     for (const key of keys) {
@@ -32,7 +32,7 @@ export class SubscriptionRegistry {
   }
 
   /** Drop everything a connection was subscribed to (on close). */
-  unsubscribeAll(ws: WebSocket) {
+  unsubscribeAll(ws: StateConnection) {
     const mine = this.bySocket.get(ws);
     if (!mine) return;
     for (const key of mine) {
@@ -45,7 +45,7 @@ export class SubscriptionRegistry {
     this.bySocket.delete(ws);
   }
 
-  subscribers(key: string): ReadonlySet<WebSocket> {
+  subscribers(key: string): ReadonlySet<StateConnection> {
     return this.byKey.get(key) ?? EMPTY;
   }
 
@@ -53,7 +53,7 @@ export class SubscriptionRegistry {
    * every `${blockId}::…` partition key, subscribe the new key. The
    * group-switch path (groups.ts) — a user re-picking moves their
    * sockets to the new partition. */
-  resubscribe(ws: WebSocket, blockId: string, newKey: string) {
+  resubscribe(ws: StateConnection, blockId: string, newKey: string) {
     const mine = this.bySocket.get(ws);
     if (mine) {
       for (const key of mine) {
@@ -74,4 +74,4 @@ export class SubscriptionRegistry {
   size() { return { keys: this.byKey.size, sockets: this.bySocket.size }; }
 }
 
-const EMPTY: ReadonlySet<WebSocket> = new Set();
+const EMPTY: ReadonlySet<StateConnection> = new Set();

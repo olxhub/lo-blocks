@@ -27,14 +27,15 @@ import { appendEvent } from './eventLog.js';
 import type { KVStore } from './kvs.js';
 import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
-import type { ServerState } from './serverState.js';
-import type { FieldPersister } from './fieldStore.js';
-import { assembleFieldState, compareToBlob } from './fieldStore.js';
-import type { UserStateRegistry, UserStateEntry } from './userState.js';
-import type { GroupingIndex } from './groups.js';
-import { SHARED_STATE_ID } from './userState.js';
-import type { SubscriptionRegistry } from './subscriptions.js';
-import { parsePartitionSpec, groupFor, partitionedId } from './groups.js';
+import type { ServerState } from '@/lib/state/sync/materialization';
+import type { FieldPersister } from '@/lib/state/sync/persistence';
+import { assembleFieldState, compareToBlob } from '@/lib/state/sync/persistence';
+import type { UserStateRegistry, UserStateEntry } from '@/lib/state/sync/registry';
+import type { GroupingIndex } from '@/lib/state/sync/partitions';
+import { SHARED_STATE_ID } from '@/lib/state/sync/registry';
+import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import type { StateConnection } from '@/lib/state/sync/connection';
+import { parsePartitionSpec, groupFor, partitionedId } from '@/lib/state/sync/partitions';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -326,7 +327,7 @@ function subscribersForPartition(
   context: PipelineContext,
   eventId: string,
   partitionKey: string,
-): Set<WebSocket> {
+): Set<StateConnection> {
   context.subscriptions.subscribe(context.ws, [partitionKey]);
   const recipients = new Set(context.subscriptions.subscribers(partitionKey));
   const hash = eventId.indexOf('#');

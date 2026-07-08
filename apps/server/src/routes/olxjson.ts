@@ -12,10 +12,10 @@ import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { AuthUser } from '../auth.js';
-import type { UserStateRegistry } from '../userState.js';
-import { SHARED_STATE_ID } from '../userState.js';
-import type { SubscriptionRegistry } from '../subscriptions.js';
-import { parsePartitionSpec, groupFor, partitionedId } from '../groups.js';
+import type { UserStateRegistry } from '@/lib/state/sync/registry';
+import { SHARED_STATE_ID } from '@/lib/state/sync/registry';
+import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { parsePartitionSpec, groupFor, partitionedId } from '@/lib/state/sync/partitions';
 
 // How much of the idMap a single-block request returns:
 //   'single'      → just the requested block

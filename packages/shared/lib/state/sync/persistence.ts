@@ -19,7 +19,7 @@
 // bucket names per scope; it is rewritten only when a new bucket first
 // appears (rare after warm-up).
 
-import type { KVStore } from './kvs.js';
+import type { KVStore } from '@/lib/storage/kvs';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 
 /** Scopes persisted per-field — must match serializeForSave in store.ts

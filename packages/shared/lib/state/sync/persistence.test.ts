@@ -6,8 +6,8 @@
 // and the parallel-run comparison instrument.
 
 import { test, expect } from 'vitest';
-import { MemoryKVStore, type KVStore } from './kvs.js';
-import { FieldPersister, assembleFieldState, compareToBlob } from './fieldStore.js';
+import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
+import { FieldPersister, assembleFieldState, compareToBlob } from './persistence';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import type { KVSKey } from '@/lib/types/identity';
 

@@ -32,9 +32,9 @@ import {
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { runPipeline } from './pipeline.js';
-import { UserStateRegistry } from './userState.js';
-import { SubscriptionRegistry } from './subscriptions.js';
-import { makeGroupingIndex } from './groups.js';
+import { UserStateRegistry } from '@/lib/state/sync/registry';
+import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
