@@ -398,6 +398,18 @@ export interface FieldInfo {
    */
   encoder?: import('../state/encoders').FieldEncoder;
 
+  /** Aggregation at a distance (lib/state/sync/aggregations.ts): this
+   *  DERIVED field folds transitions of another block's per-user field —
+   *  the target names the block (its `target` OLX attribute), `over`
+   *  names the field, `fold` moves a user's contribution from their
+   *  previous answer to their new one (one user, one count, by
+   *  construction). Declare alongside people: { everyone: 'derived' }.
+   *
+   *    { name: 'distribution', people: { everyone: 'derived' },
+   *      aggregate: { over: 'value', fold: histogram, initial: {} } }
+   */
+  aggregate?: import('../state/sync/aggregations').AggregateSpec;
+
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
 

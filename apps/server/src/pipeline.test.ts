@@ -348,6 +348,67 @@ test('grouped-by: users partition by their own picker field', async () => {
   await Promise.all([runA, runB]);
 });
 
+test('aggregation: one user, one count — twelve rewrites do not stuff the vote', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  // Content: a view block aggregating demos/q's value field.
+  const aggregations = {
+    viewsFor: async (targetId: string, field: string) =>
+      targetId === 'demos/q' && field === 'value'
+        ? [{
+            viewId: 'demos/dist', resultField: 'distribution',
+            spec: {
+              over: 'value',
+              initial: {},
+              fold: (d: Record<string, number>, { prev, next }: any) => {
+                const counts = { ...d };
+                if (prev != null && prev !== '') {
+                  counts[String(prev)] = (counts[String(prev)] ?? 1) - 1;
+                  if (counts[String(prev)] <= 0) delete counts[String(prev)];
+                }
+                if (next != null && next !== '') {
+                  counts[String(next)] = (counts[String(next)] ?? 0) + 1;
+                }
+                return counts;
+              },
+            },
+          }]
+        : [],
+  };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, aggregations };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, aggregations };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+  subs.subscribe(wsB as any, ['demos/dist']);
+
+  const answer = (ws: FakeWs, value: string, ts: number) =>
+    ws.emit('message', Buffer.from(JSON.stringify({
+      event: 'UPDATE_VALUE', field: 'value', scope: 'component',
+      id: 'demos/q', value, ts, actor: 'x' })));
+
+  // A tries to stuff the ballot: twelve identical answers.
+  for (let i = 1; i <= 12; i++) answer(wsA, 'Jupiter', i);
+  // B answers once, then CHANGES their mind.
+  answer(wsB, 'Saturn', 1);
+  answer(wsB, 'Jupiter', 2);
+  await new Promise(r => setTimeout(r, 30));
+
+  const shared = await registry.read('_shared' as SafeUserId);
+  // A counted once (identical rewrites are no-op transitions); B moved.
+  expect(shared!.component['demos/dist'].distribution).toEqual({ Jupiter: 2 });
+  // B (subscribed) received the derived patch, never raw contributions.
+  const patch = wsB.sent.filter(m => m.event_type === 'lo_server_state').at(-1);
+  expect(patch.detail.sharedComponent['demos/dist'].distribution).toEqual({ Jupiter: 2 });
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
 test('a content fetch that raced the socket still subscribes it', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

@@ -19,6 +19,7 @@ import type { StateConnection } from './connection';
 import type { UserStateRegistry, UserStateEntry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import type { GroupingIndex } from './partitions';
+import type { AggregationIndex } from './aggregations';
 import { parsePartitionSpec, groupFor, partitionedId } from './partitions';
 
 /** One connection's standing context in the sync engine — everything
@@ -35,6 +36,8 @@ export interface SyncSession {
   subscriptions: SubscriptionRegistry;
   /** Partition index from content; absent = no grouping. */
   grouping?: GroupingIndex;
+  /** Aggregation index from content; absent = no distant folds. */
+  aggregations?: AggregationIndex;
 }
 
 /** A field event as it arrives on the wire. */
@@ -135,6 +138,13 @@ async function foldAndDeliverAuthorityEvent(session: SyncSession, event: SyncEve
  */
 async function foldAndDeliverUserEvent(session: SyncSession, event: SyncEvent) {
   const own = session.own;
+  // Capture the TRANSITION for distant folds: aggregation views consume
+  // {prev, next} of the answered field, which is what makes them
+  // one-user-one-count (aggregations.ts) — twelve rewrites are twelve
+  // moves ending at one value, not twelve votes.
+  const prev = event.id && event.field
+    ? (own.serverState.state as any).component?.[event.id]?.[event.field]
+    : undefined;
   own.serverState.dispatch(event);
   own.persister.stateChanged(own.serverState.state);
   own.broadcastEvent(event, session.origin);
@@ -142,6 +152,55 @@ async function foldAndDeliverUserEvent(session: SyncSession, event: SyncEvent) {
     const regrouped = await session.grouping.groupedBlocksFor(event.id, event.field);
     for (const blockId of regrouped) await switchGroup(session, blockId);
   }
+  if (session.aggregations && event.id && event.field) {
+    const next = (own.serverState.state as any).component?.[event.id]?.[event.field];
+    if (next !== prev) {
+      const views = await session.aggregations.viewsFor(event.id, event.field);
+      for (const view of views) await applyAggregation(session, view, { prev, next });
+    }
+  }
+}
+
+/**
+ * Apply one aggregation view's fold to a transition (aggregations.ts):
+ * derived buckets live in the SHARED materialization under the view's
+ * partition key (per-section distributions come free from grouping).
+ * The base for an empty bucket is the view's seed attribute — prior-
+ * semester data as content — else the spec's initial. This is the sync
+ * engine's own maintenance write: it patches the materialization
+ * directly rather than folding a synthetic event.
+ */
+async function applyAggregation(
+  session: SyncSession,
+  view: import('./aggregations').AggregationView,
+  transition: { prev: unknown; next: unknown },
+) {
+  const shared = session.shared;
+  const partitionKey = await resolvePartitionKey(session, view.viewId);
+  const state = shared.serverState.state as any;
+  const bucket = state.component?.[partitionKey] ?? {};
+  let base = bucket[view.resultField];
+  if (base === undefined && view.seed) {
+    try { base = JSON.parse(view.seed); }
+    catch { console.warn(`[aggregations] unparseable seed on ${view.viewId}`); }
+  }
+  const derived = view.spec.fold(
+    base ?? view.spec.initial,
+    { ...transition, user: session.principal },
+  );
+
+  shared.serverState.state = {
+    ...state,
+    component: {
+      ...state.component,
+      [partitionKey]: { ...bucket, [view.resultField]: derived },
+    },
+  };
+  shared.persister.stateChanged(shared.serverState.state);
+
+  const recipients = subscribersForPartition(session, view.viewId, partitionKey);
+  const patched = (shared.serverState.state as any).component[partitionKey];
+  shared.broadcastStatePatch(view.viewId, patched, recipients);
 }
 
 /**

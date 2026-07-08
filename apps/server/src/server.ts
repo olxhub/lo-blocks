@@ -35,6 +35,8 @@ import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
+import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
@@ -124,6 +126,12 @@ export async function startServer(
   // Grouping index (specs + picker reverse map), TTL-cached from content.
   const grouping = makeGroupingIndex(
     async () => (await syncContentFromStorage()).idMap as any,
+  );
+  // Aggregation index: view blocks whose blueprints fold other blocks'
+  // answers (aggregations.ts), TTL-cached from content + registry.
+  const aggregations = makeAggregationIndex(
+    async () => (await syncContentFromStorage()).idMap as any,
+    (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
 
   // --- Hono app (HTTP only) ------------------------------------------------
@@ -301,7 +309,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, grouping }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, grouping, aggregations }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

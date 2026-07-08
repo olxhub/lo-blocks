@@ -63,9 +63,11 @@ export interface PipelineContext {
   /** Which connections care about which blocks (content fetch =
    * subscription). Shared/server fan-out targets subscribers only. */
   subscriptions: SubscriptionRegistry;
-  /** Grouping index from content (groups.ts). Absent = no grouping
+  /** Grouping index from content (partitions.ts). Absent = no grouping
    * (tests that don't care omit it). */
   grouping?: GroupingIndex;
+  /** Aggregation index from content (aggregations.ts). Absent = none. */
+  aggregations?: import('@/lib/state/sync/aggregations').AggregationIndex;
   /** The acquired per-user entry — set by runPipeline. */
   userState?: UserStateEntry;
   /** The acquired SHARED entry (authority: 'shared' fields fold here;
@@ -311,6 +313,7 @@ async function* runReducers(
     registry: context.stateRegistry,
     subscriptions: context.subscriptions,
     grouping: context.grouping,
+    aggregations: context.aggregations,
   };
   for await (const event of events) {
     await routeEvent(session, event);
