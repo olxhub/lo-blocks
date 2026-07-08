@@ -81,6 +81,12 @@ export class SubscriptionRegistry {
   // them when the principal's connection arrives.
 
   private pending = new Map<string, { keys: Set<string>; at: number }>();
+  /** The pending map is the ONE structure keyed by identity, not a live
+   * socket — bots/prefetch/abandoned tabs fetch content and never open a
+   * socket, so opportunistic pruning (inside note/adopt) never runs when
+   * traffic goes quiet and the map is retained forever (found by review
+   * 2026-07). Sweep on a timer; unref so tests and shutdown don't hang. */
+  private sweeper = setInterval(() => this.prunePending(), 60 * 1000).unref?.();
   /** Pending entries outlive the startup race, not the session: TWO tabs
    * can both fetch before their sockets open, so adoption must NOT
    * consume the set (the second tab's fetch already happened and won't
@@ -95,9 +101,18 @@ export class SubscriptionRegistry {
     }
   }
 
+  /** Backstop against unbounded identity churn (guest crawlers): beyond
+   * the cap, the stalest principal is evicted — its cost is a refetch. */
+  private static PENDING_MAX = 10_000;
+
   /** Record keys for a principal whose connections may not exist yet. */
   notePending(principal: string, keys: string[]) {
     this.prunePending();
+    if (this.pending.size >= SubscriptionRegistry.PENDING_MAX && !this.pending.has(principal)) {
+      let oldest: string | undefined, oldestAt = Infinity;
+      for (const [p, e] of this.pending) if (e.at < oldestAt) { oldest = p; oldestAt = e.at; }
+      if (oldest !== undefined) this.pending.delete(oldest);
+    }
     let entry = this.pending.get(principal);
     if (!entry) { entry = { keys: new Set(), at: 0 }; this.pending.set(principal, entry); }
     entry.at = Date.now();

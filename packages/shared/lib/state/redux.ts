@@ -311,8 +311,14 @@ export function updateField(
 
   // Encoded fields (the encode axis — lib/state/encode.ts): local Redux
   // updates per sample, the wire sees one aggregate event per quiet
-  // period. Replaces the write/dispatch path entirely.
+  // period. Replaces the write/dispatch path entirely. LWW-only: the
+  // aggregate envelope ({startTs, samples}) is expanded by lwwReduce;
+  // doc/set/log reducers would fold it as garbage.
   if (field.encoder) {
+    if (field.kind && field.kind !== 'state') {
+      throw new Error(`Field '${field.name}': encoder is unsupported on kind `
+        + `'${field.kind}' — encoders compose with LWW stateFields only`);
+    }
     writeEncoded(props, field, newValue, { stateKey, tag });
     return;
   }

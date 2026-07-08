@@ -21,8 +21,10 @@ import { fieldInfosFrom } from '@/lib/state/fields';
 initReducers(BLOCK_REGISTRY, [...fieldInfosFrom(chatFields), ...fieldInfosFrom(editorFields)]);
 
 /**
- * Per-connection server-side state. Each WebSocket connection gets its own
- * instance, mirroring the client's Redux store for that session.
+ * One materialization per LEVEL INSTANCE (user:…, set:…, all — see
+ * levels.ts), held in the registry and shared by every connection that
+ * folds into or reads that instance. Mirrors the client's Redux store
+ * shape.
  */
 export class ServerState {
   state: ReturnType<typeof updateResponseReducer>;

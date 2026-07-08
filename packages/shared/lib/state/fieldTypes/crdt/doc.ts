@@ -36,6 +36,15 @@ import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../../typ
  * CRDT document field — stores an RgaDoc in Redux, materializes to string.
  */
 export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
+  // Single-writer only: the reducer folds POSITIONAL splices
+  // (rgaSplice(index, …)); the convergent remote-op path
+  // (rgaApplyRemoteOps) is not wired into any dispatch path, so
+  // concurrent multi-writer edits would silently diverge. Shared text
+  // wants a stateField (LWW) or logField until that lands.
+  if (opts?.level && opts.level !== 'user') {
+    throw new Error(`docField('${name}'): level '${opts.level}' unsupported — `
+      + `RGA docs are single-writer today; use stateField or logField for shared text`);
+  }
   return {
     // Caller opts pass through WHOLESALE (see classic/state.ts — allow-
     // lists silently drop options; this constructor also ignored
