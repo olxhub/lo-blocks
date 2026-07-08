@@ -88,9 +88,14 @@ export function useLlmInterlude(
     if (!active || busy || ended || !(text.trim() || file)) return;
     setBusy(true);
     try {
-      // Attachments (opt-in via [upload=true]): stored on the message for
-      // replicability; the display shows a 📎 marker, the model sees the
-      // full content (same treatment the legacy Studio chat used).
+      // Attachments (opt-in via [upload=true]) are a first-class authoring
+      // input — "here's my PPT deck, convert it to an SBA" / "here's a Word
+      // file of changes for my lesson". Stored on the message (name + hash +
+      // body) for replicability; the transcript shows a 📎 marker, the model
+      // sees the full content.
+      // TODO: convertToText() once the conversion abstraction exists
+      // (pptx2text, docx2text, pdf2text) — today the content is used as-is,
+      // so binary formats degrade.
       const attachments = file
         ? [{ name: file.name, hash: await hashContent(file.content), body: file.content }]
         : undefined;
