@@ -424,8 +424,17 @@ test('a content fetch that raced the socket still subscribes it', async () => {
 
   expect([...subs.subscribers('raced-block')]).toContain(ws);
 
-  ws.emit('close');
-  await run;
+  // A SECOND tab that also fetched pre-socket must adopt the same keys —
+  // adoption is not consumption (its fetch already happened; it will not
+  // refetch).
+  const ws2 = new FakeWs();
+  const ctx2: PipelineContext = { ws: ws2 as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const run2 = runPipeline(ctx2);
+  await new Promise(r => setTimeout(r, 10));
+  expect([...subs.subscribers('raced-block')]).toContain(ws2);
+
+  ws.emit('close'); ws2.emit('close');
+  await Promise.all([run, run2]);
 });
 
 test('registry.read: live state when connected, stored state when not', async () => {

@@ -80,23 +80,38 @@ export class SubscriptionRegistry {
   // fetch records its keys against the PRINCIPAL; the pipeline adopts
   // them when the principal's connection arrives.
 
-  private pending = new Map<string, Set<string>>();
+  private pending = new Map<string, { keys: Set<string>; at: number }>();
+  /** Pending entries outlive the startup race, not the session: TWO tabs
+   * can both fetch before their sockets open, so adoption must NOT
+   * consume the set (the second tab's fetch already happened and won't
+   * refetch — found by review 2026-07). Entries expire by age instead;
+   * re-adoption is an idempotent re-subscribe. */
+  private static PENDING_TTL_MS = 5 * 60 * 1000;
+
+  private prunePending() {
+    const cutoff = Date.now() - SubscriptionRegistry.PENDING_TTL_MS;
+    for (const [principal, entry] of this.pending) {
+      if (entry.at < cutoff) this.pending.delete(principal);
+    }
+  }
 
   /** Record keys for a principal whose connections may not exist yet. */
   notePending(principal: string, keys: string[]) {
-    let set = this.pending.get(principal);
-    if (!set) { set = new Set(); this.pending.set(principal, set); }
-    for (const key of keys) set.add(key);
+    this.prunePending();
+    let entry = this.pending.get(principal);
+    if (!entry) { entry = { keys: new Set(), at: 0 }; this.pending.set(principal, entry); }
+    entry.at = Date.now();
+    for (const key of keys) entry.keys.add(key);
   }
 
   /** A connection arrived for this principal: subscribe it to whatever
-   * content fetches recorded before it existed. Consumes the pending set
-   * (later connections refetch content and subscribe normally). */
+   * content fetches recorded recently. NOT consumed — every socket that
+   * arrives within the TTL adopts the same set. */
   adoptPending(principal: string, ws: StateConnection) {
-    const set = this.pending.get(principal);
-    if (!set) return;
-    this.pending.delete(principal);
-    this.subscribe(ws, [...set]);
+    this.prunePending();
+    const entry = this.pending.get(principal);
+    if (!entry) return;
+    this.subscribe(ws, [...entry.keys]);
   }
 }
 
