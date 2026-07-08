@@ -106,6 +106,34 @@ test('assembleFieldState returns null for unknown users', async () => {
   expect(await assembleFieldState(new MemoryKVStore(), USER)).toBeNull();
 });
 
+test('a mid-batch write failure re-dirties the failed bucket AND its successors', async () => {
+  // Found by review 2026-07: only the failing bucket was re-added; the
+  // unwritten rest of the batch silently vanished from the dirty set.
+  let failures = 1;
+  class FlakyKVS extends MemoryKVStore {
+    async set(key: any, value: string) {
+      if (String(key).includes('block2') && failures > 0) {
+        failures--;
+        throw new Error('transient write failure');
+      }
+      return super.set(key, value);
+    }
+  }
+  const kvs = new FlakyKVS();
+  const p = new FieldPersister(kvs, USER, 0);
+  p.stateChanged({
+    system: {},
+    component: { block1: { v: 1 }, block2: { v: 2 }, block3: { v: 3 } },
+    componentSetting: {},
+  });
+  await p.close(); // first flush: block2 throws mid-batch
+  await p.close(); // retry flushes the failed + skipped buckets
+
+  const assembled = await assembleFieldState(kvs, USER);
+  expect(assembled!.component!.block2.v).toBe(2);
+  expect(assembled!.component!.block3.v).toBe(3);
+});
+
 test('compareToBlob counts agreement, insensitive to key order', () => {
   const server = { system: { a: 1, b: 2 }, component: { x: { p: 1, q: 2 } }, componentSetting: {} };
   const blob = { system: { b: 2, a: 1 }, component: { x: { q: 2, p: 1 }, y: { r: 3 } }, componentSetting: {} };

@@ -44,6 +44,21 @@ export class ServerState {
    */
   seed(persistedScopes: Record<string, any> | null | undefined) {
     if (!persistedScopes) return;
-    this.state = { ...this.state, ...persistedScopes };
+    // MERGE, don't replace: events can fold before the connect-time seed
+    // arrives (the client usually fetches first, but nothing enforces
+    // it), and a wholesale scope replacement would erase them (found by
+    // review 2026-07). Field-level within buckets, LIVE values winning —
+    // anything this materialization already folded is strictly newer
+    // than the stored snapshot.
+    const merged: Record<string, any> = { ...this.state };
+    for (const [scope, storedBuckets] of Object.entries(persistedScopes)) {
+      const live = (this.state as any)[scope] ?? {};
+      const out: Record<string, any> = {};
+      for (const key of new Set([...Object.keys(storedBuckets ?? {}), ...Object.keys(live)])) {
+        out[key] = { ...(storedBuckets as any)?.[key], ...live[key] };
+      }
+      merged[scope] = out;
+    }
+    this.state = merged as any;
   }
 }

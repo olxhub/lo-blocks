@@ -189,18 +189,21 @@ export class FieldPersister {
     };
     let indexChanged = false;
 
-    for (const entry of batch) {
+    for (let i = 0; i < batch.length; i++) {
+      const entry = batch[i];
       const [scope, bucket] = entry.split(SEP) as [PersistedScope, string];
       const value = scope === 'system' ? state.system : state[scope]?.[bucket];
       if (value === undefined) continue; // bucket vanished; nothing to write
       try {
         await this.kvs.set(kvsKey.field(this.user, scope, bucket), JSON.stringify(value));
       } catch (err) {
-        // Put the entry back before rethrowing — clearing the dirty set up
-        // front must not turn a write failure into data loss. The next
-        // stateChanged()/close() retries it. (Found 2026-07-07: ids with
-        // '/' broke FileKVStore paths and the failed buckets vanished.)
-        this.dirty.add(entry);
+        // Put back the FAILED entry and every unwritten one after it —
+        // clearing the dirty set up front must not turn a write failure
+        // into data loss, and the throw skips the rest of the batch
+        // (found by review 2026-07: only the failing bucket was re-added,
+        // silently dropping its successors). The next stateChanged()/
+        // close() retries them all.
+        for (const remaining of batch.slice(i)) this.dirty.add(remaining);
         throw err;
       }
       if (!nextIndex[scope].includes(bucket)) {

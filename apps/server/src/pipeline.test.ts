@@ -411,6 +411,22 @@ test('aggregation: one user, one count — twelve rewrites do not stuff the vote
   await Promise.all([runA, runB]);
 });
 
+test('an event arriving BEFORE fetch_blob survives the seed', async () => {
+  // Nothing enforces fetch-first: a fast writer's first event used to be
+  // erased when the later seed replaced scopes wholesale (found by
+  // review 2026-07). seed() now merges, live values winning.
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
+    application_state: { component: { stored: { value: 'from-store' } } },
+  }));
+  const { sent } = await drive({ kvs, canonical: 'fields' },
+    [UPDATE, { event: 'fetch_blob' }]); // event FIRST, fetch second
+  const fetch = sent.find(m => m.status === 'fetch_blob');
+  // Both the pre-seed event and the stored state survive.
+  expect(fetch.data.application_state.component['pipe-block'].value).toBe('v1');
+  expect(fetch.data.application_state.component.stored.value).toBe('from-store');
+});
+
 test('a content fetch that raced the socket still subscribes it', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
