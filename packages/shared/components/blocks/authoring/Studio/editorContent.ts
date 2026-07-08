@@ -14,7 +14,7 @@
 // for callers that don't need to re-render (save, the LLM chat, dirty
 // checks).
 
-import { useFieldState, getField, updateField } from '@/lib/state';
+import { useFieldState, getField, getReduxState, updateField } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { asStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef } from '@/lib/types';
@@ -31,6 +31,12 @@ export function useStudioContent(fileId: LofsRef): [string, (v: string) => void]
  *  and dirty checks need. */
 export function getStudioContent(fileId: LofsRef): string {
   return getField(null, editorFields.content, { fallback: '', stateKey: asStateKey(fileId) });
+}
+
+/** Whether the redux working tree already has a value for this file. */
+export function hasStudioContent(fileId: LofsRef): boolean {
+  const missing = Symbol('missing-studio-content');
+  return getReduxState(null, editorFields.content, missing, { stateKey: asStateKey(fileId) }) !== missing;
 }
 
 /** Write a file's content synchronously (the editor's hook re-renders). */

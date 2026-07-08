@@ -99,22 +99,32 @@ test('fields canonical: fetch_blob serves assembled field state', async () => {
   const kvs = new MemoryKVStore();
   // A previous session persisted per-field state.
   const p = new FieldPersister(kvs, userInstance(USER.safe_user_id), 0);
-  p.stateChanged({ system: {}, component: { b: { value: 'from-fields' } }, componentSetting: {} });
+  p.stateChanged({
+    system: {},
+    component: { b: { value: 'from-fields' } },
+    componentSetting: {},
+    storage: { 'studio://course/file.olx': { content: 'draft content' } },
+  });
   await p.close();
 
   const { sent } = await drive({ kvs, canonical: 'fields' }, [{ event: 'fetch_blob' }]);
   const fetch = sent.find(m => m.status === 'fetch_blob');
   expect(fetch.data.application_state.component.b.value).toBe('from-fields');
+  expect(fetch.data.application_state.storage['studio://course/file.olx'].content).toBe('draft content');
 });
 
 test('fields canonical falls back to blob for users without field state', async () => {
   const kvs = new MemoryKVStore();
   await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
-    application_state: { component: { b: { value: 'legacy-blob' } } },
+    application_state: {
+      component: { b: { value: 'legacy-blob' } },
+      storage: { 'studio://course/file.olx': { content: 'legacy draft' } },
+    },
   }));
   const { sent } = await drive({ kvs, canonical: 'fields' }, [{ event: 'fetch_blob' }]);
   const fetch = sent.find(m => m.status === 'fetch_blob');
   expect(fetch.data.application_state.component.b.value).toBe('legacy-blob');
+  expect(fetch.data.application_state.storage['studio://course/file.olx'].content).toBe('legacy draft');
 });
 
 test('two live connections fold into ONE user state', async () => {

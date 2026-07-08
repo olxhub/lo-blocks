@@ -525,11 +525,12 @@ function configureStore({
   const loggers = [
     reduxLogger.reduxLogger([], {
       stateSync: useTabSync ? { predicate: syncFilter } : false,
-      // Persist system, component, and componentSetting scopes.
+      // Persist system, component, componentSetting, and storage scopes.
       // Excludes olxjson (large, loaded from content system) and
-      // storage (editor scratch). Chat transcripts are component-scope
-      // fields (chatFields.ts), so they persist with component state.
-      // TODO: storage scope for authoring use cases
+      // catalog/docs/sources (loaded from MCP/content systems). Chat
+      // transcripts are component-scope fields (chatFields.ts), so they
+      // persist with component state. Studio/editor buffers are storage
+      // scope and must load with the rest of user field state.
       serializeForSave: (state) => {
         const appState = (state as any).application_state;
         if (!appState) return state;
@@ -538,6 +539,7 @@ function configureStore({
             system: appState.system,
             component: appState.component,
             componentSetting: appState.componentSetting,
+            storage: appState.storage,
           },
         };
       },
@@ -546,8 +548,8 @@ function configureStore({
         const cur = (currentState as any)?.application_state ?? {};
         if (!appState) return {} as any;
         // Merge into the live application_state so scopes we don't persist
-        // (olxjson, storage) survive the load instead of being replaced
-        // away — set_state_reducer returns the payload wholesale.
+        // (olxjson/catalog/docs/sources) survive the load instead of being
+        // replaced away — set_state_reducer returns the payload wholesale.
         // Merge FIELD-level within buckets: a content fetch can adopt
         // state (incl. shared fields, which never live in the loaded
         // snapshot) BEFORE this load resolves — replacing scope maps or
@@ -565,6 +567,7 @@ function configureStore({
             system: { ...cur.system, ...appState.system },
             component: mergeBuckets(cur.component, appState.component),
             componentSetting: mergeBuckets(cur.componentSetting, appState.componentSetting),
+            storage: mergeBuckets(cur.storage, appState.storage),
           },
         } as any;
       },

@@ -10,10 +10,10 @@
 // (docs/fields-design.md, build-order step 1).
 //
 // Granularity: one KVS value per state bucket — `field:{user}:component:{id}`,
-// `field:{user}:componentSetting:{tag}`, and the single system bucket under
-// `field:{user}:system:_`. Buckets are what the reducer replaces immutably
-// per event, so dirty detection is reference comparison, and each write is
-// one block's state rather than the whole tree.
+// `field:{user}:componentSetting:{tag}`, `field:{user}:storage:{id}`, and
+// the single system bucket under `field:{user}:system:_`. Buckets are what
+// the reducer replaces immutably per event, so dirty detection is reference
+// comparison, and each write is one block's state rather than the whole tree.
 //
 // The KVS has no key enumeration, so `fieldindex:{user}` holds the set of
 // bucket names per scope; it is rewritten only when a new bucket first
@@ -24,8 +24,8 @@ import { kvsKey } from '@/lib/types/identity';
 import type { LevelInstance } from './levels';
 
 /** Scopes persisted per-field — must match serializeForSave in store.ts
- * (system, component, componentSetting; olxjson/chat/storage excluded). */
-export const PERSISTED_SCOPES = ['system', 'component', 'componentSetting'] as const;
+ * (system, component, componentSetting, storage; olxjson/chat excluded). */
+export const PERSISTED_SCOPES = ['system', 'component', 'componentSetting', 'storage'] as const;
 type PersistedScope = (typeof PERSISTED_SCOPES)[number];
 
 /** Bucket name for the unkeyed system scope. */
@@ -42,13 +42,14 @@ interface AppStateLike {
   system?: Record<string, any>;
   component?: Record<string, Record<string, any>>;
   componentSetting?: Record<string, Record<string, any>>;
+  storage?: Record<string, Record<string, any>>;
   [scope: string]: any;
 }
 
 type FieldIndex = Record<PersistedScope, string[]>;
 
 const emptyIndex = (): FieldIndex =>
-  ({ system: [], component: [], componentSetting: [] });
+  ({ system: [], component: [], componentSetting: [], storage: [] });
 
 /**
  * THE BIG PICTURE. The server keeps each user's state in memory as a
@@ -186,6 +187,7 @@ export class FieldPersister {
       system: [...index.system],
       component: [...index.component],
       componentSetting: [...index.componentSetting],
+      storage: [...index.storage],
     };
     let indexChanged = false;
 
@@ -234,9 +236,9 @@ export class FieldPersister {
 }
 
 /**
- * Reassemble a user's persisted state from the field keys — the read side
- * of the parallel path. Returns the same three-scope shape serializeForSave
- * persists, or null if the user has no per-field state yet.
+ * Reassemble a persisted state instance from the field keys — the read side
+ * of the parallel path. Returns the same scope shape serializeForSave
+ * persists, or null if the instance has no per-field state yet.
  */
 export async function assembleFieldState(
   kvs: KVStore,
@@ -246,7 +248,7 @@ export async function assembleFieldState(
   if (!raw) return null;
   const index: FieldIndex = { ...emptyIndex(), ...JSON.parse(raw) };
 
-  const state: AppStateLike = { system: {}, component: {}, componentSetting: {} };
+  const state: AppStateLike = { system: {}, component: {}, componentSetting: {}, storage: {} };
   for (const scope of PERSISTED_SCOPES) {
     for (const bucket of index[scope]) {
       const value = await kvs.get(kvsKey.field(user, scope, bucket));

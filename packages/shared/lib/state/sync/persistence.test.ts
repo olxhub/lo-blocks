@@ -27,6 +27,7 @@ const state1 = {
   system: { locale: 'en' },
   component: { block1: { value: 'a' }, block2: { value: 'b' } },
   componentSetting: { Tabs: { open: 1 } },
+  storage: {},
 };
 
 test('persists dirty buckets and maintains the index', async () => {
@@ -44,6 +45,7 @@ test('persists dirty buckets and maintains the index', async () => {
   expect(index.component.sort()).toEqual(['block1', 'block2']);
   expect(index.system).toEqual(['_']);
   expect(index.componentSetting).toEqual(['Tabs']);
+  expect(index.storage).toEqual([]);
 });
 
 test('identity diff: only the changed bucket is rewritten', async () => {
@@ -84,6 +86,24 @@ test('assembleFieldState round-trips what the persister wrote', async () => {
 
   const assembled = await assembleFieldState(kvs, USER);
   expect(assembled).toEqual(state1);
+});
+
+test('storage scope round-trips through field persistence', async () => {
+  const kvs = new MemoryKVStore();
+  const p = new FieldPersister(kvs, USER, 0);
+  const state = {
+    system: {},
+    component: {},
+    componentSetting: {},
+    storage: { 'studio://course/file.olx': { content: 'draft content' } },
+  };
+  p.stateChanged(state);
+  await p.close();
+
+  const stored = await kvs.get(kvsKey.field(USER, 'storage', 'studio://course/file.olx'));
+  expect(JSON.parse(stored!)).toEqual({ content: 'draft content' });
+  const assembled = await assembleFieldState(kvs, USER);
+  expect(assembled!.storage['studio://course/file.olx'].content).toBe('draft content');
 });
 
 test('bucket ids with /, #, :, spaces survive the KVS round trip', async () => {
