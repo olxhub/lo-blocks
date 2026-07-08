@@ -55,8 +55,9 @@ function selectContent(
     case 'static-kids':
       return collectBlockWithKids(idMap, parseDefinitionKey(id), acceptLanguage);
     case 'all':
-    default:
       return idMap;
+    default:
+      throw new Error(`Unknown SINGLE_BLOCK_MODE: ${SINGLE_BLOCK_MODE}`);
   }
 }
 
