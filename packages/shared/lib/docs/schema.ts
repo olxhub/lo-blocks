@@ -41,6 +41,7 @@ export const BlockResultSchema = z.object({
   isInput: z.boolean().optional(),
   isGrader: z.boolean().optional(),
   internal: z.boolean().optional().describe('Internal/system block (hidden from default listings)'),
+  prototype: z.boolean().optional().describe('Prototype block: under development, hidden from author-facing listings until stable — badge it when shown explicitly'),
 
   // Included on request
   attributes: z.array(AttributeDocSchema).nullable().optional(),

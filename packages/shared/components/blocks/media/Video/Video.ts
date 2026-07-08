@@ -33,6 +33,7 @@ const Video = core({
   fields,
   attributes,
   locals: mediaLocals,
+  prototype: true,
 });
 
 export default Video;

@@ -64,6 +64,7 @@ const AnswerDistribution = core({
   description: 'Class-wide distribution of answers to a target input, versus your own (Learning Catalytics-style).',
   fields,
   attributes,
+  prototype: true,
 });
 
 export default AnswerDistribution;

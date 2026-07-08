@@ -703,6 +703,15 @@ export const BlockBlueprintSchema = z.object({
    */
   internal: z.boolean().optional(),
   /**
+   * Marks this block as a PROTOTYPE: real and under active development,
+   * but not yet stable enough for course authors — hidden from author-
+   * facing listings (docs, insert palette, get_blocks) exactly like
+   * internal, and badged when shown explicitly. Distinct from internal:
+   * internal means "never author-facing"; prototype means "not YET" —
+   * the flag is removed when the block's surface is committed to.
+   */
+  prototype: z.boolean().optional(),
+  /**
    * Optional category override for documentation grouping.
    * By default, blocks are grouped by their directory location (e.g., 'input', 'grading').
    * Set this to override the default categorization without moving the file.
@@ -862,6 +871,11 @@ export interface LoBlock {
    * Internal blocks are hidden from the main documentation navigation.
    */
   internal?: boolean;
+  /**
+   * Prototype: under development, hidden from author-facing listings
+   * until the surface is committed to (see the schema doc above).
+   */
+  prototype?: boolean;
   /**
    * Optional category override for documentation grouping.
    * Overrides directory-based categorization without moving the file.

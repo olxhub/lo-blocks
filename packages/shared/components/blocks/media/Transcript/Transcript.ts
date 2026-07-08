@@ -35,6 +35,7 @@ const Transcript = core({
   description: 'Synchronized, clickable transcript (WebVTT) for any media player.',
   fields,
   attributes,
+  prototype: true,
 });
 
 export default Transcript;

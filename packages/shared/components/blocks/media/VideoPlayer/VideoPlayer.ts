@@ -25,6 +25,7 @@ const VideoPlayer = core({
   fields,
   attributes,
   locals: mediaLocals,
+  prototype: true,
 });
 
 export default VideoPlayer;
