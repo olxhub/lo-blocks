@@ -37,6 +37,13 @@ export interface ToolDef<
   output?: TOut;
   annotations?: ToolAnnotations;
   meta?: ToolMeta;
+  /**
+   * Pre-built JSON Schema for the input, used instead of converting `input`.
+   * For PASSTHROUGH tools (a client-side registry proxying a remote MCP
+   * server): the remote server owns the real schema and validation; the
+   * local `input` is then typically permissive (the remote re-validates).
+   */
+  jsonSchema?: Record<string, unknown>;
 }
 
 /** A registered tool: definition + handler. */
@@ -94,6 +101,12 @@ export class ToolRegistry {
     return this.tools.get(name);
   }
 
+  /** Remove a tool. No-op when absent. Lets a surface re-register a tool as
+   *  its context changes (register throws on duplicates by design). */
+  unregister(name: string): void {
+    this.tools.delete(name);
+  }
+
   /** All registered tool names. */
   names(): string[] {
     return [...this.tools.keys()];
@@ -141,7 +154,7 @@ export class ToolRegistry {
       function: {
         name: tool.name,
         description: tool.def.description,
-        parameters: zodToJsonSchema(tool.def.input),
+        parameters: tool.def.jsonSchema ?? zodToJsonSchema(tool.def.input),
       },
       callback: async (args: any): Promise<string> => {
         try {

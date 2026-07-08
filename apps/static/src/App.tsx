@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { store, extendSettings, useLoaded } from '@/lib/state';
+import { chatFields } from '@/lib/state/chatFields';
 import { initConfig, getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
@@ -33,7 +34,7 @@ const eventServerUrl = __STATIC_EVENT_SERVER_URL__ || undefined;
 const useWebsocket = !!eventServerUrl || getConfigBool('websocket');
 
 const reduxStore = store.init({
-  extraFields: extendSettings([]),
+  extraFields: extendSettings([]).extend(chatFields),
   blockRegistry: BLOCK_REGISTRY,
   websocket: useWebsocket,
   tabSync: getConfigBool('tab-sync'),

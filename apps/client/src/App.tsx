@@ -6,6 +6,8 @@ import React from 'react';
 
 import { store, extendSettings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
+import { chatFields } from '@/lib/state/chatFields';
+import { editorMirrorFields } from '@/components/blocks/authoring/Studio/locals';
 import { getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
@@ -17,9 +19,9 @@ import DocsPage from './pages/DocsPage';
 import StudioPage from './pages/StudioPage';
 
 const reduxStore = store.init({
-  // editorFields must be registered or the redux logger silently drops
-  // editor content events (Studio's working-tree buffers).
-  extraFields: extendSettings(editorFields),
+  // editorFields/chatFields must be registered or the redux logger silently
+  // drops their events (Studio's working-tree buffers; chat transcripts).
+  extraFields: extendSettings(editorFields).extend(chatFields, editorMirrorFields),
   blockRegistry: BLOCK_REGISTRY,
   websocket: getConfigBool('websocket'),
   tabSync: getConfigBool('tab-sync'),

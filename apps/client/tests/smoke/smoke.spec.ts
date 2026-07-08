@@ -45,7 +45,24 @@ async function loadPage(page: Page, url: string): Promise<PageResult> {
   const handler = (err: Error) => jsErrors.push(err.message);
   page.on('pageerror', handler);
 
-  await page.goto(url, { waitUntil: 'networkidle' });
+  // "Settled" = the DOM stopped changing AND no spinner is pending — NOT
+  // the network going idle: the app holds persistent push channels (the
+  // MCP client's GET /mcp SSE stream; WS state sync), so Playwright's
+  // networkidle never fires. A MutationObserver installed before any app
+  // code runs tracks the last DOM change; the spinner check covers loads
+  // whose slow part is a quiet network wait (spinners animate via CSS, so
+  // they mutate nothing while spinning).
+  await page.addInitScript(() => {
+    (window as any).__lastDomChange = Date.now();
+    new MutationObserver(() => { (window as any).__lastDomChange = Date.now(); })
+      .observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  });
+  await page.goto(url, { waitUntil: 'load' });
+  await page.waitForFunction(
+    () => Date.now() - (window as any).__lastDomChange > 800 && !document.querySelector('.spinner'),
+    undefined,
+    { timeout: 60_000, polling: 200 },
+  );
 
   page.off('pageerror', handler);
 

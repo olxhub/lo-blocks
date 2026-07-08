@@ -17,11 +17,18 @@
 // exist after processing events 0..n-1. This enables scrubbing through
 // an event stream without affecting live application state.
 //
+// PRECONDITION: the field-reducer registry must be populated before
+// replaying field events (LOG_APPEND, SPLICE_INPUT, SET_ADD, …) — call
+// store.init (browser) or initReducers(BLOCK_REGISTRY, extraFields)
+// (CLI/server) first. An empty registry silently degrades those events
+// to the legacy spread path and replays them wrong.
+//
 
 import { updateResponseReducer } from './state/store';
 import { initialOlxJsonState } from './state/olxjson';
 import { initialCatalogState } from './state/catalog';
 import { initialDocsState } from './state/docs';
+import { initialSourcesState } from './state/sources';
 import type { AppState } from './types';
 
 /**
@@ -94,9 +101,9 @@ export const initialReplayState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
+  sources: initialSourcesState,
 };
 
 /**

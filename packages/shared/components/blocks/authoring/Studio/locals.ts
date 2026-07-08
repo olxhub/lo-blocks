@@ -37,3 +37,23 @@ export const studioFields = state.fields([
   // changes, not per cursor movement.
   'studioCursorTag',
 ]);
+
+// The open editor buffer as an ADDRESSABLE block identity: component-scope
+// fields under the synthetic StateKey 'studio/editor' (see EDITOR_MIRROR_KEY
+// in _Studio.tsx). This is what lets the chat assistant's prompt reference
+// {{@editor.file}} / {{@editor.value}} through ordinary state-language
+// interpolation — and, when the field-sync loop lands, what makes unsaved
+// drafts visible server-side. Debounce-mirrored from the storage-scope
+// buffer (editorFields) on edit.
+// Registered via store.init extraFields (App.tsx), NOT on the Studio
+// blueprint: studioFields already has a system-scoped 'file', and a Fields
+// object requires unique names — the mirror's names are its @editor.*
+// storage keys, so they can't be renamed.
+// TODO: 'value' as a plain stateField means full-content events per
+// debounce; upgrade to a delta docField once selectReferences materializes
+// doc fields for synthetic keys.
+export const editorMirrorFields = state.fields([
+  { name: 'file', scope: scopes.component },
+  { name: 'source', scope: scopes.component },
+  'value',
+]);

@@ -79,7 +79,7 @@ ConversationHeader
 
 // Body of the document: could contain dialogues, commands, etc.
 ConversationBody
-  = lines:(CommentLine / SectionHeaderBlock / BlankLine / WaitCommand / PauseCommand / CommandBlock / SetCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
+  = lines:(CommentLine / SectionHeaderBlock / BlankLine / LlmCommand / WaitCommand / PauseCommand / CommandBlock / SetCommand / EmbedCommand / EmbedBlock / DialogueGroup)* {
       return lines.filter(Boolean);
     }
 
@@ -219,6 +219,41 @@ PauseCommand
       return { type: "PauseCommand" };
     }
 
+/* ─────────────────────────────  LLM interlude  ───────────────────────── */
+/*
+ * Opens the floor to a live LLM participant — the script parks, the user
+ * and the agent converse, and the script resumes when the exit condition
+ * is met (or immediately on Continue when there is none).
+ *
+ *   >>> llm tutor [until="@quiz.correct === correctness.correct" maxTurns=6]
+ *     You are a patient Socratic tutor. The student's essay so far:
+ *     {{@essay.value}}
+ *
+ * The participant name resolves against the cast for its avatar. The
+ * indented block is the system prompt; {{...}} interpolations are state
+ * language, resolved live at each turn. Metadata:
+ *   until    — state expression gating advance past the interlude
+ *   maxTurns — cap on user turns in the interlude
+ *   tools    — comma-separated toolset names the agent may use
+ *   profile  — server-side LLM profile (reserved; not yet wired)
+ */
+
+LlmCommandStart
+  = _ ">>>"
+
+LlmCommand
+  = _ ">>>" _ "llm" name:(WSP n:Name { return n; })? _ meta:InlineMetadata? _ NewLine prompt:IndentedBlock? {
+      return {
+        type: "LlmCommand",
+        participant: name || "LLM",
+        metadata: meta || {},
+        prompt: prompt || ""
+      };
+    }
+
+WSP = [ \t]+
+
+
 /* ─────────────────────────────  Wait command  ────────────────────────── */
 /*
  * Wait commands use state language expressions:
@@ -301,7 +336,7 @@ DialogueGroup
   }
 
 ContinuationLine
-  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !SetCommandStart !PauseCommandStart !WaitCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
+  = !SectionHeaderBlockStart !DialogueLineStart !MetadataLineStart !StartCommandBlock !SetCommandStart !PauseCommandStart !WaitCommandStart !LlmCommandStart !CommentLineStart !IndentedLine !EmbedStart content:LineContent NewLine {
       return { text: content };
   }
 

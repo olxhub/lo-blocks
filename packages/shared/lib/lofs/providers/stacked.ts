@@ -316,7 +316,9 @@ export class StackedStorageProvider implements StorageProvider {
       return a.line - b.line;
     });
 
-    return results;
+    // Each provider limited itself, but the union can exceed the cap —
+    // re-apply it to the merged result.
+    return options.limit !== undefined ? results.slice(0, options.limit) : results;
   }
 
   // Delete from the first provider

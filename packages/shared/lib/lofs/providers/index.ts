@@ -6,6 +6,6 @@
 // are server-only (they use Node.js fs). Import them directly:
 //   import { FileStorageProvider } from '@/lib/lofs/providers/file';
 //
-export { NetworkStorageProvider, type NetworkProviderOptions } from './network';
+export { McpStorageProvider } from './mcp';
 export { InMemoryStorageProvider } from './memory';
 export { StackedStorageProvider } from './stacked';

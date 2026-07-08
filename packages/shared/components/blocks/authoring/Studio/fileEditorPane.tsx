@@ -22,7 +22,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import { makeAddress, toLofsContentPath } from '@/lib/types/address';
 import type { ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
-import type { NetworkStorageProvider } from '@/lib/lofs';
+import type { McpStorageProvider } from '@/lib/lofs';
 import { STUDIO_NS } from './studioNs';
 import { useStudioContent, setStudioContent } from './editorContent';
 
@@ -59,7 +59,7 @@ export function enclosingBlockTag(text: string, pos: number): string | null {
 interface FileEditorPaneProps {
   source: LofsOrigin;
   path: string;
-  storage: NetworkStorageProvider;
+  storage: McpStorageProvider;
   cache: FileCache;
   /** CodeEditor handle for the parent's insert/scroll actions. */
   editorRef: React.Ref<CodeEditorHandle>;

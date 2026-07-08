@@ -13,7 +13,8 @@
 // in a single history entry.
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { NetworkStorageProvider } from '@/lib/lofs';
+import { McpStorageProvider } from '@/lib/lofs';
+import { useSources } from '@/lib/state/sources';
 import { toOlxRelativePath, VersionConflictError } from '@/lib/types/storage';
 import { toLofsOrigin, makeAddress, toLofsContentPath } from '@/lib/types/address';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
@@ -25,20 +26,57 @@ import Spinner from '@/components/common/Spinner';
 import Notice from '@/components/common/Notice';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import type { CodeEditorHandle } from '@/components/common/CodeEditor';
-import type { RuntimeProps, LofsOrigin, LofsRef } from '@/lib/types';
+import type { RuntimeProps, LofsOrigin, LofsRef, SourceOption } from '@/lib/types';
 import FileEditorPane, { type FileCache } from './fileEditorPane';
 import { getStudioContent, setStudioContent, useStudioContent } from './editorContent';
 import { FilesPanel } from './filesPanel';
 import { SearchPanel } from './searchPanel';
 import { DocsPanel } from './docsPanel';
-import EditorLLMChat from './editorLLMChat';
+import RenderOLX from '@/components/common/RenderOLX';
+import { bindStudioEditorTools } from './llmTools';
+import { STUDIO_NS } from './studioNs';
 import NewFileDialog from './newFileDialog';
 import { CommandPalette } from './commandPalette';
-import { studioFields } from './locals';
+import { studioFields, editorMirrorFields } from './locals';
+import { asStateKey } from '@/lib/types/id-grammar';
 
 /** Buffer key when no file is open — subscribes to an always-empty scratch
  *  buffer so the content hook stays unconditional (rules of hooks). */
 const SCRATCH_REF = 'memory://studio-scratch' as LofsRef;
+
+/** The editor buffer's addressable identity (see editorMirrorFields). */
+const EDITOR_MIRROR_KEY = asStateKey('studio/editor');
+
+/**
+ * The Studio assistant IS a Chat block instance: a one-entry chatpeg script
+ * that opens an LLM interlude and never closes it (until="false"). Context
+ * arrives through ordinary state-language interpolation against the editor
+ * mirror fields; tools are toolsets on the browser tool plane — the same
+ * MCP tools external agents use, plus the editor-local 'studio-editor' set.
+ */
+const STUDIO_CHAT_OLX = `<Chat id="studio_chat" height="flex-1">
+cast:
+  assistant:
+    seed: studio_assistant
+~~~~
+
+>>> llm assistant [until="false" exit=none upload=true tools="studio-editor,content-read,content-write,docs"]
+  You are an educational content authoring assistant for the lo-blocks
+  platform (OLX blocks; chatpeg and other PEG content formats).
+
+  Current file: {{@editor.file}} (content source: {{@editor.source}})
+  Current file contents:
+  {{@editor.value}}
+
+  Tool notes:
+  - Edit changes the OPEN buffer (applied immediately; the author saves).
+  - Read/Glob/Grep explore the content library. Use get_blocks and
+    get_formats for block/format documentation before authoring
+    unfamiliar blocks.
+  - Write/Delete/Move change saved files and need source="{{@editor.source}}".
+  - If no file is open, help the author find or create one.
+  - Only modify content when asked.
+</Chat>`;
 
 // ---------------------------------------------------------------------------
 // URL boundary validation (ported: fail closed, never throw)
@@ -75,7 +113,6 @@ const fileRef = (source: LofsOrigin, path: string): LofsRef =>
 export type SidebarTab = 'chat' | 'docs' | 'search' | 'files';
 const SIDEBAR_TABS: SidebarTab[] = ['chat', 'docs', 'search', 'files'];
 
-interface SourceOption { origin: LofsOrigin; label: string; writable: boolean }
 
 // ---------------------------------------------------------------------------
 // Source selector (ported from SourceSelector.tsx: writable sources first,
@@ -103,7 +140,7 @@ function SourceSelector({ props, sources, current, onChange }: {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   const writable = sources.filter(s => s.writable);
   const readOnly = sources.filter(s => !s.writable);
@@ -161,21 +198,8 @@ export default function Studio(props: RuntimeProps) {
   }, []);
 
   // --- Sources / provider ---------------------------------------------------
-  // useState-ok: server data cache — becomes a normalized redux slice when
-  // sources/files move to MCP tools (backlog: post-storage-model).
-  const [sources, setSources] = useState<SourceOption[]>([]);
-  useEffect(() => {
-    fetch('/api/sources')
-      .then(r => r.json())
-      .then(j => {
-        if (!j.ok) return;
-        // JSON drops the LofsOrigin brand — re-brand on receipt.
-        setSources(j.sources.map((s: { origin: string; label: string; writable: boolean }) => ({
-          ...s, origin: toLofsOrigin(s.origin),
-        })));
-      })
-      .catch(console.error);
-  }, []);
+  // get_sources MCP tool → redux cache → hook (lib/state/sources.ts).
+  const { sources } = useSources();
 
   // Undefined when nothing's picked or the URL named an unoffered source —
   // both legitimate "can't write" states.
@@ -184,7 +208,7 @@ export default function Studio(props: RuntimeProps) {
 
   // Origin-scoped provider: all file ops target this one source. Ref-mirrored
   // so callbacks skip dependency churn.
-  const storage = useMemo(() => new NetworkStorageProvider(source), [source]);
+  const storage = useMemo(() => new McpStorageProvider(source), [source]);
   const storageRef = useRef(storage);
   storageRef.current = storage;
 
@@ -211,6 +235,19 @@ export default function Studio(props: RuntimeProps) {
   // (the same field FileEditorPane's editor writes) — drives dirty state
   // and content-derived sidebars with no mirror state.
   const openContent = useStudioContent(fileId ?? SCRATCH_REF)[0];
+
+  // Mirror the open buffer into its addressable identity ('studio/editor')
+  // so the chat assistant's prompt interpolations ({{@editor.value}} etc.)
+  // see current state. Debounced: 'value' is a full-content event today
+  // (see editorMirrorFields TODO).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      updateField(null, editorMirrorFields.file, filePath ?? '', { stateKey: EDITOR_MIRROR_KEY });
+      updateField(null, editorMirrorFields.source, source ?? '', { stateKey: EDITOR_MIRROR_KEY });
+      updateField(null, editorMirrorFields.value, openContent ?? '', { stateKey: EDITOR_MIRROR_KEY });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [filePath, source, openContent]);
   // Block tag enclosing the editor cursor (change-frequency writes — see
   // FileEditorPane's listener) — drives the docs panel's context reference.
   const [cursorTag, setCursorTag] = useFieldState(props, studioFields.studioCursorTag, '');
@@ -261,6 +298,19 @@ export default function Studio(props: RuntimeProps) {
   const handleFileSelect = useCallback((path: string) => {
     setLocation(source, path);
   }, [setLocation, source]);
+
+  // Keep the 'studio-editor' toolset's live context current (buffer access,
+  // OpenFile navigation, buffer-edit validation) — the chat block pulls the
+  // toolset from the tool plane by name.
+  useEffect(() => {
+    bindStudioEditorTools({
+      getCurrentContent: () => (fileId ? getStudioContent(fileId) : ''),
+      getFileType: () => (filePath ? (filePath.split('.').pop()?.toLowerCase() ?? 'olx') : 'olx'),
+      onApplyEdit: (v) => { if (fileId) setStudioContent(fileId, v); },
+      onOpenFile: handleFileSelect,
+      source,
+    });
+  }, [fileId, filePath, source, handleFileSelect]);
 
   // Switching repos closes the open file (it belonged to the old source).
   const handleSourceChange = useCallback((origin: LofsOrigin) => {
@@ -462,12 +512,10 @@ export default function Studio(props: RuntimeProps) {
           <div className="studio-sidebar-content">
             {sidebarTab === 'chat' && (
               <div className="sidebar-panel chat-panel">
-                <EditorLLMChat
-                  path={filePath || undefined}
-                  getContent={() => (fileId ? getStudioContent(fileId) : '')}
-                  onApplyEdit={(v) => { if (fileId) setStudioContent(fileId, v); }}
-                  onOpenFile={handleFileSelect}
-                  storage={storage}
+                <RenderOLX
+                  id={asStateKey('studio/studio_chat_root')}
+                  ns={STUDIO_NS}
+                  inline={STUDIO_CHAT_OLX}
                 />
               </div>
             )}

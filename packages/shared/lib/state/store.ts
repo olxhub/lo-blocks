@@ -57,13 +57,11 @@ import {
   DOCS_EVENT_TYPES,
   initialDocsState,
 } from './docs';
-// Chat event types
-export const CHAT_ADD_MESSAGE = 'CHAT_ADD_MESSAGE';
-export const CHAT_ADD_MESSAGES = 'CHAT_ADD_MESSAGES';
-export const CHAT_CLEAR = 'CHAT_CLEAR';
-export const CHAT_SET_STATUS = 'CHAT_SET_STATUS';
-const CHAT_EVENT_TYPES = [CHAT_ADD_MESSAGE, CHAT_ADD_MESSAGES, CHAT_CLEAR, CHAT_SET_STATUS];
-
+import {
+  sourcesReducer,
+  SOURCES_EVENT_TYPES,
+  initialSourcesState,
+} from './sources';
 // ---------------------------------------------------------------------------
 // Reducer strategy toggle
 // ---------------------------------------------------------------------------
@@ -165,9 +163,9 @@ const initialState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
-  chat: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
+  sources: initialSourcesState,
 };
 
 
@@ -186,48 +184,8 @@ export const updateResponseReducer = (state = initialState, action) => {
     };
   }
 
-  // Handle chat events
-  if (CHAT_EVENT_TYPES.includes(eventType)) {
-    const { chatId, message, messages, status } = action;
-    const currentChat = state.chat?.[chatId] || { messages: [], status: 'LLM_INIT' };
-
-    switch (eventType) {
-      case CHAT_ADD_MESSAGE:
-        return {
-          ...state,
-          chat: {
-            ...state.chat,
-            [chatId]: { ...currentChat, messages: [...currentChat.messages, message] },
-          },
-        };
-      case CHAT_ADD_MESSAGES:
-        return {
-          ...state,
-          chat: {
-            ...state.chat,
-            [chatId]: { ...currentChat, messages: [...currentChat.messages, ...messages] },
-          },
-        };
-      case CHAT_SET_STATUS:
-        return {
-          ...state,
-          chat: {
-            ...state.chat,
-            [chatId]: { ...currentChat, status },
-          },
-        };
-      case CHAT_CLEAR:
-        return {
-          ...state,
-          chat: {
-            ...state.chat,
-            [chatId]: { messages: [], status: 'LLM_INIT' },
-          },
-        };
-      default:
-        return state;
-    }
-  }
+  // Chat is ordinary field data (lib/state/chatFields.ts) — the transcript
+  // is a log CRDT in component scope, routed by the field reducers below.
 
   // Handle catalog events (MCP-sourced repository data)
   if (CATALOG_EVENT_TYPES.includes(eventType)) {
@@ -242,6 +200,14 @@ export const updateResponseReducer = (state = initialState, action) => {
     return {
       ...state,
       docs: docsReducer(state.docs, { ...action, type: eventType }),
+    };
+  }
+
+  // Handle sources events (MCP-sourced content-source list) — same family.
+  if (SOURCES_EVENT_TYPES.includes(eventType)) {
+    return {
+      ...state,
+      sources: sourcesReducer(state.sources, { ...action, type: eventType }),
     };
   }
 
@@ -442,18 +408,32 @@ function collectEventTypes(
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
     'SPLICE_INPUT',
   ];
-  const extraEventTypes = fieldList.flatMap(f =>
-    typeof f === 'string' ? [f] : (f.events ?? (f.event ? [f.event] : []))
-  );
+  // extraFields (app-level fields with no owning block — editor buffers,
+  // chat transcripts) register their reducers too, LAST so they take
+  // precedence. Previously only their event types were collected, so an
+  // extraField's reduce only ran if some block happened to register the
+  // same event name — a silent-fallback trap.
+  const extraEventTypes: string[] = [];
+  for (const f of fieldList) {
+    if (typeof f === 'string') { extraEventTypes.push(f); continue; }
+    const events = f.events ?? (f.event ? [f.event] : []);
+    extraEventTypes.push(...events);
+    if (f.reduce) {
+      for (const event of events) {
+        _fieldReducers.set(`${event}:${f.name}`, { reduce: f.reduce, fieldName: f.name });
+        _fieldReducers.set(event, { reduce: f.reduce, fieldName: f.name });
+      }
+    }
+  }
   return Array.from(new Set([
     ...commonEventTypes,
     ...commonFieldEventTypes,
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
-    ...CHAT_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
+    ...SOURCES_EVENT_TYPES,
   ]));
 }
 
@@ -465,8 +445,8 @@ function collectEventTypes(
  * Client-side callers should use `store.init()` instead — it calls this
  * internally alongside lo_event setup.
  */
-export function initReducers(blockRegistry: BlockRegistryParam) {
-  collectEventTypes([], blockRegistry);
+export function initReducers(blockRegistry: BlockRegistryParam, extraFields: ExtraFieldsParam = []) {
+  collectEventTypes(extraFields, blockRegistry);
 }
 
 // Event capture logger - accessible via window.__eventCapture in browser
@@ -524,9 +504,10 @@ function configureStore({
     reduxLogger.reduxLogger([], {
       stateSync: useTabSync ? { predicate: syncFilter } : false,
       // Persist system, component, and componentSetting scopes.
-      // Excludes olxjson (large, loaded from content system),
-      // chat (transient), and storage (editor scratch).
-      // TODO: storage and chat scopes for authoring use cases
+      // Excludes olxjson (large, loaded from content system) and
+      // storage (editor scratch). Chat transcripts are component-scope
+      // fields (chatFields.ts), so they persist with component state.
+      // TODO: storage scope for authoring use cases
       serializeForSave: (state) => {
         const appState = (state as any).application_state;
         if (!appState) return state;
@@ -543,7 +524,7 @@ function configureStore({
         const cur = (currentState as any)?.application_state ?? {};
         if (!appState) return {} as any;
         // Merge into the live application_state so scopes we don't persist
-        // (olxjson, storage, chat) survive the load instead of being replaced
+        // (olxjson, storage) survive the load instead of being replaced
         // away — set_state_reducer returns the payload wholesale.
         return {
           application_state: {

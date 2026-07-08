@@ -5,7 +5,7 @@
 // RepoRelativePath brand (see types/core.ts for the type).
 //
 // Server-only because it uses Node `path`. It can't live in types/storage.ts
-// (client-bundled via NetworkStorageProvider; no Node `path` polyfill here), so
+// (client-bundled via McpStorageProvider; no Node `path` polyfill here), so
 // the brand TYPE lives in core.ts and this CONSTRUCTOR lives beside the other
 // server-only path code (resolveSafeReadPath/WritePath in providers/file.ts).
 //

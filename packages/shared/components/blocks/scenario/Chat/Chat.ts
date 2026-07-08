@@ -14,9 +14,9 @@ import {
   selectReferences, createContext, extractStructuredRefs, mergeReferences, EMPTY_REFS,
   parse as parseExpr, evaluate,
 } from '@/lib/stateLanguage';
-import type { ConversationEntry, WaitCommand, ParsedConversation, SetField } from './_chatTypes';
+import type { ConversationEntry, WaitCommand, ParsedConversation, SetField, LlmCommand } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
-import { canAdvanceToContent, evaluateWaitEntry } from './waitConditions';
+import { canAdvanceToContent, evaluateWaitEntry, interludeExitAllowed } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp from './_chatParser';
@@ -28,6 +28,11 @@ export const fields = state.fields([
   'isDisabled',
   'sectionHeader',
   'ignoreWaits',     // instructor mode: treat all wait conditions as satisfied
+  // Runtime turns from LLM interludes (>>> llm): an append-only, actor-
+  // stamped log CRDT of { atIndex, message } items, keyed to the body index
+  // of the interlude they belong to. The script stays static content; only
+  // live conversation accumulates state.
+  state.logField('messages'),
 ]);
 
 /* ----------------------------------------------------------------
@@ -87,10 +92,14 @@ function extractWaitRefs(entries: ConversationEntry[]) {
     if (entry.type === 'WaitCommand' && entry.expression) {
       expressions.push(entry.expression);
     }
+    if (entry.type === 'LlmCommand' && entry.metadata.until) {
+      expressions.push(entry.metadata.until);
+    }
   }
   if (expressions.length === 0) return EMPTY_REFS;
   return mergeReferences(...expressions.map(extractStructuredRefs));
 }
+
 
 /**
  * Execute a SetField command: resolve its destination stateKey from the
@@ -125,6 +134,28 @@ function canAdvance(props: RuntimeProps, reduxState: any): boolean {
 
 function advance(props: RuntimeProps, reduxState: any): boolean {
   const { allEntries, windowedIndex, clipEnd, waitContext, ignoreWaits } = getState(props, reduxState);
+
+  // Parked on an LLM interlude: the floor is open. Leaving it is allowed
+  // when the `until` expression is satisfied, the agent called its
+  // end_conversation tool (durable exit marker in the log), or maxTurns is
+  // exhausted (a hard stop must never strand the user behind an
+  // unsatisfied until). Instructor ignore-waits overrides.
+  //
+  // Checked BEFORE the finished early-return: an interlude can be the
+  // script's LAST entry (a pure-LLM chat is exactly that), and an open
+  // final interlude must still hold the advance — otherwise a parent
+  // container would walk past a student mid-conversation.
+  const current = allEntries[windowedIndex];
+  if (current?.type === 'LlmCommand' && !ignoreWaits) {
+    // fieldSelector returns the RAW field value — materialize the log doc
+    // through the field's read transform (idempotent on arrays).
+    const rawItems = state.fieldSelector(reduxState, props, fields.messages, { fallback: [] });
+    const items = (fields.messages.read ? fields.messages.read(rawItems) : rawItems) as
+      Array<{ atIndex: number; control?: string; message: { type: string; speaker?: string } }>;
+    if (!interludeExitAllowed(current, waitContext, items, windowedIndex)) {
+      return true; // interlude still active — don't let parent advance past us
+    }
+  }
 
   // Conversation finished
   if (windowedIndex >= clipEnd) return false;
@@ -162,6 +193,7 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
       case 'Line':
       case 'PauseCommand':
       case 'EmbedCommand':
+      case 'LlmCommand':  // stop ON the interlude — the floor opens in the UI
         nextIndex += 1;
         state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
         return true;

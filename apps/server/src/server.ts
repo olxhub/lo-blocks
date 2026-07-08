@@ -38,10 +38,6 @@ import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
 import { handleActivities } from './routes/activities.js';
 import { handleShutdown } from './routes/admin.js';
-import { handleFileGet, handleFilePost, handleFileDelete, handleFilePut } from './routes/file.js';
-import { handleFilesGet } from './routes/files.js';
-import { handleGrep } from './routes/grep.js';
-import { handleSourcesGet } from './routes/sources.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
@@ -52,11 +48,12 @@ const PORT = Number(process.env.PORT ?? 8888);
 const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
 // The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
-// transport) — there is no /api/catalog. See docs/ux.md + docs/mcp-authoring.md.
+// transport) — there is no /api/catalog. File/search/source operations are
+// MCP tools too (lib/lofs/tools.ts); the /api/file|files|grep|sources REST
+// routes are retired.
 const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
-  '/api/activities', '/api/admin/', '/api/file', '/api/files',
-  '/api/grep', '/api/sources', '/boot-status',
+  '/api/activities', '/api/admin/', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
 
@@ -124,13 +121,6 @@ export async function startServer(
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
   app.get('/api/activities', handleActivities);
   app.get('/api/admin/shutdown', handleShutdown);
-  app.get('/api/file', handleFileGet);
-  app.post('/api/file', handleFilePost);
-  app.delete('/api/file', handleFileDelete);
-  app.put('/api/file', handleFilePut);
-  app.get('/api/files', handleFilesGet);
-  app.get('/api/grep', handleGrep);
-  app.get('/api/sources', handleSourcesGet);
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));

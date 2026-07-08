@@ -50,6 +50,9 @@ export const idField = active.idField;
 // ---------------------------------------------------------------------------
 // Always available regardless of strategy
 // ---------------------------------------------------------------------------
+// logField has no classic counterpart: an append-only op-keyed log merges
+// safely under both strategies, so one implementation serves both.
+export { logField } from './crdt/logConstructor';
 export { fieldNameToDefaultEventName } from './shared';
 export { immediate, debounce, throttle, aggregate, custom } from './batching';
 export type { BatchingStrategy } from './batching';

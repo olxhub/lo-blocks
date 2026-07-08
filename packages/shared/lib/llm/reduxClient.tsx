@@ -5,15 +5,10 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import * as lo_event from 'lo_event';
 import { hashContent } from '@/lib/util/index';
-import {
-  CHAT_ADD_MESSAGE,
-  CHAT_ADD_MESSAGES,
-  CHAT_SET_STATUS,
-} from '@/lib/state/store';
-import type { ChatMessage, ChatLineMessage, RootState } from '@/lib/types';
+import { useFieldState, updateField, appendToLog } from '@/lib/state';
+import { chatFields, chatStateKey } from '@/lib/state/chatFields';
+import type { ChatMessage, ChatLineMessage } from '@/lib/types';
 import type { ApiMessage, LlmTool, ToolCall, ToolResult, ChatCompletionResponse } from './types';
 
 const LLM_ENDPOINT = '/api/llm/chat/completions';
@@ -92,7 +87,9 @@ export async function callLLM(params: CallLLMParams): Promise<CallLLMResult> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, ...newMessages],
-          tools: tools ? tools.map(({ callback, ...rest }) => rest) : [],
+          // OpenAI wire format requires type on every tool — providers that
+          // pass the body through untransformed (azure/openai) 400 without it.
+          tools: tools ? tools.map(({ callback, ...rest }) => ({ type: 'function', ...rest })) : [],
         }),
       });
       const json = ((await res.json()) as ChatCompletionResponse).choices?.[0];
@@ -195,24 +192,25 @@ export function useChat(params: UseChatParams = {}) {
     initialMessage = 'Ask the LLM a question.'
   } = params;
 
-  const chatState = useSelector(
-    (state: RootState) => state.application_state.chat?.[chatId]
-  );
-  const messages: ChatMessage[] = chatState?.messages ?? [];
-  const status: string = chatState?.status ?? LLM_STATUS.INIT;
+  // Chat state is ordinary field data (chatFields.ts): the transcript is an
+  // append-only log CRDT, status a LWW register, keyed per conversation.
+  // props = null + explicit stateKey — the non-block-surface field pattern.
+  const stateKey = chatStateKey(chatId);
+  const [messages] = useFieldState(null, chatFields.messages, [] as ChatMessage[], { stateKey }) as [ChatMessage[], unknown];
+  const [status] = useFieldState(null, chatFields.status, LLM_STATUS.INIT, { stateKey }) as [string, unknown];
 
   // Dispatch helpers
   const addMessage = useCallback((message: ChatMessage) => {
-    lo_event.logEvent(CHAT_ADD_MESSAGE, { chatId, message });
-  }, [chatId]);
+    appendToLog(null, chatFields.messages, message, { stateKey });
+  }, [stateKey]);
 
   const addMessages = useCallback((msgs: ChatMessage[]) => {
-    lo_event.logEvent(CHAT_ADD_MESSAGES, { chatId, messages: msgs });
-  }, [chatId]);
+    for (const message of msgs) appendToLog(null, chatFields.messages, message, { stateKey });
+  }, [stateKey]);
 
   const setStatus = useCallback((newStatus: string) => {
-    lo_event.logEvent(CHAT_SET_STATUS, { chatId, status: newStatus });
-  }, [chatId]);
+    updateField(null, chatFields.status, newStatus, { stateKey });
+  }, [stateKey]);
 
   // Initialize with initial message if chat is empty
   useEffect(() => {

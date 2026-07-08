@@ -14,6 +14,10 @@ import {
   initialReplayState,
   LoggedEvent,
 } from './replay';
+import { initReducers } from './state/store';
+import { fieldInfosFrom } from './state/fields';
+import { chatFields, chatStateKey } from './state/chatFields';
+import { logRead } from './crdt/log';
 
 // Sample events from grading-session.json
 const gradingSessionEvents: LoggedEvent[] = [
@@ -232,5 +236,33 @@ describe('replay', () => {
       const preview = filterByContext(events, 'preview');
       expect(preview.map(e => e.event)).toEqual(['A', 'C']);
     });
+  });
+});
+
+
+describe('field-event replay (registry precondition)', () => {
+  // Chat transcripts are LOG_APPEND field events. Replaying them requires
+  // the field-reducer registry — an empty registry silently degrades to
+  // the legacy spread path and the messages field never materializes.
+  it('replays LOG_APPEND chat events into the messages log field', () => {
+    initReducers({}, fieldInfosFrom(chatFields));
+
+    const stateKey = String(chatStateKey('replay_test'));
+    const events: LoggedEvent[] = [
+      {
+        event: 'LOG_APPEND', scope: 'component', id: stateKey, field: 'messages',
+        opId: 'actor1:100:1', ts: 100, actor: 'actor1', n: 1,
+        item: { type: 'Line', speaker: 'You', text: 'hello' },
+      },
+      {
+        event: 'LOG_APPEND', scope: 'component', id: stateKey, field: 'messages',
+        opId: 'actor1:200:2', ts: 200, actor: 'actor1', n: 2,
+        item: { type: 'Line', speaker: 'tutor', text: 'hi there' },
+      },
+    ];
+
+    const state = replayToEvent(events);
+    const items = logRead(state.component[stateKey]?.messages) as Array<{ text: string }>;
+    expect(items.map(m => m.text)).toEqual(['hello', 'hi there']);
   });
 });

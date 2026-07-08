@@ -10,7 +10,7 @@ import RenderOLX from './RenderOLX';
 import PEGPreviewPane from './PEGPreviewPane';
 import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
-import { NetworkStorageProvider } from '@/lib/lofs';
+import { McpStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
 import type { AppError } from '@/lib/types/errors';
@@ -63,7 +63,7 @@ export default function PreviewPane({
   nodeInfoRef,
 }: PreviewPaneProps) {
   // Create default provider if none supplied (for src="" resolution)
-  const defaultProvider = useMemo(() => new NetworkStorageProvider(), []);
+  const defaultProvider = useMemo(() => new McpStorageProvider(), []);
   const provider = resolveProvider ?? defaultProvider;
 
   // PEG files get their own preview pane

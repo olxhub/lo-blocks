@@ -12,7 +12,8 @@ import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
-import { useWaitConditions } from './waitConditions';
+import { useWaitConditions, interludeExitAllowed } from './waitConditions';
+import { useLlmInterlude } from './llmInterlude';
 
 import * as chatUtils from './chatUtils';
 import type { ClipResolution } from './chatUtils';
@@ -114,12 +115,19 @@ export default function Chat(props: RuntimeProps) {
   // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window
   // with the same filter logic. A Map<DefinitionRef, ReactNode> keyed by entry.ref would be
   // more robust against dependency/closure mismatches, at the cost of a bit more memory.
+  /* LLM interludes (>>> llm): runtime turns live in the `messages` log
+   * field, keyed by the body index of their interlude. The script transcript
+   * stays derived; interlude turns splice in at their interlude's position. */
+  const interlude = useLlmInterlude(props, allEntries, windowedIndex);
+
   const visibleMessages: ChatDisplayEntry[] = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
     const messages: ChatDisplayEntry[] = [];
     let embedIndex = 0;
 
-    for (const entry of window) {
+    for (let i = 0; i < window.length; i++) {
+      const entry = window[i];
+      const bodyIndex = windowRange.start + i;
       if (entry.type === 'Line') {
         messages.push(entry);
       } else if (entry.type === 'EmbedCommand') {
@@ -127,10 +135,14 @@ export default function Chat(props: RuntimeProps) {
           type: 'Element',
           element: renderedBlocks[embedIndex++],
         });
+      } else if (entry.type === 'LlmCommand') {
+        for (const item of interlude.logItems) {
+          if (item.atIndex === bodyIndex) messages.push(item.message);
+        }
       }
     }
     return messages;
-  }, [allEntries, windowRange, windowedIndex, renderedBlocks]);
+  }, [allEntries, windowRange, windowedIndex, renderedBlocks, interlude.logItems]);
 
   /** Total number of visible entries (lines + embeds; commands excluded) */
   const totalDialogueLines = useMemo(() => {
@@ -139,12 +151,20 @@ export default function Chat(props: RuntimeProps) {
       .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
   }, [allEntries, windowRange]);
 
+  /** Script-derived entries shown so far — the "N" in "N of M". Interlude
+   *  turns are live conversation, not script progress, so they don't count. */
+  const scriptMessagesShown = useMemo(() => {
+    return allEntries
+      .slice(windowRange.start, windowedIndex + 1)
+      .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
+  }, [allEntries, windowRange, windowedIndex]);
+
   const conversationFinished = windowedIndex >= clipRange.end;
 
   /* ----------------------------------------------------------------
    * Wait conditions - check if we can advance past any wait commands
    * -------------------------------------------------------------- */
-  const { canAdvance } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
+  const { canAdvance, context: waitContext } = useWaitConditions(props, allEntries, windowedIndex, windowRange.end);
 
   /* ----------------------------------------------------------------
    * Advance handler — delegates to the blueprint advance function
@@ -160,7 +180,13 @@ export default function Chat(props: RuntimeProps) {
   const [instructorMode] = useFieldState(null, settings.instructorMode, false);
   const [ignoreWaits, setIgnoreWaits] = useFieldState(props, fields.ignoreWaits, false);
 
-  const isDisabled = !canAdvance && !(instructorMode && ignoreWaits);
+  // Parked on an interlude, "Continue" is the exit gate: until satisfied,
+  // agent ended it, or maxTurns exhausted (see interludeExitAllowed).
+  const interludeCanExit = interlude.active
+    ? interludeExitAllowed(interlude.active, waitContext, interlude.logItems, interlude.activeIndex)
+    : true;
+  const isDisabled = (interlude.active ? !interludeCanExit : !canAdvance)
+    && !(instructorMode && ignoreWaits);
 
   const handleAdvance = useCallback(() => {
     advanceFrom(props.nodeInfo, props.runtime.store.getState());
@@ -174,13 +200,54 @@ export default function Chat(props: RuntimeProps) {
    * Footers
    * -------------------------------------------------------------- */
 
-  const footer = conversationFinished ? (
+  const interludeMaxed = interlude.maxTurns !== null && interlude.turnsUsed >= interlude.maxTurns;
+  const interludeSendDisabled = interlude.busy || interlude.ended || interludeMaxed;
+
+  // A FINAL interlude (the script's last entry — a pure-LLM chat is exactly
+  // that) has nothing to Continue to: never show the advance button, and
+  // once the agent ends it (or maxTurns closes the input) the chat is
+  // simply finished. advance() holds the parent until then (its interlude
+  // gate runs before the finished check).
+  const finalInterlude = interlude.active && windowedIndex >= clipRange.end;
+  const interludeClosed = finalInterlude && (interlude.ended || interludeMaxed);
+
+  // Order matters: "parked on an interlude" wins over "finished".
+  const footer = interludeClosed ? (
+    <InputFooter id={`${id}_footer`} disabled />
+  ) : interlude.active ? (
+    // Open floor: talk to the LLM participant; Continue (when the exit
+    // gate allows, and there is somewhere to go) resumes the script.
+    <>
+      {!isDisabled && !finalInterlude && !interlude.busy && (
+        // Hidden while a reply is in flight: advancing mid-send would let a
+        // late end_conversation race the user's advance (llmInterlude guards
+        // that too), and the reply would land behind the moved script.
+        <AdvanceFooter
+          id={`${id}_advance`}
+          onAdvance={handleAdvance}
+          currentMessageIndex={scriptMessagesShown}
+          totalMessages={totalDialogueLines}
+        />
+      )}
+      <InputFooter
+        id={`${id}_footer`}
+        onSendMessage={(text, file) => { void interlude.sendMessage(text, file); }}
+        allowFileUpload={interlude.active.metadata.upload === 'true'}
+        disabled={interludeSendDisabled}
+        placeholder={
+          interlude.ended ? 'Conversation ended — press Continue'
+            : interlude.busy ? `${interlude.active.participant} is thinking…`
+              : `Message ${interlude.active.participant}…`
+        }
+      />
+    </>
+  ) : conversationFinished ? (
     <InputFooter id={`${id}_footer`} disabled />
   ) : (
     <AdvanceFooter
       id={`${id}_footer`}
       onAdvance={handleAdvance}
-      currentMessageIndex={visibleMessages.length}
+      currentMessageIndex={scriptMessagesShown}
       totalMessages={totalDialogueLines}
       disabled={isDisabled}
     />

@@ -4,7 +4,7 @@
 //
 // Provides a unified interface for accessing learning content from multiple sources:
 // - FileStorageProvider: Local filesystem access (server-only)
-// - NetworkStorageProvider: HTTP-based content APIs (client-safe)
+// - McpStorageProvider: content over the /mcp LOFS tools (client-safe)
 // - InMemoryStorageProvider: Virtual filesystem for testing/inline content (client-safe)
 // - GitStorageProvider: Version-controlled content (server-only, planned)
 // - PostgresStorageProvider: Database-backed content (server-only, planned)

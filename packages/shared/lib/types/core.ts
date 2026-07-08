@@ -17,7 +17,7 @@
 import { z } from 'zod';
 import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
-import type { LofsRef, LofsCanonical, ForgeLink } from './address';
+import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { ContentVariant, LocaleContext } from './i18n';
 
 /**
@@ -270,7 +270,7 @@ export type RepoRelativePath = SafeRelativePath & { __contentFile: true };
  * - FileStorageProvider: resolves against baseDir to an absolute path,
  *   validated by resolveSafeReadPath / resolveSafeWritePath (traversal
  *   checks, symlink validation, allowed-directory rules).
- * - NetworkStorageProvider: sends the repo-relative path as-is over HTTP,
+ * - McpStorageProvider: sends the repo-relative path as-is over MCP,
  *   with the scoped source (?source=<origin>) so the server routes via
  *   sourceProvider(origin), which re-validates.
  * - InMemoryStorageProvider: uses the path directly as a map key.
@@ -345,7 +345,7 @@ export interface FieldInfo {
    *  Absent for classic fields (no validation — classic stateField omits kind).
    *  Present on CRDT fields (crdt/state.ts sets 'state', crdt/doc.ts sets 'doc',
    *  crdt/set.ts sets 'set'). */
-  kind?: 'state' | 'set' | 'doc' | 'id';
+  kind?: 'state' | 'set' | 'doc' | 'id' | 'log';
 
   /** Event types this field dispatches. A plain field has one (e.g. UPDATE_VALUE).
    *  A CRDT field may have several (e.g. SPLICE_INPUT for insert/delete). Future
@@ -1594,6 +1594,24 @@ export interface CatalogState {
   [argsKey: string]: CatalogEntry;
 }
 
+// ---------------------------------------------------------------------------
+// Sources slice — the authoring-facing content-source list (get_sources).
+// ---------------------------------------------------------------------------
+
+/** One configured content source, as Studio's repo picker shows it. */
+export interface SourceOption {
+  origin: LofsOrigin;
+  label: string;
+  writable: boolean;
+}
+
+/** The sources slice: one global list (writable sources first). */
+export interface SourcesState {
+  sources: SourceOption[];
+  loadingState: { status: LoadingStatus };
+  error?: { message: string };
+}
+
 /**
  * One block's documentation record from the get_blocks MCP tool.
  *
@@ -1694,15 +1712,13 @@ export interface AppState {
   storage: Record<string, any>;
   /** Parsed OLX content by source namespace. */
   olxjson: OlxJsonState;
-  /** Chat sessions (LLM tutoring, simulated conversations, etc.).
-   *  Interim: the Studio Redux chat will become field data; the
-   *  conversation types above will persist for other chat surfaces. */
-  chat: Record<string, { messages: ChatMessage[]; status: string }>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
   /** Block documentation (get_blocks results). Interim — converges with
    *  catalog into the planned content-slice abstraction. */
   docs: DocsState;
+  /** Configured content sources (get_sources results). */
+  sources: SourcesState;
 }
 
 /** Full Redux store shape. lo_event's reduxLogger wraps the reducer output

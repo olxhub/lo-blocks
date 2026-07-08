@@ -10,10 +10,15 @@
 
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { updateResponseReducer, initReducers } from '@/lib/state/store';
+import { chatFields } from '@/lib/state/chatFields';
+import { editorFields } from '@/lib/state/editorFields';
+import { fieldInfosFrom } from '@/lib/state/fields';
 
-// Populate the field reducer registry from all registered blocks.
+// Populate the field reducer registry from all registered blocks, plus the
+// app-level fields with no owning block (same set the client registers via
+// store.init extraFields) so their events reduce server-side too.
 // Must happen once before any events are dispatched.
-initReducers(BLOCK_REGISTRY);
+initReducers(BLOCK_REGISTRY, [...fieldInfosFrom(chatFields), ...fieldInfosFrom(editorFields)]);
 
 /**
  * Per-connection server-side state. Each WebSocket connection gets its own

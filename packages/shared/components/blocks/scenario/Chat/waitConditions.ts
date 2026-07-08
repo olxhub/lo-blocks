@@ -13,7 +13,52 @@ import {
   EMPTY_REFS
 } from '@/lib/stateLanguage';
 import type { References, ContextData } from '@/lib/stateLanguage';
-import type { ConversationEntry, WaitCommand } from './_chatTypes';
+import type { ConversationEntry, WaitCommand, LlmCommand } from './_chatTypes';
+
+/** The shape of interlude log items this module needs (see llmInterlude.ts). */
+interface InterludeItemish {
+  atIndex: number;
+  control?: string;
+  message: { type: string; speaker?: string };
+}
+
+/**
+ * May the script advance PAST an LLM interlude?
+ *   - `until` satisfied (when present; free otherwise), OR
+ *   - the agent called end_conversation (durable exit marker in the log), OR
+ *   - maxTurns is exhausted (a hard stop must never strand the user
+ *     behind an unsatisfied until).
+ */
+export function interludeExitAllowed(
+  entry: LlmCommand,
+  context: ContextData,
+  items: InterludeItemish[],
+  atIndex: number,
+): boolean {
+  const mine = items.filter(it => it.atIndex === atIndex);
+  if (mine.some(it => it.control === 'exit')) return true;
+  const maxTurns = entry.metadata.maxTurns ? parseInt(entry.metadata.maxTurns, 10) : null;
+  if (maxTurns !== null) {
+    const turns = mine.filter(it => it.message.type === 'Line' && it.message.speaker === 'You').length;
+    if (turns >= maxTurns) return true;
+  }
+  return llmExitSatisfied(entry, context);
+}
+
+/**
+ * May the script advance PAST an LLM interlude? Gated by its `until`
+ * expression when present; free otherwise (Continue ends the interlude).
+ */
+export function llmExitSatisfied(entry: LlmCommand, context: ContextData): boolean {
+  const until = entry.metadata.until;
+  if (!until) return true;
+  try {
+    return Boolean(evaluate(parse(until), context));
+  } catch (e) {
+    console.warn('[Chat] Failed to evaluate llm until:', until, e);
+    return false;
+  }
+}
 
 /**
  * Extract all references from wait commands in a chat script.
@@ -24,6 +69,9 @@ export function extractWaitRefs(entries: ConversationEntry[]): References {
   for (const entry of entries) {
     if (entry.type === 'WaitCommand' && entry.expression) {
       expressions.push(entry.expression);
+    }
+    if (entry.type === 'LlmCommand' && entry.metadata.until) {
+      expressions.push(entry.metadata.until);
     }
   }
 
@@ -74,8 +122,9 @@ export function canAdvanceToContent(
       continue;
     }
 
-    // Line, Pause, or Embed - we can definitely advance to show this
-    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand') {
+    // Line, Pause, Embed, or LLM interlude - we can definitely advance to show this
+    if (entry.type === 'Line' || entry.type === 'PauseCommand' || entry.type === 'EmbedCommand'
+        || entry.type === 'LlmCommand') {
       return true;
     }
   }
@@ -113,7 +162,9 @@ export function useWaitConditions(
   const resolved = useReferences(props, allRefs);
   const context = useMemo(() => createContext(resolved), [resolved]);
 
-  // Check if we can advance (first wait before next content is satisfied)
+  // Check if we can advance (first wait before next content is satisfied).
+  // NOTE: parked ON an LLM interlude, the exit gate (until/agent-exit/
+  // maxTurns) is applied by the caller — it needs the interlude's log.
   const canAdvance = canAdvanceToContent(entries, currentIndex, endIndex, context);
 
   // Stable reference for evaluating a specific wait entry

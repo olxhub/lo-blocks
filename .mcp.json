@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "learning-opus": {
+      "type": "http",
+      "url": "http://localhost:8888/mcp"
+    }
+  }
+}

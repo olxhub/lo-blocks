@@ -48,6 +48,11 @@ export const useSet = LO_FIELD_STRATEGY === 'crdt' ? crdtUseSet : classicUseSet;
 export const useDocField = classicUseDocField; // CRDT useDocField not yet implemented
 export const useNextId = classicUseNextId;
 
+// Log field dispatch helpers (append-only ordered log; strategy-independent).
+// Re-exported here, not from the fieldTypes barrel, for the same cycle
+// reason as useSet: they import redux.ts.
+export { appendToLog, clearLog } from './fieldTypes/crdt/log';
+
 // ---------------------------------------------------------------------------
 // UI bindings (wire data structures to DOM elements)
 // ---------------------------------------------------------------------------
