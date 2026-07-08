@@ -44,7 +44,8 @@ export function histogramFold(derived: Record<string, number>, { prev, next }: T
 export const fields = state.fields([
   {
     name: 'distribution',
-    people: { everyone: 'derived' },
+    level: 'everyone',
+    delivery: 'folded',
     aggregate: { over: 'value', fold: histogramFold, initial: {} },
   },
 ]);

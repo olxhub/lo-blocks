@@ -12,7 +12,7 @@ import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
 
 export const fields = state.fields([
-  { name: 'notes', people: 'everyone' },
+  { name: 'notes', level: 'everyone' },
 ]);
 
 const SharedNotes = test({

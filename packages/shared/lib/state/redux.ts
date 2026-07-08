@@ -280,14 +280,14 @@ export function dispatchFieldEvent(
     scope,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-    // People-axis stamp: shared/server-reduced events are self-describing
-    // on the wire — the sync engine routes them into the shared
+    // Level stamp: events for level>user fields are self-describing on
+    // the wire — the sync engine routes them into the shared
     // materialization instead of the sender's, and replay can tell whose
-    // truth an event was. (Wire vocabulary predates the people axis:
-    // 'shared' = people 'everyone', 'server' = { everyone: 'derived' }.)
-    ...(field.people === 'everyone' ? { authority: 'shared' } : {}),
-    ...(typeof field.people === 'object' && field.people.everyone === 'derived'
-      ? { authority: 'server' } : {}),
+    // truth an event was. (Wire vocabulary predates the level axis:
+    // 'shared' = events-relayed, 'server' = folded-delivery.)
+    ...(field.level && field.level !== 'user'
+      ? { authority: field.delivery === 'folded' ? 'server' : 'shared' }
+      : {}),
     ...payload,
   });
 }

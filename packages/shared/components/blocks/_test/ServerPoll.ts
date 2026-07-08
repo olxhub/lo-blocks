@@ -15,7 +15,8 @@ import type { FieldEvent } from '@/lib/types';
 export const fields = state.fields([
   {
     name: 'counts',
-    people: { everyone: 'derived' },
+    level: 'everyone',
+    delivery: 'folded',
     // Contribution in: the value passed to setCounts(option) becomes one
     // vote event. No ts/actor — this is not LWW; every event counts.
     write: (_oldRaw: any, option: any) => [{

@@ -354,33 +354,32 @@ export interface FieldInfo {
 
   scope: import('../state/scopes').Scope;
 
-  /** The PEOPLE axis (docs/state-library-design.md §0): whose truth this
-   *  field is. Scope says WHERE in the state tree; people says WHO.
+  /** The LEVEL of aggregation (docs/state-library-design.md, reframe
+   *  note): how many copies of this field exist — its cardinality, the
+   *  first fact about a field's data model.
    *
-   *    (absent) / 'user' → per-user, today's default: each user has their
-   *              own value; client reduces optimistically, the sync
-   *              engine folds the same events into that user's
-   *              materialization and relays them to their other devices.
-   *    'everyone' → ONE value for all users (group scoping via the
-   *              grouped-by OLX attribute partitions it): events are
-   *              relayed to the partition's subscribers, everyone folds
-   *              with the same CRDT reducer. Group editing, chat, polls.
-   *    { everyone: 'derived' } → a server-side reducer + getter: many
-   *              users' contributions fold into one derived value, and
-   *              only the reducer's OUTPUT leaves the server — raw
-   *              contributions are private. Word clouds, poll counts,
-   *              percentiles.
+   *    'user' (default) → one copy per user. Private state; the sync
+   *              engine folds each user's events into their own copy and
+   *              relays them to their other devices.
+   *    'everyone' → ONE copy for all users. Group/team/section levels
+   *              arrive as named-set instances between these two (the
+   *              grouped-by attribute is the interim instance binding).
    *
-   *  Group membership resolution is server-side (lib/state/sync/
-   *  partitions.ts) — the client never states its group. Richer people
-   *  values (rosters, classrooms, course runs) arrive as refinements,
-   *  not new axis values. Examples:
-   *
-   *    stateField('notes',  { people: 'everyone' })
-   *    stateField('counts', { people: { everyone: 'derived' },
-   *                           write: contribute, reduce: fold })
+   *  Levels form a lattice (user ⊂ team ⊂ section ⊂ everyone; parallel
+   *  partitionings allowed); between-level maps (aggregate, below) are
+   *  typed by it. EXPERIMENTAL: this surface is expected to change as
+   *  the level lattice lands — do not use outside demos yet.
    */
-  people?: 'user' | 'everyone' | { everyone: 'derived' };
+  level?: 'user' | 'everyone';
+
+  /** How updates to a level>user field reach clients:
+   *    'events' (default) → the event itself is relayed; recipients fold
+   *              it with the same reducer (group editing, chat).
+   *    'folded' → only the reducer's OUTPUT leaves the server as a state
+   *              patch — raw contributions are private (distributions,
+   *              polls, anything privacy-structural).
+   */
+  delivery?: 'events' | 'folded';
 
   /** The TIME axis (docs/state-library-design.md §0): an ENCODER decides
    *  how this field's high-frequency writes are represented across time —
