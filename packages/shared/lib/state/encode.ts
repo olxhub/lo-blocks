@@ -1,11 +1,12 @@
 // packages/shared/lib/state/encode.ts
 //
-// The ENCODE axis (docs/fields-design.md "Aggregating fields"): batch one
-// user's high-frequency writes — video playback position, scrubbing,
-// dragging — into one event per quiet period, without giving up either
-// UI responsiveness or replay fidelity.
+// The TIME axis (docs/state-library-design.md §0, §4): batch one user's
+// high-frequency writes — video playback position, scrubbing, dragging —
+// into one event per quiet period, without giving up either UI
+// responsiveness or replay fidelity. WHICH samples survive is the
+// field's ENCODER (./encoders.ts):
 //
-//   stateField('currentTime', { encode: { debounceMs: 5000, maxPoints: 50 } })
+//   stateField('currentTime', { encoder: trace({ maxPoints: 100 }) })
 //
 // Per write:
 //   1. The value lands in LOCAL Redux immediately (direct store dispatch,
@@ -30,22 +31,22 @@
 // scrubber would declare both.
 
 import type { BaselineProps, FieldInfo, StateKey } from '../types';
+import type { SampleBuffer } from './encoders';
 import { getActorId } from '../crdt/actorId';
 import { scopes } from './scopes';
 import { getReduxStoreInstance } from './store';
 import { dispatchFieldEvent } from './redux';
 import { scopedStateKeyForBlock as scopedKey } from '../types/id-grammar';
 
-interface EncodeBuffer {
-  startTs: number;
-  samples: [number, any][];
+interface EncodeSlot {
+  buffer: SampleBuffer | undefined;
   timer: ReturnType<typeof setTimeout> | null;
   /** Captured at first sample so the flush doesn't depend on the caller
    * still being mounted. */
   flushNow: () => void;
 }
 
-const buffers = new Map<string, EncodeBuffer>();
+const buffers = new Map<string, EncodeSlot>();
 
 /**
  * Buffered write for a field with `encode` (called by updateField).
@@ -58,7 +59,7 @@ export function writeEncoded(
   newValue: any,
   { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {},
 ) {
-  const { debounceMs = 5000, maxPoints = 100 } = field.encode!;
+  const encoder = field.encoder!;
   const ts = Date.now();
 
   // 1. Optimistic LOCAL fold — same envelope a plain write would produce,
@@ -85,39 +86,36 @@ export function writeEncoded(
     __localOnly: true,
   });
 
-  // 2. Buffer the sample; flush on quiet or overflow.
+  // 2. Buffer the sample via the field's encoder; flush on quiet or when
+  // the encoder says so.
   const key = `${field.scope}|${resolvedKey ?? tag ?? ''}|${field.name}`;
-  let buf = buffers.get(key);
-  if (!buf) {
-    const startTs = ts;
-    buf = {
-      startTs,
-      samples: [],
+  let slot = buffers.get(key);
+  if (!slot) {
+    slot = {
+      buffer: undefined,
       timer: null,
       flushNow: () => {
         const b = buffers.get(key);
-        if (!b || b.samples.length === 0) return;
+        if (!b?.buffer || b.buffer.samples.length === 0) return;
         buffers.delete(key);
         if (b.timer) clearTimeout(b.timer);
         dispatchFieldEvent(props, field, field.event!, {
           field: field.name,
-          startTs: b.startTs,
-          endTs: b.startTs + b.samples[b.samples.length - 1][0],
-          samples: b.samples,
+          ...encoder.flush(b.buffer),
           actor: getActorId(),
         }, { stateKey, tag });
       },
     };
-    buffers.set(key, buf);
+    buffers.set(key, slot);
   }
-  buf.samples.push([ts - buf.startTs, newValue]);
+  slot.buffer = encoder.append(slot.buffer, newValue, ts);
 
-  if (buf.samples.length >= maxPoints) {
-    buf.flushNow();
+  if (encoder.shouldFlush?.(slot.buffer)) {
+    slot.flushNow();
     return;
   }
-  if (buf.timer) clearTimeout(buf.timer);
-  buf.timer = setTimeout(buf.flushNow, debounceMs);
+  if (slot.timer) clearTimeout(slot.timer);
+  slot.timer = setTimeout(slot.flushNow, encoder.debounceMs);
 }
 
 /** Flush every pending buffer now — page unload, disconnect, tests. */
@@ -138,8 +136,11 @@ if (typeof window !== 'undefined') {
 
 /**
  * Expand aggregate events into per-sample synthetic events for replay.
- * Generic on the wire shape ({field, startTs, samples}) — no registry
- * lookup needed. Non-aggregate events pass through untouched.
+ * Generic on the wire shape ({field, startTs, samples}) — the standard
+ * encoders all emit it. A custom encoder with a different payload
+ * supplies its own decode; the replay loader consults the field registry
+ * (fieldByName) when the generic shape doesn't match.
+ * Non-aggregate events pass through untouched.
  */
 export function expandEncodedEvents<T extends Record<string, any>>(events: T[]): T[] {
   return events.flatMap((e) => {
@@ -151,4 +152,25 @@ export function expandEncodedEvents<T extends Record<string, any>>(events: T[]):
       ts: startTs + dt,
     })) as unknown as T[];
   });
+}
+
+/**
+ * Expand AND put the log back into true time order. An aggregate event
+ * ARRIVES at its end time, so its samples are time-stamped earlier than
+ * their log position — folding order self-corrects for LWW (ts
+ * comparison), but snapshot-by-index and any order-sensitive consumer
+ * would see samples in the future's past. The stable sort interleaves
+ * expanded samples with ordinary events by time; events without their
+ * own ts inherit the previous event's (carry-forward), so content loads
+ * and blob responses keep their place.
+ */
+export function expandAndOrderEvents<T extends Record<string, any>>(events: T[]): T[] {
+  const expanded = expandEncodedEvents(events);
+  let lastTs = -Infinity;
+  const keyed = expanded.map((e, index) => {
+    if (typeof e.ts === 'number') lastTs = e.ts;
+    return { e, ts: lastTs, index };
+  });
+  keyed.sort((a, b) => (a.ts - b.ts) || (a.index - b.index));
+  return keyed.map((k) => k.e);
 }

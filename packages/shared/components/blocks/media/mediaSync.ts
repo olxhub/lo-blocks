@@ -28,11 +28,12 @@
 // block's own bucket (the composed <Video> case).
 
 import * as state from '@/lib/state';
+import { trace } from '@/lib/state/encoders';
 import { updateField } from '@/lib/state/redux';
 import type { BaselineProps, RuntimeProps, StateKey } from '@/lib/types';
 
 export const mediaFields = state.fields([
-  { name: 'currentTime', encode: { debounceMs: 5000, maxPoints: 100 } },
+  { name: 'currentTime', encoder: trace({ debounceMs: 5000, maxPoints: 100 }) },
   'seekTarget',
   'seekSource',
   'playing',

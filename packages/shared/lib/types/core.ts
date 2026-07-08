@@ -354,53 +354,49 @@ export interface FieldInfo {
 
   scope: import('../state/scopes').Scope;
 
-  /** Who reduces and who sees this field — the authority axis
-   *  (docs/fields-design.md). Scope says WHERE in the state tree; authority
-   *  says WHOSE truth it is:
+  /** The PEOPLE axis (docs/state-library-design.md §0): whose truth this
+   *  field is. Scope says WHERE in the state tree; people says WHO.
    *
-   *    (absent)   → per-user (today's default): each user has their own
-   *                 value; client reduces optimistically, server reduces
-   *                 the same events into that user's materialization.
-   *    'shared'   → one value for everyone viewing the block (group
-   *                 scoping later): events are stamped `authority: 'shared'`
-   *                 on the wire, the server folds them into a SHARED
-   *                 materialization instead of the sender's, and fans the
-   *                 EVENTS to every connection. Group editing, chat.
-   *    'server'   → a server-side reducer + getter: many users'
-   *                 contributions fold into one derived value (word cloud,
-   *                 poll counts, percentiles). The fold is the field's
-   *                 `reduce` — blueprints are shared code, so the server
-   *                 has it. Privacy is structural: raw contribution events
-   *                 are NEVER fanned out; clients see only the reducer's
-   *                 OUTPUT (a state patch, to everyone — origin included,
-   *                 its optimistic local fold replaced by the
-   *                 authoritative result). Not to be confused with event
-   *                 AGGREGATION (the encode axis), which batches one
-   *                 user's high-frequency events, e.g. video scrubbing.
+   *    (absent) / 'user' → per-user, today's default: each user has their
+   *              own value; client reduces optimistically, the sync
+   *              engine folds the same events into that user's
+   *              materialization and relays them to their other devices.
+   *    'everyone' → ONE value for all users (group scoping via the
+   *              grouped-by OLX attribute partitions it): events are
+   *              relayed to the partition's subscribers, everyone folds
+   *              with the same CRDT reducer. Group editing, chat, polls.
+   *    { everyone: 'derived' } → a server-side reducer + getter: many
+   *              users' contributions fold into one derived value, and
+   *              only the reducer's OUTPUT leaves the server — raw
+   *              contributions are private. Word clouds, poll counts,
+   *              percentiles.
    *
-   *  Hybrid placements land here as the design builds out. Examples:
+   *  Group membership resolution is server-side (lib/state/sync/
+   *  partitions.ts) — the client never states its group. Richer people
+   *  values (rosters, classrooms, course runs) arrive as refinements,
+   *  not new axis values. Examples:
    *
-   *    stateField('notes', { authority: 'shared' })
-   *    stateField('counts', { authority: 'server', write: …, reduce: fold })
+   *    stateField('notes',  { people: 'everyone' })
+   *    stateField('counts', { people: { everyone: 'derived' },
+   *                           write: contribute, reduce: fold })
    */
-  authority?: 'shared' | 'server';
+  people?: 'user' | 'everyone' | { everyone: 'derived' };
 
-  /** The ENCODE axis (docs/fields-design.md "Aggregating fields"): batch
-   *  this field's high-frequency writes (video position, scrubbing,
-   *  dragging) into one aggregate event per quiet period. Local Redux
+  /** The TIME axis (docs/state-library-design.md §0): an ENCODER decides
+   *  how this field's high-frequency writes are represented across time —
+   *  every sample, a debounced few, only the last value. Local Redux
    *  updates per sample (UI stays live); the wire and the event log see
-   *  `{field, startTs, endTs, samples: [[dt, value], ...]}`; replay
-   *  expands samples back into per-timestamp events (lib/state/encode.ts).
-   *  Orthogonal to authority — a shared scrubber declares both.
+   *  one aggregate event per quiet period; replay expands samples back
+   *  into per-timestamp events and re-interleaves them by time
+   *  (lib/state/encode.ts). Standard encoders in lib/state/encoders.ts:
    *
-   *    stateField('currentTime', { encode: { debounceMs: 5000 } })
+   *    stateField('currentTime', { encoder: trace({ maxPoints: 100 }) })
+   *    stateField('mouse',       { encoder: lastValue() })
+   *    stateField('scrub',       { encoder: debounce({ intervalMs: 500 }) })
+   *
+   *  Orthogonal to the people axis — a shared scrubber declares both.
    */
-  encode?: {
-    /** Quiet period that closes a batch. Default 5000ms. */
-    debounceMs?: number;
-    /** Flush early when this many samples buffer. Default 100. */
-    maxPoints?: number;
-  };
+  encoder?: import('../state/encoders').FieldEncoder;
 
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;

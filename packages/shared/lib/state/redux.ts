@@ -280,11 +280,14 @@ export function dispatchFieldEvent(
     scope,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-    // Authority stamp (fields-design): shared/aggregate events are
-    // self-describing on the wire — the server routes them into the shared
+    // People-axis stamp: shared/server-reduced events are self-describing
+    // on the wire — the sync engine routes them into the shared
     // materialization instead of the sender's, and replay can tell whose
-    // truth an event was.
-    ...(field.authority ? { authority: field.authority } : {}),
+    // truth an event was. (Wire vocabulary predates the people axis:
+    // 'shared' = people 'everyone', 'server' = { everyone: 'derived' }.)
+    ...(field.people === 'everyone' ? { authority: 'shared' } : {}),
+    ...(typeof field.people === 'object' && field.people.everyone === 'derived'
+      ? { authority: 'server' } : {}),
     ...payload,
   });
 }
@@ -308,7 +311,7 @@ export function updateField(
   // Encoded fields (the encode axis — lib/state/encode.ts): local Redux
   // updates per sample, the wire sees one aggregate event per quiet
   // period. Replaces the write/dispatch path entirely.
-  if (field.encode) {
+  if (field.encoder) {
     writeEncoded(props, field, newValue, { stateKey, tag });
     return;
   }
