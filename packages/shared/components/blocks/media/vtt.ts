@@ -52,9 +52,14 @@ export function useVttCues(src: string | undefined): VttCue[] {
   // useState-ok: loader-internal render trigger (componentLoader pattern)
   const [cues, setCues] = useState<VttCue[]>(Array.isArray(cached) ? cached : []);
   useEffect(() => {
-    if (!src) return;
+    // Reset on every src change: without this, switching transcripts (or
+    // clearing src) left the OLD cues rendered — and clickable, seeking
+    // to the wrong media's timestamps — until/unless the new file loaded
+    // (found by review 2026-07).
+    if (!src) { setCues([]); return; }
     const result = loadVtt(src);
     if (Array.isArray(result)) { setCues(result); return; }
+    setCues([]);
     let stale = false;
     result.then((loaded) => { if (!stale) setCues(loaded); });
     return () => { stale = true; };

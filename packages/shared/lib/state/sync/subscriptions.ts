@@ -72,6 +72,32 @@ export class SubscriptionRegistry {
 
   /** Counts, for tests and eventual stats. */
   size() { return { keys: this.byKey.size, sockets: this.bySocket.size }; }
+
+  // ── Pending subscriptions ──────────────────────────────────────────────
+  // A content fetch can win the startup race against the WebSocket: the
+  // caller has NO live connection yet, so there is nothing to subscribe —
+  // and nothing would ever subscribe it (found by review 2026-07). The
+  // fetch records its keys against the PRINCIPAL; the pipeline adopts
+  // them when the principal's connection arrives.
+
+  private pending = new Map<string, Set<string>>();
+
+  /** Record keys for a principal whose connections may not exist yet. */
+  notePending(principal: string, keys: string[]) {
+    let set = this.pending.get(principal);
+    if (!set) { set = new Set(); this.pending.set(principal, set); }
+    for (const key of keys) set.add(key);
+  }
+
+  /** A connection arrived for this principal: subscribe it to whatever
+   * content fetches recorded before it existed. Consumes the pending set
+   * (later connections refetch content and subscribe normally). */
+  adoptPending(principal: string, ws: StateConnection) {
+    const set = this.pending.get(principal);
+    if (!set) return;
+    this.pending.delete(principal);
+    this.subscribe(ws, [...set]);
+  }
 }
 
 const EMPTY: ReadonlySet<StateConnection> = new Set();

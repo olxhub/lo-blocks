@@ -330,6 +330,10 @@ export async function runPipeline(context: PipelineContext) {
   // Acquire the per-USER state — all of this user's connections fold
   // into one materialization (userState.ts).
   const userState = context.stateRegistry.acquire(context.user.safe_user_id, context.ws);
+  // Content fetched before this socket existed recorded its subscription
+  // keys against the principal — adopt them now (startup race; see
+  // subscriptions.ts "Pending subscriptions").
+  context.subscriptions.adoptPending(context.user.safe_user_id, context.ws);
   context.userState = userState;
   context.serverState = userState.serverState;
   context.persister = userState.persister;

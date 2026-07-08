@@ -348,6 +348,25 @@ test('grouped-by: users partition by their own picker field', async () => {
   await Promise.all([runA, runB]);
 });
 
+test('a content fetch that raced the socket still subscribes it', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+
+  // The fetch arrived first: no sockets yet, keys recorded as pending.
+  subs.notePending(USER.safe_user_id, ['raced-block']);
+
+  const ws = new FakeWs();
+  const ctx: PipelineContext = { ws: ws as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const run = runPipeline(ctx);
+  await new Promise(r => setTimeout(r, 10));
+
+  expect([...subs.subscribers('raced-block')]).toContain(ws);
+
+  ws.emit('close');
+  await run;
+});
+
 test('registry.read: live state when connected, stored state when not', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

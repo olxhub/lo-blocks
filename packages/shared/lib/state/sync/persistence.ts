@@ -175,7 +175,17 @@ export class FieldPersister {
     const state = this.lastSeen;
     this.lastFlushed = state;
 
+    // The in-memory index mutates only AFTER its KVS write succeeds: a
+    // failed index write with a mutated cache would make every later
+    // flush skip the rewrite (includes() already true) while cold
+    // assembleFieldState can't discover the keys (found by review
+    // 2026-07). Work on a copy; commit on success.
     const index = await this.loadIndex();
+    const nextIndex: FieldIndex = {
+      system: [...index.system],
+      component: [...index.component],
+      componentSetting: [...index.componentSetting],
+    };
     let indexChanged = false;
 
     for (const entry of batch) {
@@ -187,18 +197,27 @@ export class FieldPersister {
       } catch (err) {
         // Put the entry back before rethrowing — clearing the dirty set up
         // front must not turn a write failure into data loss. The next
-        // note()/close() retries it. (Found 2026-07-07: ids with '/' broke
-        // FileKVStore paths and the failed buckets simply vanished.)
+        // stateChanged()/close() retries it. (Found 2026-07-07: ids with
+        // '/' broke FileKVStore paths and the failed buckets vanished.)
         this.dirty.add(entry);
         throw err;
       }
-      if (!index[scope].includes(bucket)) {
-        index[scope].push(bucket);
+      if (!nextIndex[scope].includes(bucket)) {
+        nextIndex[scope].push(bucket);
         indexChanged = true;
       }
     }
     if (indexChanged) {
-      await this.kvs.set(kvsKey.fieldIndex(this.user), JSON.stringify(index));
+      try {
+        await this.kvs.set(kvsKey.fieldIndex(this.user), JSON.stringify(nextIndex));
+      } catch (err) {
+        // Bucket writes succeeded but the index doesn't know them: re-dirty
+        // the batch (rewrites are idempotent) so the next flush retries the
+        // index; the cached index stays uncommitted.
+        for (const entry of batch) this.dirty.add(entry);
+        throw err;
+      }
+      this.index = nextIndex;
     }
   }
 

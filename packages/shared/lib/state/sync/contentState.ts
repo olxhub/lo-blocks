@@ -92,9 +92,14 @@ export async function stateForContentFetch(
   const callerScopes = await registry.read(principal);
   const keyOf = partitionKeysFor(responseIdMap, callerScopes);
 
+  const keys = [...keyOf.values()];
   for (const connection of registry.socketsOf(principal)) {
-    subscriptions.subscribe(connection, [...keyOf.values()]);
+    subscriptions.subscribe(connection, keys);
   }
+  // The fetch may have raced the caller's WebSocket (page load fetches
+  // content before the socket opens): record the keys against the
+  // principal so the arriving connection adopts them (subscriptions.ts).
+  subscriptions.notePending(principal, keys);
 
   const own = fieldStateForIds(callerScopes, [...keyOf.keys()]);
   const shared = sharedStateFor(await registry.read(SHARED_STATE_ID), keyOf);
