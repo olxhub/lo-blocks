@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { IdMap, ComponentError, DefinitionKey } from '@/lib/types';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { adoptFieldState } from '@/lib/state/store';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
@@ -53,6 +54,9 @@ export function useContentLoader(id: DefinitionKey, source = 'content') {
         if (!data.ok) {
           setError(data.error ?? 'Unknown error');
         } else {
+          // Field state rides the content response (fields-design 2b);
+          // adopt before content so blocks first render with saved state.
+          adoptFieldState(data.fieldState);
           // Dispatch to Redux for reactive block access
           dispatchOlxJson(baselineProps, source, data.idMap);
           setIdMap(data.idMap);

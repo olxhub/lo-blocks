@@ -39,10 +39,7 @@ import { LO_FIELD_STRATEGY } from './fieldTypes';
 import { useSet as classicUseSet } from './fieldTypes/classic/useSet';
 import { useSet as crdtUseSet } from './fieldTypes/crdt/set';
 import { useDocField as classicUseDocField } from './fieldTypes/classic/useDocField';
-// import { useDocField as crdtUseDocField } from './fieldTypes/crdt/useDocField';
 import { useNextId as classicUseNextId } from './fieldTypes/classic/useNextId';
-// CRDT re-exports classic — switch here when they diverge
-// import { useNextId as crdtUseNextId } from './fieldTypes/crdt/useNextId';
 
 export const useSet = LO_FIELD_STRATEGY === 'crdt' ? crdtUseSet : classicUseSet;
 export const useDocField = classicUseDocField; // CRDT useDocField not yet implemented

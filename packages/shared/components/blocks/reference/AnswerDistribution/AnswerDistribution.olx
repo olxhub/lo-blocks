@@ -1,0 +1,9 @@
+<!-- Learning Catalytics-style distribution: answer, then see the class.
+     The input block is completely ordinary — point AnswerDistribution at
+     any input by id. seed= carries prior-semester data. -->
+<Vertical id="AnswerDistributionDemo" title="AnswerDistribution — the class vs you">
+  <Markdown id="ad_intro">### Which planet is largest?</Markdown>
+  <DropdownInput id="ad_q" options="Jupiter,Saturn,Earth,Mars"/>
+  <AnswerDistribution id="ad_dist" target="ad_q"
+                      seed='{"Jupiter": 4, "Saturn": 2}'/>
+</Vertical>

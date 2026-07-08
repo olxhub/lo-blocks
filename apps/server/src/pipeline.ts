@@ -25,9 +25,15 @@ import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { appendEvent } from './eventLog.js';
 import type { KVStore } from './kvs.js';
-import type { SafeUserId } from '@/lib/types/identity';
 import { kvsKey } from '@/lib/types/identity';
-import { ServerState } from './serverState.js';
+import type { ServerState } from '@/lib/state/sync/materialization';
+import type { FieldPersister } from '@/lib/state/sync/persistence';
+import { assembleFieldState, compareToBlob } from '@/lib/state/sync/persistence';
+import type { UserStateRegistry, UserStateEntry } from '@/lib/state/sync/registry';
+import type { GroupingIndex } from '@/lib/state/sync/partitions';
+import { userInstance } from '@/lib/state/sync/levels';
+import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { routeEvent, type SyncSession } from '@/lib/state/sync/router';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 function safeSend(ws: WebSocket, data: object) {
@@ -49,15 +55,46 @@ export interface PipelineContext {
   user: AuthUser;
   conn: ConnectionLog;
   kvs: KVStore;
+  /** Which store serves state on fetch_blob (config: state-canonical). */
+  canonical?: 'blob' | 'fields';
+  /** Per-user shared state; every connection for a user folds into one
+   * materialization (userState.ts). Owned by server.ts. */
+  stateRegistry: UserStateRegistry;
+  /** Which connections care about which blocks (content fetch =
+   * subscription). Shared/server fan-out targets subscribers only. */
+  subscriptions: SubscriptionRegistry;
+  /** Trusted field-level declarations (fieldLevels.ts). Absent = every
+   * field routes as level 'user' (fail closed). */
+  fieldLevels?: import('@/lib/state/sync/fieldLevels').FieldLevelIndex;
+  /** Grouping index from content (partitions.ts). Absent = no grouping
+   * (tests that don't care omit it). */
+  grouping?: GroupingIndex;
+  /** Aggregation index from content (aggregations.ts). Absent = none. */
+  aggregations?: import('@/lib/state/sync/aggregations').AggregationIndex;
+  /** The connection's sync session (holdings on level instances) —
+   * set by runPipeline. */
+  session?: SyncSession;
+  /** Aliases into the user's own entry (same objects, shared across the
+   * user's connections). */
+  userState?: UserStateEntry;
   serverState?: ServerState;
+  persister?: FieldPersister;
 }
 
 // =============================================================================
 // Stage 0: Raw messages from WebSocket → parsed events
 // =============================================================================
 
-/** Yield parsed JSON events from the WebSocket. Closes when the socket closes. */
-async function* messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
+/** Yield parsed JSON events from the WebSocket. Closes when the socket
+ * closes.
+ *
+ * NOT an async generator function itself: generator bodies are lazy (the
+ * first `next()` runs them), so listeners would attach only when the
+ * drain loop first pulls — and any `await` between connection and drain
+ * would drop the messages arriving in the gap. This plain function
+ * attaches the listeners SYNCHRONOUSLY and returns a generator over the
+ * already-live queue. */
+function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   // Bridge the callback-based ws API into an async generator.
   // Events are queued; the generator pulls them one at a time.
   const queue: PipelineEvent[] = [];
@@ -77,14 +114,16 @@ async function* messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   ws.on('close', () => { done = true; if (resolve) { resolve(); resolve = null; } });
   ws.on('error', () => { done = true; if (resolve) { resolve(); resolve = null; } });
 
-  while (true) {
-    while (queue.length > 0) {
-      yield queue.shift()!;
+  return (async function* () {
+    while (true) {
+      while (queue.length > 0) {
+        yield queue.shift()!;
+      }
+      if (done) return;
+      await new Promise<void>(r => { resolve = r; });
+      if (done && queue.length === 0) return;
     }
-    if (done) return;
-    await new Promise<void>(r => { resolve = r; });
-    if (done && queue.length === 0) return;
-  }
+  })();
 }
 
 // =============================================================================
@@ -94,14 +133,14 @@ async function* messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
 /** Log each event to the connection log and save to disk. */
 async function* decodeAndLog(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    appendEvent(ctx.conn, event);
+    appendEvent(context.conn, event);
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';
-    console.log(`[${ctx.conn.id}:${ctx.conn.log.eventCount}] ${eventType}${id}`);
+    console.log(`[${context.conn.id}:${context.conn.log.eventCount}] ${eventType}${id}`);
 
     yield event;
   }
@@ -117,7 +156,7 @@ async function* decodeAndLog(
 
 async function* decodeLockFields(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  _context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   // TODO: extract lock_fields events, attach to subsequent events.
   for await (const event of events) {
@@ -145,7 +184,7 @@ async function* decodeLockFields(
 
 async function* resolveAuth(
   events: AsyncIterable<PipelineEvent>,
-  _ctx: PipelineContext
+  _context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   // TODO: backlog + in-stream auth resolution
   for await (const event of events) {
@@ -171,9 +210,9 @@ async function* resolveAuth(
 
 async function* handleBlobs(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  const { ws, user, kvs } = ctx;
+  const { ws, user, kvs } = context;
   const key = kvsKey.blob(user.safe_user_id);
 
   for await (const event of events) {
@@ -181,16 +220,45 @@ async function* handleBlobs(
 
     if (eventType === 'fetch_blob') {
       try {
-        const raw = await kvs.get(key);
-        const data = raw ? JSON.parse(raw) : null;
+        const entry = context.userState!;
+        // Seed the shared materialization from storage, once per user
+        // entry (single-flight: a second tab fetching concurrently awaits
+        // the same seed rather than re-seeding over live events). A
+        // blob-sourced seed is adopted into the field store (migration,
+        // once per user); a fields-sourced seed only rebases.
+        await entry.ensureSeeded(async () => {
+          let scopes: Record<string, any> | null = null;
+          let source = 'blob';
+          if (context.canonical === 'fields') {
+            scopes = await assembleFieldState(kvs, userInstance(user.safe_user_id));
+            if (scopes) source = 'fields';
+            // No per-field state yet (user predates the field store):
+            // fall back to the blob — adopt() below writes it into the
+            // field store, so the fallback runs once per user.
+          }
+          if (!scopes) {
+            const raw = await kvs.get(key);
+            scopes = raw ? JSON.parse(raw)?.application_state ?? null : null;
+          }
+          if (scopes) {
+            entry.serverState.seed(scopes);
+            if (source === 'fields') entry.persister.startFromPersisted(entry.serverState.state);
+            else entry.persister.startFromUnpersisted(entry.serverState.state);
+          }
+          console.log(`[${context.conn.id}] user state seeded from ${scopes ? source : 'nothing'}`);
+        });
+        // Serve the LIVE materialization — for a second connection this is
+        // fresher than storage by up to a flush debounce, and it already
+        // includes the user's other-tab events.
+        const data = entry.liveState();
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
-        appendEvent(ctx.conn, { event: 'fetch_blob_response', data });
-        console.log(`[${ctx.conn.id}] fetch_blob ${key}: ${raw ? `${raw.length} bytes` : 'empty'}`);
+        appendEvent(context.conn, { event: 'fetch_blob_response', data });
+        console.log(`[${context.conn.id}] fetch_blob: ${data ? 'served live state' : 'empty'}`);
       } catch (err) {
-        console.error(`[${ctx.conn.id}] fetch_blob error:`, err);
+        console.error(`[${context.conn.id}] fetch_blob error:`, err);
         safeSend(ws, { status: 'fetch_blob', data: null });
-        appendEvent(ctx.conn, { event: 'fetch_blob_response', data: null });
+        appendEvent(context.conn, { event: 'fetch_blob_response', data: null });
       }
       // fetch_blob is consumed here — not yielded downstream
       continue;
@@ -201,9 +269,17 @@ async function* handleBlobs(
         const blob = JSON.stringify(event.blob);
         await kvs.set(key, blob);
         safeSend(ws, { status: 'save_blob_ack', token: event.token });
-        console.log(`[${ctx.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+        console.log(`[${context.conn.id}] save_blob ${key}: ${blob.length} bytes`);
+        // Parallel-run validation: how well does the server-materialized
+        // state agree with what the client just saved? Divergence is
+        // expected with multiple tabs/devices (the blob merges them, this
+        // connection sees only its own events) — a signal, not an error.
+        if (context.serverState) {
+          console.log(`[${context.conn.id}] field-store agreement — ${
+            compareToBlob(context.serverState.state, event.blob?.application_state)}`);
+        }
       } catch (err) {
-        console.error(`[${ctx.conn.id}] save_blob error:`, err);
+        console.error(`[${context.conn.id}] save_blob error:`, err);
         // Tell the client the write failed so it can surface it instead of
         // sitting at 'modified' indefinitely (indistinguishable from "saving").
         safeSend(ws, { status: 'save_blob_nack', token: event.token });
@@ -226,13 +302,12 @@ async function* handleBlobs(
 
 async function* runReducers(
   events: AsyncIterable<PipelineEvent>,
-  ctx: PipelineContext
+  context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
-  const serverState = new ServerState();
-  ctx.serverState = serverState;
-
+  // The whole reducer stage is one library call: fold the event into the
+  // right level instance and deliver (@/lib/state/sync/router).
   for await (const event of events) {
-    serverState.dispatch(event);
+    await routeEvent(context.session!, event);
     yield event;
   }
 }
@@ -245,17 +320,57 @@ async function* runReducers(
  * Run the full event pipeline for a WebSocket connection.
  * Returns when the connection closes.
  */
-export async function runPipeline(ctx: PipelineContext) {
-  const raw = messagesFrom(ctx.ws);
-  const logged = decodeAndLog(raw, ctx);
-  const withLockFields = decodeLockFields(logged, ctx);
-  const authenticated = resolveAuth(withLockFields, ctx);
-  const withBlobs = handleBlobs(authenticated, ctx);
-  const reduced = runReducers(withBlobs, ctx);
+export async function runPipeline(context: PipelineContext) {
+  // The connection's sync session: a map of held LEVEL INSTANCES
+  // (router.ts). The user's own instance is acquired eagerly — all of a
+  // user's connections fold into one materialization; further instances
+  // (all, set:…) are acquired lazily by the router.
+  const session: SyncSession = {
+    origin: context.ws,
+    principal: context.user.safe_user_id,
+    registry: context.stateRegistry,
+    subscriptions: context.subscriptions,
+    kvs: context.kvs,
+    fieldLevels: context.fieldLevels,
+    grouping: context.grouping,
+    aggregations: context.aggregations,
+    holdings: new Map(),
+  };
+  context.session = session;
+  const own = context.stateRegistry.acquire(userInstance(context.user.safe_user_id), context.ws);
+  session.holdings.set(userInstance(context.user.safe_user_id), own);
+  context.userState = own;
+  context.serverState = own.serverState;
+  context.persister = own.persister;
+  // Content fetched before this socket existed recorded its subscription
+  // keys against the principal — adopt them now (startup race; see
+  // subscriptions.ts "Pending subscriptions").
+  context.subscriptions.adoptPending(context.user.safe_user_id, context.ws);
 
-  // Drain the pipeline — pull events through all stages until the
-  // connection closes.
-  for await (const _ of reduced) {
-    // Each stage does its own work; nothing to do at the end.
+  // The message listener must attach SYNCHRONOUSLY with the connection —
+  // an await before messagesFrom() would drop events arriving in the gap
+  // (same race the upgrade handler documents in server.ts). messagesFrom
+  // queues; the stages below await freely.
+  const raw = messagesFrom(context.ws);
+  try {
+    const logged = decodeAndLog(raw, context);
+    const withLockFields = decodeLockFields(logged, context);
+    const authenticated = resolveAuth(withLockFields, context);
+    const withBlobs = handleBlobs(authenticated, context);
+    const reduced = runReducers(withBlobs, context);
+
+    // Drain the pipeline — pull events through all stages until the
+    // connection closes.
+    for await (const _ of reduced) {
+      // Each stage does its own work; nothing to do at the end.
+    }
+  } finally {
+    // Runs on normal close AND when a stage throws (a malformed event,
+    // say): without it, a crashed pipeline leaked its registry refs
+    // (phantom live entries), its subscriptions, and its pending field
+    // writes (found by review 2026-07). Every held instance releases —
+    // the last holder's release flushes and drops the entry.
+    context.subscriptions.unsubscribeAll(context.ws);
+    for (const entry of session.holdings.values()) await entry.release();
   }
 }

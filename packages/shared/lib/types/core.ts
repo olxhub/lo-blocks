@@ -354,6 +354,61 @@ export interface FieldInfo {
 
   scope: import('../state/scopes').Scope;
 
+  /** The LEVEL of aggregation (docs/state-library-design.md, reframe
+   *  note): how many copies of this field exist — its cardinality, the
+   *  first fact about a field's data model.
+   *
+   *    'user' (default) → one copy per user. Private state; the sync
+   *              engine folds each user's events into their own copy and
+   *              relays them to their other devices.
+   *    'everyone' → ONE copy for all users. Group/team/section levels
+   *              arrive as named-set instances between these two (the
+   *              grouped-by attribute is the interim instance binding).
+   *
+   *  Levels form a lattice (user ⊂ team ⊂ section ⊂ everyone; parallel
+   *  partitionings allowed); between-level maps (aggregate, below) are
+   *  typed by it. EXPERIMENTAL: this surface is expected to change as
+   *  the level lattice lands — do not use outside demos yet.
+   */
+  level?: 'user' | 'everyone';
+
+  /** How updates to a level>user field reach clients:
+   *    'events' (default) → the event itself is relayed; recipients fold
+   *              it with the same reducer (group editing, chat).
+   *    'folded' → only the reducer's OUTPUT leaves the server as a state
+   *              patch — raw contributions are private (distributions,
+   *              polls, anything privacy-structural).
+   */
+  delivery?: 'events' | 'folded';
+
+  /** The TIME axis (docs/state-library-design.md §0): an ENCODER decides
+   *  how this field's high-frequency writes are represented across time —
+   *  every sample, a debounced few, only the last value. Local Redux
+   *  updates per sample (UI stays live); the wire and the event log see
+   *  one aggregate event per quiet period; replay expands samples back
+   *  into per-timestamp events and re-interleaves them by time
+   *  (lib/state/encode.ts). Standard encoders in lib/state/encoders.ts:
+   *
+   *    stateField('currentTime', { encoder: trace({ maxPoints: 100 }) })
+   *    stateField('mouse',       { encoder: lastValue() })
+   *    stateField('scrub',       { encoder: debounce({ intervalMs: 500 }) })
+   *
+   *  Orthogonal to the people axis — a shared scrubber declares both.
+   */
+  encoder?: import('../state/encoders').FieldEncoder;
+
+  /** Aggregation at a distance (lib/state/sync/aggregations.ts): this
+   *  DERIVED field folds transitions of another block's per-user field —
+   *  the target names the block (its `target` OLX attribute), `over`
+   *  names the field, `fold` moves a user's contribution from their
+   *  previous answer to their new one (one user, one count, by
+   *  construction). Declare alongside people: { everyone: 'derived' }.
+   *
+   *    { name: 'distribution', people: { everyone: 'derived' },
+   *      aggregate: { over: 'value', fold: histogram, initial: {} } }
+   */
+  aggregate?: import('../state/sync/aggregations').AggregateSpec;
+
   /** Zod schema for value validation/coercion. Fields without schemas accept any value. */
   schema?: z.ZodType;
 
@@ -648,6 +703,15 @@ export const BlockBlueprintSchema = z.object({
    */
   internal: z.boolean().optional(),
   /**
+   * Marks this block as a PROTOTYPE: real and under active development,
+   * but not yet stable enough for course authors — hidden from author-
+   * facing listings (docs, insert palette, get_blocks) exactly like
+   * internal, and badged when shown explicitly. Distinct from internal:
+   * internal means "never author-facing"; prototype means "not YET" —
+   * the flag is removed when the block's surface is committed to.
+   */
+  prototype: z.boolean().optional(),
+  /**
    * Optional category override for documentation grouping.
    * By default, blocks are grouped by their directory location (e.g., 'input', 'grading').
    * Set this to override the default categorization without moving the file.
@@ -807,6 +871,11 @@ export interface LoBlock {
    * Internal blocks are hidden from the main documentation navigation.
    */
   internal?: boolean;
+  /**
+   * Prototype: under development, hidden from author-facing listings
+   * until the surface is committed to (see the schema doc above).
+   */
+  prototype?: boolean;
   /**
    * Optional category override for documentation grouping.
    * Overrides directory-based categorization without moving the file.

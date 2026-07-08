@@ -12,7 +12,6 @@
 // Key functions:
 // - `useFieldSelector`: Get state values with automatic re-rendering
 // - `updateField`: Update state and trigger analytics logging
-// - `useReduxInput`: Complete form control integration with selection state
 // - `fieldSelector`: Core selector logic for different state scopes
 //
 // The system bridges the educational semantics (fields, scopes, analytics)
@@ -55,10 +54,10 @@ import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
+import { writeEncoded } from './encode';
 
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
-const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
 // =============================================================================
@@ -187,9 +186,6 @@ export function decodeField(field: FieldInfo, raw: any): any {
   return field.read ? field.read(raw) : raw;
 }
 
-/** @deprecated Use decodeField instead. */
-export const readField = decodeField;
-
 /**
  * Get a human/LLM-readable string from a raw field value.
  * Uses field.display if defined, otherwise falls back to stringifying the read value.
@@ -279,6 +275,15 @@ export function dispatchFieldEvent(
     scope,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
+    // Level stamp: SELF-DESCRIPTION ONLY — replay can tell whose truth
+    // an event was without consulting content. The server does NOT trust
+    // it: routing derives the level from content + registry
+    // (sync/fieldLevels.ts), so a forged stamp cannot reach shared
+    // state. (Wire vocabulary predates the level axis: 'shared' =
+    // events-relayed, 'server' = folded-delivery.)
+    ...(field.level && field.level !== 'user'
+      ? { authority: field.delivery === 'folded' ? 'server' : 'shared' }
+      : {}),
     ...payload,
   });
 }
@@ -297,6 +302,37 @@ export function updateField(
   // Schema validation runs before write — coerce/validate regardless of field type.
   if (field.schema) {
     newValue = field.schema.parse(newValue);
+  }
+
+  // Encoded fields (the encode axis — lib/state/encode.ts): local Redux
+  // updates per sample, the wire sees one aggregate event per quiet
+  // period. Replaces the write/dispatch path entirely. LWW-only: the
+  // aggregate envelope ({startTs, samples}) is expanded by lwwReduce;
+  // doc/set/log reducers would fold it as garbage.
+  if (field.encoder) {
+    if (field.kind && field.kind !== 'state') {
+      throw new Error(`Field '${field.name}': encoder is unsupported on kind `
+        + `'${field.kind}' — encoders compose with LWW stateFields only`);
+    }
+    writeEncoded(props, field, newValue, { stateKey, tag });
+    return;
+  }
+
+  // Per-field LEVELS within one interaction: extras (useInputField's
+  // selection tracking) are the CALLER's cursor — level user — even when
+  // the VALUE is level everyone. Riding the value event would put one
+  // shared cursor in the everyone-bucket for all editors to fight over;
+  // instead they ship as their own unstamped (level-user) event, landing
+  // in the caller's copy of the same bucket key. Client Redux merges both
+  // into one local bucket, so readers are oblivious.
+  if (extraPayload && field.level && field.level !== 'user') {
+    const logEvent = props ? (props as any).runtime.logEvent : lo_event.logEvent;
+    logEvent(UPDATE_INPUT, {
+      scope: field.scope,
+      id: stateKey ?? scopedStateKeyForBlock(props as RuntimeProps),
+      ...extraPayload,
+    });
+    extraPayload = undefined;
   }
 
   if (field.write) {
@@ -412,111 +448,6 @@ export function useAggregate<T = any, R = any>(
     },
     shallowEqual,
   );
-}
-
-
-// =============================================================================
-// UI binding hooks (future: migrate to bindings/)
-// =============================================================================
-
-type ReduxInputOptions = {
-  updateValidator?: (val: string) => boolean;
-};
-
-
-export function useReduxInput(
-  props: RuntimeProps,
-  field: FieldInfo,
-  fallback = '',
-  options: ReduxInputOptions = {}
-) {
-  const scope = field.scope ?? scopes.component;
-  const fieldName = field.name;
-  const { updateValidator } = options;
-
-  const selectorFn = (state) =>
-    state && state[fieldName] !== undefined ? state[fieldName] : fallback;
-
-  const value = useFieldSelector(props, field, { selector: selectorFn, fallback });
-
-  const selection = useFieldSelector(
-    props,
-    field,
-    {
-      selector: s => ({
-        selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-        selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-      }),
-      equalityFn: shallowEqual
-    }
-  );
-
-  const id = scopedStateKeyForBlock(props);
-  const tag = props.loBlock.name;
-  const logEvent = props.runtime.logEvent;
-
-  const onChange = useCallback((event) => {
-    const val = event.target.value;
-    const selStart = event.target.selectionStart;
-    const selEnd = event.target.selectionEnd;
-    const payload = {
-      scope,
-      [fieldName]: val,
-      [`${fieldName}.selectionStart`]: selStart,
-      [`${fieldName}.selectionEnd`]: selEnd
-    };
-    if (scope === scopes.component) payload.id = id;
-    if (scope === scopes.componentSetting) payload.tag = tag;
-
-    if (updateValidator && !updateValidator(val)) {
-      logEvent(INVALIDATED_INPUT, payload);
-      return;
-    }
-
-    logEvent(UPDATE_INPUT, payload);
-  }, [id, tag, fieldName, updateValidator, scope, logEvent]);
-
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const input = ref.current;
-    if (
-      input &&
-      document.activeElement === input &&
-      selection.selectionStart != null &&
-      selection.selectionEnd != null
-    ) {
-      try {
-        input.setSelectionRange(selection.selectionStart, selection.selectionEnd);
-      } catch (e) { /* ignore */ }
-    }
-  }, [value, selection.selectionStart, selection.selectionEnd]);
-
-  // Put ref in the returned props object!
-  return [
-    value,
-    {
-      name: fieldName,
-      value,
-      onChange,
-      ref
-    }
-  ];
-}
-
-
-
-
-export function useReduxCheckbox(
-  props,
-  field: FieldInfo,
-  fallback = false,
-  opts: { stateKey?: StateKey; tag?: string } = {}
-) {
-  assertValidField(field);
-  const [checked, setChecked] = useFieldState(props, field, fallback, opts);
-  const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
-  return [checked, { name: field.name, checked, onChange }];
 }
 
 /**

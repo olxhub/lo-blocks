@@ -2,12 +2,12 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
-import { useReduxInput } from '@/lib/state';
+import { useInputField } from '@/lib/state';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 function NumberInput(props: RuntimeProps) {
   const { className, fields, children, min, max, step, placeholder } = props;
-  const [value, inputProps] = useReduxInput(props, fields.value, '');
+  const [value, inputProps] = useInputField(props, fields.value, '');
 
   return (
     <>

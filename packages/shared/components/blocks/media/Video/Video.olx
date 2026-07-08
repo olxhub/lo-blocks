@@ -1,0 +1,8 @@
+<!-- Composed media block: player + synchronized transcript, one media
+     bucket. For separate placement use <VideoPlayer id="p"/> +
+     <Transcript target="p" src="..."/>. -->
+<Vertical id="VideoDemo" title="Video — synchronized transcript">
+  <Video id="vd_video"
+         src="/content/test-video.mp4"
+         transcript="/content/demos/test-video.vtt"/>
+</Vertical>

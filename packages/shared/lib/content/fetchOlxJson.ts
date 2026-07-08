@@ -10,13 +10,15 @@ import type { DefinitionKey, IdMap } from '@/lib/types';
 /**
  * Fetch content by ID.
  *
- * Returns the same { ok, idMap, error? } shape as /api/olxjson?id=...
- * Options (e.g. headers) are passed through to fetch.
+ * Returns the same { ok, idMap, fieldState?, error? } shape as
+ * /api/olxjson?id=... — fieldState is the caller's saved state for the
+ * returned blocks (fields-design step 2b), present only when the user
+ * has any. Options (e.g. headers) are passed through to fetch.
  */
 export async function fetchOlxJson(
   id: DefinitionKey,
   options?: RequestInit
-): Promise<{ ok: boolean; idMap: IdMap; error?: string }> {
+): Promise<{ ok: boolean; idMap: IdMap; fieldState?: Record<string, any>; error?: string }> {
   const res = await globalThis.fetch(`/api/olxjson?id=${encodeURIComponent(id)}`, options);
   if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
   return res.json();

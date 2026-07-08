@@ -32,8 +32,16 @@ import {
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
 import { runPipeline } from './pipeline.js';
-import { handleOlxJson } from './routes/olxjson.js';
+import { UserStateRegistry } from '@/lib/state/sync/registry';
+import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { makeGroupingIndex } from '@/lib/state/sync/partitions';
+import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
+import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
+import { getConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
 import { handleActivities } from './routes/activities.js';
@@ -108,6 +116,32 @@ export async function startServer(
     });
   }
 
+  // One shared per-user state registry for the whole server — all of a
+  // user's connections fold into a single materialization (userState.ts).
+  // Created before the routes: /api/olxjson reads it for initial field
+  // state, the WS pipeline writes it.
+  const stateRegistry = new UserStateRegistry(kvs);
+  // Content fetches subscribe connections to the blocks they serve;
+  // shared/server fan-out targets subscribers only (subscriptions.ts).
+  const subscriptions = new SubscriptionRegistry();
+  // Grouping index (specs + picker reverse map), TTL-cached from content.
+  const grouping = makeGroupingIndex(
+    async () => (await syncContentFromStorage()).idMap as any,
+  );
+  // Aggregation index: view blocks whose blueprints fold other blocks'
+  // answers (aggregations.ts), TTL-cached from content + registry.
+  const aggregations = makeAggregationIndex(
+    async () => (await syncContentFromStorage()).idMap as any,
+    (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+  );
+  // Trusted level declarations (fieldLevels.ts): routing derives a
+  // field's level from content + registry, never from the wire's
+  // authority stamp — without this index every field is level 'user'.
+  const fieldLevels = makeFieldLevelIndex(
+    async () => (await syncContentFromStorage()).idMap as any,
+    (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+  );
+
   // --- Hono app (HTTP only) ------------------------------------------------
   const app = new Hono();
 
@@ -115,7 +149,7 @@ export async function startServer(
   // must keep answering AFTER handoff (boot.ts serves it during boot; a
   // 404 here strands open boot pages in their retry loop forever).
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
-  app.get('/api/olxjson', handleOlxJson);
+  app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
@@ -261,7 +295,18 @@ export async function startServer(
     }
   });
 
+  // Which store serves state on fetch_blob (config/server.pmss). Read per
+  // connection so a config change applies to new sessions without restart.
+  const readCanonical = (): 'blob' | 'fields' => {
+    const v = getConfig('state-canonical');
+    if (v !== 'blob' && v !== 'fields') {
+      throw new Error(`state-canonical must be blob or fields, got: ${v}`);
+    }
+    return v;
+  };
+
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    const canonical = readCanonical();
     const user: AuthUser = (req as any)[RESOLVED_USER];
     const conn = createConnectionLog(user);
     activeConnections.set(ws, conn);
@@ -272,10 +317,16 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);
+      // A dead pipeline must not leave a live socket: the client would
+      // hang on "Loading user state…" waiting for a fetch_blob response
+      // that can never come. 1011 = server error; the client reconnects
+      // or fails visibly. (Observed 2026-07-07 with a mixed-generation
+      // hot reload.)
+      try { ws.close(1011, 'pipeline failed'); } catch { /* already gone */ }
     }).finally(() => {
       saveConnectionLog(conn)
         .catch((err) => console.error(`[${conn.id}] Error saving event log:`, err))

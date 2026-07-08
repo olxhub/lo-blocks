@@ -25,6 +25,7 @@
 //
 
 import { updateResponseReducer } from './state/store';
+import { expandAndOrderEvents } from './state/encode';
 import { initialOlxJsonState } from './state/olxjson';
 import { initialCatalogState } from './state/catalog';
 import { initialDocsState } from './state/docs';
@@ -147,6 +148,12 @@ function applyFetchBlobResponse(state: AppState, data: any): AppState {
  * replayToEvent(events)  // or replayToEvent(events, events.length)
  */
 export function replayToEvent(events: LoggedEvent[], upTo?: number): AppState {
+  // Encoded aggregates expand into per-sample events BEFORE the fold and
+  // the log is put back into true TIME order (an aggregate arrives at its
+  // end time; its samples belong earlier — lib/state/encode.ts). upTo
+  // then indexes the expanded, time-ordered sequence — one aggregate is
+  // many steps, which is exactly what a replay scrubber wants.
+  events = expandAndOrderEvents(events);
   const limit = upTo ?? events.length;
   let state = initialReplayState;
 
@@ -179,6 +186,9 @@ export function replayToEvent(events: LoggedEvent[], upTo?: number): AppState {
  * // snapshots[n+1] is state after events[n]
  */
 export function replayWithSnapshots(events: LoggedEvent[]): StateSnapshot[] {
+  // One snapshot per SAMPLE, not per aggregate, in time order (see
+  // replayToEvent).
+  events = expandAndOrderEvents(events);
   const snapshots: StateSnapshot[] = [{
     eventIndex: -1,
     event: null,

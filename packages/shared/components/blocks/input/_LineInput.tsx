@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useReduxInput } from '@/lib/state';
+import { useInputField } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
@@ -12,7 +12,7 @@ const allowedAttrs = ['min', 'max', 'placeholder', 'type', 'step'];
 export default function LineInput( props: RuntimeProps ) {
   const { fields, updateValidator, ...rest } = props;
 
-  const [value, inputProps] = useReduxInput(
+  const [value, inputProps] = useInputField(
     props, fields.value, '',
     { updateValidator }
   );

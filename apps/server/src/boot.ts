@@ -84,7 +84,7 @@ const PAGE = `<!doctype html>
  * Throws immediately if the port is taken (fail fast — the old failure
  * mode was a silent EADDRINUSE zombie-server mystery).
  */
-export function startBoot(port: number): Promise<BootTracker> {
+export async function startBoot(port: number): Promise<BootTracker> {
   const tasks: BootTask[] = [];
   let ready = false;
 
@@ -131,11 +131,35 @@ export function startBoot(port: number): Promise<BootTracker> {
     },
   };
 
-  return new Promise((resolve, reject) => {
-    server.once('error', reject);   // EADDRINUSE etc. — fail loud, fail now
-    server.listen(port, () => {
-      console.log(`  [boot] listening on :${port} (boot page up)`);
-      resolve(tracker);
-    });
-  });
+  // A restarting dev server races the old process releasing the port, so
+  // EADDRINUSE retries briefly (10 × 500ms, added 2026-07). A port that is
+  // still taken after that is a real occupant — fail with one actionable
+  // line; the stack adds nothing to "something else owns :8888".
+  const RETRIES = 10;
+  const RETRY_MS = 500;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(port, () => {
+          console.log(`  [boot] listening on :${port} (boot page up)`);
+          resolve(tracker);
+        });
+      });
+    } catch (err: any) {
+      // Each failed listen() leaves its 'listening' listener behind;
+      // clear both before the next attempt re-registers them.
+      server.removeAllListeners('listening');
+      server.removeAllListeners('error');
+      if (err?.code !== 'EADDRINUSE') throw err;
+      if (attempt >= RETRIES) {
+        console.error(
+          `Port ${port} is already in use — another server is running.\n` +
+          `Stop it (npm run clean-zombies) or start this one on another port (PORT=...).`);
+        process.exit(1);
+      }
+      if (attempt === 0) console.log(`  [boot] :${port} busy — waiting for it to free…`);
+      await new Promise(r => setTimeout(r, RETRY_MS));
+    }
+  }
 }

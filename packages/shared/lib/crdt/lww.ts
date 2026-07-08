@@ -19,7 +19,7 @@
 //
 //   This pattern matches selection state (value.selectionStart, etc.) and
 //   keeps backward compatibility — code that reads state[fieldName] directly
-//   (e.g., useReduxInput) still gets the value without unwrapping.
+//   (e.g., useInputField) still gets the value without unwrapping.
 //
 // Relationship to other CRDTs in this directory:
 //   - rga.ts: sequence CRDT for collaborative text (used by docField)
@@ -49,6 +49,13 @@ export function lwwWrite(fieldName: string, event: FieldEvent) {
  * the write was stale (existing value is newer) — nothing changes.
  */
 export function lwwReduce(componentState: Record<string, any>, action: any, fieldName: string): Record<string, any> {
+  // Aggregate events (the encode axis — lib/state/encode.ts) carry a
+  // sample trace instead of a single value; live state takes the LAST
+  // sample, stamped at its own time. Replay expands the full trace.
+  if (Array.isArray(action.samples) && action.samples.length > 0) {
+    const [dt, value] = action.samples[action.samples.length - 1];
+    action = { ...action, [fieldName]: value, ts: (action.startTs ?? 0) + dt };
+  }
   const newValue = action[fieldName];
   const ts = action.ts ?? Date.now();
   const actor = action.actor ?? getActorId();

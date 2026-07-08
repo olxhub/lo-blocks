@@ -1,0 +1,12 @@
+<!-- Shared-field demo (fields-design 2c): open this in two browsers (or a
+     normal + private window — DIFFERENT users, unlike the same-user tab
+     test) and type. Everyone edits one value; last write wins. -->
+<Vertical id="SharedNotesDemo" title="SharedNotes — one value for everyone">
+  <Markdown id="sn_intro">
+## Shared notes
+
+This text is **shared across all users**: open the page as two different
+users and both edit the same value.
+  </Markdown>
+  <SharedNotes id="sn_notes"/>
+</Vertical>

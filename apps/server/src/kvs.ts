@@ -28,34 +28,11 @@ function isPathAllowed(resolved: string, root: string): boolean {
   return !rel.startsWith('..') && !path.isAbsolute(rel);
 }
 
-export interface KVStore {
-  ready: Promise<void>;
-  get(key: KVSKey): Promise<string | null>;
-  set(key: KVSKey, value: string): Promise<void>;
-  del(key: KVSKey): Promise<void>;
-  close?(): Promise<void>;
-}
-
-/**
- * In-memory KVS backed by a Map. Data is lost on server restart.
- * Good for tests; not for anything you care about keeping.
- */
-export class MemoryKVStore implements KVStore {
-  ready = Promise.resolve();
-  private data = new Map<KVSKey, string>();
-
-  async get(key: KVSKey) {
-    return this.data.get(key) ?? null;
-  }
-
-  async set(key: KVSKey, value: string) {
-    this.data.set(key, value);
-  }
-
-  async del(key: KVSKey) {
-    this.data.delete(key);
-  }
-}
+// The interface (and MemoryKVStore) live in the shared library — the
+// state-sync engine (lib/state/sync) writes through them; this file is
+// the deployment half: backends with real dependencies.
+export { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
+import type { KVStore } from '@/lib/storage/kvs';
 
 /**
  * Directory-based file KVS. Each key maps to a file on disk, using `:`

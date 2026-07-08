@@ -52,7 +52,7 @@ export const BLOCKS_DIR = path.resolve('./packages/shared/components/blocks');
  */
 export const DEMO_RENDER_SHARDS: Record<string, string[]> = {
   assessment: ['CapaProblem', 'MarkupProblem', 'input', 'grading'],
-  display: ['display', 'reference', 'utility', 'authoring', '_test'],
+  display: ['display', 'reference', 'utility', 'authoring', '_test', 'media'],
   layout: ['layout', 'navigation', 'action'],
   scenario: ['scenario', 'language-arts', 'specialized'],
 };

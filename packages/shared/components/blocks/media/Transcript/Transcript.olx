@@ -1,0 +1,8 @@
+<!-- Standalone Transcript attached to a separate player by target=.
+     The transcript follows playback and clicking a cue seeks the video —
+     across blocks, through the shared media fields. -->
+<Vertical id="TranscriptDemo" title="Transcript — separate from its player">
+  <VideoPlayer id="td_player" src="/content/test-video.mp4"/>
+  <Markdown id="td_note">The transcript below is a separate block, wired by `target`:</Markdown>
+  <Transcript id="td_transcript" target="td_player" src="/content/demos/test-video.vtt"/>
+</Vertical>

@@ -147,8 +147,10 @@ async function getBlocks(
       (e) => filterSet.has(normalize(e.name)) || e.categories.some((c) => filterSet.has(normalize(c))),
     );
   } else {
-    // No filter → all blocks, minus internal unless asked for
-    matched = internal ? allEntries : allEntries.filter((e) => !e.block.internal);
+    // No filter → all blocks, minus internal AND prototype unless asked
+    // for (prototype = under development, hidden from authors until the
+    // surface is committed to).
+    matched = internal ? allEntries : allEntries.filter((e) => !e.block.internal && !e.block.prototype);
   }
 
   // -- Sort & paginate -----------------------------------------------------
@@ -169,6 +171,7 @@ async function getBlocks(
       isInput: block.isInput,
       isGrader: block.isGrader,
       internal: !!block.internal,
+      ...(block.prototype ? { prototype: true } : {}),
     };
 
     if (includeSet.has('attributes')) {
