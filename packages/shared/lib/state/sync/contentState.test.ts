@@ -1,11 +1,11 @@
 // @vitest-environment node
-// apps/server/src/routes/olxjson.test.ts
+// packages/shared/lib/state/sync/contentState.test.ts
 //
-// fieldStateForIds: the server-side filter picking which of a user's
-// component buckets ride a content response (fields-design step 2b).
+// fieldStateForIds: the filter picking which of a caller's component
+// buckets ride a content response (fields-design step 2b).
 
 import { test, expect } from 'vitest';
-import { fieldStateForIds } from './olxjson.js';
+import { fieldStateForIds } from './contentState';
 
 const scopes = {
   system: { locale: 'en' },
