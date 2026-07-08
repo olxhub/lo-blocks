@@ -20,7 +20,8 @@
 // appears (rare after warm-up).
 
 import type { KVStore } from '@/lib/storage/kvs';
-import { kvsKey, type SafeUserId } from '@/lib/types/identity';
+import { kvsKey } from '@/lib/types/identity';
+import type { LevelInstance } from './levels';
 
 /** Scopes persisted per-field — must match serializeForSave in store.ts
  * (system, component, componentSetting; olxjson/chat/storage excluded). */
@@ -94,7 +95,7 @@ export class FieldPersister {
 
   constructor(
     private kvs: KVStore,
-    private user: SafeUserId,
+    private user: LevelInstance,
     // 1000ms matches the client's save debounce (lo_event, measured 2026-07).
     private debounceMs = 1000,
   ) {
@@ -236,7 +237,7 @@ export class FieldPersister {
  */
 export async function assembleFieldState(
   kvs: KVStore,
-  user: SafeUserId,
+  user: LevelInstance,
 ): Promise<AppStateLike | null> {
   const raw = await kvs.get(kvsKey.fieldIndex(user));
   if (!raw) return null;

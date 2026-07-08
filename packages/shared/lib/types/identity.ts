@@ -101,20 +101,23 @@ export const kvsKey = {
     return asKVSKey(`blob:${safeUserId}`);
   },
 
-  /** Individual state field: `field:{safeUserId}:{scope}:{name}`.
-   * The name is a state-bucket key (usually an OLX block id) and can
-   * contain `/`, `#`, `:`, spaces — anything. It is percent-encoded so
-   * the key stays a flat token: FileKVStore maps `:` to directories, and
-   * a raw id like `repo/course/#attempt_0` would explode into nested
-   * paths that collide with sibling keys (ENOTDIR, found 2026-07-07). */
-  field(safeUserId: SafeUserId, scope: string, name: string): KVSKey {
-    return asKVSKey(`field:${safeUserId}:${scope}:${encodeURIComponent(name)}`);
+  /** Individual state field: `field:{levelInstance}:{scope}:{name}` —
+   * levelInstance addresses one copy of the state (user:<id> /
+   * set:<name>:<member> / all; lib/state/sync/levels.ts). The name is a
+   * state-bucket key (usually an OLX block id) and can contain `/`, `#`,
+   * `:`, spaces — anything. It is percent-encoded so the key stays a
+   * flat token: FileKVStore maps `:` to directories, and a raw id like
+   * `repo/course/#attempt_0` would explode into nested paths that
+   * collide with sibling keys (ENOTDIR, found 2026-07-07). */
+  field(levelInstance: string, scope: string, name: string): KVSKey {
+    return asKVSKey(`field:${levelInstance}:${scope}:${encodeURIComponent(name)}`);
   },
 
-  /** Index of a user's field buckets (the KVS has no key enumeration):
-   * `fieldindex:{safeUserId}` — JSON of scope → bucket-name list. */
-  fieldIndex(safeUserId: SafeUserId): KVSKey {
-    return asKVSKey(`fieldindex:${safeUserId}`);
+  /** Index of an instance's field buckets (the KVS has no key
+   * enumeration): `fieldindex:{levelInstance}` — JSON of scope →
+   * bucket-name list. */
+  fieldIndex(levelInstance: string): KVSKey {
+    return asKVSKey(`fieldindex:${levelInstance}`);
   },
 
   /** Rate limit RPM counter: `rate:{safeUserId}:rpm` */

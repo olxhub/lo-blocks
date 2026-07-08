@@ -31,7 +31,7 @@ import type { FieldPersister } from '@/lib/state/sync/persistence';
 import { assembleFieldState, compareToBlob } from '@/lib/state/sync/persistence';
 import type { UserStateRegistry, UserStateEntry } from '@/lib/state/sync/registry';
 import type { GroupingIndex } from '@/lib/state/sync/partitions';
-import { SHARED_STATE_ID } from '@/lib/state/sync/registry';
+import { userInstance } from '@/lib/state/sync/levels';
 import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { routeEvent, type SyncSession } from '@/lib/state/sync/router';
 
@@ -68,13 +68,12 @@ export interface PipelineContext {
   grouping?: GroupingIndex;
   /** Aggregation index from content (aggregations.ts). Absent = none. */
   aggregations?: import('@/lib/state/sync/aggregations').AggregationIndex;
-  /** The acquired per-user entry — set by runPipeline. */
+  /** The connection's sync session (holdings on level instances) —
+   * set by runPipeline. */
+  session?: SyncSession;
+  /** Aliases into the user's own entry (same objects, shared across the
+   * user's connections). */
   userState?: UserStateEntry;
-  /** The acquired SHARED entry (authority: 'shared' fields fold here;
-   * every connection attaches — fields-design 2c). Set by runPipeline. */
-  sharedState?: UserStateEntry;
-  /** Aliases into userState (same objects, shared across the user's
-   * connections). */
   serverState?: ServerState;
   persister?: FieldPersister;
 }
@@ -228,7 +227,7 @@ async function* handleBlobs(
           let scopes: Record<string, any> | null = null;
           let source = 'blob';
           if (context.canonical === 'fields') {
-            scopes = await assembleFieldState(kvs, user.safe_user_id);
+            scopes = await assembleFieldState(kvs, userInstance(user.safe_user_id));
             if (scopes) source = 'fields';
             // No per-field state yet (user predates the field store):
             // fall back to the blob — adopt() below writes it into the
@@ -303,20 +302,9 @@ async function* runReducers(
   context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   // The whole reducer stage is one library call: fold the event into the
-  // right materialization and deliver whatever its authority implies
-  // (@/lib/state/sync/router).
-  const session: SyncSession = {
-    origin: context.ws,
-    principal: context.user.safe_user_id,
-    own: context.userState!,
-    shared: context.sharedState!,
-    registry: context.stateRegistry,
-    subscriptions: context.subscriptions,
-    grouping: context.grouping,
-    aggregations: context.aggregations,
-  };
+  // right level instance and deliver (@/lib/state/sync/router).
   for await (const event of events) {
-    await routeEvent(session, event);
+    await routeEvent(context.session!, event);
     yield event;
   }
 }
@@ -330,36 +318,37 @@ async function* runReducers(
  * Returns when the connection closes.
  */
 export async function runPipeline(context: PipelineContext) {
-  // Acquire the per-USER state — all of this user's connections fold
-  // into one materialization (userState.ts).
-  const userState = context.stateRegistry.acquire(context.user.safe_user_id, context.ws);
+  // The connection's sync session: a map of held LEVEL INSTANCES
+  // (router.ts). The user's own instance is acquired eagerly — all of a
+  // user's connections fold into one materialization; further instances
+  // (all, set:…) are acquired lazily by the router.
+  const session: SyncSession = {
+    origin: context.ws,
+    principal: context.user.safe_user_id,
+    registry: context.stateRegistry,
+    subscriptions: context.subscriptions,
+    kvs: context.kvs,
+    grouping: context.grouping,
+    aggregations: context.aggregations,
+    holdings: new Map(),
+  };
+  context.session = session;
+  const own = context.stateRegistry.acquire(userInstance(context.user.safe_user_id), context.ws);
+  session.holdings.set(userInstance(context.user.safe_user_id), own);
+  context.userState = own;
+  context.serverState = own.serverState;
+  context.persister = own.persister;
   // Content fetched before this socket existed recorded its subscription
   // keys against the principal — adopt them now (startup race; see
   // subscriptions.ts "Pending subscriptions").
   context.subscriptions.adoptPending(context.user.safe_user_id, context.ws);
-  context.userState = userState;
-  context.serverState = userState.serverState;
-  context.persister = userState.persister;
-
-  // And the SHARED entry (authority: 'shared' fields — fields-design 2c).
-  // Every connection attaches; seeded once from the field store (no blob
-  // legacy: shared fields never lived in blobs).
-  const sharedState = context.stateRegistry.acquire(SHARED_STATE_ID, context.ws);
-  context.sharedState = sharedState;
 
   // The message listener must attach SYNCHRONOUSLY with the connection —
   // an await before messagesFrom() would drop events arriving in the gap
   // (same race the upgrade handler documents in server.ts). messagesFrom
-  // queues, so awaiting the shared seed after this is safe.
+  // queues; the stages below await freely.
   const raw = messagesFrom(context.ws);
   try {
-    await sharedState.ensureSeeded(async () => {
-      const scopes = await assembleFieldState(context.kvs, SHARED_STATE_ID);
-      if (scopes) {
-        sharedState.serverState.seed(scopes);
-        sharedState.persister.startFromPersisted(sharedState.serverState.state);
-      }
-    });
     const logged = decodeAndLog(raw, context);
     const withLockFields = decodeLockFields(logged, context);
     const authenticated = resolveAuth(withLockFields, context);
@@ -375,9 +364,9 @@ export async function runPipeline(context: PipelineContext) {
     // Runs on normal close AND when a stage throws (a malformed event,
     // say): without it, a crashed pipeline leaked its registry refs
     // (phantom live entries), its subscriptions, and its pending field
-    // writes (found by review 2026-07).
+    // writes (found by review 2026-07). Every held instance releases —
+    // the last holder's release flushes and drops the entry.
     context.subscriptions.unsubscribeAll(context.ws);
-    await userState.release();
-    await sharedState.release();
+    for (const entry of session.holdings.values()) await entry.release();
   }
 }

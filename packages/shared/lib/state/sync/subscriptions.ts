@@ -49,15 +49,15 @@ export class SubscriptionRegistry {
     return this.byKey.get(key) ?? EMPTY;
   }
 
-  /** Swap a connection's partition for one block: drop the plain key and
-   * every `${blockId}::…` partition key, subscribe the new key. The
-   * group-switch path (groups.ts) — a user re-picking moves their
+  /** Swap a connection's instance for one block: drop every
+   * `{instance}|{blockId}` key for this block, subscribe the new key.
+   * The group-switch path (router.ts) — a user re-picking moves their
    * sockets to the new partition. */
   resubscribe(ws: StateConnection, blockId: string, newKey: string) {
     const mine = this.bySocket.get(ws);
     if (mine) {
       for (const key of mine) {
-        if (key === blockId || key.startsWith(`${blockId}::`)) {
+        if (key.endsWith(`|${blockId}`)) {
           mine.delete(key);
           const subs = this.byKey.get(key);
           if (subs) {

@@ -60,15 +60,6 @@ export function groupFor(
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
 
-/**
- * The partitioned bucket/subscription key. `::` cannot collide with the
- * `#`-scoped per-user variants (fieldStateForIds matches `${id}#`), so
- * grouped buckets never leak through the ungrouped filters.
- */
-export function partitionedId(blockId: string, group: string): string {
-  return `${blockId}::${group}`;
-}
-
 /** Both directions of the grouping index. */
 export interface GroupingIndex {
   /** Grouped block id → its grouped-by spec string, or undefined. */

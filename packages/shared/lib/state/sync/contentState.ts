@@ -8,9 +8,9 @@
 
 import type { SafeUserId } from '@/lib/types/identity';
 import type { UserStateRegistry } from './registry';
-import { SHARED_STATE_ID } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
-import { parsePartitionSpec, groupFor, partitionedId } from './partitions';
+import { parsePartitionSpec, groupFor } from './partitions';
+import { ALL, type LevelInstance, userInstance, setInstance, subscriptionKey } from './levels';
 
 /**
  * Pick the caller's per-user component buckets that belong to the ids
@@ -32,43 +32,51 @@ export function fieldStateForIds(
 }
 
 /**
- * For each served block, the key its shared state lives under: grouped
- * blocks (grouped-by attribute) partition by THIS caller's own state
- * (partitions.ts); everything else keys by plain id.
+ * For each served block, the LEVEL INSTANCE its shared state lives in:
+ * grouped blocks (grouped-by attribute) partition by THIS caller's own
+ * state (partitions.ts); everything else lives at `all`.
  */
-export function partitionKeysFor(
+export function instancesFor(
   responseIdMap: Record<string, any>,
   callerScopes: Record<string, any> | null,
-): Map<string, string> {
-  const keyOf = new Map<string, string>();
+): Map<string, LevelInstance> {
+  const instanceOf = new Map<string, LevelInstance>();
   for (const id of Object.keys(responseIdMap)) {
-    let key = id;
+    let instance: LevelInstance = ALL;
     for (const variant of Object.values(responseIdMap[id] ?? {})) {
       const spec = (variant as any)?.attributes?.['grouped-by'];
       if (spec) {
         const parsed = parsePartitionSpec(spec, id);
         const group = parsed ? groupFor(callerScopes, parsed) : undefined;
-        if (group !== undefined) key = partitionedId(id, group);
+        if (group !== undefined) instance = setInstance(spec, group);
         break;
       }
     }
-    keyOf.set(id, key);
+    instanceOf.set(id, instance);
   }
-  return keyOf;
+  return instanceOf;
 }
 
 /**
- * The caller's shared buckets for the served blocks, mapped back to the
- * plain block id (clients are partition-oblivious).
+ * The caller's shared buckets for the served blocks — read from each
+ * block's level instance under its PLAIN id (clients are partition-
+ * oblivious; the address carries the partition).
  */
-function sharedStateFor(
-  sharedScopes: Record<string, any> | null,
-  keyOf: Map<string, string>,
-): Record<string, any> {
+async function sharedStateFor(
+  registry: UserStateRegistry,
+  instanceOf: Map<string, LevelInstance>,
+): Promise<Record<string, any>> {
+  const byInstance = new Map<LevelInstance, string[]>();
+  for (const [id, instance] of instanceOf) {
+    byInstance.set(instance, [...(byInstance.get(instance) ?? []), id]);
+  }
   const sharedComponent: Record<string, any> = {};
-  for (const [id, key] of keyOf) {
-    const bucket = sharedScopes?.component?.[key];
-    if (bucket !== undefined) sharedComponent[id] = bucket;
+  for (const [instance, ids] of byInstance) {
+    const scopes = await registry.read(instance);
+    for (const id of ids) {
+      const bucket = scopes?.component?.[id];
+      if (bucket !== undefined) sharedComponent[id] = bucket;
+    }
   }
   return sharedComponent;
 }
@@ -89,11 +97,11 @@ export async function stateForContentFetch(
   principal: SafeUserId,
   responseIdMap: Record<string, any>,
 ): Promise<Record<string, any> | null> {
-  const callerScopes = await registry.read(principal);
-  const keyOf = partitionKeysFor(responseIdMap, callerScopes);
+  const callerScopes = await registry.read(userInstance(principal));
+  const instanceOf = instancesFor(responseIdMap, callerScopes);
 
-  const keys = [...keyOf.values()];
-  for (const connection of registry.socketsOf(principal)) {
+  const keys = [...instanceOf].map(([id, instance]) => subscriptionKey(instance, id));
+  for (const connection of registry.socketsOf(userInstance(principal))) {
     subscriptions.subscribe(connection, keys);
   }
   // The fetch may have raced the caller's WebSocket (page load fetches
@@ -101,8 +109,8 @@ export async function stateForContentFetch(
   // principal so the arriving connection adopts them (subscriptions.ts).
   subscriptions.notePending(principal, keys);
 
-  const own = fieldStateForIds(callerScopes, [...keyOf.keys()]);
-  const shared = sharedStateFor(await registry.read(SHARED_STATE_ID), keyOf);
+  const own = fieldStateForIds(callerScopes, [...instanceOf.keys()]);
+  const shared = await sharedStateFor(registry, instanceOf);
   if (!own && Object.keys(shared).length === 0) return null;
   return {
     ...(own ? { component: own.component } : {}),

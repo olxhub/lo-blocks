@@ -316,6 +316,23 @@ export function updateField(
     return;
   }
 
+  // Per-field LEVELS within one interaction: extras (useInputField's
+  // selection tracking) are the CALLER's cursor — level user — even when
+  // the VALUE is level everyone. Riding the value event would put one
+  // shared cursor in the everyone-bucket for all editors to fight over;
+  // instead they ship as their own unstamped (level-user) event, landing
+  // in the caller's copy of the same bucket key. Client Redux merges both
+  // into one local bucket, so readers are oblivious.
+  if (extraPayload && field.level && field.level !== 'user') {
+    const logEvent = props ? (props as any).runtime.logEvent : lo_event.logEvent;
+    logEvent(UPDATE_INPUT, {
+      scope: field.scope,
+      id: stateKey ?? scopedStateKeyForBlock(props as RuntimeProps),
+      ...extraPayload,
+    });
+    extraPayload = undefined;
+  }
+
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();

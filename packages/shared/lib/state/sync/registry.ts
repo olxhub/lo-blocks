@@ -21,20 +21,15 @@
 // refcount check after the flush notices and keeps it).
 
 import type { KVStore } from '@/lib/storage/kvs';
+import type { LevelInstance } from './levels';
 import { type StateConnection, trySend } from './connection';
 import type { SafeUserId } from '@/lib/types/identity';
 import { ServerState } from './materialization';
 import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './persistence';
 
-/**
- * Pseudo-user for SHARED field state (fields-design 2c): fields declared
- * `authority: 'shared'` fold into one materialization everyone reads,
- * keyed in the registry and the field store under this id instead of a
- * real user. Underscore prefix cannot collide with real safe_user_ids
- * (they are provenance-prefixed, e.g. `guest-…`). Group-scoped sharing
- * later becomes `_shared:{group}`.
- */
-export const SHARED_STATE_ID = '_shared' as SafeUserId;
+// The 'all' instance and its friends live in ./levels — one
+// materialization per LEVEL INSTANCE (user:<id> / set:<name>:<member> /
+// all), replacing the per-user registry + `_shared` pseudo-user pair.
 
 export interface UserStateEntry {
   serverState: ServerState;
@@ -77,7 +72,7 @@ export interface UserStateEntry {
 }
 
 export class UserStateRegistry {
-  private entries = new Map<SafeUserId, {
+  private entries = new Map<LevelInstance, {
     serverState: ServerState;
     persister: FieldPersister;
     refs: number;
@@ -87,7 +82,7 @@ export class UserStateRegistry {
 
   constructor(private kvs: KVStore) {}
 
-  acquire(user: SafeUserId, ws?: StateConnection): UserStateEntry {
+  acquire(user: LevelInstance, ws?: StateConnection): UserStateEntry {
     let entry = this.entries.get(user);
     if (!entry) {
       entry = {
@@ -171,7 +166,7 @@ export class UserStateRegistry {
   /** A user's currently connected sockets — the content fetch uses this
    * to subscribe the caller's live connections to the ids it serves
    * (subscriptions.ts). Empty when the user has no open connections. */
-  socketsOf(user: SafeUserId): ReadonlySet<StateConnection> {
+  socketsOf(user: LevelInstance): ReadonlySet<StateConnection> {
     return this.entries.get(user)?.sockets ?? new Set();
   }
 
@@ -182,7 +177,7 @@ export class UserStateRegistry {
    * Read-only — no refcounts, no seeding. Serves the content-fetch
    * initial-state path (fields-design step 2b).
    */
-  async read(user: SafeUserId): Promise<Record<string, any> | null> {
+  async read(user: LevelInstance): Promise<Record<string, any> | null> {
     const live = this.entries.get(user);
     if (live) {
       // A live entry that hasn't seeded yet is EMPTY, not authoritative —
