@@ -63,6 +63,9 @@ export interface PipelineContext {
   /** Which connections care about which blocks (content fetch =
    * subscription). Shared/server fan-out targets subscribers only. */
   subscriptions: SubscriptionRegistry;
+  /** Trusted field-level declarations (fieldLevels.ts). Absent = every
+   * field routes as level 'user' (fail closed). */
+  fieldLevels?: import('@/lib/state/sync/fieldLevels').FieldLevelIndex;
   /** Grouping index from content (partitions.ts). Absent = no grouping
    * (tests that don't care omit it). */
   grouping?: GroupingIndex;
@@ -328,6 +331,7 @@ export async function runPipeline(context: PipelineContext) {
     registry: context.stateRegistry,
     subscriptions: context.subscriptions,
     kvs: context.kvs,
+    fieldLevels: context.fieldLevels,
     grouping: context.grouping,
     aggregations: context.aggregations,
     holdings: new Map(),

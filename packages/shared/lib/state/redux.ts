@@ -280,11 +280,12 @@ export function dispatchFieldEvent(
     scope,
     ...(scope === scopes.component || scope === scopes.storage ? { id: resolvedKey } : {}),
     ...(scope === scopes.componentSetting ? { tag: resolvedTag } : {}),
-    // Level stamp: events for level>user fields are self-describing on
-    // the wire — the sync engine routes them into the shared
-    // materialization instead of the sender's, and replay can tell whose
-    // truth an event was. (Wire vocabulary predates the level axis:
-    // 'shared' = events-relayed, 'server' = folded-delivery.)
+    // Level stamp: SELF-DESCRIPTION ONLY — replay can tell whose truth
+    // an event was without consulting content. The server does NOT trust
+    // it: routing derives the level from content + registry
+    // (sync/fieldLevels.ts), so a forged stamp cannot reach shared
+    // state. (Wire vocabulary predates the level axis: 'shared' =
+    // events-relayed, 'server' = folded-delivery.)
     ...(field.level && field.level !== 'user'
       ? { authority: field.delivery === 'folded' ? 'server' : 'shared' }
       : {}),

@@ -70,6 +70,13 @@ const UPDATE = {
   id: 'pipe-block', value: 'v1', ts: 1, actor: 'test',
 };
 
+/** Content-declared field levels (fieldLevels.ts) — the TRUSTED routing
+ * input. The wire's authority stamp is self-description the router
+ * ignores; without a declaration here, every field routes level 'user'. */
+const levels = (map: Record<string, { level: 'everyone'; delivery: 'events' | 'folded' }>) => ({
+  levelOf: async (id: string, field: string) => map[`${id}|${field}`],
+});
+
 test('blob canonical: fetch_blob serves the stored blob', async () => {
   const kvs = new MemoryKVStore();
   await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
@@ -192,16 +199,19 @@ test('LWW wins by timestamp, not by which connection closes last', async () => {
   expect(JSON.parse(stored!).value).toBe('newer');
 });
 
-test('shared authority: two DIFFERENT users fold into one value', async () => {
+test('level everyone: two DIFFERENT users fold into one value', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
   const subs = new SubscriptionRegistry();
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  // Content declares shared-block.value level everyone — the router
+  // routes by THIS, not the event's authority stamp.
+  const fieldLevels = levels({ 'shared-block|value': { level: 'everyone', delivery: 'events' } });
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
@@ -209,7 +219,7 @@ test('shared authority: two DIFFERENT users fold into one value', async () => {
   // fan-out); C is connected but NOT subscribed and must hear nothing.
   subs.subscribe(wsB as any, [subscriptionKey(ALL, 'shared-block')]);
   const wsC = new FakeWs();
-  const ctxC: PipelineContext = { ws: wsC as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxC: PipelineContext = { ws: wsC as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels };
   const runC = runPipeline(ctxC);
 
   wsA.emit('message', Buffer.from(JSON.stringify({
@@ -238,28 +248,29 @@ test('shared authority: two DIFFERENT users fold into one value', async () => {
   expect(JSON.parse(stored!).value).toBe('ours');
 });
 
-test('server authority: contributions stay private; everyone gets the derived state', async () => {
+test('folded delivery: contributions stay private; everyone gets the derived state', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
   const subs = new SubscriptionRegistry();
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  const fieldLevels = levels({ 'poll-block|contribution': { level: 'everyone', delivery: 'folded' } });
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 
   // B's content fetch subscribed it to the poll block.
   subs.subscribe(wsB as any, [subscriptionKey(ALL, 'poll-block')]);
 
-  // A "votes": a raw contribution event with authority: 'server'.
+  // A "votes": a raw contribution event on the folded-delivery field.
   // (No registered fold for this event in the test registry, so the
   // legacy-spread path materializes { contribution } into the bucket —
   // enough to verify routing and the state-not-event fan.)
   wsA.emit('message', Buffer.from(JSON.stringify({
-    event: 'UPDATE_TESTCOUNTS', scope: 'component', authority: 'server',
+    event: 'UPDATE_TESTCOUNTS', scope: 'component', field: 'contribution',
     id: 'poll-block', contribution: 'Alpha',
   })));
   await new Promise(r => setTimeout(r, 20));
@@ -278,6 +289,28 @@ test('server authority: contributions stay private; everyone gets the derived st
   await Promise.all([runA, runB]);
 });
 
+test('a forged authority stamp cannot reach shared state', async () => {
+  // Routing derives the level from content declarations (fieldLevels),
+  // never the wire — a client stamping authority on an undeclared field
+  // writes only its own copy (local Codex review, 2026-07: "server
+  // trusts client-supplied authority").
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+
+  // No fieldLevels declaration for pipe-block at all — but the client
+  // claims the field is shared.
+  const { ctx } = await drive(
+    { kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels: levels({}) },
+    [{ ...UPDATE, authority: 'shared' }]);
+
+  // The write landed in the sender's OWN instance, not the shared one.
+  const own = await registry.read(userInstance(USER.safe_user_id));
+  expect(own!.component['pipe-block'].value).toBe('v1');
+  expect((await registry.read(ALL))?.component?.['pipe-block']).toBeUndefined();
+  await ctx.persister!.close();
+});
+
 test('grouped-by: users partition by their own picker field', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
@@ -291,11 +324,12 @@ test('grouped-by: users partition by their own picker field', async () => {
       pickerKey === 'demos/topic_picker' && field === 'activeIndex'
         ? ['demos/chat'] : [],
   };
+  const fieldLevels = levels({ 'demos/chat|value': { level: 'everyone', delivery: 'events' } });
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
-  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, grouping };
-  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, grouping };
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
   const runA = runPipeline(ctxA);
   const runB = runPipeline(ctxB);
 

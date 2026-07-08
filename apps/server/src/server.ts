@@ -36,6 +36,7 @@ import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
+import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
@@ -130,6 +131,13 @@ export async function startServer(
   // Aggregation index: view blocks whose blueprints fold other blocks'
   // answers (aggregations.ts), TTL-cached from content + registry.
   const aggregations = makeAggregationIndex(
+    async () => (await syncContentFromStorage()).idMap as any,
+    (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+  );
+  // Trusted level declarations (fieldLevels.ts): routing derives a
+  // field's level from content + registry, never from the wire's
+  // authority stamp — without this index every field is level 'user'.
+  const fieldLevels = makeFieldLevelIndex(
     async () => (await syncContentFromStorage()).idMap as any,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
@@ -309,7 +317,7 @@ export async function startServer(
 
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
-    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, grouping, aggregations }).then(() => {
+    runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
     }).catch((err) => {
       console.error(`[${conn.id}] Pipeline error:`, err);

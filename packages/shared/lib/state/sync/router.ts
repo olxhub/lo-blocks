@@ -21,6 +21,7 @@ import type { StateConnection } from './connection';
 import type { UserStateRegistry, UserStateEntry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import type { GroupingIndex } from './partitions';
+import type { FieldLevelIndex, FieldLevelInfo } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
 import { assembleFieldState } from './persistence';
@@ -39,6 +40,10 @@ export interface SyncSession {
   registry: UserStateRegistry;
   subscriptions: SubscriptionRegistry;
   kvs: KVStore;
+  /** Trusted level declarations from content + registry; absent = every
+   * field is level 'user'. Routing NEVER trusts the wire's authority
+   * stamp — see resolveLevel. */
+  fieldLevels?: FieldLevelIndex;
   /** Partition index from content; absent = no grouping. */
   grouping?: GroupingIndex;
   /** Aggregation index from content; absent = no distant folds. */
@@ -74,14 +79,32 @@ export async function entryFor(session: SyncSession, instance: LevelInstance): P
   return entry;
 }
 
-/** Which instance an event's state lives in. The partition NEVER comes
+/** The event's field level, from TRUSTED declarations only. The wire's
+ * authority stamp is self-description for the event log, not an input
+ * to routing — a client stamping 'shared' on a private field must not
+ * reach shared state. Undefined = level 'user' (fail closed: no index,
+ * no declaration, or no field name on the event → private). */
+async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<FieldLevelInfo | undefined> {
+  const info = session.fieldLevels && event.id && event.field
+    ? await session.fieldLevels.levelOf(event.id, event.field)
+    : undefined;
+  if (event.authority && !info) {
+    // Forged stamp, stale client, or content/registry skew — routed as
+    // level 'user' either way; log so skew is visible.
+    console.warn(`[sync] wire claims authority '${event.authority}' on `
+      + `${event.id}.${event.field} but content declares level user — routing as user`);
+  }
+  return info;
+}
+
+/** The instance a level-everyone block folds into for THIS sender:
+ * their partition when grouped, else `all`. The partition NEVER comes
  * from the wire: grouped fields resolve from the SENDER's own state. */
-async function resolveInstance(session: SyncSession, event: SyncEvent): Promise<LevelInstance> {
-  if (!event.authority) return userInstance(session.principal);
-  const spec = session.grouping && event.id
-    ? await session.grouping.specOf(event.id) : undefined;
+async function sharedInstanceFor(session: SyncSession, blockId: string): Promise<LevelInstance> {
+  const spec = session.grouping
+    ? await session.grouping.specOf(blockId) : undefined;
   if (!spec) return ALL;
-  const parsed = parsePartitionSpec(spec, event.id!);
+  const parsed = parsePartitionSpec(spec, blockId);
   const own = session.holdings.get(userInstance(session.principal));
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
@@ -115,7 +138,10 @@ function subscribersFor(
  * Fold one event and deliver it. This is the whole reducer stage.
  */
 export async function routeEvent(session: SyncSession, event: SyncEvent): Promise<void> {
-  const instance = await resolveInstance(session, event);
+  const level = await resolveLevel(session, event);
+  const instance = level
+    ? await sharedInstanceFor(session, event.id!)
+    : userInstance(session.principal);
   const entry = await entryFor(session, instance);
   const ownInstance = isUserInstance(instance);
 
@@ -148,7 +174,7 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
         for (const view of views) await applyAggregation(session, view, { prev, next });
       }
     }
-  } else if (event.authority === 'server') {
+  } else if (level!.delivery === 'folded') {
     // Folded delivery: raw contributions are private; subscribers
     // (origin included — its optimistic local fold gets replaced)
     // receive the authoritative reduced bucket.
@@ -209,14 +235,15 @@ async function switchGroup(
  * section distributions come free). The base for an empty bucket is the
  * view's seed attribute, else the spec's initial. This is the sync
  * engine's own maintenance write: it patches the materialization
- * directly rather than folding a synthetic event.
+ * directly rather than folding a synthetic event, and it trusts itself —
+ * derived fields are level everyone by construction, no lookup needed.
  */
 async function applyAggregation(
   session: SyncSession,
   view: AggregationView,
   transition: { prev: unknown; next: unknown },
 ) {
-  const instance = await resolveInstance(session, { authority: 'server', id: view.viewId });
+  const instance = await sharedInstanceFor(session, view.viewId);
   const entry = await entryFor(session, instance);
   const state = entry.serverState.state as any;
   const bucket = state.component?.[view.viewId] ?? {};
