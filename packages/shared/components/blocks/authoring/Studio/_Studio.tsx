@@ -60,7 +60,7 @@ cast:
     seed: studio_assistant
 ~~~~
 
->>> llm assistant [until="false" exit=none tools="studio-editor,content-read,content-write,docs"]
+>>> llm assistant [until="false" exit=none upload=true tools="studio-editor,content-read,content-write,docs"]
   You are an educational content authoring assistant for the lo-blocks
   platform (OLX blocks; chatpeg and other PEG content formats).
 

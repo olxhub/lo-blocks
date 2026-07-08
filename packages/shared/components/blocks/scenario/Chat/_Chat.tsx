@@ -218,7 +218,10 @@ export default function Chat(props: RuntimeProps) {
     // Open floor: talk to the LLM participant; Continue (when the exit
     // gate allows, and there is somewhere to go) resumes the script.
     <>
-      {!isDisabled && !finalInterlude && (
+      {!isDisabled && !finalInterlude && !interlude.busy && (
+        // Hidden while a reply is in flight: advancing mid-send would let a
+        // late end_conversation race the user's advance (llmInterlude guards
+        // that too), and the reply would land behind the moved script.
         <AdvanceFooter
           id={`${id}_advance`}
           onAdvance={handleAdvance}
@@ -228,7 +231,8 @@ export default function Chat(props: RuntimeProps) {
       )}
       <InputFooter
         id={`${id}_footer`}
-        onSendMessage={(text) => { void interlude.sendMessage(text); }}
+        onSendMessage={(text, file) => { void interlude.sendMessage(text, file); }}
+        allowFileUpload={interlude.active.metadata.upload === 'true'}
         disabled={interludeSendDisabled}
         placeholder={
           interlude.ended ? 'Conversation ended — press Continue'

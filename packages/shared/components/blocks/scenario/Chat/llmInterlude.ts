@@ -14,7 +14,8 @@
 // world only through its declared toolsets.
 
 import { useCallback, useMemo, useState } from 'react';
-import { useFieldState, appendToLog } from '@/lib/state';
+import { hashContent } from '@/lib/util';
+import { useFieldState, appendToLog, fieldSelector } from '@/lib/state';
 import { callLLM } from '@/lib/llm/reduxClient';
 import { ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
 import { advanceFrom } from '@/lib/advance';
@@ -46,7 +47,7 @@ export interface InterludeState {
   busy: boolean;
   /** The agent ended this interlude (end_conversation). Input closes. */
   ended: boolean;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, file?: { name: string; content: string } | null) => Promise<void>;
 }
 
 const EMPTY_ITEMS: InterludeLogItem[] = [];
@@ -83,13 +84,20 @@ export function useLlmInterlude(
   const maxTurns = active?.metadata.maxTurns ? parseInt(active.metadata.maxTurns, 10) : null;
   const ended = interludeItems.some(it => it.control === 'exit');
 
-  const sendMessage = useCallback(async (text: string) => {
-    if (!active || busy || ended || !text.trim()) return;
+  const sendMessage = useCallback(async (text: string, file?: { name: string; content: string } | null) => {
+    if (!active || busy || ended || !(text.trim() || file)) return;
     setBusy(true);
     try {
+      // Attachments (opt-in via [upload=true]): stored on the message for
+      // replicability; the display shows a 📎 marker, the model sees the
+      // full content (same treatment the legacy Studio chat used).
+      const attachments = file
+        ? [{ name: file.name, hash: await hashContent(file.content), body: file.content }]
+        : undefined;
+      const displayText = (text || '') + (file ? `\n\n📎 ${file.name}` : '');
       appendToLog(props, props.fields.messages, {
         atIndex: activeIndex,
-        message: { type: 'Line', speaker: 'You', text },
+        message: { type: 'Line', speaker: 'You', text: displayText, ...(attachments ? { attachments } : {}) },
       });
 
       // System prompt: the authored prompt with interpolations evaluated
@@ -123,7 +131,16 @@ export function useLlmInterlude(
         scriptSoFar ? `The scripted conversation so far:\n${scriptSoFar}` : '',
       ].filter(Boolean).join('\n\n');
 
-      // Prior interlude turns become the chat history.
+      // Prior interlude turns become the chat history. Messages with
+      // attachments are reconstructed with the full file content (the
+      // transcript shows only the 📎 marker).
+      const withAttachments = (msg: { text: string; attachments?: Array<{ name: string; body: string }> }): string => {
+        if (!msg.attachments?.length) return msg.text;
+        const files = msg.attachments
+          .map(a => `[Attached file: ${a.name}]\n\`\`\`\n${a.body}\n\`\`\``)
+          .join('\n\n');
+        return msg.text.replace(/\n\n📎[\s\S]*$/, '') + '\n\n' + files;
+      };
       const history: ApiMessage[] = [
         { role: 'system', content: systemPrompt },
         ...interludeItems
@@ -131,9 +148,9 @@ export function useLlmInterlude(
             it.message.type === 'Line')
           .map(it => ({
             role: (it.message.speaker === 'You' ? 'user' : 'assistant') as 'user' | 'assistant',
-            content: it.message.text,
+            content: withAttachments(it.message as { text: string; attachments?: Array<{ name: string; body: string }> }),
           })),
-        { role: 'user', content: text },
+        { role: 'user', content: withAttachments({ text, attachments }) },
       ];
 
       // Tools: named toolsets from the browser tool plane. No toolsets
@@ -181,13 +198,20 @@ export function useLlmInterlude(
 
       if (exitRequested) {
         // Durable exit marker (drives the exit gate + closes the input),
-        // then resume the script — same path as the Continue button.
+        // then resume the script — same path as the Continue button. Guard:
+        // only auto-advance if the cursor is STILL parked on this interlude;
+        // a late reply after the user already advanced must not advance the
+        // script a second time (it would silently skip the next entry).
         appendToLog(props, props.fields.messages, {
           atIndex: activeIndex,
           control: 'exit',
           message: { type: 'SystemMessage', text: `${active.participant} ended the conversation.` },
         });
-        advanceFrom(props.nodeInfo, props.runtime.store.getState());
+        const reduxState = props.runtime.store.getState();
+        const cursor = fieldSelector(reduxState, props, props.fields.value, { fallback: -1 });
+        if (cursor === activeIndex) {
+          advanceFrom(props.nodeInfo, reduxState);
+        }
       }
     } finally {
       setBusy(false);

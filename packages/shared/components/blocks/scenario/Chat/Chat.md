@@ -205,6 +205,7 @@ The indented block is the agent's system prompt; `{{...}}` interpolations are st
 - `until` — state expression that must be truthy before the script can advance past the interlude (like `wait`, but conversational)
 - `maxTurns` — cap on user turns
 - `tools` — comma-separated toolset names from the browser tool plane (e.g. `content-read`, `docs`); omit for a plain conversation
+- `upload=true` — enable file attachments on the input (the agent sees the content)
 - `exit=none` — remove the agent's end tool (open-ended assistants; an exit marker is durable)
 - `profile` — reserved for server-side LLM profile selection
 
