@@ -64,40 +64,13 @@ import {
   initialSourcesState,
 } from './sources';
 // ---------------------------------------------------------------------------
-// Reducer strategy toggle
+// Field-level reducer registry
 // ---------------------------------------------------------------------------
 //
-// Controls whether registered field-level reducers are used (new path) or
-// bypassed in favor of the legacy spread behavior (old path).
-//
-// Both paths produce identical results for simple state fields:
-//   - 'field-level': field.reduce(componentState, action, fieldName) → patch
-//   - 'legacy-spread': spread action payload into componentState (minus metadata)
-//
-// The toggle validates that the field.reduce abstraction is truly swappable.
-// If both paths produce the same state, the abstraction is correct and we can
-// confidently use it for field types where spread won't work (sets, counters,
-// collaborative text).
-//
-// Future direction: this naturally extends to client-side vs server-side
-// reducer selection. The server would use field.serverReduce (when it exists)
-// while the client uses field.reduce. The toggle mechanism is the same.
-//
-type ReducerStrategy = 'field-level' | 'legacy-spread';
-let _reducerStrategy: ReducerStrategy = 'field-level';
-
-export function setReducerStrategy(strategy: ReducerStrategy) {
-  _reducerStrategy = strategy;
-}
-
-export function getReducerStrategy(): ReducerStrategy {
-  return _reducerStrategy;
-}
-
-// Field-level reducer registry — maps event key → { reduce, fieldName }.
+// Maps event key → { reduce, fieldName }.
 // Populated during configureStore from block registry fields.
-// When an event comes in and strategy is 'field-level', the main reducer
-// uses this map. When 'legacy-spread', it falls through to the default spread.
+// When an event comes in, the main reducer uses this map; events with no
+// registered field reducer fall through to the default legacy spread.
 //
 // Two-level lookup: first tries "eventType:fieldName" (disambiguates when
 // multiple fields share an event type, e.g. two docFields both using
@@ -242,7 +215,7 @@ export const updateResponseReducer = (state = initialState, action) => {
 
   // Field-level reducers — route events to field.reduce when registered.
   // Fields register their reducers during configureStore (see collectEventTypes).
-  // Only active when strategy is 'field-level'; 'legacy-spread' falls through.
+  // Events with no registered field reducer fall through to the legacy spread.
   //
   // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
   // shared event types like SPLICE_INPUT across multiple docFields), fall back
@@ -257,7 +230,7 @@ export const updateResponseReducer = (state = initialState, action) => {
   // as separate per-field events with proper conflict resolution.
   const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
     || _fieldReducers.get(eventType);
-  if (fieldReducerEntry && _reducerStrategy === 'field-level') {
+  if (fieldReducerEntry) {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
@@ -685,10 +658,6 @@ export const getReduxStoreInstance = () => {
 //   __events.download()   // Download as file
 if (typeof window !== 'undefined') {
   (window as any).__lo = lo_event;
-  // Strategy toggle on a separate object (lo_event may be frozen)
-  (window as any).__loBlocks = {
-    reducerStrategy: { get: getReducerStrategy, set: setReducerStrategy },
-  };
   (window as any).__events = {
     getEvents: () => eventCaptureLogger?.getEvents() ?? [],
     clear: () => eventCaptureLogger?.clear(),

@@ -10,7 +10,8 @@
 // would create a circular dependency through the barrel. It's re-exported
 // from state/index.ts after the fieldTypes/redux/fields cycle resolves.
 //
-export { stateField, stateField as plainField } from './state';
-export { docField } from './doc';
-export { setField } from './set';
+// docField and setField are behaviorless aliases of stateField in classic
+// mode (bare-value storage, no CRDT). The CRDT barrel supplies the real
+// implementations; here they're the same LWW-free stateField.
+export { stateField, stateField as plainField, stateField as docField, stateField as setField } from './state';
 export { idField } from './id';

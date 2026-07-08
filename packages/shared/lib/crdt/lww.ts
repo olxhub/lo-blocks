@@ -19,7 +19,7 @@
 //
 //   This pattern matches selection state (value.selectionStart, etc.) and
 //   keeps backward compatibility — code that reads state[fieldName] directly
-//   (e.g., useReduxInput) still gets the value without unwrapping.
+//   (e.g., useInputField) still gets the value without unwrapping.
 //
 // Relationship to other CRDTs in this directory:
 //   - rga.ts: sequence CRDT for collaborative text (used by docField)

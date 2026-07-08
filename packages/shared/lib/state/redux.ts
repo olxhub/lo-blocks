@@ -12,7 +12,6 @@
 // Key functions:
 // - `useFieldSelector`: Get state values with automatic re-rendering
 // - `updateField`: Update state and trigger analytics logging
-// - `useReduxInput`: Complete form control integration with selection state
 // - `fieldSelector`: Core selector logic for different state scopes
 //
 // The system bridges the educational semantics (fields, scopes, analytics)
@@ -59,7 +58,6 @@ import { writeEncoded } from './encode';
 
 
 const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
-const INVALIDATED_INPUT = 'INVALIDATED_INPUT'; // informational
 
 
 // =============================================================================
@@ -187,9 +185,6 @@ export function decodeField(field: FieldInfo, raw: any): any {
   if (raw === undefined) return undefined;
   return field.read ? field.read(raw) : raw;
 }
-
-/** @deprecated Use decodeField instead. */
-export const readField = decodeField;
 
 /**
  * Get a human/LLM-readable string from a raw field value.
@@ -453,111 +448,6 @@ export function useAggregate<T = any, R = any>(
     },
     shallowEqual,
   );
-}
-
-
-// =============================================================================
-// UI binding hooks (future: migrate to bindings/)
-// =============================================================================
-
-type ReduxInputOptions = {
-  updateValidator?: (val: string) => boolean;
-};
-
-
-export function useReduxInput(
-  props: RuntimeProps,
-  field: FieldInfo,
-  fallback = '',
-  options: ReduxInputOptions = {}
-) {
-  const scope = field.scope ?? scopes.component;
-  const fieldName = field.name;
-  const { updateValidator } = options;
-
-  const selectorFn = (state) =>
-    state && state[fieldName] !== undefined ? state[fieldName] : fallback;
-
-  const value = useFieldSelector(props, field, { selector: selectorFn, fallback });
-
-  const selection = useFieldSelector(
-    props,
-    field,
-    {
-      selector: s => ({
-        selectionStart: s?.[`${fieldName}.selectionStart`] ?? 0,
-        selectionEnd: s?.[`${fieldName}.selectionEnd`] ?? 0
-      }),
-      equalityFn: shallowEqual
-    }
-  );
-
-  const id = scopedStateKeyForBlock(props);
-  const tag = props.loBlock.name;
-  const logEvent = props.runtime.logEvent;
-
-  const onChange = useCallback((event) => {
-    const val = event.target.value;
-    const selStart = event.target.selectionStart;
-    const selEnd = event.target.selectionEnd;
-    const payload = {
-      scope,
-      [fieldName]: val,
-      [`${fieldName}.selectionStart`]: selStart,
-      [`${fieldName}.selectionEnd`]: selEnd
-    };
-    if (scope === scopes.component) payload.id = id;
-    if (scope === scopes.componentSetting) payload.tag = tag;
-
-    if (updateValidator && !updateValidator(val)) {
-      logEvent(INVALIDATED_INPUT, payload);
-      return;
-    }
-
-    logEvent(UPDATE_INPUT, payload);
-  }, [id, tag, fieldName, updateValidator, scope, logEvent]);
-
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const input = ref.current;
-    if (
-      input &&
-      document.activeElement === input &&
-      selection.selectionStart != null &&
-      selection.selectionEnd != null
-    ) {
-      try {
-        input.setSelectionRange(selection.selectionStart, selection.selectionEnd);
-      } catch (e) { /* ignore */ }
-    }
-  }, [value, selection.selectionStart, selection.selectionEnd]);
-
-  // Put ref in the returned props object!
-  return [
-    value,
-    {
-      name: fieldName,
-      value,
-      onChange,
-      ref
-    }
-  ];
-}
-
-
-
-
-export function useReduxCheckbox(
-  props,
-  field: FieldInfo,
-  fallback = false,
-  opts: { stateKey?: StateKey; tag?: string } = {}
-) {
-  assertValidField(field);
-  const [checked, setChecked] = useFieldState(props, field, fallback, opts);
-  const onChange = useCallback((event) => setChecked(event.target.checked), [setChecked]);
-  return [checked, { name: field.name, checked, onChange }];
 }
 
 /**

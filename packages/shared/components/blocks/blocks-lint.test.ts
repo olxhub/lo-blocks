@@ -3,7 +3,7 @@
  *
  * Rule 1: Use useFieldState instead of useState
  *
- * Block components should use useFieldState (or useReduxInput, useReduxCheckbox)
+ * Block components should use useFieldState (or useInputField)
  * so that state is persisted and logged. React's useState creates ephemeral state
  * that's lost on re-render and isn't visible to analytics.
  *
