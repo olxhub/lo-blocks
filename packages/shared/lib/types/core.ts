@@ -625,7 +625,22 @@ export const BlockBlueprintSchema = z.object({
    * grader (two-phase dispatch); see grader() in lib/blocks/actions.tsx.
    */
   isSlowGrader: z.boolean().optional().default(false),
+  /**
+   * Raw grade function (set by the grader() mixin). Lets derived
+   * immediate-mode correctness evaluate the grader in a selector without
+   * going through the dispatching action. See lib/grading/useCorrectness.ts.
+   */
+  gradeFn: z.function().optional(),
+  /** Param shape the grade function expects (set by the grader() mixin). */
+  graderInputType: z.enum(['single', 'list']).optional(),
   isInput: z.boolean().optional().default(false),
+  /**
+   * Input commits on change (radio buttons, dropdowns): each interaction is
+   * a deliberate answer, so immediate-mode grading may show incorrect right
+   * away. Free-form inputs (text) leave this false — mid-typing non-matches
+   * display as incomplete, not a red X ("4" while typing "42").
+   */
+  commitOnChange: z.boolean().optional().default(false),
   isMatch: z.boolean().optional().default(false),
   /**
    * Named slots for multi-input graders.
@@ -874,6 +889,12 @@ export interface LoBlock {
   isGrader: boolean;
   /** Slow (async) grader — grading action uses two-phase (pending → final) dispatch. */
   isSlowGrader?: boolean;
+  /** Raw grade function (grader() mixin) — used by derived immediate-mode evaluation. */
+  gradeFn?: (...args: any[]) => any;
+  /** Param shape the grade function expects (grader() mixin). */
+  graderInputType?: 'single' | 'list';
+  /** Input commits on change (radio/dropdown) — immediate mode may show incorrect instantly. */
+  commitOnChange?: boolean;
   /**
    * Marks this block as internal/system use only.
    * Internal blocks are hidden from the main documentation navigation.

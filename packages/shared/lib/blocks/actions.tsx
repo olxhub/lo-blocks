@@ -176,7 +176,7 @@ function resolveInputSlots(
  * Gather values and bound APIs from each input block (synchronous — blocks
  * are in idMap; values read from the provided Redux state snapshot).
  */
-function gatherInputData(props: RuntimeProps, inputIds: StateKey[], state: any) {
+export function gatherInputData(props: RuntimeProps, inputIds: StateKey[], state: any) {
   const map = props.runtime.blockRegistry;
   const inputData = inputIds.map(id => {
     const defKey = leafDefinitionKeyFromStateKey(id);
@@ -222,6 +222,47 @@ function gatherInputData(props: RuntimeProps, inputIds: StateKey[], state: any) 
     values: inputData.map(d => d.value),
     apis: inputData.map(d => d.api),
   };
+}
+
+/**
+ * Resolve gathered inputs into the parameter shape the grader function
+ * expects (single / list / named slots). Pure; shared by the grading action
+ * (evaluateGrader) and derived immediate-mode evaluation
+ * (lib/grading/useCorrectness.ts).
+ */
+export function buildGraderParam(
+  { slots, inputType }: { slots?: string[]; inputType?: 'single' | 'list' },
+  props: RuntimeProps,
+  inputIds: StateKey[],
+  values: unknown[],
+  apis: object[],
+): { param?: GraderParams; error?: string } {
+  if (slots && slots.length > 0) {
+    // Dict mode: resolve inputs to named slots
+    const getInputSlot = (id: StateKey) => {
+      const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
+      return inst?.attributes?.slot as string | undefined;
+    };
+    const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
+    if (errors.length > 0) return { error: errors[0] };
+
+    const inputDict: Record<string, unknown> = {};
+    const inputApiDict: Record<string, object> = {};
+    for (const [slot, inputId] of Object.entries(slotMap)) {
+      const idx = (inputIds as string[]).indexOf(inputId);
+      if (idx >= 0) {
+        inputDict[slot] = values[idx];
+        inputApiDict[slot] = apis[idx];
+      }
+    }
+    return { param: { inputDict, inputApiDict } };
+  }
+  if (inputType === 'list') {
+    return { param: { inputList: values, inputApis: apis } };
+  }
+  // Single input mode (default) - most graders expect a single input
+  if (values.length === 0) return { error: 'No input found' };
+  return { param: { input: values[0], inputApi: apis[0] } };
 }
 
 /**
@@ -272,49 +313,11 @@ async function evaluateGrader(
   if (zodMismatchResult) {
     ({ correct, message, score } = zodMismatchResult);
   } else {
-    let param: GraderParams | undefined;
-
-    if (slots && slots.length > 0) {
-      // Dict mode: resolve inputs to named slots
-      const getInputSlot = (id: StateKey) => {
-        const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-        return inst?.attributes?.slot as string | undefined;
-      };
-
-      const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
-
-      if (errors.length > 0) {
-        // Slot resolution failed — fall through to dispatch so UI updates
-        correct = correctness.invalid;
-        message = errors[0];
-      } else {
-        // Build slot→value and slot→api maps
-        const inputDict: Record<string, unknown> = {};
-        const inputApiDict: Record<string, object> = {};
-
-        for (const [slot, inputId] of Object.entries(slotMap)) {
-          const idx = (inputIds as string[]).indexOf(inputId);
-          if (idx >= 0) {
-            inputDict[slot] = values[idx];
-            inputApiDict[slot] = apis[idx];
-          }
-        }
-
-        param = { inputDict, inputApiDict };
-      }
-    } else if (inputType === 'list') {
-      // List mode - explicitly requested
-      param = { inputList: values, inputApis: apis };
-    } else {
-      // Single input mode (default when no slots specified)
-      // Most graders expect a single input
-      if (values.length === 0) {
-        // No input — fall through to dispatch so UI updates
-        correct = correctness.invalid;
-        message = 'No input found';
-      } else {
-        param = { input: values[0], inputApi: apis[0] };
-      }
+    const { param, error } = buildGraderParam({ slots, inputType }, props, inputIds, values, apis);
+    if (error) {
+      // Param building failed — fall through to dispatch so UI updates
+      correct = correctness.invalid;
+      message = error;
     }
     if (param) {
       // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
@@ -426,6 +429,8 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
       action,
       isGrader: true,
       isSlowGrader: slow,  // Async grader: two-phase (pending → final) dispatch
+      gradeFn: grader,     // Raw grade function — derived immediate-mode evaluation
+      graderInputType: inputType,
       slots,  // Named slots for multi-input graders
       // Default display answer - can be overridden in block definition
       getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,

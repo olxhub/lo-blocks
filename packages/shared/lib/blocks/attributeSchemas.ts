@@ -330,12 +330,13 @@ export const maxAttemptsAttr = z.string()
 /**
  * Valid grading trigger modes - when grading runs.
  *
- * 'submit' (default): the Check/Submit button triggers the grading action.
- * 'immediate': correctness is derived from the live input values as the
- *   learner answers — no button. Not yet enabled: problems render a
- *   DisplayError until the derived-correctness selector path lands
- *   (see lib/grading/useCorrectness.ts). Will need debouncing and
- *   provisional (no red ❌ mid-typing) display rules.
+ * 'submit' (default): the Check/Submit button triggers the grading action,
+ *   which writes stored per-field grading state.
+ * 'immediate': correctness is DERIVED from the live input values as the
+ *   learner answers — no button, no submit events. Inputs that commit on
+ *   change (radio buttons) grade strictly; free-form inputs soften a
+ *   non-match to 'incomplete' so mid-typing never flashes a red X.
+ *   Incompatible with slow (async) graders. See lib/grading/useCorrectness.ts.
  */
 export const gradeModes = [
   'submit',
@@ -345,7 +346,7 @@ export const gradeModes = [
 export type GradeMode = typeof gradeModes[number];
 
 export const gradeAttr = z.enum(gradeModes).optional()
-  .describe('Grading trigger: submit (button, default) or immediate (grade as the learner answers; not yet enabled)');
+  .describe('Grading trigger: submit (button, default) or immediate (grade as the learner answers, no button)');
 
 /**
  * Problem attributes - added to problem container blocks.

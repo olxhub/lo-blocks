@@ -47,9 +47,26 @@ const OLX = `<CapaProblem id="PerFieldGrading" title="Squares">
   </NumericalGrader>
 </CapaProblem>`;
 
+const IMMEDIATE_OLX = `<Vertical id="ImmediateDemo">
+<CapaProblem id="ImmChoice" title="Planets" grade="immediate">
+  <KeyGrader>
+    Closest to the sun?
+    <ChoiceInput>
+      <Distractor>Venus</Distractor>
+      <Key>Mercury</Key>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+<CapaProblem id="ImmNumeric" title="Squares" grade="immediate">
+  <NumericalGrader answer="144">
+    <ComplexInput />
+  </NumericalGrader>
+</CapaProblem>
+</Vertical>`;
 
-async function mountProblem() {
-  const { idMap, root } = await parseOLX(OLX, [toMemoryRef('grading-per-field')], undefined, TEST_NS);
+
+async function mountProblem(olx: string = OLX) {
+  const { idMap, root } = await parseOLX(olx, [toMemoryRef('grading-per-field')], undefined, TEST_NS);
   const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
   dispatchOlxJsonSync(reduxStore, 'content', idMap);
   const localeCode = toUserLocale('en-Latn-US');
@@ -158,6 +175,43 @@ describe('grading dispatches per-field events', () => {
     for (const expected of ['UPDATE_CORRECT', 'UPDATE_MESSAGE', 'UPDATE_SCORE',
       'UPDATE_LAST_SUBMISSION', 'UPDATE_SUBMIT_COUNT']) {
       expect(eventTypes, `missing ${expected}`).toContain(expected);
+    }
+  });
+
+  it('immediate mode derives correctness from live input values', async () => {
+    const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
+
+    // No Check/Submit button in immediate mode
+    expect(queryByText(/Check|Submit/)).toBeNull();
+
+    const problems = container.querySelectorAll('.lo-problem');
+    expect(problems.length).toBe(2);
+    const [choiceProblem, numericProblem] = Array.from(problems);
+
+    // MCQ: radio commits on change — wrong choice grades incorrect instantly
+    const radios = choiceProblem.querySelectorAll('input[type="radio"]');
+    expect(radios.length).toBe(2);
+    fireEvent.click(radios[0]); // Venus (wrong)
+    await waitFor(() => expect(choiceProblem.textContent).toContain('❌'));
+    fireEvent.click(radios[1]); // Mercury (right)
+    await waitFor(() => expect(choiceProblem.textContent).toContain('✅'));
+
+    // Text input: mid-typing non-match softens to incomplete (⚠️), not ❌
+    const input = numericProblem.querySelector('input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '14' } });
+    await waitFor(() => expect(numericProblem.textContent).toContain('⚠️'));
+    expect(numericProblem.textContent).not.toContain('❌');
+    fireEvent.change(input, { target: { value: '144' } });
+    await waitFor(() => expect(numericProblem.textContent).toContain('✅'));
+
+    // Derived means derived: no grading state was stored for any grader in
+    // the immediate problems. (The store is a singleton across tests, so
+    // scope to this fixture's Imm* keys.)
+    const comp = reduxStore.getState().application_state?.component ?? {};
+    for (const [key, bucket] of Object.entries<any>(comp)) {
+      if (key.includes('Imm') && key.includes('grader')) {
+        expect(bucket.correct, `stored correctness on ${key}`).toBeUndefined();
+      }
     }
   });
 });

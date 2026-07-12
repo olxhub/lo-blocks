@@ -62,6 +62,9 @@ const ChoiceInput = core({
   ...parsers.blocks(),
   name: 'ChoiceInput',
   ...input({ valueSchema: z.string() }),
+  // Clicking a radio is a deliberate answer — immediate-mode grading shows
+  // incorrect right away instead of softening to incomplete.
+  commitOnChange: true,
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,

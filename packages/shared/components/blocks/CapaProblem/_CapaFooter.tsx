@@ -35,6 +35,10 @@ function buildProblemState(props): ProblemState {
 export default function _CapaFooter(props: RuntimeProps) {
   const { id, target, hintsTarget, label, showanswer } = props;
 
+  // Immediate mode: correctness derives from live input values, so there is
+  // nothing to submit — no Check button, and no attempt bookkeeping.
+  const isImmediate = props.grade === 'immediate';
+
   // Build state for problemModes utilities
   const problemState = buildProblemState(props);
 
@@ -60,19 +64,19 @@ export default function _CapaFooter(props: RuntimeProps) {
   return (
     <div className="lo-capafooter">
       <div className="lo-capafooter__actions">
-        <Block props={props} tag="ActionButton"
+        {!isImmediate && <Block props={props} tag="ActionButton"
           id={buttonId}
           label={buttonLabel}
           target={target}
           disabled={submitDisabled ? 'true' : undefined}
-        />
+        />}
         {hintsTarget && <Block props={props} tag="HintButton" id={hintButtonId} target={hintsTarget} />}
         {showAnswerVisible && <Block props={props} tag="ShowAnswerButton" id={showAnswerId} target={target} />}
       </div>
       <div className="lo-capafooter__status">
         <Block props={props} tag="Correctness" id={statusIconId} />
         <Block props={props} tag="StatusText" id={statusTextId} field="message" />
-        {attemptsDisplay && (
+        {!isImmediate && attemptsDisplay && (
           <span className="lo-capafooter__attempts">{attemptsDisplay}</span>
         )}
       </div>
