@@ -203,28 +203,44 @@ async function digestKey(parts: ParseCacheKeyParts): Promise<string> {
  * round-trip (so cold and warm boots yield identical normalized graphs).
  * Without a KVS set: pure passthrough (returns parseFn() directly).
  *
+ * DEPENDENCY VALIDATION (`isFresh`): the key covers the file's OWN bytes, not
+ * the auxiliary files it pulls in during parse (a .chatpeg grammar, a src="…"
+ * include). Those are discovered DURING the parse and recorded on the result
+ * (olxJson.parseDeps), so they can't be in the key. Instead the caller supplies
+ * `isFresh(cachedResult)`: a hit whose recorded dependencies no longer match the
+ * current world is treated as a MISS (re-parse, overwrite). This is how an aux
+ * edit re-parses its dependents without the referring file's own bytes changing.
+ *
  * parseFn output MUST be JSON-serializable (parseOLX output is — see header).
  */
 export async function cachedParse<T>(
   parts: ParseCacheKeyParts,
   parseFn: () => Promise<T>,
+  isFresh?: (cached: T) => boolean,
 ): Promise<T> {
   if (!_kvs) return parseFn();
 
   const digest = await digestKey(parts);
+  const key = kvsKey.parseCache(SCHEMA_VERSION, digest);
 
   const memoized = _memo.get(digest);
   if (memoized !== undefined) {
-    _memoHits++;
-    return JSON.parse(memoized) as T;
-  }
-
-  const key = kvsKey.parseCache(SCHEMA_VERSION, digest);
-  const stored = await _kvs.get(key);
-  if (stored !== null) {
-    _hits++;
-    _memo.set(digest, stored);
-    return JSON.parse(stored) as T;
+    const cached = JSON.parse(memoized) as T;
+    if (!isFresh || isFresh(cached)) {
+      _memoHits++;
+      return cached;
+    }
+    // A dependency moved since this was memoized — fall through and re-parse.
+  } else {
+    const stored = await _kvs.get(key);
+    if (stored !== null) {
+      const cached = JSON.parse(stored) as T;
+      if (!isFresh || isFresh(cached)) {
+        _hits++;
+        _memo.set(digest, stored);
+        return cached;
+      }
+    }
   }
 
   _misses++;

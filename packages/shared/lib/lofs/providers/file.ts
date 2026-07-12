@@ -15,8 +15,7 @@ import { CATEGORY, isMediaFile } from '@/lib/util/fileTypes';
 import { windowsToPosix } from '@/lib/util/posixPath';
 import {
   type StorageProvider,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ContentFile,
   type FileSelection,
   type UriNode,
   type ReadResult,
@@ -35,23 +34,11 @@ import {
 } from '../../types/address';
 import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
-import type { JSONValue } from '../../types';
 
 /** CATEGORY.content (fileTypes.ts) lists content file extensions — OLX and its
  *  parse dependencies (.olx, .md, .liquid, .cast, etc.). We need the same list
  *  with dots prepended for filename.endsWith() matching in filesystem walks. */
 const CONTENT_EXTENSIONS = CATEGORY.content.map(e => `.${e}`);
-
-/**
- * FileStorageProvider-specific metadata structure.
- * Extends the generic ProviderMetadata type with filesystem-specific fields.
- *
- * Note: fs.Stats is a class instance, but all its properties are JSON-serializable
- * (numbers, strings, booleans). We cast to JSONValue when storing in _metadata.
- */
-interface FileMetadata {
-  stat: any; // fs.Stats - properties are all numbers/strings
-}
 
 /*
  * =============================================================================
@@ -386,22 +373,16 @@ export class FileStorageProvider implements StorageProvider {
     return normalized;
   }
 
-  async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async listContent(): Promise<ContentFile[]> {
     const fs = await import('fs/promises');
-
-    // Only diff against refs this provider owns. In a stacked scan, `previous`
-    // contains other mounts' files — without this filter they would all be
-    // reported as deleted (they're never "found" by walking this baseDir).
-    previous = Object.fromEntries(
-      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === this.origin)
-    ) as Record<LofsRef, XmlFileInfo>;
 
     function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
       return (
         entry.isFile() &&
-        // manifest.yaml files are scanned as auxiliary files so the sync
-        // can re-parse a manifest's subtree when its namespace changes.
+        // manifest.yaml files are enumerated as auxiliary content so the sync
+        // sees a manifest edit as a changed namespace (parse-cache key) and
+        // re-parses its subtree.
         (CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) || fileName === 'manifest.yaml') &&
         !fileName.includes('~') &&
         !fileName.includes('#') &&
@@ -409,19 +390,7 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
 
-    function fileChanged(statA: any, statB: any) {
-      if (!statA || !statB) return true;
-      return (
-        statA.size !== statB.size ||
-        statA.mtimeMs !== statB.mtimeMs ||
-        statA.ctimeMs !== statB.ctimeMs
-      );
-    }
-
-    const found: Record<LofsRef, boolean> = {};
-    const added: Record<LofsRef, XmlFileInfo> = {};
-    const changed: Record<LofsRef, XmlFileInfo> = {};
-    const unchanged: Record<LofsRef, XmlFileInfo> = {};
+    const out: ContentFile[] = [];
 
     const walk = async (currentDir: string) => {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
@@ -435,41 +404,23 @@ export class FileStorageProvider implements StorageProvider {
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
+          // Version is the mtime — the SAME identity read() stamps on
+          // provenance, so a parseDep recorded from a read compares equal here
+          // when unchanged (see ContentFile).
           const id = toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs))));
-          const key = withoutVersion(id);
-          found[key] = true;
-          const prev = previous[key];
-          if (prev) {
-            const prevMetadata = prev._metadata as unknown as FileMetadata;
-            if (fileChanged(prevMetadata.stat, stat)) {
-              const content = await fs.readFile(fullPath, 'utf-8');
-              changed[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
-            } else {
-              unchanged[key] = prev;
-            }
-          } else {
-            const content = await fs.readFile(fullPath, 'utf-8');
-            added[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
-          }
+          const content = await fs.readFile(fullPath, 'utf-8');
+          out.push({ id, type, content });
         }
       }
     };
 
     await walk(this.baseDir);
-
-    const deleted: Record<LofsRef, XmlFileInfo> = Object.keys(previous)
-      .filter(key => !(key in found))
-      .reduce((out: Record<LofsRef, XmlFileInfo>, key: LofsRef) => {
-        out[key] = previous[key];
-        return out;
-      }, {});
-
-    return { added, changed, unchanged, deleted };
+    return out;
   }
 
   /**
    * Cheap change token: a stat-only walk of the content tree. No file contents
-   * are read (unlike loadXmlFilesWithStats), so this stays fast enough to call
+   * are read (unlike listContent), so this stays fast enough to call
    * on every sync/request. The token combines the content-file count, the
    * newest mtime, and the total size — any add/remove/edit moves at least one
    * of them. A bare `touch` moves the mtime and forces a (harmless) rescan;
@@ -665,12 +616,11 @@ export class FileStorageProvider implements StorageProvider {
    * a file at the provider root with no manifest, or a directory name the
    * namespace grammar rejects (e.g. "lo-blocks" — hyphens are not allowed).
    *
-   * Change tracking: manifest.yaml files are included in loadXmlFilesWithStats
-   * scans as auxiliary files, and the content sync re-parses the mount's
-   * OLX when a manifest is added, changed, or deleted (see
-   * promoteFilesAffectedByManifests in syncContentFromStorage.ts). No
-   * caching here — every call re-reads manifests, so results are always
-   * current within a sync.
+   * Change tracking: manifest.yaml files are enumerated by listContent, and a
+   * manifest edit that changes the resolved namespace re-parses its subtree
+   * because the namespace is part of the parse-cache key (see
+   * syncContentFromStorage / parseCache). No caching here — every call
+   * re-reads manifests, so results are always current within a sync.
    */
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     const relPath = this.extractRelativePath(withoutVersion(brandLofsRef(String(ref))));

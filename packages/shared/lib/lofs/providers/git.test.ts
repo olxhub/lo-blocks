@@ -80,15 +80,14 @@ describe('GitStorageProvider', () => {
     }, 'initial content');
   });
 
-  it('scans the tree with blob-SHA versions', async () => {
-    const scan = await provider.loadXmlFilesWithStats();
-    const keys = Object.keys(scan.added);
-    expect(keys).toContain(`${ORIGIN}://lesson1.olx`);
-    expect(keys).toContain(`${ORIGIN}://unit2/lesson2.olx`);
+  it('enumerates the tree with blob-SHA versions', async () => {
+    const files = await provider.listContent();
+    const ids = files.map(f => String(f.id));
+    expect(ids.some(id => id.startsWith(`${ORIGIN}://lesson1.olx#`))).toBe(true);
+    expect(ids.some(id => id.startsWith(`${ORIGIN}://unit2/lesson2.olx#`))).toBe(true);
     // Versions are blob SHAs (40 hex chars)
-    const info = scan.added[`${ORIGIN}://lesson1.olx` as any];
-    expect(String(info.id).startsWith(`${ORIGIN}://lesson1.olx#`)).toBe(true);
-    expect(String(info.id)).toMatch(/#[0-9a-f]{40}$/);
+    const lesson1 = files.find(f => String(f.id).startsWith(`${ORIGIN}://lesson1.olx#`))!;
+    expect(String(lesson1.id)).toMatch(/#[0-9a-f]{40}$/);
   });
 
   it('reads content with honest provenance', async () => {
@@ -104,22 +103,20 @@ describe('GitStorageProvider', () => {
     expect(String(resolved.manifest)).toMatch(/manifest\.yaml#[0-9a-f]{40}$/);
   });
 
-  it('detects new commits, leaving untouched files "unchanged"', async () => {
-    const first = await provider.loadXmlFilesWithStats();
-    const prev = { ...first.added, ...first.changed, ...first.unchanged };
+  it('re-enumerates after new commits; blob SHAs stay stable for untouched files', async () => {
+    const versions = (files: { id: unknown }[]) =>
+      new Map(files.map(f => [String(f.id).split('#')[0], String(f.id)]));
 
+    const before = versions(await provider.listContent());
     await provider.commitFiles({
       'lesson1.olx': '<Markdown id="hello">Hi from git, edited</Markdown>',
     }, 'edit lesson1');
+    const after = versions(await provider.listContent());
 
-    const second = await provider.loadXmlFilesWithStats(prev);
-    expect(Object.keys(second.changed)).toEqual([`${ORIGIN}://lesson1.olx`]);
-    // Blob SHAs are stable across commits for untouched files.
-    expect(Object.keys(second.unchanged).sort()).toEqual([
-      `${ORIGIN}://manifest.yaml`,
-      `${ORIGIN}://unit2/lesson2.olx`,
-    ]);
-    expect(Object.keys(second.deleted)).toEqual([]);
+    // The edited file's blob SHA moved; untouched files kept theirs.
+    expect(after.get(`${ORIGIN}://lesson1.olx`)).not.toBe(before.get(`${ORIGIN}://lesson1.olx`));
+    expect(after.get(`${ORIGIN}://unit2/lesson2.olx`)).toBe(before.get(`${ORIGIN}://unit2/lesson2.olx`));
+    expect(after.get(`${ORIGIN}://manifest.yaml`)).toBe(before.get(`${ORIGIN}://manifest.yaml`));
   });
 
   it('single-flights concurrent refreshes regardless of cooldown', async () => {
@@ -130,22 +127,23 @@ describe('GitStorageProvider', () => {
     const concurrent = new LocalGitProvider({ url: URL, ref: 'main', cooldownMs: 0 });
     concurrent.repoVol = provider.repoVol;
     const [a, b, c] = await Promise.all([
-      concurrent.loadXmlFilesWithStats(),
-      concurrent.loadXmlFilesWithStats(),
-      concurrent.loadXmlFilesWithStats(),
+      concurrent.listContent(),
+      concurrent.listContent(),
+      concurrent.listContent(),
     ]);
     expect(concurrent.headChecks).toBe(1);
     // All three saw the same fully-built tree.
-    expect(Object.keys(a.added)).toEqual(Object.keys(b.added));
-    expect(Object.keys(b.added)).toEqual(Object.keys(c.added));
-    expect(Object.keys(a.added).length).toBeGreaterThan(0);
+    const refs = (files: { id: unknown }[]) => files.map(f => String(f.id)).sort();
+    expect(refs(a)).toEqual(refs(b));
+    expect(refs(b)).toEqual(refs(c));
+    expect(a.length).toBeGreaterThan(0);
   });
 
   it('respects the cooldown between remote head checks', async () => {
     const cooled = new LocalGitProvider({ url: URL, ref: 'main', cooldownMs: 60_000 });
     cooled.repoVol = provider.repoVol;
-    await cooled.loadXmlFilesWithStats();
-    await cooled.loadXmlFilesWithStats();
+    await cooled.listContent();
+    await cooled.listContent();
     await cooled.read('lesson1.olx' as OlxRelativePath);
     expect(cooled.headChecks).toBe(1);
   });
@@ -267,7 +265,7 @@ describe('GitStorageProvider', () => {
     const w = new Racer({ url: URL, ref: 'main', cooldownMs: 0 });
     await w.initRepo();
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
-    await w.loadXmlFilesWithStats();  // establish the captured snapshot
+    await w.listContent();  // establish the captured snapshot
 
     const foreign = { vol: new Volume(), head: 'deadbeef'.repeat(5), tree: new Map() };
     onPush = () => { (w as any).state = foreign; };
@@ -296,7 +294,7 @@ describe('GitStorageProvider', () => {
     });
     await w.initRepo();
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
-    await w.loadXmlFilesWithStats();
+    await w.listContent();
     expect(seen[0]).toEqual({ username: 'ghp_testtoken', password: 'x-oauth-basic' });
   });
 

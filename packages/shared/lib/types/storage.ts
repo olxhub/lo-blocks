@@ -6,7 +6,7 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  JSONValue, OlxRelativePath, SafeRelativePath,
+  OlxRelativePath, SafeRelativePath,
 } from './core';
 import type { ContentNamespace } from './id-grammar';
 import {
@@ -17,33 +17,22 @@ import {
 import { FileType } from '../lofs/fileTypes';
 
 /**
- * Provider-specific metadata for change detection.
+ * One content file as a source enumerates it: its versioned canonical ref, its
+ * type, and its bytes.
  *
- * Opaque to consumers. Each provider extends this with what it actually tracks.
- * Must be JSON-serializable - all properties should be primitives, arrays, or plain objects.
- *
- * Examples:
- * - FileStorageProvider: { stat: fs.Stats } (all properties are numbers/strings)
- * - MemoryStorageProvider: {} (empty for in-memory)
- * - GitStorageProvider: { hash: string } (commit hash)
- *
- * Future: May be branded or converted to a union type for better type safety.
+ * The `#version` on `id` is the provider's cheap content identity — a file
+ * mtime, a git blob SHA, an in-memory content hash. It is the SAME version
+ * `read()` stamps on ReadResult.provenance, so a dependency recorded during
+ * parse (olxJson.parseDeps, taken from a read's provenance) compares equal to
+ * this enumeration entry when the file is unchanged. That equality is the whole
+ * of the sync's staleness check: no added/changed/unchanged/deleted diff, just
+ * "is every version I depend on still the current one?" (see
+ * syncContentFromStorage).
  */
-export type ProviderMetadata = JSONValue;
-
-export interface XmlFileInfo {
+export interface ContentFile {
   id: LofsCanonical;
   type: FileType;
-  /** Provider-specific metadata for change detection (opaque to consumers). */
-  _metadata: ProviderMetadata;
   content: string;
-}
-
-export interface XmlScanResult {
-  added: Record<LofsRef, XmlFileInfo>;
-  changed: Record<LofsRef, XmlFileInfo>;
-  unchanged: Record<LofsRef, XmlFileInfo>;
-  deleted: Record<LofsRef, XmlFileInfo>;
 }
 
 export interface FileSelection {
@@ -300,11 +289,13 @@ export interface GrepMatch {
 
 export interface StorageProvider {
   /**
-   * Scan for XML/OLX files returning added/changed/unchanged/deleted
-   * relative to a previous scan. The `_metadata` structure is
-   * provider specific (mtime+size, git hash, DB id, etc.).
+   * Enumerate every content file this source currently holds, with bytes and a
+   * versioned ref (see ContentFile). There is no diff against a previous scan:
+   * the content sync memoizes on generationToken() and, when that moves,
+   * re-enumerates and lets the parse cache (keyed on bytes) + per-file
+   * dependency-version checks decide what actually needs re-parsing.
    */
-  loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
+  listContent(): Promise<ContentFile[]>;
 
   /**
    * A CHEAP "might anything have changed?" token for this source. Two calls

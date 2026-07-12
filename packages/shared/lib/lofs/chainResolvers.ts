@@ -77,7 +77,7 @@ export function chainResolvers(providers: StorageProvider[]): StorageProvider {
       throw new Error(`Cannot construct provenance in any provider for: ${safePath}`);
     },
 
-    loadXmlFilesWithStats: () => unsupported('loadXmlFilesWithStats'),
+    listContent: () => unsupported('listContent'),
     generationToken: () => unsupported('generationToken'),
     save: () => unsupported('save'),
     remove: () => unsupported('remove'),

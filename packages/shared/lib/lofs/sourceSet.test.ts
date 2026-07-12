@@ -4,8 +4,7 @@
 // the merge/routing semantics of the read/compile union, now explicit
 // functions rather than a stacked provider.
 
-import { readFirst, grepAll, scanSources, namespaceForAcross } from './sourceSet';
-import { FileStorageProvider } from './providers/file';
+import { readFirst, grepAll, namespaceForAcross } from './sourceSet';
 import { NamespaceResolutionError, type StorageProvider, type GrepMatch } from '../types/storage';
 import type { LofsRef, OlxRelativePath } from '../types';
 
@@ -56,47 +55,11 @@ describe('grepAll', () => {
   });
 });
 
-describe('scanSources', () => {
-  // Regression: each source receives the FULL previous snapshot (all mounts'
-  // refs). A source must diff only against its own refs — otherwise every
-  // source reports the others' files as deleted and the merge destroys the index.
-  it('does not report other sources’ files as deleted on re-scan', async () => {
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const os = await import('os');
-
-    const dirA = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-sourceset-a-'));
-    const dirB = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-sourceset-b-'));
-    try {
-      await fs.writeFile(path.join(dirA, 'a.olx'), '<A/>');
-      await fs.writeFile(path.join(dirB, 'b.olx'), '<B/>');
-
-      const sources = [
-        new FileStorageProvider(dirA, 'mountA'),
-        new FileStorageProvider(dirB, 'mountB'),
-      ];
-
-      const first = await scanSources(sources);
-      expect(Object.keys(first.added).sort()).toEqual([
-        'file:mountA://a.olx',
-        'file:mountB://b.olx',
-      ]);
-
-      // Re-scan with the merged previous snapshot: nothing changed.
-      const second = await scanSources(sources, first.added);
-      expect(Object.keys(second.deleted)).toEqual([]);
-      expect(Object.keys(second.added)).toEqual([]);
-      expect(Object.keys(second.changed)).toEqual([]);
-      expect(Object.keys(second.unchanged).sort()).toEqual([
-        'file:mountA://a.olx',
-        'file:mountB://b.olx',
-      ]);
-    } finally {
-      await fs.rm(dirA, { recursive: true, force: true });
-      await fs.rm(dirB, { recursive: true, force: true });
-    }
-  });
-});
+// The union no longer diffs against a previous scan — each source enumerates
+// only its own origin-distinct refs (StorageProvider.listContent), and the sync
+// folds them (syncContentFromStorage). The old "one source reports another's
+// files as deleted" hazard is structurally impossible, so its scanSources
+// regression test is gone with the function.
 
 describe('namespaceForAcross', () => {
   it('falls through a non-owning source (plain error) to the owner', async () => {

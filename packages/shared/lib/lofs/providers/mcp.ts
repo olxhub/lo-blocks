@@ -15,8 +15,7 @@ import { toLofsRef, toLofsCanonical } from '../../types/address';
 import { callMcpTool } from '../../mcp/client';
 import {
   type StorageProvider,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ContentFile,
   type FileSelection,
   type UriNode,
   type ReadResult,
@@ -186,15 +185,13 @@ export class McpStorageProvider implements StorageProvider {
   }
 
   /**
-   * Incremental file scanning is not supported over MCP.
-   * Use listFiles() + read(), or implement change detection server-side.
+   * Content enumeration is not supported over MCP.
+   * Use listFiles() + read(); this is the CLIENT-side face, never a sync source.
    */
-  async loadXmlFilesWithStats(
-    _prev: Record<LofsRef, XmlFileInfo> = {}
-  ): Promise<XmlScanResult> {
+  async listContent(): Promise<ContentFile[]> {
     throw new Error(
-      'McpStorageProvider does not support incremental file scanning. ' +
-      'Use listFiles() to get current file tree, or implement change detection server-side.'
+      'McpStorageProvider does not support content enumeration. ' +
+      'Use listFiles() to get the current file tree, or read() individual files.'
     );
   }
 

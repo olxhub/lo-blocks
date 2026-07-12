@@ -12,8 +12,8 @@
 //   path by which repo-supplied code could ever be executed.
 // - Change detection is one request: the remote's branch head SHA, checked
 //   at most once per cooldown period (throttle-friendly). Only on a head
-//   change does the provider refetch, and the scan reports exact
-//   added/changed/deleted from per-file blob SHAs — no mtime heuristics.
+//   change does the provider refetch; listContent then enumerates the tree
+//   with honest per-file blob SHAs as versions — no mtime heuristics.
 // - Versions are honest: every ref carries the blob SHA as its #version,
 //   the inhabitant LofsCanonical was designed around. Provenance uses the
 //   repo URL as the origin (`<url>://<path-in-repo>#<sha>`), per the
@@ -62,8 +62,7 @@ import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
   type NamespaceResolution,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ContentFile,
   type FileSelection,
   type UriNode,
   type ReadResult,
@@ -347,48 +346,24 @@ export class GitStorageProvider implements StorageProvider {
   // StorageProvider
   // ---------------------------------------------------------------------
 
-  async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async listContent(): Promise<ContentFile[]> {
     await this.ensureFresh();
     const s = this.requireState();
 
-    // Only diff against our own refs (stacked/router scans pass everyone's).
-    const mine: Record<string, XmlFileInfo> = {};
-    for (const [key, info] of Object.entries(previous)) {
-      try { this.ownPath(key); mine[key] = info; } catch { /* foreign */ }
-    }
-
-    const added: Record<LofsRef, XmlFileInfo> = {};
-    const changed: Record<LofsRef, XmlFileInfo> = {};
-    const unchanged: Record<LofsRef, XmlFileInfo> = {};
-    const found = new Set<string>();
-
+    const out: ContentFile[] = [];
     for (const [relPath, { oid }] of s.tree) {
-      const ref = this.toRef(relPath);
-      const key = String(ref);
-      found.add(key);
-      const id = toLofsCanonical(withVersion(ref, this.contentVersion(oid)));
       const ext = getExtension(relPath) || relPath.split('.').pop() || '';
       const type = (fileTypes as any)[ext] ?? ext;
-      const prev = mine[key];
-      if (prev && prev.id === id) {
-        unchanged[key as LofsRef] = prev;
-      } else {
-        const record: XmlFileInfo = {
-          id,
-          type,
-          _metadata: { oid, head: s.head },
-          content: await this.readBlob(s, relPath),
-        };
-        (prev ? changed : added)[key as LofsRef] = record;
-      }
+      // Version is the blob SHA — object identity, stable across commits for
+      // untouched files, and the SAME version read() stamps on provenance (so
+      // a parseDep recorded from a read compares equal here when unchanged).
+      out.push({
+        id: toLofsCanonical(withVersion(this.toRef(relPath), this.contentVersion(oid))),
+        type,
+        content: await this.readBlob(s, relPath),
+      });
     }
-
-    const deleted: Record<LofsRef, XmlFileInfo> = {};
-    for (const [key, info] of Object.entries(mine)) {
-      if (!found.has(key)) deleted[key as LofsRef] = info;
-    }
-
-    return { added, changed, unchanged, deleted };
+    return out;
   }
 
   /** Cheap change token: the last-known branch head. Freshness is governed by

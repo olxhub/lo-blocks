@@ -18,8 +18,6 @@ import {
   NamespaceResolutionError,
   type StorageProvider,
   type NamespaceResolution,
-  type XmlFileInfo,
-  type XmlScanResult,
   type UriNode,
   type ReadResult,
   type GrepOptions,
@@ -60,44 +58,6 @@ function mergeUriTrees(higher: UriNode, lower: UriNode): UriNode {
   };
 }
 
-/**
- * Merge XmlScanResults from multiple providers.
- * Higher-priority providers' files shadow lower-priority ones.
- */
-function mergeXmlScanResults(higher: XmlScanResult, lower: XmlScanResult): XmlScanResult {
-  // Start with lower priority results
-  const merged: XmlScanResult = {
-    added: { ...lower.added },
-    changed: { ...lower.changed },
-    unchanged: { ...lower.unchanged },
-    deleted: { ...lower.deleted },
-  };
-
-  // Higher priority results override lower
-  // If a file exists in higher, remove it from lower's categories first
-  const higherIds = [
-    ...Object.keys(higher.added),
-    ...Object.keys(higher.changed),
-    ...Object.keys(higher.unchanged),
-    ...Object.keys(higher.deleted),
-  ];
-
-  for (const id of higherIds) {
-    delete merged.added[id as LofsRef];
-    delete merged.changed[id as LofsRef];
-    delete merged.unchanged[id as LofsRef];
-    delete merged.deleted[id as LofsRef];
-  }
-
-  // Now add higher priority results
-  Object.assign(merged.added, higher.added);
-  Object.assign(merged.changed, higher.changed);
-  Object.assign(merged.unchanged, higher.unchanged);
-  Object.assign(merged.deleted, higher.deleted);
-
-  return merged;
-}
-
 /** Fold a list of per-provider results (highest priority first) into one,
  *  merging low-to-high so earlier providers shadow later ones. */
 function foldByPriority<T>(results: T[], merge: (higher: T, lower: T) => T, empty: T): T {
@@ -107,31 +67,6 @@ function foldByPriority<T>(results: T[], merge: (higher: T, lower: T) => T, empt
     merged = merge(results[i], merged);
   }
   return merged;
-}
-
-/**
- * Scan every source and merge the results. Each provider receives the FULL
- * previous snapshot (which contains other sources' refs too); a provider must
- * diff only against its own refs — otherwise it reports the other sources'
- * files as deleted and the merge destroys the index.
- *
- * A source that can't scan (down remote, unsupported) drops out of the merged
- * result — logged, because otherwise its content silently vanishes from the
- * union with no trace. (TODO: structured per-source health surfacing.)
- */
-export async function scanSources(
-  sources: StorageProvider[],
-  previous: Record<LofsRef, XmlFileInfo> = {},
-): Promise<XmlScanResult> {
-  const results: XmlScanResult[] = [];
-  for (const provider of sources) {
-    try {
-      results.push(await provider.loadXmlFilesWithStats(previous));
-    } catch (err) {
-      console.error(`[scanSources] source scan failed, dropping its content: ${(err as Error).message}`);
-    }
-  }
-  return foldByPriority(results, mergeXmlScanResults, { added: {}, changed: {}, unchanged: {}, deleted: {} });
 }
 
 /**
