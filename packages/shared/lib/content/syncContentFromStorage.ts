@@ -19,10 +19,9 @@
 // snapshot and backward-compatible return shape.
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
-import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
-import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
-import { unionProvider } from '@/lib/lofs/contentSources';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { readableProviders } from '@/lib/lofs/contentSources';
+import { scanSources, namespaceForAcross } from '@/lib/lofs/sourceSet';
+import { chainResolvers } from '@/lib/lofs/chainResolvers';
 import type { LofsRef, LofsCanonical, LofsOrigin, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
 import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
 import { withoutVersion, addressPath, source } from '@/lib/types/address';
@@ -155,7 +154,7 @@ function variantMapsEqual(a: VariantMap, b: VariantMap): boolean {
 export async function applyFileChanges(
   prev: ContentSnapshot,
   scan: XmlScanResult,
-  provider: StorageProvider,
+  providers: StorageProvider[],
 ): Promise<ContentSnapshot> {
   // Step 1: Scan results come in via `scan` parameter
 
@@ -174,7 +173,7 @@ export async function applyFileChanges(
 
   // Step 4: Parse all new and changed files
   const filesToParse = { ...promoted.added, ...promoted.changed };
-  const parsed = await parseAndIndexFiles(filesToParse, cleaned.blockIndex, provider);
+  const parsed = await parseAndIndexFiles(filesToParse, cleaned.blockIndex, providers);
 
   return {
     parsedFiles: { ...cleaned.parsedFiles, ...parsed.parsedFiles },
@@ -187,38 +186,34 @@ export async function applyFileChanges(
 // =============================================================================
 
 /**
- * Default system content sources:
- *   - the deployment's configured content sources (content-sources.yaml:
- *     per-repo checkouts mounted at path prefixes, plus a fallback
- *     directory — see lib/lofs/contentSources.ts; defaults to ./content)
- *   - block documentation examples (per-block docs.* namespaces)
+ * Sync content into the module snapshot.
  *
- * Stacked so the whole system content index — including docs — is one
- * sync. This is what lets courses embed documentation content via
- * <Use ref="docs.ActionButton/..."/>.
+ * With no argument, spans the deployment's default content union — every
+ * configured source (content-sources.yaml) plus block documentation examples
+ * (per-block docs.* namespaces), as an ordered provider list
+ * (contentSources.readableProviders). Docs is in the union so the whole system
+ * content index is one sync — what lets courses embed documentation via
+ * `<Use ref="docs.ActionButton/..."/>`.
+ *
+ * A caller may pass a single provider (scripts, translate, tests) to sync just
+ * that source; it's normalized to a one-element list. Scan, namespace
+ * resolution, and src="" resolution during parse all run across the list via
+ * the source-set operations (lib/lofs/sourceSet.ts), first-source-wins.
  */
-export async function defaultContentProviders(): Promise<StorageProvider> {
-  return new StackedStorageProvider([
-    await unionProvider(),
-    new DocsStorageProvider(
-      Object.values(BLOCK_REGISTRY).filter(b => b?._isBlock).map(b => b.name)
-    ),
-  ]);
-}
-
 export async function syncContentFromStorage(
   provider?: StorageProvider
 ) {
-  provider ??= await defaultContentProviders();
-  const scan = await provider.loadXmlFilesWithStats(
+  const providers = provider ? [provider] : await readableProviders();
+  const scan = await scanSources(
+    providers,
     _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>
   );
 
   // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
-  _snapshot = await applyFileChanges(_snapshot, scan, provider);
+  _snapshot = await applyFileChanges(_snapshot, scan, providers);
 
   // Step 5: Sync static assets
-  await copyAssetsToPublic(provider);
+  await copyAssetsToPublic(providers);
 
   return {
     parsed: { ..._snapshot.parsedFiles },
@@ -443,13 +438,17 @@ function removeBlocksFromFiles(
 async function parseAndIndexFiles(
   filesToParse: Record<LofsRef, XmlFileInfo>,
   existingBlockIndex: Record<DefinitionKey, VariantMap>,
-  provider: StorageProvider,
+  providers: StorageProvider[],
 ): Promise<{
   parsedFiles: Record<LofsRef, ParsedFileEntry>;
   blockIndex: Record<DefinitionKey, VariantMap>;
 }> {
   const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
   const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
+
+  // src="" / cast="" references during parse resolve first-source-wins across
+  // the union (a file in one source may reference an asset in another).
+  const resolver = chainResolvers(providers);
 
   for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [LofsRef, XmlFileInfo][]) {
     // Non-OLX files (auxiliary files like .chatpeg) are tracked for change
@@ -464,13 +463,13 @@ async function parseAndIndexFiles(
     }
 
     try {
-      // The provider owns namespace resolution (manifest override, then a
+      // The owning source resolves the namespace (manifest override, then a
       // provider-specific fallback like the top-level directory). A file
       // with no resolvable namespace throws here and becomes a file_error.
       // Manifest edits invalidate their subtree via
       // promoteFilesAffectedByManifests (step 2a in applyFileChanges).
-      const { ns, manifest } = await provider.namespaceFor(fileRecord.id);
-      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider, ns);
+      const { ns, manifest } = await namespaceForAcross(providers, fileRecord.id);
+      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], resolver, ns);
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Namespace provenance: record which manifest declared this content's

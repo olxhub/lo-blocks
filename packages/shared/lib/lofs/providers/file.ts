@@ -364,8 +364,8 @@ export class FileStorageProvider implements StorageProvider {
    * 'file:content://sba/foo.olx'         + mountPoint='content'         → 'sba/foo.olx'
    * 'file:content/ee/ee101://labs/l.olx'  + mountPoint='content/ee/ee101' → 'labs/l.olx'
    *
-   * Throws on mount-point mismatch, which is how StackedStorageProvider
-   * routes to the correct provider (try/catch fallthrough).
+   * Throws on mount-point mismatch, which is how the union routes to the
+   * correct source (try/catch fallthrough; see lib/lofs/sourceSet.ts).
    */
   private extractRelativePath(uri: string): string {
     // In the LOFS address format the mount point is part of the source locator
@@ -568,8 +568,8 @@ export class FileStorageProvider implements StorageProvider {
 
     // extractRelativePath validates the mount point and returns
     // the path within this mount (e.g., 'sba/file.xml').
-    // Mount mismatch throws, which is how StackedStorageProvider
-    // routes to the correct provider.
+    // Mount mismatch throws, which is how the union routes to the
+    // correct source.
     const baseRelPath = this.extractRelativePath(baseProvenance);
     const baseDir = path.dirname(baseRelPath);
     // Refs are POSIX; path.normalize/join emit backslashes on Windows.
@@ -628,8 +628,8 @@ export class FileStorageProvider implements StorageProvider {
 
     // Constructor override: the whole provider is one namespace, manifests
     // ignored (see constructor docs). relPath is still extracted above so
-    // mount mismatches throw — that's how StackedStorageProvider routes to
-    // the owning provider.
+    // mount mismatches throw — that's how the union routes to the owning
+    // source (namespaceForAcross in lib/lofs/sourceSet.ts).
     if (this.ns) return { ns: this.ns };
 
     const fs = await import('fs/promises');

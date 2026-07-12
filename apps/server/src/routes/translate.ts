@@ -13,7 +13,7 @@
 
 import path from 'path';
 import type { Context } from 'hono';
-import { unionProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
+import { writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
 import { source as lofsSource } from '@/lib/types/address';
 import {
   syncContentFromStorage,
@@ -72,8 +72,10 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
-    const provider = await unionProvider();
-    await syncContentFromStorage(provider);
+    // Sync across the default content union so the block can be located
+    // regardless of which source defines it (getOriginalVariant/getSourceFile
+    // read the resulting module snapshot).
+    await syncContentFromStorage();
 
     const originalVariant = getOriginalVariant(blockId);
     if (!originalVariant) {
@@ -90,8 +92,8 @@ export async function handleTranslate(c: Context): Promise<Response> {
       );
     }
 
-    // Write to the source's own provider — NOT the union (StackedStorageProvider
-    // writes to providers[0], which may be a different repo entirely).
+    // Write to the source's own provider, resolved from the file's origin — the
+    // union has no single write target (writes are always per-source).
     const writeProvider = await writableSourceProvider(lofsSource(sourceFileUri));
 
     // Dedupe concurrent identical requests + enforce a timeout (shared helper).

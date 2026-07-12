@@ -63,9 +63,9 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
-    // Only own memory: refs — same scheme guard as resolveRelativePath, so a
-    // StackedStorageProvider with this provider ahead of a file provider falls
-    // through for file: refs instead of mislabeling them with this.ns.
+    // Only own memory: refs — same scheme guard as resolveRelativePath, so the
+    // union (with this provider ahead of a file provider) falls through for
+    // file: refs instead of mislabeling them with this.ns.
     if (scheme(brandLofsRef(String(ref))) !== 'memory') {
       throw new Error(
         `InMemoryStorageProvider does not own ref (not a memory: scheme): ${ref}`
@@ -143,8 +143,8 @@ export class InMemoryStorageProvider implements StorageProvider {
     }
 
     // Files in previous but no longer in this.files. Only check memory: refs —
-    // in a StackedStorageProvider, previous contains refs from all providers,
-    // and reporting file: refs as deleted would mask the file provider's results.
+    // in the union scan, previous contains refs from all providers, and
+    // reporting file: refs as deleted would mask the file provider's results.
     const deleted: Record<LofsRef, XmlFileInfo> = {};
     for (const ref of Object.keys(previous) as LofsRef[]) {
       if (!found.has(ref) && scheme(brandLofsRef(ref)) === 'memory') {

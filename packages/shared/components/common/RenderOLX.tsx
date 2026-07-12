@@ -25,10 +25,10 @@
 // 1. Each provider implements loadXmlFilesWithStats() returning:
 //    { added, changed, unchanged, deleted } with content hashes in _metadata
 //
-// 2. StackedStorageProvider.loadXmlFilesWithStats() merges results from all
-//    providers, with higher-priority providers' files shadowing lower ones
+// 2. scanSources() (lib/lofs/sourceSet.ts) merges results from all providers,
+//    with higher-priority providers' files shadowing lower ones
 //
-// 3. RenderOLX calls syncContentFromStorage(stackedProvider) which:
+// 3. RenderOLX calls syncContentFromStorage over the provider list, which:
 //    - Scans all providers for OLX/XML files
 //    - Parses only added/changed files (using hashes for change detection)
 //    - Maintains incremental idMap updates
@@ -51,7 +51,8 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { InMemoryStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { chainResolvers } from '@/lib/lofs/chainResolvers';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
@@ -95,8 +96,7 @@ function useBuildProviderStack(
     }
 
     if (stack.length === 0) return null;
-    if (stack.length === 1) return stack[0];
-    return new StackedStorageProvider(stack);
+    return chainResolvers(stack);
   }, [inline, files, provider, providers, resolveProvider]);
 }
 

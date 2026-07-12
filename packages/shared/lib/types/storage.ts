@@ -26,7 +26,6 @@ import { FileType } from '../lofs/fileTypes';
  * - FileStorageProvider: { stat: fs.Stats } (all properties are numbers/strings)
  * - MemoryStorageProvider: {} (empty for in-memory)
  * - GitStorageProvider: { hash: string } (commit hash)
- * - PostgresStorageProvider: { version: number, updated_at: string } (DB metadata)
  *
  * Future: May be branded or converted to a union type for better type safety.
  */
@@ -387,7 +386,9 @@ export interface StorageProvider {
    *                            file's top-level directory ("demos/foo.olx" → "demos")
    * - GitStorageProvider:      repo manifest, else defaultNamespace(origin) (repo name)
    * - InMemoryStorageProvider: constructor option
-   * - StackedStorageProvider:  delegates to the provider that owns the ref
+   *
+   * The read/compile union delegates to the source that owns the ref
+   * (namespaceForAcross in lib/lofs/sourceSet.ts).
    *
    * Throws NamespaceResolutionError (with an author-friendly message) when
    * no namespace can be determined — e.g., a file at the root of a

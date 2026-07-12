@@ -39,7 +39,8 @@
 
 import { z } from 'zod';
 import type { ToolRegistry } from '../mcp/registry';
-import { readProvider, writableSourceProvider, sources } from './contentSources';
+import { readableProviders, writableSourceProvider, sources } from './contentSources';
+import { readFirst, globAll, grepAll, listFilesAll } from './sourceSet';
 import { VersionConflictError, toOlxRelativePath } from '../types/storage';
 import type { StorageProvider } from '../types/storage';
 import { toRepoRelativePath } from './repoPath';
@@ -215,13 +216,15 @@ async function assertAbsent(provider: StorageProvider, p: ReturnType<typeof toRe
  * configured content sources (contentSources.ts) — the only production wiring.
  */
 export interface LofsToolDeps {
-  readProvider: (source?: string) => Promise<StorageProvider>;
+  /** The providers a read-shaped op spans: one named source, or the whole
+   *  union when `source` is omitted (see contentSources.readableProviders). */
+  readableProviders: (source?: string) => Promise<StorageProvider[]>;
   writableSourceProvider: (source: string) => Promise<StorageProvider>;
   sources: () => Promise<Array<{ origin: string; label: string; writable: boolean }>>;
 }
 
 const defaultDeps: LofsToolDeps = {
-  readProvider,
+  readableProviders,
   writableSourceProvider,
   sources: async () => (await sources()).map(s => ({ ...s, origin: String(s.origin) })),
 };
@@ -239,8 +242,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, async ({ path: rawPath, source }) => {
     const p = toRepoRelativePath(rawPath);
-    const provider = await deps.readProvider(source);
-    const result = await provider.read(p);
+    const result = await readFirst(await deps.readableProviders(source), p);
     return {
       content: result.content,
       metadata: result.metadata,
@@ -345,8 +347,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     output: GlobOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, async ({ pattern, path: base, source }) => {
-    const provider = await deps.readProvider(source);
-    const files = await provider.glob(pattern, basePathOf(base));
+    const files = await globAll(await deps.readableProviders(source), pattern, basePathOf(base));
     return { files: files as string[] };
   });
 
@@ -356,8 +357,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     output: GrepOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, async ({ pattern, path: base, include, limit, source }) => {
-    const provider = await deps.readProvider(source);
-    const matches = await provider.grep(pattern, { basePath: basePathOf(base), include, limit });
+    const matches = await grepAll(await deps.readableProviders(source), pattern, { basePath: basePathOf(base), include, limit });
     return { matches: matches as Array<{ path: string; line: number; content: string }> };
   });
 
@@ -367,8 +367,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     output: ListFilesOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, async ({ source }) => {
-    const provider = await deps.readProvider(source);
-    return { tree: await provider.listFiles() };
+    return { tree: await listFilesAll(await deps.readableProviders(source)) };
   });
 
   registry.register('get_sources', {

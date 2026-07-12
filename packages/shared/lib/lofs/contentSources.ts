@@ -33,7 +33,7 @@
 // FileStorageProvider over ./content.
 //
 // Two entry points (both build from config per call):
-//   - unionProvider()      — the read/compile/render union over all sources
+//   - readableProviders()  — the read/compile/render union over all sources
 //   - sourceProvider(origin) — one source, repo-relative, for origin-scoped editing
 //
 // The config is re-read on every call, and the connected-source SET is
@@ -52,7 +52,6 @@
 
 import path from 'path';
 import { FileStorageProvider } from './providers/file';
-import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
 import { gitOrigin, toLofsOrigin } from '../types/address';
 import type { LofsOrigin } from '../types/address';
@@ -245,7 +244,7 @@ export interface SourceInfo {
 /**
  * Build every configured source (+ the fallback) from config, computing each
  * one's origin. The single place that maps config → providers; both
- * `unionProvider` (read/compile) and `sourceProvider` (origin-scoped editing)
+ * `readableProviders` (read/compile) and `sourceProvider` (origin-scoped editing)
  * derive from it. Registers configured directories with the file provider's
  * security allow-list (allowedDirs.ts). Git clones are memoized
  * (gitSourceProvider), so the union and an editing handle share one clone.
@@ -300,20 +299,46 @@ export async function sources(): Promise<SourceInfo[]> {
 }
 
 /**
- * The read/compile UNION over every configured source, for `sync`.
+ * The block-documentation provider (per-block docs.* namespaces). NOT a
+ * configured content source: it serves example/sidecar files from the block
+ * source tree so docs previews — and courses that embed docs via
+ * `<Use ref="docs.ActionButton/..."/>` — can resolve relative `src=`/`data=`
+ * references. It joins the read/compile union last (lowest priority).
  *
- * A plain stack, NOT a router: each source's refs are origin-distinct, so the
- * merged scan needs no mount-prefix routing or shadowing — the synthetic
- * `<mount>/path` space (and its glob bug) is gone. Combining sources is a
- * compile concern (see docs/lofs-api.md); authoring goes per-source via
- * `sourceProvider`, not through here. Sources shadow the fallback.
- *
- * No sources configured → the bare fallback provider (today's behavior).
+ * Dynamic import, not circular: BLOCK_REGISTRY pulls in every block's component
+ * module (the whole block tree, including client-only UI code). Loading it
+ * belongs to the first read that actually needs it, not to module load — the
+ * union is the shared entry point for every read route, and most reads never
+ * touch a docs file.
  */
-export async function unionProvider(): Promise<StorageProvider> {
+async function docsProvider(): Promise<StorageProvider> {
+  const { DocsStorageProvider } = await import('./providers/docs');
+  const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
+  return new DocsStorageProvider(
+    Object.values(BLOCK_REGISTRY).filter((b: any) => b?._isBlock).map((b: any) => b.name)
+  );
+}
+
+/**
+ * The read/compile UNION as an ordered list of providers, for `sync` and the
+ * read routes. NOT a stack object: each source's refs are origin-distinct, so
+ * combining them is a merge, not a router (see lib/lofs/sourceSet.ts) — the
+ * synthetic `<mount>/path` space (and its glob bug) is gone. Authoring goes
+ * per-source via `sourceProvider`, not through here.
+ *
+ *   - `file:docs` → the block-documentation provider alone.
+ *   - a specific origin → that one source's provider alone.
+ *   - omitted → every configured source, then the fallback, then docs last.
+ *     Priority is list order (sources shadow the fallback; the fallback shadows
+ *     docs). Docs joins the union so the whole system content index — including
+ *     documentation examples — is one compile.
+ */
+export async function readableProviders(source?: string): Promise<StorageProvider[]> {
+  if (source === 'file:docs') return [await docsProvider()];
+  if (source) return [await sourceProvider(toLofsOrigin(source))];
+
   const { sources, fallback } = await configuredSources();
-  if (sources.length === 0) return fallback.provider;
-  return new StackedStorageProvider([...sources.map(s => s.provider), fallback.provider]);
+  return [...sources.map(s => s.provider), fallback.provider, await docsProvider()];
 }
 
 /** A write was attempted against a source the deployment marked read-only.
@@ -366,32 +391,20 @@ export async function writableSourceProvider(source: string): Promise<StoragePro
 }
 
 /**
- * Read/search handle for the API layer's request `source` param: scope to the
- * named source, or span the compile union when none is given. The single
- * definition of "no source = union", shared by the read routes (file GET,
- * files, grep). Decodes the raw param to an origin at the boundary.
+ * A single read handle for a REQUIRED source: the one provider identified by
+ * `source`. For a caller that has an origin in hand and wants that source alone
+ * (catalog descriptors, forge links). The union has no single provider, so a
+ * caller that wants to span all sources uses `readableProviders()` and the
+ * source-set operations (lib/lofs/sourceSet.ts) instead — this throws if
+ * `source` is omitted.
  *
- * Special case: `file:docs` reaches the block-documentation provider
- * (DocsStorageProvider). It is not a configured content source — it serves
- * example/sidecar files from the block source tree so docs previews can
- * resolve relative `src=` / `data=` references.
+ * Special case: `file:docs` reaches the block-documentation provider — not a
+ * configured content source, but readable by origin like one.
  */
-export async function readProvider(source?: string): Promise<StorageProvider> {
-  if (source === 'file:docs') {
-    // Dynamic, not circular: nothing in the block tree imports contentSources.ts
-    // back, so these could be static. Kept dynamic for cost, not correctness —
-    // BLOCK_REGISTRY pulls in every block's component module (the whole block
-    // tree, including client-only UI code), and readProvider is the shared entry
-    // point for every read route (file GET, files, grep, translate), not just
-    // docs previews. Importing statically would make every caller pay that
-    // weight at load time for a branch most of them never take. The one caller
-    // that always needs the full registry anyway (syncContentFromStorage, which
-    // parses OLX against it unconditionally) imports it statically.
-    const { DocsStorageProvider } = await import('./providers/docs');
-    const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
-    return new DocsStorageProvider(
-      Object.values(BLOCK_REGISTRY).filter((b: any) => b?._isBlock).map((b: any) => b.name)
-    );
+export async function readProvider(source: string): Promise<StorageProvider> {
+  if (!source) {
+    throw new Error('readProvider requires a source origin; use readableProviders() to span all sources');
   }
-  return source ? sourceProvider(toLofsOrigin(source)) : unionProvider();
+  if (source === 'file:docs') return docsProvider();
+  return sourceProvider(toLofsOrigin(source));
 }

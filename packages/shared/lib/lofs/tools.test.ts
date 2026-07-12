@@ -29,7 +29,7 @@ describe('LOFS tools', () => {
     registerAllowedContentDir(tempDir);
     const provider = new FileStorageProvider(tempDir);
     const deps: LofsToolDeps = {
-      readProvider: async () => provider,
+      readableProviders: async () => [provider],
       writableSourceProvider: async () => provider,
       sources: async () => [{ origin: SRC, label: 'test', writable: true }],
     };
