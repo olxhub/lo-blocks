@@ -16,6 +16,10 @@ export {
   formatScore,
 } from './aggregators';
 
+// Grading-state read hook — the single read point for grader state
+export { useCorrectness } from './useCorrectness';
+export type { GraderGradingState } from './useCorrectness';
+
 // Numerical grading
 export {
   numericalMatch,

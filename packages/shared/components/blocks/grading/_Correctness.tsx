@@ -7,34 +7,13 @@
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
-import { useFieldSelector } from '@/lib/state';
+import { useCorrectness } from '@/lib/grading';
 
 function Correctness(props: RuntimeProps) {
-  const { fields, graderId } = props;
-  // graderId is a StateKey injected by render (requiresGrader: true)
-  const graderStateKey = graderId;
-
-  const correctnessValue = useFieldSelector(
-    props,
-    fields.correct,
-    {
-      selector: s => s?.correct ?? correctness.unsubmitted,
-      fallback: correctness.unsubmitted,
-      stateKey: graderStateKey
-    }
-  );
-
-  // Flash animation when correctness changes (including same value re-submission)
-  // We detect this by watching submitCount which increments on each submit
-  const submitCount = useFieldSelector(
-    props,
-    fields.submitCount,
-    {
-      selector: s => s?.submitCount ?? 0,
-      fallback: 0,
-      stateKey: graderStateKey
-    }
-  );
+  // graderId is a StateKey injected by render (requiresGrader: true).
+  // submitCount drives the flash animation — it increments on each submit,
+  // so re-submitting the same answer still re-triggers the pulse.
+  const { correct: correctnessValue, submitCount } = useCorrectness(props, props.graderId);
 
   const icons = {
     [correctness.correct]: '✅',

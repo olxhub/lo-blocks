@@ -340,11 +340,18 @@ async function evaluateGrader(
 // - slots defined: { inputDict, inputApiDict } - named slots
 // - inputType: 'list': { inputList, inputApis } - array of inputs
 // - default (single): { input, inputApi } - one input (most common)
-export function grader({ grader, infer = true, slots, inputType }: {
+export function grader({ grader, infer = true, slots, inputType, slow = false }: {
   grader: GraderFn;
   infer?: boolean;
   slots?: string[];
   inputType?: 'single' | 'list';
+  /** Slow (async) grader — LLM, instructor/peer queue, code-in-sandbox.
+   *  The action writes correct='submitted' BEFORE awaiting the grader, so
+   *  the UI shows a pending state and inputs lock (isInputReadOnly) while
+   *  grading is in flight; the final result overwrites it when the grader
+   *  resolves. UI reads via useCorrectness/selectors, so both phases are
+   *  ordinary field writes. */
+  slow?: boolean;
 }) {
   // Props reconstruction: We have full props from the action source (grader).
   // For inputs and other related blocks, we reconstruct complete props with their
@@ -366,6 +373,17 @@ export function grader({ grader, infer = true, slots, inputType }: {
 
     const state = props.runtime.store.getState();
     const { values, apis } = gatherInputData(props, inputIds, state);
+    const writeOpts = { stateKey: targetId as StateKey };
+
+    if (slow) {
+      // Phase 1 of two-phase grading: mark the submission pending before
+      // awaiting the (slow) grader. lastSubmission is captured now so the
+      // UI can show what is being graded. If the grader ultimately returns
+      // unsubmitted/invalid (e.g. empty input), the final write below
+      // simply overwrites the transient pending state.
+      updateField(props, commonFields.lastSubmission, values, writeOpts);
+      updateField(props, commonFields.correct, correctness.submitted, writeOpts);
+    }
 
     const { correct, message, score } = await evaluateGrader(
       { grader, slots, inputType }, props, targetInstance, inputIds, values, apis
@@ -390,7 +408,6 @@ export function grader({ grader, infer = true, slots, inputType }: {
     // UPDATE_CORRECT event, which the reducer still accepts for old
     // recordings — see store.ts.) `correct` goes last so anything keying off
     // it observes the other fields already settled.
-    const writeOpts = { stateKey: targetId as StateKey };
     updateField(props, commonFields.message, message, writeOpts);
     updateField(props, commonFields.score, score, writeOpts);
     updateField(props, commonFields.lastSubmission, values, writeOpts);
@@ -408,6 +425,7 @@ export function grader({ grader, infer = true, slots, inputType }: {
     graderMixin: {
       action,
       isGrader: true,
+      isSlowGrader: slow,  // Async grader: two-phase (pending → final) dispatch
       slots,  // Named slots for multi-input graders
       // Default display answer - can be overridden in block definition
       getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,

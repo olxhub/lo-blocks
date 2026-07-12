@@ -380,6 +380,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     isInput: parsed.isInput,
     isMatch: typeof effectiveConfig.locals?.match === 'function',
     isGrader: parsed.isGrader,
+    isSlowGrader: parsed.isSlowGrader,
     internal: effectiveConfig.internal,
     prototype: effectiveConfig.prototype,
     category: effectiveConfig.category,

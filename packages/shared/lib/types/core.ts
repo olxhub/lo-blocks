@@ -619,6 +619,12 @@ export const BlockBlueprintSchema = z.object({
   ensureReady: z.custom<() => Promise<void>>().optional(),
   action: z.function().optional(),
   isGrader: z.boolean().optional().default(false),
+  /**
+   * Slow (async) grader — LLM, instructor/peer queue, code-in-sandbox.
+   * The grading action dispatches correct='submitted' before awaiting the
+   * grader (two-phase dispatch); see grader() in lib/blocks/actions.tsx.
+   */
+  isSlowGrader: z.boolean().optional().default(false),
   isInput: z.boolean().optional().default(false),
   isMatch: z.boolean().optional().default(false),
   /**
@@ -866,6 +872,8 @@ export interface LoBlock {
   isInput: boolean;
   isMatch: boolean;
   isGrader: boolean;
+  /** Slow (async) grader — grading action uses two-phase (pending → final) dispatch. */
+  isSlowGrader?: boolean;
   /**
    * Marks this block as internal/system use only.
    * Internal blocks are hidden from the main documentation navigation.

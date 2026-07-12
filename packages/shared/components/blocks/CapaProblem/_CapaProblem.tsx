@@ -228,6 +228,20 @@ function FooterWrapper({ children }) {
 export default function CapaProblem(props: RuntimeProps) {
   const { id } = props;
 
+  // grade="immediate" is designed (derived correctness via selectors —
+  // lib/grading/useCorrectness.ts) but not yet enabled; fail loudly rather
+  // than silently behaving like submit mode.
+  if (props.grade === 'immediate') {
+    return (
+      <DisplayError
+        props={props}
+        id={`${id}_grade_mode`}
+        title="CapaProblem"
+        message={`grade="immediate" is not yet supported (problem "${id}"). Remove the grade attribute (or use grade="submit") until immediate grading is enabled.`}
+      />
+    );
+  }
+
   // Render content first to populate dynamic OLX DOM
   const { kids: content } = useKids(props);
 

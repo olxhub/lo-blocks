@@ -8,7 +8,7 @@
 //
 import { correctness } from './correctness';
 import { inferRelatedNodes } from './olxdom';
-import * as state from '@/lib/state';
+import { useCorrectness } from '@/lib/grading';
 
 /**
  * Determines if an input should be read-only
@@ -43,16 +43,7 @@ export function isInputReadOnly(props) {
   const graderId = graderIds[0];
 
   try {
-    const correctField = state.componentFieldByStateKey(props, graderId, 'correct');
-    const correctnessValue = state.useFieldSelector(
-      props,
-      correctField,
-      {
-        stateKey: graderId,
-        fallback: correctness.unsubmitted,
-        selector: s => s?.correct
-      }
-    );
+    const { correct: correctnessValue } = useCorrectness(props, graderId);
 
     // Default behavior: allow infinite attempts (only lock if explicitly SUBMITTED and not allowing retries)
     // For now, we'll be more permissive - only lock on SUBMITTED pending grading
