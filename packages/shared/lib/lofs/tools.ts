@@ -38,7 +38,7 @@
 // get_sources  - The configured content sources (Studio's repo picker)
 
 import { z } from 'zod';
-import type { ToolRegistry } from '../mcp/registry';
+import type { ToolRegistry, ToolContext } from '../mcp/registry';
 import { readableProviders, writableSourceProvider, sources } from './contentSources';
 import { readFirst, globAll, grepAll, listFilesAll } from './sourceSet';
 import { VersionConflictError, toOlxRelativePath } from '../types/storage';
@@ -194,6 +194,29 @@ async function validateContent(pathStr: string, content: string, ns?: string): P
   return null;
 }
 
+/**
+ * Git commit authorship from the calling user's identity.
+ *
+ * The platform commits ON THE AUTHOR'S BEHALF (git.ts): committer = the
+ * platform service identity, author = the teacher who made the edit. We map
+ * the resolved user to that git author here.
+ *
+ * Email convention: `${safe_user_id}@users.lo`. safe_user_id is the
+ * provenance-prefixed, URL-safe id (e.g. `nginx-testauthor`, `guest-Foo`), so
+ * this is a stable, honest, non-deliverable placeholder — NOT a claim of a
+ * real inbox. A linked real email arrives with identity linking (a later
+ * phase); until then guests attribute as their guest id, same shape.
+ *
+ * Returns undefined when there's no user context (in-process/browser calls),
+ * so the provider falls back to the platform identity as before.
+ */
+function authorFrom(ctx?: ToolContext): { name: string; email: string } | undefined {
+  const user = ctx?.user;
+  if (!user) return undefined;
+  const email = user.email ?? `${user.safe_user_id ?? user.user_id}@users.lo`;
+  return { name: user.user_id, email };
+}
+
 /** The create existence pre-check (a TOCTOU race is acceptable for now;
  *  atomic create — lofs-api lease:'absent' — is a follow-up). */
 async function assertAbsent(provider: StorageProvider, p: ReturnType<typeof toRepoRelativePath>): Promise<void> {
@@ -259,7 +282,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     input: WriteInput,
     output: WriteOutput,
     annotations: { destructiveHint: true },
-  }, async ({ path: rawPath, source, content, previous_metadata, force, create }) => {
+  }, async ({ path: rawPath, source, content, previous_metadata, force, create }, ctx) => {
     if (content.length > MAX_WRITE_BYTES) {
       throw new Error(`File too large (max ${MAX_WRITE_BYTES / 1000}KB)`);
     }
@@ -270,6 +293,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
       await provider.commit([{ path: p, content }], {
         base: previous_metadata !== undefined ? [{ path: p, version: previous_metadata }] : undefined,
         force,
+        author: authorFrom(ctx),
       });
     } catch (err: any) {
       if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
@@ -290,7 +314,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     input: EditInput,
     output: EditOutput,
     annotations: {},
-  }, async ({ path: rawPath, source, old_string, new_string, replace_all = false }) => {
+  }, async ({ path: rawPath, source, old_string, new_string, replace_all = false }, ctx) => {
     if (!old_string || old_string.trim() === '') {
       throw new Error('old_string cannot be empty');
     }
@@ -320,6 +344,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     // someone else conflicts instead of being silently overwritten.
     await provider.commit([{ path: p, content: newContent }], {
       base: [{ path: p, version: current.metadata }],
+      author: authorFrom(ctx),
     });
     return { ok: true as const, occurrences };
   });
@@ -329,9 +354,9 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     input: DeleteInput,
     output: OkOutput,
     annotations: { destructiveHint: true },
-  }, async ({ path: rawPath, source }) => {
+  }, async ({ path: rawPath, source }, ctx) => {
     const provider = await deps.writableSourceProvider(source);
-    await provider.commit([{ path: toRepoRelativePath(rawPath), delete: true }]);
+    await provider.commit([{ path: toRepoRelativePath(rawPath), delete: true }], { author: authorFrom(ctx) });
     return { ok: true as const };
   });
 
@@ -340,9 +365,9 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     input: MoveInput,
     output: OkOutput,
     annotations: {},
-  }, async ({ path: rawPath, new_path, source }) => {
+  }, async ({ path: rawPath, new_path, source }, ctx) => {
     const provider = await deps.writableSourceProvider(source);
-    await provider.commit([{ path: toRepoRelativePath(rawPath), renameTo: toRepoRelativePath(new_path) }]);
+    await provider.commit([{ path: toRepoRelativePath(rawPath), renameTo: toRepoRelativePath(new_path) }], { author: authorFrom(ctx) });
     return { ok: true as const };
   });
 

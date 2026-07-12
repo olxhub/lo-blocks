@@ -27,6 +27,23 @@ export type { ToolAnnotations };
 /** Extensible metadata bag for future formats (OpenAPI, etc.) */
 export type ToolMeta = Record<string, unknown>;
 
+/**
+ * Per-call context threaded to handlers (identity today; room to grow).
+ *
+ * Structurally typed on purpose: the registry is shared/browser-safe and must
+ * NOT import the server's auth module. The server binds a context shaped from
+ * its AuthUser (user_id + safe_user_id) when it registers tools on a session
+ * (see toMcpTools(ctx) / callTool(name, args, ctx)). Handlers that don't care
+ * about identity (read-side tools) simply ignore it.
+ */
+export interface ToolContext {
+  user?: {
+    user_id: string;
+    safe_user_id?: string;
+    email?: string;
+  };
+}
+
 /** Tool definition: schema + description + optional metadata. */
 export interface ToolDef<
   TIn extends z.ZodType = z.ZodType,
@@ -53,7 +70,7 @@ export interface RegisteredTool<
 > {
   name: string;
   def: ToolDef<TIn, TOut>;
-  handler: (args: z.infer<TIn>) => Promise<z.infer<TOut>>;
+  handler: (args: z.infer<TIn>, ctx?: ToolContext) => Promise<z.infer<TOut>>;
 }
 
 /**
@@ -88,7 +105,7 @@ export class ToolRegistry {
   register<TIn extends z.ZodType, TOut extends z.ZodType>(
     name: string,
     def: ToolDef<TIn, TOut>,
-    handler: (args: z.infer<TIn>) => Promise<z.infer<TOut>>,
+    handler: (args: z.infer<TIn>, ctx?: ToolContext) => Promise<z.infer<TOut>>,
   ): void {
     if (this.tools.has(name)) {
       throw new Error(`Tool "${name}" is already registered`);
@@ -120,11 +137,11 @@ export class ToolRegistry {
   /**
    * Call a tool directly (in-process). Validates input, runs handler.
    */
-  async callTool<T = unknown>(name: string, args: unknown): Promise<T> {
+  async callTool<T = unknown>(name: string, args: unknown, ctx?: ToolContext): Promise<T> {
     const tool = this.tools.get(name);
     if (!tool) throw new Error(`Unknown tool: ${name}`);
     const parsed = tool.def.input.parse(args);
-    return tool.handler(parsed);
+    return tool.handler(parsed, ctx);
   }
 
   // -------------------------------------------------------------------------
@@ -177,8 +194,13 @@ export class ToolRegistry {
    *
    * inputSchema is the raw Zod schema — the SDK converts it to JSON Schema
    * internally and validates input before calling the handler.
+   *
+   * `ctx` binds a per-session context (identity) into every handler. The
+   * server calls toMcpTools(ctx) once per MCP session, when it registers the
+   * tools on that session's McpServer, so each session's writes are attributed
+   * to the session's authenticated user.
    */
-  toMcpTools(): Array<{
+  toMcpTools(ctx?: ToolContext): Array<{
     name: string;
     description: string;
     inputSchema: z.ZodType;
@@ -192,7 +214,7 @@ export class ToolRegistry {
       annotations: tool.def.annotations,
       handler: async (args: any) => {
         // SDK already validates via the Zod schema, so args are parsed.
-        const result = await tool.handler(args);
+        const result = await tool.handler(args, ctx);
         // Always JSON — including string results. The text block is the wire
         // contract the client JSON.parses back (callMcpTool); leaving a string
         // raw would make a plain-text tool's output un-parseable. (The richer

@@ -15,7 +15,9 @@ import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import type { ToolRegistry } from '@/lib/mcp/registry';
+import type { ToolRegistry, ToolContext } from '@/lib/mcp/registry';
+import { resolveUserWithSession } from './session.js';
+import type { AuthUser } from './auth.js';
 
 /** How long an idle session lives before being reaped (ms). */
 const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
@@ -27,6 +29,16 @@ interface McpSession {
   transport: StreamableHTTPServerTransport;
   server: McpServer;
   lastActivity: number;
+  /** Identity resolved at session creation; tools are bound to it (see
+   *  createMcpServerWithTools). Guests are allowed (dev behavior). */
+  user: AuthUser;
+}
+
+/** Map a resolved AuthUser to the shared registry's structural ToolContext.
+ *  The registry must not import server auth, so we narrow to the fields it
+ *  needs (identity for git attribution) here at the boundary. */
+function toolContextFor(user: AuthUser): ToolContext {
+  return { user: { user_id: user.user_id, safe_user_id: user.safe_user_id } };
 }
 
 // Active sessions: sessionId → session
@@ -48,13 +60,13 @@ const sweepTimer = setInterval(() => {
 /**
  * Create an McpServer instance with all tools from the registry registered.
  */
-function createMcpServerWithTools(registry: ToolRegistry): McpServer {
+function createMcpServerWithTools(registry: ToolRegistry, ctx?: ToolContext): McpServer {
   const server = new McpServer(
     { name: 'learning-opus', version: '0.1.0' },
     { capabilities: { tools: {} } },
   );
 
-  for (const tool of registry.toMcpTools()) {
+  for (const tool of registry.toMcpTools(ctx)) {
     server.registerTool(tool.name, {
       description: tool.description,
       inputSchema: tool.inputSchema,
@@ -112,13 +124,16 @@ export async function handleMcpPost(
   }
 
   if (!sessionId && isInitializeRequest(body)) {
-    // New session — create server + transport
-    const server = createMcpServerWithTools(registry);
+    // New session — resolve identity once (Basic auth / lo_session cookie /
+    // guest fallback) and bind it into this session's tools so writes are
+    // attributed to the authenticated user. Guests are allowed (dev behavior).
+    const { user } = await resolveUserWithSession(req);
+    const server = createMcpServerWithTools(registry, toolContextFor(user));
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sid) => {
-        sessions.set(sid, { transport, server, lastActivity: Date.now() });
-        console.log(`[MCP] Session created: ${sid}`);
+        sessions.set(sid, { transport, server, lastActivity: Date.now(), user });
+        console.log(`[MCP] Session created: ${sid} (user: ${user.user_id}, ${user.provenance})`);
       },
     });
 

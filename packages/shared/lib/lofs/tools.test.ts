@@ -10,9 +10,10 @@
 // parseOLX + BLOCK_REGISTRY (the whole block tree). Content files here use
 // a non-validated extension (.md) to keep the test on the tool logic.
 
-import { createToolRegistry, type ToolRegistry } from '../mcp/registry';
+import { createToolRegistry, type ToolRegistry, type ToolContext } from '../mcp/registry';
 import { registerLofsTools, type LofsToolDeps } from './tools';
 import { FileStorageProvider } from './providers/file';
+import type { StorageProvider, CommitOptions } from '../types/storage';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
@@ -109,5 +110,57 @@ describe('LOFS tools', () => {
   test('get_sources reports the injected source list', async () => {
     const s: any = await registry.callTool('get_sources', {});
     expect(s.sources).toEqual([{ origin: SRC, label: 'test', writable: true }]);
+  });
+});
+
+// Attribution: the ToolContext user becomes the commit author (the teacher the
+// platform commits on behalf of). A spy provider records the CommitOptions the
+// write tools pass; only read + commit are exercised, so the spy implements
+// just those and is cast to StorageProvider.
+describe('LOFS tools — commit attribution', () => {
+  let registry: ToolRegistry;
+  let lastOptions: CommitOptions | undefined;
+
+  beforeEach(() => {
+    lastOptions = undefined;
+    const spy = {
+      read: async () => ({ content: 'alpha beta alpha\n', metadata: { v: 1 }, ns: 'test' }),
+      commit: async (_changes: unknown, options?: CommitOptions) => {
+        lastOptions = options;
+        return { ok: true } as unknown;
+      },
+    } as unknown as StorageProvider;
+    const deps: LofsToolDeps = {
+      readableProviders: async () => [spy],
+      writableSourceProvider: async () => spy,
+      sources: async () => [{ origin: SRC, label: 'test', writable: true }],
+    };
+    registry = createToolRegistry();
+    registerLofsTools(registry, deps);
+  });
+
+  const nginxCtx: ToolContext = { user: { user_id: 'testauthor', safe_user_id: 'nginx-testauthor' } };
+  const guestCtx: ToolContext = { user: { user_id: 'Merry Meadow', safe_user_id: 'guest-Merry+Meadow' } };
+
+  test('Write attributes the commit to the ctx user', async () => {
+    await registry.callTool('Write', { path: 'unit/notes.md', source: SRC, content: 'x' }, nginxCtx);
+    expect(lastOptions?.author).toEqual({ name: 'testauthor', email: 'nginx-testauthor@users.lo' });
+  });
+
+  test('Delete and Move carry the author too', async () => {
+    await registry.callTool('Delete', { path: 'unit/notes.md', source: SRC }, nginxCtx);
+    expect(lastOptions?.author).toEqual({ name: 'testauthor', email: 'nginx-testauthor@users.lo' });
+    await registry.callTool('Move', { path: 'unit/notes.md', new_path: 'unit/renamed.md', source: SRC }, nginxCtx);
+    expect(lastOptions?.author).toEqual({ name: 'testauthor', email: 'nginx-testauthor@users.lo' });
+  });
+
+  test('guest sessions attribute as the guest id', async () => {
+    await registry.callTool('Write', { path: 'unit/notes.md', source: SRC, content: 'x' }, guestCtx);
+    expect(lastOptions?.author).toEqual({ name: 'Merry Meadow', email: 'guest-Merry+Meadow@users.lo' });
+  });
+
+  test('no ctx → no author (provider falls back to the platform identity)', async () => {
+    await registry.callTool('Write', { path: 'unit/notes.md', source: SRC, content: 'x' });
+    expect(lastOptions?.author).toBeUndefined();
   });
 });
