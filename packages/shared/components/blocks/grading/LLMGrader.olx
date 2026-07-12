@@ -1,0 +1,6 @@
+<CapaProblem id="LLMGraderExample" title="Free Response">
+  <LLMGrader question="Why is the sky blue?"
+             rubric="Full credit requires mentioning Rayleigh scattering, or that shorter (blue) wavelengths scatter more than longer ones.">
+    <LineInput/>
+  </LLMGrader>
+</CapaProblem>
