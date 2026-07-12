@@ -28,6 +28,7 @@ import { withoutVersion, addressPath, source } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
+import { cachedParse } from '@/lib/content/parseCache';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
 
 // =============================================================================
@@ -469,7 +470,14 @@ async function parseAndIndexFiles(
       // Manifest edits invalidate their subtree via
       // promoteFilesAffectedByManifests (step 2a in applyFileChanges).
       const { ns, manifest } = await namespaceForAcross(providers, fileRecord.id);
-      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], resolver, ns);
+      // Parse output is a pure function of (bytes, ns, ref, parser build).
+      // The cache keys on exactly those; a warm cache turns this into a KVS
+      // read. Manifest provenance is stamped below, OUTSIDE the cache, since
+      // parseOLX does not read it (see parseCache.ts header).
+      const parseResult = await cachedParse(
+        { ns, provenanceRef: fileRecord.id, content: fileRecord.content },
+        () => parseOLX(fileRecord.content, [fileRecord.id], resolver, ns),
+      );
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Namespace provenance: record which manifest declared this content's

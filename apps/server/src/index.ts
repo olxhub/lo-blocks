@@ -20,6 +20,7 @@ import {
 } from '@/lib/llm/provider';
 import { resolveLLMConfig } from '@/lib/llm/profiles';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { setParseCacheKvs, parseCacheStats, resetParseCacheStats } from '@/lib/content/parseCache';
 
 // =============================================================================
 // Startup steps
@@ -136,11 +137,18 @@ async function main() {
 
   await boot.task('Load configuration', loadConfig);
   await boot.task('Validate LLM provider', () => validateLLMProvider());
-  await boot.task('Sync content (clone, scan, parse)', async () => {
-    const { idMap } = await syncContentFromStorage();
-    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
-  });
+  // Storage is initialized BEFORE the content sync so the parse cache is live
+  // for the boot parse — a warm cache is exactly what makes cold boot cheap.
   const kvs = await boot.task('Initialize storage', initStorage);
+  setParseCacheKvs(kvs);
+  await boot.task('Sync content (clone, scan, parse)', async () => {
+    resetParseCacheStats();
+    const { idMap } = await syncContentFromStorage();
+    const { hits, misses, memoHits } = parseCacheStats();
+    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
+    console.log(`  Parse cache: ${hits} hits, ${misses} misses` +
+      (memoHits ? `, ${memoHits} memo hits` : ''));
+  });
   const registry = await boot.task('Register MCP tools', initTools);
   // startServer calls boot.handoff() itself, synchronously adjacent to the
   // request-handler attach — the swap must be atomic (see server.ts).
