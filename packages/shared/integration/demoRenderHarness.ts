@@ -20,6 +20,7 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { toMemoryRef } from '@/lib/types/storage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
+import * as lo_event from 'lo_event';
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
@@ -103,6 +104,42 @@ global.fetch = async (url: string | URL | Request, options?: RequestInit) => {
   }
   return originalFetch(url, options);
 };
+
+// ─── String-mount helper ─────────────────────────────────────────────────────
+
+/**
+ * Parse an OLX string and mount it with a fresh store — for interaction
+ * tests (e.g. grading-per-field.test.tsx). Unlike the render sweep, events
+ * dispatch for real by default so tests can drive inputs and assert state.
+ */
+export async function mountOLXString(
+  olx: string,
+  { sourceName = 'test-olx', logEvent = lo_event.logEvent }: {
+    sourceName?: string;
+    logEvent?: typeof lo_event.logEvent | null;
+  } = {},
+) {
+  const { idMap, root } = await parseOLX(olx, [toMemoryRef(sourceName)], undefined, TEST_NS);
+  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
+  dispatchOlxJsonSync(reduxStore, 'content', idMap);
+  const localeCode = toUserLocale('en-Latn-US');
+  const runtime = mockRuntime({
+    blockRegistry: BLOCK_REGISTRY,
+    store: reduxStore,
+    olxJsonSources: ['content'],
+    locale: { code: localeCode, dir: getTextDirection(localeCode) },
+    ...(logEvent ? { logEvent, sideEffectFree: false } : {}),
+  });
+  const element = render({
+    node: { type: 'block', id: root! },
+    nodeInfo: makeRootNode(runtime),
+    runtime,
+  });
+  const rendered = rtlRender(
+    React.createElement(Provider, { store: reduxStore, children: element })
+  );
+  return { reduxStore, ...rendered };
+}
 
 // ─── File discovery ──────────────────────────────────────────────────────────
 

@@ -6,7 +6,8 @@ import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';
-import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { normalizeTargetIds } from '@/lib/blocks/olxdom';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 
 /**
@@ -19,13 +20,9 @@ function ShowAnswerButton(props: RuntimeProps) {
   // Resolve target grader StateKeys - explicit target or parent inference
   const graderStateKeys = useMemo(() => {
     if (target) {
-      // target is z_stateRefList when authored in OLX (Zod splits it), but a
-      // raw comma-joined string when passed as a React prop (CapaFooter joins
-      // childGraderIds) — normalize both, like olxdom's normalizeTargetIds.
-      const targetRefs = Array.isArray(target)
-        ? target
-        : String(target).split(',').map(s => s.trim()).filter(Boolean);
-      return targetRefs.map(ref => stateKeyForGlobalRef(ref, props.runtime.ns));
+      // Handles the z_stateRefList array (authored OLX) and the raw
+      // comma-joined string CapaFooter passes as a React prop.
+      return normalizeTargetIds(target, props.runtime.ns) || [];
     }
     try {
       // getGrader now returns StateKey directly

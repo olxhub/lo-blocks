@@ -61,7 +61,7 @@ const RULE_ATTRIBUTES = {
 /**
  * Check if an input is empty/unsubmitted.
  */
-function isEmptyInput(input: any): boolean {
+export function isEmptyInput(input: any): boolean {
   if (input === undefined || input === null) return true;
   if (typeof input === 'string' && input.trim() === '') return true;
   return false;

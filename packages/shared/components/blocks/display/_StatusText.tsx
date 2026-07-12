@@ -6,35 +6,28 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import * as state from '@/lib/state';
-import { useFieldSelector, commonFields } from '@/lib/state';
-import { useCorrectness } from '@/lib/grading';
+import { selectGradingState, type GraderGradingState } from '@/lib/grading';
 
-// Grading-state fields route through useCorrectness — metagraders like
+// Grading-state fields route through selectGradingState — metagraders like
 // CapaProblem don't store these; they are derived from child graders.
-const GRADING_FIELDS = ['correct', 'message', 'score', 'submitCount'] as const;
+const GRADING_FIELDS: (keyof GraderGradingState)[] = ['correct', 'message', 'score', 'submitCount'];
 
 function StatusText(props: RuntimeProps) {
   const { field = 'message', graderId } = props;
-  // Constant per instance, so hook order is stable across renders.
-  const isGradingField = (GRADING_FIELDS as readonly string[]).includes(field);
+  // Constant per instance, so the selector shape is stable across renders.
+  const isGradingField = (GRADING_FIELDS as string[]).includes(field);
 
-  // graderId is a StateKey injected by render (requiresGrader: true)
-  const gradingState = useCorrectness(props, graderId);
-
+  // graderId is a StateKey injected by render (requiresGrader: true).
   // Non-grading fields (e.g. field="value" with an explicit target) read the
-  // target component's own field declaration. The placeholder field keeps
-  // the hook unconditional when the grading path is active.
+  // target component's own field declaration.
   const targetField = isGradingField
-    ? commonFields.message
+    ? null
     : state.componentFieldByStateKey(props, graderId, field);
-  const rawText = useFieldSelector(
-    props,
-    targetField,
-    { selector: s => s?.[field] ?? '', fallback: '', stateKey: graderId }
-  );
-
-  const text = isGradingField ? (gradingState as any)[field] ?? '' : rawText;
+  const text = useSelector((s: any) => isGradingField
+    ? String(selectGradingState(s, props, graderId)[field as keyof GraderGradingState] ?? '')
+    : state.fieldSelector(s, props, targetField!, { selector: (cs: any) => cs?.[field] ?? '', fallback: '', stateKey: graderId }));
   return <span>{text}</span>;
 }
 

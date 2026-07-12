@@ -9,8 +9,8 @@
 //   submitCount per-field (lib/blocks/actions.tsx). That covers the submit
 //   path and the async/slow path — a slow grader writes correct='submitted'
 //   when grading starts and the final result when it lands.
-// - Metagraders (CapaProblem, MarkupProblem — isGrader without an action)
-//   never store aggregates. Their grading state is DERIVED here by
+// - Metagraders (CapaProblem, MarkupProblem — isGrader without a `grading`
+//   descriptor) never store aggregates. Their grading state is DERIVED here by
 //   recursively aggregating their child graders, so there is no mirror
 //   state to keep in sync, no replay problem, and orchestrators (e.g.
 //   MasteryBank) observe child grading without any submit round-trip.
@@ -23,8 +23,8 @@
 //
 'use client';
 import { useSelector, shallowEqual } from 'react-redux';
-import { correctness } from '../blocks/correctness';
-import { getDomNodeByStateKey, inferRelatedNodes, propsFromNode } from '../blocks/olxdom';
+import { correctness, normalizeCorrectness } from '../blocks/correctness';
+import { getDomNodeByStateKey, getParents, inferRelatedNodes, propsFromNode } from '../blocks/olxdom';
 import { gatherInputData, buildGraderParam } from '../blocks/actions';
 import { worstCaseCorrectness } from './aggregators';
 import { commonFields } from '../state/commonFields';
@@ -46,23 +46,26 @@ const UNGRADED: GraderGradingState = {
   submitCount: 0,
 };
 
+// Results that must NOT be memoized (e.g. computed while a lazy grader
+// engine was still loading — engine load doesn't dispatch, so a cached
+// value would stick). Marked here, propagated through aggregation.
+const _uncacheable = new WeakSet<object>();
+
 /**
  * Is this node inside a grade="immediate" problem? The nearest ancestor
  * with a `grade` attribute wins, so nested problems can differ.
  */
 export function isImmediateContext(node: any): boolean {
-  for (let cur = node?.parent; cur; cur = cur.parent) {
-    const grade = cur.olxJson?.attributes?.grade;
-    if (grade) return grade === 'immediate';
-  }
-  return false;
+  if (!node) return false;
+  const withGrade = getParents(node, { selector: (n: any) => n.olxJson?.attributes?.grade });
+  return withGrade[0]?.olxJson?.attributes?.grade === 'immediate';
 }
 
 /**
  * Immediate-mode derived evaluation for a leaf sync grader: run the grade
  * function over the LIVE input values from state. Returns null when this
- * grader can't be derived (async grade function, slow grader, missing
- * gradeFn) — the caller falls back to stored fields.
+ * grader can't be derived (async grade function, slow grader, no grading
+ * descriptor) — the caller falls back to stored fields.
  *
  * Provisional display: a non-match only renders as `incorrect` when every
  * related input commits on change (radio buttons); free-form inputs soften
@@ -74,9 +77,8 @@ function deriveImmediateGrading(
   props: RuntimeProps,
   node: any,
 ): GraderGradingState | null {
-  const loBlock = node.loBlock;
-  const gradeFn = loBlock?.gradeFn;
-  if (!gradeFn || loBlock?.isSlowGrader) return null;
+  const grading = node.loBlock?.grading;
+  if (!grading?.fn || grading.slow) return null;
 
   const attrs = node.olxJson?.attributes ?? {};
   const inputIds = inferRelatedNodes(
@@ -85,25 +87,23 @@ function deriveImmediateGrading(
   );
   const graderProps = propsFromNode(node);
   const { values, apis } = gatherInputData(graderProps, inputIds, state);
-  const { param, error } = buildGraderParam(
-    { slots: loBlock.slots, inputType: loBlock.graderInputType },
-    graderProps, inputIds, values, apis,
-  );
+  const { param, error } = buildGraderParam(grading, graderProps, inputIds, values, apis);
   if (error) return { ...UNGRADED, correct: correctness.invalid, message: error };
 
   let result: any;
   try {
-    result = gradeFn({ ...graderProps, ...attrs }, param);
+    result = grading.fn({ ...graderProps, ...attrs }, param);
   } catch {
     // Engine not ready (ensureReady hasn't resolved) or grader bug —
-    // stay neutral rather than flashing an error per keystroke.
-    return UNGRADED;
+    // stay neutral rather than flashing an error per keystroke, and don't
+    // memoize: the engine finishing loading won't dispatch a store change.
+    const transient = { ...UNGRADED };
+    _uncacheable.add(transient);
+    return transient;
   }
   if (result && typeof result.then === 'function') return null; // async — can't derive
 
-  let correct = result.correct === true ? correctness.correct :
-    result.correct === false ? correctness.incorrect :
-      result.correct;
+  let correct = normalizeCorrectness(result.correct);
   if (correct === correctness.incorrect) {
     const allCommitOnChange = inputIds.length > 0 && inputIds.every(id =>
       getDomNodeByStateKey(props, id)?.loBlock?.commitOnChange);
@@ -117,8 +117,8 @@ function deriveImmediateGrading(
  * actions, orchestrators, and server code as well as React (via
  * useCorrectness).
  *
- * Metagraders are detected structurally: isGrader with no grading action.
- * Their children are discovered through the rendered OLX DOM (plus the
+ * Metagraders declare isGrader without a `grading` descriptor (only the
+ * grader() mixin sets one). Their children are discovered through the rendered OLX DOM (plus the
  * auto-wired `target` attribute), and their state is aggregated with the
  * same semantics the old useEffect mirror had: worst-case correctness,
  * messages joined, score = count of correct children, submitCount = max.
@@ -137,10 +137,42 @@ export function selectGradingState(
   immediate?: boolean,
 ): GraderGradingState {
   if (!graderStateKey) return UNGRADED;
+
+  // Memoize per store state: several components subscribe to the same
+  // grader (problem header, footer, inline status, explanations), and each
+  // subscription re-runs its selector on every dispatch. The derivation
+  // walks the OLX DOM and (in immediate mode) evaluates the grade function,
+  // so compute it once per (state, grader) and share. Keyed on the state
+  // object — Redux state is immutable per dispatch, so a WeakMap self-
+  // invalidates.
+  let byKey = _gradingStateCache.get(state);
+  if (!byKey) { byKey = new Map(); _gradingStateCache.set(state, byKey); }
+  const cacheKey = `${graderStateKey}|${immediate ?? ''}`;
+  const cached = byKey.get(cacheKey);
+  if (cached) return cached;
+
+  const result = computeGradingState(state, props, graderStateKey, immediate);
+  // Don't cache results computed before the node was in the rendered DOM
+  // (mounting registers nodes without dispatching) or flagged transient —
+  // a too-early value would stick until the next store change.
+  if (!_uncacheable.has(result) && getDomNodeByStateKey(props, graderStateKey)) {
+    byKey.set(cacheKey, result);
+  }
+  return result;
+}
+
+const _gradingStateCache = new WeakMap<object, Map<string, GraderGradingState>>();
+
+function computeGradingState(
+  state: any,
+  props: RuntimeProps,
+  graderStateKey: StateKey,
+  immediate?: boolean,
+): GraderGradingState {
   const node = getDomNodeByStateKey(props, graderStateKey);
   const loBlock = node?.loBlock;
 
-  if (node && loBlock?.isGrader && typeof loBlock.action !== 'function') {
+  if (node && loBlock?.isGrader && !loBlock.grading) {
     // Metagrader: derive from children.
     const childImmediate = node.olxJson?.attributes?.grade === 'immediate';
     const selfId = node.olxJson?.id;
@@ -154,7 +186,7 @@ export function selectGradingState(
     );
     if (childIds.length === 0) return UNGRADED;
     const kids = childIds.map(id => selectGradingState(state, props, id, childImmediate));
-    return {
+    const aggregate = {
       correct: worstCaseCorrectness(kids.map(k => k.correct)),
       // TODO: message aggregation is known-bad for multipart problems
       // (feedback floats to the footer disconnected from its question).
@@ -163,6 +195,8 @@ export function selectGradingState(
       score: kids.filter(k => k.correct === correctness.correct).length,
       submitCount: Math.max(0, ...kids.map(k => k.submitCount)),
     };
+    if (kids.some(k => _uncacheable.has(k))) _uncacheable.add(aggregate);
+    return aggregate;
   }
 
   // Immediate mode: leaf sync graders derive from live input values.
@@ -176,11 +210,7 @@ export function selectGradingState(
   // otherwise.
   const read = <T,>(name: string, fallback: T): T => {
     const field = (loBlock?.fields?.[name] as any) ?? (commonFields as any)[name];
-    return fieldSelector(state, props, field, {
-      stateKey: graderStateKey,
-      fallback,
-      selector: s => (s?.[name] ?? fallback) as T,
-    });
+    return fieldSelector(state, props, field, { stateKey: graderStateKey, fallback });
   };
   return {
     correct: read<string>('correct', correctness.unsubmitted),

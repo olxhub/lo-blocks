@@ -8,37 +8,12 @@
 // UPDATE_CORRECT event. Guards the gather → evaluate → dispatch pipeline in
 // lib/blocks/actions.tsx.
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
-import React from 'react';
-import { Provider } from 'react-redux';
-import { render as rtlRender, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import * as lo_event from 'lo_event';
-import { parseOLX } from '@/lib/content/parseOLX';
-import { toMemoryRef } from '@/lib/types/storage';
-import { render, makeRootNode } from '@/lib/render';
+import { fireEvent, waitFor, cleanup } from '@testing-library/react';
+// Importing the harness also installs the jsdom shims + fetch mock.
+import { mountOLXString } from './demoRenderHarness';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
-import { store } from '@/lib/state/store';
-import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
-import { mockRuntime, TEST_NS } from '@/lib/test-utils';
-import { getTextDirection } from '@/lib/i18n/getTextDirection';
-import { toUserLocale } from '@/lib/types/i18n';
-import { initConfig } from '@/lib/config';
 import { LO_FIELD_STRATEGY } from '@/lib/state/fieldTypes';
-
-initConfig('', ['client', 'test']);
-
-// jsdom shim (same as demoRenderHarness)
-if (typeof window !== 'undefined' && !window.matchMedia) {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: () => ({
-      matches: false, media: '', onchange: null,
-      addListener: () => { }, removeListener: () => { },
-      addEventListener: () => { }, removeEventListener: () => { },
-      dispatchEvent: () => false,
-    }),
-  });
-}
 
 const OLX = `<CapaProblem id="PerFieldGrading" title="Squares">
   What is 12 × 12?
@@ -65,29 +40,8 @@ const IMMEDIATE_OLX = `<Vertical id="ImmediateDemo">
 </Vertical>`;
 
 
-async function mountProblem(olx: string = OLX) {
-  const { idMap, root } = await parseOLX(olx, [toMemoryRef('grading-per-field')], undefined, TEST_NS);
-  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
-  dispatchOlxJsonSync(reduxStore, 'content', idMap);
-  const localeCode = toUserLocale('en-Latn-US');
-  const runtime = mockRuntime({
-    blockRegistry: BLOCK_REGISTRY,
-    store: reduxStore,
-    olxJsonSources: ['content'],
-    locale: { code: localeCode, dir: getTextDirection(localeCode) },
-    logEvent: lo_event.logEvent,   // real dispatch — the point of this test
-    sideEffectFree: false,
-  });
-  const element = render({
-    node: { type: 'block', id: root! },
-    nodeInfo: makeRootNode(runtime),
-    runtime,
-  });
-  const rendered = rtlRender(
-    React.createElement(Provider, { store: reduxStore, children: element })
-  );
-  return { reduxStore, ...rendered };
-}
+const mountProblem = (olx: string = OLX) =>
+  mountOLXString(olx, { sourceName: 'grading-per-field' });
 
 // State keys are namespaced and parser-assigned (e.g.
 // CONTENT/PerFieldGrading_grader_0) — resolve them from the store.

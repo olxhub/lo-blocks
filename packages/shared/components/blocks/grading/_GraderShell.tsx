@@ -7,14 +7,27 @@
 // individual parts, each part needs its own visible status.
 //
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useKids, Block } from '@/lib/render';
 import { isImmediateContext } from '@/lib/grading';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function GraderShell(props: RuntimeProps) {
   const { kids } = useKids(props);
-  if (!isImmediateContext(props.nodeInfo)) return <>{kids}</>;
+  const immediate = isImmediateContext(props.nodeInfo);
+
+  // Immediate mode evaluates this grader's match function in selectors, so
+  // lazy engines (FormulaGrader's mathjs) must load up front — submit mode
+  // readies lazily in the grading action instead. The state bump re-renders
+  // so derived selectors re-run against the loaded engine.
+  // useState-ok: transient engine-readiness bump; nothing to persist or log
+  const [, setEngineReady] = useState(false);
+  const ensureReady = props.loBlock?.ensureReady;
+  useEffect(() => {
+    if (immediate && ensureReady) ensureReady().then(() => setEngineReady(true));
+  }, [immediate, ensureReady]);
+
+  if (!immediate) return <>{kids}</>;
   return (
     <div className="lo-grader lo-grader--immediate">
       {kids}

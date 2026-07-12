@@ -601,6 +601,15 @@ export const ReduxFieldsReturn = z.record(
 export type ComponentLoader = () => Promise<React.ComponentType<any>>;
 
 // === Schema ===
+/** Everything the grading pipeline needs from a leaf grader blueprint
+ *  outside its dispatching action. Set by the grader() mixin. */
+export interface GradingDescriptor {
+  fn: (...args: any[]) => any;
+  inputType?: 'single' | 'list';
+  slots?: string[];
+  slow?: boolean;
+}
+
 export const BlockBlueprintSchema = z.object({
   name: z.string().optional(),
   namespace: z.string().nonempty(),
@@ -620,19 +629,15 @@ export const BlockBlueprintSchema = z.object({
   action: z.function().optional(),
   isGrader: z.boolean().optional().default(false),
   /**
-   * Slow (async) grader — LLM, instructor/peer queue, code-in-sandbox.
-   * The grading action dispatches correct='submitted' before awaiting the
-   * grader (two-phase dispatch); see grader() in lib/blocks/actions.tsx.
+   * Grading descriptor (set by the grader() mixin) — everything the grading
+   * pipeline needs outside the dispatching action: `fn` (the raw grade
+   * function, evaluated in selectors for derived immediate-mode
+   * correctness), `inputType`/`slots` (param shape), and `slow` (async
+   * grader: the action two-phase dispatches correct='submitted' before
+   * awaiting). A blueprint with isGrader but no `grading` is a metagrader —
+   * its state derives from child graders (lib/grading/useCorrectness.ts).
    */
-  isSlowGrader: z.boolean().optional().default(false),
-  /**
-   * Raw grade function (set by the grader() mixin). Lets derived
-   * immediate-mode correctness evaluate the grader in a selector without
-   * going through the dispatching action. See lib/grading/useCorrectness.ts.
-   */
-  gradeFn: z.function().optional(),
-  /** Param shape the grade function expects (set by the grader() mixin). */
-  graderInputType: z.enum(['single', 'list']).optional(),
+  grading: z.custom<GradingDescriptor>().optional(),
   isInput: z.boolean().optional().default(false),
   /**
    * Input commits on change (radio buttons, dropdowns): each interaction is
@@ -887,12 +892,8 @@ export interface LoBlock {
   isInput: boolean;
   isMatch: boolean;
   isGrader: boolean;
-  /** Slow (async) grader — grading action uses two-phase (pending → final) dispatch. */
-  isSlowGrader?: boolean;
-  /** Raw grade function (grader() mixin) — used by derived immediate-mode evaluation. */
-  gradeFn?: (...args: any[]) => any;
-  /** Param shape the grade function expects (grader() mixin). */
-  graderInputType?: 'single' | 'list';
+  /** Grading descriptor (grader() mixin) — see BlockBlueprintSchema.grading. */
+  grading?: GradingDescriptor;
   /** Input commits on change (radio/dropdown) — immediate mode may show incorrect instantly. */
   commitOnChange?: boolean;
   /**

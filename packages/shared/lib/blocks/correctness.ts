@@ -139,18 +139,13 @@ export function getAllCorrectnessStates(): Set<string> {
 }
 
 /**
- * Has this been graded — is there a real verdict?
- * (correct / partiallyCorrect / incorrect; NOT pending, blank, or malformed.)
- *
- * This is a CORRECTNESS-axis predicate. Do not use it to gate on doneness —
- * a problem can be graded-incorrect and still open for more attempts, or
- * ungraded and closed (deadline passed). See problemModes.problemCompletion
- * for the doneness derivation.
+ * Normalize a grade function's `correct` result for display: match functions
+ * may return booleans; everything downstream speaks the correctness enum.
  */
-export function isGraded(c: string | null | undefined): boolean {
-  return c === correctness.correct ||
-         c === correctness.partiallyCorrect ||
-         c === correctness.incorrect;
+export function normalizeCorrectness(c: unknown): string {
+  if (c === true) return correctness.correct;
+  if (c === false) return correctness.incorrect;
+  return c as string;
 }
 
 /**

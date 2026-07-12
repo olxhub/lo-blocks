@@ -18,6 +18,7 @@
 //
 import { z } from 'zod';
 import { dev, grader } from '@/lib/blocks';
+import { isEmptyInput } from '@/lib/blocks/createGrader';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
@@ -56,8 +57,7 @@ function buildPrompt(props: RuntimeProps, input: string): string {
 
 async function gradeWithLLM(props: RuntimeProps, { input }: any) {
   // Empty input → unsubmitted (grader() doesn't check this for us).
-  if (input === undefined || input === null ||
-      (typeof input === 'string' && input.trim() === '')) {
+  if (isEmptyInput(input)) {
     return { correct: correctness.unsubmitted, message: '' };
   }
 

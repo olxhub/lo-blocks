@@ -123,7 +123,7 @@ export function getKidsDFS(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =>
  * @param {any} targets - Target attribute from OLX (user-authored references)
  * @returns {StateKey[] | false}
  */
-function normalizeTargetIds(targets, ns: ContentNamespace): StateKey[] | false {
+export function normalizeTargetIds(targets, ns: ContentNamespace): StateKey[] | false {
   if (!targets) return false; // Target was not specified
   if (targets === true) throw new Error('Boolean true is not a valid target');
   // Target attrs are validated as StateRef by Zod. Parse as StateRef (accepts

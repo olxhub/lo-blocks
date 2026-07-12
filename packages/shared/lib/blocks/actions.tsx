@@ -23,7 +23,7 @@
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
 import * as lo_event from 'lo_event';
-import { correctness } from './correctness';
+import { correctness, normalizeCorrectness } from './correctness';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
 import { valueSelector, updateField } from '@/lib/state/redux';
@@ -284,11 +284,9 @@ async function evaluateGrader(
   const map = props.runtime.blockRegistry;
   const targetAttributes = targetInstance.attributes;
 
-  // Check input/grader type compatibility via Zod schemas.
-  // On mismatch, return the result directly instead of throwing — we still
-  // need to dispatch grading state so the UI updates (executeNodeActions
-  // ignores return values).
-  let zodMismatchResult: { correct: string; message: string; score?: number } | null = null;
+  // Check input/grader type compatibility via Zod schemas. Authoring/compat
+  // problems return invalid results rather than throwing — the caller still
+  // dispatches grading state so the UI updates.
   const graderInputSchema = props.loBlock?.inputSchema;
   if (graderInputSchema) {
     for (const id of inputIds) {
@@ -299,41 +297,23 @@ async function evaluateGrader(
       if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
         const graderName = props.loBlock?.name || 'Grader';
         const inputName = inputBlock.name || inst.tag;
-        zodMismatchResult = {
+        return {
           correct: correctness.invalid,
           message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
         };
-        break;
       }
     }
   }
 
-  // Build grader parameters and run grader (skip if Zod already caught a mismatch)
-  let correct: any, message: any, score: any;
-  if (zodMismatchResult) {
-    ({ correct, message, score } = zodMismatchResult);
-  } else {
-    const { param, error } = buildGraderParam({ slots, inputType }, props, inputIds, values, apis);
-    if (error) {
-      // Param building failed — fall through to dispatch so UI updates
-      correct = correctness.invalid;
-      message = error;
-    }
-    if (param) {
-      // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
-      // declare ensureReady; await it so the (synchronous) match function
-      // runs against a loaded engine. The await on grader also accepts
-      // async grader functions — the seam for slow graders (LLM,
-      // code-in-sandbox).
-      await map[targetInstance.tag]?.ensureReady?.();
-      ({ correct, message, score } = await grader(
-        { ...props, ...targetAttributes },
-        param
-      ));
-    }
-  }
+  const { param, error } = buildGraderParam({ slots, inputType }, props, inputIds, values, apis);
+  if (error || !param) return { correct: correctness.invalid, message: error };
 
-  return { correct, message, score };
+  // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs) declare
+  // ensureReady; await it so the (synchronous) match function runs against a
+  // loaded engine. The await on grader also accepts async grader functions —
+  // the seam for slow graders (LLM, code-in-sandbox).
+  await map[targetInstance.tag]?.ensureReady?.();
+  return await grader({ ...props, ...targetAttributes }, param);
 }
 
 // Helper to define a grading action. This used to be called a
@@ -378,13 +358,15 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
     const { values, apis } = gatherInputData(props, inputIds, state);
     const writeOpts = { stateKey: targetId as StateKey };
 
+    // Capture what is being graded (shown by the UI during slow grading and
+    // for changed-since-submission indicators afterwards).
+    updateField(props, commonFields.lastSubmission, values, writeOpts);
+
     if (slow) {
       // Phase 1 of two-phase grading: mark the submission pending before
-      // awaiting the (slow) grader. lastSubmission is captured now so the
-      // UI can show what is being graded. If the grader ultimately returns
-      // unsubmitted/invalid (e.g. empty input), the final write below
-      // simply overwrites the transient pending state.
-      updateField(props, commonFields.lastSubmission, values, writeOpts);
+      // awaiting the (slow) grader; inputs lock via isInputReadOnly. If the
+      // grader ultimately returns unsubmitted/invalid (e.g. empty input),
+      // the final write below simply overwrites the transient pending state.
       updateField(props, commonFields.correct, correctness.submitted, writeOpts);
     }
 
@@ -392,10 +374,7 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
       { grader, slots, inputType }, props, targetInstance, inputIds, values, apis
     );
 
-    // Convert boolean correct to correctness enum for display
-    const correctnessValue = correct === true ? correctness.correct :
-      correct === false ? correctness.incorrect :
-        correct; // In case it's already a correctness value
+    const correctnessValue = normalizeCorrectness(correct);
 
     // Only increment submitCount for real submissions (not blank/invalid).
     // Re-read state here: the grader may have awaited (slow grader, lazy
@@ -413,7 +392,6 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
     // it observes the other fields already settled.
     updateField(props, commonFields.message, message, writeOpts);
     updateField(props, commonFields.score, score, writeOpts);
-    updateField(props, commonFields.lastSubmission, values, writeOpts);
     updateField(props, commonFields.submitCount, submitCount, writeOpts);
     updateField(props, commonFields.correct, correctnessValue, writeOpts);
     return correct;
@@ -428,9 +406,11 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
     graderMixin: {
       action,
       isGrader: true,
-      isSlowGrader: slow,  // Async grader: two-phase (pending → final) dispatch
-      gradeFn: grader,     // Raw grade function — derived immediate-mode evaluation
-      graderInputType: inputType,
+      // One descriptor for everything the grading pipeline needs outside the
+      // action itself (derived immediate-mode evaluation, slow-grader
+      // detection). A blueprint with isGrader but NO `grading` descriptor is
+      // a metagrader (CapaProblem) — its state derives from child graders.
+      grading: { fn: grader, inputType, slots, slow },
       slots,  // Named slots for multi-input graders
       // Default display answer - can be overridden in block definition
       getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,

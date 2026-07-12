@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/CapaProblem/_CapaProblem.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
 import { useCorrectness } from '@/lib/grading';
@@ -112,31 +112,21 @@ export default function CapaProblem(props: RuntimeProps) {
   const childGraderIds = findChildGraderIds(props);
   const hintsId = findDemandHintsId(props);
 
-  // Immediate mode evaluates match functions in selectors — engines with
-  // lazy dependencies (FormulaGrader's mathjs) must be readied up front.
-  // The state bump re-renders the subtree so derived selectors re-run
-  // against the loaded engine. (Submit mode readies lazily in the action.)
-  // useState-ok: transient engine-readiness bump; nothing to persist or log
-  const [, setEnginesReady] = useState(false);
-  const graderIdsKey = childGraderIds.join(',');
-  useEffect(() => {
-    if (!isImmediate || !graderIdsKey) return;
-    Promise.all(childGraderIds.map(gid =>
-      getDomNodeByStateKey(props, gid)?.loBlock?.ensureReady?.()
-    )).then(() => setEnginesReady(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isImmediate, graderIdsKey]);
-
   // Grading state is DERIVED (never stored): useCorrectness aggregates the
   // child graders on read — stored fields in submit mode, live evaluation
   // of input values in immediate mode. See lib/grading/useCorrectness.ts.
+  // (Lazy grader engines are readied per grader by _GraderShell.)
   const { correct: problemCorrectness, submitCount } = useCorrectness(props, props.nodeInfo?.stateKey);
 
   // Slow graders can't grade immediately — there is no submit button to
-  // trigger them and no meaningful per-keystroke pending state.
-  const slowChildIds = isImmediate
-    ? childGraderIds.filter(gid => getDomNodeByStateKey(props, gid)?.loBlock?.isSlowGrader)
-    : [];
+  // trigger them and no meaningful per-keystroke pending state. Static per
+  // problem, so memoized on the grader set.
+  const graderIdsKey = childGraderIds.join(',');
+  const slowChildIds = useMemo(() => isImmediate
+    ? childGraderIds.filter(gid => getDomNodeByStateKey(props, gid)?.loBlock?.grading?.slow)
+    : [],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [isImmediate, graderIdsKey]);
   if (slowChildIds.length > 0) {
     return (
       <DisplayError
