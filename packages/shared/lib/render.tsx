@@ -211,27 +211,22 @@ export function render({ node, nodeInfo, runtime }: {
     );
   }
 
-  // TODO(render-validated-attrs): render currently validates attributes but
-  // continues to pass the raw `attributes` object below. Parsed OLX normally
-  // arrives here already transformed by parseOLX, so this is usually harmless.
-  // The edge case is render-time-only attributes, especially <Use ref="...">
-  // overrides. A documented override like
-  // `<Use ref="show" target="grader1,grader2" />` would validate into
-  // StateRef[] via z_stateRefList, then still pass the raw comma string to the
-  // component. Before this system scales to broader course-author usage, switch
-  // wrapperProps, Component props, popout/class reads, and nodeInfo.olxJson to
-  // use `validationResult.data` consistently.
+  // Use Zod's parsed output throughout rendering. Parsed OLX normally reaches
+  // here already transformed, but render-time attributes (such as <Use>
+  // overrides or dynamic <Block> props) only become canonical at this point.
+  const parsedAttributes = validationResult.data;
+  const renderedNode = { ...node, attributes: parsedAttributes };
 
   // Semantic validation beyond what Zod can express (e.g., valid number, valid regex)
   if (blockType.validateAttributes) {
-    const semanticErrors = blockType.validateAttributes(validationResult.data);
+    const semanticErrors = blockType.validateAttributes(parsedAttributes);
     if (semanticErrors && semanticErrors.length > 0) {
       return (
         <DisplayError
           id={`semantic-validation-${node.id}`}
           title={tag}
           message={`Invalid attributes:\n${semanticErrors.join('\n')}`}
-          technical={{ attributes: validationResult.data, semanticErrors }}
+          technical={{ attributes: parsedAttributes, semanticErrors }}
         />
       );
     }
@@ -247,14 +242,14 @@ export function render({ node, nodeInfo, runtime }: {
   const stateKey = scopedStateKeyForBlock({ id: node.id, ns: runtime.ns, idPrefix: actualIdPrefix });
   let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
-    childNodeInfo = { olxJson: node, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
+    childNodeInfo = { olxJson: renderedNode, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
     nodeInfo.renderedKids[stateKey] = childNodeInfo;
   } else {
-    childNodeInfo.olxJson = node;
+    childNodeInfo.olxJson = renderedNode;
   }
 
   const wrapperProps = {
-    ...attributes,
+    ...parsedAttributes,
     id: node.id,
     nodeInfo: childNodeInfo,
     blockRegistry: actualBlockRegistry,
@@ -283,8 +278,8 @@ export function render({ node, nodeInfo, runtime }: {
   const blockClassName = `lo-tag-${tag.toLowerCase()}`;
   // TODO: We might add lo-id-... and other classes as well, to refer to specific components
   // later
-  const userClassName = attributes.class || '';
-  const printClass = attributes.print === false ? 'print-hide' : '';
+  const userClassName = parsedAttributes.class || '';
+  const printClass = parsedAttributes.print === false ? 'print-hide' : '';
   const combinedClassName = `${blockClassName} ${userClassName} ${printClass}`.trim();
 
   // Wrap logEvent to include context from OLX DOM hierarchy
@@ -316,7 +311,7 @@ export function render({ node, nodeInfo, runtime }: {
   const blockContent = (
     <div className={combinedClassName} data-block-type={tag} data-block-id={node.id}>
       <Component
-        {...attributes}
+        {...parsedAttributes}
         id={node.id}
         kids={kids}
         loBlock={blockType}
@@ -332,8 +327,8 @@ export function render({ node, nodeInfo, runtime }: {
 
   return (
     <DebugWrapper props={wrapperProps} loBlock={blockType}>
-      {attributes.popout ? (
-        <PopoutWrapper popout={attributes.popout} stateKey={stateKey} runtime={finalRuntime}>
+      {parsedAttributes.popout ? (
+        <PopoutWrapper popout={parsedAttributes.popout} stateKey={stateKey} runtime={finalRuntime}>
           {blockContent}
         </PopoutWrapper>
       ) : blockContent}
