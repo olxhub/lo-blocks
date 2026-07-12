@@ -28,6 +28,7 @@ import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
+  isEphemeralBlockId,
 } from './levels';
 
 /** One connection's standing context in the sync engine — acquired at
@@ -138,6 +139,10 @@ function subscribersFor(
  * Fold one event and deliver it. This is the whole reducer stage.
  */
 export async function routeEvent(session: SyncSession, event: SyncEvent): Promise<void> {
+  // Ephemeral namespaces (docs demo sandboxes): never folded or persisted —
+  // the client's optimistic local fold is the only copy, gone on refresh.
+  if (isEphemeralBlockId(event.id)) return;
+
   const level = await resolveLevel(session, event);
   const instance = level
     ? await sharedInstanceFor(session, event.id!)

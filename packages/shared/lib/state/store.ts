@@ -239,14 +239,23 @@ export const updateResponseReducer = (state = initialState, action) => {
     // UPDATE_CORRECT shape),
     // strip metadata and spread remaining data properties alongside the field
     // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
-    // DON'T spread — their extra keys (index, deleteCount, inserted) are
-    // operation parameters, not state properties.
+    // spread ONLY sibling-metadata keys — those prefixed "<fieldName>."
+    // (e.g. value.selectionStart from useInputField's cursor tracking).
+    // Unprefixed extras (index, deleteCount, inserted) are operation
+    // parameters, not state properties, and must not land in the bucket.
+    // (Dropping the prefixed keys too was a regression: cursor position
+    // stopped persisting and every keystroke restored the caret to 0.)
     let extra: Record<string, any> = {};
     if (!action.field) {
       const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
         type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
         authority: _auth, [fieldName]: _fv, ...rest } = action;
       extra = rest;
+    } else {
+      const prefix = `${fieldName}.`;
+      for (const [key, val] of Object.entries(action)) {
+        if (key.startsWith(prefix)) extra[key] = val;
+      }
     }
 
     // Scope-aware: read from and write to the correct state bucket,

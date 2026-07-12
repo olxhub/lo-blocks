@@ -46,3 +46,15 @@ export function isUserInstance(instance: LevelInstance): boolean {
 export function subscriptionKey(instance: LevelInstance, blockId: string): string {
   return `${instance}|${blockId}`;
 }
+
+/**
+ * Ephemeral block ids: their field state is never folded, persisted, or
+ * returned on content fetches — a page refresh starts clean.
+ *
+ * Currently the `docs.<BlockName>` namespaces (block-documentation demo
+ * sandboxes, lib/lofs/providers/docs.ts): poking a docs example is
+ * exploration, not coursework.
+ */
+export function isEphemeralBlockId(id: string | undefined): boolean {
+  return !!id && id.startsWith('docs.');
+}
