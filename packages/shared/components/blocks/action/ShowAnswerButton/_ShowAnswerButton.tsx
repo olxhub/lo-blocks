@@ -19,8 +19,12 @@ function ShowAnswerButton(props: RuntimeProps) {
   // Resolve target grader StateKeys - explicit target or parent inference
   const graderStateKeys = useMemo(() => {
     if (target) {
-      // target is z_stateRefList — resolve authored refs globally (no idPrefix).
-      const targetRefs = Array.isArray(target) ? target : [target];
+      // target is z_stateRefList when authored in OLX (Zod splits it), but a
+      // raw comma-joined string when passed as a React prop (CapaFooter joins
+      // childGraderIds) — normalize both, like olxdom's normalizeTargetIds.
+      const targetRefs = Array.isArray(target)
+        ? target
+        : String(target).split(',').map(s => s.trim()).filter(Boolean);
       return targetRefs.map(ref => stateKeyForGlobalRef(ref, props.runtime.ns));
     }
     try {

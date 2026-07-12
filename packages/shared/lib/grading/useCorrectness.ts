@@ -50,7 +50,7 @@ const UNGRADED: GraderGradingState = {
  * Is this node inside a grade="immediate" problem? The nearest ancestor
  * with a `grade` attribute wins, so nested problems can differ.
  */
-function immediateFromAncestors(node: any): boolean {
+export function isImmediateContext(node: any): boolean {
   for (let cur = node?.parent; cur; cur = cur.parent) {
     const grade = cur.olxJson?.attributes?.grade;
     if (grade) return grade === 'immediate';
@@ -166,7 +166,7 @@ export function selectGradingState(
   }
 
   // Immediate mode: leaf sync graders derive from live input values.
-  if (node && (immediate ?? immediateFromAncestors(node))) {
+  if (node && (immediate ?? isImmediateContext(node))) {
     const derived = deriveImmediateGrading(state, props, node);
     if (derived) return derived;
   }

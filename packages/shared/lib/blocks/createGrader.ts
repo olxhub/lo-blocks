@@ -40,12 +40,12 @@ import { correctness } from './correctness';
 import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
 
-// Default grader renderer, loaded lazily: _Noop renders children and pulls
+// Default grader renderer, loaded lazily: _GraderShell renders children and pulls
 // the render layer (useKids → lib/render), which must stay out of the
 // eager blueprint graph — graders load in node and server routes.
 // See docs/blueprint-graph-performance.md #2.
 const NOOP_LOADER: ComponentLoader = () =>
-  import('@/components/blocks/layout/_Noop').then(m => m.default);
+  import('@/components/blocks/grading/_GraderShell').then(m => m.default);
 
 // Registry of Match blocks created by createGrader
 // blockRegistry.ts will merge these in

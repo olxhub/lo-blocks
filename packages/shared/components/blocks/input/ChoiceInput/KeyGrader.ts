@@ -67,7 +67,7 @@ const KeyGrader = blocks.test({
   name: 'KeyGrader',
   description: 'Grades multiple choice selections by checking if Key was chosen over Distractor',
   category: 'grading',
-  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
+  componentLoader: () => import('@/components/blocks/grading/_GraderShell').then(m => m.default),
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
   inputSchema: z.string(),
