@@ -76,7 +76,7 @@ import {
 } from '../../types/storage';
 import {
   source, addressPath, withVersion, withoutVersion,
-  makeAddress, gitOrigin, forgeLink, toLofsContentPath, toLofsVersion, toLofsCanonical,
+  makeAddress, gitOrigin, forgeLink, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
   toLofsRef as brandLofsRef,
   type LofsOrigin, type LofsVersion, type ForgeLink,
 } from '../../types/address';
@@ -115,15 +115,53 @@ export type GitCredentials = { username?: string; password?: string; headers?: R
  *  fetch a per-user OAuth token. */
 export type GitCredentialResolver = () => GitCredentials | null | Promise<GitCredentials | null>;
 
+/**
+ * LOCAL mode: serve a git repo already checked out on disk, read through its
+ * `.git` object store via isomorphic-git over the real filesystem (no clone, no
+ * memfs, no network). Commits land in the local repo — there is no push. Used
+ * for directory-form content sources and the bundled ./content fallback (which
+ * is a SUBPATH of the parent lo-blocks repo — see `subpath`).
+ */
+export interface LocalGitOptions {
+  /** Repo working-tree root on disk (the directory that contains `.git`, or
+   *  whose ancestor does when `gitdir` is given). */
+  dir: string;
+  /** Explicit `.git` directory. Defaults to `<dir>/.git`. Pass this to point at
+   *  a repo root above `dir` (the parent-repo-subpath case). */
+  gitdir?: string;
+  /** Repo-relative prefix this source is scoped to, e.g. "content". LOFS paths
+   *  are relative to it: LOFS "demos/x.olx" ⇄ repo "content/demos/x.olx". Empty
+   *  (default) serves the whole repo. */
+  subpath?: string;
+  /** Mount name — this source's LOFS origin is `file:<mount>`, exactly as a
+   *  FileStorageProvider mounted there, so paths/URLs/namespaces/state keys are
+   *  identical whether the source reads the worktree (file provider) or HEAD
+   *  (this, in local mode). */
+  mount: string;
+}
+
 export interface GitProviderOptions {
-  /** Remote URL (https smart-HTTP; any forge or bare repo). */
-  url: string;
+  /** Remote URL (https smart-HTTP; any forge or bare repo). Required for remote
+   *  mode; omit when `local` is set. */
+  url?: string;
   /** Branch to serve (default: main). */
   ref?: string;
-  /** Minimum ms between remote head checks (default: 60s). */
+  /** Minimum ms between remote head checks (default: 60s). Ignored in local mode. */
   cooldownMs?: number;
-  /** Credential resolver for private reads and pushes (default: anonymous). */
+  /** Credential resolver for private reads and pushes (default: anonymous).
+   *  Ignored in local mode (no network). */
   auth?: GitCredentialResolver;
+  /** When set, serve an on-disk repo in LOCAL mode (see LocalGitOptions). */
+  local?: LocalGitOptions;
+}
+
+/** The isomorphic-git filesystem environment: which fs + repo dir + gitdir
+ *  every plumbing call runs against. Remote mode wraps a memfs clone; local
+ *  mode wraps node:fs at the on-disk repo. */
+interface GitEnv {
+  fs: any;
+  dir: string;
+  gitdir?: string;
 }
 
 /** A file in the current served tree: repo-relative path → blob oid. */
@@ -139,18 +177,32 @@ interface TreeFile {
  *  does — git's own model (immutable objects + atomic ref repoint) applied to
  *  the provider's local state. */
 interface RepoState {
-  vol: Volume;
+  /** The fs/dir/gitdir every plumbing call runs against. */
+  env: GitEnv;
+  /** Remote mode only: the memfs clone, retained so push can read from it.
+   *  Absent in local mode (nothing to push). */
+  vol?: Volume;
   head: string;
+  /** Content-file index, keyed by LOFS-relative path (the `subpath` prefix, if
+   *  any, is already stripped). */
   tree: Map<string, TreeFile>;
 }
 
 export class GitStorageProvider implements StorageProvider {
+  /** Remote URL (remote mode); '' in local mode. */
   readonly url: string;
   readonly ref: string;
   readonly cooldownMs: number;
-  /** Canonical, ref-bearing origin (address.ts `gitOrigin`) — the identity for
-   *  this source's refs. Carries the branch, so two branches of one repo are
-   *  distinct origins. The raw `url` is just how we fetch/push. */
+  /** 'remote' (in-memory clone over smart-HTTP) or 'local' (on-disk .git). */
+  readonly mode: 'remote' | 'local';
+  /** Local-mode config (dir/gitdir/subpath/mount); undefined in remote mode. */
+  private readonly local?: LocalGitOptions;
+  /** Repo-relative prefix ('' unless local mode scopes to a subpath). */
+  private readonly subpath: string;
+  /** Canonical origin — the identity for this source's refs. Remote: the
+   *  ref-bearing git origin (address.ts `gitOrigin`), carrying the branch. Local:
+   *  `file:<mount>`, identical to a FileStorageProvider at that mount (so state
+   *  keys/provenance are unchanged whether the source reads worktree or HEAD). */
   readonly origin: LofsOrigin;
 
   /** The current repo snapshot, or null until the first successful refresh.
@@ -174,23 +226,53 @@ export class GitStorageProvider implements StorageProvider {
    *  from the same head and then collide at push — chain them. */
   private writeLock: Promise<unknown> = Promise.resolve();
 
-  constructor({ url, ref = 'main', cooldownMs = 60_000, auth }: GitProviderOptions) {
-    this.url = url.replace(/\/$/, '');
+  constructor({ url, ref = 'main', cooldownMs = 60_000, auth, local }: GitProviderOptions) {
     this.ref = ref;
-    this.cooldownMs = cooldownMs;
     this.auth = auth;
-    this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
-    // The grammar admits git+ssh and git: origins; this provider serves only
-    // git+https (isomorphic-git speaks smart-HTTP, not ssh, and local-repo
-    // backing is a later store). Fail fast with a clear message rather than an
-    // opaque clone error.
-    if (!this.url.startsWith('https://')) {
-      throw new Error(
-        `GitStorageProvider serves git+https only; "${this.url}" is a valid origin ` +
-        `but its transport isn't implemented yet.`
-      );
+    if (local) {
+      // LOCAL mode: on-disk .git, no network. Origin is file:<mount>, matching
+      // a FileStorageProvider at that mount. No cooldown — reading HEAD from a
+      // local ref is cheap, so freshness is per-call.
+      this.mode = 'local';
+      this.local = { ...local, subpath: (local.subpath ?? '').replace(/^\/|\/$/g, '') };
+      this.subpath = this.local.subpath ?? '';
+      this.url = '';
+      this.cooldownMs = 0;
+      this.origin = toLofsOrigin(`file:${local.mount}`);
+    } else {
+      if (!url) throw new Error('GitStorageProvider: either `url` (remote) or `local` is required');
+      this.mode = 'remote';
+      this.subpath = '';
+      this.url = url.replace(/\/$/, '');
+      this.cooldownMs = cooldownMs;
+      this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
+      // The grammar admits git+ssh and git: origins; this provider serves only
+      // git+https (isomorphic-git speaks smart-HTTP, not ssh). Fail fast with a
+      // clear message rather than an opaque clone error.
+      if (!this.url.startsWith('https://')) {
+        throw new Error(
+          `GitStorageProvider serves git+https only; "${this.url}" is a valid origin ` +
+          `but its transport isn't implemented yet.`
+        );
+      }
     }
     this.refreshGate = throttle(singleFlight(withRetry(() => this.refresh(), GIT_RETRY)), this.cooldownMs);
+  }
+
+  /** Human-facing source id for error messages (remote URL#ref, or local mount). */
+  private get displayName(): string {
+    return this.mode === 'local' ? `${this.local!.mount} (local git)` : `${this.url}#${this.ref}`;
+  }
+
+  /** Map a LOFS-relative path to its repo-relative path (adds the subpath prefix). */
+  private toRepoPath(rel: string): string {
+    return this.subpath ? `${this.subpath}/${rel}` : rel;
+  }
+
+  /** The on-disk fs environment for local mode. */
+  private async localEnv(): Promise<GitEnv> {
+    const fsPromises = await import('fs/promises');
+    return { fs: { promises: fsPromises }, dir: this.local!.dir, gitdir: this.local!.gitdir };
   }
 
   /** isomorphic-git onAuth callback — yields resolved credentials, or {} for
@@ -208,7 +290,7 @@ export class GitStorageProvider implements StorageProvider {
    *  per operation (`const s = this.requireState()`) and read s.vol/head/tree
    *  throughout, so a concurrent refresh repoint can't tear the view. */
   private requireState(): RepoState {
-    if (!this.state) throw new Error(`${this.url}#${this.ref} is not loaded`);
+    if (!this.state) throw new Error(`${this.displayName} is not loaded`);
     return this.state;
   }
 
@@ -260,6 +342,18 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   private async refresh(): Promise<void> {
+    if (this.mode === 'local') {
+      // On-disk repo: no clone. Read HEAD straight from the local ref; rescan
+      // the tree only when it moved. generationToken is this head (whole-repo
+      // oid — a parent-repo commit outside the subpath forces a harmless
+      // rescan, the accepted coarseness).
+      const env = await this.localEnv();
+      const head = await git.resolveRef({ ...env, ref: this.ref });
+      if (head === this.state?.head) return;
+      this.state = { env, head, tree: await this.walkTree(env, head) };
+      return;
+    }
+
     const remoteHead = await this.fetchRemoteHead();
     if (remoteHead === this.state?.head) return;
 
@@ -268,41 +362,39 @@ export class GitStorageProvider implements StorageProvider {
     // since head is unchanged, the next refresh retries rather than serving a
     // half-built volume.
     const vol = await this.cloneRemote();
-    const head = await git.resolveRef({
-      fs: { promises: vol.promises } as any,
-      dir: REPO_DIR,
-      ref: this.ref,
-    });
-    const tree = await this.walkTree(vol, head);
-    this.state = { vol, head, tree };
+    const env: GitEnv = { fs: { promises: vol.promises }, dir: REPO_DIR };
+    const head = await git.resolveRef({ ...env, ref: this.ref });
+    const tree = await this.walkTree(env, head);
+    this.state = { env, vol, head, tree };
   }
 
-  /** Enumerate content files (path → blob oid) under contentDir at `head`. */
-  private async walkTree(vol: Volume, head: string): Promise<Map<string, TreeFile>> {
+  /** Enumerate content files (LOFS-relative path → blob oid) under the served
+   *  subpath at `head`. Keys have the subpath prefix stripped. */
+  private async walkTree(env: GitEnv, head: string): Promise<Map<string, TreeFile>> {
     const files = new Map<string, TreeFile>();
+    const prefix = this.subpath ? `${this.subpath}/` : '';
     await git.walk({
-      fs: { promises: vol.promises } as any,
-      dir: REPO_DIR,
+      ...env,
       trees: [git.TREE({ ref: head })],
       map: async (filepath, [entry]) => {
         if (!entry || filepath === '.') return;
+        if (prefix && !filepath.startsWith(prefix)) return;
         if ((await entry.type()) !== 'blob') return;
         const base = filepath.split('/').pop()!;
         if (!isContentFile(filepath) && base !== 'manifest.yaml') return;
         if (base.startsWith('.') || base.includes('~') || base.includes('#')) return;
-        files.set(filepath, { oid: (await entry.oid()) });
+        files.set(prefix ? filepath.slice(prefix.length) : filepath, { oid: (await entry.oid()) });
       },
     });
     return files;
   }
 
-  /** Read a blob by repo-relative path at the snapshot's head. */
-  private async readBlob(s: RepoState, repoPath: string): Promise<string> {
+  /** Read a blob by LOFS-relative path at the snapshot's head. */
+  private async readBlob(s: RepoState, relPath: string): Promise<string> {
     const { blob } = await git.readBlob({
-      fs: { promises: s.vol.promises } as any,
-      dir: REPO_DIR,
+      ...s.env,
       oid: s.head,
-      filepath: repoPath,
+      filepath: this.toRepoPath(relPath),
     });
     return new TextDecoder('utf-8').decode(blob);
   }
@@ -404,7 +496,7 @@ export class GitStorageProvider implements StorageProvider {
           ns: await this.tryNamespace(relPath),
         };
       } catch {
-        throw new Error(`File not found: ${p} (in ${this.url}#${this.ref})`);
+        throw new Error(`File not found: ${p} (in ${this.displayName})`);
       }
     }
     return {
@@ -452,7 +544,7 @@ export class GitStorageProvider implements StorageProvider {
       if (declared === undefined) continue;
       const valid = validateContentNamespace(String(declared));
       if (valid !== true) {
-        throw new NamespaceResolutionError(`${this.url}: ${manifestRel}: ${valid}`);
+        throw new NamespaceResolutionError(`${this.displayName}: ${manifestRel}: ${valid}`);
       }
       const oid = await this.currentBlobOid(s, manifestRel);  // for versioned provenance
       return {
@@ -463,7 +555,22 @@ export class GitStorageProvider implements StorageProvider {
       };
     }
 
-    // 2. Repo-name default — the repo's URL is the collection identity.
+    // 2. Collection default (no manifest declared one).
+    if (this.mode === 'local') {
+      // Local mode is a directory-form / fallback source: the MOUNT names the
+      // collection, mirroring FileStorageProvider's defaultNs — so a checkout's
+      // namespace is unchanged whether it's read from the worktree or from HEAD.
+      const mount = this.local!.mount;
+      const valid = validateContentNamespace(mount);
+      if (valid !== true) {
+        throw new NamespaceResolutionError(
+          `Mount "${mount}" is not a valid namespace: ${valid}. ` +
+          `Add a manifest.yaml with an explicit "namespace:" field.`
+        );
+      }
+      return { ns: asContentNamespace(mount) };
+    }
+    // Remote mode: the repo's URL is the collection identity.
     try {
       return { ns: defaultNamespace(this.url) };
     } catch (err) {
@@ -475,9 +582,10 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Forge link for this repo (or a file within it) at the served ref. Null
-   *  when the origin's forge has no web view we map (see address.forgeLink). */
+  /** Forge link for this repo (or a file within it) at the served ref. Null in
+   *  local mode (no forge), or when the origin's forge has no web view we map. */
   forgeLink(path?: OlxRelativePath): ForgeLink | null {
+    if (this.mode === 'local') return null;
     return forgeLink(this.origin, path);
   }
 
@@ -607,19 +715,18 @@ export class GitStorageProvider implements StorageProvider {
         const relPath = this.requireWritable(c.path);
         if (c.delete) {
           if ((await this.currentBlobOid(s, relPath)) === null) {
-            throw new Error(`File not found: ${c.path} (in ${this.url}#${this.ref})`);
+            throw new Error(`File not found: ${c.path} (in ${this.displayName})`);
           }
           deltas.push({ path: relPath, blobOid: null });
         } else if (c.renameTo !== undefined) {
           const to = this.requireWritable(c.renameTo);
           const oid = await this.currentBlobOid(s, relPath);
-          if (oid === null) throw new Error(`File not found: ${c.path} (in ${this.url}#${this.ref})`);
+          if (oid === null) throw new Error(`File not found: ${c.path} (in ${this.displayName})`);
           deltas.push({ path: to, blobOid: oid }, { path: relPath, blobOid: null });
           written.push(to);
         } else if (c.content !== undefined) {
           const blobOid = await git.writeBlob({
-            fs: { promises: s.vol.promises } as any,
-            dir: REPO_DIR,
+            ...s.env,
             blob: new TextEncoder().encode(c.content),
           });
           deltas.push({ path: relPath, blobOid });
@@ -662,14 +769,13 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Blob oid at a repo-relative path under the snapshot's head, or null if absent. */
-  private async currentBlobOid(s: RepoState, repoPath: string): Promise<string | null> {
+  /** Blob oid at a LOFS-relative path under the snapshot's head, or null if absent. */
+  private async currentBlobOid(s: RepoState, relPath: string): Promise<string | null> {
     try {
       const { oid } = await git.readBlob({
-        fs: { promises: s.vol.promises } as any,
-        dir: REPO_DIR,
+        ...s.env,
         oid: s.head,
-        filepath: repoPath,
+        filepath: this.toRepoPath(relPath),
       });
       return oid;
     } catch {
@@ -688,15 +794,17 @@ export class GitStorageProvider implements StorageProvider {
     message: string,
     author?: { name: string; email: string },
   ): Promise<string> {
-    const fs = { promises: s.vol.promises } as any;
-    const { commit } = await git.readCommit({ fs, dir: REPO_DIR, oid: s.head });
+    const env = s.env;
+    const { commit } = await git.readCommit({ ...env, oid: s.head });
     let treeOid = commit.tree;
     for (const c of changes) {
-      treeOid = await this.updateTree(s, treeOid, c.path.split('/'), c.blobOid);
+      // Tree deltas are keyed by REPO path (subpath prefix applied), so a
+      // subpath-scoped source (e.g. the ./content fallback in the parent repo)
+      // commits under content/ rather than at the repo root.
+      treeOid = await this.updateTree(s, treeOid, this.toRepoPath(c.path).split('/'), c.blobOid);
     }
     const newHead = await git.commit({
-      fs,
-      dir: REPO_DIR,
+      ...env,
       message,
       tree: treeOid,
       parent: [s.head],
@@ -704,32 +812,33 @@ export class GitStorageProvider implements StorageProvider {
       committer: PLATFORM_IDENTITY,           // who physically committed
       ref: `refs/heads/${this.ref}`,
     });
-    try {
-      await this.pushRemote(s.vol);
-    } catch (err: any) {
-      // A non-fast-forward rejection means the branch moved under this edit.
-      if (err?.code === 'PushRejectedError' || /fast-forward|rejected/i.test(err?.message ?? '')) {
-        throw new VersionConflictError(
-          `Push to ${this.url}#${this.ref} rejected — the branch moved since this edit; reload and retry. (${err.message})`,
-        );
+    // Remote mode pushes; local mode commits to the on-disk repo only (no push).
+    if (this.mode === 'remote') {
+      try {
+        await this.pushRemote(s.vol!);
+      } catch (err: any) {
+        // A non-fast-forward rejection means the branch moved under this edit.
+        if (err?.code === 'PushRejectedError' || /fast-forward|rejected/i.test(err?.message ?? '')) {
+          throw new VersionConflictError(
+            `Push to ${this.displayName} rejected — the branch moved since this edit; reload and retry. (${err.message})`,
+          );
+        }
+        throw err;
       }
-      throw err;
     }
-    // Commit + push both succeeded — publish a NEW snapshot (built on s, whose
-    // vol now contains newHead) by an atomic repoint, so reads within the
-    // cooldown window see the edit without waiting for a re-clone. A new tree
-    // Map (not a mutation of s.tree) keeps any snapshot a concurrent reader
-    // still holds intact. Skip if a refresh repointed away from s meanwhile —
-    // that only happens when the remote moved, in which case the push above
-    // would already have been rejected; the guard is belt-and-suspenders, and
-    // the pushed commit is picked up by the next refresh regardless.
+    // Commit (+ push, remote) succeeded — publish a NEW snapshot (built on s,
+    // whose store now contains newHead) by an atomic repoint, so reads see the
+    // edit immediately. A new tree Map (not a mutation of s.tree) keeps any
+    // snapshot a concurrent reader still holds intact. Skip if a refresh
+    // repointed away from s meanwhile — the pushed/committed commit is picked up
+    // by the next refresh regardless.
     if (this.state === s) {
       const tree = new Map(s.tree);
       for (const c of changes) {
         if (c.blobOid === null) tree.delete(c.path);
         else if (this.servesPath(c.path)) tree.set(c.path, { oid: c.blobOid });
       }
-      this.state = { vol: s.vol, head: newHead, tree };
+      this.state = { env: s.env, vol: s.vol, head: newHead, tree };
     }
     return newHead;
   }
@@ -744,8 +853,8 @@ export class GitStorageProvider implements StorageProvider {
    *  (or removed when null). Recurses, rebuilding only the touched path;
    *  prunes directories left empty by a delete. */
   private async updateTree(s: RepoState, treeOid: string, segments: string[], blobOid: string | null): Promise<string> {
-    const fs = { promises: s.vol.promises } as any;
-    const { tree } = await git.readTree({ fs, dir: REPO_DIR, oid: treeOid });
+    const env = s.env;
+    const { tree } = await git.readTree({ ...env, oid: treeOid });
     const [seg, ...rest] = segments;
     const others = tree.filter((e: any) => e.path !== seg);
 
@@ -753,20 +862,20 @@ export class GitStorageProvider implements StorageProvider {
       const next = blobOid === null
         ? others
         : [...others, { mode: '100644', path: seg, oid: blobOid, type: 'blob' as const }];
-      return git.writeTree({ fs, dir: REPO_DIR, tree: next });
+      return git.writeTree({ ...env, tree: next });
     }
 
     const existing = tree.find((e: any) => e.path === seg && e.type === 'tree');
     if (!existing && blobOid === null) return treeOid;  // deleting under a nonexistent dir: no-op
     const subOid = existing
       ? existing.oid
-      : await git.writeTree({ fs, dir: REPO_DIR, tree: [] });  // fresh empty subtree
+      : await git.writeTree({ ...env, tree: [] });  // fresh empty subtree
     const newSub = await this.updateTree(s, subOid, rest, blobOid);
-    const newSubEntries = (await git.readTree({ fs, dir: REPO_DIR, oid: newSub })).tree;
+    const newSubEntries = (await git.readTree({ ...env, oid: newSub })).tree;
     const next = newSubEntries.length === 0
       ? others  // prune the directory a delete just emptied
       : [...others, { mode: '040000', path: seg, oid: newSub, type: 'tree' as const }];
-    return git.writeTree({ fs, dir: REPO_DIR, tree: next });
+    return git.writeTree({ ...env, tree: next });
   }
 
   /** Push the local branch to the remote — the network transport seam.

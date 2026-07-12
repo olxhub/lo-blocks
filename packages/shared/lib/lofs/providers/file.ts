@@ -34,7 +34,6 @@ import {
   source, scheme, withVersion, withoutVersion, makeAddress,
   toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
 } from '../../types/address';
-import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
 
 /** CATEGORY.content (fileTypes.ts) lists content file extensions — OLX and its
@@ -44,111 +43,38 @@ const CONTENT_EXTENSIONS = CATEGORY.content.map(e => `.${e}`);
 
 /*
  * =============================================================================
- * Path Security System
+ * Path Security System — root checks
  * =============================================================================
  *
- * CURRENT STATE (Hardcoded):
- * --------------------------
- * This module provides secure path resolution with symlink handling. Currently,
- * allowed directories are hardcoded for local development. This is intentional -
- * we're being conservative until we have a proper config system.
- *
- * FUTURE DIRECTION (Provider-based):
- * ----------------------------------
- * The allowed directories should eventually be configured per storage provider,
- * not globally. The system will support a hierarchy of providers:
- *
- *   Priority | Provider                | Read | Write | Example
- *   ---------|-------------------------|------|-------|------------------------
- *   4 (high) | In-memory / dev overlay | ✓    | ✓     | Live editing state
- *   3        | User content            | ✓    | ✓     | ~/lo-blocks-content/
- *   2        | Institution content     | ✓    | role  | University DB
- *   1 (low)  | System content          | ✓    | ✗     | project content/, blocks/
- *
- * Content IDs resolve top-down (check provider 4, then 3, then 2, then 1).
- * Write permissions depend on the provider and user role.
- *
- * Content directories are declared via content-sources.yaml (contentSources.ts),
- * which registers each configured checkout with the allow-list at load time
- * (registerAllowedContentDir, see allowedDirs.ts). Callers outside that path —
- * standalone scripts, tests — register their own content dir explicitly.
- *
- * Future work:
- * - Move getAllowedReadDirs / getAllowedWriteDirs fully to provider config
- * - User-specific providers (like ~/lo-blocks-content/) configured per-user
- * - Role-based write permissions for shared providers (institution content)
+ * Each provider serves exactly ONE base directory (its checkout / worktree), so
+ * safety is a ROOT CHECK: a resolved path must stay within that provider's
+ * baseDir. There is no global allow-list of directories any more — a provider
+ * only ever touches its own root, and a caller that wants another tree
+ * constructs another provider over it.
  *
  * SECURITY MODEL:
- * ---------------
- * 1. Path traversal prevention: Reject paths with '..' that escape base directory
- * 2. Null byte rejection: Prevent path truncation attacks
- * 3. Symlink resolution: Use realpath() to get canonical paths
- * 4. Allowlist validation: Canonical path must be within allowed directories
- * 5. Read vs Write separation: Writes are more restricted than reads
- * 6. Symlinks rejected for writes: Prevent unexpected write targets
+ *   1. Null-byte rejection (path-truncation attacks).
+ *   2. Traversal prevention: reject '..' that escapes baseDir (logical check).
+ *   3. Symlink handling via realpath():
+ *        - reads  allow symlinks whose target stays within baseDir;
+ *        - writes reject symlinks entirely (no surprise write targets).
+ *   4. The canonical (symlink-resolved) path must remain within baseDir.
  *
  * =============================================================================
  */
 
-// TODO: Move to provider configuration when config system is implemented
-const PROJECT_ROOT = process.cwd();
-
-/**
- * Get allowed directories for read operations.
- *
- * Beyond the built-in grammar/content dirs, this includes every directory
- * registered via registerAllowedContentDir — the configured content checkouts
- * (contentSources.ts) plus any a script or test registers explicitly.
- *
- * NOTE: Grammar directories here should match GRAMMAR_DIRS in packages/shared/lib/grammarDirs.ts
- * for the docs API to discover all grammars.
- */
-function getAllowedReadDirs(): string[] {
-  return [
-    path.join(PROJECT_ROOT, 'packages/shared/components/blocks'),
-    path.join(PROJECT_ROOT, 'packages/shared/lib/template'),  // For template grammar
-    path.join(PROJECT_ROOT, 'packages/shared/lib/stateLanguage'),  // For expression grammar
-    path.join(PROJECT_ROOT, 'packages/shared/lib/util/calc'),  // For calc grammar
-    path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts registered by config or callers (see allowedDirs.ts)
-    ...registeredContentDirs(),
-  ];
+/** True when `canonicalPath` is inside `baseDir` (or is baseDir itself). */
+function isWithin(baseDir: string, canonicalPath: string): boolean {
+  const relative = path.relative(baseDir, canonicalPath);
+  return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 /**
- * Get allowed directories for write operations: ./content plus every directory
- * registered via registerAllowedContentDir (configured checkouts + callers).
- */
-function getAllowedWriteDirs(): string[] {
-  return [
-    path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts registered by config or callers (see allowedDirs.ts)
-    ...registeredContentDirs(),
-  ];
-}
-
-/**
- * Check if a canonical path is within any of the allowed directories.
- */
-function isPathAllowed(canonicalPath: string, allowedDirs: string[]): boolean {
-  return allowedDirs.some(dir => {
-    const relative = path.relative(dir, canonicalPath);
-    return !relative.startsWith('..') && !path.isAbsolute(relative);
-  });
-}
-
-/**
- * Resolve a path for reading, with security checks.
- * Allows symlinks if the target is within allowed read directories.
+ * Resolve a path for reading, confined to `baseDir`. Symlinks are allowed only
+ * when their canonical target stays within baseDir.
  *
- * Allowed read directories (hardcoded for now):
- * - src/components/blocks/ (block documentation, examples)
- * - content/ (course content)
- *
- * @param baseDir - Base directory for resolving relative paths
- * @param relPath - Relative path to resolve
- * @returns Resolved path (follows symlinks internally but returns logical path)
- * @throws Error if path escapes allowed directories or contains null bytes
+ * @returns the resolved (logical) path; caller handles ENOENT.
+ * @throws if the path contains null bytes or escapes baseDir.
  */
 export async function resolveSafeReadPath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
@@ -156,47 +82,36 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
   }
 
   const fs = await import('fs/promises');
+  const root = path.resolve(baseDir);
+  const full = path.resolve(root, relPath);
 
-  // Resolve to full path
-  const full = path.resolve(baseDir, relPath);
-
-  // Check logical path doesn't escape baseDir via '..'
-  const relative = path.relative(baseDir, full);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  // Logical traversal check.
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: escapes base directory');
   }
 
-  // Get canonical path (resolves all symlinks)
+  // Canonical (symlink-resolved) path must also stay within baseDir.
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      // File doesn't exist - return logical path, caller will handle ENOENT
+      // Doesn't exist yet — return the logical path; caller handles ENOENT.
       return full as FileSystemPath;
     }
     throw err;
   }
-
-  // Verify canonical path is within allowed read directories
-  if (!isPathAllowed(canonicalPath, getAllowedReadDirs())) {
+  if (!isWithin(root, canonicalPath)) {
     throw new Error('Invalid path: resolves outside allowed directories');
   }
-
   return full as FileSystemPath;
 }
 
 /**
- * Resolve a path for writing, with security checks.
- * Rejects all symlinks to prevent unexpected write targets.
+ * Resolve a path for writing, confined to `baseDir`. Rejects all symlinks (no
+ * surprise write targets) and paths that escape baseDir.
  *
- * Allowed write directories (hardcoded for now):
- * - content/ (course content only)
- *
- * @param baseDir - Base directory for resolving relative paths
- * @param relPath - Relative path to resolve
- * @returns Resolved path
- * @throws Error if path contains symlinks, escapes allowed directories, or contains null bytes
+ * @throws if the path contains null bytes, symlinks, or escapes baseDir.
  */
 export async function resolveSafeWritePath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
@@ -204,33 +119,25 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
   }
 
   const fs = await import('fs/promises');
+  const root = path.resolve(baseDir);
+  const full = path.resolve(root, relPath);
 
-  // Resolve to full path
-  const full = path.resolve(baseDir, relPath);
-
-  // Check logical path doesn't escape baseDir via '..'
-  const relative = path.relative(baseDir, full);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  // Logical traversal check.
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: escapes base directory');
   }
 
-  // Check for symlinks - reject any symlinks for write operations
-  // We check the path by comparing logical vs canonical
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      // File doesn't exist yet (creating new file)
-      // Check parent directory exists and is within allowed dirs
+      // Creating a new file: verify the (existing) parent is symlink-free and
+      // within baseDir.
       const parentDir = path.dirname(full);
       try {
         const canonicalParent = await fs.realpath(parentDir);
-        if (!isPathAllowed(canonicalParent, getAllowedWriteDirs())) {
-          throw new Error('Invalid path: parent directory outside allowed write directories');
-        }
-        // Check parent path has no symlinks
-        if (canonicalParent !== parentDir) {
+        if (canonicalParent !== parentDir || !isWithin(root, canonicalParent)) {
           throw new Error('Invalid path: symlinks not allowed for write operations');
         }
       } catch (parentErr: any) {
@@ -244,16 +151,13 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
     throw err;
   }
 
-  // Reject if path contains symlinks
+  // Existing target: reject symlinks and out-of-root paths.
   if (canonicalPath !== full) {
     throw new Error('Invalid path: symlinks not allowed for write operations');
   }
-
-  // Verify path is within allowed write directories
-  if (!isPathAllowed(full, getAllowedWriteDirs())) {
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: outside allowed write directories');
   }
-
   return full as FileSystemPath;
 }
 

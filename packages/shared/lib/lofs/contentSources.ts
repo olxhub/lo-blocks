@@ -20,7 +20,10 @@
 //     psychology: /srv/content/psych              # directory form
 //     edu.memphis.psych:                          # repo form
 //       repo: https://github.com/olxhub/edu.memphis.psych
-//       branch: main          # optional (default main)
+//       branch: main          # optional (default main) — the ref read+edited
+//       publish: release      # optional; ref to publish to (default: branch).
+//                             # Data-only today (readers still read `branch`);
+//                             # the read-view/edit-view split is a later step.
 //       cooldownSeconds: 60   # optional remote head-check throttle
 //       tokenEnv: REPO_PAT    # optional; env var with a PAT for private reads
 //                             # and pushes. Defaults to LO_GITHUB_TOKEN; set
@@ -50,9 +53,7 @@
 // manifest.yaml at its root or the directory convention (namespaceFor).
 // This file is about WHERE content lives; namespaces are WHAT it is.
 
-import path from 'path';
 import { FileStorageProvider } from './providers/file';
-import { registerAllowedContentDir } from './allowedDirs';
 import { gitOrigin, toLofsOrigin } from '../types/address';
 import type { LofsOrigin } from '../types/address';
 import { memoize } from '../util/async';
@@ -72,8 +73,17 @@ const DEFAULT_TOKEN_ENV = 'LO_GITHUB_TOKEN';
 /** Repo-form source: served directly from a git remote. */
 export interface RepoSource {
   repo: string;
-  /** Branch (default: main). */
+  /** Branch to READ and EDIT (default: main). Studio reads and commits here. */
   branch?: string;
+  /**
+   * Optional ref to PUBLISH to — the branch the read-view will eventually be
+   * served from, distinct from the editing branch (`branch`). DEFAULTS to the
+   * editing branch, so there is ZERO behavior change until a deployment sets
+   * it: today every source carries both refs but readers still read `branch`.
+   * The read-view switch (serve `publish` while Studio edits `branch`) is a
+   * later step; this field only plumbs the data through so sources carry both.
+   */
+  publish?: string;
   /** May Studio commit + push to this source? Default false: a git source is
    *  read-only unless the deployment opts in, since editing someone else's
    *  course is the exception, not the rule. Local directories and the fallback
@@ -229,6 +239,13 @@ interface ConfiguredSource {
   /** May Studio write here? See RepoSource.writable. */
   writable: boolean;
   provider: StorageProvider;
+  /** The ref Studio reads and commits to (RepoSource.branch, default main).
+   *  Carried as data for the coming read-view/edit-view split (RepoSource.publish);
+   *  readers still use this today. Undefined for non-repo sources. */
+  editRef?: string;
+  /** The ref to publish to (RepoSource.publish); defaults to editRef. Data only
+   *  for now — nothing reads from it yet (see RepoSource.publish). */
+  publishRef?: string;
 }
 
 /**
@@ -245,14 +262,13 @@ export interface SourceInfo {
  * Build every configured source (+ the fallback) from config, computing each
  * one's origin. The single place that maps config → providers; both
  * `readableProviders` (read/compile) and `sourceProvider` (origin-scoped editing)
- * derive from it. Registers configured directories with the file provider's
- * security allow-list (allowedDirs.ts). Git clones are memoized
- * (gitSourceProvider), so the union and an editing handle share one clone.
+ * derive from it. Each file provider confines reads/writes to its own baseDir
+ * (a root check — see providers/file.ts); no global allow-list. Git clones are
+ * memoized (gitSourceProvider), so the union and an editing handle share one clone.
  */
 async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallback: ConfiguredSource }> {
   const config = await loadContentSourcesConfig();
 
-  registerAllowedContentDir(path.resolve(config.fallback));
   const fallback: ConfiguredSource = {
     origin: toLofsOrigin('file:content'),
     label: 'Local content',
@@ -266,7 +282,6 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
       // Directory form: a checkout on disk. defaultNs = the mount name, so a
       // collection that moved out of ./content/<mount> keeps its namespace even
       // with files at the checkout root and no manifest. See namespaceFor.
-      registerAllowedContentDir(path.resolve(entry));
       sources.push({
         origin: toLofsOrigin(`file:content/${mount}`),
         label: mount,
@@ -276,11 +291,15 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
     } else {
       // Repo form: served from the git remote, in memory. Read-only unless the
       // deployment opts in (entry.writable).
+      const editRef = entry.branch ?? 'main';
       sources.push({
-        origin: gitOrigin(entry.repo, entry.branch ?? 'main'),
+        origin: gitOrigin(entry.repo, editRef),
         label: mount,
         writable: entry.writable ?? false,
         provider: await gitSourceProvider(entry),
+        editRef,
+        // Defaults to the editing branch — zero behavior change until set.
+        publishRef: entry.publish ?? editRef,
       });
     }
   }

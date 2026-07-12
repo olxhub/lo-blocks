@@ -13,7 +13,6 @@
 import { createToolRegistry, type ToolRegistry } from '../mcp/registry';
 import { registerLofsTools, type LofsToolDeps } from './tools';
 import { FileStorageProvider } from './providers/file';
-import { registerAllowedContentDir } from './allowedDirs';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
@@ -26,7 +25,6 @@ describe('LOFS tools', () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lofs-tools-test-'));
-    registerAllowedContentDir(tempDir);
     const provider = new FileStorageProvider(tempDir);
     const deps: LofsToolDeps = {
       readableProviders: async () => [provider],

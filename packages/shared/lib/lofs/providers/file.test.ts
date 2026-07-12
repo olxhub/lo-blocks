@@ -10,7 +10,6 @@
 //
 
 import { FileStorageProvider } from './file';
-import { registerAllowedContentDir } from '../allowedDirs';
 import { toOlxRelativePath } from '../../types/storage';
 import type { OlxRelativePath, SafeRelativePath, LofsRef, ContentNamespace } from '../../types';
 import * as path from 'path';
@@ -23,7 +22,6 @@ describe('FileStorageProvider security', () => {
 
   beforeAll(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-test-'));
-    registerAllowedContentDir(tempDir);  // whitelist the temp dir for read/write checks
     provider = new FileStorageProvider(tempDir);
     await fs.writeFile(path.join(tempDir, 'test.olx'), '<Test>content</Test>');
   });
@@ -129,7 +127,6 @@ describe('FileStorageProvider.namespaceFor', () => {
 
   beforeAll(async () => {
     nsDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-ns-test-'));
-    registerAllowedContentDir(nsDir);  // whitelist the temp dir for read checks
     provider = new FileStorageProvider(nsDir, 'content');
 
     // Directory-fallback namespace
