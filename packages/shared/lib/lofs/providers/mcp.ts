@@ -19,7 +19,9 @@ import {
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
@@ -74,27 +76,43 @@ export class McpStorageProvider implements StorageProvider {
     };
   }
 
-  async save(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const { previousMetadata, force = false, create = false } = options;
-    // No retry: a write must not be replayed blind.
-    const result = await callMcpTool<WriteResult>('Write', this.args({
-      path,
-      content,
-      previous_metadata: previousMetadata,
-      force,
-      create,
-    }));
-    if (!result.ok) {
-      throw new VersionConflictError(result.error, result.metadata);
+  /**
+   * The client-side write doorway. Maps the change onto the LOFS tools
+   * (Write / Delete / Move) — the SAME contract Studio, the chat agent, and
+   * external MCP clients speak. No batch tool exists, so this face handles ONE
+   * change per commit (the only shape its callers issue); atomic multi-change
+   * lands on the server-side providers (git/file). `versions` is empty (the
+   * tool contract returns no token; the client re-reads for the fresh one),
+   * and a Write conflict is re-thrown as VersionConflictError like the locals.
+   */
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
+    if (changes.length !== 1) {
+      throw new Error(
+        `McpStorageProvider.commit handles one change at a time (got ${changes.length}); ` +
+        `the MCP tool contract has no atomic multi-change write.`);
     }
-  }
-
-  async remove(path: OlxRelativePath): Promise<void> {
-    await callMcpTool('Delete', this.args({ path }));
-  }
-
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    await callMcpTool('Move', this.args({ path: oldPath, new_path: newPath }));
+    const [c] = changes;
+    if (c.delete) {
+      await callMcpTool('Delete', this.args({ path: c.path }));
+    } else if (c.renameTo !== undefined) {
+      await callMcpTool('Move', this.args({ path: c.path, new_path: c.renameTo }));
+    } else if (c.content !== undefined) {
+      const base = options.base?.find(b => String(b.path) === String(c.path));
+      // No retry: a write must not be replayed blind.
+      const result = await callMcpTool<WriteResult>('Write', this.args({
+        path: c.path,
+        content: c.content,
+        previous_metadata: base?.version,
+        force: options.force ?? false,
+        create: options.create ?? false,
+      }));
+      if (!result.ok) {
+        throw new VersionConflictError(result.error, result.metadata);
+      }
+    } else {
+      throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+    }
+    return { versions: {} };
   }
 
   async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {

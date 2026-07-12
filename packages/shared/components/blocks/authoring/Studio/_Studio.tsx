@@ -329,7 +329,10 @@ export default function Studio(props: RuntimeProps) {
       const content = getStudioContent(id);
       const previousMetadata = fileStateRef.current.get(id)?.metadata;
       const olxPath = toOlxRelativePath(filePath);
-      await storageRef.current.save(olxPath, content, { previousMetadata, force });
+      await storageRef.current.commit([{ path: olxPath, content }], {
+        base: previousMetadata !== undefined ? [{ path: olxPath, version: previousMetadata }] : undefined,
+        force,
+      });
       // Re-read to refresh conflict metadata; mark clean.
       const result = await storageRef.current.read(olxPath);
       fileStateRef.current.set(id, { content, metadata: result.metadata, ns: result.ns });
@@ -359,7 +362,7 @@ export default function Studio(props: RuntimeProps) {
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       // create: must not clobber an existing file (server 409s if it exists).
-      await storageRef.current.save(toOlxRelativePath(path), fileContent, { create: true });
+      await storageRef.current.commit([{ path: toOlxRelativePath(path), content: fileContent }], { create: true });
       refreshFiles();
       // Switch to the new file — FileEditorPane's load effect populates
       // content under the correct Redux key.
@@ -375,7 +378,7 @@ export default function Studio(props: RuntimeProps) {
   const handleFileDelete = useCallback(async (path: string) => {
     if (!source) return;
     try {
-      await storageRef.current.remove(toOlxRelativePath(path));
+      await storageRef.current.commit([{ path: toOlxRelativePath(path), delete: true }]);
       refreshFiles();
       fileStateRef.current.delete(fileRef(source, path));
       if (path === filePath) setLocation(source, '');
@@ -391,7 +394,7 @@ export default function Studio(props: RuntimeProps) {
     if (!source) return;
     try {
       // Full repo-relative paths: rename doubles as move-to-directory.
-      await storageRef.current.move(toOlxRelativePath(oldPath), toOlxRelativePath(newPath));
+      await storageRef.current.commit([{ path: toOlxRelativePath(oldPath), renameTo: toOlxRelativePath(newPath) }]);
       refreshFiles();
       const cached = fileStateRef.current.get(fileRef(source, oldPath));
       if (cached) {

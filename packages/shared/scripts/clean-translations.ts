@@ -59,7 +59,7 @@ async function main() {
     const relPath = provider.toRelativePath(fileUri);
     console.log(`  ${label}: ${relPath}`);
     if (!dryRun) {
-      await provider.remove(relPath);
+      await provider.commit([{ path: relPath, delete: true }]);
     }
   }
 

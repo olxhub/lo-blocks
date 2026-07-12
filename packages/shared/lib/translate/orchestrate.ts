@@ -180,9 +180,9 @@ export async function translateBlock(opts: TranslateBlockOptions): Promise<Trans
     return { ok: false, error: result.error };
   }
 
-  // Write and sync (provider.save handles directory creation)
+  // Write and sync (commit handles directory creation)
   try {
-    await provider.save(targetRelPath, result.content);
+    await provider.commit([{ path: targetRelPath, content: result.content }]);
   } catch (err: any) {
     return { ok: false, error: `Failed to write translation: ${err.message}` };
   }

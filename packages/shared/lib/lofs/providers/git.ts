@@ -24,11 +24,11 @@
 //   current commit's tree), commits it with parent = current head, and
 //   pushes. No working tree / index — the clone stays noCheckout.
 // - The platform commits on the AUTHOR's behalf: commit author = the teacher
-//   (WriteOptions.author, from CurrentUser); committer = the platform
+//   (CommitOptions.author, from CurrentUser); committer = the platform
 //   identity. Author rides per-write because one provider instance is shared
 //   across users (see contentSources memoization).
 // - Conflict detection has two layers: optimistic (read's blob-oid in
-//   previousMetadata vs current) and authoritative (a non-fast-forward push
+//   CommitOptions.base vs current) and authoritative (a non-fast-forward push
 //   is rejected). Both surface as VersionConflictError → HTTP 409 upstream.
 // - Writes are serialized per provider (writeLock): concurrent writes to
 //   different files must not both fork from the same head and spuriously
@@ -66,7 +66,9 @@ import {
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   NamespaceResolutionError,
@@ -90,7 +92,7 @@ const REPO_DIR = '/repo';
 const GIT_RETRY: RetryPolicy = { attempts: 3, baseMs: 200, maxMs: 2000 };
 
 /** Platform identity recorded as the COMMITTER on every commit. The author
- *  is the teacher (WriteOptions.author); this is who physically committed.
+ *  is the teacher (CommitOptions.author); this is who physically committed.
  *  Also the author fallback when a write supplies none. */
 const PLATFORM_IDENTITY = { name: 'Learning Observer', email: 'noreply@learning-observer.org' };
 
@@ -578,51 +580,65 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   // ---------------------------------------------------------------------
-  // Writes — commit-on-write (see the header). Each is serialized and
-  // ensures the repo is current before forking a commit from head.
+  // Writes — commit-on-write (see the header). Serialized, and the repo is
+  // brought current before forking a commit from head. One commit() applies
+  // N adds/overwrites + deletes + renames as ONE tree delta, ONE commit, ONE
+  // push.
   // ---------------------------------------------------------------------
 
-  async save(p: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
     return this.serialize(async () => {
       await this.ensureFresh();
       const s = this.requireState();
-      const relPath = this.requireWritable(p);
-      await this.checkConflict(s, relPath, options);
-      const blobOid = await git.writeBlob({
-        fs: { promises: s.vol.promises } as any,
-        dir: REPO_DIR,
-        blob: new TextEncoder().encode(content),
-      });
-      await this.commitChange(s, [{ path: relPath, blobOid }], options);
-    });
-  }
 
-  async remove(p: OlxRelativePath): Promise<void> {
-    return this.serialize(async () => {
-      await this.ensureFresh();
-      const s = this.requireState();
-      const relPath = this.requireWritable(p);
-      if ((await this.currentBlobOid(s, relPath)) === null) {
-        throw new Error(`File not found: ${p} (in ${this.url}#${this.ref})`);
+      // Optimistic conflict: every base's blob oid must still be current
+      // (skipped with force). The authoritative check is the push rejection.
+      if (!options.force) {
+        for (const b of options.base ?? []) {
+          await this.checkBase(s, this.requireWritable(b.path), b.version);
+        }
       }
-      await this.commitChange(s, [{ path: relPath, blobOid: null }], {});
-    });
-  }
 
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    return this.serialize(async () => {
-      await this.ensureFresh();
-      const s = this.requireState();
-      const from = this.requireWritable(oldPath);
-      const to = this.requireWritable(newPath);
-      const oid = await this.currentBlobOid(s, from);
-      if (oid === null) throw new Error(`File not found: ${oldPath} (in ${this.url}#${this.ref})`);
-      // One commit: add the blob at the new path, remove the old.
-      await this.commitChange(
-        s,
-        [{ path: to, blobOid: oid }, { path: from, blobOid: null }],
-        { message: `Rename ${from} → ${to}` },
-      );
+      // Lower each change to path→blob deltas (null blob = delete). A rename is
+      // an add-at-new + delete-at-old carrying the existing blob oid.
+      const deltas: Array<{ path: string; blobOid: string | null }> = [];
+      const written: string[] = [];  // paths whose new blob oid we report
+      for (const c of changes) {
+        const relPath = this.requireWritable(c.path);
+        if (c.delete) {
+          if ((await this.currentBlobOid(s, relPath)) === null) {
+            throw new Error(`File not found: ${c.path} (in ${this.url}#${this.ref})`);
+          }
+          deltas.push({ path: relPath, blobOid: null });
+        } else if (c.renameTo !== undefined) {
+          const to = this.requireWritable(c.renameTo);
+          const oid = await this.currentBlobOid(s, relPath);
+          if (oid === null) throw new Error(`File not found: ${c.path} (in ${this.url}#${this.ref})`);
+          deltas.push({ path: to, blobOid: oid }, { path: relPath, blobOid: null });
+          written.push(to);
+        } else if (c.content !== undefined) {
+          const blobOid = await git.writeBlob({
+            fs: { promises: s.vol.promises } as any,
+            dir: REPO_DIR,
+            blob: new TextEncoder().encode(c.content),
+          });
+          deltas.push({ path: relPath, blobOid });
+          written.push(relPath);
+        } else {
+          throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+        }
+      }
+
+      const newHead = await this.applyCommit(s, deltas, options.message ?? defaultMessage(changes), options.author);
+
+      // New tokens: blob oid + the new head, matching read()'s content metadata.
+      const versions: Record<string, unknown> = {};
+      for (const d of deltas) {
+        if (d.blobOid !== null && written.includes(d.path)) {
+          versions[d.path] = { oid: d.blobOid, head: newHead };
+        }
+      }
+      return { versions };
     });
   }
 
@@ -631,12 +647,11 @@ export class GitStorageProvider implements StorageProvider {
     return this.guardPath(stripLeadingSlash(String(p)));
   }
 
-  /** Optimistic conflict: the blob oid the editor last read (in
-   *  previousMetadata) must still be current. Skipped without it or with
-   *  force. The authoritative check is the non-fast-forward push rejection. */
-  private async checkConflict(s: RepoState, relPath: string, options: WriteOptions): Promise<void> {
-    if (!options.previousMetadata || options.force) return;
-    const prev = options.previousMetadata as { oid?: string };
+  /** Optimistic conflict: the blob oid a caller last read (base.version) must
+   *  still be current. The authoritative check is the non-fast-forward push
+   *  rejection. */
+  private async checkBase(s: RepoState, relPath: string, version: unknown): Promise<void> {
+    const prev = (version ?? {}) as { oid?: string };
     if (prev.oid === undefined) return;  // nothing to compare (e.g. a non-content read)
     const current = await this.currentBlobOid(s, relPath);
     if (prev.oid !== current) {
@@ -662,16 +677,17 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Apply a set of path→blob changes (null blob = delete) as one commit on
-   *  the captured snapshot `s`, push it, then publish a new snapshot locally.
-   *  Built by tree plumbing — no working tree or index, so the clone stays
-   *  noCheckout. All git reads/writes go through s.vol/s.head, so a concurrent
-   *  refresh repoint can't mix this commit across volumes. */
-  private async commitChange(
+  /** Apply a set of path→blob deltas (null blob = delete) as one commit on the
+   *  captured snapshot `s`, push it, then publish a new snapshot locally and
+   *  return the new head. Built by tree plumbing — no working tree or index, so
+   *  the clone stays noCheckout. All git reads/writes go through s.vol/s.head,
+   *  so a concurrent refresh repoint can't mix this commit across volumes. */
+  private async applyCommit(
     s: RepoState,
     changes: Array<{ path: string; blobOid: string | null }>,
-    options: WriteOptions,
-  ): Promise<void> {
+    message: string,
+    author?: { name: string; email: string },
+  ): Promise<string> {
     const fs = { promises: s.vol.promises } as any;
     const { commit } = await git.readCommit({ fs, dir: REPO_DIR, oid: s.head });
     let treeOid = commit.tree;
@@ -681,11 +697,11 @@ export class GitStorageProvider implements StorageProvider {
     const newHead = await git.commit({
       fs,
       dir: REPO_DIR,
-      message: options.message ?? defaultMessage(changes),
+      message,
       tree: treeOid,
       parent: [s.head],
-      author: options.author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
-      committer: PLATFORM_IDENTITY,                    // who physically committed
+      author: author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
+      committer: PLATFORM_IDENTITY,           // who physically committed
       ref: `refs/heads/${this.ref}`,
     });
     try {
@@ -715,6 +731,7 @@ export class GitStorageProvider implements StorageProvider {
       }
       this.state = { vol: s.vol, head: newHead, tree };
     }
+    return newHead;
   }
 
   /** Would walkTree index this path? (Mirrors its filter for local tree upkeep.) */
@@ -754,7 +771,7 @@ export class GitStorageProvider implements StorageProvider {
 
   /** Push the local branch to the remote — the network transport seam.
    *  Overridable: tests whose "remote" IS the in-memory repo no-op this (the
-   *  commit already landed there). Rejection handling lives in commitChange,
+   *  commit already landed there). Rejection handling lives in applyCommit,
    *  which maps a thrown PushRejectedError → VersionConflictError; here we
    *  only normalize the "ok: false" result into that same thrown shape so the
    *  two push-failure forms map uniformly. */
@@ -777,10 +794,12 @@ export class GitStorageProvider implements StorageProvider {
 }
 
 /** Default commit message when the caller supplies none. */
-function defaultMessage(changes: Array<{ path: string; blobOid: string | null }>): string {
+function defaultMessage(changes: FileChange[]): string {
   if (changes.length === 1) {
     const [c] = changes;
-    return `${c.blobOid === null ? 'Delete' : 'Update'} ${c.path}`;
+    if (c.delete) return `Delete ${c.path}`;
+    if (c.renameTo !== undefined) return `Rename ${c.path} → ${c.renameTo}`;
+    return `Update ${c.path}`;
   }
   return `Update ${changes.length} files`;
 }

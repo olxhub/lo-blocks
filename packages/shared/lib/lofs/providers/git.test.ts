@@ -57,7 +57,7 @@ class LocalGitProvider extends GitStorageProvider {
     return this.repoVol;
   }
 
-  // The "remote" IS repoVol, and commitChange already wrote the commit + moved
+  // The "remote" IS repoVol, and applyCommit already wrote the commit + moved
   // the branch ref there — so push is a no-op. (Push rejection is exercised
   // separately by overriding this to throw.)
   protected async pushRemote(): Promise<void> {}
@@ -180,10 +180,10 @@ describe('GitStorageProvider', () => {
 
   it('write commits with the given author and platform committer', async () => {
     const w = await writableRepo();
-    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>', {
-      author: { name: 'Maggie Chen', email: 'mchen@example.edu' },
-      message: 'Edit a.olx',
-    });
+    const res = await w.commit(
+      [{ path: 'a.olx' as OlxRelativePath, content: '<Markdown id="a">v2</Markdown>' }],
+      { author: { name: 'Maggie Chen', email: 'mchen@example.edu' }, message: 'Edit a.olx' },
+    );
 
     const commit = await headCommit(w);
     expect(commit.message.trim()).toBe('Edit a.olx');
@@ -192,11 +192,13 @@ describe('GitStorageProvider', () => {
 
     // The provider serves the new content immediately (no re-clone needed).
     expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v2');
+    // CommitResult reports the new blob-oid token for the written path.
+    expect((res.versions['a.olx'] as any).oid).toMatch(/^[0-9a-f]{40}$/);
   });
 
   it('write of a new nested path builds the intermediate trees', async () => {
     const w = await writableRepo();
-    await w.save('unit3/deep/lesson.olx' as OlxRelativePath, '<Markdown id="d">deep</Markdown>');
+    await w.commit([{ path: 'unit3/deep/lesson.olx' as OlxRelativePath, content: '<Markdown id="d">deep</Markdown>' }]);
     expect((await w.read('unit3/deep/lesson.olx' as OlxRelativePath)).content).toContain('deep');
     // Sibling untouched.
     expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v1');
@@ -204,19 +206,40 @@ describe('GitStorageProvider', () => {
 
   it('delete removes a file via a commit', async () => {
     const w = await writableRepo();
-    await w.remove('a.olx' as OlxRelativePath);
+    await w.commit([{ path: 'a.olx' as OlxRelativePath, delete: true }]);
     await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
-    await expect(w.remove('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    await expect(w.commit([{ path: 'a.olx' as OlxRelativePath, delete: true }])).rejects.toThrow(/not found/i);
   });
 
   it('rename moves content in a single commit', async () => {
     const w = await writableRepo();
-    await w.move('a.olx' as OlxRelativePath, 'b.olx' as OlxRelativePath);
+    await w.commit([{ path: 'a.olx' as OlxRelativePath, renameTo: 'b.olx' as OlxRelativePath }]);
     expect((await w.read('b.olx' as OlxRelativePath)).content).toContain('v1');
     await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
     // One commit for the move (parent is the pre-rename head).
     const commit = await headCommit(w);
     expect(commit.message).toMatch(/Rename a\.olx → b\.olx/);
+  });
+
+  it('applies N adds + a delete + a rename as ONE atomic commit', async () => {
+    const w = await writableRepo();
+    const headBefore = await git.resolveRef({ fs: { promises: w.repoVol.promises } as any, dir: REPO_DIR, ref: 'main' });
+    await w.commit([
+      { path: 'new1.olx' as OlxRelativePath, content: '<Markdown id="n1">one</Markdown>' },
+      { path: 'unit/new2.olx' as OlxRelativePath, content: '<Markdown id="n2">two</Markdown>' },
+      { path: 'a.olx' as OlxRelativePath, renameTo: 'renamed.olx' as OlxRelativePath },
+      { path: 'manifest.yaml' as OlxRelativePath, delete: true },
+    ]);
+    // All four intents landed…
+    expect((await w.read('new1.olx' as OlxRelativePath)).content).toContain('one');
+    expect((await w.read('unit/new2.olx' as OlxRelativePath)).content).toContain('two');
+    expect((await w.read('renamed.olx' as OlxRelativePath)).content).toContain('v1');
+    await expect(w.read('a.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    await expect(w.read('manifest.yaml' as OlxRelativePath)).rejects.toThrow(/not found/i);
+    // …in exactly ONE commit, parented on the pre-commit head.
+    const head = await headCommit(w);
+    expect(head.message).toMatch(/Update 4 files/);
+    expect(head.parent).toEqual([headBefore]);  // one new commit atop the init commit
   });
 
   it('rejects a stale write (optimistic conflict), unless forced', async () => {
@@ -226,13 +249,13 @@ describe('GitStorageProvider', () => {
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v2 external</Markdown>' }, 'external edit');
 
     await expect(
-      w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v3 mine</Markdown>', { previousMetadata: before.metadata }),
+      w.commit([{ path: 'a.olx' as OlxRelativePath, content: '<Markdown id="a">v3 mine</Markdown>' }],
+        { base: [{ path: 'a.olx' as OlxRelativePath, version: before.metadata }] }),
     ).rejects.toThrow(VersionConflictError);
 
     // force overrides the optimistic check.
-    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v3 forced</Markdown>', {
-      previousMetadata: before.metadata, force: true,
-    });
+    await w.commit([{ path: 'a.olx' as OlxRelativePath, content: '<Markdown id="a">v3 forced</Markdown>' }],
+      { base: [{ path: 'a.olx' as OlxRelativePath, version: before.metadata }], force: true });
     expect((await w.read('a.olx' as OlxRelativePath)).content).toContain('v3 forced');
   });
 
@@ -247,7 +270,7 @@ describe('GitStorageProvider', () => {
     const w = new RejectingPush({ url: URL, ref: 'main', cooldownMs: 0 });
     await w.initRepo();
     await w.commitFiles({ 'a.olx': '<Markdown id="a">v1</Markdown>' }, 'init');
-    await expect(w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>'))
+    await expect(w.commit([{ path: 'a.olx' as OlxRelativePath, content: '<Markdown id="a">v2</Markdown>' }]))
       .rejects.toThrow(VersionConflictError);
   });
 
@@ -270,7 +293,7 @@ describe('GitStorageProvider', () => {
     const foreign = { vol: new Volume(), head: 'deadbeef'.repeat(5), tree: new Map() };
     onPush = () => { (w as any).state = foreign; };
 
-    await w.save('a.olx' as OlxRelativePath, '<Markdown id="a">v2</Markdown>');
+    await w.commit([{ path: 'a.olx' as OlxRelativePath, content: '<Markdown id="a">v2</Markdown>' }]);
 
     // The commit landed in the snapshot's own volume (repoVol)...
     const commit = await headCommit(w);

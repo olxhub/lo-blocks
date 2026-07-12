@@ -17,6 +17,9 @@ import type {
   ReadResult,
   UriNode,
   ContentFile,
+  FileChange,
+  CommitOptions,
+  CommitResult,
   GrepOptions,
   GrepMatch,
 } from '../../types/storage';
@@ -120,10 +123,11 @@ export class InMemoryStorageProvider implements StorageProvider {
     return this.files[normalized] !== undefined;
   }
 
-  async save(): Promise<void> {
+  /** Read-only through the StorageProvider write doorway: the virtual FS
+   *  mutates via setContent(), not commit(). */
+  async commit(_changes: FileChange[], _options?: CommitOptions): Promise<CommitResult> {
     throw new Error('InMemoryStorageProvider is read-only');
   }
-
 
   async listFiles(): Promise<UriNode> {
     const children = Object.keys(this.files).map(uri => ({ uri }));
@@ -254,13 +258,5 @@ export class InMemoryStorageProvider implements StorageProvider {
     }
 
     return matches;
-  }
-
-  async remove(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
-
-  async move(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
   }
 }

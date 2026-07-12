@@ -267,7 +267,10 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     const provider = await deps.writableSourceProvider(source);
     if (create) await assertAbsent(provider, p);
     try {
-      await provider.save(p, content, { previousMetadata: previous_metadata, force });
+      await provider.commit([{ path: p, content }], {
+        base: previous_metadata !== undefined ? [{ path: p, version: previous_metadata }] : undefined,
+        force,
+      });
     } catch (err: any) {
       if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
         // Structured, not thrown: the caller needs the current token to offer
@@ -315,7 +318,9 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
 
     // Anchored save: carrying the read's token means a same-window write by
     // someone else conflicts instead of being silently overwritten.
-    await provider.save(p, newContent, { previousMetadata: current.metadata });
+    await provider.commit([{ path: p, content: newContent }], {
+      base: [{ path: p, version: current.metadata }],
+    });
     return { ok: true as const, occurrences };
   });
 
@@ -326,7 +331,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     annotations: { destructiveHint: true },
   }, async ({ path: rawPath, source }) => {
     const provider = await deps.writableSourceProvider(source);
-    await provider.remove(toRepoRelativePath(rawPath));
+    await provider.commit([{ path: toRepoRelativePath(rawPath), delete: true }]);
     return { ok: true as const };
   });
 
@@ -337,7 +342,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     annotations: {},
   }, async ({ path: rawPath, new_path, source }) => {
     const provider = await deps.writableSourceProvider(source);
-    await provider.move(toRepoRelativePath(rawPath), toRepoRelativePath(new_path));
+    await provider.commit([{ path: toRepoRelativePath(rawPath), renameTo: toRepoRelativePath(new_path) }]);
     return { ok: true as const };
   });
 

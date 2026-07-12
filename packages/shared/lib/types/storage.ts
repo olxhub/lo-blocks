@@ -68,35 +68,72 @@ export interface ReadResult {
 }
 
 /**
- * Options for writing a file with optional conflict detection
+ * One entry in a commit's change list. Exactly one of the three intents:
+ *   - `content` present  → add or overwrite the file at `path`
+ *   - `delete: true`     → remove the file at `path`
+ *   - `renameTo` present → move `path` to `renameTo` (content preserved)
  */
-export interface WriteOptions {
-  /** Metadata from previous read - if provided and doesn't match current, write fails */
-  previousMetadata?: unknown;
-  /** Force write even if metadata mismatch */
+export interface FileChange {
+  path: OlxRelativePath;
+  /** New bytes — add/overwrite. */
+  content?: string;
+  /** Remove the file at `path`. */
+  delete?: true;
+  /** Move `path` here (content preserved). */
+  renameTo?: OlxRelativePath;
+}
+
+/**
+ * Per-file optimistic-concurrency check for a commit: the version token a
+ * caller last read for `path` (ReadResult.metadata). If it no longer matches
+ * the current version, the commit fails with VersionConflictError. This is the
+ * old WriteOptions.previousMetadata semantics, now keyed by path so one commit
+ * can carry a base for each file it touches.
+ */
+export interface CommitBase {
+  path: OlxRelativePath;
+  /** Opaque version token from the prior read (mtime, git blob oid, …). */
+  version: unknown;
+}
+
+/**
+ * Options for a commit — conflict policy plus, for version-controlled
+ * providers, authorship. Folds in the former WriteOptions fields.
+ */
+export interface CommitOptions {
+  /** Per-file optimistic checks (see CommitBase). Absent → no check. */
+  base?: CommitBase[];
+  /** Commit despite a stale base (last write wins; the previous version stays
+   *  in history where the source is version-controlled). */
   force?: boolean;
   /**
-   * This write CREATES a file and must not clobber an existing one (the
-   * lofs-api `lease: 'absent'` doorway). Currently enforced at the API route
-   * by a read-then-write existence pre-check (→ 409 if it exists); providers
-   * do not yet enforce it atomically (TODO: atomic create — see tasklist).
+   * The changes CREATE files that must not clobber existing ones (the lofs-api
+   * `lease: 'absent'` doorway). Enforced by the tool layer's existence
+   * pre-check (→ conflict if present); local providers treat it as advisory
+   * (TODO: atomic create — see tasklist).
    */
   create?: boolean;
   /**
    * Commit author, for version-controlled providers (git). The platform
    * commits ON THE AUTHOR'S BEHALF — the committer is the platform/service
-   * identity, the author is the teacher (from CurrentUser). Carried per-write,
+   * identity, the author is the teacher (from CurrentUser). Carried per-commit,
    * not per-provider: a git provider instance is shared across users.
    * Ignored by providers without history (file, memory).
-   *
-   * TODO: these git-specific fields live on the shared WriteOptions because
-   * there is currently one versioning provider (git) and the overhead of a
-   * discriminated-union options type isn't justified. If more provider-specific
-   * options accumulate, split into a provider-keyed options type.
    */
   author?: { name: string; email: string };
   /** Commit message. Versioning providers use it; others ignore it. */
   message?: string;
+}
+
+/**
+ * Result of a commit. `versions` maps each written path to its NEW version
+ * token — the same opaque shape ReadResult.metadata carries — so a caller can
+ * refresh its cached version without a re-read. Deleted paths are absent.
+ * A provider that cannot cheaply report new tokens (the MCP client face, which
+ * has none over the tool contract) returns an empty map.
+ */
+export interface CommitResult {
+  versions: Record<string, unknown>;
 }
 
 /**
@@ -321,12 +358,14 @@ export interface StorageProvider {
   generationToken(): Promise<string>;
 
   read(path: OlxRelativePath): Promise<ReadResult>;
-  // The write doorway. Verbs mirror lofs-api.md (save/remove/move), carrying a
-  // lease via WriteOptions. There is no separate "create": creating is a save
-  // whose lease says "nothing here yet" (WriteOptions.create).
-  save(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  remove(path: OlxRelativePath): Promise<void>;
-  move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
+  /**
+   * The ONE write doorway: apply a list of changes (adds/overwrites, deletes,
+   * renames) as a single atomic unit. Version-controlled providers land it as
+   * one commit; the file provider applies the list in order. Conflict policy
+   * (per-file optimistic base, force) and authorship travel in CommitOptions.
+   * A stale base or a rejected push surfaces as VersionConflictError.
+   */
+  commit(changes: FileChange[], options?: CommitOptions): Promise<CommitResult>;
   listFiles(selection?: FileSelection): Promise<UriNode>;
 
   /**

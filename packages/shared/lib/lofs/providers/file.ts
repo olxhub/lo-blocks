@@ -19,7 +19,9 @@ import {
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   type NamespaceResolution,
@@ -501,59 +503,66 @@ export class FileStorageProvider implements StorageProvider {
     }
   }
 
-  async save(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const { previousMetadata, force = false } = options;
+  /**
+   * Apply a change list to the filesystem. No cross-file atomicity (the git
+   * provider gives that); changes apply in order via the existing safe-write
+   * primitives. The per-file optimistic check (CommitOptions.base) preserves
+   * the former save() mtime conflict semantics, and new mtimes come back in
+   * CommitResult.versions.
+   */
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
+    const { force = false, base = [] } = options;
     const fs = await import('fs/promises');
-    const full = await resolveSafeWritePath(this.baseDir, filePath);
+    const baseByPath = new Map(base.map(b => [String(b.path), b.version]));
+    const versions: Record<string, unknown> = {};
 
-    // Check for version conflict if previousMetadata is provided
-    if (previousMetadata && !force) {
-      try {
+    for (const c of changes) {
+      if (c.delete) {
+        const full = await resolveSafeWritePath(this.baseDir, c.path);
+        await fs.unlink(full);
+      } else if (c.renameTo !== undefined) {
+        const fullOld = await resolveSafeWritePath(this.baseDir, c.path);
+        const fullNew = await resolveSafeWritePath(this.baseDir, c.renameTo);
+        await fs.mkdir(path.dirname(fullNew), { recursive: true });
+        await fs.rename(fullOld, fullNew);
+      } else if (c.content !== undefined) {
+        const full = await resolveSafeWritePath(this.baseDir, c.path);
+        if (!force && baseByPath.has(String(c.path))) {
+          await this.checkMtime(full, baseByPath.get(String(c.path)));
+        }
+        await fs.mkdir(path.dirname(full), { recursive: true });
+        await fs.writeFile(full, c.content, 'utf-8');
         const stat = await fs.stat(full);
-        const previous = previousMetadata as { mtime?: number; size?: number };
-        if (previous.mtime !== undefined && stat.mtimeMs !== previous.mtime) {
-          throw new VersionConflictError(
-            'File has been modified since last read',
-            { mtime: stat.mtimeMs, size: stat.size }
-          );
-        }
-      } catch (err: any) {
-        // If file doesn't exist but we have previous metadata, that's also a conflict
-        if (err.code === 'ENOENT' && previousMetadata) {
-          throw new VersionConflictError('File was deleted');
-        }
-        if (err.name === 'VersionConflictError') throw err;
-        // Other errors (like permission) should propagate
-        throw err;
+        versions[String(c.path)] = { mtime: stat.mtimeMs, size: stat.size };
+      } else {
+        throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
       }
     }
-
-    await fs.mkdir(path.dirname(full), { recursive: true });
-    await fs.writeFile(full, content, 'utf-8');
+    return { versions };
   }
 
-
-  async remove(filePath: OlxRelativePath): Promise<void> {
+  /** Optimistic conflict: the mtime a caller last read (version) must still be
+   *  current, or the file must still be present. Throws VersionConflictError. */
+  private async checkMtime(full: string, version: unknown): Promise<void> {
     const fs = await import('fs/promises');
-    const full = await resolveSafeWritePath(this.baseDir, filePath);
-    await fs.unlink(full);
+    const previous = (version ?? {}) as { mtime?: number; size?: number };
+    try {
+      const stat = await fs.stat(full);
+      if (previous.mtime !== undefined && stat.mtimeMs !== previous.mtime) {
+        throw new VersionConflictError(
+          'File has been modified since last read',
+          { mtime: stat.mtimeMs, size: stat.size },
+        );
+      }
+    } catch (err: any) {
+      // Read a version but the file is gone now — also a conflict.
+      if (err.code === 'ENOENT') throw new VersionConflictError('File was deleted');
+      throw err;
+    }
   }
 
   toRelativePath(uri: LofsRef): OlxRelativePath {
     return this.extractRelativePath(uri) as OlxRelativePath;
-  }
-
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    const fs = await import('fs/promises');
-    // Validate both paths with write safety checks
-    const fullOld = await resolveSafeWritePath(this.baseDir, oldPath);
-    const fullNew = await resolveSafeWritePath(this.baseDir, newPath);
-
-    // Create destination directory if needed
-    await fs.mkdir(path.dirname(fullNew), { recursive: true });
-
-    // Rename/move the file
-    await fs.rename(fullOld, fullNew);
   }
 
   async listFiles(selection: FileSelection = {}): Promise<UriNode> {

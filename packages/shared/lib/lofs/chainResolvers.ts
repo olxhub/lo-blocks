@@ -79,9 +79,7 @@ export function chainResolvers(providers: StorageProvider[]): StorageProvider {
 
     listContent: () => unsupported('listContent'),
     generationToken: () => unsupported('generationToken'),
-    save: () => unsupported('save'),
-    remove: () => unsupported('remove'),
-    move: () => unsupported('move'),
+    commit: () => unsupported('commit'),
     listFiles: () => unsupported('listFiles'),
     glob: () => unsupported('glob'),
     grep: () => unsupported('grep'),
