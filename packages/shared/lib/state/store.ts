@@ -221,20 +221,22 @@ export const updateResponseReducer = (state = initialState, action) => {
   // shared event types like SPLICE_INPUT across multiple docFields), fall back
   // to bare "eventType" for unique event names or legacy events without action.field.
   //
-  // HACK: Compound events (e.g. UPDATE_CORRECT from graders) carry multiple
-  // data properties beyond the registered CRDT field. The field reducer handles
-  // the registered field with proper LWW; remaining properties (submitCount,
-  // score, etc.) are legacy-spread alongside it, gated by the LWW result so
-  // stale events are rejected atomically. This means the extras don't get their
-  // own CRDT metadata — they should be stored in a CRDT dictionary or dispatched
-  // as separate per-field events with proper conflict resolution.
+  // LEGACY READ PATH: Compound events (e.g. the old UPDATE_CORRECT shape from
+  // graders) carry multiple data properties beyond the registered CRDT field.
+  // Nothing produces these anymore — graders now dispatch one event per field
+  // (actions.tsx) — but recorded sessions and saved event streams contain
+  // them, so replay must keep folding them: the field reducer handles the
+  // registered field with proper LWW; remaining properties (submitCount,
+  // score, etc.) are spread alongside it, gated by the LWW result so stale
+  // events are rejected atomically.
   const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
     || _fieldReducers.get(eventType);
   if (fieldReducerEntry) {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
-    // For compound events (no action.field, e.g. UPDATE_CORRECT from graders),
+    // For legacy compound events (no action.field, e.g. the old grader
+    // UPDATE_CORRECT shape),
     // strip metadata and spread remaining data properties alongside the field
     // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
     // DON'T spread — their extra keys (index, deleteCount, inserted) are

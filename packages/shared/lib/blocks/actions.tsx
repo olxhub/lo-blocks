@@ -26,7 +26,8 @@ import * as lo_event from 'lo_event';
 import { correctness } from './correctness';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
-import { valueSelector } from '@/lib/state/redux';
+import { valueSelector, updateField } from '@/lib/state/redux';
+import { commonFields } from '@/lib/state/commonFields';
 import { isZodCompatible, describeZodType } from './zodCompat';
 import { inputAttributes, graderAttributes } from './attributeSchemas';
 import type { RuntimeProps, DefinitionKey, DefinitionRef, StateKey, LoBlock, ValueSelectorFn } from '@/lib/types';
@@ -162,6 +163,176 @@ function resolveInputSlots(
   return { slotMap, errors };
 }
 
+// ---------------------------------------------------------------------------
+// Grading pipeline: gather → evaluate → dispatch
+// ---------------------------------------------------------------------------
+//
+// Factored so each stage can be reused outside the action flow. In
+// particular, `evaluateGrader` is the seam for derived (selector-based)
+// correctness: a selector can gather input values from state and call the
+// same evaluation logic without dispatching anything.
+
+/**
+ * Gather values and bound APIs from each input block (synchronous — blocks
+ * are in idMap; values read from the provided Redux state snapshot).
+ */
+function gatherInputData(props: RuntimeProps, inputIds: StateKey[], state: any) {
+  const map = props.runtime.blockRegistry;
+  const inputData = inputIds.map(id => {
+    const defKey = leafDefinitionKeyFromStateKey(id);
+    const inst = getBlockByOLXId(props, defKey);
+    if (!inst) {
+      console.warn(`[runGrader] Input block "${id}" not found in idMap`);
+      return { value: undefined, api: {} };
+    }
+    const loBlock = map[inst.tag];
+    // id is already a StateKey from inferRelatedNodes
+    const inputNodeInfo = getDomNodeByStateKey(props, id);
+
+    // Use the input's own runtime (captured at render time) for correct idPrefix,
+    // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
+    const inputProps = {
+      runtime: inputNodeInfo?.runtime ?? props.runtime,
+      nodeInfo: inputNodeInfo,
+      id: defKey,
+      kids: inst.kids || [],
+      loBlock,
+      fields: loBlock.fields || {},
+      locals: loBlock.locals || {},
+      ...inst.attributes,  // Spread OLX attributes
+    };
+
+    // Use valueSelector for uniform handling of withStatus / raw selectValue
+    const { value } = valueSelector(inputProps as RuntimeProps, state, id);
+
+    // Create bound API from locals - each function gets (props, state, id) pre-bound
+    const api = loBlock.locals
+      ? Object.fromEntries(
+        Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
+          name,
+          (...args: any[]) => fn(inputProps, state, id, ...args)
+        ])
+      )
+      : {};
+
+    return { value, api };
+  });
+
+  return {
+    values: inputData.map(d => d.value),
+    apis: inputData.map(d => d.api),
+  };
+}
+
+/**
+ * Run a grader against gathered input values and return a normalized result.
+ *
+ * Never throws for authoring/compat problems — Zod mismatches, slot errors,
+ * and missing inputs all come back as `correctness.invalid` results so the
+ * caller can surface them to the learner. May be async (slow graders, lazy
+ * engines via ensureReady).
+ */
+async function evaluateGrader(
+  { grader, slots, inputType }: { grader: GraderFn; slots?: string[]; inputType?: 'single' | 'list' },
+  props: RuntimeProps,
+  targetInstance: any,
+  inputIds: StateKey[],
+  values: unknown[],
+  apis: object[],
+): Promise<{ correct: any; message: any; score?: number }> {
+  const map = props.runtime.blockRegistry;
+  const targetAttributes = targetInstance.attributes;
+
+  // Check input/grader type compatibility via Zod schemas.
+  // On mismatch, return the result directly instead of throwing — we still
+  // need to dispatch grading state so the UI updates (executeNodeActions
+  // ignores return values).
+  let zodMismatchResult: { correct: string; message: string; score?: number } | null = null;
+  const graderInputSchema = props.loBlock?.inputSchema;
+  if (graderInputSchema) {
+    for (const id of inputIds) {
+      const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
+      if (!inst) continue;
+      const inputBlock = map[inst.tag];
+      if (!inputBlock?.valueSchema) continue;
+      if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
+        const graderName = props.loBlock?.name || 'Grader';
+        const inputName = inputBlock.name || inst.tag;
+        zodMismatchResult = {
+          correct: correctness.invalid,
+          message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
+        };
+        break;
+      }
+    }
+  }
+
+  // Build grader parameters and run grader (skip if Zod already caught a mismatch)
+  let correct: any, message: any, score: any;
+  if (zodMismatchResult) {
+    ({ correct, message, score } = zodMismatchResult);
+  } else {
+    let param: GraderParams | undefined;
+
+    if (slots && slots.length > 0) {
+      // Dict mode: resolve inputs to named slots
+      const getInputSlot = (id: StateKey) => {
+        const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
+        return inst?.attributes?.slot as string | undefined;
+      };
+
+      const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
+
+      if (errors.length > 0) {
+        // Slot resolution failed — fall through to dispatch so UI updates
+        correct = correctness.invalid;
+        message = errors[0];
+      } else {
+        // Build slot→value and slot→api maps
+        const inputDict: Record<string, unknown> = {};
+        const inputApiDict: Record<string, object> = {};
+
+        for (const [slot, inputId] of Object.entries(slotMap)) {
+          const idx = (inputIds as string[]).indexOf(inputId);
+          if (idx >= 0) {
+            inputDict[slot] = values[idx];
+            inputApiDict[slot] = apis[idx];
+          }
+        }
+
+        param = { inputDict, inputApiDict };
+      }
+    } else if (inputType === 'list') {
+      // List mode - explicitly requested
+      param = { inputList: values, inputApis: apis };
+    } else {
+      // Single input mode (default when no slots specified)
+      // Most graders expect a single input
+      if (values.length === 0) {
+        // No input — fall through to dispatch so UI updates
+        correct = correctness.invalid;
+        message = 'No input found';
+      } else {
+        param = { input: values[0], inputApi: apis[0] };
+      }
+    }
+    if (param) {
+      // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
+      // declare ensureReady; await it so the (synchronous) match function
+      // runs against a loaded engine. The await on grader also accepts
+      // async grader functions — the seam for slow graders (LLM,
+      // code-in-sandbox).
+      await map[targetInstance.tag]?.ensureReady?.();
+      ({ correct, message, score } = await grader(
+        { ...props, ...targetAttributes },
+        param
+      ));
+    }
+  }
+
+  return { correct, message, score };
+}
+
 // Helper to define a grading action. This used to be called a
 // "response" in OLX 1.0 terminology.
 //
@@ -194,165 +365,37 @@ export function grader({ grader, infer = true, slots, inputType }: {
     );
 
     const state = props.runtime.store.getState();
-    const map = props.runtime.blockRegistry;
+    const { values, apis } = gatherInputData(props, inputIds, state);
 
-    // Gather values and APIs from each input (synchronous - blocks are in idMap)
-    const inputData = inputIds.map(id => {
-      const defKey = leafDefinitionKeyFromStateKey(id);
-      const inst = getBlockByOLXId(props, defKey);
-      if (!inst) {
-        console.warn(`[runGrader] Input block "${id}" not found in idMap`);
-        return { value: undefined, api: {} };
-      }
-      const loBlock = map[inst.tag];
-      // id is already a StateKey from inferRelatedNodes
-      const inputNodeInfo = getDomNodeByStateKey(props, id);
-
-      // Use the input's own runtime (captured at render time) for correct idPrefix,
-      // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
-      const inputProps = {
-        runtime: inputNodeInfo?.runtime ?? props.runtime,
-        nodeInfo: inputNodeInfo,
-        id: defKey,
-        kids: inst.kids || [],
-        loBlock,
-        fields: loBlock.fields || {},
-        locals: loBlock.locals || {},
-        ...inst.attributes,  // Spread OLX attributes
-      };
-
-      // Use valueSelector for uniform handling of withStatus / raw selectValue
-      const { value } = valueSelector(inputProps as RuntimeProps, state, id);
-
-      // Create bound API from locals - each function gets (props, state, id) pre-bound
-      const api = loBlock.locals
-        ? Object.fromEntries(
-          Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
-            name,
-            (...args: any[]) => fn(inputProps, state, id, ...args)
-          ])
-        )
-        : {};
-
-      return { value, api };
-    });
-
-    const values = inputData.map(d => d.value);
-    const apis = inputData.map(d => d.api);
-
-    // Check input/grader type compatibility via Zod schemas.
-    // On mismatch, set result directly instead of returning early — we still
-    // need to dispatch UPDATE_CORRECT so the UI updates (executeNodeActions
-    // ignores return values).
-    let zodMismatchResult: { correct: string; message: string; score?: number } | null = null;
-    const graderInputSchema = props.loBlock?.inputSchema;
-    if (graderInputSchema) {
-      for (const id of inputIds) {
-        const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-        if (!inst) continue;
-        const inputBlock = map[inst.tag];
-        if (!inputBlock?.valueSchema) continue;
-        if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
-          const graderName = props.loBlock?.name || 'Grader';
-          const inputName = inputBlock.name || inst.tag;
-          zodMismatchResult = {
-            correct: correctness.invalid,
-            message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
-          };
-          break;
-        }
-      }
-    }
-
-    // Build grader parameters and run grader (skip if Zod already caught a mismatch)
-    let correct: any, message: any, score: any;
-    if (zodMismatchResult) {
-      ({ correct, message, score } = zodMismatchResult);
-    } else {
-      let param: GraderParams | undefined;
-
-      if (slots && slots.length > 0) {
-        // Dict mode: resolve inputs to named slots
-        const getInputSlot = (id: StateKey) => {
-          const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-          return inst?.attributes?.slot as string | undefined;
-        };
-
-        const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
-
-        if (errors.length > 0) {
-          // Slot resolution failed — fall through to dispatch so UI updates
-          correct = correctness.invalid;
-          message = errors[0];
-        } else {
-          // Build slot→value and slot→api maps
-          const inputDict: Record<string, unknown> = {};
-          const inputApiDict: Record<string, object> = {};
-
-          for (const [slot, inputId] of Object.entries(slotMap)) {
-            const idx = (inputIds as string[]).indexOf(inputId);
-            if (idx >= 0) {
-              inputDict[slot] = values[idx];
-              inputApiDict[slot] = apis[idx];
-            }
-          }
-
-          param = { inputDict, inputApiDict };
-        }
-      } else if (inputType === 'list') {
-        // List mode - explicitly requested
-        param = { inputList: values, inputApis: apis };
-      } else {
-        // Single input mode (default when no slots specified)
-        // Most graders expect a single input
-        if (values.length === 0) {
-          // No input — fall through to dispatch so UI updates
-          correct = correctness.invalid;
-          message = 'No input found';
-        } else {
-          param = { input: values[0], inputApi: apis[0] };
-        }
-      }
-      if (param) {
-        // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
-        // declare ensureReady; await it so the (synchronous) match function
-        // runs against a loaded engine. The await on grader also accepts
-        // async grader functions — the seam for slow graders (LLM,
-        // code-in-sandbox).
-        await map[targetInstance.tag]?.ensureReady?.();
-        ({ correct, message, score } = await grader(
-          { ...props, ...targetAttributes },
-          param
-        ));
-      }
-    }
+    const { correct, message, score } = await evaluateGrader(
+      { grader, slots, inputType }, props, targetInstance, inputIds, values, apis
+    );
 
     // Convert boolean correct to correctness enum for display
     const correctnessValue = correct === true ? correctness.correct :
       correct === false ? correctness.incorrect :
         correct; // In case it's already a correctness value
 
-    // targetId is already a StateKey — use directly
-    // Get current submitCount — only increment for real submissions (not blank/invalid)
-    const currentState = state.application_state?.component?.[targetId] || {};
+    // Only increment submitCount for real submissions (not blank/invalid).
+    // Re-read state here: the grader may have awaited (slow grader, lazy
+    // engine), and the pre-evaluation snapshot could hold a stale count.
+    const currentState = props.runtime.store.getState()
+      .application_state?.component?.[targetId] || {};
     const isRealSubmission = correctnessValue !== correctness.unsubmitted &&
                              correctnessValue !== correctness.invalid;
     const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
 
-    // HACK: This sends a compound event with multiple data properties, but only
-    // `correct` is a declared CRDT field. The extras (submitCount, score, message,
-    // answers) are spread as plain values in the reducer, gated by `correct`'s LWW
-    // timestamp for consistency. This should be replaced with a CRDT dictionary
-    // (or per-field events) so all properties get proper conflict resolution.
-    const logEvent = props.runtime.logEvent;
-    logEvent('UPDATE_CORRECT', {
-      id: targetId,
-      correct: correctnessValue,
-      message,
-      score,
-      submitCount,
-      lastSubmission: values
-    });
+    // Per-field dispatch: each grader field is its own CRDT write with proper
+    // conflict-resolution metadata. (Replaces the legacy compound
+    // UPDATE_CORRECT event, which the reducer still accepts for old
+    // recordings — see store.ts.) `correct` goes last so anything keying off
+    // it observes the other fields already settled.
+    const writeOpts = { stateKey: targetId as StateKey };
+    updateField(props, commonFields.message, message, writeOpts);
+    updateField(props, commonFields.score, score, writeOpts);
+    updateField(props, commonFields.lastSubmission, values, writeOpts);
+    updateField(props, commonFields.submitCount, submitCount, writeOpts);
+    updateField(props, commonFields.correct, correctnessValue, writeOpts);
     return correct;
   };
 
