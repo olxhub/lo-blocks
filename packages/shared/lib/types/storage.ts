@@ -306,6 +306,29 @@ export interface StorageProvider {
    */
   loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
 
+  /**
+   * A CHEAP "might anything have changed?" token for this source. Two calls
+   * returning the same string mean the source's content is unchanged; a
+   * different string means "rescan me". It is the fast-path signal that lets
+   * syncContentFromStorage skip the full per-file scan when nothing moved.
+   *
+   * The contract is cheapness, not precision: a coarse token that changes when
+   * content did NOT (e.g. a bare `touch`) is acceptable — it just costs one
+   * redundant rescan. The reverse (content changed, token did not) is a
+   * correctness bug and must not happen.
+   *
+   * Must NOT make a slow blocking network round-trip per call: providers with a
+   * remote (git) return their last-known head under their existing refresh
+   * cooldown, never a fresh per-call fetch.
+   *
+   * Per provider:
+   * - FileStorageProvider: a cheap stat-only walk (count + max mtime + total size).
+   * - GitStorageProvider:  the last-known branch head (cooldown governs freshness).
+   * - InMemoryStorageProvider: a bump-on-write counter.
+   * - chainResolvers: unsupported (a parse-resolution helper, never synced).
+   */
+  generationToken(): Promise<string>;
+
   read(path: OlxRelativePath): Promise<ReadResult>;
   // The write doorway. Verbs mirror lofs-api.md (save/remove/move), carrying a
   // lease via WriteOptions. There is no separate "create": creating is a save

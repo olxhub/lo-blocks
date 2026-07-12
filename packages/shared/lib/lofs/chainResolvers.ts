@@ -78,6 +78,7 @@ export function chainResolvers(providers: StorageProvider[]): StorageProvider {
     },
 
     loadXmlFilesWithStats: () => unsupported('loadXmlFilesWithStats'),
+    generationToken: () => unsupported('generationToken'),
     save: () => unsupported('save'),
     remove: () => unsupported('remove'),
     move: () => unsupported('move'),

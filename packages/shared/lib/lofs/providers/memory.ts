@@ -41,6 +41,9 @@ export class InMemoryStorageProvider implements StorageProvider {
   ns: ContentNamespace;
   /** This store's address origin (`memory:local`), built once. */
   readonly origin: LofsOrigin = toLofsOrigin('memory:local');
+  /** Bump-on-write counter backing generationToken(). Increments on every
+   *  setContent(); the constructor's initial files are generation 0. */
+  private _writes = 0;
 
   /**
    * @param files - Virtual filesystem: { 'path.olx': '<OLX>...' }
@@ -96,6 +99,21 @@ export class InMemoryStorageProvider implements StorageProvider {
 
     const availableFiles = Object.keys(this.files).join(', ') || '(none)';
     throw new Error(`File not found: ${path} (available: ${availableFiles})`);
+  }
+
+  /** Cheap change token: a bump-on-write counter. save() is the StorageProvider
+   *  write doorway and stays read-only; the virtual FS mutates through
+   *  setContent(), which bumps the counter this reports. */
+  async generationToken(): Promise<string> {
+    return String(this._writes);
+  }
+
+  /** Direct mutation of the in-memory FS (inline editor buffers, tests). Bumps
+   *  the write counter so generationToken() reflects the change; save() stays
+   *  read-only (it is the shared StorageProvider write doorway). */
+  setContent(name: string, content: string): void {
+    this.files[name.replace(/^\.?\//, '')] = content;
+    this._writes++;
   }
 
   async exists(path: string): Promise<boolean> {

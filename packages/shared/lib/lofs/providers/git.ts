@@ -391,6 +391,21 @@ export class GitStorageProvider implements StorageProvider {
     return { added, changed, unchanged, deleted };
   }
 
+  /** Cheap change token: the last-known branch head. Freshness is governed by
+   *  the SAME cooldown as re-clone decisions (ensureFresh → refreshGate), never
+   *  a per-call remote round-trip — within the cooldown window this returns the
+   *  cached head with no network. A refresh failure (down remote) is swallowed:
+   *  the token stays at the last-known head, so the sync keeps serving the
+   *  cached snapshot instead of thrashing. Empty until the first load. */
+  async generationToken(): Promise<string> {
+    try {
+      await this.ensureFresh();
+    } catch {
+      // Down remote / transient blip — report the last-known head unchanged.
+    }
+    return this.state?.head ?? '';
+  }
+
   async read(p: OlxRelativePath): Promise<ReadResult> {
     // TODO(stale-read): ensureFresh throws if a head re-check fails within the
     // cooldown, even when the snapshot's tree still holds the blob. A studio read during

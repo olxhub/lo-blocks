@@ -10,9 +10,10 @@
 // closed: a forgotten declaration keeps data private, never the
 // reverse).
 //
-// Same TTL-cached content-scan shape as partitions.ts / aggregations.ts.
+// Same generation-memoised content-scan shape as partitions.ts / aggregations.ts.
 
 import type { FieldInfo } from '../../types';
+import { generationMemo } from '@/lib/content/generation';
 
 /** What routing needs to know about a declared level>user field. */
 export interface FieldLevelInfo {
@@ -27,23 +28,18 @@ export interface FieldLevelIndex {
 }
 
 /**
- * TTL-cached index from content + block registry: block id → tag →
- * blueprint fields; only level>user declarations are indexed (absence
- * means 'user'). Scoped state keys (`defId#anchor`) share their
- * definition's declaration.
+ * Index from content + block registry: block id → tag → blueprint fields; only
+ * level>user declarations are indexed (absence means 'user'). Scoped state keys
+ * (`defId#anchor`) share their definition's declaration. Built lazily and
+ * rebuilt only when the content generation changes (generationMemo).
  */
 export function makeFieldLevelIndex(
   loadIdMap: () => Promise<Record<string, Record<string, any>>>,
   fieldsForTag: (tag: string) => Record<string, FieldInfo> | undefined,
-  ttlMs = 2000,
 ): FieldLevelIndex {
-  let byKey: Map<string, FieldLevelInfo> | null = null;
-  let fetchedAt = 0;
-  let inflight: Promise<void> | null = null;
-
-  const rebuild = async () => {
+  const load = generationMemo(async () => {
     const idMap = await loadIdMap();
-    const next = new Map<string, FieldLevelInfo>();
+    const byKey = new Map<string, FieldLevelInfo>();
     for (const [id, variants] of Object.entries(idMap)) {
       for (const variant of Object.values(variants ?? {})) {
         const tag = (variant as any)?.tag;
@@ -52,7 +48,7 @@ export function makeFieldLevelIndex(
         if (fields) {
           for (const field of Object.values(fields)) {
             if (!field.level || field.level === 'user') continue;
-            next.set(`${id}|${field.name}`, {
+            byKey.set(`${id}|${field.name}`, {
               level: field.level,
               delivery: field.delivery ?? 'events',
             });
@@ -61,19 +57,15 @@ export function makeFieldLevelIndex(
         break; // declarations are per-blueprint; one variant is enough
       }
     }
-    byKey = next;
-    fetchedAt = Date.now();
-  };
+    return byKey;
+  });
 
   return {
     async levelOf(blockId, field) {
-      if (!byKey || Date.now() - fetchedAt > ttlMs) {
-        inflight ??= rebuild().finally(() => { inflight = null; });
-        await inflight;
-      }
+      const byKey = await load();
       const hash = blockId.indexOf('#');
       const defId = hash > 0 ? blockId.slice(0, hash) : blockId;
-      return byKey!.get(`${defId}|${field}`);
+      return byKey.get(`${defId}|${field}`);
     },
   };
 }

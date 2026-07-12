@@ -38,7 +38,7 @@ import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
 import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { currentContentIdMap } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
@@ -124,21 +124,23 @@ export async function startServer(
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
-  // Grouping index (specs + picker reverse map), TTL-cached from content.
+  // Grouping index (specs + picker reverse map). Built from the current content
+  // snapshot and rebuilt only when the content generation changes — the routing
+  // hot path never re-scans (see lib/content/generation.ts, generationMemo).
   const grouping = makeGroupingIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    async () => currentContentIdMap() as any,
   );
   // Aggregation index: view blocks whose blueprints fold other blocks'
-  // answers (aggregations.ts), TTL-cached from content + registry.
+  // answers (aggregations.ts), from content + registry.
   const aggregations = makeAggregationIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    async () => currentContentIdMap() as any,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
   // Trusted level declarations (fieldLevels.ts): routing derives a
   // field's level from content + registry, never from the wire's
   // authority stamp — without this index every field is level 'user'.
   const fieldLevels = makeFieldLevelIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    async () => currentContentIdMap() as any,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
 

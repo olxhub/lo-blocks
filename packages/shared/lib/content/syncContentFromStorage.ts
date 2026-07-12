@@ -30,6 +30,7 @@ import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
 import { cachedParse } from '@/lib/content/parseCache';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
+import { bumpContentGeneration } from '@/lib/content/generation';
 
 // =============================================================================
 // Types
@@ -69,9 +70,30 @@ function collectSnapshotErrors(snapshot: ContentSnapshot): OLXLoadingError[] {
 
 let _snapshot: ContentSnapshot = EMPTY_SNAPSHOT;
 
+// Per-source generation tokens from the last DEFAULT (union) sync, in the
+// provider list's order. The fast path compares freshly-gathered tokens against
+// these: all equal → nothing changed → return the snapshot without scanning.
+// Only the default union sync reads/writes this. An explicit-provider sync
+// (scripts, translate, tests) always scans and leaves this untouched — its
+// write lands on disk/git, so the next default sync notices it via that
+// source's token and self-heals (a redundant rescan of that one source).
+let _unionTokens: string[] | null = null;
+
 // =============================================================================
 // Query Functions (read from _snapshot)
 // =============================================================================
+
+/**
+ * The current in-memory content id map (the block index), read WITHOUT
+ * triggering a sync. The generation-memoised routing indexes
+ * (partitions/aggregations/fieldLevels) build from this: a sync updates the
+ * snapshot and bumps the content generation, and the memo rebuilds on next use.
+ * Reading here instead of calling syncContentFromStorage keeps the routing hot
+ * path off the async token-gather (see lib/content/generation.ts).
+ */
+export function currentContentIdMap(): Record<DefinitionKey, VariantMap> {
+  return { ..._snapshot.blockIndex };
+}
 
 /**
  * Find the source OLX file for a block in a given locale.
@@ -204,18 +226,84 @@ export async function applyFileChanges(
 export async function syncContentFromStorage(
   provider?: StorageProvider
 ) {
-  const providers = provider ? [provider] : await readableProviders();
+  if (provider) {
+    // Explicit provider (scripts, translate, tests): ALWAYS scan just this
+    // source — no token fast-path (the caller just wrote and wants the result
+    // now) — and merge into the shared snapshot. Leaves _unionTokens untouched.
+    await scanAndApply([provider], [provider]);
+    return currentResult();
+  }
+  return syncContentUnion(await readableProviders());
+}
+
+/**
+ * Tokened sync over an explicit provider UNION (the default content union, or a
+ * caller-supplied set for tests). Gathers each source's cheap generationToken;
+ * if every token matches the previous union sync, returns the retained snapshot
+ * WITHOUT scanning. Otherwise it rescans ONLY the sources whose token moved
+ * (merging with the retained results of the unchanged ones), then remembers the
+ * new tokens.
+ *
+ * The public no-arg entry point is `syncContentUnion(await readableProviders())`.
+ */
+export async function syncContentUnion(providers: StorageProvider[]) {
+  const tokens = await Promise.all(providers.map(p => p.generationToken()));
+
+  // Fast path: same source set, every token unchanged → nothing to do.
+  if (_unionTokens && sameTokens(_unionTokens, tokens)) {
+    return currentResult();
+  }
+
+  // First union sync, or a changed source set (length differs) → scan them all.
+  // Otherwise scan only the sources whose token moved.
+  const changed = (_unionTokens && _unionTokens.length === providers.length)
+    ? providers.filter((_, i) => _unionTokens![i] !== tokens[i])
+    : providers;
+
+  await scanAndApply(changed, providers);
+  _unionTokens = tokens;
+  return currentResult();
+}
+
+/**
+ * Scan `toScan` (diffing against the retained snapshot), parse across the FULL
+ * `resolveWith` provider list — so a changed file's src=""/cast=""/namespace can
+ * still resolve against an unchanged sibling source — and publish the new
+ * snapshot. Bumps the content generation and re-copies static assets ONLY when
+ * files actually changed (interim, until assets are served from the store).
+ */
+async function scanAndApply(
+  toScan: StorageProvider[],
+  resolveWith: StorageProvider[],
+): Promise<void> {
   const scan = await scanSources(
-    providers,
-    _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>
+    toScan,
+    _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>,
   );
+  const touched =
+    Object.keys(scan.added).length +
+    Object.keys(scan.changed).length +
+    Object.keys(scan.deleted).length;
 
-  // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
-  _snapshot = await applyFileChanges(_snapshot, scan, providers);
+  // Steps 1-4 (promote deps, remove stale, parse) happen inside applyFileChanges.
+  _snapshot = await applyFileChanges(_snapshot, scan, resolveWith);
 
-  // Step 5: Sync static assets
-  await copyAssetsToPublic(providers);
+  if (touched > 0) {
+    bumpContentGeneration();
+    // Static assets: on content change only (was every sync).
+    await copyAssetsToPublic(resolveWith);
+  }
+}
 
+function sameTokens(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function currentResult() {
   return {
     parsed: { ..._snapshot.parsedFiles },
     idMap: { ..._snapshot.blockIndex },

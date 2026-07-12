@@ -467,6 +467,55 @@ export class FileStorageProvider implements StorageProvider {
     return { added, changed, unchanged, deleted };
   }
 
+  /**
+   * Cheap change token: a stat-only walk of the content tree. No file contents
+   * are read (unlike loadXmlFilesWithStats), so this stays fast enough to call
+   * on every sync/request. The token combines the content-file count, the
+   * newest mtime, and the total size — any add/remove/edit moves at least one
+   * of them. A bare `touch` moves the mtime and forces a (harmless) rescan;
+   * that's the accepted coarseness (see generationToken on StorageProvider).
+   *
+   * v1: no fs watchers (a later refinement). If the baseDir doesn't exist yet,
+   * the walk yields the empty token — treated as "no content", consistent with
+   * a scan of an absent tree.
+   */
+  async generationToken(): Promise<string> {
+    const fs = await import('fs/promises');
+    let count = 0;
+    let maxMtimeMs = 0;
+    let totalSize = 0;
+
+    const walk = async (dir: string): Promise<void> => {
+      let entries: any[];
+      try {
+        entries = await fs.readdir(dir, { withFileTypes: true });
+      } catch {
+        return; // missing/unreadable dir — contributes nothing
+      }
+      for (const entry of entries) {
+        if (entry.name.startsWith('.')) continue;
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(full);
+          continue;
+        }
+        if (!entry.isFile()) continue;
+        const isContent =
+          (CONTENT_EXTENSIONS.some(ext => entry.name.endsWith(ext)) || entry.name === 'manifest.yaml') &&
+          !entry.name.includes('~') &&
+          !entry.name.includes('#');
+        if (!isContent) continue;
+        const stat = await fs.stat(full);
+        count++;
+        totalSize += stat.size;
+        if (stat.mtimeMs > maxMtimeMs) maxMtimeMs = stat.mtimeMs;
+      }
+    };
+
+    await walk(this.baseDir);
+    return `${count}:${maxMtimeMs}:${totalSize}`;
+  }
+
   async read(filePath: OlxRelativePath): Promise<ReadResult> {
     const fs = await import('fs/promises');
     const full = await resolveSafeReadPath(this.baseDir, filePath);

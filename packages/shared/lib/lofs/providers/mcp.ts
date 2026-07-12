@@ -197,4 +197,15 @@ export class McpStorageProvider implements StorageProvider {
       'Use listFiles() to get current file tree, or implement change detection server-side.'
     );
   }
+
+  /**
+   * Not supported: this is the CLIENT-side content face over MCP, never a
+   * server-side sync source (the sync runs over file/git providers). Change
+   * detection would need a server round-trip and belongs there, not here.
+   */
+  async generationToken(): Promise<string> {
+    throw new Error(
+      'McpStorageProvider does not support generationToken (client-side content provider; not a sync source).'
+    );
+  }
 }

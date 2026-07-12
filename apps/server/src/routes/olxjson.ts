@@ -7,6 +7,7 @@
 
 import type { Context } from 'hono';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { contentGeneration } from '@/lib/content/generation';
 import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { stateForContentFetch } from '@/lib/state/sync/contentState';
@@ -50,7 +51,20 @@ export function createOlxJsonHandler(
 
     try {
       const { idMap, errors } = await syncContentFromStorage();
+
+      // ETag = content generation. Content is the same for everyone at a given
+      // generation, and the browser scopes If-None-Match per URL, so revalidation
+      // is correct per (id, generation). A repeat request for unchanged content
+      // gets 304 and reuses its cached body. The per-user fieldState is the
+      // INITIAL snapshot only — live updates ride the websocket after the fetch
+      // establishes the subscription — so serving a cached body on 304 is safe;
+      // we still run the subscription side effect below before short-circuiting.
+      const etag = `W/"olx-${contentGeneration()}"`;
+      const ifNoneMatch = c.req.header('if-none-match');
+      c.header('ETag', etag);
+
       if (id === 'all') {
+        if (ifNoneMatch === etag) return c.body(null, 304);
         return c.json({ ok: true, idMap, errors });
       }
       if (!idMap[id]) {
@@ -61,9 +75,13 @@ export function createOlxJsonHandler(
       // User resolved by the session middleware (server.ts stashes it on
       // the raw Node request).
       const user: AuthUser | undefined = (c.env as any).incoming?.__user;
+      // Establish the subscription (the fetch IS the subscription) BEFORE any
+      // 304 short-circuit, so a revalidating client still gets its live
+      // connections subscribed.
       const fieldState = user
         ? await stateForContentFetch(stateRegistry, subscriptions, user.safe_user_id, responseIdMap)
         : null;
+      if (ifNoneMatch === etag) return c.body(null, 304);
       return c.json({ ok: true, idMap: responseIdMap, ...(fieldState ? { fieldState } : {}) });
     } catch (error: any) {
       console.error('Error loading content:', error);
