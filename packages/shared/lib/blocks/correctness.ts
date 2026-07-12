@@ -139,6 +139,21 @@ export function getAllCorrectnessStates(): Set<string> {
 }
 
 /**
+ * Has this been graded — is there a real verdict?
+ * (correct / partiallyCorrect / incorrect; NOT pending, blank, or malformed.)
+ *
+ * This is a CORRECTNESS-axis predicate. Do not use it to gate on doneness —
+ * a problem can be graded-incorrect and still open for more attempts, or
+ * ungraded and closed (deadline passed). See problemModes.problemCompletion
+ * for the doneness derivation.
+ */
+export function isGraded(c: string | null | undefined): boolean {
+  return c === correctness.correct ||
+         c === correctness.partiallyCorrect ||
+         c === correctness.incorrect;
+}
+
+/**
  * Ordering for worst-case aggregation (lower = worse).
  * Used by grading aggregators to determine priority.
  */
@@ -193,27 +208,30 @@ export const completionPriority = {
 } as const;
 
 /**
- * Visibility handlers for conditional content (Explanation, Answer, etc.)
+ * Visibility handlers for conditional content (Explanation showWhen, etc.)
  *
- * Open edX supports these show_answer options:
- * - "always"                      - Always show
- * - "answered"                    - After valid submission (not unsubmitted or invalid)
- * - "attempted"                   - Alias for answered
- * - "correct"                     - Only when correct
- * - "never"                       - Never show
+ * These are CORRECTNESS-axis gates. Doneness gates (deadline passed,
+ * attempts exhausted) are COMPLETION-axis and live in problemModes
+ * (problemCompletion / shouldShowAnswer) — do not add them here dressed up
+ * as correctness checks.
+ *
+ * VOCABULARY WARNING: "answered" is a legacy term with two conflicting
+ * meanings in the wild:
+ * - Here (showWhen): alias for "attempted" — any valid submission exists.
+ * - In the showanswer attribute (problemModes): edX-legacy for "answered
+ *   correctly".
+ * Prefer the unambiguous terms: "attempted" or "correct".
  *
  * Future (require additional CapaProblem-level state):
- * - "closed"                      - When problem is closed
- * - "finished"                    - When course/section is finished
  * - "past_due"                    - After due date
  * - "correct_or_past_due"         - When correct OR past due
- * - "after_all_attempts"          - After max attempts used
- * - "after_all_attempts_or_correct" - After all attempts OR correct
  * - "attempted_no_past_due"       - Attempted but not past due
  */
 export const visibilityHandlers = {
   always: () => true,
   never: () => false,
+  // Any valid submission exists (may be pending grading). Broader than
+  // isGraded(): includes 'submitted' and 'incomplete'.
   answered: ({ correctness: c }: { correctness?: string }) =>
     c !== correctness.unsubmitted && c !== correctness.invalid,
   attempted: ({ correctness: c }: { correctness?: string }) =>

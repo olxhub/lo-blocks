@@ -10,7 +10,7 @@
 // See docs/architecture/problem-submission-modes.md for design rationale.
 //
 
-import { correctness as correctnessEnum } from './correctness';
+import { correctness as correctnessEnum, completion, type Completion } from './correctness';
 import { showAnswerModes, type ShowAnswerMode } from './attributeSchemas';
 
 // Re-export for consumers
@@ -30,7 +30,45 @@ export interface ProblemState {
 }
 
 /**
+ * Derive a problem's COMPLETION (doneness) from its grading state.
+ *
+ * Correctness and doneness are orthogonal (see correctness.ts). A problem
+ * can be incorrect AND done (one attempt allowed, got it wrong → closed);
+ * it can be ungraded and closed (deadline passed — future). Progress bars,
+ * gating, and Show Answer should ask this doneness question; feedback and
+ * scoring ask the correctness question. Conflating the two is a classic
+ * platform mistake — keep the axes separate.
+ *
+ *   done        - correct; nothing left to do
+ *   closed      - can no longer be worked (attempts exhausted; future:
+ *                 deadline passed). Not-done-but-can-no-longer-do: shows
+ *                 differently in a progress bar than in content gating.
+ *   inProgress  - attempted, still open
+ *   notStarted  - no attempts
+ */
+export function problemCompletion(state: ProblemState): Completion {
+  if (state.correct === correctnessEnum.correct) return completion.done;
+  if (isAttemptsClosed(state)) return completion.closed;
+  if (state.submitCount > 0) return completion.inProgress;
+  return completion.notStarted;
+}
+
+/** Is the problem in a terminal doneness state (done or closed)? */
+export function isProblemFinished(state: ProblemState): boolean {
+  const c = problemCompletion(state);
+  return c === completion.done || c === completion.closed;
+}
+
+/**
  * Determine if the Show Answer button should be visible.
+ *
+ * Each mode gates on ONE axis:
+ * - 'attempted' — interaction happened (completion ≥ inProgress)
+ * - 'answered'  — CORRECTNESS axis: answered correctly. (edX-legacy name;
+ *   note this conflicts with Explanation showWhen="answered", which means
+ *   attempted — see visibilityHandlers in correctness.ts.)
+ * - 'closed'    — COMPLETION axis: can no longer be worked
+ * - 'finished'  — COMPLETION axis: terminal (done or closed)
  *
  * @param mode - The showanswer mode from problem attributes
  * @param state - Current problem state
@@ -48,26 +86,33 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return false;
 
     case 'attempted':
-      return state.submitCount > 0;
+      return problemCompletion(state) !== completion.notStarted;
 
     case 'answered':
       return state.correct === correctnessEnum.correct;
 
     case 'closed':
+      // Raw constraint check, not problemCompletion(): edX 'closed' means
+      // "attempts used (future: or past due)" regardless of correctness —
+      // a correct answer with attempts exhausted is done AND closed for
+      // this purpose, but problemCompletion reports it as done.
       return isAttemptsClosed(state);
 
     case 'finished':
-      return state.correct === correctnessEnum.correct || isAttemptsClosed(state);
+      return isProblemFinished(state);
 
     default:
       // Unknown mode - log warning and default to 'finished' behavior
       console.warn(`Unknown showanswer mode: "${mode}", defaulting to 'finished'`);
-      return state.correct === correctnessEnum.correct || isAttemptsClosed(state);
+      return isProblemFinished(state);
   }
 }
 
 /**
  * Check if attempts are exhausted.
+ *
+ * COMPLETION-axis helper (feeds problemCompletion's 'closed'). Future
+ * doneness constraints (due dates) belong here too, not in correctness.
  */
 export function isAttemptsClosed(state: ProblemState): boolean {
   if (state.maxAttempts === null || state.maxAttempts === undefined) {
