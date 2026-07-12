@@ -511,7 +511,9 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   return problemKids;
 }
 
-export const fields = state.fields(state.graderFields());
+// Metagrader like CapaProblem: aggregate grading state is derived on read
+// (lib/grading/useCorrectness.ts), not stored. Only showAnswer is real state.
+export const fields = state.fields([state.commonFields.showAnswer]);
 
 const MarkupProblem = dev({
   ...peggyParser(capaParser, {

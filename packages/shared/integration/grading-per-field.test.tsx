@@ -134,6 +134,12 @@ describe('grading dispatches per-field events', () => {
     expect(gs.submitCount).toBe(2);
     expect(gs.lastSubmission).toEqual(['144']);
 
+    // CapaProblem's aggregate correctness is DERIVED from the child grader
+    // (never stored) — the ✅ icon appearing proves the derived chain works.
+    await waitFor(() => expect(container.textContent).toContain('✅'));
+    expect(reduxStore.getState().application_state?.component?.[
+      componentKey(reduxStore, 'PerFieldGrading')!]?.correct).toBeUndefined();
+
     // The wire format: one event per field, no compound UPDATE_CORRECT
     // (an UPDATE_CORRECT event may exist, but only carrying `correct` itself).
     const events = (window as any).__events?.getEvents() ?? [];
