@@ -10,14 +10,23 @@
 //   #
 //   # Directory — a checkout managed by dev-ops. Keep the mount equal to
 //   # the directory name the content previously lived at, so paths, URLs,
-//   # namespaces, and student state keys are unchanged.
+//   # namespaces, and student state keys are unchanged. A bare string reads
+//   # the WORKTREE (files as they are on disk — today's exact behavior,
+//   # live edits included). The object form adds `worktree: false` to read
+//   # the checkout's git HEAD instead (committed content only, served via
+//   # the local .git; commits land as real git commits). A bare string is
+//   # exactly `{ dir: <path>, worktree: true }`. `worktree: false` requires
+//   # the directory to BE a git checkout (contain .git).
 //   #
 //   # Repo — served directly from a git remote (plain smart-HTTP protocol;
 //   # any forge or bare repo). In-memory, read-only, head checked at most
 //   # once per cooldown. By convention the mount is the repo basename,
 //   # which is also its namespace (see docs/content-in-git.md).
 //   sources:
-//     psychology: /srv/content/psych              # directory form
+//     psychology: /srv/content/psych              # directory form (worktree)
+//     chemistry:                                  # directory form, git HEAD
+//       dir: /srv/content/chem
+//       worktree: false
 //     edu.memphis.psych:                          # repo form
 //       repo: https://github.com/olxhub/edu.memphis.psych
 //       branch: main          # optional (default main) — the ref read+edited
@@ -70,6 +79,24 @@ const LOCAL_CONFIG_PATH = 'config/content-sources.local.yaml';
 const DEFAULT_TOKEN_FILE = 'config/github.pat';
 const DEFAULT_TOKEN_ENV = 'LO_GITHUB_TOKEN';
 
+/**
+ * Directory-form source (object form): a checkout on disk. The bare-string
+ * form `mount: /path` is shorthand for `{ dir: /path, worktree: true }`.
+ */
+export interface DirectorySource {
+  /** Checkout directory on disk. */
+  dir: string;
+  /**
+   * Read the on-disk WORKTREE (default true — files as they are on disk, live
+   * edits included; today's exact behavior, served by FileStorageProvider).
+   * Set false to read the checkout's git HEAD instead (committed content only,
+   * via the local `.git` — a local-mode GitStorageProvider; Studio commits land
+   * as real git commits, no push). `worktree: false` requires `dir` to be a
+   * git checkout (contain `.git`) — a config error names the fix otherwise.
+   */
+  worktree?: boolean;
+}
+
 /** Repo-form source: served directly from a git remote. */
 export interface RepoSource {
   repo: string;
@@ -107,8 +134,9 @@ export interface RepoSource {
 }
 
 export interface ContentSourcesConfig {
-  /** mount name → checkout directory (string) or git remote (RepoSource) */
-  sources: Record<string, string | RepoSource>;
+  /** mount name → checkout directory (string or DirectorySource) or git
+   *  remote (RepoSource) */
+  sources: Record<string, string | DirectorySource | RepoSource>;
   /** directory for unrouted paths */
   fallback: string;
   /** Whether the fallback (./content) is editable. Default false — a deploy
@@ -154,13 +182,20 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   if (raw === null) return defaultConfig();
 
   const parsed = YAML.parse(raw) ?? {};
-  const sources: Record<string, string | RepoSource> = parsed.sources ?? {};
+  const sources: Record<string, string | DirectorySource | RepoSource> = parsed.sources ?? {};
   for (const [mount, entry] of Object.entries(sources)) {
     const isDir = typeof entry === 'string' && entry;
+    const isDirObj = entry && typeof entry === 'object' && typeof (entry as DirectorySource).dir === 'string';
     const isRepo = entry && typeof entry === 'object' && typeof (entry as RepoSource).repo === 'string';
-    if (!isDir && !isRepo) {
+    if (isDirObj && isRepo) {
       throw new Error(
-        `content-sources: source "${mount}" must be a directory path or { repo: <url>, ... }`
+        `content-sources: source "${mount}" sets both "dir" and "repo" — pick one form`
+      );
+    }
+    if (!isDir && !isDirObj && !isRepo) {
+      throw new Error(
+        `content-sources: source "${mount}" must be a directory path, ` +
+        `{ dir: <path>, worktree?: <bool> }, or { repo: <url>, ... }`
       );
     }
   }
@@ -227,12 +262,41 @@ const gitSourceProvider = memoize(
 );
 
 /**
+ * A directory-form source with `worktree: false`: serve the checkout's git
+ * HEAD through its on-disk `.git` (local-mode GitStorageProvider — committed
+ * content only; Studio commits land as real git commits, no push). Fails with
+ * an author-friendly config error when the directory isn't a git checkout.
+ */
+async function localGitProvider(mount: string, dir: string): Promise<StorageProvider> {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+  const gitDir = path.join(dir, '.git');
+  const hasGit = await fs.stat(gitDir).then(s => s.isDirectory() || s.isFile(), () => false);
+  if (!hasGit) {
+    throw new Error(
+      `content-sources: source "${mount}" sets worktree: false, which serves the ` +
+      `checkout's git HEAD — but "${dir}" has no .git. Point "dir" at a git checkout ` +
+      `(or run \`git init && git add -A && git commit\` there), or remove ` +
+      `"worktree: false" to serve the files directly.`
+    );
+  }
+  // Dynamic import keeps isomorphic-git out of client bundles.
+  const { GitStorageProvider } = await import('./providers/git');
+  return new GitStorageProvider({
+    // Same origin (file:content/<mount>) and default namespace (<mount>) as the
+    // worktree form, so flipping the flag changes WHAT is served (HEAD vs
+    // worktree), never the source's identity.
+    local: { dir, mount: `content/${mount}`, defaultNs: mount },
+  });
+}
+
+/**
  * One configured content source: its provider and its canonical ORIGIN — the
  * `source()` of the refs it emits, which is the editing handle (`sourceProvider`)
  * and the key the compile union merges by. `label`/`writable` are the
  * authoring-facing metadata Studio shows in its source picker.
  */
-interface ConfiguredSource {
+export interface ConfiguredSource {
   origin: LofsOrigin;
   /** Human label for the picker (the config mount key, or "Local content"). */
   label: string;
@@ -265,9 +329,14 @@ export interface SourceInfo {
  * derive from it. Each file provider confines reads/writes to its own baseDir
  * (a root check — see providers/file.ts); no global allow-list. Git clones are
  * memoized (gitSourceProvider), so the union and an editing handle share one clone.
+ *
+ * Exported for tests, which pass an explicit `config`; production callers omit
+ * it and get the deployment's config (loadContentSourcesConfig).
  */
-async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallback: ConfiguredSource }> {
-  const config = await loadContentSourcesConfig();
+export async function configuredSources(
+  config?: ContentSourcesConfig,
+): Promise<{ sources: ConfiguredSource[]; fallback: ConfiguredSource }> {
+  config ??= await loadContentSourcesConfig();
 
   const fallback: ConfiguredSource = {
     origin: toLofsOrigin('file:content'),
@@ -278,15 +347,22 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
 
   const sources: ConfiguredSource[] = [];
   for (const [mount, entry] of Object.entries(config.sources)) {
-    if (typeof entry === 'string') {
-      // Directory form: a checkout on disk. defaultNs = the mount name, so a
-      // collection that moved out of ./content/<mount> keeps its namespace even
-      // with files at the checkout root and no manifest. See namespaceFor.
+    if (typeof entry === 'string' || 'dir' in entry) {
+      // Directory form: a checkout on disk. Bare string ≡ { dir, worktree: true }.
+      // defaultNs = the mount name, so a collection that moved out of
+      // ./content/<mount> keeps its namespace even with files at the checkout
+      // root and no manifest. See namespaceFor.
+      const { dir, worktree = true } = typeof entry === 'string' ? { dir: entry } : entry;
       sources.push({
         origin: toLofsOrigin(`file:content/${mount}`),
         label: mount,
         writable: true,  // local disk — always editable
-        provider: new FileStorageProvider(entry, `content/${mount}`, { defaultNs: mount }),
+        provider: worktree
+          // Worktree (default, bare-string behavior): serve the files as they
+          // are on disk, live edits included.
+          ? new FileStorageProvider(dir, `content/${mount}`, { defaultNs: mount })
+          // worktree: false — serve the checkout's git HEAD via its local .git.
+          : await localGitProvider(mount, dir),
       });
     } else {
       // Repo form: served from the git remote, in memory. Read-only unless the

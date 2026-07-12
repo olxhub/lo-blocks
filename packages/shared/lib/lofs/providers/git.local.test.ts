@@ -108,6 +108,26 @@ describe('GitStorageProvider local mode (whole repo)', () => {
     await expect(provider.read('lesson1.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
     await expect(provider.read('unit2/lesson2.olx' as OlxRelativePath)).rejects.toThrow(/not found/i);
   });
+
+  it('defaults ref to HEAD: reads and commits advance the checkout\'s current branch', async () => {
+    // No explicit ref — the local default is HEAD, which must resolve (and on
+    // commit ADVANCE) whatever branch the checkout has checked out, even one
+    // not named main. .git/HEAD must stay symbolic (no detached HEAD).
+    await git.branch({ ...fsEnv, dir, ref: 'trunk', checkout: true });
+    const p = new GitStorageProvider({ local: { dir, mount: 'course' } });
+
+    expect((await p.read('lesson1.olx' as OlxRelativePath)).content).toContain('HEAD content');
+    const before = await git.resolveRef({ ...fsEnv, dir, ref: 'trunk' });
+    expect(await p.generationToken()).toBe(before);
+
+    await p.commit([{ path: 'lesson1.olx' as OlxRelativePath, content: '<Markdown id="a">on trunk</Markdown>' }]);
+    const after = await git.resolveRef({ ...fsEnv, dir, ref: 'trunk' });
+    expect(after).not.toBe(before);
+    expect((await git.readCommit({ ...fsEnv, dir, oid: after })).commit.parent).toEqual([before]);
+    // HEAD is still symbolic, pointing at trunk.
+    expect(await git.currentBranch({ ...fsEnv, dir })).toBe('trunk');
+    expect((await p.read('lesson1.olx' as OlxRelativePath)).content).toContain('on trunk');
+  });
 });
 
 describe('GitStorageProvider local mode (parent-repo subpath — the ./content fallback)', () => {

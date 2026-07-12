@@ -138,13 +138,19 @@ export interface LocalGitOptions {
    *  identical whether the source reads the worktree (file provider) or HEAD
    *  (this, in local mode). */
   mount: string;
+  /** Fallback namespace when no manifest declares one (default: the mount).
+   *  Directory-form sources mounted at `content/<name>` pass `<name>` here —
+   *  the same value FileStorageProvider gets as defaultNs — so a source's
+   *  namespace is identical whether it reads the worktree or HEAD. */
+  defaultNs?: string;
 }
 
 export interface GitProviderOptions {
   /** Remote URL (https smart-HTTP; any forge or bare repo). Required for remote
    *  mode; omit when `local` is set. */
   url?: string;
-  /** Branch to serve (default: main). */
+  /** Branch to serve (default: main; local mode defaults to HEAD — whatever
+   *  branch the checkout currently has checked out). */
   ref?: string;
   /** Minimum ms between remote head checks (default: 60s). Ignored in local mode. */
   cooldownMs?: number;
@@ -226,8 +232,10 @@ export class GitStorageProvider implements StorageProvider {
    *  from the same head and then collide at push — chain them. */
   private writeLock: Promise<unknown> = Promise.resolve();
 
-  constructor({ url, ref = 'main', cooldownMs = 60_000, auth, local }: GitProviderOptions) {
-    this.ref = ref;
+  constructor({ url, ref, cooldownMs = 60_000, auth, local }: GitProviderOptions) {
+    // Local mode defaults to HEAD (the checkout's current branch, whatever its
+    // name); remote mode defaults to main.
+    this.ref = ref ?? (local ? 'HEAD' : 'main');
     this.auth = auth;
     if (local) {
       // LOCAL mode: on-disk .git, no network. Origin is file:<mount>, matching
@@ -557,18 +565,19 @@ export class GitStorageProvider implements StorageProvider {
 
     // 2. Collection default (no manifest declared one).
     if (this.mode === 'local') {
-      // Local mode is a directory-form / fallback source: the MOUNT names the
-      // collection, mirroring FileStorageProvider's defaultNs — so a checkout's
-      // namespace is unchanged whether it's read from the worktree or from HEAD.
-      const mount = this.local!.mount;
-      const valid = validateContentNamespace(mount);
+      // Local mode is a directory-form / fallback source: defaultNs (or the
+      // mount) names the collection, mirroring FileStorageProvider's defaultNs
+      // — so a checkout's namespace is unchanged whether it's read from the
+      // worktree or from HEAD.
+      const ns = this.local!.defaultNs ?? this.local!.mount;
+      const valid = validateContentNamespace(ns);
       if (valid !== true) {
         throw new NamespaceResolutionError(
-          `Mount "${mount}" is not a valid namespace: ${valid}. ` +
+          `Default namespace "${ns}" for mount "${this.local!.mount}" is invalid: ${valid}. ` +
           `Add a manifest.yaml with an explicit "namespace:" field.`
         );
       }
-      return { ns: asContentNamespace(mount) };
+      return { ns: asContentNamespace(ns) };
     }
     // Remote mode: the repo's URL is the collection identity.
     try {
@@ -810,7 +819,10 @@ export class GitStorageProvider implements StorageProvider {
       parent: [s.head],
       author: author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
       committer: PLATFORM_IDENTITY,           // who physically committed
-      ref: `refs/heads/${this.ref}`,
+      // 'HEAD' (local-mode default) is symbolic: OMIT ref so isomorphic-git
+      // resolves HEAD to the checkout's current branch and advances that ref.
+      // (Passing 'HEAD' literally would overwrite .git/HEAD → detached HEAD.)
+      ...(this.ref === 'HEAD' ? {} : { ref: `refs/heads/${this.ref}` }),
     });
     // Remote mode pushes; local mode commits to the on-disk repo only (no push).
     if (this.mode === 'remote') {
