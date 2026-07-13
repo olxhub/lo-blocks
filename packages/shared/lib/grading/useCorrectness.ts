@@ -23,6 +23,7 @@
 //
 'use client';
 import { useSelector, shallowEqual } from 'react-redux';
+import { registerGraderStateResolver } from '../stateLanguage/hooks';
 import { correctness, normalizeCorrectness } from '../blocks/correctness';
 import { getDomNodeByStateKey, getParents, inferRelatedNodes, propsFromNode } from '../blocks/olxdom';
 import { gatherInputData, buildGraderParam } from '../blocks/actions';
@@ -231,3 +232,9 @@ export function useCorrectness(props: RuntimeProps, graderStateKey: StateKey | u
     shallowEqual,
   );
 }
+
+// DSL expressions (when="@problem.correct === ...") resolve grader
+// references through selectGradingState — registered (not imported by
+// stateLanguage) to avoid a module cycle through olxdom.
+registerGraderStateResolver((state, props, stateKey) =>
+  selectGradingState(state, props, stateKey as StateKey));

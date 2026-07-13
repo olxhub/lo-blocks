@@ -132,6 +132,34 @@ describe('grading dispatches per-field events', () => {
     }
   });
 
+  it('when= expressions see derived problem-level correctness', async () => {
+    // Regression: CapaProblem stopped storing its aggregate `correct`, but
+    // DSL references (@problem.correct) read component buckets — they must
+    // resolve through the derived-grading overlay (stateLanguage/hooks.ts).
+    const BRANCHING_OLX = `<Vertical id="BranchDemo">
+      <CapaProblem id="branch_problem" title="Geography">
+        Capital of France?
+        <KeyGrader>
+          <ChoiceInput>
+            <Key>Paris</Key>
+            <Distractor>London</Distractor>
+          </ChoiceInput>
+        </KeyGrader>
+      </CapaProblem>
+      <Markdown id="followup" when="@branch_problem.correct === correctness.correct">
+        BONUS_CONTENT_MARKER
+      </Markdown>
+    </Vertical>`;
+    const { container, getByText } = await mountProblem(BRANCHING_OLX);
+
+    expect(container.textContent).not.toContain('BONUS_CONTENT_MARKER');
+    const radios = container.querySelectorAll('input[type="radio"]');
+    fireEvent.click(radios[0]); // Paris
+    await waitFor(() => expect(getByText(/Check|Submit/)).toBeTruthy());
+    fireEvent.click(getByText(/Check|Submit/));
+    await waitFor(() => expect(container.textContent).toContain('BONUS_CONTENT_MARKER'));
+  });
+
   it('immediate mode derives correctness from live input values', async () => {
     const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
 

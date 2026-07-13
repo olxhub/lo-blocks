@@ -48,6 +48,51 @@ const EMPTY_CONTEXT: ContextData = {
 // ---------------------------------------------------------------------------
 const _materializeCache = new WeakMap<object, object>();
 
+// ---------------------------------------------------------------------------
+// Grader state resolver (injected)
+// ---------------------------------------------------------------------------
+// Grading state for grader blocks is DERIVED, not stored (metagraders like
+// CapaProblem never write correct/message/score; immediate-mode leaf graders
+// derive from live input values — see lib/grading/useCorrectness.ts). DSL
+// expressions like when="@problem.correct === correctness.correct" must see
+// that derived state, so grader references resolve through this hook.
+// Injected by lib/grading at import time rather than imported statically:
+// olxdom → stateLanguage → grading → olxdom would be a module cycle.
+type GraderStateResolver = (state: any, props: any, stateKey: StateKey) => Record<string, any>;
+let _graderStateResolver: GraderStateResolver | null = null;
+export function registerGraderStateResolver(fn: GraderStateResolver) {
+  _graderStateResolver = fn;
+}
+
+// Merged bucket cache (same referential-stability contract as
+// _materializeCache, but keyed per Redux state object since the grading
+// overlay depends on more than the one bucket).
+const _graderOverlayCache = new WeakMap<object, Map<string, object>>();
+
+/** Overlay derived grading state onto a grader block's bucket. */
+function withDerivedGrading(
+  state: any,
+  props: any,
+  stateKey: StateKey,
+  bucket: any,
+): any {
+  if (!_graderStateResolver) return bucket;
+  const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
+  const sources = props.runtime?.olxJsonSources ?? ['content'];
+  const locale = props.runtime?.locale?.code;
+  const blockNode = selectBlock(state, sources, definitionKey, locale);
+  const blockDef = blockNode ? props.runtime?.blockRegistry?.[blockNode.tag] : null;
+  if (!blockDef?.isGrader) return bucket;
+
+  let byKey = _graderOverlayCache.get(state);
+  if (!byKey) { byKey = new Map(); _graderOverlayCache.set(state, byKey); }
+  const cached = byKey.get(stateKey);
+  if (cached) return cached;
+  const merged = { ...bucket, ..._graderStateResolver(state, props, stateKey) };
+  byKey.set(stateKey, merged);
+  return merged;
+}
+
 /**
  * Materialize a component's raw Redux state using the block's field definitions.
  * Returns the raw state unchanged if no fields have `read` transforms.
@@ -166,7 +211,12 @@ export function selectReferences(
     // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
     // Returns rawState unchanged if no fields have read transforms.
     // Cached per raw state object for referential stability.
-    componentState[key] = materializeComponentState(rawState, state, props, stateKey);
+    // Grader blocks additionally get derived grading state overlaid
+    // (correct/message/score/submitCount are computed, not stored).
+    componentState[key] = withDerivedGrading(
+      state, props, stateKey,
+      materializeComponentState(rawState, state, props, stateKey),
+    );
   }
 
   // Resolve OLX content references (#)

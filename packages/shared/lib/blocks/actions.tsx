@@ -358,6 +358,13 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
     const { values, apis } = gatherInputData(props, inputIds, state);
     const writeOpts = { stateKey: targetId as StateKey };
 
+    // Re-entrancy guard: a submission is already being graded (the button
+    // disables on 'submitted', but a fast double-click can race the event
+    // queue). Skip rather than launch a duplicate grading call.
+    if (slow && state.application_state?.component?.[targetId]?.correct === correctness.submitted) {
+      return undefined;
+    }
+
     // Capture what is being graded (shown by the UI during slow grading and
     // for changed-since-submission indicators afterwards).
     updateField(props, commonFields.lastSubmission, values, writeOpts);

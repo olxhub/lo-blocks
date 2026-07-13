@@ -123,9 +123,13 @@ export function isAttemptsClosed(state: ProblemState): boolean {
 
 /**
  * Check if the submit/check button should be disabled.
+ *
+ * Disabled when attempts are exhausted, or while a slow (async) grader is
+ * grading the current submission — resubmitting mid-flight would launch a
+ * duplicate grading call (e.g. a second LLM request) and burn an attempt.
  */
 export function isSubmitDisabled(state: ProblemState): boolean {
-  return isAttemptsClosed(state);
+  return isAttemptsClosed(state) || state.correct === correctnessEnum.submitted;
 }
 
 /**
