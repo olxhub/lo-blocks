@@ -17,6 +17,7 @@
 // delivery, only the reduced bucket leaves the server.
 
 import type { SafeUserId } from '@/lib/types/identity';
+import type { StateKey } from '@/lib/types';
 import type { StateConnection } from './connection';
 import type { UserStateRegistry, UserStateEntry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
@@ -28,7 +29,7 @@ import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
-  isEphemeralBlockId,
+  isEphemeralNamespaceKey,
 } from './levels';
 
 /** One connection's standing context in the sync engine — acquired at
@@ -57,7 +58,7 @@ export interface SyncSession {
 /** A field event as it arrives on the wire. */
 export interface SyncEvent {
   event?: string;
-  id?: string;
+  id?: StateKey;
   field?: string;
   authority?: 'shared' | 'server';
   [key: string]: any;
@@ -141,7 +142,7 @@ function subscribersFor(
 export async function routeEvent(session: SyncSession, event: SyncEvent): Promise<void> {
   // Ephemeral namespaces (docs demo sandboxes): never folded or persisted —
   // the client's optimistic local fold is the only copy, gone on refresh.
-  if (isEphemeralBlockId(event.id)) return;
+  if (event.id && isEphemeralNamespaceKey(event.id)) return;
 
   const level = await resolveLevel(session, event);
   const instance = level

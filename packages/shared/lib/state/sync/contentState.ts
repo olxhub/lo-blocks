@@ -7,10 +7,11 @@
 // The HTTP route is a passthrough to stateForContentFetch.
 
 import type { SafeUserId } from '@/lib/types/identity';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { UserStateRegistry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import { parsePartitionSpec, groupFor } from './partitions';
-import { ALL, type LevelInstance, userInstance, setInstance, subscriptionKey, isEphemeralBlockId } from './levels';
+import { ALL, type LevelInstance, userInstance, setInstance, subscriptionKey, isEphemeralNamespaceKey } from './levels';
 
 /**
  * Pick the caller's per-user component buckets that belong to the ids
@@ -101,7 +102,9 @@ export async function stateForContentFetch(
   // Ephemeral blocks (docs sandboxes) never ride a content fetch — even
   // state persisted before the ephemeral policy stays server-side only.
   const persistentIdMap = Object.fromEntries(
-    Object.entries(responseIdMap).filter(([id]) => !isEphemeralBlockId(id)),
+    Object.entries(responseIdMap).filter(
+      ([id]) => !isEphemeralNamespaceKey(parseDefinitionKey(id)),
+    ),
   );
   const instanceOf = instancesFor(persistentIdMap, callerScopes);
 
