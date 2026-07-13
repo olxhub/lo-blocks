@@ -37,6 +37,14 @@ export interface PreviewPaneProps {
    *  inline (memory provenance). No fabricated default — guessing a base would
    *  silently resolve refs against the wrong source. */
   provenance?: string;
+  /** olxJson source the parsed preview dispatches into (Redux namespacing).
+   *  Defaults to 'content' (RenderOLX's default). Pass an isolated source to
+   *  keep an ephemeral edit from clobbering the shared index. */
+  source?: string;
+  /** Lower-priority sources for cross-file resolution when `source` is an
+   *  isolated edit buffer — e.g. `['content']` so companions resolve from the
+   *  index while the edited file renders inline. */
+  baseSources?: string[];
   /** Called with a canonical AppError when parsing/rendering fails */
   onError?: (error: AppError) => void;
   /** Called after parsing completes with merged idMap (OLX only) */
@@ -59,6 +67,8 @@ export default function PreviewPane({
   idMap,
   resolveProvider,
   provenance,
+  source,
+  baseSources,
   onError,
   onParsed,
   nodeInfoRef,
@@ -114,6 +124,8 @@ export default function PreviewPane({
       baseIdMap={idMap ?? undefined}
       resolveProvider={provider}
       provenance={provenance}
+      source={source}
+      baseSources={baseSources}
       onError={onError}
       onParsed={onParsed}
       nodeInfoRef={nodeInfoRef}

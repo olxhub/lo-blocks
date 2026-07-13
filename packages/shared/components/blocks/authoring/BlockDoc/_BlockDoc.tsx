@@ -18,21 +18,32 @@ import { asContentNamespace } from '@/lib/types/id-grammar';
 import { useFieldState } from '@/lib/state';
 import Spinner from '@/components/common/Spinner';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
-import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
-import { DocHeader, DocTabs, LivePreviewPanel, FileCard, BlockQuickReference } from './docPanels';
+import {
+  DocHeader, DocTabs, EditableExample, FileCard, BlockQuickReference,
+  docsExampleRef, isExampleDirty,
+} from './docPanels';
 import { blockDocFields } from './locals';
 
 // ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
 
-type ExampleEntry = [filename: string, example: { content: string; rootId?: string | null }];
+type ExampleEntry = [
+  filename: string,
+  example: { content: string; rootId?: string | null; path?: string | null },
+];
 
 function buildTabs(block: BlockDocRecord, examples: ExampleEntry[]) {
   const tabs = [{ id: 'overview', label: 'Overview' }];
   if (block.readme) tabs.push({ id: 'readme', label: 'README' });
-  for (const [filename] of examples) {
-    tabs.push({ id: `example:${filename}`, label: filename.replace(/\.olx$/, '') });
+  for (const [filename, example] of examples) {
+    // Dirty dot recomputed each render (tab switches re-render this component,
+    // which is when a non-active tab's indicator needs to refresh).
+    const dirty = isExampleDirty(docsExampleRef(example.path, filename), example.content);
+    tabs.push({
+      id: `example:${filename}`,
+      label: `${filename.replace(/\.olx$/, '')}${dirty ? ' ●' : ''}`,
+    });
   }
   return tabs;
 }
@@ -41,18 +52,13 @@ function buildTabs(block: BlockDocRecord, examples: ExampleEntry[]) {
 // Example preview
 // ---------------------------------------------------------------------------
 
-function ExamplePreview({ filename, content, rootId, ns, showMoreCount }: {
-  filename: string; content: string; rootId?: string | null;
+function ExamplePreview({ filename, content, rootId, path, ns, showMoreCount }: {
+  filename: string; content: string; rootId?: string | null; path?: string | null;
   ns: ReturnType<typeof asContentNamespace>; showMoreCount: number;
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <LivePreviewPanel olx={content} rootId={rootId} ns={ns} />
-      <FileCard title={filename}>
-        <div className="p-4 bg-background">
-          <OLXCodeBlock language="olx:code" ns={ns}>{content}</OLXCodeBlock>
-        </div>
-      </FileCard>
+      <EditableExample filename={filename} content={content} rootId={rootId} path={path} ns={ns} />
       {showMoreCount > 0 && (
         <p className="text-sm text-dimmed">
           {showMoreCount} more example{showMoreCount === 1 ? '' : 's'} available in the tabs above.
@@ -78,6 +84,7 @@ function OverviewTab({ block, examples, ns }: {
           filename={firstFilename}
           content={firstExample.content}
           rootId={firstExample.rootId}
+          path={firstExample.path}
           ns={ns}
           showMoreCount={examples.length - 1}
         />
@@ -99,13 +106,13 @@ function ReadmeTab({ block, ns }: { block: BlockDocRecord; ns: ReturnType<typeof
   );
 }
 
-function ExampleTab({ filename, content, rootId, ns }: {
-  filename: string; content: string; rootId?: string | null;
+function ExampleTab({ filename, content, rootId, path, ns }: {
+  filename: string; content: string; rootId?: string | null; path?: string | null;
   ns: ReturnType<typeof asContentNamespace>;
 }) {
   return (
     <div className="p-6">
-      <ExamplePreview filename={filename} content={content} rootId={rootId} ns={ns} showMoreCount={0} />
+      <ExamplePreview filename={filename} content={content} rootId={rootId} path={path} ns={ns} showMoreCount={0} />
     </div>
   );
 }
@@ -145,7 +152,7 @@ export function BlockDocContent({ block, activeTab, onTabChange }: {
         const filename = currentTab.slice('example:'.length);
         const example = examples.find(([f]) => f === filename);
         return example
-          ? <ExampleTab filename={filename} content={example[1].content} rootId={example[1].rootId} ns={ns} />
+          ? <ExampleTab filename={filename} content={example[1].content} rootId={example[1].rootId} path={example[1].path} ns={ns} />
           : null;
       })()}
     </div>

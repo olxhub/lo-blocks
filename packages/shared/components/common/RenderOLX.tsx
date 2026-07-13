@@ -267,6 +267,13 @@ interface RenderOLXProps {
   blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
   source?: string;
+  /** Lower-priority olxJson sources appended after `source` in the lookup
+   *  order — for layering an isolated edit buffer OVER a shared index without
+   *  dispatching into (and clobbering) that index. The inline parse dispatches
+   *  only to `source`; companion ids not in the edit resolve from these bases.
+   *  Docs live-edit passes `['content']` so an edited example renders inline
+   *  while its multi-file companions still resolve from the indexed content. */
+  baseSources?: string[];
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
   /** Initial idPrefix for scoping the rendered block's state key.
@@ -305,6 +312,7 @@ export default function RenderOLX({
   onParsed,
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
+  baseSources,
   eventContext,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
@@ -351,7 +359,7 @@ export default function RenderOLX({
     store: renderProps.store,
     logEvent: renderProps.logEvent,
     sideEffectFree: renderProps.sideEffectFree,
-    olxJsonSources: [source],
+    olxJsonSources: baseSources?.length ? [source, ...baseSources] : [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
     locale: renderProps.locale,

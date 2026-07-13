@@ -28,7 +28,7 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import type { CodeEditorHandle } from '@/components/common/CodeEditor';
 import type { RuntimeProps, LofsOrigin, LofsRef, SourceOption } from '@/lib/types';
 import FileEditorPane, { type FileCache } from './fileEditorPane';
-import { getStudioContent, setStudioContent, useStudioContent } from './editorContent';
+import { getStudioContent, setStudioContent, useStudioContent } from '@/lib/state/editorContent';
 import { FilesPanel } from './filesPanel';
 import { SearchPanel } from './searchPanel';
 import { DocsPanel } from './docsPanel';

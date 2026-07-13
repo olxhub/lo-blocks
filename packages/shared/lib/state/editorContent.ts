@@ -1,11 +1,16 @@
-// packages/shared/components/blocks/authoring/Studio/editorContent.ts
+// packages/shared/lib/state/editorContent.ts
 //
-// Studio content state, keyed by a file's LofsRef — the redux working
+// Editable content state, keyed by a file's LofsRef — the redux working
 // tree, v1. Ported from apps/web/app/studio/editorState.ts unchanged in
 // mechanism; see that file's header for the LofsRef→StateKey boundary
 // rationale. Under the settled storage model (git lake / redux working
 // tree / CRDT documents) this module is the working-tree accessor; a
 // CRDT-backed field type slots in behind the same three functions.
+//
+// Not Studio-specific: any surface that lets a user edit a file's text
+// keys into this same buffer. Both Studio's file editor and BlockDoc's
+// live example editing share it, so an edit persists across tab switches
+// and reloads (docField, storage scope) for free.
 //
 //   - null baselineProps (studio isn't inside a block runtime yet)
 //   - stateKey = the file's LofsRef ({source}://{path})
