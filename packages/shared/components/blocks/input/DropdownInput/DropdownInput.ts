@@ -14,6 +14,9 @@ const DropdownInput = core({
   ...peggyParser(parser),
   name: 'DropdownInput',
   ...input({ valueSchema: z.string() }),
+  // Selecting an option is a deliberate answer — immediate-mode grading
+  // should show an incorrect selection rather than soften it to incomplete.
+  commitOnChange: true,
   description: 'Dropdown select input for choosing from a list of options',
   // Non-conventional: component file is _DropdownSelect, not _DropdownInput.
   componentLoader: () => import('./_DropdownSelect').then(m => m.default),
