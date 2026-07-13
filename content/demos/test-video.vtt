@@ -1,0 +1,13 @@
+WEBVTT
+
+00:00.000 --> 00:04.000
+Welcome! This sample transcript accompanies the demo video.
+
+00:04.000 --> 00:09.000
+Each cue is clickable and seeks the player to its start time.
+
+00:09.000 --> 00:15.000
+Transcripts are WebVTT files, the same format browsers use for captions.
+
+00:15.000 --> 00:21.000
+This one exists so the Video and Transcript demos have a real file to load.

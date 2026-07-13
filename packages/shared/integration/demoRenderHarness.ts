@@ -85,22 +85,48 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
-// Mock scrollTo for jsdom (Chat components use this)
+// Mock scrollTo/scrollIntoView for jsdom (Chat scrolls panes; Transcript
+// scrolls the active cue into view)
 if (typeof Element !== 'undefined' && !Element.prototype.scrollTo) {
   Element.prototype.scrollTo = function() { };
 }
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function() { };
+}
 
-// Mock fetch for content API requests - blocks not in Redux will trigger fetch
-// In test environment, return error for any fetch attempts
+// Mock fetch for the render sweep.
+// - /api/olxjson/: 404 (no server in tests; blocks not in Redux stay absent)
+// - /content/* asset paths: served from the SOURCE content/ dir (the
+//   gitignored apps/server/public/content copy is a build:sync-images
+//   product, absent on a fresh checkout) so demos exercise their actual
+//   assets. A MISSING asset both returns 404 and is recorded in
+//   missingAssets — renderDemoFile fails the demo for it, because a demo
+//   referencing a nonexistent file is a broken demo even when the block
+//   degrades gracefully. (Previously these fell through to real fetch,
+//   which throws TypeError on relative URLs in Node, and the block's
+//   catch swallowed it — the sweep passed with the asset absent.)
 const originalFetch = global.fetch;
+const CONTENT_DIR = path.resolve('./content');
+export const missingAssets: string[] = [];
 global.fetch = async (url: string | URL | Request, options?: RequestInit) => {
   const urlStr = typeof url === 'string' ? url : url.toString();
   if (urlStr.includes('/api/olxjson/')) {
-    // Return a 404 response for any content API requests
     return new Response(JSON.stringify({ ok: false, error: `Block not found (test environment)` }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+  if (urlStr.startsWith('/content/')) {
+    const filePath = path.join(CONTENT_DIR, urlStr.slice('/content/'.length));
+    if (filePath.startsWith(CONTENT_DIR)) {
+      try {
+        const content = await fs.readFile(filePath);
+        return new Response(content, { status: 200 });
+      } catch {
+        missingAssets.push(urlStr);
+        return new Response('Not found (test environment)', { status: 404 });
+      }
+    }
   }
   return originalFetch(url, options);
 };
@@ -290,6 +316,18 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
           error: `DisplayError rendered: ${errorMessages.join('; ')}`
         };
       }
+    }
+
+    // Flush microtasks/timers so async asset loads kicked off by mount
+    // (e.g. Transcript's VTT fetch) settle and record their failures.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (missingAssets.length > 0) {
+      const missing = [...new Set(missingAssets)];
+      missingAssets.length = 0;
+      return {
+        file: relativePath,
+        error: `Referenced asset(s) missing from apps/server/public: ${missing.join(', ')}`,
+      };
     }
 
     // Clean up
