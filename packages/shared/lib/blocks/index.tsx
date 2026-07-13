@@ -17,7 +17,7 @@ export { scopeMarker } from '../types/id-grammar';
 export { action, executeNodeActions, grader, input, isAction, isInput, isMatch } from './actions';
 export { correctness, correctnessPriority, visibilityHandlers, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates, completion, completionPriority, isValidCompletion, validateCompletion, getAllCompletionStates } from './correctness';
 export { worstCaseCorrectness, proportionalCorrectness, computeScore, formatScore, countCorrectness } from '@/lib/grading';
-export { isInputReadOnly } from './inputInteraction';
+export { useInputReadOnly } from './inputInteraction';
 export { baseAttributes, inputAttributes, graderAttributes, placeholder, src, z_stateRef, z_stateRefList, z_blockFieldRef, z_blockFieldRefList, z_expression } from './attributeSchemas';
 export type { BlockFieldRef, RefExtractor } from './attributeSchemas';
 export { useGraderAnswer, useGraderSummary, findGrader } from './useGraderAnswer';

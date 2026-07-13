@@ -177,7 +177,7 @@ function computeGradingState(
     // Metagrader: derive from children.
     const childImmediate = node.olxJson?.attributes?.grade === 'immediate';
     const selfId = node.olxJson?.id;
-    const childIds = inferRelatedNodes(
+    const descendantIds = inferRelatedNodes(
       { ...props, nodeInfo: node },
       {
         selector: n => n.loBlock?.isGrader && n.olxJson?.id !== selfId,
@@ -185,6 +185,18 @@ function computeGradingState(
         targets: node.olxJson?.attributes?.target,
       }
     );
+    // Aggregate DIRECT child graders only — a nested problem is a boundary.
+    // The DOM walk returns every descendant grader, so an outer problem
+    // would otherwise count an inner CapaProblem AND its leaf graders
+    // (double-counting scores, and evaluating the inner leaves under the
+    // outer problem's grade mode instead of the inner's own).
+    const childIds = descendantIds.filter(id => {
+      const childNode = getDomNodeByStateKey(props, id);
+      for (let cur = childNode?.parent; cur && cur !== node; cur = cur.parent) {
+        if (cur.loBlock?.isGrader) return false; // enclosed by a nearer grader
+      }
+      return true;
+    });
     if (childIds.length === 0) return UNGRADED;
     const kids = childIds.map(id => selectGradingState(state, props, id, childImmediate));
     const aggregate = {

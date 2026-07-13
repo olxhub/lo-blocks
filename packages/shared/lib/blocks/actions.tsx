@@ -330,7 +330,7 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
   inputType?: 'single' | 'list';
   /** Slow (async) grader — LLM, instructor/peer queue, code-in-sandbox.
    *  The action writes correct='submitted' BEFORE awaiting the grader, so
-   *  the UI shows a pending state and inputs lock (isInputReadOnly) while
+   *  the UI shows a pending state and inputs lock (useInputReadOnly) while
    *  grading is in flight; the final result overwrites it when the grader
    *  resolves. UI reads via useCorrectness/selectors, so both phases are
    *  ordinary field writes. */
@@ -371,15 +371,26 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
 
     if (slow) {
       // Phase 1 of two-phase grading: mark the submission pending before
-      // awaiting the (slow) grader; inputs lock via isInputReadOnly. If the
+      // awaiting the (slow) grader; inputs lock via useInputReadOnly. If the
       // grader ultimately returns unsubmitted/invalid (e.g. empty input),
       // the final write below simply overwrites the transient pending state.
       updateField(props, commonFields.correct, correctness.submitted, writeOpts);
     }
 
-    const { correct, message, score } = await evaluateGrader(
-      { grader, slots, inputType }, props, targetInstance, inputIds, values, apis
-    );
+    let correct: any, message: any, score: number | undefined;
+    try {
+      ({ correct, message, score } = await evaluateGrader(
+        { grader, slots, inputType }, props, targetInstance, inputIds, values, apis
+      ));
+    } catch (error: any) {
+      // An unexpected failure (rejected ensureReady, grader bug, data
+      // access) must not strand the pending 'submitted' state — inputs lock
+      // while it persists (useInputReadOnly). Terminal invalid: the answer
+      // was never judged and the attempt isn't counted.
+      console.error('[grader] evaluation failed:', error);
+      correct = correctness.invalid;
+      message = `Grading failed: ${error?.message ?? error}. Please try again.`;
+    }
 
     const correctnessValue = normalizeCorrectness(correct);
 
