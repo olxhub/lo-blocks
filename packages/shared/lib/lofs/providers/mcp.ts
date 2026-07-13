@@ -27,14 +27,16 @@ import {
   VersionConflictError,
 } from '../../types/storage';
 
-/** Wire shape of the Write tool's structured conflict result. */
-interface WriteConflict {
+/** Wire shape of a tool's structured conflict result (Write create-clobber,
+ *  Commit stale-base). */
+interface ToolConflict {
   ok: false;
   conflict: true;
   error: string;
   metadata?: unknown;
 }
-type WriteResult = { ok: true } | WriteConflict;
+type StageResult = { ok: true; staged: true } | ToolConflict;
+type CommitToolResult = { ok: true; committed: string[]; nothing?: boolean } | ToolConflict;
 
 export class McpStorageProvider implements StorageProvider {
   /** The source this provider edits, sent as `source` so the server routes
@@ -77,13 +79,16 @@ export class McpStorageProvider implements StorageProvider {
   }
 
   /**
-   * The client-side write doorway. Maps the change onto the LOFS tools
-   * (Write / Delete / Move) — the SAME contract Studio, the chat agent, and
-   * external MCP clients speak. No batch tool exists, so this face handles ONE
-   * change per commit (the only shape its callers issue); atomic multi-change
-   * lands on the server-side providers (git/file). `versions` is empty (the
-   * tool contract returns no token; the client re-reads for the fresh one),
-   * and a Write conflict is re-thrown as VersionConflictError like the locals.
+   * The client-side write doorway, on the WORKING TREE (git-storage-design
+   * §2.6): a change is STAGED (Write / Delete / Move) and then PUBLISHED by
+   * Commit — the two-act Claude-Code semantics, so "save" is stage-then-commit
+   * behind one call. Studio, the chat agent, and external MCP clients speak the
+   * same tool contract. No batch tool exists, so this face handles ONE change
+   * per commit (the only shape its callers issue). `versions` is empty (the
+   * tool contract returns no token; the client re-reads for the fresh one). A
+   * stale-base conflict at Commit is re-thrown as VersionConflictError (with
+   * the current token), exactly as before — Studio's conflict dialog is
+   * unchanged. The staged entry survives a conflict for a force retry.
    */
   async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
     if (changes.length !== 1) {
@@ -92,25 +97,38 @@ export class McpStorageProvider implements StorageProvider {
         `the MCP tool contract has no atomic multi-change write.`);
     }
     const [c] = changes;
+    const base = options.base?.find(b => String(b.path) === String(c.path));
+
+    // Stage the change into the working tree. (No retry: a write must not be
+    // replayed blind.)
     if (c.delete) {
       await callMcpTool('Delete', this.args({ path: c.path }));
     } else if (c.renameTo !== undefined) {
       await callMcpTool('Move', this.args({ path: c.path, new_path: c.renameTo }));
     } else if (c.content !== undefined) {
-      const base = options.base?.find(b => String(b.path) === String(c.path));
-      // No retry: a write must not be replayed blind.
-      const result = await callMcpTool<WriteResult>('Write', this.args({
+      const staged = await callMcpTool<StageResult>('Write', this.args({
         path: c.path,
         content: c.content,
         previous_metadata: base?.version,
-        force: options.force ?? false,
         create: options.create ?? false,
       }));
-      if (!result.ok) {
-        throw new VersionConflictError(result.error, result.metadata);
-      }
+      // Write's only structured failure is a create-clobber (the file already
+      // exists in the source) — surface it as a plain error, as before.
+      if (!staged.ok) throw new Error(staged.error);
     } else {
       throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+    }
+
+    // Publish just this path. Studio supplies its tracked read metadata as the
+    // conflict base (the working-tree entry may have been seeded by the WS
+    // buffer without one). Commit drops the entry on success.
+    const result = await callMcpTool<CommitToolResult>('Commit', this.args({
+      paths: [String(c.path)],
+      force: options.force ?? false,
+      ...(base?.version !== undefined ? { bases: [{ path: String(c.path), version: base.version }] } : {}),
+    }));
+    if (!result.ok) {
+      throw new VersionConflictError(result.error, result.metadata);
     }
     return { versions: {} };
   }

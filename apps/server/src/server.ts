@@ -80,6 +80,10 @@ export interface ServerHandle {
 export async function startServer(
   kvs: KVStore,
   registry: ToolRegistry,
+  /** The shared per-user state registry — created in index.ts so the LOFS
+   *  tools' working-tree seam and the WS pipeline fold into ONE materialization
+   *  per user. */
+  stateRegistry: UserStateRegistry,
   /** The boot tracker to adopt (already-listening server + handoff — see
    *  boot.ts). handoff() is called HERE, synchronously adjacent to the
    *  request-handler attach: detaching the boot handler any earlier leaves
@@ -116,11 +120,6 @@ export async function startServer(
     });
   }
 
-  // One shared per-user state registry for the whole server — all of a
-  // user's connections fold into a single materialization (userState.ts).
-  // Created before the routes: /api/olxjson reads it for initial field
-  // state, the WS pipeline writes it.
-  const stateRegistry = new UserStateRegistry(kvs);
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();

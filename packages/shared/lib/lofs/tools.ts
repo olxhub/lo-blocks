@@ -7,31 +7,36 @@
 //
 // SERVER-ONLY (wraps contentSources, which reads the filesystem).
 //
-// Naming: LOFS is deliberately a clone of Claude's tools, so the file-op
-// verbs keep Claude-tool names and semantics (Read, Write, Edit, Delete,
-// Move, Glob, Grep — the same conventions Studio's client tools already
-// mimic). Query-shaped tools follow the registry's snake_case convention
-// (get_sources, list_files — alongside get_blocks, get_repositories).
+// THE WORKING TREE (git-storage-design §2.6). The file verbs deliberately
+// clone Claude Code's tool surface, and in Claude Code Edit/Write are WORKING-
+// TREE operations: they mutate the checkout; committing is a separate act. The
+// LOFS tools keep exactly that — the working tree is just fields-backed (a
+// per-user materialization bucket keyed by LofsRef) instead of disk-backed:
 //
-// Concurrency model (multiple writers — Studio, the chat agent, external
-// MCP clients — may edit the same file):
-//   - Edit is content-anchored: if another writer changed the region, the
-//     old string no longer matches and the edit fails loudly; re-Read to
-//     recover. The save carries the read's metadata, so even a same-region
-//     race between Edit's read and its save surfaces as a conflict.
-//   - Write carries a token of the previous version (`previous_metadata`,
-//     from Read). On mismatch the caller gets a structured conflict —
-//     do nothing (first write wins) or retry with force (last write wins;
-//     the overwritten version survives in git history where the source is
-//     version-controlled).
+//   - Read/Glob/Grep : the caller's AUTHORING VIEW — the working-tree overlay
+//     over the source (Read returns your uncommitted staged edits).
+//   - Write/Edit/Delete/Move : STAGE into the caller's working tree. First
+//     touch of a path seeds an entry from the source (recording `base`); Edit
+//     anchors against the working-tree content; Delete/Move stage a
+//     tombstone/rename. NOTHING reaches git — Commit publishes.
+//   - Status/Commit/Discard : orient (dirty set + staleness), publish dirty
+//     entries as one provider commit (dropping them on success), and drop
+//     entries (`git checkout --`).
+//
+// These verbs are PERMANENT — the git userspace, no-index dialect: the working
+// copy IS the proposed commit, file-granular Commit(paths?) answers "commit
+// part of my changes" without per-session index state.
 //
 // TOOL SUMMARY
 // ------------
-// Read         - Read a file (content + version metadata + namespace)
-// Write        - Create or overwrite a file (version-token conflict check)
-// Edit         - Search-and-replace within a file, with content validation
-// Delete       - Delete a file
-// Move         - Rename/move a file
+// Read         - Read a file (authoring view: working-tree overlay over source)
+// Write        - Stage a create/overwrite in the working tree
+// Edit         - Stage a search-and-replace (anchored on working-tree content)
+// Delete       - Stage a delete in the working tree
+// Move         - Stage a rename/move in the working tree
+// Status       - Dirty working-tree entries + base-vs-source staleness
+// Commit       - Publish dirty working-tree entries as one commit (all or a subset)
+// Discard      - Drop working-tree entries
 // Glob         - Find files by pattern
 // Grep         - Search file contents
 // list_files   - Full file tree (the Studio file-browser view)
@@ -42,10 +47,11 @@ import type { ToolRegistry, ToolContext } from '../mcp/registry';
 import { readableProviders, writableSourceProvider, sources } from './contentSources';
 import { readFirst, globAll, grepAll, listFilesAll } from './sourceSet';
 import { VersionConflictError, toOlxRelativePath } from '../types/storage';
-import type { StorageProvider } from '../types/storage';
+import type { StorageProvider, ReadResult, FileChange, CommitBase } from '../types/storage';
 import { toRepoRelativePath } from './repoPath';
-import { toLofsRef } from '../types/address';
+import { toLofsRef, version } from '../types/address';
 import { asContentNamespace } from '../types/id-grammar';
+import type { WorktreeEntry, WorktreeResolver } from './worktree';
 
 /** Max content size for writes — matches the historical /api/file limit. */
 const MAX_WRITE_BYTES = 100_000;
@@ -73,9 +79,10 @@ const ReadInput = z.object({ path, source: readSource });
 const ReadOutput = z.object({
   content: z.string(),
   metadata: z.unknown().describe(
-    'Opaque version token (mtime, git hash, …). Pass back as previous_metadata on Write to detect conflicts.'),
+    'Opaque version token (mtime, git hash, …). Carried through your working-tree edits and used by Commit for conflict detection.'),
   ns: z.string().optional().describe('Content namespace of the file'),
   provenance: z.string().describe('Canonical LOFS address of what was read (source://path#version)'),
+  staged: z.boolean().optional().describe('True when the content is your uncommitted working-tree edit rather than the committed source.'),
 });
 
 const WriteInput = z.object({
@@ -83,19 +90,17 @@ const WriteInput = z.object({
   source: writeSource,
   content: z.string(),
   previous_metadata: z.unknown().optional().describe(
-    'Version token from the prior Read. If the file changed since, the write returns a conflict instead of clobbering.'),
-  force: z.boolean().optional().describe(
-    'Overwrite despite a version conflict (last write wins; the previous version stays in git history).'),
+    'Version token from the prior Read, recorded as the working-tree base for this path on first touch. Commit uses it to detect a concurrent change; a later Read of the same path keeps the first-recorded base.'),
   create: z.boolean().optional().describe(
-    'This write creates a new file and must not clobber an existing one.'),
+    'This write creates a new file and must not clobber an existing one in the source.'),
 });
 const WriteOutput = z.union([
-  z.object({ ok: z.literal(true) }),
+  z.object({ ok: z.literal(true), staged: z.literal(true) }),
   z.object({
     ok: z.literal(false),
     conflict: z.literal(true),
     error: z.string(),
-    metadata: z.unknown().describe('Current version token — Read again or retry with force'),
+    metadata: z.unknown().describe('Current version token — Read again'),
   }),
 ]);
 
@@ -107,7 +112,7 @@ const EditInput = z.object({
   new_string: z.string().describe('Replacement text'),
   replace_all: z.boolean().optional().describe('Replace ALL occurrences (default: false)'),
 });
-const EditOutput = z.object({ ok: z.literal(true), occurrences: z.number() });
+const EditOutput = z.object({ ok: z.literal(true), staged: z.literal(true), occurrences: z.number() });
 
 const DeleteInput = z.object({ path, source: writeSource });
 const MoveInput = z.object({
@@ -115,7 +120,56 @@ const MoveInput = z.object({
   new_path: z.string().describe('New repo-relative path'),
   source: writeSource,
 });
-const OkOutput = z.object({ ok: z.literal(true) });
+const StagedOutput = z.object({ ok: z.literal(true), staged: z.literal(true) });
+
+const StatusInput = z.object({ source: writeSource });
+const StatusOutput = z.object({
+  source: z.string(),
+  entries: z.array(z.object({
+    path: z.string(),
+    change: z.enum(['modified', 'added', 'deleted', 'renamed']),
+    renamedTo: z.string().optional(),
+    base: z.string().optional().describe('Source version this entry was opened from (source://path#version)'),
+    stale: z.boolean().describe('True when the source moved past `base` since this entry was opened — Commit will conflict unless forced.'),
+  })),
+});
+
+const CommitInput = z.object({
+  source: writeSource,
+  message: z.string().optional().describe('Commit message (auto-generated when omitted).'),
+  paths: z.array(z.string()).optional().describe(
+    'Repo-relative paths to commit (a subset of the dirty working tree). Omit to commit ALL dirty entries for the source.'),
+  force: z.boolean().optional().describe(
+    'Commit despite a stale base (last write wins; the overwritten version stays in git history).'),
+  bases: z.array(z.object({ path: z.string(), version: z.unknown() })).optional().describe(
+    'Optional per-path base version tokens overriding the recorded working-tree base (Studio supplies its tracked read metadata here).'),
+});
+const CommitConflict = z.object({
+  path: z.string(),
+  error: z.string(),
+  metadata: z.unknown().describe('Current source version token for the conflicting path'),
+});
+const CommitOutput = z.union([
+  z.object({
+    ok: z.literal(true),
+    committed: z.array(z.string()).describe('Paths published by this commit.'),
+    nothing: z.boolean().optional().describe('True when there was nothing dirty to commit.'),
+  }),
+  z.object({
+    ok: z.literal(false),
+    conflict: z.literal(true),
+    error: z.string(),
+    metadata: z.unknown().describe('Current version token of the first conflicting path (Studio reads this).'),
+    conflicts: z.array(CommitConflict),
+  }),
+]);
+
+const DiscardInput = z.object({
+  source: writeSource,
+  paths: z.array(z.string()).optional().describe(
+    'Repo-relative paths to discard. Omit to discard ALL working-tree entries for the source.'),
+});
+const DiscardOutput = z.object({ ok: z.literal(true), discarded: z.array(z.string()) });
 
 const GlobInput = z.object({
   pattern: z.string().describe("Glob pattern, e.g. '**/*.olx', 'psychology/**/*psychology*'"),
@@ -217,17 +271,31 @@ function authorFrom(ctx?: ToolContext): { name: string; email: string } | undefi
   return { name: user.user_id, email };
 }
 
-/** The create existence pre-check (a TOCTOU race is acceptable for now;
- *  atomic create — lofs-api lease:'absent' — is a follow-up). */
-async function assertAbsent(provider: StorageProvider, p: ReturnType<typeof toRepoRelativePath>): Promise<void> {
-  let exists = true;
+/**
+ * Seed a working-tree base from the source: read the file to capture its
+ * provenance canonical (base) and opaque version token (baseMeta). A file that
+ * does not exist in the source yields an empty seed (a brand-new file — no
+ * base, no conflict check).
+ */
+async function seedBase(provider: StorageProvider, p: string): Promise<{ base?: WorktreeEntry['base']; baseMeta?: unknown }> {
   try {
-    await provider.read(p);
+    const r = await provider.read(p as any);
+    return { base: r.provenance, baseMeta: r.metadata };
   } catch (err: any) {
-    if (err.code === 'ENOENT' || String(err.message).includes('not found')) exists = false;
-    else throw err;  // a real read failure — surface it, don't create over it
+    const notFound = err?.code === 'ENOENT' || String(err?.message).includes('not found');
+    if (notFound) return {};
+    throw err;
   }
-  if (exists) throw new Error(`File already exists: ${p}`);
+}
+
+/** Reuse the entry's recorded base, else seed one from the source (first touch). */
+async function baseFor(
+  provider: StorageProvider, p: string, existing?: WorktreeEntry,
+): Promise<{ base?: WorktreeEntry['base']; baseMeta?: unknown }> {
+  if (existing && (existing.base !== undefined || existing.baseMeta !== undefined)) {
+    return { base: existing.base, baseMeta: existing.baseMeta };
+  }
+  return seedBase(provider, p);
 }
 
 // ---------------------------------------------------------------------------
@@ -235,8 +303,9 @@ async function assertAbsent(provider: StorageProvider, p: ReturnType<typeof toRe
 // ---------------------------------------------------------------------------
 
 /**
- * Provider resolution, injectable for tests. Defaults to the deployment's
- * configured content sources (contentSources.ts) — the only production wiring.
+ * Provider + working-tree resolution, injectable for tests. Production wiring
+ * (apps/server): the read/write source handles come from contentSources.ts,
+ * and `worktree` is the UserStateRegistry-backed accessor. Tests inject fakes.
  */
 export interface LofsToolDeps {
   /** The providers a read-shaped op spans: one named source, or the whole
@@ -244,73 +313,112 @@ export interface LofsToolDeps {
   readableProviders: (source?: string) => Promise<StorageProvider[]>;
   writableSourceProvider: (source: string) => Promise<StorageProvider>;
   sources: () => Promise<Array<{ origin: string; label: string; writable: boolean }>>;
+  /** The caller's working tree for a source (git-storage-design §2.4). */
+  worktree: WorktreeResolver;
 }
 
-const defaultDeps: LofsToolDeps = {
+const defaultDeps: Omit<LofsToolDeps, 'worktree'> = {
   readableProviders,
   writableSourceProvider,
   sources: async () => (await sources()).map(s => ({ ...s, origin: String(s.origin) })),
 };
 
 /**
+ * The default read/write/sources wiring, WITHOUT a worktree resolver — the
+ * server must supply one (it owns the UserStateRegistry). Kept separate so a
+ * caller can spread the defaults and add the backing.
+ */
+export function defaultProviderDeps(): Omit<LofsToolDeps, 'worktree'> {
+  return defaultDeps;
+}
+
+/**
  * Register LOFS content tools with a ToolRegistry.
  */
-export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = defaultDeps): void {
+export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): void {
   registry.register('Read', {
     description:
-      'Read a file from the content library. Returns content, an opaque version token ' +
-      '(pass back as previous_metadata on Write), and the file\'s content namespace.',
+      'Read a file — your AUTHORING VIEW: the working-tree overlay over the content source, so a Read ' +
+      'after Write/Edit returns your uncommitted staged content (as a local `git` checkout would). Returns ' +
+      'content, an opaque version token, the namespace, and `staged` (true when the content is your ' +
+      'uncommitted working-tree edit).',
     input: ReadInput,
     output: ReadOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
-  }, async ({ path: rawPath, source }) => {
+  }, async ({ path: rawPath, source }, ctx) => {
     const p = toRepoRelativePath(rawPath);
-    const result = await readFirst(await deps.readableProviders(source), p);
+    // Authoring-view overlay only when a source is named (a union read has no
+    // single working tree). The overlay returns staged content; a staged
+    // delete reads as not-found; otherwise fall through to the source.
+    if (source) {
+      const wt = await deps.worktree(ctx, source);
+      const entry = await wt.get(p);
+      if (entry?.deleted) {
+        throw new Error(`File not found: ${p} (staged for deletion in your working tree)`);
+      }
+      if (entry?.content !== undefined) {
+        return {
+          content: entry.content,
+          metadata: entry.baseMeta,
+          ns: undefined,
+          provenance: entry.base ? String(entry.base) : `${source}://${p}`,
+          staged: true,
+        };
+      }
+    }
+    const result: ReadResult = await readFirst(await deps.readableProviders(source), p);
     return {
       content: result.content,
       metadata: result.metadata,
       ns: result.ns,
       provenance: String(result.provenance),
+      staged: false,
     };
   });
 
   registry.register('Write', {
     description:
-      'Create or overwrite a file in a content source. Pass previous_metadata (from Read) so a ' +
-      'concurrent change surfaces as a conflict instead of being clobbered; on conflict, Read again ' +
-      'or retry with force. Set create: true when the file must not already exist.',
+      'Stage a create/overwrite in your working tree — like `Write` in a local checkout, this does NOT ' +
+      'commit. First touch of a path records its source version as the base (pass previous_metadata from a ' +
+      'prior Read; otherwise the current source version is recorded). Publish with Commit. Set create: true ' +
+      'when the file must not already exist in the source.',
     input: WriteInput,
     output: WriteOutput,
-    annotations: { destructiveHint: true },
-  }, async ({ path: rawPath, source, content, previous_metadata, force, create }, ctx) => {
+    annotations: {},
+  }, async ({ path: rawPath, source, content, previous_metadata, create }, ctx) => {
     if (content.length > MAX_WRITE_BYTES) {
       throw new Error(`File too large (max ${MAX_WRITE_BYTES / 1000}KB)`);
     }
     const p = toRepoRelativePath(rawPath);
     const provider = await deps.writableSourceProvider(source);
-    if (create) await assertAbsent(provider, p);
-    try {
-      await provider.commit([{ path: p, content }], {
-        base: previous_metadata !== undefined ? [{ path: p, version: previous_metadata }] : undefined,
-        force,
-        author: authorFrom(ctx),
-      });
-    } catch (err: any) {
-      if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
-        // Structured, not thrown: the caller needs the current token to offer
-        // "file changed — overwrite?" (Studio) or to force (an agent).
-        return { ok: false as const, conflict: true as const, error: err.message, metadata: err.currentMetadata };
+    const wt = await deps.worktree(ctx, source);
+    const existing = await wt.get(p);
+
+    // Base is recorded on FIRST TOUCH and then held: keep an entry's existing
+    // base; on first touch seed it from the source (its provenance canonical),
+    // preferring the caller's previous_metadata token for the conflict check.
+    let base = existing?.base;
+    let baseMeta = existing?.baseMeta;
+    if (existing === undefined || (existing.base === undefined && existing.baseMeta === undefined)) {
+      const seed = await seedBase(provider, p);
+      if (create && seed.base !== undefined) {
+        // create must not clobber an existing source file (TOCTOU acceptable;
+        // the commit base check is the authoritative guard).
+        return { ok: false as const, conflict: true as const, error: `File already exists: ${p}`, metadata: seed.baseMeta };
       }
-      throw err;
+      base = seed.base;
+      baseMeta = previous_metadata !== undefined ? previous_metadata : seed.baseMeta;
     }
-    return { ok: true as const };
+    await wt.set(p, { content, base, baseMeta });
+    return { ok: true as const, staged: true as const };
   });
 
   registry.register('Edit', {
     description:
-      'Edit a file using search-and-replace. old_string must be unique in the file (include ' +
-      'surrounding context), or set replace_all: true for global renames. The result is validated ' +
-      '(OLX/format parse) before saving — invalid edits are rejected with the parse errors.',
+      'Stage a search-and-replace in your working tree (does NOT commit). old_string is anchored against the ' +
+      'WORKING-TREE content (your prior staged edits, else the source) and must be unique unless replace_all ' +
+      'is true. The result is validated (OLX/format parse) before staging — invalid edits are rejected. ' +
+      'Publish with Commit.',
     input: EditInput,
     output: EditOutput,
     annotations: {},
@@ -320,9 +428,25 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     }
     const p = toRepoRelativePath(rawPath);
     const provider = await deps.writableSourceProvider(source);
-    const current = await provider.read(p);
+    const wt = await deps.worktree(ctx, source);
+    const existing = await wt.get(p);
+    if (existing?.deleted) {
+      throw new Error(`Cannot edit ${p}: it is staged for deletion. Discard first, or Write fresh content.`);
+    }
 
-    const occurrences = current.content.split(old_string).length - 1;
+    // Anchor on the working-tree content when present, else the source.
+    let current: string;
+    let seed: { base?: WorktreeEntry['base']; baseMeta?: unknown };
+    if (existing?.content !== undefined) {
+      current = existing.content;
+      seed = { base: existing.base, baseMeta: existing.baseMeta };
+    } else {
+      const r = await provider.read(p as any);
+      current = r.content;
+      seed = { base: r.provenance, baseMeta: r.metadata };
+    }
+
+    const occurrences = current.split(old_string).length - 1;
     if (occurrences === 0) {
       throw new Error('Could not find text to replace. Ensure old_string exactly matches (re-Read the file if it may have changed).');
     }
@@ -331,44 +455,163 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps = d
     }
 
     const newContent = replace_all
-      ? current.content.replaceAll(old_string, new_string)
-      : current.content.replace(old_string, new_string);
+      ? current.replaceAll(old_string, new_string)
+      : current.replace(old_string, new_string);
     if (newContent.length > MAX_WRITE_BYTES) {
       throw new Error(`Edited file too large (max ${MAX_WRITE_BYTES / 1000}KB)`);
     }
 
-    const invalid = await validateContent(rawPath, newContent, current.ns);
+    const invalid = await validateContent(rawPath, newContent);
     if (invalid) throw new Error(invalid);
 
-    // Anchored save: carrying the read's token means a same-window write by
-    // someone else conflicts instead of being silently overwritten.
-    await provider.commit([{ path: p, content: newContent }], {
-      base: [{ path: p, version: current.metadata }],
-      author: authorFrom(ctx),
-    });
-    return { ok: true as const, occurrences };
+    await wt.set(p, { content: newContent, base: seed.base, baseMeta: seed.baseMeta });
+    return { ok: true as const, staged: true as const, occurrences };
   });
 
   registry.register('Delete', {
-    description: 'Delete a file from a content source.',
+    description: 'Stage a delete in your working tree (does NOT commit — publish with Commit).',
     input: DeleteInput,
-    output: OkOutput,
-    annotations: { destructiveHint: true },
+    output: StagedOutput,
+    annotations: {},
   }, async ({ path: rawPath, source }, ctx) => {
+    const p = toRepoRelativePath(rawPath);
     const provider = await deps.writableSourceProvider(source);
-    await provider.commit([{ path: toRepoRelativePath(rawPath), delete: true }], { author: authorFrom(ctx) });
-    return { ok: true as const };
+    const wt = await deps.worktree(ctx, source);
+    const existing = await wt.get(p);
+    const seed = await baseFor(provider, p, existing);
+    await wt.set(p, { deleted: true, base: seed.base, baseMeta: seed.baseMeta });
+    return { ok: true as const, staged: true as const };
   });
 
   registry.register('Move', {
-    description: 'Rename or move a file within a content source.',
+    description: 'Stage a rename/move in your working tree (does NOT commit — publish with Commit).',
     input: MoveInput,
-    output: OkOutput,
+    output: StagedOutput,
     annotations: {},
   }, async ({ path: rawPath, new_path, source }, ctx) => {
+    const p = toRepoRelativePath(rawPath);
+    const to = toRepoRelativePath(new_path);
     const provider = await deps.writableSourceProvider(source);
-    await provider.commit([{ path: toRepoRelativePath(rawPath), renameTo: toRepoRelativePath(new_path) }], { author: authorFrom(ctx) });
-    return { ok: true as const };
+    const wt = await deps.worktree(ctx, source);
+    const existing = await wt.get(p);
+    const seed = await baseFor(provider, p, existing);
+    await wt.set(p, { renamedTo: to, base: seed.base, baseMeta: seed.baseMeta });
+    return { ok: true as const, staged: true as const };
+  });
+
+  registry.register('Status', {
+    description:
+      'Your working tree for a source: the dirty entries (staged modified/added/deleted/renamed files) and, ' +
+      'per entry, whether the source moved past its base since it was opened (`stale` — Commit will conflict ' +
+      'unless forced). Agents orient with it; Studio reads it for dirty indicators.',
+    input: StatusInput,
+    output: StatusOutput,
+    annotations: { readOnlyHint: true },
+  }, async ({ source }, ctx) => {
+    const provider = await deps.writableSourceProvider(source);
+    const wt = await deps.worktree(ctx, source);
+    const list = await wt.list();
+    const entries = await Promise.all(list.map(async ({ path: p, entry }) => {
+      const change = entry.deleted ? 'deleted' as const
+        : entry.renamedTo !== undefined ? 'renamed' as const
+        : entry.base === undefined ? 'added' as const
+        : 'modified' as const;
+      // Staleness: the source moved past `base` (compare the base's #version
+      // against the source's current provenance version). No base (a new file)
+      // is never stale.
+      let stale = false;
+      if (entry.base !== undefined) {
+        try {
+          const cur = await provider.read(p as any);
+          stale = version(toLofsRef(String(entry.base))) !== version(cur.provenance);
+        } catch { stale = true; }  // base recorded, source gone → stale
+      }
+      return {
+        path: p,
+        change,
+        ...(entry.renamedTo !== undefined ? { renamedTo: entry.renamedTo } : {}),
+        ...(entry.base !== undefined ? { base: String(entry.base) } : {}),
+        stale,
+      };
+    }));
+    return { source, entries };
+  });
+
+  registry.register('Commit', {
+    description:
+      'Publish your dirty working-tree entries for a source as ONE commit — the changeset IS the working tree, ' +
+      'there is no changes payload. Commit ALL dirty entries, or a subset via `paths`. Author is your session ' +
+      'identity; the platform commits on your behalf. On success the entries are DROPPED (absence = clean). A ' +
+      'concurrent change since an entry\'s base returns a structured conflict (Read again, then retry or force).',
+    input: CommitInput,
+    output: CommitOutput,
+    annotations: { destructiveHint: true },
+  }, async ({ source, message, paths, force, bases }, ctx) => {
+    const provider = await deps.writableSourceProvider(source);
+    const wt = await deps.worktree(ctx, source);
+    const all = await wt.list();
+    const want = paths ? new Set(paths.map(p => String(toRepoRelativePath(p)))) : undefined;
+    const selected = want ? all.filter(e => want.has(e.path)) : all;
+    if (selected.length === 0) {
+      return { ok: true as const, committed: [], nothing: true as const };
+    }
+
+    const overrides = new Map((bases ?? []).map(b => [String(toRepoRelativePath(b.path)), b.version]));
+    const changes: FileChange[] = [];
+    const base: CommitBase[] = [];
+    for (const { path: p, entry } of selected) {
+      if (entry.deleted) {
+        changes.push({ path: p as any, delete: true });
+      } else if (entry.renamedTo !== undefined) {
+        changes.push({ path: p as any, renameTo: entry.renamedTo as any });
+      } else if (entry.content !== undefined) {
+        changes.push({ path: p as any, content: entry.content });
+      } else {
+        continue;  // empty entry — nothing to publish
+      }
+      const baseVersion = overrides.has(p) ? overrides.get(p) : entry.baseMeta;
+      if (baseVersion !== undefined) base.push({ path: p as any, version: baseVersion });
+    }
+
+    try {
+      await provider.commit(changes, {
+        message,
+        force,
+        base: base.length > 0 ? base : undefined,
+        author: authorFrom(ctx),
+      });
+    } catch (err: any) {
+      if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
+        // The provider reports the first offending path's current token; a
+        // per-path list keeps the door open for multi-file conflict UX.
+        const conflicts = [{ path: selected[0].path, error: err.message, metadata: err.currentMetadata }];
+        return {
+          ok: false as const, conflict: true as const,
+          error: err.message, metadata: err.currentMetadata, conflicts,
+        };
+      }
+      throw err;
+    }
+
+    const committed = selected.map(e => e.path);
+    await wt.drop(committed);
+    return { ok: true as const, committed };
+  });
+
+  registry.register('Discard', {
+    description:
+      'Drop working-tree entries for a source (`git checkout --`): the undo that makes draft scope safe. Discard ' +
+      'a subset via `paths`, or omit to discard everything staged for the source. Committed history is untouched.',
+    input: DiscardInput,
+    output: DiscardOutput,
+    annotations: { destructiveHint: true },
+  }, async ({ source, paths }, ctx) => {
+    const wt = await deps.worktree(ctx, source);
+    const targets = paths
+      ? paths.map(p => String(toRepoRelativePath(p)))
+      : (await wt.list()).map(e => e.path);
+    await wt.drop(targets);
+    return { ok: true as const, discarded: targets };
   });
 
   registry.register('Glob', {

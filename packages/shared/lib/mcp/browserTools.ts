@@ -35,8 +35,8 @@ import type { LlmTool } from '../llm/types';
 
 /** Server-tool membership. Client tools declare theirs at registration. */
 const SERVER_TOOLSETS: Record<string, string[]> = {
-  'content-read': ['Read', 'Glob', 'Grep', 'get_sources'],
-  'content-write': ['Write', 'Edit', 'Delete', 'Move'],
+  'content-read': ['Read', 'Glob', 'Grep', 'get_sources', 'Status'],
+  'content-write': ['Write', 'Edit', 'Delete', 'Move', 'Status', 'Commit', 'Discard'],
   'docs': ['get_blocks', 'get_formats'],
   'catalog': ['get_repositories'],
 };

@@ -13,7 +13,9 @@ import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { registerCatalogTools } from '@/lib/catalog/tool';
-import { registerLofsTools } from '@/lib/lofs/tools';
+import { registerLofsTools, defaultProviderDeps } from '@/lib/lofs/tools';
+import { makeStateRegistryWorktree } from './worktree.js';
+import { UserStateRegistry } from '@/lib/state/sync/registry';
 import {
   validateProviderConfig,
   availableProviders,
@@ -111,12 +113,17 @@ async function initStorage(): Promise<KVStore> {
   return store;
 }
 
-/** 4. Initialize tool registry. */
-async function initTools() {
+/** 4. Initialize tool registry. The LOFS tools' working-tree seam is backed by
+ *  the shared per-user state registry (apps/server owns it), so tool writes
+ *  stage into the SAME materialization the WebSocket pipeline folds into. */
+async function initTools(stateRegistry: UserStateRegistry, kvs: KVStore) {
   const registry = createToolRegistry();
   registerDocsTools(registry);
   registerCatalogTools(registry);
-  registerLofsTools(registry);
+  registerLofsTools(registry, {
+    ...defaultProviderDeps(),
+    worktree: makeStateRegistryWorktree(stateRegistry, kvs),
+  });
   console.log('  Tools: docs, catalog, lofs');
   return registry;
 }
@@ -149,11 +156,15 @@ async function main() {
     console.log(`  Parse cache: ${hits} hits, ${misses} misses` +
       (memoHits ? `, ${memoHits} memo hits` : ''));
   });
-  const registry = await boot.task('Register MCP tools', initTools);
+  // One shared per-user state registry for the whole server: the WebSocket
+  // pipeline folds into it AND the LOFS tools' working tree stages into it, so
+  // an agent's drafts and a human's editor buffer are one per-user copy.
+  const stateRegistry = new UserStateRegistry(kvs);
+  const registry = await boot.task('Register MCP tools', () => initTools(stateRegistry, kvs));
   // startServer calls boot.handoff() itself, synchronously adjacent to the
   // request-handler attach — the swap must be atomic (see server.ts).
   const handle = await boot.task('Start server (vite, websockets, routes)',
-    () => startServer(kvs, registry, boot));
+    () => startServer(kvs, registry, stateRegistry, boot));
 
   console.log('\nReady. Press Ctrl+C to stop.\n');
 

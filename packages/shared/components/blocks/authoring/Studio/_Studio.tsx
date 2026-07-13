@@ -359,6 +359,47 @@ export default function Studio(props: RuntimeProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePath, canWrite, source, notify]);
 
+  /**
+   * Save all dirty files in the current source. Each file stages its buffer
+   * and commits (McpStorageProvider stage-then-Commit); per-file granularity
+   * (git-storage-design open decision #1). A conflict on one file surfaces and
+   * stops the run so the author can resolve it rather than force-clobbering the
+   * rest silently.
+   */
+  const handleSaveAll = useCallback(async () => {
+    if (!canWrite || !source) {
+      notify('error', 'Pick a repo to edit first');
+      return;
+    }
+    const dirty = [...getDirtyFiles()];
+    if (dirty.length === 0) { notify('info', 'Nothing to save'); return; }
+    setSaving(true);
+    try {
+      for (const p of dirty) {
+        const id = fileRef(source, p);
+        const content = getStudioContent(id);
+        const previousMetadata = fileStateRef.current.get(id)?.metadata;
+        const olxPath = toOlxRelativePath(p);
+        await storageRef.current.commit([{ path: olxPath, content }], {
+          base: previousMetadata !== undefined ? [{ path: olxPath, version: previousMetadata }] : undefined,
+        });
+        const result = await storageRef.current.read(olxPath);
+        fileStateRef.current.set(id, { content, metadata: result.metadata, ns: result.ns });
+      }
+      notify('success', `Saved ${dirty.length} file${dirty.length > 1 ? 's' : ''}`);
+    } catch (err) {
+      console.error('Save all failed:', err);
+      if (err instanceof VersionConflictError || (err as any)?.name === 'VersionConflictError') {
+        notify('error', 'Save all stopped: a file was modified externally. Open it and save to resolve.');
+      } else {
+        notify('error', 'Save all failed', err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      setSaving(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canWrite, source, getDirtyFiles, notify]);
+
   const handleFileCreate = useCallback(async (path: string, fileContent: string) => {
     try {
       // create: must not clobber an existing file (server 409s if it exists).
@@ -491,6 +532,12 @@ export default function Studio(props: RuntimeProps) {
             title={saveTitle}
             onClick={() => handleSave()}>
             {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button className="studio-btn"
+            disabled={!canWrite || saving || getDirtyFiles().size === 0}
+            title={canWrite ? 'Commit every dirty file in this source' : 'This source is read-only'}
+            onClick={() => handleSaveAll()}>
+            Save all
           </button>
         </div>
       </header>
