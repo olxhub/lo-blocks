@@ -30,7 +30,7 @@ import { gatherInputData, buildGraderParam } from '../blocks/actions';
 import { worstCaseCorrectness } from './aggregators';
 import { commonFields } from '../state/commonFields';
 import { fieldSelector } from '../state/redux';
-import type { RuntimeProps, StateKey } from '../types';
+import type { OlxDomNode, RuntimeProps, StateKey } from '../types';
 
 export interface GraderGradingState {
   /** A `correctness` enum value ('correct', 'submitted', 'unsubmitted', …). */
@@ -56,10 +56,10 @@ const _uncacheable = new WeakSet<object>();
  * Is this node inside a grade="immediate" problem? The nearest ancestor
  * with a `grade` attribute wins, so nested problems can differ.
  */
-export function isImmediateContext(node: any): boolean {
+export function isImmediateContext(node: OlxDomNode | null | undefined): boolean {
   if (!node) return false;
-  const withGrade = getParents(node, { selector: (n: any) => n.olxJson?.attributes?.grade });
-  return withGrade[0]?.olxJson?.attributes?.grade === 'immediate';
+  const withGrade = getParents(node, { selector: n => typeof n.olxJson.attributes.grade === 'string' });
+  return withGrade[0]?.olxJson.attributes.grade === 'immediate';
 }
 
 /**
@@ -76,15 +76,15 @@ export function isImmediateContext(node: any): boolean {
 function deriveImmediateGrading(
   state: any,
   props: RuntimeProps,
-  node: any,
+  node: OlxDomNode,
 ): GraderGradingState | null {
-  const grading = node.loBlock?.grading;
-  if (!grading?.fn || grading.slow) return null;
+  const grading = node.loBlock.grading;
+  if (!grading || !grading.fn || grading.slow) return null;
 
-  const attrs = node.olxJson?.attributes ?? {};
+  const attrs = node.olxJson.attributes;
   const inputIds = inferRelatedNodes(
     { ...props, nodeInfo: node },
-    { selector: (n: any) => n.loBlock?.isInput, infer: true, targets: attrs.target }
+    { selector: n => n.loBlock.isInput, infer: true, targets: attrs.target }
   );
   const graderProps = propsFromNode(node);
   const { values, apis } = gatherInputData(graderProps, inputIds, state);
@@ -107,7 +107,7 @@ function deriveImmediateGrading(
   let correct = normalizeCorrectness(result.correct);
   if (correct === correctness.incorrect) {
     const allCommitOnChange = inputIds.length > 0 && inputIds.every(id =>
-      getDomNodeByStateKey(props, id)?.loBlock?.commitOnChange);
+      getDomNodeByStateKey(props, id)?.loBlock.commitOnChange);
     if (!allCommitOnChange) correct = correctness.incomplete;
   }
   return { correct, message: result.message ?? '', score: result.score, submitCount: 0 };
@@ -173,16 +173,16 @@ function computeGradingState(
   const node = getDomNodeByStateKey(props, graderStateKey);
   const loBlock = node?.loBlock;
 
-  if (node && loBlock?.isGrader && !loBlock.grading) {
+  if (node && node.loBlock.isGrader && !node.loBlock.grading) {
     // Metagrader: derive from children.
-    const childImmediate = node.olxJson?.attributes?.grade === 'immediate';
-    const selfId = node.olxJson?.id;
+    const childImmediate = node.olxJson.attributes.grade === 'immediate';
+    const selfId = node.olxJson.id;
     const descendantIds = inferRelatedNodes(
       { ...props, nodeInfo: node },
       {
-        selector: n => n.loBlock?.isGrader && n.olxJson?.id !== selfId,
+        selector: n => n.loBlock.isGrader && n.olxJson.id !== selfId,
         infer: ['kids'],
-        targets: node.olxJson?.attributes?.target,
+        targets: node.olxJson.attributes.target,
       }
     );
     // Aggregate DIRECT child graders only — a nested problem is a boundary.
@@ -193,7 +193,7 @@ function computeGradingState(
     const childIds = descendantIds.filter(id => {
       const childNode = getDomNodeByStateKey(props, id);
       for (let cur = childNode?.parent; cur && cur !== node; cur = cur.parent) {
-        if (cur.loBlock?.isGrader) return false; // enclosed by a nearer grader
+        if (cur.loBlock.isGrader) return false; // enclosed by a nearer grader
       }
       return true;
     });
@@ -222,7 +222,7 @@ function computeGradingState(
   // the block when known so overridden field types resolve; commonFields
   // otherwise.
   const read = <T,>(name: string, fallback: T): T => {
-    const field = (loBlock?.fields?.[name] as any) ?? (commonFields as any)[name];
+    const field = (loBlock?.fields[name] as any) ?? (commonFields as any)[name];
     return fieldSelector(state, props, field, { stateKey: graderStateKey, fallback });
   };
   return {

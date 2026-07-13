@@ -22,7 +22,7 @@ export default function GraderShell(props: RuntimeProps) {
   // so derived selectors re-run against the loaded engine.
   // useState-ok: transient engine-readiness bump; nothing to persist or log
   const [, setEngineReady] = useState(false);
-  const ensureReady = props.loBlock?.ensureReady;
+  const ensureReady = props.loBlock.ensureReady;
   useEffect(() => {
     if (immediate && ensureReady) ensureReady().then(() => setEngineReady(true));
   }, [immediate, ensureReady]);

@@ -78,10 +78,10 @@ function withDerivedGrading(
 ): any {
   if (!_graderStateResolver) return bucket;
   const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
-  const sources = props.runtime?.olxJsonSources ?? ['content'];
-  const locale = props.runtime?.locale?.code;
+  const sources = props.runtime.olxJsonSources ?? ['content'];
+  const locale = props.runtime.locale.code;
   const blockNode = selectBlock(state, sources, definitionKey, locale);
-  const blockDef = blockNode ? props.runtime?.blockRegistry?.[blockNode.tag] : null;
+  const blockDef = blockNode ? props.runtime.blockRegistry[blockNode.tag] : null;
   if (!blockDef?.isGrader) return bucket;
 
   let byKey = _graderOverlayCache.get(state);
@@ -112,13 +112,12 @@ function materializeComponentState(
 
   // Look up block type → field definitions
   const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
-  const sources = props.runtime?.olxJsonSources ?? ['content'];
-  const locale = props.runtime?.locale?.code;
+  const sources = props.runtime.olxJsonSources ?? ['content'];
+  const locale = props.runtime.locale.code;
   const blockNode = selectBlock(state, sources, definitionKey, locale);
   // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
   // avoid circular dependency (hooks → blockRegistry → blocks → factory → state → hooks).
-  const registry = props.runtime?.blockRegistry;
-  if (!registry) return rawState;
+  const registry = props.runtime.blockRegistry;
   const blockDef = blockNode ? registry[blockNode.tag] : null;
 
   if (!blockDef?.fields) return rawState;
@@ -170,8 +169,8 @@ export function useReferences(props: any, refs: References): ContextData {
   // over an absent bucket.
   const refKeys = refs.componentState.map(r => r.key).join(',');
   useEffect(() => {
-    if (props.runtime?.sideEffectFree) return;
-    const source = props.runtime?.olxJsonSources?.[0] ?? 'content';
+    if (props.runtime.sideEffectFree) return;
+    const source = props.runtime.olxJsonSources?.[0] ?? 'content';
     // Dynamic import: a static one closes the module cycle
     // useOlxJson → attributeSchemas → stateLanguage → hooks and breaks init.
     import('../blocks/useOlxJson').then(({ ensureBlock }) => {

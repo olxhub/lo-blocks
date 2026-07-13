@@ -1,7 +1,6 @@
 // packages/shared/components/blocks/CapaProblem/_CapaProblem.tsx
 'use client';
 import type { RuntimeProps } from '@/lib/types';
-import React, { useMemo } from 'react';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
 import { useCorrectness } from '@/lib/grading';
@@ -116,26 +115,26 @@ export default function CapaProblem(props: RuntimeProps) {
   // child graders on read — stored fields in submit mode, live evaluation
   // of input values in immediate mode. See lib/grading/useCorrectness.ts.
   // (Lazy grader engines are readied per grader by _GraderShell.)
-  const { correct: problemCorrectness, submitCount } = useCorrectness(props, props.nodeInfo?.stateKey);
+  const { correct: problemCorrectness, submitCount } = useCorrectness(props, props.nodeInfo.stateKey);
 
   // Slow graders can't grade immediately — there is no submit button to
-  // trigger them and no meaningful per-keystroke pending state. Static per
-  // problem, so memoized on the grader set.
-  const graderIdsKey = childGraderIds.join(',');
-  const slowChildIds = useMemo(() => isImmediate
-    ? childGraderIds.filter(gid => getDomNodeByStateKey(props, gid)?.loBlock?.grading?.slow)
-    : [],
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [isImmediate, graderIdsKey]);
-  if (slowChildIds.length > 0) {
-    return (
-      <DisplayError
-        props={props}
-        id={`${id}_grade_mode`}
-        title="CapaProblem"
-        message={`grade="immediate" cannot be used with slow (async) graders (problem "${id}": ${slowChildIds.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
-      />
+  // trigger them and no meaningful per-keystroke pending state. Recompute on
+  // every immediate-mode render so live edits to a grader's configuration take
+  // effect.
+  if (isImmediate) {
+    const slowChildIds = childGraderIds.filter(
+      gid => getDomNodeByStateKey(props, gid)?.loBlock.grading?.slow
     );
+    if (slowChildIds.length > 0) {
+      return (
+        <DisplayError
+          props={props}
+          id={`${id}_grade_mode`}
+          title="CapaProblem"
+          message={`grade="immediate" cannot be used with slow (async) graders (problem "${id}": ${slowChildIds.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
+        />
+      );
+    }
   }
 
   // Validate: require at least one grader unless explicitly allowed

@@ -241,7 +241,7 @@ export function buildGraderParam(
     // Dict mode: resolve inputs to named slots
     const getInputSlot = (id: StateKey) => {
       const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-      return inst?.attributes?.slot as string | undefined;
+      return inst ? inst.attributes.slot as string | undefined : undefined;
     };
     const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
     if (errors.length > 0) return { error: errors[0] };
@@ -287,15 +287,15 @@ async function evaluateGrader(
   // Check input/grader type compatibility via Zod schemas. Authoring/compat
   // problems return invalid results rather than throwing — the caller still
   // dispatches grading state so the UI updates.
-  const graderInputSchema = props.loBlock?.inputSchema;
+  const graderInputSchema = props.loBlock.inputSchema;
   if (graderInputSchema) {
     for (const id of inputIds) {
       const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
       if (!inst) continue;
       const inputBlock = map[inst.tag];
-      if (!inputBlock?.valueSchema) continue;
+      if (!inputBlock.valueSchema) continue;
       if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
-        const graderName = props.loBlock?.name || 'Grader';
+        const graderName = props.loBlock.name;
         const inputName = inputBlock.name || inst.tag;
         return {
           correct: correctness.invalid,
@@ -312,7 +312,7 @@ async function evaluateGrader(
   // ensureReady; await it so the (synchronous) match function runs against a
   // loaded engine. The await on grader also accepts async grader functions —
   // the seam for slow graders (LLM, code-in-sandbox).
-  await map[targetInstance.tag]?.ensureReady?.();
+  await map[targetInstance.tag].ensureReady?.();
   return await grader({ ...props, ...targetAttributes }, param);
 }
 
