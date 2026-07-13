@@ -13,6 +13,7 @@ import type { AttributeDoc } from '@/lib/docs/schemaUtils';
 import { OLXCodeBlock } from '@/components/common/OLXCodeBlock';
 import RenderOLX from '@/components/common/RenderOLX';
 import PreviewPane from '@/components/common/PreviewPane';
+import CodeEditor from '@/components/common/CodeEditor';
 import StatePanel from '@/components/common/StatePanel';
 import Spinner from '@/components/common/Spinner';
 import { useContentLoader } from '@/lib/content/useContentLoader';
@@ -242,12 +243,14 @@ export function EditableExample({ filename, content, rootId, path, ns }: {
       />
       <FileCard title={filename} path={path}>
         <div className="p-4 bg-background flex flex-col gap-2">
-          <textarea
-            className="w-full min-h-[10rem] font-mono text-xs bg-surface text-foreground border rounded p-3 resize-y focus:outline-none focus:ring-1 focus:ring-accent"
+          {/* CodeMirror owns its document, so the redux round-trip never
+              touches the caret (the textarea it replaces was a Next-era
+              workaround that regressed cursor position under docFields). */}
+          <CodeEditor
             value={effective}
-            spellCheck={false}
-            onChange={e => setBuffer(e.target.value)}
-            aria-label={`Edit ${filename}`}
+            onChange={setBuffer}
+            language="olx"
+            height="16rem"
           />
           {dirty && (
             <div className="flex items-center gap-3 text-xs">
