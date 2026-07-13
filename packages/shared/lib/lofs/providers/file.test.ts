@@ -195,4 +195,34 @@ describe('FileStorageProvider.namespaceFor', () => {
     await expect(provider.namespaceFor(ref('bad-name/foo.olx')))
       .rejects.toThrow(/cannot be used as a content namespace/);
   });
+
+});
+
+describe('commit base checks on destructive intents (review 2026-07-13)', () => {
+  test('stale delete and stale rename conflict; rename refuses existing destination', async () => {
+    const fsp = await import('fs/promises');
+    const dir = await fsp.mkdtemp(path.join(os.tmpdir(), 'file-commit-base-'));
+    const prov = new FileStorageProvider(dir);
+    try {
+      await fsp.writeFile(path.join(dir, 'victim.md'), 'v1');
+      const staleBase = { mtime: (await fsp.stat(path.join(dir, 'victim.md'))).mtimeMs - 5000, size: 2 };
+
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, delete: true }],
+        { base: [{ path: 'victim.md' as OlxRelativePath, version: staleBase }] }),
+      ).rejects.toThrow(/modified/);
+
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'moved.md' as OlxRelativePath }],
+        { base: [{ path: 'victim.md' as OlxRelativePath, version: staleBase }] }),
+      ).rejects.toThrow(/modified/);
+
+      await fsp.writeFile(path.join(dir, 'occupied.md'), 'here first');
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'occupied.md' as OlxRelativePath }]),
+      ).rejects.toThrow(/already exists/);
+      // force overrides the destination guard
+      await prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'occupied.md' as OlxRelativePath }], { force: true });
+      expect(await fsp.readFile(path.join(dir, 'occupied.md'), 'utf-8')).toBe('v1');
+    } finally {
+      await fsp.rm(dir, { recursive: true, force: true });
+    }
+  });
 });

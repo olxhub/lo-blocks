@@ -225,6 +225,15 @@ describe('LOFS tools — working tree', () => {
     expect(m.matches).toEqual([{ path: 'unit/notes.md', line: 1, content: 'alpha beta alpha' }]);
   });
 
+  test('staged Move: old path reads as moved; new path serves the content', async () => {
+    await registry.callTool('Move', { path: 'unit/notes.md', new_path: 'unit/renamed.md', source: SRC });
+    await expect(registry.callTool('Read', { path: 'unit/notes.md', source: SRC }))
+      .rejects.toThrow(/renamed to unit\/renamed.md/);
+    const moved: any = await registry.callTool('Read', { path: 'unit/renamed.md', source: SRC });
+    expect(moved.content).toBe('alpha beta alpha\n');
+    expect(moved.staged).toBe(true);
+  });
+
   test('get_sources reports the injected source list', async () => {
     const s: any = await registry.callTool('get_sources', {});
     expect(s.sources).toEqual([{ origin: SRC, label: 'test', writable: true }]);

@@ -289,6 +289,10 @@ async function seedBase(provider: StorageProvider, p: string): Promise<{ base?: 
 }
 
 /** Reuse the entry's recorded base, else seed one from the source (first touch). */
+async function firstProvider(deps: LofsToolDeps, source: string): Promise<StorageProvider> {
+  return (await deps.readableProviders(source))[0];
+}
+
 async function baseFor(
   provider: StorageProvider, p: string, existing?: WorktreeEntry,
 ): Promise<{ base?: WorktreeEntry['base']; baseMeta?: unknown }> {
@@ -296,6 +300,26 @@ async function baseFor(
     return { base: existing.base, baseMeta: existing.baseMeta };
   }
   return seedBase(provider, p);
+}
+
+/**
+ * Resolve a path through the caller's staged renames: reading the OLD path of
+ * a staged rename is not-found (it moved); reading the NEW path serves the
+ * moved file's content (from staged content if the entry carries any, else
+ * the source at the old path). Returns null when no rename involves `p`.
+ */
+async function resolveStagedRename(
+  wt: { get(p: string): Promise<WorktreeEntry | undefined>; list(): Promise<Array<{ path: string; entry: WorktreeEntry }>> },
+  provider: StorageProvider, p: string,
+): Promise<{ movedAway?: string; movedHere?: { from: string; entry: WorktreeEntry } } | null> {
+  const own = await wt.get(p);
+  if (own?.renamedTo !== undefined) return { movedAway: String(own.renamedTo) };
+  for (const { path: from, entry } of await wt.list()) {
+    if (entry.renamedTo !== undefined && String(entry.renamedTo) === p) {
+      return { movedHere: { from, entry } };
+    }
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -355,6 +379,21 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
       const entry = await wt.get(p);
       if (entry?.deleted) {
         throw new Error(`File not found: ${p} (staged for deletion in your working tree)`);
+      }
+      const rename = await resolveStagedRename(wt, await firstProvider(deps, source), String(p));
+      if (rename?.movedAway) {
+        throw new Error(`File not found: ${p} (staged as renamed to ${rename.movedAway} in your working tree)`);
+      }
+      if (rename?.movedHere) {
+        const from = toRepoRelativePath(rename.movedHere.from);
+        const src = await readFirst(await deps.readableProviders(source), from);
+        return {
+          content: src.content,
+          metadata: rename.movedHere.entry.baseMeta,
+          ns: src.ns,
+          provenance: String(src.provenance),
+          staged: true as const,
+        };
       }
       if (entry?.content !== undefined) {
         return {

@@ -420,20 +420,29 @@ export class FileStorageProvider implements StorageProvider {
     const baseByPath = new Map(base.map(b => [String(b.path), b.version]));
     const versions: Record<string, unknown> = {};
 
+    // The optimistic base check applies to EVERY destructive intent — a
+    // stale delete or rename clobbers work just as surely as a stale write.
+    const checkStale = async (full: string, p: string) => {
+      if (!force && baseByPath.has(p)) await this.checkMtime(full, baseByPath.get(p));
+    };
     for (const c of changes) {
       if (c.delete) {
         const full = await resolveSafeWritePath(this.baseDir, c.path);
+        await checkStale(full, String(c.path));
         await fs.unlink(full);
       } else if (c.renameTo !== undefined) {
         const fullOld = await resolveSafeWritePath(this.baseDir, c.path);
         const fullNew = await resolveSafeWritePath(this.baseDir, c.renameTo);
+        await checkStale(fullOld, String(c.path));
+        // A rename must not silently overwrite an existing destination.
+        if (!force && await fs.stat(fullNew).then(() => true, () => false)) {
+          throw new Error(`Rename destination already exists: ${c.renameTo}`);
+        }
         await fs.mkdir(path.dirname(fullNew), { recursive: true });
         await fs.rename(fullOld, fullNew);
       } else if (c.content !== undefined) {
         const full = await resolveSafeWritePath(this.baseDir, c.path);
-        if (!force && baseByPath.has(String(c.path))) {
-          await this.checkMtime(full, baseByPath.get(String(c.path)));
-        }
+        await checkStale(full, String(c.path));
         await fs.mkdir(path.dirname(full), { recursive: true });
         await fs.writeFile(full, c.content, 'utf-8');
         const stat = await fs.stat(full);
