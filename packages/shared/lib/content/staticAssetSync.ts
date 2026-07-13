@@ -31,6 +31,12 @@ const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
  * a blob route). instanceof rather than field-sniffing: a rename breaks the
  * build, and static-asset copying stays out of the StorageProvider interface.
  */
+// TODO(local-git-assets): only FileStorageProvider-backed sources contribute
+// asset roots. A { dir, worktree: false } local-git source (added 2026-07) has
+// assets on disk but is invisible here — its images would 404. Latent: no
+// deployment uses that config yet, and this whole copy step dissolves under
+// the asset-store design (serve by hash). Fix here only if a worktree:false
+// deployment ships before the asset store does.
 function assetRoots(providers: StorageProvider[]): { dir: string; prefix: string }[] {
   const roots: { dir: string; prefix: string }[] = [];
   for (const provider of providers) {

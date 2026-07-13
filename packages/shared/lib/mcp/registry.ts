@@ -79,6 +79,10 @@ export interface RegisteredTool<
  * shape is OpenAI's tool format; we use it because callLLM() posts to an
  * OpenAI-compatible endpoint.
  */
+// TODO(type-unification): near-duplicate of LlmTool in lib/llm/types.ts
+// (differs only in the `type: 'function'` literal and sync-vs-async callback;
+// the names differ only by case). Unify on the wire-consumed shape in
+// llm/types.ts and derive this one — flagged by the 2026-07 coherence audit.
 export interface LLMTool {
   type: 'function';
   function: {
