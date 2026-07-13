@@ -114,7 +114,8 @@ export default function CapaProblem(props: RuntimeProps) {
   // Grading state is DERIVED (never stored): useCorrectness aggregates the
   // child graders on read — stored fields in submit mode, live evaluation
   // of input values in immediate mode. See lib/grading/useCorrectness.ts.
-  // (Lazy grader engines are readied per grader by _GraderShell.)
+  // (The render entrypoint's useBlocksReady gate readies lazy engines before
+  // this component renders.)
   const { correct: problemCorrectness, submitCount } = useCorrectness(props, props.nodeInfo.stateKey);
 
   // Slow graders can't grade immediately — there is no submit button to

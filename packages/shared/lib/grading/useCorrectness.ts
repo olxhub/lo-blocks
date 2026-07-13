@@ -47,11 +47,6 @@ const UNGRADED: GraderGradingState = {
   submitCount: 0,
 };
 
-// Results that must NOT be memoized (e.g. computed while a lazy grader
-// engine was still loading — engine load doesn't dispatch, so a cached
-// value would stick). Marked here, propagated through aggregation.
-const _uncacheable = new WeakSet<object>();
-
 /**
  * Is this node inside a grade="immediate" problem? The nearest ancestor
  * with a `grade` attribute wins, so nested problems can differ.
@@ -91,17 +86,7 @@ function deriveImmediateGrading(
   const { param, error } = buildGraderParam(grading, graderProps, inputIds, values, apis);
   if (error) return { ...UNGRADED, correct: correctness.invalid, message: error };
 
-  let result: any;
-  try {
-    result = grading.fn({ ...graderProps, ...attrs }, param);
-  } catch {
-    // Engine not ready (ensureReady hasn't resolved) or grader bug —
-    // stay neutral rather than flashing an error per keystroke, and don't
-    // memoize: the engine finishing loading won't dispatch a store change.
-    const transient = { ...UNGRADED };
-    _uncacheable.add(transient);
-    return transient;
-  }
+  const result = grading.fn({ ...graderProps, ...attrs }, param);
   if (result && typeof result.then === 'function') return null; // async — can't derive
 
   let correct = normalizeCorrectness(result.correct);
@@ -153,10 +138,10 @@ export function selectGradingState(
   if (cached) return cached;
 
   const result = computeGradingState(state, props, graderStateKey, immediate);
-  // Don't cache results computed before the node was in the rendered DOM
-  // (mounting registers nodes without dispatching) or flagged transient —
-  // a too-early value would stick until the next store change.
-  if (!_uncacheable.has(result) && getDomNodeByStateKey(props, graderStateKey)) {
+  // Don't cache results computed before the node was in the rendered DOM:
+  // mounting registers nodes without dispatching, so a too-early value would
+  // otherwise stick until the next store change.
+  if (getDomNodeByStateKey(props, graderStateKey)) {
     byKey.set(cacheKey, result);
   }
   return result;
@@ -208,7 +193,6 @@ function computeGradingState(
       score: kids.filter(k => k.correct === correctness.correct).length,
       submitCount: Math.max(0, ...kids.map(k => k.submitCount)),
     };
-    if (kids.some(k => _uncacheable.has(k))) _uncacheable.add(aggregate);
     return aggregate;
   }
 
