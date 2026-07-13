@@ -215,10 +215,9 @@ export const completionPriority = {
  * as correctness checks.
  *
  * VOCABULARY WARNING: "answered" is a legacy term with two conflicting
- * meanings in the wild:
- * - Here (showWhen): alias for "attempted" — any valid submission exists.
- * - In the showanswer attribute (problemModes): edX-legacy for "answered
- *   correctly".
+ * meanings in the wild. Here and in the showanswer attribute (problemModes),
+ * it means any valid submission exists. "correct" is the distinct,
+ * unambiguous correctness gate.
  * Prefer the unambiguous terms: "attempted" or "correct".
  *
  * Future (require additional CapaProblem-level state):
@@ -255,4 +254,3 @@ export function computeVisibility(showWhen: string, { correctness: c /* dueDate,
   }
   return handler({ correctness: c });
 }
-

@@ -64,9 +64,9 @@ export function isProblemFinished(state: ProblemState): boolean {
  *
  * Each mode gates on ONE axis:
  * - 'attempted' — interaction happened (completion ≥ inProgress)
- * - 'answered'  — CORRECTNESS axis: answered correctly. (edX-legacy name;
- *   note this conflicts with Explanation showWhen="answered", which means
- *   attempted — see visibilityHandlers in correctness.ts.)
+ * - 'answered'  — any recorded submission. This is the edX-legacy mode;
+ *   it does NOT mean answered correctly. It aligns with Explanation
+ *   showWhen="answered" — see visibilityHandlers in correctness.ts.
  * - 'closed'    — COMPLETION axis: can no longer be worked
  * - 'finished'  — COMPLETION axis: terminal (done or closed)
  *
@@ -89,7 +89,7 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return problemCompletion(state) !== completion.notStarted;
 
     case 'answered':
-      return state.correct === correctnessEnum.correct;
+      return state.submitCount > 0;
 
     case 'closed':
       // Raw constraint check, not problemCompletion(): edX 'closed' means
