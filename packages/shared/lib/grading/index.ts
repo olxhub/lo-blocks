@@ -14,11 +14,19 @@ export {
   proportionalCorrectness,
   computeScore,
   formatScore,
+  aggregateGradingStates,
 } from './aggregators';
 
-// Grading-state read hook — the single read point for grader state
-export { useCorrectness, selectGradingState, isImmediateContext } from './useCorrectness';
-export type { GraderGradingState } from './useCorrectness';
+// Grading pipeline — shared preparation/evaluation for both grading modes
+export { prepareGrade, evaluateGrade, buildGraderParam, readGraderInputs, gradingField, normalizeGraderResult } from './pipeline';
+export { grader } from './submitGrade';
+export { isGradeError } from './model';
+export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradeError, PreparedGrade } from './model';
+
+// Grading-state read model — the single read point for grader state
+export { selectGradingState, gradingModeFor, isImmediateContext } from './selectGradingState';
+export { useGradingState } from './useGradingState';
+export { registerGradingResolvers } from './registerResolvers';
 
 // Numerical grading
 export {

@@ -7,13 +7,13 @@
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
-import { useCorrectness } from '@/lib/grading';
+import { useGradingState } from '@/lib/grading';
 
 function Correctness(props: RuntimeProps) {
   // graderId is a StateKey injected by render (requiresGrader: true).
   // submitCount drives the flash animation — it increments on each submit,
   // so re-submitting the same answer still re-triggers the pulse.
-  const { correct: correctnessValue, submitCount } = useCorrectness(props, props.graderId);
+  const { correct: correctnessValue, submitCount } = useGradingState(props, props.graderId);
 
   const icons = {
     [correctness.correct]: '✅',

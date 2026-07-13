@@ -53,7 +53,7 @@ const _materializeCache = new WeakMap<object, object>();
 // ---------------------------------------------------------------------------
 // Grading state for grader blocks is DERIVED, not stored (metagraders like
 // CapaProblem never write correct/message/score; immediate-mode leaf graders
-// derive from live input values — see lib/grading/useCorrectness.ts). DSL
+// derive from live input values — see lib/grading/selectGradingState.ts). DSL
 // expressions like when="@problem.correct === correctness.correct" must see
 // that derived state, so grader references resolve through this hook.
 // Injected by lib/grading at import time rather than imported statically:

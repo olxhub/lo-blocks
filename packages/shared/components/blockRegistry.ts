@@ -10,7 +10,12 @@ import * as BlockRegistryAutogen from './blockRegistryAutogen';
 import blockMetadata from './blockMetadataAutogen.json';
 import createStubBlock from '@/components/blocks/utility/StubBlock';
 import { MATCH_BLOCKS } from '@/lib/blocks/createGrader';
+import { registerGradingResolvers } from '@/lib/grading';
 import type { OLXTag, LoBlock } from '@/lib/types';
+
+// Every rendering entry point loads the registry, so this is where
+// cross-subsystem wiring happens (grading → state language).
+registerGradingResolvers();
 
 // Merge metadata onto block objects
 export const BLOCK_REGISTRY = Object.fromEntries(

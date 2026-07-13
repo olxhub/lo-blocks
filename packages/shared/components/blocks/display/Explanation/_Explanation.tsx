@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { computeVisibility } from '@/lib/blocks';
-import { useCorrectness } from '@/lib/grading';
+import { useGradingState } from '@/lib/grading';
 import { useKids } from '@/lib/render';
 
 /**
@@ -26,7 +26,7 @@ function Explanation(props: RuntimeProps) {
 
   // Works for leaf graders and metagraders alike — metagrader correctness
   // is derived from children, not stored.
-  const { correct: correctnessValue } = useCorrectness(props, graderId);
+  const { correct: correctnessValue } = useGradingState(props, graderId);
 
   // useKids must be called unconditionally
   const { kids } = useKids(props);

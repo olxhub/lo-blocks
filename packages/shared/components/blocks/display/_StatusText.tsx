@@ -8,11 +8,11 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import * as state from '@/lib/state';
-import { selectGradingState, type GraderGradingState } from '@/lib/grading';
+import { selectGradingState, type GradingState } from '@/lib/grading';
 
 // Grading-state fields route through selectGradingState — metagraders like
 // CapaProblem don't store these; they are derived from child graders.
-const GRADING_FIELDS: (keyof GraderGradingState)[] = ['correct', 'message', 'score', 'submitCount'];
+const GRADING_FIELDS: (keyof GradingState)[] = ['correct', 'message', 'score', 'submitCount'];
 
 function StatusText(props: RuntimeProps) {
   const { field = 'message', graderId } = props;
@@ -26,7 +26,7 @@ function StatusText(props: RuntimeProps) {
   // state-language refs, and other cross-component reads.
   const selectText = (s: any): string => {
     if (isGradingField) {
-      return String(selectGradingState(s, props, graderId)[field as keyof GraderGradingState] ?? '');
+      return String(selectGradingState(s, props, graderId)[field as keyof GradingState] ?? '');
     }
 
     const targetField = state.componentFieldByStateKey(props, graderId, field);

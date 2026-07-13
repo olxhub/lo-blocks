@@ -47,7 +47,7 @@ const INPUT  = parseLeafId('input');
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child
 // graders. Aggregate grading state is DERIVED, never stored: Correctness/
 // StatusText inside CapaProblem find CapaProblem as their grader and read it
-// through useCorrectness/selectGradingState (lib/grading), which aggregates
+// through useGradingState/selectGradingState (lib/grading), which aggregates
 // the child graders' stored fields on read. Only genuine state (the
 // showAnswer toggle) is declared here.
 export const fields = state.fields([state.commonFields.showAnswer]);

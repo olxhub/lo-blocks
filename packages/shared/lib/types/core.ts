@@ -608,6 +608,8 @@ export interface GradingDescriptor {
   inputType?: 'single' | 'list';
   slots?: string[];
   slow?: boolean;
+  /** Infer inputs from DOM hierarchy (default true); false = target= only. */
+  infer?: boolean;
 }
 
 export const BlockBlueprintSchema = z.object({
@@ -635,7 +637,7 @@ export const BlockBlueprintSchema = z.object({
    * correctness), `inputType`/`slots` (param shape), and `slow` (async
    * grader: the action two-phase dispatches correct='submitted' before
    * awaiting). A blueprint with isGrader but no `grading` is a metagrader —
-   * its state derives from child graders (lib/grading/useCorrectness.ts).
+   * its state derives from child graders (lib/grading/selectGradingState.ts).
    */
   grading: z.custom<GradingDescriptor>().optional(),
   isInput: z.boolean().optional().default(false),

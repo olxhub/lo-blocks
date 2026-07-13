@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
 import { useFieldState } from '@/lib/state';
-import { useCorrectness } from '@/lib/grading';
+import { useGradingState } from '@/lib/grading';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
@@ -103,9 +103,9 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
 
   // CapaProblem's aggregate correctness is derived from its child graders
-  // (never stored) — useCorrectness handles the aggregation.
+  // (never stored) — useGradingState handles the aggregation.
   const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
-  const currentCorrectness = useCorrectness(scopedProps, scopedGraderStateKey).correct;
+  const currentCorrectness = useGradingState(scopedProps, scopedGraderStateKey).correct;
 
   const prevCorrectnessRef = useRef(currentCorrectness);
 
