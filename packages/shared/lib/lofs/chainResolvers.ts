@@ -9,25 +9,26 @@
 // the chain tries each provider in priority order and the first that owns the
 // reference answers.
 //
-// Only the parse-time surface is implemented — read, resolveRelativePath,
-// toLofsRef (what loadExternalSource, assetSrc, and withCastSupport call).
-// Everything else on StorageProvider throws: a chain is a parse-resolution
-// helper, not a general storage backend. Scans, writes, and listings go
-// through the explicit source-set operations (lib/lofs/sourceSet.ts), not here.
+// It returns a ParseResolver — read, resolveRelativePath, toLofsRef (what
+// loadExternalSource, assetSrc, and withCastSupport call) — and nothing else:
+// a chain is a parse-resolution helper, not a general storage backend. Scans,
+// writes, and listings go through the explicit source-set operations
+// (lib/lofs/sourceSet.ts), not here.
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../types';
-import type { StorageProvider, ReadResult } from '../types/storage';
-
-const unsupported = (method: string): never => {
-  throw new Error(`chainResolvers: ${method} is not supported — a resolver chain only resolves parse-time references`);
-};
+import type { ParseResolver, ReadResult } from '../types/storage';
 
 /**
  * Combine providers into one first-hit resolver for parsing. Priority is list
  * order: earlier providers win. A single provider is returned as-is (no wrapper
  * cost, and its full surface stays available); the empty list is a caller bug.
+ *
+ * The return type is ParseResolver — the parse-time slice — not StorageProvider:
+ * a chain resolves references and nothing else. Scans, writes, and listings go
+ * through the explicit source-set operations (lib/lofs/sourceSet.ts), which take
+ * the provider array directly.
  */
-export function chainResolvers(providers: StorageProvider[]): StorageProvider {
+export function chainResolvers(providers: ParseResolver[]): ParseResolver {
   if (providers.length === 0) {
     throw new Error('chainResolvers requires at least one provider');
   }
@@ -76,15 +77,5 @@ export function chainResolvers(providers: StorageProvider[]): StorageProvider {
       }
       throw new Error(`Cannot construct provenance in any provider for: ${safePath}`);
     },
-
-    listContent: () => unsupported('listContent'),
-    generationToken: () => unsupported('generationToken'),
-    commit: () => unsupported('commit'),
-    listFiles: () => unsupported('listFiles'),
-    glob: () => unsupported('glob'),
-    grep: () => unsupported('grep'),
-    toRelativePath: () => unsupported('toRelativePath'),
-    validateAssetPath: () => unsupported('validateAssetPath'),
-    namespaceFor: () => unsupported('namespaceFor'),
   };
 }

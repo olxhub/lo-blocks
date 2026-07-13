@@ -12,7 +12,7 @@ import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
 import { McpStorageProvider } from '@/lib/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
-import type { StorageProvider } from '@/lib/types/storage';
+import type { ParseResolver } from '@/lib/types/storage';
 import type { AppError } from '@/lib/types/errors';
 import { stateKeyFromFilename } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types';
@@ -27,8 +27,9 @@ export interface PreviewPaneProps {
   ns: ContentNamespace;
   /** Base ID map for cross-file references (OLX only) */
   idMap?: IdMap | null;
-  /** Provider for resolving src="" references (OLX only) */
-  resolveProvider?: StorageProvider;
+  /** Provider for resolving src="" references (OLX only) — the parse-time
+   *  slice is all preview needs. */
+  resolveProvider?: ParseResolver;
   /** Provenance ref of the previewed file — the base for resolving relative
    *  src="" references. Pass the real ref so refs resolve within the right
    *  source (Studio passes its origin-scoped ref). Omit ONLY for self-contained

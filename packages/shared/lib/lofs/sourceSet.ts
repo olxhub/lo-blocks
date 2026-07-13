@@ -16,7 +16,9 @@
 import type { LofsRef, OlxRelativePath } from '../types';
 import {
   NamespaceResolutionError,
-  type StorageProvider,
+  type ParseResolver,
+  type ContentSearcher,
+  type ContentEnumerator,
   type NamespaceResolution,
   type UriNode,
   type ReadResult,
@@ -75,7 +77,7 @@ function foldByPriority<T>(results: T[], merge: (higher: T, lower: T) => T, empt
  * a real error (permissions, corruption, a down remote) is not the same as
  * absence and must not be masked by trying the next source.
  */
-export async function readFirst(sources: StorageProvider[], path: OlxRelativePath): Promise<ReadResult> {
+export async function readFirst(sources: ParseResolver[], path: OlxRelativePath): Promise<ReadResult> {
   for (const provider of sources) {
     try {
       return await provider.read(path);
@@ -90,7 +92,7 @@ export async function readFirst(sources: StorageProvider[], path: OlxRelativePat
 /** Glob across every source: union of matches, deduplicated by path, in
  *  priority order. A source that can't glob drops out. */
 export async function globAll(
-  sources: StorageProvider[],
+  sources: ContentSearcher[],
   pattern: string,
   basePath?: OlxRelativePath,
 ): Promise<OlxRelativePath[]> {
@@ -115,7 +117,7 @@ export async function globAll(
  *  sorted by path then line. Each source limited itself, but the union can
  *  exceed the cap — re-apply options.limit to the merged result. */
 export async function grepAll(
-  sources: StorageProvider[],
+  sources: ContentSearcher[],
   pattern: string,
   options: GrepOptions = {},
 ): Promise<GrepMatch[]> {
@@ -146,7 +148,7 @@ export async function grepAll(
 
 /** Full file tree across every source, merged (higher priority shadows lower).
  *  A source that can't list drops out. */
-export async function listFilesAll(sources: StorageProvider[]): Promise<UriNode> {
+export async function listFilesAll(sources: ContentSearcher[]): Promise<UriNode> {
   const results: UriNode[] = [];
   for (const provider of sources) {
     try {
@@ -168,7 +170,7 @@ export async function listFilesAll(sources: StorageProvider[]): Promise<UriNode>
  * mount-mismatch error.
  */
 export async function namespaceForAcross(
-  sources: StorageProvider[],
+  sources: ContentEnumerator[],
   ref: LofsRef,
 ): Promise<NamespaceResolution> {
   let lastError: Error | null = null;

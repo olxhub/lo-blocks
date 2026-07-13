@@ -46,19 +46,14 @@ import { z } from 'zod';
 import type { ToolRegistry, ToolContext } from '../mcp/registry';
 import { readableProviders, writableSourceProvider, sources } from './contentSources';
 import { readFirst, globAll, grepAll, listFilesAll } from './sourceSet';
-import { VersionConflictError, toOlxRelativePath } from '../types/storage';
-import type { StorageProvider, ReadResult, FileChange, CommitBase } from '../types/storage';
+import { toOlxRelativePath } from '../types/storage';
+import type { StorageProvider, ReadResult } from '../types/storage';
 import { toRepoRelativePath } from './repoPath';
-import { toLofsRef, version } from '../types/address';
-import { asContentNamespace } from '../types/id-grammar';
-import type { WorktreeEntry, WorktreeResolver } from './worktree';
-
-/** Max content size for writes — matches the historical /api/file limit. */
-const MAX_WRITE_BYTES = 100_000;
-
-/** Synthetic namespace for validation-only parses (Edit) when the provider
- *  resolves none — nothing from these parses is stored or rendered. */
-const VALIDATION_NS = asContentNamespace('studio');
+import type { WorktreeResolver } from './worktree';
+import {
+  readAuthoringView, stageWrite, stageEdit, stageDelete, stageMove,
+  worktreeStatus, commitWorktree, discardWorktree, globOverlay, grepOverlay,
+} from './worktreeOps';
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -211,44 +206,6 @@ const GetSourcesOutput = z.object({
 const basePathOf = (p?: string) => (p ? toOlxRelativePath(p) : undefined);
 
 /**
- * Validate content by parsing it, keyed on file extension: OLX/XML through
- * parseOLX, PEG-defined formats through their generated parser. Returns an
- * author-friendly error string, or null when the content is valid (or has no
- * validator). Shared by Edit today; Write validation is a candidate follow-up.
- *
- * Dynamic imports, deliberately: parseOLX pulls the full BLOCK_REGISTRY
- * (every block's component module). Loading it belongs to the first Edit,
- * not to server boot — same rationale as readProvider's docs branch.
- */
-async function validateContent(pathStr: string, content: string, ns?: string): Promise<string | null> {
-  const ext = pathStr.split('.').pop()?.toLowerCase() ?? '';
-  if (ext === 'olx' || ext === 'xml') {
-    const { parseOLX } = await import('../content/parseOLX');
-    const namespace = ns ? asContentNamespace(ns) : VALIDATION_NS;
-    const { errors } = await parseOLX(content, [toLofsRef('editor://')], undefined, namespace);
-    if (errors.length > 0) {
-      const messages = errors.map((e: { message: string }) => e.message).join('\n\n---\n\n');
-      return `${errors.length} issue${errors.length > 1 ? 's' : ''}:\n\n${messages}`;
-    }
-    return null;
-  }
-  const { isPEGContentExtension, getParserForExtension } = await import('../../generated/parserRegistry');
-  if (isPEGContentExtension(ext)) {
-    const parser = getParserForExtension(ext);
-    if (parser) {
-      try {
-        parser.parse(content);
-      } catch (err: any) {
-        const loc = err.location?.start;
-        const locStr = loc ? ` (line ${loc.line}, col ${loc.column})` : '';
-        return `Parse error${locStr}: ${err.message}`;
-      }
-    }
-  }
-  return null;
-}
-
-/**
  * Git commit authorship from the calling user's identity.
  *
  * The platform commits ON THE AUTHOR'S BEHALF (git.ts): committer = the
@@ -269,57 +226,6 @@ function authorFrom(ctx?: ToolContext): { name: string; email: string } | undefi
   if (!user) return undefined;
   const email = user.email ?? `${user.safe_user_id ?? user.user_id}@users.lo`;
   return { name: user.user_id, email };
-}
-
-/**
- * Seed a working-tree base from the source: read the file to capture its
- * provenance canonical (base) and opaque version token (baseMeta). A file that
- * does not exist in the source yields an empty seed (a brand-new file — no
- * base, no conflict check).
- */
-async function seedBase(provider: StorageProvider, p: string): Promise<{ base?: WorktreeEntry['base']; baseMeta?: unknown }> {
-  try {
-    const r = await provider.read(p as any);
-    return { base: r.provenance, baseMeta: r.metadata };
-  } catch (err: any) {
-    const notFound = err?.code === 'ENOENT' || String(err?.message).includes('not found');
-    if (notFound) return {};
-    throw err;
-  }
-}
-
-/** Reuse the entry's recorded base, else seed one from the source (first touch). */
-async function firstProvider(deps: LofsToolDeps, source: string): Promise<StorageProvider> {
-  return (await deps.readableProviders(source))[0];
-}
-
-async function baseFor(
-  provider: StorageProvider, p: string, existing?: WorktreeEntry,
-): Promise<{ base?: WorktreeEntry['base']; baseMeta?: unknown }> {
-  if (existing && (existing.base !== undefined || existing.baseMeta !== undefined)) {
-    return { base: existing.base, baseMeta: existing.baseMeta };
-  }
-  return seedBase(provider, p);
-}
-
-/**
- * Resolve a path through the caller's staged renames: reading the OLD path of
- * a staged rename is not-found (it moved); reading the NEW path serves the
- * moved file's content (from staged content if the entry carries any, else
- * the source at the old path). Returns null when no rename involves `p`.
- */
-async function resolveStagedRename(
-  wt: { get(p: string): Promise<WorktreeEntry | undefined>; list(): Promise<Array<{ path: string; entry: WorktreeEntry }>> },
-  provider: StorageProvider, p: string,
-): Promise<{ movedAway?: string; movedHere?: { from: string; entry: WorktreeEntry } } | null> {
-  const own = await wt.get(p);
-  if (own?.renamedTo !== undefined) return { movedAway: String(own.renamedTo) };
-  for (const { path: from, entry } of await wt.list()) {
-    if (entry.renamedTo !== undefined && String(entry.renamedTo) === p) {
-      return { movedHere: { from, entry } };
-    }
-  }
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -370,42 +276,16 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: ReadOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
   }, async ({ path: rawPath, source }, ctx) => {
-    const p = toRepoRelativePath(rawPath);
+    const p = String(toRepoRelativePath(rawPath));
+    const readable = await deps.readableProviders(source);
     // Authoring-view overlay only when a source is named (a union read has no
-    // single working tree). The overlay returns staged content; a staged
-    // delete reads as not-found; otherwise fall through to the source.
+    // single working tree). readAuthoringView returns the staged view or null
+    // (fall through to the source); a staged delete/move reads as not-found.
     if (source) {
-      const wt = await deps.worktree(ctx, source);
-      const entry = await wt.get(p);
-      if (entry?.deleted) {
-        throw new Error(`File not found: ${p} (staged for deletion in your working tree)`);
-      }
-      const rename = await resolveStagedRename(wt, await firstProvider(deps, source), String(p));
-      if (rename?.movedAway) {
-        throw new Error(`File not found: ${p} (staged as renamed to ${rename.movedAway} in your working tree)`);
-      }
-      if (rename?.movedHere) {
-        const from = toRepoRelativePath(rename.movedHere.from);
-        const src = await readFirst(await deps.readableProviders(source), from);
-        return {
-          content: src.content,
-          metadata: rename.movedHere.entry.baseMeta,
-          ns: src.ns,
-          provenance: String(src.provenance),
-          staged: true as const,
-        };
-      }
-      if (entry?.content !== undefined) {
-        return {
-          content: entry.content,
-          metadata: entry.baseMeta,
-          ns: undefined,
-          provenance: entry.base ? String(entry.base) : `${source}://${p}`,
-          staged: true,
-        };
-      }
+      const staged = await readAuthoringView(await deps.worktree(ctx, source), readable, source, p);
+      if (staged) return staged;
     }
-    const result: ReadResult = await readFirst(await deps.readableProviders(source), p);
+    const result: ReadResult = await readFirst(readable, p as any);
     return {
       content: result.content,
       metadata: result.metadata,
@@ -425,31 +305,10 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: WriteOutput,
     annotations: {},
   }, async ({ path: rawPath, source, content, previous_metadata, create }, ctx) => {
-    if (content.length > MAX_WRITE_BYTES) {
-      throw new Error(`File too large (max ${MAX_WRITE_BYTES / 1000}KB)`);
-    }
-    const p = toRepoRelativePath(rawPath);
+    const p = String(toRepoRelativePath(rawPath));
     const provider = await deps.writableSourceProvider(source);
     const wt = await deps.worktree(ctx, source);
-    const existing = await wt.get(p);
-
-    // Base is recorded on FIRST TOUCH and then held: keep an entry's existing
-    // base; on first touch seed it from the source (its provenance canonical),
-    // preferring the caller's previous_metadata token for the conflict check.
-    let base = existing?.base;
-    let baseMeta = existing?.baseMeta;
-    if (existing === undefined || (existing.base === undefined && existing.baseMeta === undefined)) {
-      const seed = await seedBase(provider, p);
-      if (create && seed.base !== undefined) {
-        // create must not clobber an existing source file (TOCTOU acceptable;
-        // the commit base check is the authoritative guard).
-        return { ok: false as const, conflict: true as const, error: `File already exists: ${p}`, metadata: seed.baseMeta };
-      }
-      base = seed.base;
-      baseMeta = previous_metadata !== undefined ? previous_metadata : seed.baseMeta;
-    }
-    await wt.set(p, { content, base, baseMeta });
-    return { ok: true as const, staged: true as const };
+    return stageWrite(provider, wt, { p, content, previousMetadata: previous_metadata, create });
   });
 
   registry.register('Edit', {
@@ -462,48 +321,12 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: EditOutput,
     annotations: {},
   }, async ({ path: rawPath, source, old_string, new_string, replace_all = false }, ctx) => {
-    if (!old_string || old_string.trim() === '') {
-      throw new Error('old_string cannot be empty');
-    }
-    const p = toRepoRelativePath(rawPath);
+    const p = String(toRepoRelativePath(rawPath));
     const provider = await deps.writableSourceProvider(source);
     const wt = await deps.worktree(ctx, source);
-    const existing = await wt.get(p);
-    if (existing?.deleted) {
-      throw new Error(`Cannot edit ${p}: it is staged for deletion. Discard first, or Write fresh content.`);
-    }
-
-    // Anchor on the working-tree content when present, else the source.
-    let current: string;
-    let seed: { base?: WorktreeEntry['base']; baseMeta?: unknown };
-    if (existing?.content !== undefined) {
-      current = existing.content;
-      seed = { base: existing.base, baseMeta: existing.baseMeta };
-    } else {
-      const r = await provider.read(p as any);
-      current = r.content;
-      seed = { base: r.provenance, baseMeta: r.metadata };
-    }
-
-    const occurrences = current.split(old_string).length - 1;
-    if (occurrences === 0) {
-      throw new Error('Could not find text to replace. Ensure old_string exactly matches (re-Read the file if it may have changed).');
-    }
-    if (occurrences > 1 && !replace_all) {
-      throw new Error(`Found ${occurrences} occurrences. Include more context to make old_string unique, or set replace_all: true.`);
-    }
-
-    const newContent = replace_all
-      ? current.replaceAll(old_string, new_string)
-      : current.replace(old_string, new_string);
-    if (newContent.length > MAX_WRITE_BYTES) {
-      throw new Error(`Edited file too large (max ${MAX_WRITE_BYTES / 1000}KB)`);
-    }
-
-    const invalid = await validateContent(rawPath, newContent);
-    if (invalid) throw new Error(invalid);
-
-    await wt.set(p, { content: newContent, base: seed.base, baseMeta: seed.baseMeta });
+    const { occurrences } = await stageEdit(provider, wt, {
+      p, rawPath, oldString: old_string, newString: new_string, replaceAll: replace_all,
+    });
     return { ok: true as const, staged: true as const, occurrences };
   });
 
@@ -513,12 +336,9 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: StagedOutput,
     annotations: {},
   }, async ({ path: rawPath, source }, ctx) => {
-    const p = toRepoRelativePath(rawPath);
+    const p = String(toRepoRelativePath(rawPath));
     const provider = await deps.writableSourceProvider(source);
-    const wt = await deps.worktree(ctx, source);
-    const existing = await wt.get(p);
-    const seed = await baseFor(provider, p, existing);
-    await wt.set(p, { deleted: true, base: seed.base, baseMeta: seed.baseMeta });
+    await stageDelete(provider, await deps.worktree(ctx, source), p);
     return { ok: true as const, staged: true as const };
   });
 
@@ -528,13 +348,10 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: StagedOutput,
     annotations: {},
   }, async ({ path: rawPath, new_path, source }, ctx) => {
-    const p = toRepoRelativePath(rawPath);
-    const to = toRepoRelativePath(new_path);
+    const p = String(toRepoRelativePath(rawPath));
+    const to = String(toRepoRelativePath(new_path));
     const provider = await deps.writableSourceProvider(source);
-    const wt = await deps.worktree(ctx, source);
-    const existing = await wt.get(p);
-    const seed = await baseFor(provider, p, existing);
-    await wt.set(p, { renamedTo: to, base: seed.base, baseMeta: seed.baseMeta });
+    await stageMove(provider, await deps.worktree(ctx, source), p, to);
     return { ok: true as const, staged: true as const };
   });
 
@@ -548,32 +365,7 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     annotations: { readOnlyHint: true },
   }, async ({ source }, ctx) => {
     const provider = await deps.writableSourceProvider(source);
-    const wt = await deps.worktree(ctx, source);
-    const list = await wt.list();
-    const entries = await Promise.all(list.map(async ({ path: p, entry }) => {
-      const change = entry.deleted ? 'deleted' as const
-        : entry.renamedTo !== undefined ? 'renamed' as const
-        : entry.base === undefined ? 'added' as const
-        : 'modified' as const;
-      // Staleness: the source moved past `base` (compare the base's #version
-      // against the source's current provenance version). No base (a new file)
-      // is never stale.
-      let stale = false;
-      if (entry.base !== undefined) {
-        try {
-          const cur = await provider.read(p as any);
-          stale = version(toLofsRef(String(entry.base))) !== version(cur.provenance);
-        } catch { stale = true; }  // base recorded, source gone → stale
-      }
-      return {
-        path: p,
-        change,
-        ...(entry.renamedTo !== undefined ? { renamedTo: entry.renamedTo } : {}),
-        ...(entry.base !== undefined ? { base: String(entry.base) } : {}),
-        stale,
-      };
-    }));
-    return { source, entries };
+    return worktreeStatus(provider, await deps.worktree(ctx, source), source);
   });
 
   registry.register('Commit', {
@@ -587,54 +379,9 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     annotations: { destructiveHint: true },
   }, async ({ source, message, paths, force, bases }, ctx) => {
     const provider = await deps.writableSourceProvider(source);
-    const wt = await deps.worktree(ctx, source);
-    const all = await wt.list();
-    const want = paths ? new Set(paths.map(p => String(toRepoRelativePath(p)))) : undefined;
-    const selected = want ? all.filter(e => want.has(e.path)) : all;
-    if (selected.length === 0) {
-      return { ok: true as const, committed: [], nothing: true as const };
-    }
-
-    const overrides = new Map((bases ?? []).map(b => [String(toRepoRelativePath(b.path)), b.version]));
-    const changes: FileChange[] = [];
-    const base: CommitBase[] = [];
-    for (const { path: p, entry } of selected) {
-      if (entry.deleted) {
-        changes.push({ path: p as any, delete: true });
-      } else if (entry.renamedTo !== undefined) {
-        changes.push({ path: p as any, renameTo: entry.renamedTo as any });
-      } else if (entry.content !== undefined) {
-        changes.push({ path: p as any, content: entry.content });
-      } else {
-        continue;  // empty entry — nothing to publish
-      }
-      const baseVersion = overrides.has(p) ? overrides.get(p) : entry.baseMeta;
-      if (baseVersion !== undefined) base.push({ path: p as any, version: baseVersion });
-    }
-
-    try {
-      await provider.commit(changes, {
-        message,
-        force,
-        base: base.length > 0 ? base : undefined,
-        author: authorFrom(ctx),
-      });
-    } catch (err: any) {
-      if (err instanceof VersionConflictError || err.name === 'VersionConflictError') {
-        // The provider reports the first offending path's current token; a
-        // per-path list keeps the door open for multi-file conflict UX.
-        const conflicts = [{ path: selected[0].path, error: err.message, metadata: err.currentMetadata }];
-        return {
-          ok: false as const, conflict: true as const,
-          error: err.message, metadata: err.currentMetadata, conflicts,
-        };
-      }
-      throw err;
-    }
-
-    const committed = selected.map(e => e.path);
-    await wt.drop(committed);
-    return { ok: true as const, committed };
+    return commitWorktree(provider, await deps.worktree(ctx, source), {
+      paths, message, force, bases, author: authorFrom(ctx),
+    });
   });
 
   registry.register('Discard', {
@@ -645,36 +392,45 @@ export function registerLofsTools(registry: ToolRegistry, deps: LofsToolDeps): v
     output: DiscardOutput,
     annotations: { destructiveHint: true },
   }, async ({ source, paths }, ctx) => {
-    const wt = await deps.worktree(ctx, source);
-    const targets = paths
-      ? paths.map(p => String(toRepoRelativePath(p)))
-      : (await wt.list()).map(e => e.path);
-    await wt.drop(targets);
-    return { ok: true as const, discarded: targets };
+    const { discarded } = await discardWorktree(await deps.worktree(ctx, source), paths);
+    return { ok: true as const, discarded };
   });
 
   registry.register('Glob', {
-    description: 'Find files matching a glob pattern. Use to discover content structure.',
+    description:
+      'Find files matching a glob pattern (your AUTHORING VIEW when a source is named: staged renames appear ' +
+      'at their new name, staged-created files are included, staged-deleted files drop out). Use to discover content structure.',
     input: GlobInput,
     output: GlobOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
-  }, async ({ pattern, path: base, source }) => {
-    const files = await globAll(await deps.readableProviders(source), pattern, basePathOf(base));
+  }, async ({ pattern, path: base, source }, ctx) => {
+    let files = await globAll(await deps.readableProviders(source), pattern, basePathOf(base));
+    if (source) {
+      files = (await globOverlay(await deps.worktree(ctx, source), files as string[], pattern, base)) as typeof files;
+    }
     return { files: files as string[] };
   });
 
   registry.register('Grep', {
-    description: 'Search file contents for a pattern (regex supported). Returns matches with path, line number, and line content.',
+    description:
+      'Search file contents for a pattern (regex supported; your AUTHORING VIEW when a source is named — staged ' +
+      'content is searched, renames report at their new name, staged-deleted files drop out). Returns matches with path, line number, and line content.',
     input: GrepInput,
     output: GrepOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },
-  }, async ({ pattern, path: base, include, limit, source }) => {
-    const matches = await grepAll(await deps.readableProviders(source), pattern, { basePath: basePathOf(base), include, limit });
+  }, async ({ pattern, path: base, include, limit, source }, ctx) => {
+    const options = { basePath: basePathOf(base), include, limit };
+    let matches = await grepAll(await deps.readableProviders(source), pattern, options);
+    if (source) {
+      matches = await grepOverlay(await deps.worktree(ctx, source), matches, pattern, options);
+    }
     return { matches: matches as Array<{ path: string; line: number; content: string }> };
   });
 
   registry.register('list_files', {
-    description: 'Full file tree of a content source (or the union). The Studio file-browser view; agents usually want Glob instead.',
+    description:
+      'Full file tree of a content source (or the union) — the PROVIDER-FACING committed tree, NOT an authoring ' +
+      'view (staged working-tree changes are not reflected; use Glob/Grep/Read for those). The Studio file-browser view; agents usually want Glob instead.',
     input: ListFilesInput,
     output: ListFilesOutput,
     annotations: { readOnlyHint: true, idempotentHint: true },

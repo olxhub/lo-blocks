@@ -23,6 +23,7 @@ import { z } from 'zod';
 import yaml from 'js-yaml';
 import { XMLBuilder } from 'fast-xml-parser';
 import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey } from '@/lib/types';
+import type { ParseResolver } from '@/lib/types/storage';
 import type { LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
@@ -67,7 +68,7 @@ export async function loadExternalSource({
   parseDeps,
 }: {
   src: string;
-  provider: any;
+  provider: ParseResolver | undefined;
   source: LofsCanonical;
   parseDeps: LofsCanonical[];
 }): Promise<{ text: string; dep: LofsCanonical }> {

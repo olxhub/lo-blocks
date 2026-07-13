@@ -324,7 +324,80 @@ export interface GrepMatch {
   content: string;
 }
 
-export interface StorageProvider {
+/**
+ * CONSUMER SURFACES (interface segregation).
+ *
+ * StorageProvider is the ONE full interface real stores implement (file, git,
+ * memory, docs). But most consumers use only a slice of it — so they declare
+ * the slice they need, and the narrow types below name those slices. A helper
+ * that supplies only part of the surface (chainResolvers → ParseResolver) or a
+ * face that supports only part of it (McpStorageProvider) implements the slice,
+ * not the whole. StorageProvider is the intersection of all four plus the few
+ * members no consumer slice needs on its own.
+ */
+
+/**
+ * What OLX parsing needs to resolve src=/data=/cast= references: read the
+ * referenced bytes, resolve a relative path against a base, and construct a
+ * provenance ref. This is the whole parse-time storage surface — chainResolvers
+ * supplies exactly this, and parseOLX/parsers/cast take exactly this.
+ */
+export interface ParseResolver {
+  read(path: OlxRelativePath): Promise<ReadResult>;
+
+  /**
+   * Resolve a relative path against a base LofsRef.
+   * Validates the resolved result stays within the content directory.
+   *
+   * @param baseProvenance - LofsRef of current OLX file
+   * @param relativePath - Raw relative path from OLX (e.g., "static/image.png")
+   * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
+   */
+  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath;
+
+  /**
+   * Construct the LofsRef for a content path in this provider.
+   *
+   * Maps from a SafeRelativePath to this provider's address. For example:
+   * - FileStorageProvider:     "sba/foo.olx" → "file:content://sba/foo.olx"
+   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:local://sba/foo.olx"
+   *
+   * Used by parsers to extend provenance without knowing about
+   * storage schemes. See also ReadResult.provenance (set during read).
+   */
+  toLofsRef(path: SafeRelativePath): LofsRef;
+}
+
+/**
+ * The search/browse surface: glob, grep, and full-tree listing. The tools'
+ * read-shaped views and the Studio file browser use exactly this.
+ */
+export interface ContentSearcher {
+  /**
+   * Find files matching a glob pattern
+   * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
+   * @param basePath - Base path to search from (default: root)
+   * @returns Array of matching file paths (OlxRelativePath)
+   */
+  glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]>;
+
+  /**
+   * Search file contents for a pattern
+   * @param pattern - Search pattern (regex supported)
+   * @param options - Search options (basePath, include filter, limit)
+   * @returns Array of matches with file, line number, and content
+   */
+  grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
+
+  listFiles(selection?: FileSelection): Promise<UriNode>;
+}
+
+/**
+ * The sync/compile enumeration surface: enumerate the world, cheaply detect
+ * change, and resolve namespaces. Only real sync sources (file/git/memory)
+ * supply it; the client MCP face and the parse-resolver chain do not.
+ */
+export interface ContentEnumerator {
   /**
    * Enumerate every content file this source currently holds, with bytes and a
    * versioned ref (see ContentFile). There is no diff against a previous scan:
@@ -353,77 +426,8 @@ export interface StorageProvider {
    * - FileStorageProvider: a cheap stat-only walk (count + max mtime + total size).
    * - GitStorageProvider:  the last-known branch head (cooldown governs freshness).
    * - InMemoryStorageProvider: a bump-on-write counter.
-   * - chainResolvers: unsupported (a parse-resolution helper, never synced).
    */
   generationToken(): Promise<string>;
-
-  read(path: OlxRelativePath): Promise<ReadResult>;
-  /**
-   * The ONE write doorway: apply a list of changes (adds/overwrites, deletes,
-   * renames) as a single atomic unit. Version-controlled providers land it as
-   * one commit; the file provider applies the list in order. Conflict policy
-   * (per-file optimistic base, force) and authorship travel in CommitOptions.
-   * A stale base or a rejected push surfaces as VersionConflictError.
-   */
-  commit(changes: FileChange[], options?: CommitOptions): Promise<CommitResult>;
-  listFiles(selection?: FileSelection): Promise<UriNode>;
-
-  /**
-   * Find files matching a glob pattern
-   * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
-   * @param basePath - Base path to search from (default: root)
-   * @returns Array of matching file paths (OlxRelativePath)
-   */
-  glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]>;
-
-  /**
-   * Search file contents for a pattern
-   * @param pattern - Search pattern (regex supported)
-   * @param options - Search options (basePath, include filter, limit)
-   * @returns Array of matches with file, line number, and content
-   */
-  grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
-
-  /**
-   * Resolve a relative path against a base LofsRef.
-   * Validates the resolved result stays within the content directory.
-   *
-   * @param baseRef - LofsRef of current OLX file
-   * @param relativePath - Raw relative path from OLX (e.g., "static/image.png")
-   * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
-   */
-  resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath;
-
-  /**
-   * Construct the LofsRef for a content path in this provider.
-   *
-   * Maps from a SafeRelativePath to this provider's address. For example:
-   * - FileStorageProvider:     "sba/foo.olx" → "file:content://sba/foo.olx"
-   * - InMemoryStorageProvider: "sba/foo.olx" → "memory:local://sba/foo.olx"
-   *
-   * Used by parsers to extend provenance without knowing about
-   * storage schemes. See also ReadResult.provenance (set during read).
-   */
-  toLofsRef(path: SafeRelativePath): LofsRef;
-
-  /**
-   * Extract the relative path from a LofsRef in this provider.
-   *
-   * Inverse of toLofsRef. For example:
-   * - FileStorageProvider:     "file:content://sba/foo.olx" → "sba/foo.olx"
-   * - InMemoryStorageProvider: "memory:local://sba/foo.olx" → "sba/foo.olx"
-   *
-   * Used by translation orchestration to navigate between source and
-   * translated file paths without knowing the provider's address scheme.
-   */
-  toRelativePath(uri: LofsRef): OlxRelativePath;
-
-  /**
-   * Check if a static asset file exists and is valid
-   * @param assetPath - Path relative to content root
-   * @returns Promise<boolean>
-   */
-  validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
 
   /**
    * Resolve the content namespace for a file in this provider.
@@ -448,6 +452,47 @@ export interface StorageProvider {
    * multi-namespace content directory with no manifest.
    */
   namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+}
+
+/** The write doorway. */
+export interface ContentWriter {
+  /**
+   * The ONE write doorway: apply a list of changes (adds/overwrites, deletes,
+   * renames) as a single atomic unit. Version-controlled providers land it as
+   * one commit; the file provider applies the list in order. Conflict policy
+   * (per-file optimistic base, force) and authorship travel in CommitOptions.
+   * A stale base or a rejected push surfaces as VersionConflictError.
+   */
+  commit(changes: FileChange[], options?: CommitOptions): Promise<CommitResult>;
+}
+
+/**
+ * A full content store. The intersection of the four consumer surfaces plus the
+ * members no single slice needs. Real stores (file, git, memory, docs)
+ * implement this whole interface; memory's commit() honestly throws "read-only
+ * source". Consumers should depend on the narrowest surface above that covers
+ * their use, not on StorageProvider, unless they truly need everything.
+ */
+export interface StorageProvider
+  extends ParseResolver, ContentSearcher, ContentEnumerator, ContentWriter {
+  /**
+   * Extract the relative path from a LofsRef in this provider.
+   *
+   * Inverse of toLofsRef. For example:
+   * - FileStorageProvider:     "file:content://sba/foo.olx" → "sba/foo.olx"
+   * - InMemoryStorageProvider: "memory:local://sba/foo.olx" → "sba/foo.olx"
+   *
+   * Used by translation orchestration to navigate between source and
+   * translated file paths without knowing the provider's address scheme.
+   */
+  toRelativePath(uri: LofsRef): OlxRelativePath;
+
+  /**
+   * Check if a static asset file exists and is valid
+   * @param assetPath - Path relative to content root
+   * @returns Promise<boolean>
+   */
+  validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
 
   /**
    * A browsable forge link for this source — the repo at its ref, or a file

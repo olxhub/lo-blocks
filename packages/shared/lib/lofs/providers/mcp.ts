@@ -10,12 +10,13 @@
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
-import { provenancePath, type NamespaceResolution } from '../../types/storage';
+import { provenancePath } from '../../types/storage';
 import { toLofsRef, toLofsCanonical } from '../../types/address';
 import { callMcpTool } from '../../mcp/client';
 import {
-  type StorageProvider,
-  type ContentFile,
+  type ParseResolver,
+  type ContentSearcher,
+  type ContentWriter,
   type FileSelection,
   type UriNode,
   type ReadResult,
@@ -38,7 +39,7 @@ interface ToolConflict {
 type StageResult = { ok: true; staged: true } | ToolConflict;
 type CommitToolResult = { ok: true; committed: string[]; nothing?: boolean } | ToolConflict;
 
-export class McpStorageProvider implements StorageProvider {
+export class McpStorageProvider implements ParseResolver, ContentSearcher, ContentWriter {
   /** The source this provider edits, sent as `source` so the server routes
    *  via sourceProvider(origin). Undefined = union mode: reads/lists/searches
    *  span all sources (compile/preview). Writes require an origin — a union
@@ -193,16 +194,6 @@ export class McpStorageProvider implements StorageProvider {
     return provenancePath(uri) as OlxRelativePath;
   }
 
-  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
-    // Content namespaces are resolved server-side during content sync;
-    // qualified DefinitionKeys arrive over the wire. Client-side parses
-    // (editor, inline) get their namespace from the caller, not the provider.
-    throw new Error(
-      `McpStorageProvider cannot resolve content namespaces (asked about: ${ref}). ` +
-      `The server resolves namespaces when syncing content.`
-    );
-  }
-
   /**
    * Check if an asset file exists via HEAD request against the public
    * content mount (assets aren't served over MCP).
@@ -217,27 +208,5 @@ export class McpStorageProvider implements StorageProvider {
     } catch {
       return false;
     }
-  }
-
-  /**
-   * Content enumeration is not supported over MCP.
-   * Use listFiles() + read(); this is the CLIENT-side face, never a sync source.
-   */
-  async listContent(): Promise<ContentFile[]> {
-    throw new Error(
-      'McpStorageProvider does not support content enumeration. ' +
-      'Use listFiles() to get the current file tree, or read() individual files.'
-    );
-  }
-
-  /**
-   * Not supported: this is the CLIENT-side content face over MCP, never a
-   * server-side sync source (the sync runs over file/git providers). Change
-   * detection would need a server round-trip and belongs there, not here.
-   */
-  async generationToken(): Promise<string> {
-    throw new Error(
-      'McpStorageProvider does not support generationToken (client-side content provider; not a sync source).'
-    );
   }
 }

@@ -234,6 +234,85 @@ describe('LOFS tools — working tree', () => {
     expect(moved.staged).toBe(true);
   });
 
+  test('Write then Move composes: staged content survives the rename through Commit', async () => {
+    await registry.callTool('Write', { path: 'unit/notes.md', source: SRC, content: 'edited\n' }, CTX);
+    await registry.callTool('Move', { path: 'unit/notes.md', new_path: 'unit/renamed.md', source: SRC }, CTX);
+    // The new path reads the STAGED (edited) content, not the source.
+    const moved: any = await registry.callTool('Read', { path: 'unit/renamed.md', source: SRC }, CTX);
+    expect(moved.content).toBe('edited\n');
+    // Commit lands rename + edit at the new path; old path gone.
+    const c: any = await registry.callTool('Commit', { source: SRC, message: 'move+edit' }, CTX);
+    expect(c.ok).toBe(true);
+    expect(await fs.readFile(path.join(tempDir, 'unit/renamed.md'), 'utf-8')).toBe('edited\n');
+    await expect(fs.readFile(path.join(tempDir, 'unit/notes.md'), 'utf-8')).rejects.toThrow();
+  });
+
+  test('Edit through a staged rename: old path fails, new path resolves and preserves the rename', async () => {
+    await registry.callTool('Move', { path: 'unit/notes.md', new_path: 'unit/renamed.md', source: SRC }, CTX);
+    // Editing the OLD path fails like Read does.
+    await expect(
+      registry.callTool('Edit', { path: 'unit/notes.md', source: SRC, old_string: 'alpha', new_string: 'X' }, CTX),
+    ).rejects.toThrow(/renamed to unit\/renamed.md/);
+    // Editing the NEW path resolves through the rename (seeded from moved-from source).
+    const e: any = await registry.callTool('Edit', {
+      path: 'unit/renamed.md', source: SRC, old_string: 'alpha', new_string: 'ALPHA', replace_all: true,
+    }, CTX);
+    expect(e).toEqual({ ok: true, staged: true, occurrences: 2 });
+    // The rename is preserved: old path still gone, new path holds the edit.
+    await expect(registry.callTool('Read', { path: 'unit/notes.md', source: SRC }, CTX))
+      .rejects.toThrow(/renamed to unit\/renamed.md/);
+    const moved: any = await registry.callTool('Read', { path: 'unit/renamed.md', source: SRC }, CTX);
+    expect(moved.content).toBe('ALPHA beta ALPHA\n');
+    // Commit lands the edited content at the new path.
+    await registry.callTool('Commit', { source: SRC }, CTX);
+    expect(await fs.readFile(path.join(tempDir, 'unit/renamed.md'), 'utf-8')).toBe('ALPHA beta ALPHA\n');
+  });
+
+  test('chained rename A→B→C: old path reads as moved to the final name; final name serves content', async () => {
+    await registry.callTool('Move', { path: 'unit/notes.md', new_path: 'unit/b.md', source: SRC }, CTX);
+    await registry.callTool('Move', { path: 'unit/b.md', new_path: 'unit/c.md', source: SRC }, CTX);
+    // Original path reports the FINAL destination.
+    await expect(registry.callTool('Read', { path: 'unit/notes.md', source: SRC }, CTX))
+      .rejects.toThrow(/renamed to unit\/c.md/);
+    // Intermediate name is gone entirely.
+    await expect(registry.callTool('Read', { path: 'unit/b.md', source: SRC }, CTX))
+      .rejects.toThrow(/not found/);
+    // Final name serves the moved content.
+    const c: any = await registry.callTool('Read', { path: 'unit/c.md', source: SRC }, CTX);
+    expect(c.content).toBe('alpha beta alpha\n');
+    expect(c.staged).toBe(true);
+    // Commit collapses to a single rename: content at c.md, notes.md gone.
+    await registry.callTool('Commit', { source: SRC }, CTX);
+    expect(await fs.readFile(path.join(tempDir, 'unit/c.md'), 'utf-8')).toBe('alpha beta alpha\n');
+    await expect(fs.readFile(path.join(tempDir, 'unit/notes.md'), 'utf-8')).rejects.toThrow();
+  });
+
+  test('Glob/Grep reflect the authoring view (created/renamed/deleted/staged content)', async () => {
+    // A staged-created file (not on disk).
+    await registry.callTool('Write', { path: 'unit/new.md', source: SRC, content: 'gamma delta\n', create: true }, CTX);
+    // A real source file, staged-renamed.
+    await fs.writeFile(path.join(tempDir, 'unit/old.md'), 'zeta\n');
+    await registry.callTool('Move', { path: 'unit/old.md', new_path: 'unit/moved.md', source: SRC }, CTX);
+    // A staged deletion.
+    await registry.callTool('Delete', { path: 'unit/notes.md', source: SRC }, CTX);
+
+    const g: any = await registry.callTool('Glob', { pattern: '**/*.md', source: SRC }, CTX);
+    expect(g.files).toContain('unit/new.md');       // created → included
+    expect(g.files).toContain('unit/moved.md');     // renamed → new name
+    expect(g.files).not.toContain('unit/old.md');   // renamed → old name dropped
+    expect(g.files).not.toContain('unit/notes.md'); // deleted → dropped
+
+    // Staged content is grep-visible (new.md is not on disk).
+    const created: any = await registry.callTool('Grep', { pattern: 'gamma', source: SRC }, CTX);
+    expect(created.matches.map((m: any) => m.path)).toContain('unit/new.md');
+    // A pure rename relabels its matches to the new name.
+    const renamed: any = await registry.callTool('Grep', { pattern: 'zeta', source: SRC }, CTX);
+    expect(renamed.matches.map((m: any) => m.path)).toEqual(['unit/moved.md']);
+    // A deleted file drops out of grep.
+    const deleted: any = await registry.callTool('Grep', { pattern: 'beta', source: SRC }, CTX);
+    expect(deleted.matches).toHaveLength(0);
+  });
+
   test('get_sources reports the injected source list', async () => {
     const s: any = await registry.callTool('get_sources', {});
     expect(s.sources).toEqual([{ origin: SRC, label: 'test', writable: true }]);

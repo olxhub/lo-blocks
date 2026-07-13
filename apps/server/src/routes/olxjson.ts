@@ -72,6 +72,10 @@ export function createOlxJsonHandler(
       c.header('Cache-Control', 'private, no-cache');
 
       if (id === 'all') {
+        // 'all' serves the raw index (debug/tooling) — no locale slice, no
+        // fieldState, and no per-block subscription (there is no block set to
+        // subscribe to). The subscription-before-304 rule below applies to
+        // the per-id path only.
         if (ifNoneMatch === etag) return c.body(null, 304);
         return c.json({ ok: true, idMap, errors });
       }
@@ -83,9 +87,9 @@ export function createOlxJsonHandler(
       // User resolved by the session middleware (server.ts stashes it on
       // the raw Node request).
       const user = who;
-      // Establish the subscription (the fetch IS the subscription) BEFORE any
-      // 304 short-circuit, so a revalidating client still gets its live
-      // connections subscribed.
+      // Establish the subscription (the fetch IS the subscription) BEFORE the
+      // per-id 304 short-circuit, so a revalidating client still gets its live
+      // connections subscribed. (The 'all' branch above is exempt — see there.)
       const fieldState = user
         ? await stateForContentFetch(stateRegistry, subscriptions, user.safe_user_id, responseIdMap)
         : null;
