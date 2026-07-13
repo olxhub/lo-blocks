@@ -215,9 +215,10 @@ export const completionPriority = {
  * as correctness checks.
  *
  * VOCABULARY WARNING: "answered" is a legacy term with two conflicting
- * meanings in the wild. Here and in the showanswer attribute (problemModes),
- * it means any valid submission exists. "correct" is the distinct,
- * unambiguous correctness gate.
+ * meanings in the wild. Here (for Explanation showWhen), it is an alias for
+ * "attempted" — any valid submission exists. The showanswer attribute avoids
+ * this ambiguous legacy name and uses the explicit modes "attempted" and
+ * "correct" instead.
  * Prefer the unambiguous terms: "attempted" or "correct".
  *
  * Future (require additional CapaProblem-level state):

@@ -306,9 +306,9 @@ export const showAnswerModes = [
   'always',     // Always visible
   'never',      // Never visible
   'attempted',  // After first attempt (submitCount > 0)
-  'answered',   // After correct answer
+  'correct',    // After a correct answer
   'closed',     // After attempts exhausted (submitCount >= maxAttempts)
-  'finished',   // answered OR closed (default)
+  'finished',   // correct OR closed
 ] as const;
 
 export type ShowAnswerMode = typeof showAnswerModes[number];
@@ -317,7 +317,7 @@ export type ShowAnswerMode = typeof showAnswerModes[number];
  * Schema for showanswer attribute - validates against allowed modes.
  */
 export const showAnswerAttr = z.enum(showAnswerModes).optional()
-  .describe('When to show answer: always, never, attempted, answered, closed, finished');
+  .describe('When to show answer: always, never, attempted, correct, closed, finished');
 
 /**
  * Schema for maxAttempts attribute - positive integer string or empty for unlimited.

@@ -34,8 +34,8 @@
 [ ] 9
 ]]></MarkupProblem>
 
-  <!-- Test 5: showanswer="answered" (only after correct) -->
-  <MarkupProblem id="markup_answered" title="Show Answer After Correct" showanswer="answered"><![CDATA[
+  <!-- Test 5: showanswer="correct" (only after correct) -->
+  <MarkupProblem id="markup_correct" title="Show Answer After Correct" showanswer="correct"><![CDATA[
 >>What is 100 divided by 10?<<
 
 = 10

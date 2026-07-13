@@ -63,10 +63,8 @@ export function isProblemFinished(state: ProblemState): boolean {
  * Determine if the Show Answer button should be visible.
  *
  * Each mode gates on ONE axis:
- * - 'attempted' — interaction happened (completion ≥ inProgress)
- * - 'answered'  — any recorded submission. This is the edX-legacy mode;
- *   it does NOT mean answered correctly. It aligns with Explanation
- *   showWhen="answered" — see visibilityHandlers in correctness.ts.
+ * - 'attempted' — any recorded submission
+ * - 'correct'   — CORRECTNESS axis: answered correctly
  * - 'closed'    — COMPLETION axis: can no longer be worked
  * - 'finished'  — COMPLETION axis: terminal (done or closed)
  *
@@ -75,8 +73,9 @@ export function isProblemFinished(state: ProblemState): boolean {
  * @returns true if Show Answer should be visible
  */
 export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, state: ProblemState): boolean {
-  // Default to 'finished' if not specified (reasonable default)
-  const effectiveMode = (mode || 'finished') as ShowAnswerMode;
+  // Default to 'attempted': reveal the answer after the learner has made a
+  // real submission, without requiring correctness or exhausted attempts.
+  const effectiveMode = (mode || 'attempted') as ShowAnswerMode;
 
   switch (effectiveMode) {
     case 'always':
@@ -86,10 +85,10 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return false;
 
     case 'attempted':
-      return problemCompletion(state) !== completion.notStarted;
-
-    case 'answered':
       return state.submitCount > 0;
+
+    case 'correct':
+      return state.correct === correctnessEnum.correct;
 
     case 'closed':
       // Raw constraint check, not problemCompletion(): edX 'closed' means
@@ -102,9 +101,9 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return isProblemFinished(state);
 
     default:
-      // Unknown mode - log warning and default to 'finished' behavior
-      console.warn(`Unknown showanswer mode: "${mode}", defaulting to 'finished'`);
-      return isProblemFinished(state);
+      // Unknown mode - log warning and default to 'attempted' behavior
+      console.warn(`Unknown showanswer mode: "${mode}", defaulting to 'attempted'`);
+      return state.submitCount > 0;
   }
 }
 
