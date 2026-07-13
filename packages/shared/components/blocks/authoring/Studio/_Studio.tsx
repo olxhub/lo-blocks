@@ -15,7 +15,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { McpStorageProvider } from '@/lib/lofs';
 import { useSources } from '@/lib/state/sources';
-import { toOlxRelativePath, VersionConflictError } from '@/lib/types/storage';
+import { toOlxRelativePath, VersionConflictError, type FileChange, type CommitBase } from '@/lib/types/storage';
 import { toLofsOrigin, makeAddress, toLofsContentPath } from '@/lib/types/address';
 import { fetchAllOlxJson } from '@/lib/content/fetchOlxJson';
 import { useFieldState, updateField, settings } from '@/lib/state';
@@ -375,16 +375,26 @@ export default function Studio(props: RuntimeProps) {
     if (dirty.length === 0) { notify('info', 'Nothing to save'); return; }
     setSaving(true);
     try {
+      // ONE commit spanning every dirty file — history stays teacher-readable
+      // (a Save-all is one act, not N).
+      const changes: FileChange[] = [];
+      const base: CommitBase[] = [];
       for (const p of dirty) {
         const id = fileRef(source, p);
-        const content = getStudioContent(id);
-        const previousMetadata = fileStateRef.current.get(id)?.metadata;
         const olxPath = toOlxRelativePath(p);
-        await storageRef.current.commit([{ path: olxPath, content }], {
-          base: previousMetadata !== undefined ? [{ path: olxPath, version: previousMetadata }] : undefined,
-        });
+        changes.push({ path: olxPath, content: getStudioContent(id) });
+        const previousMetadata = fileStateRef.current.get(id)?.metadata;
+        if (previousMetadata !== undefined) base.push({ path: olxPath, version: previousMetadata });
+      }
+      await storageRef.current.commit(changes, {
+        base: base.length > 0 ? base : undefined,
+        message: `Update ${dirty.length} file${dirty.length > 1 ? 's' : ''} via Studio`,
+      });
+      for (const p of dirty) {
+        const id = fileRef(source, p);
+        const olxPath = toOlxRelativePath(p);
         const result = await storageRef.current.read(olxPath);
-        fileStateRef.current.set(id, { content, metadata: result.metadata, ns: result.ns });
+        fileStateRef.current.set(id, { content: getStudioContent(id), metadata: result.metadata, ns: result.ns });
       }
       notify('success', `Saved ${dirty.length} file${dirty.length > 1 ? 's' : ''}`);
     } catch (err) {

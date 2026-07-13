@@ -91,41 +91,40 @@ export class McpStorageProvider implements StorageProvider {
    * unchanged. The staged entry survives a conflict for a force retry.
    */
   async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
-    if (changes.length !== 1) {
-      throw new Error(
-        `McpStorageProvider.commit handles one change at a time (got ${changes.length}); ` +
-        `the MCP tool contract has no atomic multi-change write.`);
-    }
-    const [c] = changes;
-    const base = options.base?.find(b => String(b.path) === String(c.path));
-
-    // Stage the change into the working tree. (No retry: a write must not be
-    // replayed blind.)
-    if (c.delete) {
-      await callMcpTool('Delete', this.args({ path: c.path }));
-    } else if (c.renameTo !== undefined) {
-      await callMcpTool('Move', this.args({ path: c.path, new_path: c.renameTo }));
-    } else if (c.content !== undefined) {
-      const staged = await callMcpTool<StageResult>('Write', this.args({
-        path: c.path,
-        content: c.content,
-        previous_metadata: base?.version,
-        create: options.create ?? false,
-      }));
-      // Write's only structured failure is a create-clobber (the file already
-      // exists in the source) — surface it as a plain error, as before.
-      if (!staged.ok) throw new Error(staged.error);
-    } else {
-      throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+    // Stage every change into the working tree, then publish them in ONE
+    // Commit — N changes, one git commit per source (teacher-readable
+    // history). (No retry on writes: a write must not be replayed blind.)
+    const bases: Array<{ path: string; version: unknown }> = [];
+    for (const c of changes) {
+      const base = options.base?.find(b => String(b.path) === String(c.path));
+      if (base?.version !== undefined) bases.push({ path: String(c.path), version: base.version });
+      if (c.delete) {
+        await callMcpTool('Delete', this.args({ path: c.path }));
+      } else if (c.renameTo !== undefined) {
+        await callMcpTool('Move', this.args({ path: c.path, new_path: c.renameTo }));
+      } else if (c.content !== undefined) {
+        const staged = await callMcpTool<StageResult>('Write', this.args({
+          path: c.path,
+          content: c.content,
+          previous_metadata: base?.version,
+          create: options.create ?? false,
+        }));
+        // Write's only structured failure is a create-clobber (the file already
+        // exists in the source) — surface it as a plain error, as before.
+        if (!staged.ok) throw new Error(staged.error);
+      } else {
+        throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+      }
     }
 
-    // Publish just this path. Studio supplies its tracked read metadata as the
-    // conflict base (the working-tree entry may have been seeded by the WS
-    // buffer without one). Commit drops the entry on success.
+    // Publish exactly the staged paths. Studio supplies its tracked read
+    // metadata as the conflict bases (a working-tree entry may have been
+    // seeded by the WS buffer without one). Commit drops entries on success.
     const result = await callMcpTool<CommitToolResult>('Commit', this.args({
-      paths: [String(c.path)],
+      paths: changes.map(c => String(c.path)),
       force: options.force ?? false,
-      ...(base?.version !== undefined ? { bases: [{ path: String(c.path), version: base.version }] } : {}),
+      ...(options.message !== undefined ? { message: options.message } : {}),
+      ...(bases.length > 0 ? { bases } : {}),
     }));
     if (!result.ok) {
       throw new VersionConflictError(result.error, result.metadata);
