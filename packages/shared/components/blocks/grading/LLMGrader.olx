@@ -1,4 +1,5 @@
 <CapaProblem id="LLMGraderExample" title="Free Response">
+  <Markdown>Why is the sky blue? Explain your answer in one or two sentences.</Markdown>
   <LLMGrader question="Why is the sky blue?"
              rubric="Full credit requires mentioning Rayleigh scattering, or that shorter (blue) wavelengths scatter more than longer ones.">
     <LineInput/>

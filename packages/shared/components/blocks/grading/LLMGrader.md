@@ -5,6 +5,12 @@ Grades free-form answers with an LLM against a rubric. This is a **slow
 its inputs while the LLM call is in flight, then updates to the verdict when
 grading lands.
 
+## Warning: Prototype
+
+This is a **prototype** for authoring and manual testing. Its prompt format,
+response contract, UI behavior, and grading semantics may change as the LLM
+grading workflow is developed into a supported feature.
+
 ## Attributes
 
 - `question` — the question being asked (context for the grader)
