@@ -10,8 +10,8 @@ import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 export const fields = state.fields([]);
 
 // Main LLM action function
-async function llmAction({ targetId, targetInstance, targetBlueprint, props }) {
-  const targetRef = targetInstance.attributes.target;
+async function llmAction({ props }) {
+  const targetRef = props.target;
   if (!targetRef) {
     console.warn('⚠️ LLMAction: No target specified in action attributes');
     return;

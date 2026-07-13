@@ -17,18 +17,16 @@
 //
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
-import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
-import { getBlockByOLXId } from './getBlockByOLXId';
 import { inputAttributes } from './attributeSchemas';
-import type { RuntimeProps, LoBlock, ValueSelectorFn } from '@/lib/types';
+import type { BlockAction, RuntimeProps, LoBlock, ValueSelectorFn } from '@/lib/types';
 
 // Mix-in to make a block an action
-export function action({ action }) {
+export function action({ action }: { action: BlockAction }) {
   return { action };
 }
 
-export function isAction(loBlock) {
-  return typeof loBlock?.action === "function";
+export function isAction(loBlock: LoBlock): boolean {
+  return typeof loBlock?.action === 'function';
 }
 
 /**
@@ -74,7 +72,8 @@ export function isMatch(loBlock) {
 /**
  * Find and execute every action related to the caller (explicit target= or
  * DOM inference). Each action receives its own node's full RuntimeProps —
- * stateKey, olxJson, and blueprint are all reachable from props.nodeInfo.
+ * stateKey, olxJson attributes, and blueprint are all reachable from props
+ * (attributes are spread in; the rest via props.nodeInfo / props.loBlock).
  */
 export async function executeNodeActions(props: RuntimeProps) {
   const ids = inferRelatedNodes(props, {
@@ -82,31 +81,16 @@ export async function executeNodeActions(props: RuntimeProps) {
     infer: props.infer,
     targets: props.target
   });
-  const map = props.runtime.blockRegistry;
   for (const targetId of ids) {
-    const targetDefKey = leafDefinitionKeyFromStateKey(targetId);
-    const targetInstance = getBlockByOLXId(props, targetDefKey);
-    if (!targetInstance) {
-      console.warn(`[executeNodeActions] Action block "${targetId}" not found in Redux`);
-      continue;
-    }
-    const targetBlueprint = map[targetInstance.tag];
-    if (!targetBlueprint?.action) {
-      console.warn(`[executeNodeActions] Block "${targetId}" (${targetInstance.tag}) has no action method`);
-      continue;
-    }
-
     // targetId is already a StateKey from inferRelatedNodes
-    const actionNodeInfo = getDomNodeByStateKey(props, targetId);
-    if (!actionNodeInfo) {
+    const node = getDomNodeByStateKey(props, targetId);
+    if (!node) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);
     }
-
-    await targetBlueprint.action({
-      targetId,
-      targetInstance,
-      targetBlueprint,
-      props: propsFromNode(actionNodeInfo),
-    });
+    if (!node.loBlock.action) {
+      console.warn(`[executeNodeActions] Block "${targetId}" (${node.olxJson.tag}) has no action method`);
+      continue;
+    }
+    await node.loBlock.action({ props: propsFromNode(node) });
   }
 }

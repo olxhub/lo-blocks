@@ -12,8 +12,9 @@ import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSche
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
 
-async function copyFieldAction({ targetInstance, props }) {
-  const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = targetInstance.attributes;
+async function copyFieldAction({ props }) {
+  // OLX attributes are spread into props by propsFromNode
+  const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = props;
 
   // Read from source — materialize via field.read (e.g., RgaDoc → string).
   //

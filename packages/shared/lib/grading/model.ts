@@ -13,13 +13,21 @@
 //
 import type { z } from 'zod';
 import type { Correctness } from '../blocks/correctness';
-import type { GradingDescriptor, RuntimeProps, StateKey } from '../types';
+import type {
+  DictParam, GraderFn, GraderParams, GradingDescriptor, ListParam,
+  RawGraderResult, RuntimeProps, SingleParam, StateKey,
+} from '../types';
 
-export type { GradingDescriptor };
+// Canonical declarations live in types/core.ts (one home, no cycles);
+// re-exported here for grading-domain ergonomics.
+export type {
+  DictParam, GraderFn, GraderParams, GradingDescriptor, ListParam,
+  RawGraderResult, SingleParam,
+};
 
 /** One resolved grader input: live value, bound API, authoring metadata. */
 export interface GraderInput {
-  id: StateKey;
+  stateKey: StateKey;
   /** Display name for authoring-error messages (block name or tag). */
   name: string;
   value: unknown;
@@ -32,24 +40,6 @@ export interface GraderInput {
    *  incorrect instantly instead of softening to incomplete. */
   commitOnChange: boolean;
 }
-
-// Param shapes a grade function receives — exactly one of these, chosen by
-// the descriptor (slots → dict, inputType 'list' → list, default → single).
-export type SingleParam = { input: unknown; inputApi: object };
-export type ListParam = { inputList: unknown[]; inputApis: object[] };
-export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
-export type GraderParams = SingleParam | ListParam | DictParam;
-
-/** What a grade function returns. May be a Promise for slow graders.
- *  `correct` accepts booleans and correctness strings; normalizeGraderResult
- *  fail-fast validates anything that isn't a known correctness value. */
-export interface RawGraderResult {
-  correct: boolean | Correctness | string;
-  message?: unknown;
-  score?: number;
-}
-export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
-  RawGraderResult | Promise<RawGraderResult>;
 
 /** The normalized grading outcome every consumer speaks. */
 export interface GradingResult {
@@ -79,13 +69,12 @@ export interface PreparedGrade {
 }
 
 /**
- * An authoring/configuration failure (missing slot, incompatible input
- * type, no inputs). Rendered to the learner as correctness.invalid —
- * never thrown; broken runtime invariants throw instead.
+ * The outcome of preparing a grade. Authoring/configuration failures
+ * (missing slot, incompatible input type, no inputs) are values, not
+ * throws — the caller renders them as correctness.invalid. The resolved
+ * inputs survive either way, so a configuration error still records what
+ * the learner actually submitted. Broken runtime invariants throw.
  */
-export interface GradeError {
-  gradeError: string;
-}
-export function isGradeError(x: unknown): x is GradeError {
-  return typeof (x as GradeError)?.gradeError === 'string';
-}
+export type GradePreparation =
+  | { ok: true; inputs: GraderInput[]; prepared: PreparedGrade }
+  | { ok: false; inputs: GraderInput[]; error: string };

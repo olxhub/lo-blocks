@@ -8,13 +8,13 @@
 //
 import { correctness } from '../blocks/correctness';
 import { graderAttributes } from '../blocks/attributeSchemas';
+import { errorMessage } from '../util/errorMessage';
 import { updateField, fieldSelector } from '../state/redux';
 import type { Correctness } from '../blocks/correctness';
 import type { LoBlock, OlxDomNode, RuntimeProps, StateKey } from '../types';
-import type { GraderFn, GradingDescriptor, GradingResult, RawGraderResult } from './model';
-import { isGradeError } from './model';
+import type { GradePreparation, GraderFn, GradingDescriptor, GradingResult } from './model';
 import {
-  prepareGrade, evaluateGrade, gradeErrorResult, gradingField, normalizeGraderResult,
+  prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
   type GradingFieldName,
 } from './pipeline';
 
@@ -53,25 +53,28 @@ function readGradingField<T>(
 
 /**
  * Grade functions can fail for reasons outside our control (a rejected
- * LLM call, a lazy engine that failed to load, a grader bug). Convert to a
- * terminal invalid result so the pending 'submitted' state never strands —
- * inputs lock while it persists (useInputReadOnly) — and the attempt isn't
- * counted (the answer was never judged).
+ * LLM call, a lazy engine that failed to load, a grader bug — including
+ * returning a malformed result). Everything inside the boundary converts
+ * to a terminal invalid result so the pending 'submitted' state never
+ * strands — inputs lock while it persists (useInputReadOnly) — and the
+ * attempt isn't counted (the answer was never judged).
  */
-async function evaluateSubmission(prepared: NonNullable<ReturnType<typeof prepareGrade>>): Promise<RawGraderResult> {
-  if (isGradeError(prepared)) return gradeErrorResult(prepared);
+async function evaluateSubmission(preparation: GradePreparation): Promise<GradingResult> {
+  if (!preparation.ok) return normalizeGraderResult(preparationErrorResult(preparation.error));
   try {
     // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
     // declare ensureReady; await it so a synchronous match function runs
     // against a loaded engine. The await on evaluate accepts async grade
-    // functions — LLM, code-in-sandbox.
-    await prepared.ensureReady?.();
-    return await evaluateGrade(prepared);
-  } catch (error: any) {
+    // functions — LLM, code-in-sandbox. Normalization is INSIDE the
+    // boundary: a malformed result (missing `correct`) must not strand
+    // the pending state either.
+    await preparation.prepared.ensureReady?.();
+    return normalizeGraderResult(await evaluateGrade(preparation.prepared));
+  } catch (error: unknown) {
     console.error('[grading] evaluation failed:', error);
     return {
       correct: correctness.invalid,
-      message: `Grading failed: ${error?.message ?? error}. Please try again.`,
+      message: `Grading failed: ${errorMessage(error)}. Please try again.`,
     };
   }
 }
@@ -88,11 +91,13 @@ async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: Gr
   const pending = readGradingField<Correctness>(state, props, stateKey, loBlock, 'correct', correctness.unsubmitted);
   if (descriptor.slow && pending === correctness.submitted) return undefined;
 
-  const prepared = prepareGrade(props, state, node, descriptor);
+  const preparation = prepareGrade(props, state, node, descriptor);
 
   // Capture what is being graded (shown by the UI during slow grading and
-  // for changed-since-submission indicators afterwards).
-  const submittedValues = isGradeError(prepared) ? [] : prepared.inputs.map(i => i.value);
+  // for changed-since-submission indicators afterwards). Preparation
+  // resolves inputs even when it fails, so a configuration error still
+  // records what the learner actually submitted.
+  const submittedValues = preparation.inputs.map(i => i.value);
   updateField(props, gradingField(loBlock, 'lastSubmission'), submittedValues, { stateKey });
 
   if (descriptor.slow) {
@@ -102,7 +107,7 @@ async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: Gr
     updateField(props, gradingField(loBlock, 'correct'), correctness.submitted, { stateKey });
   }
 
-  const result = normalizeGraderResult(await evaluateSubmission(prepared));
+  const result = await evaluateSubmission(preparation);
 
   // Attempt accounting reads FRESH state: the grader may have awaited, and
   // the pre-evaluation snapshot could hold a stale count.

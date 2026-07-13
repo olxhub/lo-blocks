@@ -15,8 +15,9 @@ import * as state from '@/lib/state';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 
-async function setFieldAction({ targetInstance, props }) {
-  const { target, field: fieldName, value } = targetInstance.attributes;
+async function setFieldAction({ props }) {
+  // OLX attributes are spread into props by propsFromNode
+  const { target, field: fieldName, value } = props;
 
   if (!target) { console.warn('SetFieldAction: No target specified'); return; }
   if (!fieldName) { console.warn('SetFieldAction: No field specified'); return; }

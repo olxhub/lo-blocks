@@ -20,8 +20,7 @@ export {
 // Grading pipeline — shared preparation/evaluation for both grading modes
 export { prepareGrade, evaluateGrade, buildGraderParam, readGraderInputs, gradingField, normalizeGraderResult } from './pipeline';
 export { grader } from './submitGrade';
-export { isGradeError } from './model';
-export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradeError, PreparedGrade } from './model';
+export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradePreparation, PreparedGrade } from './model';
 
 // Grading-state read model — the single read point for grader state
 export { selectGradingState, gradingModeFor, isImmediateContext } from './selectGradingState';

@@ -19,7 +19,7 @@
 import { z } from 'zod';
 import { dev, grader } from '@/lib/blocks';
 import { isEmptyInput } from '@/lib/blocks/createGrader';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness, type Correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import { callLLMSimple } from '@/lib/llm/reduxClient';
@@ -31,7 +31,7 @@ const VERDICTS = [correctness.correct, correctness.partiallyCorrect, correctness
 
 /** Extract the first JSON object from LLM output (models often wrap JSON in
  *  prose or code fences despite instructions). */
-function parseVerdict(text: string): { verdict: string; score?: number; feedback?: string } | null {
+function parseVerdict(text: string): { verdict: Correctness; score?: number; feedback?: string } | null {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) return null;
   try {

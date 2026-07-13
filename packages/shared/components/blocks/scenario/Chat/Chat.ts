@@ -259,8 +259,7 @@ function autoadvance(props: RuntimeProps): void {
  * Action handler — targeted advance from ActionButton
  * -------------------------------------------------------------- */
 
-// Action signature requires targetId but Chat advances itself, not a target.
-function advanceChat({ props }: { targetId: DefinitionKey; props: RuntimeProps }) {
+function advanceChat({ props }: { props: RuntimeProps }) {
   advance(props, props.runtime.store.getState());
 }
 

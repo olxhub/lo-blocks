@@ -12,16 +12,16 @@
 //
 import { correctness, normalizeCorrectness } from '../blocks/correctness';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
-import { commonFields } from '../state/commonFields';
 import { getBlockByOLXId } from '../blocks/getBlockByOLXId';
-import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
+import { commonFields } from '../state/commonFields';
 import { valueSelector } from '../state/redux';
 import type { FieldInfo, LoBlock, OlxDomNode, RuntimeProps, StateKey } from '../types';
 import type {
-  GradeError, GraderInput, GraderParams, GradingDescriptor, GradingResult, PreparedGrade, RawGraderResult,
+  GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
+  PreparedGrade, RawGraderResult,
 } from './model';
-import { isGradeError } from './model';
 
 // ---------------------------------------------------------------------------
 // The grading-field contract — shared by writes (submitGrade.ts) and reads
@@ -39,10 +39,14 @@ export function gradingField(loBlock: LoBlock | undefined, name: GradingFieldNam
 export function normalizeGraderResult(raw: RawGraderResult): GradingResult {
   return {
     correct: normalizeCorrectness(raw.correct),
-    message: raw.message === undefined || raw.message === null ? '' : String(raw.message),
+    message: raw.message ?? '',
     score: raw.score,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Preparation stages
+// ---------------------------------------------------------------------------
 
 /** Input blocks this grader grades: explicit target= or DOM inference. */
 export function findGraderInputIds(
@@ -61,51 +65,54 @@ export function findGraderInputIds(
 }
 
 /**
- * Resolve one input id to a GraderInput: live value (from the Redux
- * snapshot), bound locals API, and authoring metadata. Inputs are looked up
- * in the content idMap; the rendered DOM node supplies the input's own
- * runtime (idPrefix, logEvent context) when available.
+ * Resolve one input to a GraderInput: live value (from the Redux snapshot),
+ * bound locals API, and authoring metadata. Reads from the rendered DOM
+ * node when available; falls back to the content idMap when not — the DOM
+ * registers top-down during mount, so a metagrader's selector can run
+ * before its child inputs have registered, and target= may address blocks
+ * outside the rendered subtree. (Do NOT fail fast here: the mid-mount case
+ * is a self-healing transient, not a broken invariant.)
  */
-function readGraderInput(props: RuntimeProps, state: unknown, id: StateKey): GraderInput {
-  const map = props.runtime.blockRegistry;
-  const defKey = leafDefinitionKeyFromStateKey(id);
-  const inst = getBlockByOLXId(props, defKey);
+function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey): GraderInput {
+  const node = getDomNodeByStateKey(props, stateKey);
+  const defKey = leafDefinitionKeyFromStateKey(stateKey);
+  const inst = node?.olxJson ?? getBlockByOLXId(props, defKey);
   if (!inst) {
-    console.warn(`[grading] Input block "${id}" not found in idMap`);
-    return { id, name: String(id), value: undefined, api: {}, commitOnChange: false };
+    console.warn(`[grading] Input block "${stateKey}" not found in idMap`);
+    return { stateKey, name: String(stateKey), value: undefined, api: {}, commitOnChange: false };
   }
-  const loBlock = map[inst.tag];
-  const inputNodeInfo = getDomNodeByStateKey(props, id);
-  const inputProps = {
-    runtime: inputNodeInfo?.runtime ?? props.runtime,
-    nodeInfo: inputNodeInfo,
+  const loBlock = node?.loBlock ?? props.runtime.blockRegistry[inst.tag];
+  const olxJson = inst;
+  const inputProps = node ? propsFromNode(node) : ({
+    runtime: props.runtime,
+    nodeInfo: undefined,
     id: defKey,
     kids: inst.kids || [],
     loBlock,
     fields: loBlock.fields || {},
     locals: loBlock.locals || {},
     ...inst.attributes,
-  };
+  } as unknown as RuntimeProps);
 
   // valueSelector for uniform handling of withStatus / raw selectValue
-  const { value } = valueSelector(inputProps as RuntimeProps, state, id);
+  const { value } = valueSelector(inputProps, state, stateKey);
 
   // Bound API from locals — each function gets (props, state, id) pre-bound
   const api = loBlock.locals
     ? Object.fromEntries(
       Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
         name,
-        (...args: unknown[]) => fn(inputProps, state, id, ...args),
+        (...args: unknown[]) => fn(inputProps, state, stateKey, ...args),
       ])
     )
     : {};
 
   return {
-    id,
-    name: loBlock.name || inst.tag,
+    stateKey,
+    name: loBlock.name || olxJson.tag,
     value,
     api,
-    slot: inst.attributes.slot as string | undefined,
+    slot: olxJson.attributes.slot as string | undefined,
     valueSchema: loBlock.valueSchema,
     commitOnChange: Boolean(loBlock.commitOnChange),
   };
@@ -119,16 +126,14 @@ export function readGraderInputs(props: RuntimeProps, state: unknown, ids: State
  * Check input/grader type compatibility via Zod schemas (base-type
  * comparison — refinements narrow values without changing the wire type).
  */
-function validateInputTypes(graderProps: RuntimeProps, inputs: GraderInput[]): GradeError | null {
+function validateInputTypes(graderProps: RuntimeProps, inputs: GraderInput[]): string | null {
   const graderInputSchema = graderProps.loBlock.inputSchema;
   if (!graderInputSchema) return null;
   for (const input of inputs) {
     if (!input.valueSchema) continue;
     if (!isZodCompatible(input.valueSchema, graderInputSchema)) {
-      return {
-        gradeError: `${graderProps.loBlock.name} expects ${describeZodType(graderInputSchema)} input, `
-          + `but ${input.name} provides ${describeZodType(input.valueSchema)}.`,
-      };
+      return `${graderProps.loBlock.name} expects ${describeZodType(graderInputSchema)} input, `
+        + `but ${input.name} provides ${describeZodType(input.valueSchema)}.`;
     }
   }
   return null;
@@ -139,17 +144,17 @@ function validateInputTypes(graderProps: RuntimeProps, inputs: GraderInput[]): G
  * positional assignment for the rest.
  */
 function assignInputSlots(slots: string[], inputs: GraderInput[]):
-  Record<string, GraderInput> | GradeError {
+  { slotMap?: Record<string, GraderInput>; error?: string } {
   const slotMap: Record<string, GraderInput> = {};
   const slotSet = new Set(slots);
 
   for (const input of inputs) {
     if (!input.slot) continue;
     if (!slotSet.has(input.slot)) {
-      return { gradeError: `Unknown slot "${input.slot}" on input "${input.id}", expected: ${slots.join(', ')}` };
+      return { error: `Unknown slot "${input.slot}" on input "${input.stateKey}", expected: ${slots.join(', ')}` };
     }
     if (slotMap[input.slot]) {
-      return { gradeError: `Duplicate slot "${input.slot}" - each slot can only be assigned once` };
+      return { error: `Duplicate slot "${input.slot}" - each slot can only be assigned once` };
     }
     slotMap[input.slot] = input;
   }
@@ -159,15 +164,15 @@ function assignInputSlots(slots: string[], inputs: GraderInput[]):
     if (input.slot) continue;
     while (slotIndex < slots.length && slotMap[slots[slotIndex]]) slotIndex++;
     if (slotIndex >= slots.length) {
-      return { gradeError: `Too many inputs: grader expects ${slots.length} (${slots.join(', ')}), found more` };
+      return { error: `Too many inputs: grader expects ${slots.length} (${slots.join(', ')}), found more` };
     }
     slotMap[slots[slotIndex++]] = input;
   }
 
   for (const slot of slots) {
-    if (!slotMap[slot]) return { gradeError: `Missing input for slot "${slot}"` };
+    if (!slotMap[slot]) return { error: `Missing input for slot "${slot}"` };
   }
-  return slotMap;
+  return { slotMap };
 }
 
 /**
@@ -177,54 +182,59 @@ function assignInputSlots(slots: string[], inputs: GraderInput[]):
 export function buildGraderParam(
   descriptor: Pick<GradingDescriptor, 'slots' | 'inputType'>,
   inputs: GraderInput[],
-): GraderParams | GradeError {
+): { param?: GraderParams; error?: string } {
   const { slots, inputType } = descriptor;
   if (slots && slots.length > 0) {
-    const slotMap = assignInputSlots(slots, inputs);
-    if (isGradeError(slotMap)) return slotMap;
+    const { slotMap, error } = assignInputSlots(slots, inputs);
+    if (error || !slotMap) return { error };
     const inputDict: Record<string, unknown> = {};
     const inputApiDict: Record<string, object> = {};
     for (const [slot, input] of Object.entries(slotMap)) {
       inputDict[slot] = input.value;
       inputApiDict[slot] = input.api;
     }
-    return { inputDict, inputApiDict };
+    return { param: { inputDict, inputApiDict } };
   }
   if (inputType === 'list') {
-    return { inputList: inputs.map(i => i.value), inputApis: inputs.map(i => i.api) };
+    return { param: { inputList: inputs.map(i => i.value), inputApis: inputs.map(i => i.api) } };
   }
-  if (inputs.length === 0) return { gradeError: 'No input found' };
-  return { input: inputs[0].value, inputApi: inputs[0].api };
+  if (inputs.length === 0) return { error: 'No input found' };
+  return { param: { input: inputs[0].value, inputApi: inputs[0].api } };
 }
 
 /**
  * Given a grader node and a Redux snapshot: what exactly would we grade?
  *
- * Authoring/configuration failures come back as GradeError (the caller
- * renders them as correctness.invalid); broken runtime invariants throw.
+ * Authoring/configuration failures come back as { ok: false } WITH the
+ * resolved inputs (so callers can still record what the learner submitted);
+ * broken runtime invariants throw.
  */
 export function prepareGrade(
   props: RuntimeProps,
   state: unknown,
   node: OlxDomNode,
   descriptor: GradingDescriptor,
-): PreparedGrade | GradeError {
-  const graderProps = { ...propsFromNode(node), ...node.olxJson.attributes };
+): GradePreparation {
+  const graderProps = propsFromNode(node);
   const inputIds = findGraderInputIds(props, node, descriptor.infer ?? true);
   const inputs = readGraderInputs(props, state, inputIds);
 
   const typeError = validateInputTypes(graderProps, inputs);
-  if (typeError) return typeError;
+  if (typeError) return { ok: false, inputs, error: typeError };
 
-  const param = buildGraderParam(descriptor, inputs);
-  if (isGradeError(param)) return param;
+  const { param, error } = buildGraderParam(descriptor, inputs);
+  if (error || !param) return { ok: false, inputs, error: error ?? 'Could not build grader parameters' };
 
   return {
-    graderProps,
-    descriptor,
+    ok: true,
     inputs,
-    param,
-    ensureReady: node.loBlock.ensureReady,
+    prepared: {
+      graderProps,
+      descriptor,
+      inputs,
+      param,
+      ensureReady: node.loBlock.ensureReady,
+    },
   };
 }
 
@@ -233,7 +243,7 @@ export function evaluateGrade(prepared: PreparedGrade): RawGraderResult | Promis
   return prepared.descriptor.fn(prepared.graderProps, prepared.param);
 }
 
-/** A GradeError as a learner-facing grading outcome. */
-export function gradeErrorResult(error: GradeError): RawGraderResult {
-  return { correct: correctness.invalid, message: error.gradeError };
+/** A preparation failure as a learner-facing grading outcome. */
+export function preparationErrorResult(error: string): RawGraderResult {
+  return { correct: correctness.invalid, message: error };
 }

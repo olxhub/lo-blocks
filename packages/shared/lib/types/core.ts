@@ -19,6 +19,7 @@ import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { ContentVariant, LocaleContext } from './i18n';
+import type { Correctness } from '../blocks/correctness';
 
 /**
  * ════════════
@@ -601,10 +602,36 @@ export const ReduxFieldsReturn = z.record(
 export type ComponentLoader = () => Promise<React.ComponentType<any>>;
 
 // === Schema ===
+// ---------------------------------------------------------------------------
+// Grading contracts — canonical declarations (lib/grading/model.ts re-exports
+// these for grading-domain ergonomics; one home, no cycles).
+// ---------------------------------------------------------------------------
+
+// Param shapes a grade function receives — exactly one of these, chosen by
+// the descriptor (slots → dict, inputType 'list' → list, default → single).
+export type SingleParam = { input: unknown; inputApi: object };
+export type ListParam = { inputList: unknown[]; inputApis: object[] };
+export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
+export type GraderParams = SingleParam | ListParam | DictParam;
+
+/** What a grade function returns. May be a Promise for slow graders.
+ *  Custom/user-authored code is the untrusted boundary — it validates and
+ *  coerces its own result (see CustomGrader) before it reaches this type. */
+export interface RawGraderResult {
+  correct: boolean | Correctness;
+  message?: string;
+  score?: number;
+}
+export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
+  RawGraderResult | Promise<RawGraderResult>;
+
+/** The contract for a block's action (the action()/grader() mixins). */
+export type BlockAction = (context: { props: RuntimeProps }) => unknown | Promise<unknown>;
+
 /** Everything the grading pipeline needs from a leaf grader blueprint
  *  outside its dispatching action. Set by the grader() mixin. */
 export interface GradingDescriptor {
-  fn: (...args: any[]) => any;
+  fn: GraderFn;
   inputType?: 'single' | 'list';
   slots?: string[];
   slow?: boolean;
@@ -628,7 +655,7 @@ export const BlockBlueprintSchema = z.object({
    * (match functions, instant-mode grading) runs against a loaded engine.
    */
   ensureReady: z.custom<() => Promise<void>>().optional(),
-  action: z.function().optional(),
+  action: z.custom<BlockAction>().optional(),
   isGrader: z.boolean().optional().default(false),
   /**
    * Grading descriptor (set by the grader() mixin) — everything the grading
@@ -877,7 +904,7 @@ export interface LoBlock {
    *  for this block, success or not. Owned by useBlocksReady(). */
   _gateSettled?: boolean;
   _isBlock: true;
-  action?: Function;
+  action?: BlockAction;
   parser?: Function;
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
