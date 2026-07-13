@@ -217,9 +217,17 @@ export const useFieldSelector = <T>(
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): T => {
+  // field.equality compares the FIELD'S raw value (e.g. docField's Object.is
+  // on RgaDoc references). A custom selector returns something else entirely
+  // (e.g. useInputField's fresh {selectionStart, selectionEnd} object), so it
+  // must bring its own equalityFn — the field's would compare apples to
+  // oranges and report every dispatch as a change.
+  const equality = options.selector
+    ? options.equalityFn
+    : (field.equality ?? options.equalityFn);
   const raw = useSelector(
     (state) => fieldSelector(state, props, field, options),
-    field.equality ?? options.equalityFn
+    equality
   );
   // Apply field.read only when using the default selector (reading the field's own value).
   // Custom selectors (e.g., reading selection sibling fields) handle their own transformation.
