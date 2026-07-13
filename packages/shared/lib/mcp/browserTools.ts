@@ -23,6 +23,18 @@
 // This module is deliberately the seam between "tool runs in the browser"
 // and "tool runs on the server": as UX state moves into synced fields, a
 // client tool can become a server tool without chat surfaces changing.
+//
+// Two rules govern what belongs here (and in any ToolRegistry):
+// - IDENTITY: the browser/LLM tool plane carries NO ToolContext — identity
+//   lives server-side on the MCP session (registry.toMcpTools(ctx)); a
+//   passthrough call is authenticated by the browser's cookie session.
+// - CAPABILITY vs CONTROL: registries hold CAPABILITIES — reusable,
+//   discoverable, potentially identity-bearing operations. Ephemeral,
+//   interaction-scoped CONTROL tools (e.g. a chat interlude's
+//   end_conversation, whose callback closes over per-send state and must
+//   never leak across instances) are built at the call site and passed
+//   directly in the tools array — registering one globally would be a bug,
+//   and so would defining a real capability ad hoc.
 
 import { z } from 'zod';
 import { createToolRegistry, type ToolRegistry, type ToolDef, type LLMTool } from './registry';
@@ -34,6 +46,9 @@ import type { LlmTool } from '../llm/types';
 // =============================================================================
 
 /** Server-tool membership. Client tools declare theirs at registration. */
+// list_files is deliberately absent: it serves the McpStorageProvider file
+// tree, not LLM toolsets (agents use Glob). Server tools may be
+// provider-facing without being chat-reachable.
 const SERVER_TOOLSETS: Record<string, string[]> = {
   'content-read': ['Read', 'Glob', 'Grep', 'get_sources', 'Status'],
   'content-write': ['Write', 'Edit', 'Delete', 'Move', 'Status', 'Commit', 'Discard'],

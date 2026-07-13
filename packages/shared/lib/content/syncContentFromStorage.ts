@@ -412,11 +412,14 @@ async function syncExplicit(provider: StorageProvider) {
   const files = await provider.listContent();
   const origin = originOf(provider);
 
-  // Replace this source's slice of the world (by origin), keep everyone else's,
-  // and put the fresh slice first so it wins any ref collision.
-  const rest = origin
-    ? _world.filter(f => String(source(f.id)) !== String(origin))
-    : _world;
+  // Replace this source's slice of the world (by origin), keep everyone
+  // else's, and put the fresh slice first so it wins any ref collision. A
+  // provider with no origin can't have its stale slice purged — that's a
+  // wiring bug, not a case to survive silently (fail fast).
+  if (!origin) {
+    throw new Error('syncExplicit: provider has no origin — its previous entries cannot be replaced');
+  }
+  const rest = _world.filter(f => String(source(f.id)) !== String(origin));
   _world = [...files, ...rest];
   _providers = mergeProviders(provider, _providers);
   _snapshot = await buildSnapshot(_world, _providers);
