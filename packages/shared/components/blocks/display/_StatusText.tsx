@@ -20,14 +20,23 @@ function StatusText(props: RuntimeProps) {
   const isGradingField = (GRADING_FIELDS as string[]).includes(field);
 
   // graderId is a StateKey injected by render (requiresGrader: true).
-  // Non-grading fields (e.g. field="value" with an explicit target) read the
-  // target component's own field declaration.
-  const targetField = isGradingField
-    ? null
-    : state.componentFieldByStateKey(props, graderId, field);
-  const text = useSelector((s: any) => isGradingField
-    ? String(selectGradingState(s, props, graderId)[field as keyof GraderGradingState] ?? '')
-    : state.fieldSelector(s, props, targetField!, { selector: (cs: any) => cs?.[field] ?? '', fallback: '', stateKey: graderId }));
+  // TODO(fields): Extract a shared semantic field selector. fieldSelector
+  // reads raw stored state and field.read decodes it; this higher layer should
+  // also route block-specific derived fields (such as grading) for StatusText,
+  // state-language refs, and other cross-component reads.
+  const selectText = (s: any): string => {
+    if (isGradingField) {
+      return String(selectGradingState(s, props, graderId)[field as keyof GraderGradingState] ?? '');
+    }
+
+    const targetField = state.componentFieldByStateKey(props, graderId, field);
+    return state.fieldSelector(s, props, targetField, {
+      selector: (componentState: any) => componentState?.[field] ?? '',
+      fallback: '',
+      stateKey: graderId,
+    });
+  };
+  const text = useSelector(selectText);
   return <span>{text}</span>;
 }
 
