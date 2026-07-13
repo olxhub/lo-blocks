@@ -70,7 +70,7 @@ import {
 // Maps event key → { reduce, fieldName }.
 // Populated during configureStore from block registry fields.
 // When an event comes in, the main reducer uses this map; events with no
-// registered field reducer fall through to the default legacy spread.
+// registered field reducer fall through to the default plain spread.
 //
 // Two-level lookup: first tries "eventType:fieldName" (disambiguates when
 // multiple fields share an event type, e.g. two docFields both using
@@ -215,51 +215,34 @@ export const updateResponseReducer = (state = initialState, action) => {
 
   // Field-level reducers — route events to field.reduce when registered.
   // Fields register their reducers during configureStore (see collectEventTypes).
-  // Events with no registered field reducer fall through to the legacy spread.
+  // Events with no registered field reducer fall through to the plain spread.
   //
   // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
   // shared event types like SPLICE_INPUT across multiple docFields), fall back
-  // to bare "eventType" for unique event names or legacy events without action.field.
-  //
-  // LEGACY READ PATH: Compound events (e.g. the old UPDATE_CORRECT shape from
-  // graders) carry multiple data properties beyond the registered CRDT field.
-  // Nothing produces these anymore — graders now dispatch one event per field
-  // (actions.tsx) — but recorded sessions and saved event streams contain
-  // them, so replay must keep folding them: the field reducer handles the
-  // registered field with proper LWW; remaining properties (submitCount,
-  // score, etc.) are spread alongside it, gated by the LWW result so stale
-  // events are rejected atomically.
+  // to bare "eventType" for events that don't stamp action.field (the classic
+  // field strategy's default write path).
   const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
     || _fieldReducers.get(eventType);
   if (fieldReducerEntry) {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
-    // For legacy compound events (no action.field, e.g. the old grader
-    // UPDATE_CORRECT shape),
-    // strip metadata and spread remaining data properties alongside the field
-    // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
-    // spread ONLY sibling-metadata keys — those prefixed "<fieldName>."
-    // (e.g. value.selectionStart from useInputField's cursor tracking).
-    // Unprefixed extras (index, deleteCount, inserted) are operation
-    // parameters, not state properties, and must not land in the bucket.
-    // (Dropping the prefixed keys too was a regression: cursor position
-    // stopped persisting and every keystroke restored the caret to 0.)
-    let extra: Record<string, any> = {};
-    if (!action.field) {
-      const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
-        type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-        authority: _auth, [fieldName]: _fv, ...rest } = action;
-      extra = rest;
-    } else {
-      const prefix = `${fieldName}.`;
-      for (const [key, val] of Object.entries(action)) {
-        if (key.startsWith(prefix)) extra[key] = val;
-      }
+    // One rule for event payloads: the field reducer owns the field value;
+    // the ONLY other keys that land in the bucket are sibling metadata
+    // prefixed "<fieldName>." (e.g. value.selectionStart from useInputField's
+    // cursor tracking). Everything else — event envelope, operation
+    // parameters like a splice's index/deleteCount/inserted — never becomes
+    // state. (Dropping the prefixed keys broke cursor persistence once;
+    // spreading unprefixed keys is how the old compound UPDATE_CORRECT
+    // leaked five fields through one event.)
+    const prefix = `${fieldName}.`;
+    const extra: Record<string, any> = {};
+    for (const [key, val] of Object.entries(action)) {
+      if (key.startsWith(prefix)) extra[key] = val;
     }
 
     // Scope-aware: read from and write to the correct state bucket,
-    // mirroring the legacy-spread switch below.
+    // mirroring the plain-spread switch below.
     switch (scope) {
       case scopes.componentSetting: {
         const bucket = state.componentSetting?.[tag] ?? {};
@@ -322,7 +305,7 @@ export const updateResponseReducer = (state = initialState, action) => {
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
   // Actions with no bucket key are not ours: redux internals (@@INIT,
-  // @@redux/INIT) and stray events used to legacy-spread into a literal
+  // @@redux/INIT) and stray events used to spread into a literal
   // component["undefined"] bucket here, which then leaked into every saved
   // blob. Foreign actions leave state untouched.
   if ((scope === scopes.component || scope === scopes.storage) && id === undefined) {
@@ -419,7 +402,7 @@ function collectEventTypes(
       // Specific key wins at lookup time, so two docFields ('draft', 'notes')
       // both using SPLICE_INPUT get separate entries via SPLICE_INPUT:draft
       // and SPLICE_INPUT:notes. The bare SPLICE_INPUT entry is overwritten
-      // but only used when action.field is absent (legacy events).
+      // but only used when action.field is absent (classic-strategy events).
       if (fi.reduce) {
         for (const event of events) {
           _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
