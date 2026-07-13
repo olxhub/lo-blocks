@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { selectBlock } from '../state/olxjson';
@@ -161,6 +161,30 @@ export function useReferences(props: any, refs: References): ContextData {
   const contextData = useSelector((state: any) => {
     return selectReferences(state, props, refs);
   }, contextDataEqual);
+
+  // Referencing a block's state implies needing the block: trigger content
+  // loads for referenced blocks that aren't in Redux yet (same contract as
+  // useValue's target= path — ensureBlock dedups and no-ops when known, and
+  // its content fetch carries the block's field state). Without this,
+  // when="@problem.correct" against an unserved block silently evaluates
+  // over an absent bucket.
+  const refKeys = refs.componentState.map(r => r.key).join(',');
+  useEffect(() => {
+    if (props.runtime?.sideEffectFree) return;
+    const source = props.runtime?.olxJsonSources?.[0] ?? 'content';
+    // Dynamic import: a static one closes the module cycle
+    // useOlxJson → attributeSchemas → stateLanguage → hooks and breaks init.
+    import('../blocks/useOlxJson').then(({ ensureBlock }) => {
+      for (const { key } of refs.componentState) {
+        try {
+          const stateKey = resolveToStateKey(props, key);
+          ensureBlock(props, leafDefinitionKeyFromStateKey(stateKey), source);
+        } catch { /* unresolvable ref — evaluate() will fall back as before */ }
+      }
+    });
+    // ensureBlock deduplicates; props omitted for the same reason as useValue.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refKeys]);
 
   return contextData;
 }
