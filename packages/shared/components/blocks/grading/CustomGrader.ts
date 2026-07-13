@@ -11,7 +11,7 @@
 // Usage:
 //   <CustomGrader target="answer">
 //     if (input === 42) return { correct: 'correct', message: 'Perfect!' };
-//     if (Math.abs(input - 42) < 5) return { correct: 'partially-correct', message: 'Close!', score: 0.5 };
+//     if (Math.abs(input - 42) < 5) return { correct: correctness.partiallyCorrect, message: 'Close!', score: 0.5 };
 //     return { correct: 'incorrect', message: 'Try again' };
 //   </CustomGrader>
 //
@@ -21,7 +21,8 @@
 //   - correctness: The correctness enum for return values
 //
 // The code must return an object with:
-//   - correct: correctness value or string ('correct', 'incorrect', 'partially-correct', 'invalid')
+//   - correct: a `correctness` constant (correctness.correct, correctness.partiallyCorrect, ...)
+//     or boolean. Fail-fast: unrecognized strings are grading errors.
 //   - message: Feedback string (optional)
 //   - score: Numeric score 0-1 (optional, defaults based on correct value)
 //
@@ -100,7 +101,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { z_stateRefList, src } from '@/lib/blocks/attributeSchemas';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness, normalizeCorrectness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 
 /**
@@ -154,29 +155,6 @@ function isSafeExecutionEnvironment(): boolean {
 
   // Not in Node AND in browser
   return true;
-}
-
-/**
- * Normalize correctness value to correctness enum.
- * Accepts both string shortcuts and enum values.
- */
-function normalizeCorrectness(value: unknown): string {
-  if (typeof value === 'string') {
-    const lower = value.toLowerCase();
-    if (lower === 'correct' || lower === correctness.correct) return correctness.correct;
-    if (lower === 'incorrect' || lower === correctness.incorrect) return correctness.incorrect;
-    if (lower === 'partially-correct' || lower === 'partial' || lower === correctness.partiallyCorrect) {
-      return correctness.partiallyCorrect;
-    }
-    if (lower === 'invalid' || lower === correctness.invalid) return correctness.invalid;
-    if (lower === 'unsubmitted' || lower === correctness.unsubmitted) return correctness.unsubmitted;
-  }
-  // Boolean shortcuts
-  if (value === true) return correctness.correct;
-  if (value === false) return correctness.incorrect;
-
-  // Already a correctness value or unknown
-  return String(value);
 }
 
 /**

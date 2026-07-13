@@ -27,7 +27,7 @@ For simple cases, prefer declarative graders:
     if (value === 42) return { correct: 'correct', message: 'You found the answer!' };
     if (Math.abs(value - 42) < 5) {
       const hint = value < 42 ? 'a bit low' : 'a bit high';
-      return { correct: 'partially-correct', score: 0.5, message: `Close! That's ${hint}.` };
+      return { correct: correctness.partiallyCorrect, score: 0.5, message: `Close! That's ${hint}.` };
     }
     const hint = value < 42 ? 'Too low' : 'Too high';
     return { correct: 'incorrect', message: `${hint}. Try again.` };
@@ -64,7 +64,7 @@ Your code must return an object with:
 
 ```javascript
 {
-  correct: 'correct' | 'incorrect' | 'partially-correct' | 'invalid' | 'unsubmitted',
+  correct: correctness.correct | correctness.incorrect | correctness.partiallyCorrect | correctness.invalid | correctness.unsubmitted,
   message: 'Optional feedback string',
   score: 0.5  // Optional, 0-1, defaults based on correct value
 }
@@ -146,8 +146,8 @@ Award partial credit based on answer quality:
     const error = Math.abs(answer - correct) / correct;
 
     if (error < 0.001) return { correct: 'correct', score: 1, message: 'Excellent precision!' };
-    if (error < 0.01) return { correct: 'partially-correct', score: 0.8, message: 'Good approximation' };
-    if (error < 0.1) return { correct: 'partially-correct', score: 0.5, message: 'Rough estimate' };
+    if (error < 0.01) return { correct: correctness.partiallyCorrect, score: 0.8, message: 'Good approximation' };
+    if (error < 0.1) return { correct: correctness.partiallyCorrect, score: 0.5, message: 'Rough estimate' };
     return { correct: 'incorrect', message: 'Too far off' };
   ]]></CustomGrader>
 </CapaProblem>

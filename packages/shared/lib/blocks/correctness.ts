@@ -139,13 +139,17 @@ export function getAllCorrectnessStates(): Set<string> {
 }
 
 /**
- * Normalize a grade function's `correct` result for display: match functions
- * may return booleans; everything downstream speaks the correctness enum.
+ * Normalize a grade function's `correct` result: match functions may return
+ * booleans; everything downstream speaks the correctness enum. Fail-fast on
+ * anything else — grading code (including author-provided CustomGrader
+ * code) should use the `correctness` constants, and a typo'd string is a
+ * bug to surface, not a value to pass along.
  */
-export function normalizeCorrectness(c: unknown): string {
+export function normalizeCorrectness(c: unknown): Correctness {
   if (c === true) return correctness.correct;
   if (c === false) return correctness.incorrect;
-  return c as string;
+  validateCorrectness(c);
+  return c;
 }
 
 /**

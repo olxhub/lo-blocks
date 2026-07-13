@@ -1,12 +1,39 @@
 // @vitest-environment jsdom
 // packages/shared/integration/grading-per-field.test.tsx
 //
-// End-to-end grading dispatch: mount a CapaProblem, submit an answer via the
-// Check button, and assert that the grader writes its result as per-field
-// CRDT events (correct, message, score, submitCount, lastSubmission each with
-// their own conflict-resolution metadata) rather than the legacy compound
-// UPDATE_CORRECT event. Guards the gather → evaluate → dispatch pipeline in
-// lib/blocks/actions.tsx.
+// TRANSITIONAL TEST — delete if it starts doing more harm than good.
+//
+// This mounts a particular authored exercise and drives it through learner UI
+// controls. That makes it a useful smoke test today, but it is not the right
+// long-term specification for grading: it couples action-pipeline behavior to
+// NumericalGrader, ChoiceInput, button labels, icons, and DOM timing.
+//
+// The replacement design is deliberately declarative:
+//
+// 1. Each grader advertises author-level fixtures beside its implementation:
+//    input(s) and expected normalized grading result(s), including edge cases
+//    such as tolerances and syntax errors.
+//    Something like:
+//
+//      grader({
+//        grader: numericalGrade,
+//        fixtures: [
+//          { input: '4.01', expected: { correct: 'correct' } },
+//          { input: '3.99', expected: { correct: 'correct' } },
+//          { input: '4+bob', expected: { correct: 'invalid' } },
+//        ],
+//      })
+//
+// 2. A generic fixture runner executes every registered grader's fixtures.
+//    Those real graders, rather than a hand-picked integration exercise, are
+//    the conformance suite.
+// 3. Action-pipeline tests stay action-oriented: start from inputs/events,
+//    invoke the action, and assert the emitted per-field events and their
+//    folded state — without depending on learner-facing UI elements.
+//
+// Until that exists, this test guards the gather → evaluate → dispatch path
+// and the per-field CRDT event contract (correct, message, score, submitCount,
+// and lastSubmission rather than the legacy compound UPDATE_CORRECT event).
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { fireEvent, waitFor, cleanup } from '@testing-library/react';
 // Importing the harness also installs the jsdom shims + fetch mock.
