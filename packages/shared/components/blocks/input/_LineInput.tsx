@@ -4,6 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useInputField } from '@/lib/state';
+import { useInputReadOnly } from '@/lib/blocks';
 import { useKids } from '@/lib/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
@@ -19,6 +20,10 @@ export default function LineInput( props: RuntimeProps ) {
 
   const { kids } = useKids(props);
 
+  // Locked while a related slow grader is grading the submitted snapshot —
+  // edits mid-grade would desync the visible answer from the graded one.
+  const readOnly = useInputReadOnly(props);
+
   const passthrough = Object.fromEntries(
     allowedAttrs
       .filter(key => rest[key] !== undefined)
@@ -31,6 +36,7 @@ export default function LineInput( props: RuntimeProps ) {
       <input
         {...inputProps}
         {...passthrough}
+        readOnly={readOnly}
         className="border rounded px-2"
       />
       <DisplayAnswer props={props} />

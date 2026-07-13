@@ -48,13 +48,18 @@ const UNGRADED: GraderGradingState = {
 };
 
 /**
- * Is this node inside a grade="immediate" problem? The nearest ancestor
- * with a `grade` attribute wins, so nested problems can differ.
+ * Is this node inside a grade="immediate" problem? The nearest enclosing
+ * problem (metagrader) decides — a problem without a `grade` attribute is
+ * submit-mode (the default), so a plain nested <CapaProblem> inside an
+ * immediate one grades on submit rather than inheriting immediacy.
  */
 export function isImmediateContext(node: OlxDomNode | null | undefined): boolean {
   if (!node) return false;
-  const withGrade = getParents(node, { selector: n => typeof n.olxJson.attributes.grade === 'string' });
-  return withGrade[0]?.olxJson.attributes.grade === 'immediate';
+  const boundary = getParents(node, {
+    selector: n => (n.loBlock.isGrader && !n.loBlock.grading)
+      || typeof n.olxJson.attributes.grade === 'string',
+  });
+  return boundary[0]?.olxJson.attributes.grade === 'immediate';
 }
 
 /**
@@ -95,7 +100,12 @@ function deriveImmediateGrading(
       getDomNodeByStateKey(props, id)?.loBlock.commitOnChange);
     if (!allCommitOnChange) correct = correctness.incomplete;
   }
-  return { correct, message: result.message ?? '', score: result.score, submitCount: 0 };
+  // submitCount is derived attempted-ness here (there are no submit events
+  // in immediate mode): any live-graded interaction counts as one attempt,
+  // so completion (problemCompletion → inProgress) and
+  // showanswer="attempted" behave.
+  const attempted = correct !== correctness.unsubmitted && correct !== correctness.invalid;
+  return { correct, message: result.message ?? '', score: result.score, submitCount: attempted ? 1 : 0 };
 }
 
 /**
