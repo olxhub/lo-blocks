@@ -444,12 +444,11 @@ export function renderCompiledKids(props): React.ReactNode[] {
 // Hooks:
 // - useRenderedBlock(props, id) - Render a single block with loading/error handling
 // - useKids(props) - Render children from props.kids
-// - useKidsWithState(props) - Like useKids but exposes ready/error state
 // - useKidsJson(props) - Raw kids with when= filtering (for structural access)
 // - selectKidsJson(props, reduxState) - Pure selector form (for blueprint functions)
 // - getKidsJson(props) - One-shot imperative form
 //
-export { useRenderedBlock, useKids, useKidsWithState, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
+export { useRenderedBlock, useKids, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
 
 /**
  * Render a virtual block as JSX — the composition form of the render
