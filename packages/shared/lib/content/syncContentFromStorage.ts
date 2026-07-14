@@ -194,16 +194,20 @@ function isOlx(type: FileType): boolean {
  * deferred to buildSnapshot. A source that can't enumerate (down remote,
  * unsupported) drops out — logged, so its content doesn't vanish silently.
  */
-async function assembleWorld(providers: StorageProvider[]): Promise<ContentFile[]> {
+async function assembleWorld(
+  providers: StorageProvider[],
+): Promise<{ files: ContentFile[]; failedOrigins: string[] }> {
   const files: ContentFile[] = [];
+  const failedOrigins: string[] = [];
   for (const provider of providers) {
     try {
       files.push(...await provider.listContent());
     } catch (err) {
-      console.error(`[content] source enumeration failed, dropping its content: ${(err as Error).message}`);
+      failedOrigins.push(String(originOf(provider) ?? ''));
+      console.error(`[content] source enumeration failed, keeping its previous content: ${(err as Error).message}`);
     }
   }
-  return files;
+  return { files, failedOrigins };
 }
 
 // =============================================================================
@@ -383,17 +387,30 @@ export async function syncContentFromStorage(
  * The public no-arg entry point is `syncContentUnion(await readableProviders())`.
  */
 export async function syncContentUnion(providers: StorageProvider[]) {
-  const tokens = await Promise.all(providers.map(p => p.generationToken()));
+  // Token entries carry the provider's IDENTITY, not just its cheap change
+  // token: a config swap to different sources whose tokens coincide (two
+  // empty dirs both "0:0:0") must not fast-path into the old snapshot.
+  const tokens = await Promise.all(providers.map(
+    async p => `${String(originOf(p) ?? '')}\0${await p.generationToken()}`));
 
   // Fast path: same source set, every token unchanged → nothing to do.
   if (_unionTokens && sameTokens(_unionTokens, tokens)) {
     return currentResult();
   }
 
-  _world = await assembleWorld(providers);
+  const { files, failedOrigins } = await assembleWorld(providers);
+  // A source that failed to enumerate keeps its PREVIOUS slice (its content
+  // must not vanish over a transient remote error)…
+  const retained = failedOrigins.length > 0
+    ? _world.filter(f => failedOrigins.includes(String(source(f.id))))
+    : [];
+  _world = [...files, ...retained];
   _providers = providers;
   _snapshot = await buildSnapshot(_world, _providers);
-  _unionTokens = tokens;
+  // …and the failure must not become sticky: with any source down, don't
+  // remember tokens at all — every sync retries enumeration until the set
+  // is healthy (cheap for the healthy sources; the parse cache absorbs it).
+  _unionTokens = failedOrigins.length > 0 ? null : tokens;
 
   bumpContentGeneration();
   // Static assets: re-copy on content change (interim, until assets serve
