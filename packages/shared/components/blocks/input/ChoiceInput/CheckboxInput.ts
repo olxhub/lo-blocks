@@ -4,37 +4,14 @@
 // For single-select (radio buttons), use ChoiceInput instead.
 //
 import { z } from 'zod';
-import { core, input, getBlockByOLXId, z_stateRefList } from '@/lib/blocks';
+import { core, input, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { fieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { getChoices } from './choiceHelpers';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
-
-/**
- * Get the list of choices (Key/Distractor children) with their metadata.
- * Used by CheckboxGrader to determine correctness.
- *
- * @returns {Array<{id: string, tag: string, value: string}>}
- */
-function getChoices(props: RuntimeProps, state, id) {
-  const ids = inferRelatedNodes(props, {
-    selector: n => n.loBlock.name === 'Key' || n.loBlock.name === 'Distractor',
-    infer: ['kids'],
-    targets: props.target
-  });
-  const choices = ids.map(cid => {
-    const defKey = leafDefinitionKeyFromStateKey(cid);
-    const inst = getBlockByOLXId(props, defKey);
-    if (!inst) return null;
-    const choiceValue = inst.attributes.value ?? defKey;
-    return { id: defKey, tag: inst.tag, value: choiceValue };
-  }).filter(Boolean);
-  return choices;
-}
 
 const CheckboxInput = core({
   ...parsers.blocks(),
