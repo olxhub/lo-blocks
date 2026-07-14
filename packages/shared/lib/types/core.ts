@@ -614,7 +614,7 @@ export type ListParam = { inputList: unknown[]; inputApis: object[] };
 export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
 export type GraderParams = SingleParam | ListParam | DictParam;
 
-/** What a grade function returns. May be a Promise for slow graders.
+/** What a grade function returns. May be a Promise for async graders.
  *  Custom/user-authored code is the untrusted boundary — it validates and
  *  coerces its own result (see CustomGrader) before it reaches this type. */
 export interface RawGraderResult {
@@ -634,7 +634,14 @@ export interface GradingDescriptor {
   fn: GraderFn;
   inputType?: 'single' | 'list';
   slots?: string[];
-  slow?: boolean;
+  /**
+   * How grading completes. 'sync' (default): the grade function returns a
+   * result directly. 'async': grading finishes later — an LLM call, an
+   * instructor/peer queue, code-in-sandbox. Async grading gets a persisted
+   * pending state (correct='submitted', inputs locked) and cannot be used
+   * in grade="immediate" problems.
+   */
+  execution?: 'sync' | 'async';
   /** Infer inputs from DOM hierarchy (default true); false = target= only. */
   infer?: boolean;
 }
@@ -661,7 +668,7 @@ export const BlockBlueprintSchema = z.object({
    * Grading descriptor (set by the grader() mixin) — everything the grading
    * pipeline needs outside the dispatching action: `fn` (the raw grade
    * function, evaluated in selectors for derived immediate-mode
-   * correctness), `inputType`/`slots` (param shape), and `slow` (async
+   * correctness), `inputType`/`slots` (param shape), and `execution`
    * grader: the action two-phase dispatches correct='submitted' before
    * awaiting). A blueprint with isGrader but no `grading` is a metagrader —
    * its state derives from child graders (lib/grading/selectGradingState.ts).

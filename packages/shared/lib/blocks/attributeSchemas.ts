@@ -336,7 +336,7 @@ export const maxAttemptsAttr = z.string()
  *   learner answers — no button, no submit events. Inputs that commit on
  *   change (radio buttons) grade strictly; free-form inputs soften a
  *   non-match to 'incomplete' so mid-typing never flashes a red X.
- *   Incompatible with slow (async) graders. See lib/grading/selectGradingState.ts.
+ *   Incompatible with async graders. See lib/grading/selectGradingState.ts.
  */
 export const gradeModes = [
   'submit',

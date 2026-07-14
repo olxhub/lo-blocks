@@ -3,7 +3,7 @@
 // Submit-mode grading: the grader() mixin and the persisted grading
 // lifecycle. Preparation and evaluation are the shared pipeline
 // (pipeline.ts); this module owns what is unique to submission —
-// the pending state for slow graders, attempt accounting, and writing
+// the pending state for async graders, attempt accounting, and writing
 // the result as per-field CRDT events.
 //
 import { correctness } from '../blocks/correctness';
@@ -89,18 +89,18 @@ async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: Gr
   // disables on 'submitted', but a fast double-click can race the event
   // queue). Skip rather than launch a duplicate grading call.
   const pending = readGradingField<Correctness>(state, props, stateKey, loBlock, 'correct', correctness.unsubmitted);
-  if (descriptor.slow && pending === correctness.submitted) return undefined;
+  if (descriptor.execution === 'async' && pending === correctness.submitted) return undefined;
 
   const preparation = prepareGrade(props, state, node, descriptor);
 
-  // Capture what is being graded (shown by the UI during slow grading and
+  // Capture what is being graded (shown by the UI during async grading and
   // for changed-since-submission indicators afterwards). Preparation
   // resolves inputs even when it fails, so a configuration error still
   // records what the learner actually submitted.
   const submittedValues = preparation.inputs.map(i => i.value);
   updateField(props, gradingField(loBlock, 'lastSubmission'), submittedValues, { stateKey });
 
-  if (descriptor.slow) {
+  if (descriptor.execution === 'async') {
     // Phase 1 of two-phase grading: pending before awaiting the grader;
     // inputs lock via useInputReadOnly. A final unsubmitted/invalid result
     // (e.g. empty input) simply overwrites the transient pending state.
@@ -132,20 +132,20 @@ async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: Gr
 // - slots defined: { inputDict, inputApiDict } - named slots
 // - inputType: 'list': { inputList, inputApis } - array of inputs
 // - default (single): { input, inputApi } - one input (most common)
-export function grader({ grader, infer = true, slots, inputType, slow = false }: {
+export function grader({ grader, infer = true, slots, inputType, execution = 'sync' }: {
   grader: GraderFn;
   infer?: boolean;
   slots?: string[];
   inputType?: 'single' | 'list';
-  /** Slow (async) grader — LLM, instructor/peer queue, code-in-sandbox.
-   *  The action writes correct='submitted' BEFORE awaiting the grader, so
-   *  the UI shows a pending state and inputs lock (useInputReadOnly) while
-   *  grading is in flight; the final result overwrites it when it lands.
-   *  UI reads via useGradingState/selectors, so both phases are ordinary
-   *  field writes. */
-  slow?: boolean;
+  /** How grading completes. 'async' — LLM, instructor/peer queue,
+   *  code-in-sandbox: the action writes correct='submitted' BEFORE
+   *  awaiting the grader, so the UI shows a pending state and inputs lock
+   *  (useInputReadOnly) while grading is in flight; the final result
+   *  overwrites it when it lands. UI reads via useGradingState/selectors,
+   *  so both phases are ordinary field writes. */
+  execution?: 'sync' | 'async';
 }) {
-  const descriptor: GradingDescriptor = { fn: grader, inputType, slots, slow, infer };
+  const descriptor: GradingDescriptor = { fn: grader, inputType, slots, execution, infer };
 
   const action = async ({ props }: { props: RuntimeProps }) => {
     // executeNodeActions builds props from the grader's own DOM node.
@@ -162,7 +162,7 @@ export function grader({ grader, infer = true, slots, inputType, slow = false }:
       action,
       isGrader: true,
       // One descriptor for everything the grading pipeline needs outside
-      // the action itself (derived immediate-mode evaluation, slow-grader
+      // the action itself (derived immediate-mode evaluation, async-grader
       // detection). A blueprint with isGrader but NO `grading` descriptor
       // is a metagrader (CapaProblem) — its state derives from child
       // graders.

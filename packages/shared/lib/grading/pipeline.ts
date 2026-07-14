@@ -78,8 +78,9 @@ function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey
   const defKey = leafDefinitionKeyFromStateKey(stateKey);
   const inst = node?.olxJson ?? getBlockByOLXId(props, defKey);
   if (!inst) {
-    console.warn(`[grading] Input block "${stateKey}" not found in idMap`);
-    return { stateKey, name: String(stateKey), value: undefined, api: {}, commitOnChange: false };
+    // Unlike a missing DOM node (mid-mount transient), missing CONTENT is a
+    // broken invariant — grading undefined would masquerade as a real answer.
+    throw new Error(`[grading] Input block "${stateKey}" not found in content`);
   }
   const loBlock = node?.loBlock ?? props.runtime.blockRegistry[inst.tag];
   const olxJson = inst;

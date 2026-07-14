@@ -23,7 +23,7 @@ export { grader } from './submitGrade';
 export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradePreparation, PreparedGrade } from './model';
 
 // Grading-state read model — the single read point for grader state
-export { selectGradingState, gradingModeFor, isImmediateContext } from './selectGradingState';
+export { selectGradingState, gradingModeFor, isImmediateContext, findDirectChildGraders } from './selectGradingState';
 export { useGradingState } from './useGradingState';
 export { registerGradingResolvers } from './registerResolvers';
 

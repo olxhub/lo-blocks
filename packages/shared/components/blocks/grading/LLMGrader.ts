@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/grading/LLMGrader.ts
 //
-// LLMGrader - grades free-form answers with an LLM. The first concrete SLOW
-// grader: grading is async, so the grading action two-phase dispatches
+// LLMGrader - grades free-form answers with an LLM. The first concrete
+// ASYNC grader: the grading action two-phase dispatches
 // (correct='submitted' while the call is in flight, locking inputs; the
 // final verdict when it lands). See grader() in lib/blocks/actions.tsx.
 //
@@ -83,11 +83,11 @@ async function gradeWithLLM(props: RuntimeProps, { input }: any) {
 
 const LLMGrader = dev({
   ...parsers.blocks.allowHTML(),
-  ...grader({ grader: gradeWithLLM, slow: true }),
+  ...grader({ grader: gradeWithLLM, execution: 'async' }),
   name: 'LLMGrader',
   fields,
   inputSchema: z.string(),
-  description: 'Grades free-form answers with an LLM against a rubric (slow/async grading)',
+  description: 'Grades free-form answers with an LLM against a rubric (async grading with a pending state)',
   category: 'grading',
   // Non-conventional: reuses the shared layout Noop renderer.
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),

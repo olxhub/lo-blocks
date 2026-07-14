@@ -1,7 +1,6 @@
 # LLMGrader
 
-Grades free-form answers with an LLM against a rubric. This is a **slow
-(async) grader**: on submit, the problem shows a pending (⏳) state and locks
+Grades free-form answers with an LLM against a rubric. This is an **async grader**: on submit, the problem shows a pending (⏳) state and locks
 its inputs while the LLM call is in flight, then updates to the verdict when
 grading lands.
 

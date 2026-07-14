@@ -14,7 +14,7 @@ import type { RuntimeProps, StateKey } from '../types';
  * attempts). graderStateKey is typically props.graderId (injected by render
  * for requiresGrader blocks) or the block's own nodeInfo.stateKey.
  */
-export function useGradingState(props: RuntimeProps, graderStateKey: StateKey | undefined): GradingState {
+export function useGradingState(props: RuntimeProps, graderStateKey: StateKey): GradingState {
   return useSelector(
     (state: any) => selectGradingState(state, props, graderStateKey),
     shallowEqual,

@@ -3,23 +3,20 @@
 import type { RuntimeProps } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
-import { useGradingState } from '@/lib/grading';
+import { useGradingState, findDirectChildGraders } from '@/lib/grading';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
 
 /**
- * Find child grader IDs within this CapaProblem.
- * Excludes self to avoid finding parent CapaProblems in nested structures.
+ * The direct child graders this problem governs. Boundary-aware (a nested
+ * problem's graders belong to that problem): the same rule aggregation
+ * uses, so validation, the submit button's targets, and derived grading
+ * all agree on which graders are "this problem's".
  */
 function findChildGraderIds(props) {
-  const { id, target } = props;
-  return inferRelatedNodes(props, {
-    selector: n => n.loBlock.isGrader && n.olxJson.id !== id,
-    infer: ['kids'],
-    targets: target
-  });
+  return props.nodeInfo ? findDirectChildGraders(props, props.nodeInfo) : [];
 }
 
 /**
@@ -123,16 +120,16 @@ export default function CapaProblem(props: RuntimeProps) {
   // every immediate-mode render so live edits to a grader's configuration take
   // effect.
   if (isImmediate) {
-    const slowChildIds = childGraderIds.filter(
-      gid => getDomNodeByStateKey(props, gid)?.loBlock.grading?.slow
+    const asyncChildIds = childGraderIds.filter(
+      gid => getDomNodeByStateKey(props, gid)?.loBlock.grading?.execution === 'async'
     );
-    if (slowChildIds.length > 0) {
+    if (asyncChildIds.length > 0) {
       return (
         <DisplayError
           props={props}
           id={`${id}_grade_mode`}
           title="CapaProblem"
-          message={`grade="immediate" cannot be used with slow (async) graders (problem "${id}": ${slowChildIds.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
+          message={`grade="immediate" cannot be used with async graders (problem "${id}": ${asyncChildIds.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
         />
       );
     }
