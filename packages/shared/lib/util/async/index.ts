@@ -19,7 +19,7 @@
 
 export type { AsyncFn } from './types';
 export { sleep } from './types';
-export { withRetry, type RetryPolicy } from './retry';
+export { withRetry, backoffMs, type RetryPolicy } from './retry';
 export { singleFlight } from './singleFlight';
 export { timeout, TimeoutError } from './timeout';
 export { memoize, type MemoizeOptions } from './memoize';

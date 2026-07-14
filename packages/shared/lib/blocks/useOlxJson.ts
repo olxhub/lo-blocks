@@ -122,8 +122,12 @@ export function ensureBlock(
       } else {
         // Field state rides the content response (fields-design 2b):
         // adopt BEFORE the content dispatch so blocks never render from
-        // defaults and then flicker to saved state.
-        adoptFieldState(data.fieldState);
+        // defaults and then flicker to saved state. The served
+        // definitions are the response's state COVERAGE — for static
+        // blocks StateKey = DefinitionKey, so the field ledger marks
+        // them resolved here and the state lane never refetches them
+        // (dynamic scoped instances go through ensureInstance instead).
+        adoptFieldState(data.fieldState, Object.keys(data.idMap));
         dispatchOlxJson(props, source, data.idMap);
         // Recursively ensure blocks referenced by ref-typed attributes
         ensureReferencedBlocks(props, data.idMap, source);

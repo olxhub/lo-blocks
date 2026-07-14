@@ -1781,6 +1781,10 @@ export interface AppState {
   storage: Record<string, any>;
   /** Parsed OLX content by source namespace. */
   olxjson: OlxJsonState;
+  /** Field-state provenance, keyed by StateKey — timestamped facts
+   *  (resolvedAt/loadGuid/attempt) the state lane of the ensure pipeline
+   *  derives readiness from (state/fieldLedger.ts). */
+  fieldLedger: Record<string, import('../state/fieldLedger').LedgerEntry>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
   /** Block documentation (get_blocks results). Interim — converges with
