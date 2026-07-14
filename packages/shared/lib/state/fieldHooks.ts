@@ -17,7 +17,7 @@ import { asObservableValue } from '../types/fieldValues';
 import type { RawFieldValue, ObservableValue } from '../types/fieldValues';
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
-import { ensureBlock } from '../blocks/useOlxJson';
+import { ensureBlock } from '../blocks/ensure';
 import { isPipelined, declaredEquality } from './blockData';
 import {
   rawFieldSelector, fieldSelector, resolveDecl, evalGetter, withGetterGuard, type SelectorOptions,

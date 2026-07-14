@@ -59,6 +59,11 @@ export interface LedgerAttempt {
   /** When the LAST failure landed — retry eligibility counts from here. */
   lastFailureAt?: number;
   lastError?: string;
+  /** The server answered "no" (404 / API error). A fatal fact makes the
+   * attempt terminal regardless of failure count — retrying is pointless. */
+  fatal?: boolean;
+  /** The REQUEST PROFILE this attempt was made under (see LedgerEntry). */
+  profile?: string;
 }
 
 /** Everything the ledger knows about one StateKey. Facts, not statuses. */
@@ -69,6 +74,12 @@ export interface LedgerEntry {
   resolvedAt?: number;
   /** Which page load resolved it (getActorId()). */
   loadGuid?: string;
+  /** The REQUEST PROFILE the resolution was made under — what we sent to
+   * the server (for content: the locale). Currently the only profile
+   * dimension is locale, but this will grow (bandwidth, a11y, explicit
+   * overrides) — all fed into one negotiation, CSS-cascade style. A
+   * resolution under a different profile is not fresh for this one. */
+  profile?: string;
   attempt?: LedgerAttempt;
 }
 
@@ -125,12 +136,26 @@ export function freshness(
     retry = STATE_RETRY,
     now = Date.now(),
     loadGuid = getActorId(),
-  }: { policy?: FreshnessPolicy; retry?: RetryPolicy; now?: number; loadGuid?: string } = {},
+    profile,
+  }: { policy?: FreshnessPolicy; retry?: RetryPolicy; now?: number; loadGuid?: string; profile?: string } = {},
 ): Freshness {
-  if (policy(entry, now, loadGuid)) return 'ready';
+  // When a profile is supplied, a resolution made under a DIFFERENT
+  // profile (e.g. a new locale) is not fresh — the old content is still
+  // in store, but this profile deserves its own fetch. A resolution with
+  // NO recorded profile is profile-agnostic (inline/static/sync content)
+  // and matches any request. When opts.profile is undefined, profile is
+  // ignored entirely and behavior is exactly as before.
+  const profileMismatch = (p?: string) =>
+    profile !== undefined && p !== undefined && p !== profile;
+  if (!profileMismatch(entry?.profile) && policy(entry, now, loadGuid)) return 'ready';
   const attempt = entry?.attempt;
   // Attempts from a previous page load are dead facts, not in-flight.
   if (!attempt || attempt.loadGuid !== loadGuid) return 'unknown';
+  // A live attempt under a different profile reads as never-tried: the
+  // new profile deserves a fresh fetch, not a wait on the old one.
+  if (profileMismatch(attempt.profile)) return 'unknown';
+  // The server answered "no" — terminal, whatever the failure count.
+  if (attempt.fatal) return 'failed';
   if (attempt.failures === 0) return 'pending';
   if (attempt.failures >= retry.attempts) return 'failed';
   const eligibleAt = (attempt.lastFailureAt ?? attempt.startedAt) + backoffMs(retry, attempt.failures);

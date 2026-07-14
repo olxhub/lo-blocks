@@ -6,7 +6,7 @@ import { valueSelector, fieldByName, fieldSelector } from '@/lib/state';
 import { blockData, withStatus } from '@/lib/state/blockData';
 import { leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
-import { selectBlock, selectBlockState } from '@/lib/state/olxjson';
+import { selectBlock, selectBlockState, contentFreshness } from '@/lib/state/olxjson';
 import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/lib/types';
 
 /**
@@ -87,7 +87,7 @@ const Ref = core({
     // Check if target exists in Redux — distinguish loading from missing
     if (!selectBlock(state, sources, targetDefinitionKey, locale)) {
       const bs = selectBlockState(state, sources, targetDefinitionKey);
-      if (bs?.loadingState?.status === 'error') {
+      if (contentFreshness(bs) === 'failed') {
         return { value: '', ...blockData('error', `Target "${targetId}" not found`) };
       }
       return { value: '', ...blockData('loading') };

@@ -88,6 +88,31 @@ test('resolution clears attempt facts', () => {
   expect(freshness(state.k, { now: T0, loadGuid: GUID })).toBe('ready');
 });
 
+test('a fatal attempt reads failed regardless of failure count', () => {
+  // The server answered "no" (a 404) — one failure, but terminal.
+  const entry = { attempt: { loadGuid: GUID, startedAt: T0, failures: 1, fatal: true } };
+  const retry = { attempts: 4, baseMs: 1000, maxMs: 30_000 };
+  // Without fatal this would be retry-wait then unknown; fatal short-circuits.
+  expect(freshness(entry, { now: T0 + 1e9, loadGuid: GUID, retry })).toBe('failed');
+});
+
+test('profile mismatch: a resolution under another profile is not ready', () => {
+  const resolvedEn = { resolvedAt: T0, loadGuid: OTHER_GUID, profile: 'en' };
+  // Same profile → ready (anyValid). Different profile → falls through to
+  // attempt checks (none here) → unknown, so a refetch fires.
+  expect(freshness(resolvedEn, { policy: policies.anyValid, now: T0 + 1, profile: 'en' })).toBe('ready');
+  expect(freshness(resolvedEn, { policy: policies.anyValid, now: T0 + 1, profile: 'ar' })).toBe('unknown');
+  // A profile-agnostic resolution (no recorded profile) matches any request.
+  const agnostic = { resolvedAt: T0, loadGuid: OTHER_GUID };
+  expect(freshness(agnostic, { policy: policies.anyValid, now: T0 + 1, profile: 'ar' })).toBe('ready');
+});
+
+test('profile mismatch: a live attempt under another profile reads unknown', () => {
+  const attemptEn = { attempt: { loadGuid: GUID, startedAt: T0, failures: 1, profile: 'en' } };
+  // Even mid-backoff, a new profile deserves its own fetch, not a wait.
+  expect(freshness(attemptEn, { now: T0 + 1, loadGuid: GUID, profile: 'ar' })).toBe('unknown');
+});
+
 test('malformed actions are ignored', () => {
   const state: FieldLedgerState = { k: { resolvedAt: T0, loadGuid: GUID } };
   expect(fieldLedgerReducer(state, { type: FIELDSTATE_LOADING, keys: [], at: T0 })).toBe(state);

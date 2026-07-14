@@ -9,7 +9,7 @@ import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { RuntimeProps, StateKey, BlockDataResult } from '../types';
 import { asObservableValue } from '../types/fieldValues';
 import type { ObservableValue } from '../types/fieldValues';
-import { selectBlockState } from './olxjson';
+import { selectBlockState, contentFreshness } from './olxjson';
 import { blockData, evaluateFieldSelector, selectorReturnsBlockData } from './blockData';
 import { resolveTarget, evalGetter, withGetterGuard, decodedFieldSelector, type ResolvedTarget } from './fieldReads';
 
@@ -45,8 +45,8 @@ export function valueSelector(
     // Unresolvable: distinguish a load error from content still loading.
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const bs = selectBlockState(state, sources, leafDefinitionKeyFromStateKey(stateKey));
-    if (bs?.loadingState?.status === 'error') {
-      return { value: asObservableValue(fallback), ...blockData('error', bs.error?.message ?? `Block "${stateKey}" not found`) };
+    if (contentFreshness(bs) === 'failed') {
+      return { value: asObservableValue(fallback), ...blockData('error', bs?.ledger?.attempt?.lastError ?? `Block "${stateKey}" not found`) };
     }
     return { value: asObservableValue(fallback), ...blockData('loading') };
   }

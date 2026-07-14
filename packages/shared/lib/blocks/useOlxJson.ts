@@ -12,18 +12,14 @@
 
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 import {
   selectBlockState,
-  dispatchOlxJsonLoading,
-  dispatchOlxJson,
-  dispatchOlxJsonError
+  contentFreshness,
 } from '@/lib/state/olxjson';
-import { adoptFieldState } from '@/lib/state/store';
-import { qualifyDefinitionRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
-import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
+import { ensureBlock } from '@/lib/blocks/ensure';
+import { qualifyDefinitionRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
-import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
+import type { OlxJson, DefinitionKey, DefinitionRef, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { AppError } from '@/lib/types/errors';
 import { safeStringify } from '@/lib/util';
 import type { LogEventFn } from '@/lib/render';
@@ -41,158 +37,6 @@ const SYNTHETIC_SOURCE = '' as LofsCanonical;
 
 export type OlxJsonResult = BlockDataResult & { olxJson: OlxJson | null };
 
-
-// =============================================================================
-// ensureBlock — non-hook fetch trigger (internal infrastructure)
-// =============================================================================
-
-/**
- * Dedup: once we've started a fetch for a given request, don't start another.
- *
- * Keyed by `source:requestProfile:definitionKey` so that:
- * - Different sources can load the same block independently
- * - A change in user profile triggers re-fetch (the server may negotiate
- *   a different content variant)
- *
- * Three distinct concepts at play:
- * - **Content variant** (e.g. `ar-Arab-SA:no-audio`): What exists on the
- *   server — locale + other properties.
- * - **Content locale** (e.g. `ar-Arab-SA`): The language part of a variant.
- * - **User profile**: What we send to the server — preferred languages,
- *   bandwidth context, a11y needs. All dimensions feed into one negotiation
- *   with different weights (CSS cascade style). Explicit user choices are
- *   stronger signals in the same cascade, not a bypass.
- *
- * The dedup key is based on the request profile (what we send), not the
- * content variant (what we get back). Currently the only profile dimension
- * is locale, but this will grow (bandwidth, a11y, explicit overrides).
- *
- * On network failure (.catch), the key is removed to allow retry.
- * On API error (!data.ok — missing content, server error), the key is kept
- * to prevent retry storms.
- */
-const ensuredIds = new Set<string>();
-
-/**
- * Ensure a block's OlxJson is being loaded into Redux.
- *
- * If the block is unknown (not in Redux at all), dispatches OLXJSON_LOADING
- * and triggers an async fetch. If it's already known (loading, ready, or
- * error), this is a no-op.
- *
- * After a successful fetch, scans all loaded blocks for attributes that
- * reference other blocks (discovered from the zod schema via getRefAttributes)
- * and recursively ensures those are loaded too. This prevents the Ref
- * deadlock: Ref loads itself, but nobody loads its target.
- *
- * NOT a hook — safe to call from useEffect, event handlers, callbacks, etc.
- * Do NOT call from render functions or Redux selectors.
- *
- * Internal infrastructure: called by useOlxJson and useValue. Block authors
- * should not need to call this directly.
- */
-export function ensureBlock(
-  props: BaselineProps,
-  id: string | DefinitionRef | null | undefined,
-  source: string = 'content'
-): void {
-  if (!id || props.runtime.sideEffectFree) return;
-
-  const definitionKey: DefinitionKey = qualifyDefinitionRef(id as DefinitionRef, props.runtime.ns);
-  const locale = props.runtime.locale.code;
-  // Dedup on request profile — currently just locale, will grow (see comment above)
-  const dedupKey = `${source}:${locale}:${definitionKey}`;
-  if (ensuredIds.has(dedupKey)) return;
-
-  const state = props.runtime.store.getState();
-  const blockState = selectBlockState(state, [source], definitionKey);
-  if (blockState) return; // Already known (loading, ready, or error)
-
-  ensuredIds.add(dedupKey);
-  dispatchOlxJsonLoading(props, source, definitionKey);
-
-  fetchOlxJson(definitionKey, {
-      headers: { 'Accept-Language': locale },
-    })
-    .then(data => {
-      if (!data.ok) {
-        // API error (404 missing content, 500 server error) — don't retry.
-        // Key stays in ensuredIds to prevent retry storms.
-        dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`);
-      } else {
-        // Field state rides the content response (fields-design 2b):
-        // adopt BEFORE the content dispatch so blocks never render from
-        // defaults and then flicker to saved state. The served
-        // definitions are the response's state COVERAGE — for static
-        // blocks StateKey = DefinitionKey, so the field ledger marks
-        // them resolved here and the state lane never refetches them
-        // (dynamic scoped instances go through ensureInstance instead).
-        adoptFieldState(data.fieldState, Object.keys(data.idMap));
-        dispatchOlxJson(props, source, data.idMap);
-        // Recursively ensure blocks referenced by ref-typed attributes
-        ensureReferencedBlocks(props, data.idMap, source);
-      }
-    })
-    .catch(err => {
-      // Network failure — remove from dedup set so ensuredIds won't block.
-      // However, the Redux error state (set below) is a second gate: selectBlockState
-      // returns truthy, so ensureBlock returns early at line 94. In practice, retry
-      // requires clearing both gates — currently only a page reload does that.
-      ensuredIds.delete(dedupKey);
-      dispatchOlxJsonError(props, source, definitionKey, err.message || `Failed to load ${definitionKey}`);
-    });
-}
-
-/**
- * Scan loaded blocks for attributes that reference other blocks and ensure
- * those blocks are loaded.
- *
- * Which attributes to scan is determined by the block's zod schema — any
- * attribute tagged with a ref extractor (z_stateRef, z_stateRefList,
- * z_blockFieldRef, z_blockFieldRefList) is automatically discovered via
- * getRefAttributes(). Each schema knows how to extract block IDs from its
- * (possibly transformed) value.
- *
- * Called after a successful fetch. The idMap contains the fetched block plus
- * its static kids (from collectBlockWithKids). We scan ALL of them.
- *
- * Handles absolute refs (/foo) and scoped keys
- * (myList:#0:answer → ensures both myList and answer).
- *
- * Recursive: when a referenced block loads, ITS references get ensured in turn.
- */
-
-function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
-  const blockRegistry = props.runtime.blockRegistry ?? {};
-  for (const variantMap of Object.values(idMap)) {
-    // Check any variant — refs don't change across languages
-    const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
-    if (!anyVariant?.tag) continue;
-
-    const block = blockRegistry[anyVariant.tag];
-    const refAttrs = block?.attributes ? getRefAttributes(block.attributes) : [];
-
-    for (const { name, extractRefs } of refAttrs) {
-      const refValue = anyVariant.attributes?.[name];
-      if (refValue == null) continue;
-
-      const refs = extractRefs(refValue);
-      for (const ref of refs) {
-        // extractRefs returns Zod-validated values — may include system-generated
-        // _-prefixed bare refs since z_stateRef uses the permissive validator.
-        const qualifiedKey = stateKeyForGlobalRef(parseAnyStateRef(ref), props.runtime.ns);
-        for (const defKey of allDefinitionKeysFromStateKey(qualifiedKey)) {
-          // Skip blocks already in this idMap — they were just dispatched
-          // in the same LOAD_OLXJSON event. Calling ensureBlock here would
-          // race: OLXJSON_LOADING enqueued AFTER LOAD_OLXJSON overwrites
-          // the block's 'ready' status back to 'loading'.
-          if (idMap[defKey]) continue;
-          ensureBlock(props, defKey, source);
-        }
-      }
-    }
-  }
-}
 
 // =============================================================================
 // Selector trio pattern for single OlxJson
@@ -227,17 +71,20 @@ export function selectOlxJson(
     return { olxJson: null, ...blockData('loading') };
   }
 
-  const status = blockState.loadingState?.status;
+  // Blocks keep a plain ready/loading/error — the ledger's Freshness is
+  // mapped to it here (contentFreshness is the one policy point):
+  //   ready → resolved content; failed → error; everything else → loading.
+  const fresh = contentFreshness(blockState);
 
-  if (status === 'loading') {
-    return { olxJson: null, ...blockData('loading') };
-  }
-
-  if (status === 'error') {
+  if (fresh === 'failed') {
     return {
       olxJson: null,
-      ...blockData('error', blockState.error?.message || `Error loading "${definitionKey}"`)
+      ...blockData('error', blockState.ledger?.attempt?.lastError || `Error loading "${definitionKey}"`)
     };
+  }
+
+  if (fresh !== 'ready') {
+    return { olxJson: null, ...blockData('loading') };
   }
 
   const stored = blockState.olxJson;

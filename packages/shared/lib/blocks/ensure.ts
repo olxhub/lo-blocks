@@ -28,19 +28,30 @@
 // NOT hooks — safe from effects, callbacks, event handlers. Never call
 // from render functions or selectors.
 
-import { fetchFieldState } from '@/lib/content/fetchOlxJson';
+import { fetchFieldState, fetchOlxJson } from '@/lib/content/fetchOlxJson';
 import { adoptFieldState } from '@/lib/state/store';
 import {
   selectFieldFreshness,
   FIELDSTATE_LOADING, FIELDSTATE_ERROR, STATE_RETRY,
   type FreshnessPolicy,
 } from '@/lib/state/fieldLedger';
-import { ensureBlock } from '@/lib/blocks/useOlxJson';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import {
+  selectBlockState,
+  dispatchOlxJsonLoading,
+  dispatchOlxJson,
+  dispatchOlxJsonError,
+  contentFreshness,
+  CONTENT_RETRY,
+} from '@/lib/state/olxjson';
+import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
+import {
+  leafDefinitionKeyFromStateKey, qualifyDefinitionRef,
+  allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef,
+} from '@/lib/types/id-grammar';
 import type { StateKey } from '@/lib/types/id-grammar';
 import { getActorId } from '@/lib/crdt/actorId';
 import { backoffMs } from '@/lib/util/async';
-import type { RuntimeProps } from '@/lib/types';
+import type { BaselineProps, RuntimeProps, OlxJson, IdMap, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 export type Lane = 'olxJson' | 'state' | 'code';
 const ALL_LANES: Lane[] = ['olxJson', 'state', 'code'];
@@ -57,8 +68,24 @@ let pendingKeys = new Set<StateKey>();
 let pendingStore: { getState(): any; dispatch(action: any): void } | null = null;
 let flushScheduled = false;
 
-// retry-wait keys with a wake-up timer already scheduled.
-const scheduledRetries = new Map<StateKey, ReturnType<typeof setTimeout>>();
+// retry-wait targets with a wake-up timer already scheduled. Both lanes
+// share ONE map, keyed by a namespaced string (`state:${key}` vs
+// `olx:${source}:${definitionKey}`) so a content retry and a state retry
+// for the same underlying id never collide.
+const scheduledRetries = new Map<string, ReturnType<typeof setTimeout>>();
+
+/** Arm a one-shot wake-up for a retry-wait target: when its backoff
+ * elapses, re-ensure. The ledger recomputes eligibility on wake, so a
+ * spurious early fire is harmless. Idempotent per timerKey. */
+function scheduleWake(timerKey: string, eligibleAt: number, fn: () => void) {
+  if (scheduledRetries.has(timerKey)) return;
+  const timer = setTimeout(() => {
+    scheduledRetries.delete(timerKey);
+    fn();
+  }, Math.max(0, eligibleAt - Date.now()));
+  (timer as any).unref?.(); // never hold a test/node process open
+  scheduledRetries.set(timerKey, timer);
+}
 
 /**
  * Ensure a set of block instances are loading everything they need.
@@ -107,25 +134,18 @@ function enqueueStateFetch(props: RuntimeProps, key: StateKey) {
   }
 }
 
-/** A retry-wait key re-ensures itself when its backoff elapses; the
- * ledger recomputes eligibility, so a spurious wake-up is harmless. */
 function scheduleRetry(
   props: RuntimeProps,
   key: StateKey,
   opts: { policy?: FreshnessPolicy },
 ) {
-  if (scheduledRetries.has(key)) return;
   const entry = props.runtime.store.getState()?.application_state?.fieldLedger?.[key];
   const attempt = entry?.attempt;
   if (!attempt) return;
   const eligibleAt = (attempt.lastFailureAt ?? attempt.startedAt)
     + backoffMs(STATE_RETRY, attempt.failures);
-  const timer = setTimeout(() => {
-    scheduledRetries.delete(key);
-    ensureInstance(props, [key], { lanes: ['state'], ...opts });
-  }, Math.max(0, eligibleAt - Date.now()));
-  (timer as any).unref?.(); // never hold a test/node process open
-  scheduledRetries.set(key, timer);
+  scheduleWake(`state:${key}`, eligibleAt, () =>
+    ensureInstance(props, [key], { lanes: ['state'], ...opts }));
 }
 
 async function flushStateFetches() {
@@ -172,6 +192,145 @@ function dispatchLedger(
     }),
     __fromServer: true,
   });
+}
+
+// ── olxJson (content) lane ───────────────────────────────────────────────────
+// ensureBlock is the content lane's ensure entry point (the state lane's
+// sibling of enqueueStateFetch). Dedup and retry are the content ledger's
+// job — a block is fetched only when contentFreshness reads 'unknown', a
+// transient failure becomes eligible again on CONTENT_RETRY's backoff, and
+// a fatal failure (the server answered "no") never retries.
+
+/**
+ * Ensure a block's OlxJson is loading into Redux.
+ *
+ * Consults the content ledger via contentFreshness(entry, locale):
+ *   unknown    → dispatch OLXJSON_LOADING and fetch (profile = locale)
+ *   retry-wait → arm a wake-up; re-ensures when the backoff elapses
+ *   pending / ready / failed → no-op
+ *
+ * The `locale` is the REQUEST PROFILE (what we send to the server, which
+ * may negotiate a different content variant back). Currently the only
+ * profile dimension is locale, but this will grow (bandwidth, a11y,
+ * explicit overrides) — all fed into one negotiation, CSS-cascade style.
+ * A resolution under a different profile reads not-ready, so a locale
+ * change refetches (LOAD_OLXJSON merges variants — nothing is lost).
+ *
+ * After a successful fetch, scans loaded blocks for ref-typed attributes
+ * (getRefAttributes) and recursively ensures their targets — this breaks
+ * the Ref deadlock (Ref loads itself, but nobody loads its target).
+ *
+ * NOT a hook — safe from effects, callbacks, event handlers. Do NOT call
+ * from render functions or Redux selectors.
+ */
+export function ensureBlock(
+  props: BaselineProps,
+  id: string | DefinitionRef | null | undefined,
+  source: string = 'content'
+): void {
+  if (!id || props.runtime.sideEffectFree) return;
+
+  const definitionKey: DefinitionKey = qualifyDefinitionRef(id as DefinitionRef, props.runtime.ns);
+  const locale = props.runtime.locale.code;
+  const state = props.runtime.store.getState();
+  const entry = selectBlockState(state, [source], definitionKey);
+
+  switch (contentFreshness(entry, locale)) {
+    case 'unknown':
+      break; // fall through to fetch
+    case 'retry-wait': {
+      const attempt = entry?.ledger?.attempt;
+      if (attempt) {
+        const eligibleAt = (attempt.lastFailureAt ?? attempt.startedAt)
+          + backoffMs(CONTENT_RETRY, attempt.failures);
+        scheduleWake(`olx:${source}:${definitionKey}`, eligibleAt,
+          () => ensureBlock(props, id, source));
+      }
+      return;
+    }
+    default:
+      // 'pending' | 'ready' | 'failed' — nothing to do. A fatal failure
+      // stays 'failed' forever (the server said no); the hook layer
+      // surfaces it as an error placeholder.
+      return;
+  }
+
+  dispatchOlxJsonLoading(props, source, definitionKey, locale);
+
+  fetchOlxJson(definitionKey, {
+      headers: { 'Accept-Language': locale },
+    })
+    .then(data => {
+      if (!data.ok) {
+        // API error (404 missing content, 500 server error): the server
+        // answered — retrying is pointless. Record a FATAL fact; the
+        // ledger keeps freshness at 'failed' forever this page load.
+        dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`, true);
+      } else {
+        // Field state rides the content response (fields-design 2b):
+        // adopt BEFORE the content dispatch so blocks never render from
+        // defaults and then flicker to saved state. The served
+        // definitions are the response's state COVERAGE — for static
+        // blocks StateKey = DefinitionKey, so the field ledger marks
+        // them resolved here and the state lane never refetches them
+        // (dynamic scoped instances go through ensureInstance instead).
+        adoptFieldState(data.fieldState, Object.keys(data.idMap));
+        dispatchOlxJson(props, source, data.idMap, locale);
+        // Recursively ensure blocks referenced by ref-typed attributes
+        ensureReferencedBlocks(props, data.idMap, source);
+      }
+    })
+    .catch(err => {
+      // Network failure — a TRANSIENT fact (not fatal). The ledger's
+      // backoff makes the key eligible again, and the next ensureBlock
+      // (hook re-render or scheduled wake) refetches. No dedup set to
+      // untangle: the old reload-only-retry bug is gone with ensuredIds.
+      dispatchOlxJsonError(props, source, definitionKey, err.message || `Failed to load ${definitionKey}`, false);
+    });
+}
+
+/**
+ * Scan loaded blocks for ref-typed attributes and ensure their targets.
+ *
+ * Which attributes to scan comes from each block's zod schema — any
+ * attribute tagged with a ref extractor (z_stateRef, z_stateRefList,
+ * z_blockFieldRef, z_blockFieldRefList) is discovered via getRefAttributes().
+ *
+ * Called after a successful fetch. The idMap has the fetched block plus its
+ * static kids; we scan all of them. Handles absolute refs (/foo) and scoped
+ * keys (myList:#0:answer → ensures both myList and answer). Recursive: a
+ * referenced block's own refs get ensured when it loads.
+ */
+function ensureReferencedBlocks(props: BaselineProps, idMap: IdMap, source: string): void {
+  const blockRegistry = props.runtime.blockRegistry ?? {};
+  for (const variantMap of Object.values(idMap)) {
+    // Check any variant — refs don't change across languages
+    const anyVariant = Object.values(variantMap)[0] as OlxJson | undefined;
+    if (!anyVariant?.tag) continue;
+
+    const block = blockRegistry[anyVariant.tag];
+    const refAttrs = block?.attributes ? getRefAttributes(block.attributes) : [];
+
+    for (const { name, extractRefs } of refAttrs) {
+      const refValue = anyVariant.attributes?.[name];
+      if (refValue == null) continue;
+
+      const refs = extractRefs(refValue);
+      for (const ref of refs) {
+        // extractRefs returns Zod-validated values — may include system-generated
+        // _-prefixed bare refs since z_stateRef uses the permissive validator.
+        const qualifiedKey = stateKeyForGlobalRef(parseAnyStateRef(ref), props.runtime.ns);
+        for (const defKey of allDefinitionKeysFromStateKey(qualifiedKey)) {
+          // Skip blocks already in this idMap — they were just dispatched
+          // in the same LOAD_OLXJSON event. Calling ensureBlock here would
+          // race: OLXJSON_LOADING enqueued AFTER LOAD_OLXJSON overwrites
+          // the block's resolved ledger back to an in-flight attempt.
+          if (idMap[defKey]) continue;
+          ensureBlock(props, defKey, source);
+        }
+      }
+    }
+  }
 }
 
 /** Test hook: drop batch + retry bookkeeping between cases. */

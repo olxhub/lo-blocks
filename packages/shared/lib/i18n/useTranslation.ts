@@ -166,7 +166,7 @@ function ensureTranslation(
           ? 'Translation request timed out'
           : (err.message || String(err));
       console.warn(`[useTranslation] Translation failed for ${blockId}:`, reason);
-      dispatchOlxJsonError(props, source, blockId, reason, targetLocale);
+      dispatchOlxJsonError(props, source, blockId, reason, false, targetLocale);
     })
     .finally(() => {
       clearTimeout(timeout);
