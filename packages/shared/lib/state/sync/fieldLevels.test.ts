@@ -31,8 +31,21 @@ test('declared levels resolve; undeclared fields are level user', async () => {
   expect(await index.levelOf('demos/unknown', 'value')).toBeUndefined();
 });
 
-test('scoped state keys share their definition declaration', async () => {
+test('scoped state keys share their LEAF definition declaration', async () => {
   const index = makeFieldLevelIndex(async () => idMap, fieldsForTag);
-  expect(await index.levelOf('demos/notes#row3', 'notes'))
+  // A notes block rendered inside a dynamic container: the instance is
+  // scoped ("list:#2:"), the declaration lives on demos/notes.
+  expect(await index.levelOf('demos/list:#2:notes', 'notes'))
     .toEqual({ level: 'everyone', delivery: 'events' });
+  // Container declarations do NOT govern children: a scoped key whose
+  // leaf has no declaration is level user even under a declared parent.
+  expect(await index.levelOf('demos/notes:#0:q', 'value')).toBeUndefined();
+});
+
+test('non-StateKey ids (setting tags, legacy dialects) fail closed', async () => {
+  const index = makeFieldLevelIndex(async () => idMap, fieldsForTag);
+  expect(await index.levelOf('Tabs', 'open')).toBeUndefined();
+  // The pre-id-grammar '#'-suffix dialect is dead (nothing produces it);
+  // if such an id ever arrives it routes as level user, never shared.
+  expect(await index.levelOf('demos/notes#row3', 'notes')).toBeUndefined();
 });
