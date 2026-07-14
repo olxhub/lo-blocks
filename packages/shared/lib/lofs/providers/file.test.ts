@@ -10,7 +10,6 @@
 //
 
 import { FileStorageProvider } from './file';
-import { registerAllowedContentDir } from '../allowedDirs';
 import { toOlxRelativePath } from '../../types/storage';
 import type { OlxRelativePath, SafeRelativePath, LofsRef, ContentNamespace } from '../../types';
 import * as path from 'path';
@@ -23,7 +22,6 @@ describe('FileStorageProvider security', () => {
 
   beforeAll(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-test-'));
-    registerAllowedContentDir(tempDir);  // whitelist the temp dir for read/write checks
     provider = new FileStorageProvider(tempDir);
     await fs.writeFile(path.join(tempDir, 'test.olx'), '<Test>content</Test>');
   });
@@ -49,7 +47,7 @@ describe('FileStorageProvider security', () => {
     });
 
     test('rejects write with path traversal', async () => {
-      await expect(provider.save(toOlxRelativePath('../../../tmp/evil.txt'), 'malicious'))
+      await expect(provider.commit([{ path: toOlxRelativePath('../../../tmp/evil.txt'), content: 'malicious' }]))
         .rejects.toThrow(/escapes base directory/);
     });
   });
@@ -66,7 +64,7 @@ describe('FileStorageProvider security', () => {
         await expect(provider.read(attackPath as OlxRelativePath))
           .rejects.toThrow(/null bytes not allowed/);
       } else {
-        await expect(provider.save(attackPath as OlxRelativePath, 'content'))
+        await expect(provider.commit([{ path: attackPath as OlxRelativePath, content: 'content' }]))
           .rejects.toThrow(/null bytes not allowed/);
       }
     });
@@ -78,7 +76,7 @@ describe('FileStorageProvider security', () => {
     test('rejects absolute path read and write', async () => {
       await expect(provider.read('/etc/passwd' as OlxRelativePath))
         .rejects.toThrow(/escapes base directory|outside allowed/);
-      await expect(provider.save('/tmp/evil.txt' as OlxRelativePath, 'malicious'))
+      await expect(provider.commit([{ path: '/tmp/evil.txt' as OlxRelativePath, content: 'malicious' }]))
         .rejects.toThrow(/escapes base directory|outside allowed/);
     });
   });
@@ -90,21 +88,21 @@ describe('FileStorageProvider security', () => {
     });
 
     test('can write and read file', async () => {
-      await provider.save(toOlxRelativePath('new-file.olx'), '<New>data</New>');
+      await provider.commit([{ path: toOlxRelativePath('new-file.olx'), content: '<New>data</New>' }]);
       const result = await provider.read(toOlxRelativePath('new-file.olx'));
       expect(result.content).toBe('<New>data</New>');
     });
 
     test('can handle subdirectory paths', async () => {
       await fs.mkdir(path.join(tempDir, 'subdir'), { recursive: true });
-      await provider.save(toOlxRelativePath('subdir/nested.olx'), '<Nested/>');
+      await provider.commit([{ path: toOlxRelativePath('subdir/nested.olx'), content: '<Nested/>' }]);
       const result = await provider.read(toOlxRelativePath('subdir/nested.olx'));
       expect(result.content).toBe('<Nested/>');
     });
 
     test('allows .. that stays within base directory', async () => {
       await fs.mkdir(path.join(tempDir, 'a', 'b'), { recursive: true });
-      await provider.save(toOlxRelativePath('a/b/file.olx'), '<AB/>');
+      await provider.commit([{ path: toOlxRelativePath('a/b/file.olx'), content: '<AB/>' }]);
       const result = await provider.read(toOlxRelativePath('a/b/../b/file.olx'));
       expect(result.content).toBe('<AB/>');
     });
@@ -129,7 +127,6 @@ describe('FileStorageProvider.namespaceFor', () => {
 
   beforeAll(async () => {
     nsDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-ns-test-'));
-    registerAllowedContentDir(nsDir);  // whitelist the temp dir for read checks
     provider = new FileStorageProvider(nsDir, 'content');
 
     // Directory-fallback namespace
@@ -197,5 +194,35 @@ describe('FileStorageProvider.namespaceFor', () => {
   test('rejects directory names the namespace grammar forbids', async () => {
     await expect(provider.namespaceFor(ref('bad-name/foo.olx')))
       .rejects.toThrow(/cannot be used as a content namespace/);
+  });
+
+});
+
+describe('commit base checks on destructive intents (review 2026-07-13)', () => {
+  test('stale delete and stale rename conflict; rename refuses existing destination', async () => {
+    const fsp = await import('fs/promises');
+    const dir = await fsp.mkdtemp(path.join(os.tmpdir(), 'file-commit-base-'));
+    const prov = new FileStorageProvider(dir);
+    try {
+      await fsp.writeFile(path.join(dir, 'victim.md'), 'v1');
+      const staleBase = { mtime: (await fsp.stat(path.join(dir, 'victim.md'))).mtimeMs - 5000, size: 2 };
+
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, delete: true }],
+        { base: [{ path: 'victim.md' as OlxRelativePath, version: staleBase }] }),
+      ).rejects.toThrow(/modified/);
+
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'moved.md' as OlxRelativePath }],
+        { base: [{ path: 'victim.md' as OlxRelativePath, version: staleBase }] }),
+      ).rejects.toThrow(/modified/);
+
+      await fsp.writeFile(path.join(dir, 'occupied.md'), 'here first');
+      await expect(prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'occupied.md' as OlxRelativePath }]),
+      ).rejects.toThrow(/already exists/);
+      // force overrides the destination guard
+      await prov.commit([{ path: 'victim.md' as OlxRelativePath, renameTo: 'occupied.md' as OlxRelativePath }], { force: true });
+      expect(await fsp.readFile(path.join(dir, 'occupied.md'), 'utf-8')).toBe('v1');
+    } finally {
+      await fsp.rm(dir, { recursive: true, force: true });
+    }
   });
 });

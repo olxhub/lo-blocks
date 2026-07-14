@@ -129,4 +129,13 @@ export const kvsKey = {
   rateTokens(safeUserId: SafeUserId): KVSKey {
     return asKVSKey(`rate:${safeUserId}:tokens`);
   },
+
+  /** Content parse cache: `parse:{schemaVersion}:{digest}`. The digest is a
+   * hex hash of the full logical cache key (see lib/content/parseCache.ts) —
+   * flat and colon/slash-free, so FileKVStore maps it to a single file rather
+   * than exploding provenance refs into nested directories (same hazard the
+   * `field` builder guards against). */
+  parseCache(schemaVersion: string, digest: string): KVSKey {
+    return asKVSKey(`parse:${schemaVersion}:${digest}`);
+  },
 } as const;

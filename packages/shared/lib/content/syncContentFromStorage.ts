@@ -1,44 +1,57 @@
 // packages/shared/lib/content/syncContentFromStorage.ts
 //
-// Content synchronization - loads OLX content from storage into memory.
+// Content synchronization — the in-memory OLX index as a MEMOIZATION of storage.
 //
-// Maintains two indexes:
-// 1. parsedFiles: file URIs -> block IDs parsed from that file + scan metadata
-// 2. blockIndex:  block IDs -> language variant map (the idMap)
+// getContent() is, in the common case, a token check that returns the retained
+// snapshot untouched. Nothing is scanned, diffed, or re-parsed unless a source's
+// cheap generationToken() moved. When one does, the sync:
 //
-// The sync process:
-// 1. Scan storage for added/changed/unchanged/deleted files
-// 2. Detect when auxiliary files (e.g., .chatpeg) change, requiring re-parse
-//    of dependent OLX
-// 3. Remove stale blocks from the index
-// 4. Parse new/changed files and update indexes
+//   1. re-enumerates every source (listContent → {id, type, bytes}) and folds
+//      them into one ordered world (first source wins on a shared ref);
+//   2. rebuilds the snapshot from that world — each OLX file goes through the
+//      parse cache (keyed on its bytes + namespace), so an unchanged file is a
+//      cache read, not a re-parse;
+//   3. bumps the content generation so anything derived from content rebuilds.
 //
-// The core logic lives in applyFileChanges(), which takes a previous snapshot
-// and scan result and returns a new snapshot without mutating the old one.
-// syncContentFromStorage() is a thin wrapper that manages the module-level
-// snapshot and backward-compatible return shape.
+// There is no added/changed/unchanged/deleted diff and no previous-snapshot
+// threading. Staleness is decided in two places, both content-addressed:
+//   - the file's own bytes → the parse-cache key;
+//   - the auxiliary files it depends on (parseDeps) and its namespace → a
+//     per-file freshness check (depsCurrent) + the namespace component of the
+//     cache key. An aux edit changes that dep's version in the world; a manifest
+//     edit that changes a namespace changes the cache key. Either re-parses.
+//
+// The snapshot exposes two indexes:
+//   - parsedFiles: file ref  -> block IDs parsed from it (+ its bytes/type)
+//   - blockIndex:  block ID   -> language variant map (the idMap)
 
 import { StorageProvider, fileTypes } from '@/lib/lofs';
-import { DocsStorageProvider } from '@/lib/lofs/providers/docs';
-import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
-import { unionProvider } from '@/lib/lofs/contentSources';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { readableProviders } from '@/lib/lofs/contentSources';
+import { namespaceForAcross } from '@/lib/lofs/sourceSet';
+import { chainResolvers } from '@/lib/lofs/chainResolvers';
+import { isContentFile } from '@/lib/util/fileTypes';
 import type { LofsRef, LofsCanonical, LofsOrigin, OLXLoadingError, OlxJson, IdMap, DefinitionKey, ContentVariant, VariantMap } from '@/lib/types';
-import type { XmlFileInfo, XmlScanResult } from '@/lib/types/storage';
-import { withoutVersion, addressPath, source } from '@/lib/types/address';
+import type { ContentFile } from '@/lib/types/storage';
+import { withoutVersion, source } from '@/lib/types/address';
 import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
+import { cachedParse } from '@/lib/content/parseCache';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
+import { bumpContentGeneration } from '@/lib/content/generation';
+import { FileType } from '@/lib/lofs/fileTypes';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 /** A parsed file's entry in the parsedFiles index. */
-interface ParsedFileEntry extends XmlFileInfo {
+interface ParsedFileEntry {
+  id: LofsCanonical;
+  type: FileType;
+  content: string;
   blockIds: DefinitionKey[];
-  /** Parse errors from this file (persists until the file is re-parsed or deleted). */
+  /** Parse errors from this file (persist until the file is re-parsed or gone). */
   errors: OLXLoadingError[];
 }
 
@@ -69,9 +82,33 @@ function collectSnapshotErrors(snapshot: ContentSnapshot): OLXLoadingError[] {
 
 let _snapshot: ContentSnapshot = EMPTY_SNAPSHOT;
 
+// The world the retained snapshot was built from, and the provider list used to
+// resolve it. An explicit-provider sync overlays its source's slice onto this
+// and rebuilds; a union sync replaces it wholesale.
+let _world: ContentFile[] = [];
+let _providers: StorageProvider[] = [];
+
+// Per-source generation tokens from the last DEFAULT (union) sync, in the
+// provider list's order. The fast path compares freshly-gathered tokens against
+// these: all equal → nothing changed → return the snapshot without enumerating.
+// Only the default union sync reads/writes this. An explicit-provider sync
+// (scripts, translate, tests) leaves it untouched — its write lands on
+// disk/git, so the next union sync notices it via that source's token.
+let _unionTokens: string[] | null = null;
+
 // =============================================================================
 // Query Functions (read from _snapshot)
 // =============================================================================
+
+/**
+ * The current in-memory content id map (the block index), read WITHOUT
+ * triggering a sync. The generation-memoised routing indexes
+ * (partitions/aggregations/fieldLevels) build from this: a sync updates the
+ * snapshot and bumps the content generation, and the memo rebuilds on next use.
+ */
+export function currentContentIdMap(): Record<DefinitionKey, VariantMap> {
+  return { ..._snapshot.blockIndex };
+}
 
 /**
  * Find the source OLX file for a block in a given locale.
@@ -137,345 +174,139 @@ function* entriesVariantMap(variantMap: IdMap[DefinitionKey]): Generator<[Conten
   yield* variantMapEntries(variantMap);
 }
 
-/** Shallow equality check for VariantMaps: same keys, same value references. */
-function variantMapsEqual(a: VariantMap, b: VariantMap): boolean {
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-  for (const k of keysA) {
-    if (a[k as ContentVariant] !== b[k as ContentVariant]) return false;
+/** A source's address origin, or null for a provider that doesn't carry one
+ *  (a resolver chain, an MCP face — never a real sync source). */
+function originOf(provider: StorageProvider): LofsOrigin | null {
+  return (provider as { origin?: LofsOrigin }).origin ?? null;
+}
+
+function isOlx(type: FileType): boolean {
+  return type === fileTypes.olx || type === fileTypes.xml;
+}
+
+// =============================================================================
+// Enumeration → world
+// =============================================================================
+
+/**
+ * Enumerate every source and concatenate their files in priority order (the
+ * provider list's order). Deduplication (first source wins on a shared ref) is
+ * deferred to buildSnapshot. A source that can't enumerate (down remote,
+ * unsupported) drops out — logged, so its content doesn't vanish silently.
+ */
+async function assembleWorld(
+  providers: StorageProvider[],
+): Promise<{ files: ContentFile[]; failedOrigins: string[] }> {
+  const files: ContentFile[] = [];
+  const failedOrigins: string[] = [];
+  for (const provider of providers) {
+    try {
+      files.push(...await provider.listContent());
+    } catch (err) {
+      failedOrigins.push(String(originOf(provider) ?? ''));
+      console.error(`[content] source enumeration failed, keeping its previous content: ${(err as Error).message}`);
+    }
+  }
+  return { files, failedOrigins };
+}
+
+// =============================================================================
+// Dependency freshness
+// =============================================================================
+
+/**
+ * Is a cached parse still valid against the current world? A parse pulls in
+ * auxiliary files (a .chatpeg grammar, a src="…" include) and records each as a
+ * versioned parseDep. The cached parse is stale if any content-file dependency's
+ * version no longer matches the world's — it changed — or the dependency is gone
+ * — it was deleted. Non-content deps (media assets, resolved to a placeholder
+ * version) are never enumerated and never triggered a re-parse under the old
+ * scan, so they're ignored here too.
+ */
+function depsCurrent(
+  result: { idMap: IdMap },
+  worldIds: Map<string, LofsCanonical>,
+): boolean {
+  for (const variants of Object.values(result.idMap)) {
+    for (const olxJson of Object.values(variants) as OlxJson[]) {
+      for (const dep of olxJson.parseDeps ?? []) {
+        const depRef = String(withoutVersion(dep));
+        const current = worldIds.get(depRef);
+        if (current === undefined) {
+          // Absent from the world: a content-file dep was deleted → stale.
+          // A media/placeholder dep is never enumerated → ignore.
+          if (isContentFile(depRef)) return false;
+          continue;
+        }
+        if (String(current) !== String(dep)) return false; // version moved
+      }
+    }
   }
   return true;
 }
 
 // =============================================================================
-// Core: apply a set of file changes to produce a new snapshot
+// Core: build a snapshot from a world of files
 // =============================================================================
 
-export async function applyFileChanges(
-  prev: ContentSnapshot,
-  scan: XmlScanResult,
-  provider: StorageProvider,
+/**
+ * Parse every OLX file in `world` (through the parse cache) and index its
+ * blocks, resolving namespaces and src="" references across `providers`
+ * (first-source-wins). Files are processed in priority order; the first file to
+ * claim a ref wins, so a higher-priority source shadows a lower one.
+ */
+async function buildSnapshot(
+  world: ContentFile[],
+  providers: StorageProvider[],
 ): Promise<ContentSnapshot> {
-  // Step 1: Scan results come in via `scan` parameter
-
-  // Step 2a: A manifest change re-namespaces its whole directory subtree
-  const manifestPromoted = promoteFilesAffectedByManifests(scan);
-
-  // Step 2b: Find OLX files that need re-parsing due to auxiliary file changes
-  const promoted = promoteFilesWithChangedDependencies(manifestPromoted, prev.blockIndex, prev.parsedFiles);
-
-  // Step 3: Remove blocks from files that are deleted or about to be re-parsed
-  const filesToRemove = [
-    ...Object.keys(promoted.deleted),
-    ...Object.keys(promoted.changed),
-  ] as LofsRef[];
-  const cleaned = removeBlocksFromFiles(filesToRemove, prev.parsedFiles, prev.blockIndex);
-
-  // Step 4: Parse all new and changed files
-  const filesToParse = { ...promoted.added, ...promoted.changed };
-  const parsed = await parseAndIndexFiles(filesToParse, cleaned.blockIndex, provider);
-
-  return {
-    parsedFiles: { ...cleaned.parsedFiles, ...parsed.parsedFiles },
-    blockIndex: { ...cleaned.blockIndex, ...parsed.blockIndex },
-  };
-}
-
-// =============================================================================
-// Main Entry Point (backward-compatible wrapper)
-// =============================================================================
-
-/**
- * Default system content sources:
- *   - the deployment's configured content sources (content-sources.yaml:
- *     per-repo checkouts mounted at path prefixes, plus a fallback
- *     directory — see lib/lofs/contentSources.ts; defaults to ./content)
- *   - block documentation examples (per-block docs.* namespaces)
- *
- * Stacked so the whole system content index — including docs — is one
- * sync. This is what lets courses embed documentation content via
- * <Use ref="docs.ActionButton/..."/>.
- */
-export async function defaultContentProviders(): Promise<StorageProvider> {
-  return new StackedStorageProvider([
-    await unionProvider(),
-    new DocsStorageProvider(
-      Object.values(BLOCK_REGISTRY).filter(b => b?._isBlock).map(b => b.name)
-    ),
-  ]);
-}
-
-export async function syncContentFromStorage(
-  provider?: StorageProvider
-) {
-  provider ??= await defaultContentProviders();
-  const scan = await provider.loadXmlFilesWithStats(
-    _snapshot.parsedFiles as Record<LofsRef, XmlFileInfo>
-  );
-
-  // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
-  _snapshot = await applyFileChanges(_snapshot, scan, provider);
-
-  // Step 5: Sync static assets
-  await copyAssetsToPublic(provider);
-
-  return {
-    parsed: { ..._snapshot.parsedFiles },
-    idMap: { ..._snapshot.blockIndex },
-    errors: collectSnapshotErrors(_snapshot),
-  };
-}
-
-// =============================================================================
-// Dependency Detection
-// =============================================================================
-
-/** Is this scan entry a namespace manifest (manifest.yaml)? */
-function isManifestUri(uri: LofsRef): boolean {
-  return String(addressPath(uri)).split('/').pop() === 'manifest.yaml';
-}
-
-/**
- * When a manifest.yaml is added, changed, or deleted, namespaces may change
- * for content beneath it, so affected OLX must re-parse.
- *
- * Why not dependency pointers (OlxJson.manifest), like parseDeps? A pointer
- * can only invalidate content that recorded it. ADDING a manifest — or
- * adding a `namespace:` field to one that declared nothing — affects files
- * that point at nothing: the dependency is on the ABSENCE of a nearer
- * manifest, which a pointer can't express. OlxJson.manifest is provenance,
- * not the invalidation mechanism.
- *
- * The rule is deliberately blunt: any manifest change re-parses every
- * unchanged OLX file in the same mount. Manifest edits are rare and
- * re-parsing is safe; if this is ever too slow, narrow it to the
- * manifest's directory subtree.
- *
- * Returns a new XmlScanResult with affected unchanged OLX moved to "changed".
- */
-/** Strip a scan entry to the bare XmlFileInfo, dropping any blockIds a previous
- *  parse attached — they'd be stale once the file is re-parsed. */
-function toXmlFileInfo(entry: XmlFileInfo): XmlFileInfo {
-  return {
-    id: entry.id,
-    type: entry.type,
-    content: entry.content,
-    _metadata: entry._metadata,
-  };
-}
-
-/** Return a new scan with `uris` moved from "unchanged" to "changed" (as bare
- *  XmlFileInfo). URIs not currently in "unchanged" are skipped. */
-function promote(scan: XmlScanResult, uris: Iterable<LofsRef>): XmlScanResult {
-  const changed = { ...scan.changed };
-  const unchanged = { ...scan.unchanged };
-  for (const uri of uris) {
-    const entry = unchanged[uri];
-    if (!entry) continue;
-    changed[uri] = toXmlFileInfo(entry);
-    delete unchanged[uri];
+  // The current version of every ref in the world, for dependency validation.
+  // First occurrence wins, matching the priority dedup below.
+  const worldIds = new Map<string, LofsCanonical>();
+  for (const file of world) {
+    const ref = String(withoutVersion(file.id));
+    if (!worldIds.has(ref)) worldIds.set(ref, file.id);
   }
-  return { added: scan.added, changed, unchanged, deleted: scan.deleted };
-}
+  const isFresh = (cached: Awaited<ReturnType<typeof parseOLX>>) => depsCurrent(cached, worldIds);
 
-function promoteFilesAffectedByManifests(scan: XmlScanResult): XmlScanResult {
-  const touched = [
-    ...Object.keys(scan.added),
-    ...Object.keys(scan.changed),
-    ...Object.keys(scan.deleted),
-  ] as LofsRef[];
-  const mounts = new Set(touched.filter(isManifestUri).map(uri => String(source(uri))));
-  if (mounts.size === 0) return scan;
+  // src="" / cast="" references during parse resolve first-source-wins across
+  // the union (a file in one source may reference an asset in another).
+  const resolver = chainResolvers(providers);
 
-  const affected: LofsRef[] = [];
-  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
-    const uri = uriStr as LofsRef;
-    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
-    if (isOlx && mounts.has(String(source(uri)))) affected.push(uri);
-  }
-  return promote(scan, affected);
-}
+  const parsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
+  const blockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
+  const seen = new Set<string>();
 
-/**
- * When an auxiliary file (e.g., .chatpeg) changes, any OLX file that references
- * it must be re-parsed. Finds such OLX files in the "unchanged" set and returns
- * a new XmlScanResult with them moved to "changed".
- */
-function promoteFilesWithChangedDependencies(
-  scan: XmlScanResult,
-  blockIndex: Record<DefinitionKey, VariantMap>,
-  parsedFiles: Record<LofsRef, ParsedFileEntry>,
-): XmlScanResult {
-  const changedAuxiliaryFiles = findChangedAuxiliaryFiles(scan);
-  if (changedAuxiliaryFiles.size === 0) return scan;
+  for (const file of world) {
+    const ref = withoutVersion(file.id);
+    const refStr = String(ref);
+    if (seen.has(refStr)) continue; // priority dedup: first source wins
+    seen.add(refStr);
 
-  const olxFilesToReparse = findOlxFilesDependingOn(changedAuxiliaryFiles, blockIndex, scan.unchanged);
-
-  // Also re-parse any unchanged OLX that previously failed — the auxiliary
-  // change might fix the missing dependency. Cheap if it fails again.
-  for (const [uriStr, fileInfo] of Object.entries(scan.unchanged)) {
-    const uri = uriStr as LofsRef;
-    const isOlx = fileInfo.type === fileTypes.olx || fileInfo.type === fileTypes.xml;
-    const prevEntry = parsedFiles[uri];
-    if (isOlx && prevEntry && prevEntry.errors.length > 0) {
-      olxFilesToReparse.add(uri);
-    }
-  }
-
-  if (olxFilesToReparse.size === 0) return scan;
-  return promote(scan, olxFilesToReparse);
-}
-
-function findChangedAuxiliaryFiles(changeSets: XmlScanResult): Set<LofsRef> {
-  const auxiliaryFiles = new Set<LofsRef>();
-
-  const allChangedFiles = [
-    ...Object.entries(changeSets.added),
-    ...Object.entries(changeSets.changed),
-    ...Object.entries(changeSets.deleted),
-  ];
-
-  for (const [uri, fileRecord] of allChangedFiles) {
-    const isOlxOrXml = fileRecord?.type === fileTypes.olx || fileRecord?.type === fileTypes.xml;
-    if (!isOlxOrXml) {
-      auxiliaryFiles.add(uri as LofsRef);
-    }
-  }
-
-  return auxiliaryFiles;
-}
-
-function findOlxFilesDependingOn(
-  changedAuxiliaryFiles: Set<LofsRef>,
-  blockIndex: Record<DefinitionKey, VariantMap>,
-  unchangedFiles: Record<LofsRef, XmlFileInfo>
-): Set<LofsRef> {
-  const olxFilesToReparse = new Set<LofsRef>();
-
-  for (const variantMap of Object.values(blockIndex)) {
-    for (const olxJson of Object.values(variantMap)) {
-      if (!olxJson?.source) continue;
-
-      const dependsOnChangedFile = olxJson.parseDeps?.some(
-        (dep) => changedAuxiliaryFiles.has(withoutVersion(dep))
-      );
-
-      if (dependsOnChangedFile) {
-        const rootOlxFile = withoutVersion(olxJson.source);
-        if (rootOlxFile && unchangedFiles[rootOlxFile]) {
-          olxFilesToReparse.add(rootOlxFile);
-        }
-      }
-    }
-  }
-
-  return olxFilesToReparse;
-}
-
-// =============================================================================
-// Block Removal
-// =============================================================================
-
-/**
- * Remove variants that came from the given files.
- *
- * Variant-aware: if foo.en.olx and foo.es.olx both define activity_1,
- * removing foo.en.olx drops only the English variant, not the Spanish one.
- * A block is deleted entirely only when no variants remain.
- */
-function removeBlocksFromFiles(
-  fileUris: LofsRef[],
-  parsedFiles: Record<LofsRef, ParsedFileEntry>,
-  blockIndex: Record<DefinitionKey, VariantMap>,
-): { parsedFiles: Record<LofsRef, ParsedFileEntry>; blockIndex: Record<DefinitionKey, VariantMap> } {
-  const urisToRemove = new Set<LofsRef>(fileUris);
-
-  // Collect block IDs that MIGHT need variants removed
-  const candidateIds = new Set<DefinitionKey>();
-  for (const fileUri of fileUris) {
-    const parsedFile = parsedFiles[fileUri];
-    if (parsedFile?.blockIds) {
-      for (const blockId of parsedFile.blockIds) {
-        candidateIds.add(blockId);
-      }
-    }
-  }
-
-  const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
-  for (const [id, variants] of Object.entries(blockIndex)) {
-    const key = id as DefinitionKey;
-    if (!candidateIds.has(key)) {
-      // Block not from any removed file — keep as-is
-      newBlockIndex[key] = variants;
-      continue;
-    }
-
-    // Filter out variants whose source matches a removed file
-    const kept: VariantMap = {} as VariantMap;
-    for (const [lang, olxJson] of entriesVariantMap(variants)) {
-      const variantSource = withoutVersion(olxJson.source);
-      if (!urisToRemove.has(variantSource)) {
-        kept[lang] = olxJson;
-      }
-    }
-
-    // Keep the block only if it still has variants
-    if (Object.keys(kept).length > 0) {
-      newBlockIndex[key] = kept;
-    }
-  }
-
-  const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
-  for (const [uri, entry] of Object.entries(parsedFiles)) {
-    if (!urisToRemove.has(uri as LofsRef)) {
-      newParsedFiles[uri as LofsRef] = entry;
-    }
-  }
-
-  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex };
-}
-
-// =============================================================================
-// Parsing
-// =============================================================================
-
-async function parseAndIndexFiles(
-  filesToParse: Record<LofsRef, XmlFileInfo>,
-  existingBlockIndex: Record<DefinitionKey, VariantMap>,
-  provider: StorageProvider,
-): Promise<{
-  parsedFiles: Record<LofsRef, ParsedFileEntry>;
-  blockIndex: Record<DefinitionKey, VariantMap>;
-}> {
-  const newParsedFiles: Record<LofsRef, ParsedFileEntry> = {} as Record<LofsRef, ParsedFileEntry>;
-  const newBlockIndex: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
-
-  for (const [fileUri, fileRecord] of Object.entries(filesToParse) as [LofsRef, XmlFileInfo][]) {
-    // Non-OLX files (auxiliary files like .chatpeg) are tracked for change
-    // detection but not parsed for blocks.
-    if (fileRecord.type !== fileTypes.olx && fileRecord.type !== fileTypes.xml) {
-      newParsedFiles[fileUri] = {
-        ...fileRecord,
-        blockIds: [],
-        errors: [],
-      };
+    // Non-OLX files (auxiliary files like .chatpeg) are tracked so their
+    // versions are visible to dependency validation, but not parsed for blocks.
+    if (!isOlx(file.type)) {
+      parsedFiles[ref] = { id: file.id, type: file.type, content: file.content, blockIds: [], errors: [] };
       continue;
     }
 
     try {
-      // The provider owns namespace resolution (manifest override, then a
-      // provider-specific fallback like the top-level directory). A file
-      // with no resolvable namespace throws here and becomes a file_error.
-      // Manifest edits invalidate their subtree via
-      // promoteFilesAffectedByManifests (step 2a in applyFileChanges).
-      const { ns, manifest } = await provider.namespaceFor(fileRecord.id);
-      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider, ns);
+      // The owning source resolves the namespace (manifest override, then a
+      // provider-specific fallback like the top-level directory). A file with
+      // no resolvable namespace throws here and becomes a file_error.
+      const { ns, manifest } = await namespaceForAcross(providers, file.id);
+      // Parse output is a pure function of (bytes, ns, ref, parser build); the
+      // cache keys on exactly those. A cache hit whose recorded parseDeps moved
+      // is rejected by isFresh and re-parsed. Manifest provenance is stamped
+      // below, OUTSIDE the cache, since parseOLX does not read it.
+      const parseResult = await cachedParse(
+        { ns, provenanceRef: String(file.id), content: file.content },
+        () => parseOLX(file.content, [ref], resolver, ns),
+        isFresh,
+      );
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Namespace provenance: record which manifest declared this content's
-      // namespace. (Stamped here, not in parseOLX — only the provider knows
-      // where the namespace came from.)
+      // namespace. Stamped here, not in parseOLX — only the provider knows it.
       if (manifest) {
         for (const variants of Object.values(parseResult.idMap)) {
           for (const olxJson of Object.values(variants) as OlxJson[]) {
@@ -484,39 +315,32 @@ async function parseAndIndexFiles(
         }
       }
 
-      // Build a combined view for duplicate detection. Deep-copy VariantMaps
-      // so indexParsedBlocks mutations don't leak back to existingBlockIndex.
-      const mergedView: Record<DefinitionKey, VariantMap> = {} as Record<DefinitionKey, VariantMap>;
-      for (const [id, vm] of Object.entries({ ...existingBlockIndex, ...newBlockIndex })) {
-        mergedView[id as DefinitionKey] = { ...vm };
-      }
-      indexParsedBlocks(parseResult.idMap, mergedView, fileRecord.id, fileErrors);
-      for (const [id, variants] of Object.entries(mergedView)) {
-        const key = id as DefinitionKey;
-        if (!(key in existingBlockIndex) || !variantMapsEqual(variants, existingBlockIndex[key])) {
-          newBlockIndex[key] = variants;
-        }
-      }
+      // Index into the (empty-at-start) blockIndex directly, in file order, so
+      // duplicate/collision detection sees earlier files as "existing".
+      indexParsedBlocks(parseResult.idMap, blockIndex, file.id, fileErrors);
 
-      newParsedFiles[fileUri] = {
-        ...fileRecord,
+      parsedFiles[ref] = {
+        id: file.id,
+        type: file.type,
+        content: file.content,
         blockIds: parseResult.ids,
         errors: fileErrors,
       };
-
     } catch (fatalError: any) {
-      console.error(`\n❌ DETAILED ERROR for ${fileUri}:`);
+      console.error(`\n❌ DETAILED ERROR for ${refStr}:`);
       console.error('Message:', fatalError.message);
       console.error('Stack trace:', fatalError.stack);
 
-      newParsedFiles[fileUri] = {
-        ...fileRecord,
+      parsedFiles[ref] = {
+        id: file.id,
+        type: file.type,
+        content: file.content,
         blockIds: [],
         errors: [{
           type: 'file_error',
-          title: `${fileUri} could not be loaded`,
+          title: `${refStr} could not be loaded`,
           message: `Failed to parse file: ${fatalError.message}`,
-          location: { provenance: [fileRecord.id] },
+          location: { provenance: [file.id] },
           technical: toAppError(fatalError),
           stack: fatalError.stack,
         }],
@@ -524,8 +348,137 @@ async function parseAndIndexFiles(
     }
   }
 
-  return { parsedFiles: newParsedFiles, blockIndex: newBlockIndex };
+  return { parsedFiles, blockIndex };
 }
+
+// =============================================================================
+// Entry Points
+// =============================================================================
+
+/**
+ * Sync content into the module snapshot.
+ *
+ * With no argument, spans the deployment's default content union — every
+ * configured source (content-sources.yaml) plus block documentation examples
+ * (per-block docs.* namespaces), as an ordered provider list
+ * (contentSources.readableProviders). Docs is in the union so the whole system
+ * content index is one sync — what lets courses embed documentation via
+ * `<Use ref="docs.ActionButton/..."/>`.
+ *
+ * A caller may pass a single provider (scripts, translate, tests) to sync just
+ * that source. It ALWAYS re-enumerates that source (no token fast-path — the
+ * caller just wrote and wants the result now) and overlays it onto the retained
+ * world, so its content joins the union snapshot the query functions read.
+ */
+export async function syncContentFromStorage(
+  provider?: StorageProvider
+) {
+  if (provider) return syncExplicit(provider);
+  return syncContentUnion(await readableProviders());
+}
+
+/**
+ * Tokened sync over a provider UNION (the default content union, or a
+ * caller-supplied set for tests). Gathers each source's cheap generationToken;
+ * if every token matches the previous union sync, returns the retained snapshot
+ * WITHOUT enumerating. Otherwise it re-enumerates the whole union, rebuilds the
+ * snapshot, and remembers the new tokens.
+ *
+ * The public no-arg entry point is `syncContentUnion(await readableProviders())`.
+ */
+export async function syncContentUnion(providers: StorageProvider[]) {
+  // Token entries carry the provider's IDENTITY, not just its cheap change
+  // token: a config swap to different sources whose tokens coincide (two
+  // empty dirs both "0:0:0") must not fast-path into the old snapshot.
+  const tokens = await Promise.all(providers.map(
+    async p => `${String(originOf(p) ?? '')}\0${await p.generationToken()}`));
+
+  // Fast path: same source set, every token unchanged → nothing to do.
+  if (_unionTokens && sameTokens(_unionTokens, tokens)) {
+    return currentResult();
+  }
+
+  const { files, failedOrigins } = await assembleWorld(providers);
+  // A source that failed to enumerate keeps its PREVIOUS slice (its content
+  // must not vanish over a transient remote error)…
+  const retained = failedOrigins.length > 0
+    ? _world.filter(f => failedOrigins.includes(String(source(f.id))))
+    : [];
+  _world = [...files, ...retained];
+  _providers = providers;
+  _snapshot = await buildSnapshot(_world, _providers);
+  // …and the failure must not become sticky: with any source down, don't
+  // remember tokens at all — every sync retries enumeration until the set
+  // is healthy (cheap for the healthy sources; the parse cache absorbs it).
+  _unionTokens = failedOrigins.length > 0 ? null : tokens;
+
+  bumpContentGeneration();
+  // Static assets: re-copy on content change (interim, until assets serve
+  // from the store). A union rebuild only happens when a token moved.
+  await copyAssetsToPublic(providers);
+  return currentResult();
+}
+
+/**
+ * Explicit single-source sync: always re-enumerate `provider`, replace its slice
+ * of the retained world (so deletions within it drop out), rebuild, and publish.
+ * Resolves across the retained union providers plus this one, so a file here can
+ * still reference a sibling source's asset.
+ */
+async function syncExplicit(provider: StorageProvider) {
+  const files = await provider.listContent();
+  const origin = originOf(provider);
+
+  // Replace this source's slice of the world (by origin), keep everyone
+  // else's, and put the fresh slice first so it wins any ref collision. A
+  // provider with no origin can't have its stale slice purged — that's a
+  // wiring bug, not a case to survive silently (fail fast).
+  if (!origin) {
+    throw new Error('syncExplicit: provider has no origin — its previous entries cannot be replaced');
+  }
+  const rest = _world.filter(f => String(source(f.id)) !== String(origin));
+  _world = [...files, ...rest];
+  _providers = mergeProviders(provider, _providers);
+  _snapshot = await buildSnapshot(_world, _providers);
+
+  bumpContentGeneration();
+  await copyAssetsToPublic([provider]);
+  return currentResult();
+}
+
+/** Dedupe a provider list by origin (first wins), with `head` in front. */
+function mergeProviders(head: StorageProvider, tail: StorageProvider[]): StorageProvider[] {
+  const seen = new Set<string>();
+  const out: StorageProvider[] = [];
+  for (const p of [head, ...tail]) {
+    const o = originOf(p);
+    const key = o ? String(o) : null;
+    if (key !== null && seen.has(key)) continue;
+    if (key !== null) seen.add(key);
+    out.push(p);
+  }
+  return out;
+}
+
+function sameTokens(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function currentResult() {
+  return {
+    parsed: { ..._snapshot.parsedFiles },
+    idMap: { ..._snapshot.blockIndex },
+    errors: collectSnapshotErrors(_snapshot),
+  };
+}
+
+// =============================================================================
+// Indexing
+// =============================================================================
 
 /**
  * Merge parsed blocks into the block index, merging language variants.

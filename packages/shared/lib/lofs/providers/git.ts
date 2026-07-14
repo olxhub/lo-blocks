@@ -12,8 +12,8 @@
 //   path by which repo-supplied code could ever be executed.
 // - Change detection is one request: the remote's branch head SHA, checked
 //   at most once per cooldown period (throttle-friendly). Only on a head
-//   change does the provider refetch, and the scan reports exact
-//   added/changed/deleted from per-file blob SHAs — no mtime heuristics.
+//   change does the provider refetch; listContent then enumerates the tree
+//   with honest per-file blob SHAs as versions — no mtime heuristics.
 // - Versions are honest: every ref carries the blob SHA as its #version,
 //   the inhabitant LofsCanonical was designed around. Provenance uses the
 //   repo URL as the origin (`<url>://<path-in-repo>#<sha>`), per the
@@ -24,11 +24,11 @@
 //   current commit's tree), commits it with parent = current head, and
 //   pushes. No working tree / index — the clone stays noCheckout.
 // - The platform commits on the AUTHOR's behalf: commit author = the teacher
-//   (WriteOptions.author, from CurrentUser); committer = the platform
+//   (CommitOptions.author, from CurrentUser); committer = the platform
 //   identity. Author rides per-write because one provider instance is shared
 //   across users (see contentSources memoization).
 // - Conflict detection has two layers: optimistic (read's blob-oid in
-//   previousMetadata vs current) and authoritative (a non-fast-forward push
+//   CommitOptions.base vs current) and authoritative (a non-fast-forward push
 //   is rejected). Both surface as VersionConflictError → HTTP 409 upstream.
 // - Writes are serialized per provider (writeLock): concurrent writes to
 //   different files must not both fork from the same head and spuriously
@@ -62,12 +62,13 @@ import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
 import {
   type StorageProvider,
   type NamespaceResolution,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ContentFile,
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   NamespaceResolutionError,
@@ -75,7 +76,7 @@ import {
 } from '../../types/storage';
 import {
   source, addressPath, withVersion, withoutVersion,
-  makeAddress, gitOrigin, forgeLink, toLofsContentPath, toLofsVersion, toLofsCanonical,
+  makeAddress, gitOrigin, forgeLink, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
   toLofsRef as brandLofsRef,
   type LofsOrigin, type LofsVersion, type ForgeLink,
 } from '../../types/address';
@@ -91,7 +92,7 @@ const REPO_DIR = '/repo';
 const GIT_RETRY: RetryPolicy = { attempts: 3, baseMs: 200, maxMs: 2000 };
 
 /** Platform identity recorded as the COMMITTER on every commit. The author
- *  is the teacher (WriteOptions.author); this is who physically committed.
+ *  is the teacher (CommitOptions.author); this is who physically committed.
  *  Also the author fallback when a write supplies none. */
 const PLATFORM_IDENTITY = { name: 'Learning Observer', email: 'noreply@learning-observer.org' };
 
@@ -114,15 +115,59 @@ export type GitCredentials = { username?: string; password?: string; headers?: R
  *  fetch a per-user OAuth token. */
 export type GitCredentialResolver = () => GitCredentials | null | Promise<GitCredentials | null>;
 
+/**
+ * LOCAL mode: serve a git repo already checked out on disk, read through its
+ * `.git` object store via isomorphic-git over the real filesystem (no clone, no
+ * memfs, no network). Commits land in the local repo — there is no push. Used
+ * for directory-form content sources and the bundled ./content fallback (which
+ * is a SUBPATH of the parent lo-blocks repo — see `subpath`).
+ */
+export interface LocalGitOptions {
+  /** Repo working-tree root on disk (the directory that contains `.git`, or
+   *  whose ancestor does when `gitdir` is given). */
+  dir: string;
+  /** Explicit `.git` directory. Defaults to `<dir>/.git`. Pass this to point at
+   *  a repo root above `dir` (the parent-repo-subpath case). */
+  gitdir?: string;
+  /** Repo-relative prefix this source is scoped to, e.g. "content". LOFS paths
+   *  are relative to it: LOFS "demos/x.olx" ⇄ repo "content/demos/x.olx". Empty
+   *  (default) serves the whole repo. */
+  subpath?: string;
+  /** Mount name — this source's LOFS origin is `file:<mount>`, exactly as a
+   *  FileStorageProvider mounted there, so paths/URLs/namespaces/state keys are
+   *  identical whether the source reads the worktree (file provider) or HEAD
+   *  (this, in local mode). */
+  mount: string;
+  /** Fallback namespace when no manifest declares one (default: the mount).
+   *  Directory-form sources mounted at `content/<name>` pass `<name>` here —
+   *  the same value FileStorageProvider gets as defaultNs — so a source's
+   *  namespace is identical whether it reads the worktree or HEAD. */
+  defaultNs?: string;
+}
+
 export interface GitProviderOptions {
-  /** Remote URL (https smart-HTTP; any forge or bare repo). */
-  url: string;
-  /** Branch to serve (default: main). */
+  /** Remote URL (https smart-HTTP; any forge or bare repo). Required for remote
+   *  mode; omit when `local` is set. */
+  url?: string;
+  /** Branch to serve (default: main; local mode defaults to HEAD — whatever
+   *  branch the checkout currently has checked out). */
   ref?: string;
-  /** Minimum ms between remote head checks (default: 60s). */
+  /** Minimum ms between remote head checks (default: 60s). Ignored in local mode. */
   cooldownMs?: number;
-  /** Credential resolver for private reads and pushes (default: anonymous). */
+  /** Credential resolver for private reads and pushes (default: anonymous).
+   *  Ignored in local mode (no network). */
   auth?: GitCredentialResolver;
+  /** When set, serve an on-disk repo in LOCAL mode (see LocalGitOptions). */
+  local?: LocalGitOptions;
+}
+
+/** The isomorphic-git filesystem environment: which fs + repo dir + gitdir
+ *  every plumbing call runs against. Remote mode wraps a memfs clone; local
+ *  mode wraps node:fs at the on-disk repo. */
+interface GitEnv {
+  fs: any;
+  dir: string;
+  gitdir?: string;
 }
 
 /** A file in the current served tree: repo-relative path → blob oid. */
@@ -138,18 +183,32 @@ interface TreeFile {
  *  does — git's own model (immutable objects + atomic ref repoint) applied to
  *  the provider's local state. */
 interface RepoState {
-  vol: Volume;
+  /** The fs/dir/gitdir every plumbing call runs against. */
+  env: GitEnv;
+  /** Remote mode only: the memfs clone, retained so push can read from it.
+   *  Absent in local mode (nothing to push). */
+  vol?: Volume;
   head: string;
+  /** Content-file index, keyed by LOFS-relative path (the `subpath` prefix, if
+   *  any, is already stripped). */
   tree: Map<string, TreeFile>;
 }
 
 export class GitStorageProvider implements StorageProvider {
+  /** Remote URL (remote mode); '' in local mode. */
   readonly url: string;
   readonly ref: string;
   readonly cooldownMs: number;
-  /** Canonical, ref-bearing origin (address.ts `gitOrigin`) — the identity for
-   *  this source's refs. Carries the branch, so two branches of one repo are
-   *  distinct origins. The raw `url` is just how we fetch/push. */
+  /** 'remote' (in-memory clone over smart-HTTP) or 'local' (on-disk .git). */
+  readonly mode: 'remote' | 'local';
+  /** Local-mode config (dir/gitdir/subpath/mount); undefined in remote mode. */
+  private readonly local?: LocalGitOptions;
+  /** Repo-relative prefix ('' unless local mode scopes to a subpath). */
+  private readonly subpath: string;
+  /** Canonical origin — the identity for this source's refs. Remote: the
+   *  ref-bearing git origin (address.ts `gitOrigin`), carrying the branch. Local:
+   *  `file:<mount>`, identical to a FileStorageProvider at that mount (so state
+   *  keys/provenance are unchanged whether the source reads worktree or HEAD). */
   readonly origin: LofsOrigin;
 
   /** The current repo snapshot, or null until the first successful refresh.
@@ -173,23 +232,55 @@ export class GitStorageProvider implements StorageProvider {
    *  from the same head and then collide at push — chain them. */
   private writeLock: Promise<unknown> = Promise.resolve();
 
-  constructor({ url, ref = 'main', cooldownMs = 60_000, auth }: GitProviderOptions) {
-    this.url = url.replace(/\/$/, '');
-    this.ref = ref;
-    this.cooldownMs = cooldownMs;
+  constructor({ url, ref, cooldownMs = 60_000, auth, local }: GitProviderOptions) {
+    // Local mode defaults to HEAD (the checkout's current branch, whatever its
+    // name); remote mode defaults to main.
+    this.ref = ref ?? (local ? 'HEAD' : 'main');
     this.auth = auth;
-    this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
-    // The grammar admits git+ssh and git: origins; this provider serves only
-    // git+https (isomorphic-git speaks smart-HTTP, not ssh, and local-repo
-    // backing is a later store). Fail fast with a clear message rather than an
-    // opaque clone error.
-    if (!this.url.startsWith('https://')) {
-      throw new Error(
-        `GitStorageProvider serves git+https only; "${this.url}" is a valid origin ` +
-        `but its transport isn't implemented yet.`
-      );
+    if (local) {
+      // LOCAL mode: on-disk .git, no network. Origin is file:<mount>, matching
+      // a FileStorageProvider at that mount. No cooldown — reading HEAD from a
+      // local ref is cheap, so freshness is per-call.
+      this.mode = 'local';
+      this.local = { ...local, subpath: (local.subpath ?? '').replace(/^\/|\/$/g, '') };
+      this.subpath = this.local.subpath ?? '';
+      this.url = '';
+      this.cooldownMs = 0;
+      this.origin = toLofsOrigin(`file:${local.mount}`);
+    } else {
+      if (!url) throw new Error('GitStorageProvider: either `url` (remote) or `local` is required');
+      this.mode = 'remote';
+      this.subpath = '';
+      this.url = url.replace(/\/$/, '');
+      this.cooldownMs = cooldownMs;
+      this.origin = gitOrigin(this.url, this.ref);  // validates + canonicalizes the transport
+      // The grammar admits git+ssh and git: origins; this provider serves only
+      // git+https (isomorphic-git speaks smart-HTTP, not ssh). Fail fast with a
+      // clear message rather than an opaque clone error.
+      if (!this.url.startsWith('https://')) {
+        throw new Error(
+          `GitStorageProvider serves git+https only; "${this.url}" is a valid origin ` +
+          `but its transport isn't implemented yet.`
+        );
+      }
     }
     this.refreshGate = throttle(singleFlight(withRetry(() => this.refresh(), GIT_RETRY)), this.cooldownMs);
+  }
+
+  /** Human-facing source id for error messages (remote URL#ref, or local mount). */
+  private get displayName(): string {
+    return this.mode === 'local' ? `${this.local!.mount} (local git)` : `${this.url}#${this.ref}`;
+  }
+
+  /** Map a LOFS-relative path to its repo-relative path (adds the subpath prefix). */
+  private toRepoPath(rel: string): string {
+    return this.subpath ? `${this.subpath}/${rel}` : rel;
+  }
+
+  /** The on-disk fs environment for local mode. */
+  private async localEnv(): Promise<GitEnv> {
+    const fsPromises = await import('fs/promises');
+    return { fs: { promises: fsPromises }, dir: this.local!.dir, gitdir: this.local!.gitdir };
   }
 
   /** isomorphic-git onAuth callback — yields resolved credentials, or {} for
@@ -207,7 +298,7 @@ export class GitStorageProvider implements StorageProvider {
    *  per operation (`const s = this.requireState()`) and read s.vol/head/tree
    *  throughout, so a concurrent refresh repoint can't tear the view. */
   private requireState(): RepoState {
-    if (!this.state) throw new Error(`${this.url}#${this.ref} is not loaded`);
+    if (!this.state) throw new Error(`${this.displayName} is not loaded`);
     return this.state;
   }
 
@@ -259,6 +350,18 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   private async refresh(): Promise<void> {
+    if (this.mode === 'local') {
+      // On-disk repo: no clone. Read HEAD straight from the local ref; rescan
+      // the tree only when it moved. generationToken is this head (whole-repo
+      // oid — a parent-repo commit outside the subpath forces a harmless
+      // rescan, the accepted coarseness).
+      const env = await this.localEnv();
+      const head = await git.resolveRef({ ...env, ref: this.ref });
+      if (head === this.state?.head) return;
+      this.state = { env, head, tree: await this.walkTree(env, head) };
+      return;
+    }
+
     const remoteHead = await this.fetchRemoteHead();
     if (remoteHead === this.state?.head) return;
 
@@ -267,41 +370,39 @@ export class GitStorageProvider implements StorageProvider {
     // since head is unchanged, the next refresh retries rather than serving a
     // half-built volume.
     const vol = await this.cloneRemote();
-    const head = await git.resolveRef({
-      fs: { promises: vol.promises } as any,
-      dir: REPO_DIR,
-      ref: this.ref,
-    });
-    const tree = await this.walkTree(vol, head);
-    this.state = { vol, head, tree };
+    const env: GitEnv = { fs: { promises: vol.promises }, dir: REPO_DIR };
+    const head = await git.resolveRef({ ...env, ref: this.ref });
+    const tree = await this.walkTree(env, head);
+    this.state = { env, vol, head, tree };
   }
 
-  /** Enumerate content files (path → blob oid) under contentDir at `head`. */
-  private async walkTree(vol: Volume, head: string): Promise<Map<string, TreeFile>> {
+  /** Enumerate content files (LOFS-relative path → blob oid) under the served
+   *  subpath at `head`. Keys have the subpath prefix stripped. */
+  private async walkTree(env: GitEnv, head: string): Promise<Map<string, TreeFile>> {
     const files = new Map<string, TreeFile>();
+    const prefix = this.subpath ? `${this.subpath}/` : '';
     await git.walk({
-      fs: { promises: vol.promises } as any,
-      dir: REPO_DIR,
+      ...env,
       trees: [git.TREE({ ref: head })],
       map: async (filepath, [entry]) => {
         if (!entry || filepath === '.') return;
+        if (prefix && !filepath.startsWith(prefix)) return;
         if ((await entry.type()) !== 'blob') return;
         const base = filepath.split('/').pop()!;
         if (!isContentFile(filepath) && base !== 'manifest.yaml') return;
         if (base.startsWith('.') || base.includes('~') || base.includes('#')) return;
-        files.set(filepath, { oid: (await entry.oid()) });
+        files.set(prefix ? filepath.slice(prefix.length) : filepath, { oid: (await entry.oid()) });
       },
     });
     return files;
   }
 
-  /** Read a blob by repo-relative path at the snapshot's head. */
-  private async readBlob(s: RepoState, repoPath: string): Promise<string> {
+  /** Read a blob by LOFS-relative path at the snapshot's head. */
+  private async readBlob(s: RepoState, relPath: string): Promise<string> {
     const { blob } = await git.readBlob({
-      fs: { promises: s.vol.promises } as any,
-      dir: REPO_DIR,
+      ...s.env,
       oid: s.head,
-      filepath: repoPath,
+      filepath: this.toRepoPath(relPath),
     });
     return new TextDecoder('utf-8').decode(blob);
   }
@@ -347,48 +448,39 @@ export class GitStorageProvider implements StorageProvider {
   // StorageProvider
   // ---------------------------------------------------------------------
 
-  async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async listContent(): Promise<ContentFile[]> {
     await this.ensureFresh();
     const s = this.requireState();
 
-    // Only diff against our own refs (stacked/router scans pass everyone's).
-    const mine: Record<string, XmlFileInfo> = {};
-    for (const [key, info] of Object.entries(previous)) {
-      try { this.ownPath(key); mine[key] = info; } catch { /* foreign */ }
-    }
-
-    const added: Record<LofsRef, XmlFileInfo> = {};
-    const changed: Record<LofsRef, XmlFileInfo> = {};
-    const unchanged: Record<LofsRef, XmlFileInfo> = {};
-    const found = new Set<string>();
-
+    const out: ContentFile[] = [];
     for (const [relPath, { oid }] of s.tree) {
-      const ref = this.toRef(relPath);
-      const key = String(ref);
-      found.add(key);
-      const id = toLofsCanonical(withVersion(ref, this.contentVersion(oid)));
       const ext = getExtension(relPath) || relPath.split('.').pop() || '';
       const type = (fileTypes as any)[ext] ?? ext;
-      const prev = mine[key];
-      if (prev && prev.id === id) {
-        unchanged[key as LofsRef] = prev;
-      } else {
-        const record: XmlFileInfo = {
-          id,
-          type,
-          _metadata: { oid, head: s.head },
-          content: await this.readBlob(s, relPath),
-        };
-        (prev ? changed : added)[key as LofsRef] = record;
-      }
+      // Version is the blob SHA — object identity, stable across commits for
+      // untouched files, and the SAME version read() stamps on provenance (so
+      // a parseDep recorded from a read compares equal here when unchanged).
+      out.push({
+        id: toLofsCanonical(withVersion(this.toRef(relPath), this.contentVersion(oid))),
+        type,
+        content: await this.readBlob(s, relPath),
+      });
     }
+    return out;
+  }
 
-    const deleted: Record<LofsRef, XmlFileInfo> = {};
-    for (const [key, info] of Object.entries(mine)) {
-      if (!found.has(key)) deleted[key as LofsRef] = info;
+  /** Cheap change token: the last-known branch head. Freshness is governed by
+   *  the SAME cooldown as re-clone decisions (ensureFresh → refreshGate), never
+   *  a per-call remote round-trip — within the cooldown window this returns the
+   *  cached head with no network. A refresh failure (down remote) is swallowed:
+   *  the token stays at the last-known head, so the sync keeps serving the
+   *  cached snapshot instead of thrashing. Empty until the first load. */
+  async generationToken(): Promise<string> {
+    try {
+      await this.ensureFresh();
+    } catch {
+      // Down remote / transient blip — report the last-known head unchanged.
     }
-
-    return { added, changed, unchanged, deleted };
+    return this.state?.head ?? '';
   }
 
   async read(p: OlxRelativePath): Promise<ReadResult> {
@@ -412,7 +504,7 @@ export class GitStorageProvider implements StorageProvider {
           ns: await this.tryNamespace(relPath),
         };
       } catch {
-        throw new Error(`File not found: ${p} (in ${this.url}#${this.ref})`);
+        throw new Error(`File not found: ${p} (in ${this.displayName})`);
       }
     }
     return {
@@ -460,7 +552,7 @@ export class GitStorageProvider implements StorageProvider {
       if (declared === undefined) continue;
       const valid = validateContentNamespace(String(declared));
       if (valid !== true) {
-        throw new NamespaceResolutionError(`${this.url}: ${manifestRel}: ${valid}`);
+        throw new NamespaceResolutionError(`${this.displayName}: ${manifestRel}: ${valid}`);
       }
       const oid = await this.currentBlobOid(s, manifestRel);  // for versioned provenance
       return {
@@ -471,7 +563,23 @@ export class GitStorageProvider implements StorageProvider {
       };
     }
 
-    // 2. Repo-name default — the repo's URL is the collection identity.
+    // 2. Collection default (no manifest declared one).
+    if (this.mode === 'local') {
+      // Local mode is a directory-form / fallback source: defaultNs (or the
+      // mount) names the collection, mirroring FileStorageProvider's defaultNs
+      // — so a checkout's namespace is unchanged whether it's read from the
+      // worktree or from HEAD.
+      const ns = this.local!.defaultNs ?? this.local!.mount;
+      const valid = validateContentNamespace(ns);
+      if (valid !== true) {
+        throw new NamespaceResolutionError(
+          `Default namespace "${ns}" for mount "${this.local!.mount}" is invalid: ${valid}. ` +
+          `Add a manifest.yaml with an explicit "namespace:" field.`
+        );
+      }
+      return { ns: asContentNamespace(ns) };
+    }
+    // Remote mode: the repo's URL is the collection identity.
     try {
       return { ns: defaultNamespace(this.url) };
     } catch (err) {
@@ -483,9 +591,10 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Forge link for this repo (or a file within it) at the served ref. Null
-   *  when the origin's forge has no web view we map (see address.forgeLink). */
+  /** Forge link for this repo (or a file within it) at the served ref. Null in
+   *  local mode (no forge), or when the origin's forge has no web view we map. */
   forgeLink(path?: OlxRelativePath): ForgeLink | null {
+    if (this.mode === 'local') return null;
     return forgeLink(this.origin, path);
   }
 
@@ -588,51 +697,64 @@ export class GitStorageProvider implements StorageProvider {
   }
 
   // ---------------------------------------------------------------------
-  // Writes — commit-on-write (see the header). Each is serialized and
-  // ensures the repo is current before forking a commit from head.
+  // Writes — commit-on-write (see the header). Serialized, and the repo is
+  // brought current before forking a commit from head. One commit() applies
+  // N adds/overwrites + deletes + renames as ONE tree delta, ONE commit, ONE
+  // push.
   // ---------------------------------------------------------------------
 
-  async save(p: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
     return this.serialize(async () => {
       await this.ensureFresh();
       const s = this.requireState();
-      const relPath = this.requireWritable(p);
-      await this.checkConflict(s, relPath, options);
-      const blobOid = await git.writeBlob({
-        fs: { promises: s.vol.promises } as any,
-        dir: REPO_DIR,
-        blob: new TextEncoder().encode(content),
-      });
-      await this.commitChange(s, [{ path: relPath, blobOid }], options);
-    });
-  }
 
-  async remove(p: OlxRelativePath): Promise<void> {
-    return this.serialize(async () => {
-      await this.ensureFresh();
-      const s = this.requireState();
-      const relPath = this.requireWritable(p);
-      if ((await this.currentBlobOid(s, relPath)) === null) {
-        throw new Error(`File not found: ${p} (in ${this.url}#${this.ref})`);
+      // Optimistic conflict: every base's blob oid must still be current
+      // (skipped with force). The authoritative check is the push rejection.
+      if (!options.force) {
+        for (const b of options.base ?? []) {
+          await this.checkBase(s, this.requireWritable(b.path), b.version);
+        }
       }
-      await this.commitChange(s, [{ path: relPath, blobOid: null }], {});
-    });
-  }
 
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    return this.serialize(async () => {
-      await this.ensureFresh();
-      const s = this.requireState();
-      const from = this.requireWritable(oldPath);
-      const to = this.requireWritable(newPath);
-      const oid = await this.currentBlobOid(s, from);
-      if (oid === null) throw new Error(`File not found: ${oldPath} (in ${this.url}#${this.ref})`);
-      // One commit: add the blob at the new path, remove the old.
-      await this.commitChange(
-        s,
-        [{ path: to, blobOid: oid }, { path: from, blobOid: null }],
-        { message: `Rename ${from} → ${to}` },
-      );
+      // Lower each change to path→blob deltas (null blob = delete). A rename is
+      // an add-at-new + delete-at-old carrying the existing blob oid.
+      const deltas: Array<{ path: string; blobOid: string | null }> = [];
+      const written: string[] = [];  // paths whose new blob oid we report
+      for (const c of changes) {
+        const relPath = this.requireWritable(c.path);
+        if (c.delete) {
+          if ((await this.currentBlobOid(s, relPath)) === null) {
+            throw new Error(`File not found: ${c.path} (in ${this.displayName})`);
+          }
+          deltas.push({ path: relPath, blobOid: null });
+        } else if (c.renameTo !== undefined) {
+          const to = this.requireWritable(c.renameTo);
+          const oid = await this.currentBlobOid(s, relPath);
+          if (oid === null) throw new Error(`File not found: ${c.path} (in ${this.displayName})`);
+          deltas.push({ path: to, blobOid: oid }, { path: relPath, blobOid: null });
+          written.push(to);
+        } else if (c.content !== undefined) {
+          const blobOid = await git.writeBlob({
+            ...s.env,
+            blob: new TextEncoder().encode(c.content),
+          });
+          deltas.push({ path: relPath, blobOid });
+          written.push(relPath);
+        } else {
+          throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+        }
+      }
+
+      const newHead = await this.applyCommit(s, deltas, options.message ?? defaultMessage(changes), options.author);
+
+      // New tokens: blob oid + the new head, matching read()'s content metadata.
+      const versions: Record<string, unknown> = {};
+      for (const d of deltas) {
+        if (d.blobOid !== null && written.includes(d.path)) {
+          versions[d.path] = { oid: d.blobOid, head: newHead };
+        }
+      }
+      return { versions };
     });
   }
 
@@ -641,12 +763,11 @@ export class GitStorageProvider implements StorageProvider {
     return this.guardPath(stripLeadingSlash(String(p)));
   }
 
-  /** Optimistic conflict: the blob oid the editor last read (in
-   *  previousMetadata) must still be current. Skipped without it or with
-   *  force. The authoritative check is the non-fast-forward push rejection. */
-  private async checkConflict(s: RepoState, relPath: string, options: WriteOptions): Promise<void> {
-    if (!options.previousMetadata || options.force) return;
-    const prev = options.previousMetadata as { oid?: string };
+  /** Optimistic conflict: the blob oid a caller last read (base.version) must
+   *  still be current. The authoritative check is the non-fast-forward push
+   *  rejection. */
+  private async checkBase(s: RepoState, relPath: string, version: unknown): Promise<void> {
+    const prev = (version ?? {}) as { oid?: string };
     if (prev.oid === undefined) return;  // nothing to compare (e.g. a non-content read)
     const current = await this.currentBlobOid(s, relPath);
     if (prev.oid !== current) {
@@ -657,14 +778,13 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Blob oid at a repo-relative path under the snapshot's head, or null if absent. */
-  private async currentBlobOid(s: RepoState, repoPath: string): Promise<string | null> {
+  /** Blob oid at a LOFS-relative path under the snapshot's head, or null if absent. */
+  private async currentBlobOid(s: RepoState, relPath: string): Promise<string | null> {
     try {
       const { oid } = await git.readBlob({
-        fs: { promises: s.vol.promises } as any,
-        dir: REPO_DIR,
+        ...s.env,
         oid: s.head,
-        filepath: repoPath,
+        filepath: this.toRepoPath(relPath),
       });
       return oid;
     } catch {
@@ -672,59 +792,67 @@ export class GitStorageProvider implements StorageProvider {
     }
   }
 
-  /** Apply a set of path→blob changes (null blob = delete) as one commit on
-   *  the captured snapshot `s`, push it, then publish a new snapshot locally.
-   *  Built by tree plumbing — no working tree or index, so the clone stays
-   *  noCheckout. All git reads/writes go through s.vol/s.head, so a concurrent
-   *  refresh repoint can't mix this commit across volumes. */
-  private async commitChange(
+  /** Apply a set of path→blob deltas (null blob = delete) as one commit on the
+   *  captured snapshot `s`, push it, then publish a new snapshot locally and
+   *  return the new head. Built by tree plumbing — no working tree or index, so
+   *  the clone stays noCheckout. All git reads/writes go through s.vol/s.head,
+   *  so a concurrent refresh repoint can't mix this commit across volumes. */
+  private async applyCommit(
     s: RepoState,
     changes: Array<{ path: string; blobOid: string | null }>,
-    options: WriteOptions,
-  ): Promise<void> {
-    const fs = { promises: s.vol.promises } as any;
-    const { commit } = await git.readCommit({ fs, dir: REPO_DIR, oid: s.head });
+    message: string,
+    author?: { name: string; email: string },
+  ): Promise<string> {
+    const env = s.env;
+    const { commit } = await git.readCommit({ ...env, oid: s.head });
     let treeOid = commit.tree;
     for (const c of changes) {
-      treeOid = await this.updateTree(s, treeOid, c.path.split('/'), c.blobOid);
+      // Tree deltas are keyed by REPO path (subpath prefix applied), so a
+      // subpath-scoped source (e.g. the ./content fallback in the parent repo)
+      // commits under content/ rather than at the repo root.
+      treeOid = await this.updateTree(s, treeOid, this.toRepoPath(c.path).split('/'), c.blobOid);
     }
     const newHead = await git.commit({
-      fs,
-      dir: REPO_DIR,
-      message: options.message ?? defaultMessage(changes),
+      ...env,
+      message,
       tree: treeOid,
       parent: [s.head],
-      author: options.author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
-      committer: PLATFORM_IDENTITY,                    // who physically committed
-      ref: `refs/heads/${this.ref}`,
+      author: author ?? PLATFORM_IDENTITY,   // teacher (or platform fallback)
+      committer: PLATFORM_IDENTITY,           // who physically committed
+      // 'HEAD' (local-mode default) is symbolic: OMIT ref so isomorphic-git
+      // resolves HEAD to the checkout's current branch and advances that ref.
+      // (Passing 'HEAD' literally would overwrite .git/HEAD → detached HEAD.)
+      ...(this.ref === 'HEAD' ? {} : { ref: `refs/heads/${this.ref}` }),
     });
-    try {
-      await this.pushRemote(s.vol);
-    } catch (err: any) {
-      // A non-fast-forward rejection means the branch moved under this edit.
-      if (err?.code === 'PushRejectedError' || /fast-forward|rejected/i.test(err?.message ?? '')) {
-        throw new VersionConflictError(
-          `Push to ${this.url}#${this.ref} rejected — the branch moved since this edit; reload and retry. (${err.message})`,
-        );
+    // Remote mode pushes; local mode commits to the on-disk repo only (no push).
+    if (this.mode === 'remote') {
+      try {
+        await this.pushRemote(s.vol!);
+      } catch (err: any) {
+        // A non-fast-forward rejection means the branch moved under this edit.
+        if (err?.code === 'PushRejectedError' || /fast-forward|rejected/i.test(err?.message ?? '')) {
+          throw new VersionConflictError(
+            `Push to ${this.displayName} rejected — the branch moved since this edit; reload and retry. (${err.message})`,
+          );
+        }
+        throw err;
       }
-      throw err;
     }
-    // Commit + push both succeeded — publish a NEW snapshot (built on s, whose
-    // vol now contains newHead) by an atomic repoint, so reads within the
-    // cooldown window see the edit without waiting for a re-clone. A new tree
-    // Map (not a mutation of s.tree) keeps any snapshot a concurrent reader
-    // still holds intact. Skip if a refresh repointed away from s meanwhile —
-    // that only happens when the remote moved, in which case the push above
-    // would already have been rejected; the guard is belt-and-suspenders, and
-    // the pushed commit is picked up by the next refresh regardless.
+    // Commit (+ push, remote) succeeded — publish a NEW snapshot (built on s,
+    // whose store now contains newHead) by an atomic repoint, so reads see the
+    // edit immediately. A new tree Map (not a mutation of s.tree) keeps any
+    // snapshot a concurrent reader still holds intact. Skip if a refresh
+    // repointed away from s meanwhile — the pushed/committed commit is picked up
+    // by the next refresh regardless.
     if (this.state === s) {
       const tree = new Map(s.tree);
       for (const c of changes) {
         if (c.blobOid === null) tree.delete(c.path);
         else if (this.servesPath(c.path)) tree.set(c.path, { oid: c.blobOid });
       }
-      this.state = { vol: s.vol, head: newHead, tree };
+      this.state = { env: s.env, vol: s.vol, head: newHead, tree };
     }
+    return newHead;
   }
 
   /** Would walkTree index this path? (Mirrors its filter for local tree upkeep.) */
@@ -737,8 +865,8 @@ export class GitStorageProvider implements StorageProvider {
    *  (or removed when null). Recurses, rebuilding only the touched path;
    *  prunes directories left empty by a delete. */
   private async updateTree(s: RepoState, treeOid: string, segments: string[], blobOid: string | null): Promise<string> {
-    const fs = { promises: s.vol.promises } as any;
-    const { tree } = await git.readTree({ fs, dir: REPO_DIR, oid: treeOid });
+    const env = s.env;
+    const { tree } = await git.readTree({ ...env, oid: treeOid });
     const [seg, ...rest] = segments;
     const others = tree.filter((e: any) => e.path !== seg);
 
@@ -746,25 +874,25 @@ export class GitStorageProvider implements StorageProvider {
       const next = blobOid === null
         ? others
         : [...others, { mode: '100644', path: seg, oid: blobOid, type: 'blob' as const }];
-      return git.writeTree({ fs, dir: REPO_DIR, tree: next });
+      return git.writeTree({ ...env, tree: next });
     }
 
     const existing = tree.find((e: any) => e.path === seg && e.type === 'tree');
     if (!existing && blobOid === null) return treeOid;  // deleting under a nonexistent dir: no-op
     const subOid = existing
       ? existing.oid
-      : await git.writeTree({ fs, dir: REPO_DIR, tree: [] });  // fresh empty subtree
+      : await git.writeTree({ ...env, tree: [] });  // fresh empty subtree
     const newSub = await this.updateTree(s, subOid, rest, blobOid);
-    const newSubEntries = (await git.readTree({ fs, dir: REPO_DIR, oid: newSub })).tree;
+    const newSubEntries = (await git.readTree({ ...env, oid: newSub })).tree;
     const next = newSubEntries.length === 0
       ? others  // prune the directory a delete just emptied
       : [...others, { mode: '040000', path: seg, oid: newSub, type: 'tree' as const }];
-    return git.writeTree({ fs, dir: REPO_DIR, tree: next });
+    return git.writeTree({ ...env, tree: next });
   }
 
   /** Push the local branch to the remote — the network transport seam.
    *  Overridable: tests whose "remote" IS the in-memory repo no-op this (the
-   *  commit already landed there). Rejection handling lives in commitChange,
+   *  commit already landed there). Rejection handling lives in applyCommit,
    *  which maps a thrown PushRejectedError → VersionConflictError; here we
    *  only normalize the "ok: false" result into that same thrown shape so the
    *  two push-failure forms map uniformly. */
@@ -787,10 +915,12 @@ export class GitStorageProvider implements StorageProvider {
 }
 
 /** Default commit message when the caller supplies none. */
-function defaultMessage(changes: Array<{ path: string; blobOid: string | null }>): string {
+function defaultMessage(changes: FileChange[]): string {
   if (changes.length === 1) {
     const [c] = changes;
-    return `${c.blobOid === null ? 'Delete' : 'Update'} ${c.path}`;
+    if (c.delete) return `Delete ${c.path}`;
+    if (c.renameTo !== undefined) return `Rename ${c.path} → ${c.renameTo}`;
+    return `Update ${c.path}`;
   }
   return `Update ${changes.length} files`;
 }

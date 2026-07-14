@@ -20,7 +20,7 @@ async function main() {
     const source = getArg('--source') || './content';
     const provider = new FileStorageProvider(source);
     const target = getArg('--target');
-    await copyAssetsToPublic(provider, target);
+    await copyAssetsToPublic([provider], target);
   } catch (error) {
     console.error('Failed to sync assets:', error);
     process.exit(1);

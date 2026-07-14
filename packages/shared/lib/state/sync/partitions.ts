@@ -16,6 +16,8 @@
 // resolvers (rosters, enrollment, analytics-computed) plug in behind the
 // same groupFor signature.
 
+import { generationMemo } from '@/lib/content/generation';
+
 /** A parsed grouped-by spec: which block's field partitions the users. */
 export interface PartitionSpec {
   /** State key of the picker block, ns-qualified. */
@@ -71,55 +73,38 @@ export interface GroupingIndex {
 }
 
 /**
- * TTL-cached grouping index, from content. syncContentFromStorage
- * re-stats the content tree per call — too heavy per event — so the maps
- * refresh at most every TTL ms (2000ms as of 2026-07: content edits take
- * up to one TTL to affect routing; fine).
+ * Grouping index, from content. Built lazily and rebuilt only when the content
+ * generation changes (generationMemo) — between content edits every lookup is a
+ * synchronous integer compare, no re-scan. The per-event hot path (router.ts)
+ * therefore never re-stats the tree.
  */
 export function makeGroupingIndex(
   loadIdMap: () => Promise<Record<string, Record<string, any>>>,
-  ttlMs = 2000,
 ): GroupingIndex {
-  let specs: Map<string, string> | null = null;
-  let byPicker: Map<string, string[]> | null = null;
-  let fetchedAt = 0;
-  let inflight: Promise<void> | null = null;
-
-  const rebuild = async () => {
+  const load = generationMemo(async () => {
     const idMap = await loadIdMap();
-    const nextSpecs = new Map<string, string>();
-    const nextByPicker = new Map<string, string[]>();
+    const specs = new Map<string, string>();
+    const byPicker = new Map<string, string[]>();
     for (const [id, variants] of Object.entries(idMap)) {
       for (const variant of Object.values(variants ?? {})) {
         const spec = (variant as any)?.attributes?.['grouped-by'];
         if (!spec) continue;
-        nextSpecs.set(id, spec);
+        specs.set(id, spec);
         const parsed = parsePartitionSpec(spec, id);
         if (parsed) {
           const key = `${parsed.pickerKey}|${parsed.field}`;
-          nextByPicker.set(key, [...(nextByPicker.get(key) ?? []), id]);
+          byPicker.set(key, [...(byPicker.get(key) ?? []), id]);
         }
         break;
       }
     }
-    specs = nextSpecs;
-    byPicker = nextByPicker;
-    fetchedAt = Date.now();
-  };
-
-  const fresh = async () => {
-    if (!specs || Date.now() - fetchedAt > ttlMs) {
-      // Single-flight: concurrent events during a refresh share one scan.
-      inflight ??= rebuild().finally(() => { inflight = null; });
-      await inflight;
-    }
-  };
+    return { specs, byPicker };
+  });
 
   return {
-    async specOf(id) { await fresh(); return specs!.get(id); },
+    async specOf(id) { return (await load()).specs.get(id); },
     async groupedBlocksFor(pickerKey, field) {
-      await fresh();
-      return byPicker!.get(`${pickerKey}|${field}`) ?? [];
+      return (await load()).byPicker.get(`${pickerKey}|${field}`) ?? [];
     },
   };
 }

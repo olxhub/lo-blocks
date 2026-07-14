@@ -15,32 +15,13 @@
 //   <RenderOLX id="demo" inline="<Markdown>Hello</Markdown>" />
 //   <RenderOLX id="page" inline={edits} baseIdMap={systemContent} />
 //
-// =============================================================================
-// ARCHITECTURE TODO
-// =============================================================================
-//
-// Current implementation parses inline/files content directly. The intended
-// design is to unify with syncContentFromStorage for proper change detection:
-//
-// 1. Each provider implements loadXmlFilesWithStats() returning:
-//    { added, changed, unchanged, deleted } with content hashes in _metadata
-//
-// 2. StackedStorageProvider.loadXmlFilesWithStats() merges results from all
-//    providers, with higher-priority providers' files shadowing lower ones
-//
-// 3. RenderOLX calls syncContentFromStorage(stackedProvider) which:
-//    - Scans all providers for OLX/XML files
-//    - Parses only added/changed files (using hashes for change detection)
-//    - Maintains incremental idMap updates
-//    - Returns merged idMap ready for rendering
-//
-// 4. For live editing, InMemoryStorageProvider tracks writes and reports
-//    changes on subsequent loadXmlFilesWithStats() calls (similar to immer)
-//
-// This unifies the content loading pipeline and enables efficient incremental
-// updates for the editor, documentation examples, and production rendering.
-//
-// =============================================================================
+// HOW IT WORKS: inline/files content is parsed directly with parseOLX. The
+// inline/files/provider/providers/resolveProvider inputs are combined into one
+// first-hit ParseResolver (chainResolvers) that resolves src=""/cast=""
+// references during that parse. This is a live-render path, not a sync source:
+// there is no change-detection scan here — the server-side sync
+// (syncContentFromStorage over the real file/git sources) owns that, and it
+// stamps versions on every ref so its own parse cache handles staleness.
 //
 'use client';
 
@@ -51,7 +32,8 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { InMemoryStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { chainResolvers } from '@/lib/lofs/chainResolvers';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
@@ -95,8 +77,7 @@ function useBuildProviderStack(
     }
 
     if (stack.length === 0) return null;
-    if (stack.length === 1) return stack[0];
-    return new StackedStorageProvider(stack);
+    return chainResolvers(stack);
   }, [inline, files, provider, providers, resolveProvider]);
 }
 
@@ -286,6 +267,13 @@ interface RenderOLXProps {
   blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
   source?: string;
+  /** Lower-priority olxJson sources appended after `source` in the lookup
+   *  order — for layering an isolated edit buffer OVER a shared index without
+   *  dispatching into (and clobbering) that index. The inline parse dispatches
+   *  only to `source`; companion ids not in the edit resolve from these bases.
+   *  Docs live-edit passes `['content']` so an edited example renders inline
+   *  while its multi-file companions still resolve from the indexed content. */
+  baseSources?: string[];
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
   /** Initial idPrefix for scoping the rendered block's state key.
@@ -324,6 +312,7 @@ export default function RenderOLX({
   onParsed,
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
+  baseSources,
   eventContext,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
@@ -370,7 +359,7 @@ export default function RenderOLX({
     store: renderProps.store,
     logEvent: renderProps.logEvent,
     sideEffectFree: renderProps.sideEffectFree,
-    olxJsonSources: [source],
+    olxJsonSources: baseSources?.length ? [source, ...baseSources] : [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
     locale: renderProps.locale,

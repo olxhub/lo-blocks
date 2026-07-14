@@ -38,7 +38,7 @@ import { FileStorageProvider } from './file';
 import { withoutVersion } from '../../types/address';
 import { parseContentNamespace } from '../../types/id-grammar';
 import type { ContentNamespace, LofsRef } from '../../types';
-import { NamespaceResolutionError, type NamespaceResolution, type XmlFileInfo, type XmlScanResult } from '../../types/storage';
+import { NamespaceResolutionError, type NamespaceResolution, type ContentFile } from '../../types/storage';
 
 export class DocsStorageProvider extends FileStorageProvider {
   /** Registered block names, longest first, for prefix matching. */
@@ -86,19 +86,10 @@ export class DocsStorageProvider extends FileStorageProvider {
     return !relPath.startsWith('_test/') && !relPath.endsWith('.pegjs.preview.olx');
   }
 
-  async loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult> {
-    const scan = await super.loadXmlFilesWithStats(previous);
-    const strip = (rec: Record<LofsRef, XmlFileInfo>) =>
-      Object.fromEntries(
-        Object.entries(rec).filter(
-          ([uri]) => this.isDocsContent(this.toRelativePath(withoutVersion(uri as LofsRef)))
-        )
-      ) as Record<LofsRef, XmlFileInfo>;
-    return {
-      added: strip(scan.added),
-      changed: strip(scan.changed),
-      unchanged: strip(scan.unchanged),
-      deleted: strip(scan.deleted),
-    };
+  async listContent(): Promise<ContentFile[]> {
+    const files = await super.listContent();
+    return files.filter(f =>
+      this.isDocsContent(this.toRelativePath(withoutVersion(f.id)))
+    );
   }
 }

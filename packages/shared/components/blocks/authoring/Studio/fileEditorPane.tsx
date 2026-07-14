@@ -24,7 +24,7 @@ import { makeAddress, toLofsContentPath } from '@/lib/types/address';
 import type { ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
 import type { McpStorageProvider } from '@/lib/lofs';
 import { STUDIO_NS } from './studioNs';
-import { useStudioContent, hasStudioContent, setStudioContent } from './editorContent';
+import { useStudioContent, hasStudioContent, setStudioContent } from '@/lib/state/editorContent';
 
 /** Per-source cache of loaded files, keyed by LofsRef (owned by the parent,
  *  shared here). Holds the saved snapshot: content for dirty derivation,

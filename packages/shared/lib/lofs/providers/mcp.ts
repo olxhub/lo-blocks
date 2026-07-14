@@ -10,32 +10,36 @@
 //
 import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
-import { provenancePath, type NamespaceResolution } from '../../types/storage';
+import { provenancePath } from '../../types/storage';
 import { toLofsRef, toLofsCanonical } from '../../types/address';
 import { callMcpTool } from '../../mcp/client';
 import {
-  type StorageProvider,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ParseResolver,
+  type ContentSearcher,
+  type ContentWriter,
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
 } from '../../types/storage';
 
-/** Wire shape of the Write tool's structured conflict result. */
-interface WriteConflict {
+/** Wire shape of a tool's structured conflict result (Write create-clobber,
+ *  Commit stale-base). */
+interface ToolConflict {
   ok: false;
   conflict: true;
   error: string;
   metadata?: unknown;
 }
-type WriteResult = { ok: true } | WriteConflict;
+type StageResult = { ok: true; staged: true } | ToolConflict;
+type CommitToolResult = { ok: true; committed: string[]; nothing?: boolean } | ToolConflict;
 
-export class McpStorageProvider implements StorageProvider {
+export class McpStorageProvider implements ParseResolver, ContentSearcher, ContentWriter {
   /** The source this provider edits, sent as `source` so the server routes
    *  via sourceProvider(origin). Undefined = union mode: reads/lists/searches
    *  span all sources (compile/preview). Writes require an origin — a union
@@ -75,27 +79,58 @@ export class McpStorageProvider implements StorageProvider {
     };
   }
 
-  async save(path: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const { previousMetadata, force = false, create = false } = options;
-    // No retry: a write must not be replayed blind.
-    const result = await callMcpTool<WriteResult>('Write', this.args({
-      path,
-      content,
-      previous_metadata: previousMetadata,
-      force,
-      create,
+  /**
+   * The client-side write doorway, on the WORKING TREE (git-storage-design
+   * §2.6): a change is STAGED (Write / Delete / Move) and then PUBLISHED by
+   * Commit — the two-act Claude-Code semantics, so "save" is stage-then-commit
+   * behind one call. Studio, the chat agent, and external MCP clients speak the
+   * same tool contract. No batch tool exists, so this face handles ONE change
+   * per commit (the only shape its callers issue). `versions` is empty (the
+   * tool contract returns no token; the client re-reads for the fresh one). A
+   * stale-base conflict at Commit is re-thrown as VersionConflictError (with
+   * the current token), exactly as before — Studio's conflict dialog is
+   * unchanged. The staged entry survives a conflict for a force retry.
+   */
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
+    // Stage every change into the working tree, then publish them in ONE
+    // Commit — N changes, one git commit per source (teacher-readable
+    // history). (No retry on writes: a write must not be replayed blind.)
+    const bases: Array<{ path: string; version: unknown }> = [];
+    for (const c of changes) {
+      const base = options.base?.find(b => String(b.path) === String(c.path));
+      if (base?.version !== undefined) bases.push({ path: String(c.path), version: base.version });
+      if (c.delete) {
+        await callMcpTool('Delete', this.args({ path: c.path }));
+      } else if (c.renameTo !== undefined) {
+        await callMcpTool('Move', this.args({ path: c.path, new_path: c.renameTo }));
+      } else if (c.content !== undefined) {
+        const staged = await callMcpTool<StageResult>('Write', this.args({
+          path: c.path,
+          content: c.content,
+          previous_metadata: base?.version,
+          create: options.create ?? false,
+        }));
+        // Write's only structured failure is a create-clobber (the file already
+        // exists in the source) — surface it as a plain error, as before.
+        if (!staged.ok) throw new Error(staged.error);
+      } else {
+        throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
+      }
+    }
+
+    // Publish exactly the staged paths. Studio supplies its tracked read
+    // metadata as the conflict bases (a working-tree entry may have been
+    // seeded by the WS buffer without one). Commit drops entries on success.
+    const result = await callMcpTool<CommitToolResult>('Commit', this.args({
+      paths: changes.map(c => String(c.path)),
+      force: options.force ?? false,
+      ...(options.message !== undefined ? { message: options.message } : {}),
+      ...(bases.length > 0 ? { bases } : {}),
     }));
     if (!result.ok) {
       throw new VersionConflictError(result.error, result.metadata);
     }
-  }
-
-  async remove(path: OlxRelativePath): Promise<void> {
-    await callMcpTool('Delete', this.args({ path }));
-  }
-
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    await callMcpTool('Move', this.args({ path: oldPath, new_path: newPath }));
+    return { versions: {} };
   }
 
   async glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]> {
@@ -159,16 +194,6 @@ export class McpStorageProvider implements StorageProvider {
     return provenancePath(uri) as OlxRelativePath;
   }
 
-  async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
-    // Content namespaces are resolved server-side during content sync;
-    // qualified DefinitionKeys arrive over the wire. Client-side parses
-    // (editor, inline) get their namespace from the caller, not the provider.
-    throw new Error(
-      `McpStorageProvider cannot resolve content namespaces (asked about: ${ref}). ` +
-      `The server resolves namespaces when syncing content.`
-    );
-  }
-
   /**
    * Check if an asset file exists via HEAD request against the public
    * content mount (assets aren't served over MCP).
@@ -183,18 +208,5 @@ export class McpStorageProvider implements StorageProvider {
     } catch {
       return false;
     }
-  }
-
-  /**
-   * Incremental file scanning is not supported over MCP.
-   * Use listFiles() + read(), or implement change detection server-side.
-   */
-  async loadXmlFilesWithStats(
-    _prev: Record<LofsRef, XmlFileInfo> = {}
-  ): Promise<XmlScanResult> {
-    throw new Error(
-      'McpStorageProvider does not support incremental file scanning. ' +
-      'Use listFiles() to get current file tree, or implement change detection server-side.'
-    );
   }
 }

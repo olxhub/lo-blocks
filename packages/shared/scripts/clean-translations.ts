@@ -14,7 +14,6 @@
 
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
-import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
 import { variantMapEntries } from '../lib/types/i18n';
 import path from 'path';
 import type { IdMap, DefinitionKey, LofsRef } from '../lib/types';
@@ -22,7 +21,6 @@ import type { IdMap, DefinitionKey, LofsRef } from '../lib/types';
 const argv = process.argv.slice(2);
 const contentArg = argv.indexOf('--content');
 const contentDir = path.resolve(contentArg >= 0 && argv[contentArg + 1] ? argv[contentArg + 1] : './content');
-registerAllowedContentDir(contentDir);  // allow reads/deletes under the chosen dir
 const dryRun = !argv.includes('--rm');
 
 async function main() {
@@ -59,7 +57,7 @@ async function main() {
     const relPath = provider.toRelativePath(fileUri);
     console.log(`  ${label}: ${relPath}`);
     if (!dryRun) {
-      await provider.remove(relPath);
+      await provider.commit([{ path: relPath, delete: true }]);
     }
   }
 

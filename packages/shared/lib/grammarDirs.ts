@@ -4,8 +4,9 @@
 // Used by compile-grammars.ts, generate-parser-registry.ts, and docs API.
 // DRY: Single source of truth for where to find grammars.
 //
-// NOTE: If you add a directory here, also add it to getAllowedReadDirs()
-// in packages/shared/lib/lofs/providers/file.ts for the docs API to access it.
+// The docs API reads these via resolveSafeReadPath(process.cwd(), dir), which
+// confines to the project root — any path under cwd (including these) is
+// readable, so no separate allow-list registration is needed.
 //
 export const GRAMMAR_DIRS = [
   'packages/shared/components/blocks',

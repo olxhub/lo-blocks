@@ -31,7 +31,6 @@ import path from 'path';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
 import { buildActivityCards } from '../lib/content/buildActivityCards';
 import { FileStorageProvider } from '../lib/lofs/providers/file';
-import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
 import { parseContentNamespace } from '../lib/types/id-grammar';
 import type { ContentNamespace } from '../lib/types/id-grammar';
 
@@ -51,7 +50,6 @@ function getArgOptional(flag: string): string | null {
 }
 
 const contentDir = path.resolve(getArg('--content', './content'));
-registerAllowedContentDir(contentDir);  // allow reads/writes under the chosen dir
 // Single-namespace override for single-course builds (see flag docs above).
 // parseContentNamespace fails fast with the grammar's message on bad input.
 const nsArg = getArgOptional('--ns');

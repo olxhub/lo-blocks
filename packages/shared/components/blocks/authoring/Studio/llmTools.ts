@@ -36,7 +36,7 @@ const errMessage = (err: unknown): string =>
 // updates it at send time; handlers read through it.
 // =============================================================================
 
-export interface EditorChatContext {
+export interface EditorBufferHandle {
   /** Current buffer content (read at call time — no stale closures). */
   getCurrentContent: () => string;
   /** Current file type, e.g. 'olx', 'chatpeg'. */
@@ -49,7 +49,7 @@ export interface EditorChatContext {
   source?: LofsOrigin;
 }
 
-let ctx: EditorChatContext | null = null;
+let ctx: EditorBufferHandle | null = null;
 let registered = false;
 
 /** Validate buffer content by parsing (OLX via parseOLX, PEG formats via
@@ -136,7 +136,7 @@ function registerStudioTools(): void {
  * they read through. Call on every render whose deps touch the editor —
  * cheap after the first call.
  */
-export function bindStudioEditorTools(context: EditorChatContext): void {
+export function bindStudioEditorTools(context: EditorBufferHandle): void {
   ctx = context;
   registerStudioTools();
 }

@@ -23,7 +23,6 @@ import { parseStateKey } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types';
 
 // TODO: Add CodeMirror support once Turbopack dynamic import issue is resolved
-// For now, using textarea to avoid Turbopack crash
 
 /**
  * Parse the language string to extract mode.
@@ -92,6 +91,11 @@ function OLXRenderView({ code, ns }: { code: string; ns: ContentNamespace }) {
  * Playground view - code + live preview side-by-side with editing.
  * TODO: Use CodeMirror once Turbopack dynamic import issue is resolved.
  */
+// Lazy: OLXCodeBlock renders inside ANY markdown (courseware included);
+// an eager CodeEditor import would drag CodeMirror into every page with a
+// markdown block. The editor loads only when a playground mounts.
+const LazyCodeEditor = React.lazy(() => import('@/components/common/CodeEditor'));
+
 function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns: ContentNamespace }) {
   const [code, setCode] = useState(initialCode);
   const uniqueId = useId();
@@ -106,12 +110,11 @@ function OLXPlaygroundView({ code: initialCode, ns }: { code: string; ns: Conten
     <div className="olx-playground">
       <div className="olx-playground-editor">
         <div className="olx-playground-header">OLX Source</div>
-        <textarea
-          className="olx-playground-textarea"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          spellCheck={false}
-        />
+        {/* CodeEditor (CodeMirror), not a textarea: the textarea was a
+            Next/Turbopack-era workaround; post-Vite the real editor works. */}
+        <React.Suspense fallback={<textarea className="olx-playground-textarea" value={code} readOnly />}>
+          <LazyCodeEditor value={code} onChange={setCode} language="olx" height="12rem" />
+        </React.Suspense>
       </div>
       <div className="olx-playground-preview">
         <div className="olx-playground-header">Preview</div>

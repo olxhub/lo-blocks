@@ -26,6 +26,7 @@
 // contribution without any server involvement.
 
 import type { FieldInfo } from '../../types';
+import { generationMemo } from '@/lib/content/generation';
 
 /** One user's answer changing — what aggregation folds consume. */
 export interface Transition {
@@ -69,22 +70,18 @@ function qualifyTarget(target: string, viewId: string): string {
 }
 
 /**
- * TTL-cached index from content + block registry: scan the idMap for
- * blocks whose blueprint declares an aggregate field and that carry a
- * `target` attribute; map (qualified target id, watched field) → views.
+ * Index from content + block registry: scan the idMap for blocks whose
+ * blueprint declares an aggregate field and that carry a `target` attribute;
+ * map (qualified target id, watched field) → views. Built lazily and rebuilt
+ * only when the content generation changes (generationMemo).
  */
 export function makeAggregationIndex(
   loadIdMap: () => Promise<Record<string, Record<string, any>>>,
   fieldsForTag: (tag: string) => Record<string, FieldInfo> | undefined,
-  ttlMs = 2000,
 ): AggregationIndex {
-  let byTarget: Map<string, AggregationView[]> | null = null;
-  let fetchedAt = 0;
-  let inflight: Promise<void> | null = null;
-
-  const rebuild = async () => {
+  const load = generationMemo(async () => {
     const idMap = await loadIdMap();
-    const next = new Map<string, AggregationView[]>();
+    const byTarget = new Map<string, AggregationView[]>();
     for (const [viewId, variants] of Object.entries(idMap)) {
       for (const variant of Object.values(variants ?? {})) {
         const tag = (variant as any)?.tag;
@@ -103,22 +100,17 @@ export function makeAggregationIndex(
             spec,
             seed: (variant as any)?.attributes?.seed,
           };
-          next.set(key, [...(next.get(key) ?? []), view]);
+          byTarget.set(key, [...(byTarget.get(key) ?? []), view]);
         }
         break; // one variant is enough — specs are per-blueprint
       }
     }
-    byTarget = next;
-    fetchedAt = Date.now();
-  };
+    return byTarget;
+  });
 
   return {
     async viewsFor(targetId, field) {
-      if (!byTarget || Date.now() - fetchedAt > ttlMs) {
-        inflight ??= rebuild().finally(() => { inflight = null; });
-        await inflight;
-      }
-      return byTarget!.get(`${targetId}|${field}`) ?? [];
+      return (await load()).get(`${targetId}|${field}`) ?? [];
     },
   };
 }

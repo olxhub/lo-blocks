@@ -6,7 +6,7 @@
 // all storage implementations (file, network, memory, git, postgres).
 //
 import type {
-  JSONValue, OlxRelativePath, SafeRelativePath,
+  OlxRelativePath, SafeRelativePath,
 } from './core';
 import type { ContentNamespace } from './id-grammar';
 import {
@@ -17,34 +17,22 @@ import {
 import { FileType } from '../lofs/fileTypes';
 
 /**
- * Provider-specific metadata for change detection.
+ * One content file as a source enumerates it: its versioned canonical ref, its
+ * type, and its bytes.
  *
- * Opaque to consumers. Each provider extends this with what it actually tracks.
- * Must be JSON-serializable - all properties should be primitives, arrays, or plain objects.
- *
- * Examples:
- * - FileStorageProvider: { stat: fs.Stats } (all properties are numbers/strings)
- * - MemoryStorageProvider: {} (empty for in-memory)
- * - GitStorageProvider: { hash: string } (commit hash)
- * - PostgresStorageProvider: { version: number, updated_at: string } (DB metadata)
- *
- * Future: May be branded or converted to a union type for better type safety.
+ * The `#version` on `id` is the provider's cheap content identity — a file
+ * mtime, a git blob SHA, an in-memory content hash. It is the SAME version
+ * `read()` stamps on ReadResult.provenance, so a dependency recorded during
+ * parse (olxJson.parseDeps, taken from a read's provenance) compares equal to
+ * this enumeration entry when the file is unchanged. That equality is the whole
+ * of the sync's staleness check: no added/changed/unchanged/deleted diff, just
+ * "is every version I depend on still the current one?" (see
+ * syncContentFromStorage).
  */
-export type ProviderMetadata = JSONValue;
-
-export interface XmlFileInfo {
+export interface ContentFile {
   id: LofsCanonical;
   type: FileType;
-  /** Provider-specific metadata for change detection (opaque to consumers). */
-  _metadata: ProviderMetadata;
   content: string;
-}
-
-export interface XmlScanResult {
-  added: Record<LofsRef, XmlFileInfo>;
-  changed: Record<LofsRef, XmlFileInfo>;
-  unchanged: Record<LofsRef, XmlFileInfo>;
-  deleted: Record<LofsRef, XmlFileInfo>;
 }
 
 export interface FileSelection {
@@ -80,35 +68,72 @@ export interface ReadResult {
 }
 
 /**
- * Options for writing a file with optional conflict detection
+ * One entry in a commit's change list. Exactly one of the three intents:
+ *   - `content` present  → add or overwrite the file at `path`
+ *   - `delete: true`     → remove the file at `path`
+ *   - `renameTo` present → move `path` to `renameTo` (content preserved)
  */
-export interface WriteOptions {
-  /** Metadata from previous read - if provided and doesn't match current, write fails */
-  previousMetadata?: unknown;
-  /** Force write even if metadata mismatch */
+export interface FileChange {
+  path: OlxRelativePath;
+  /** New bytes — add/overwrite. */
+  content?: string;
+  /** Remove the file at `path`. */
+  delete?: true;
+  /** Move `path` here (content preserved). */
+  renameTo?: OlxRelativePath;
+}
+
+/**
+ * Per-file optimistic-concurrency check for a commit: the version token a
+ * caller last read for `path` (ReadResult.metadata). If it no longer matches
+ * the current version, the commit fails with VersionConflictError. This is the
+ * old WriteOptions.previousMetadata semantics, now keyed by path so one commit
+ * can carry a base for each file it touches.
+ */
+export interface CommitBase {
+  path: OlxRelativePath;
+  /** Opaque version token from the prior read (mtime, git blob oid, …). */
+  version: unknown;
+}
+
+/**
+ * Options for a commit — conflict policy plus, for version-controlled
+ * providers, authorship. Folds in the former WriteOptions fields.
+ */
+export interface CommitOptions {
+  /** Per-file optimistic checks (see CommitBase). Absent → no check. */
+  base?: CommitBase[];
+  /** Commit despite a stale base (last write wins; the previous version stays
+   *  in history where the source is version-controlled). */
   force?: boolean;
   /**
-   * This write CREATES a file and must not clobber an existing one (the
-   * lofs-api `lease: 'absent'` doorway). Currently enforced at the API route
-   * by a read-then-write existence pre-check (→ 409 if it exists); providers
-   * do not yet enforce it atomically (TODO: atomic create — see tasklist).
+   * The changes CREATE files that must not clobber existing ones (the lofs-api
+   * `lease: 'absent'` doorway). Enforced by the tool layer's existence
+   * pre-check (→ conflict if present); local providers treat it as advisory
+   * (TODO: atomic create — see tasklist).
    */
   create?: boolean;
   /**
    * Commit author, for version-controlled providers (git). The platform
    * commits ON THE AUTHOR'S BEHALF — the committer is the platform/service
-   * identity, the author is the teacher (from CurrentUser). Carried per-write,
+   * identity, the author is the teacher (from CurrentUser). Carried per-commit,
    * not per-provider: a git provider instance is shared across users.
    * Ignored by providers without history (file, memory).
-   *
-   * TODO: these git-specific fields live on the shared WriteOptions because
-   * there is currently one versioning provider (git) and the overhead of a
-   * discriminated-union options type isn't justified. If more provider-specific
-   * options accumulate, split into a provider-keyed options type.
    */
   author?: { name: string; email: string };
   /** Commit message. Versioning providers use it; others ignore it. */
   message?: string;
+}
+
+/**
+ * Result of a commit. `versions` maps each written path to its NEW version
+ * token — the same opaque shape ReadResult.metadata carries — so a caller can
+ * refresh its cached version without a re-read. Deleted paths are absent.
+ * A provider that cannot cheaply report new tokens (the MCP client face, which
+ * has none over the tool contract) returns an empty map.
+ */
+export interface CommitResult {
+  versions: Record<string, unknown>;
 }
 
 /**
@@ -299,44 +324,32 @@ export interface GrepMatch {
   content: string;
 }
 
-export interface StorageProvider {
-  /**
-   * Scan for XML/OLX files returning added/changed/unchanged/deleted
-   * relative to a previous scan. The `_metadata` structure is
-   * provider specific (mtime+size, git hash, DB id, etc.).
-   */
-  loadXmlFilesWithStats(previous?: Record<LofsRef, XmlFileInfo>): Promise<XmlScanResult>;
+/**
+ * CONSUMER SURFACES (interface segregation).
+ *
+ * StorageProvider is the ONE full interface real stores implement (file, git,
+ * memory, docs). But most consumers use only a slice of it — so they declare
+ * the slice they need, and the narrow types below name those slices. A helper
+ * that supplies only part of the surface (chainResolvers → ParseResolver) or a
+ * face that supports only part of it (McpStorageProvider) implements the slice,
+ * not the whole. StorageProvider is the intersection of all four plus the few
+ * members no consumer slice needs on its own.
+ */
 
+/**
+ * What OLX parsing needs to resolve src=/data=/cast= references: read the
+ * referenced bytes, resolve a relative path against a base, and construct a
+ * provenance ref. This is the whole parse-time storage surface — chainResolvers
+ * supplies exactly this, and parseOLX/parsers/cast take exactly this.
+ */
+export interface ParseResolver {
   read(path: OlxRelativePath): Promise<ReadResult>;
-  // The write doorway. Verbs mirror lofs-api.md (save/remove/move), carrying a
-  // lease via WriteOptions. There is no separate "create": creating is a save
-  // whose lease says "nothing here yet" (WriteOptions.create).
-  save(path: OlxRelativePath, content: string, options?: WriteOptions): Promise<void>;
-  remove(path: OlxRelativePath): Promise<void>;
-  move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void>;
-  listFiles(selection?: FileSelection): Promise<UriNode>;
-
-  /**
-   * Find files matching a glob pattern
-   * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
-   * @param basePath - Base path to search from (default: root)
-   * @returns Array of matching file paths (OlxRelativePath)
-   */
-  glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]>;
-
-  /**
-   * Search file contents for a pattern
-   * @param pattern - Search pattern (regex supported)
-   * @param options - Search options (basePath, include filter, limit)
-   * @returns Array of matches with file, line number, and content
-   */
-  grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
 
   /**
    * Resolve a relative path against a base LofsRef.
    * Validates the resolved result stays within the content directory.
    *
-   * @param baseRef - LofsRef of current OLX file
+   * @param baseProvenance - LofsRef of current OLX file
    * @param relativePath - Raw relative path from OLX (e.g., "static/image.png")
    * @returns SafeRelativePath — escape-validated, safe to use without further traversal checks
    */
@@ -353,7 +366,115 @@ export interface StorageProvider {
    * storage schemes. See also ReadResult.provenance (set during read).
    */
   toLofsRef(path: SafeRelativePath): LofsRef;
+}
 
+/**
+ * The search/browse surface: glob, grep, and full-tree listing. The tools'
+ * read-shaped views and the Studio file browser use exactly this.
+ */
+export interface ContentSearcher {
+  /**
+   * Find files matching a glob pattern
+   * @param pattern - Glob pattern (e.g., "**​/*.olx", "sba/**​/*psychology*")
+   * @param basePath - Base path to search from (default: root)
+   * @returns Array of matching file paths (OlxRelativePath)
+   */
+  glob(pattern: string, basePath?: OlxRelativePath): Promise<OlxRelativePath[]>;
+
+  /**
+   * Search file contents for a pattern
+   * @param pattern - Search pattern (regex supported)
+   * @param options - Search options (basePath, include filter, limit)
+   * @returns Array of matches with file, line number, and content
+   */
+  grep(pattern: string, options?: GrepOptions): Promise<GrepMatch[]>;
+
+  listFiles(selection?: FileSelection): Promise<UriNode>;
+}
+
+/**
+ * The sync/compile enumeration surface: enumerate the world, cheaply detect
+ * change, and resolve namespaces. Only real sync sources (file/git/memory)
+ * supply it; the client MCP face and the parse-resolver chain do not.
+ */
+export interface ContentEnumerator {
+  /**
+   * Enumerate every content file this source currently holds, with bytes and a
+   * versioned ref (see ContentFile). There is no diff against a previous scan:
+   * the content sync memoizes on generationToken() and, when that moves,
+   * re-enumerates and lets the parse cache (keyed on bytes) + per-file
+   * dependency-version checks decide what actually needs re-parsing.
+   */
+  listContent(): Promise<ContentFile[]>;
+
+  /**
+   * A CHEAP "might anything have changed?" token for this source. Two calls
+   * returning the same string mean the source's content is unchanged; a
+   * different string means "rescan me". It is the fast-path signal that lets
+   * syncContentFromStorage skip the full per-file scan when nothing moved.
+   *
+   * The contract is cheapness, not precision: a coarse token that changes when
+   * content did NOT (e.g. a bare `touch`) is acceptable — it just costs one
+   * redundant rescan. The reverse (content changed, token did not) is a
+   * correctness bug and must not happen.
+   *
+   * Must NOT make a slow blocking network round-trip per call: providers with a
+   * remote (git) return their last-known head under their existing refresh
+   * cooldown, never a fresh per-call fetch.
+   *
+   * Per provider:
+   * - FileStorageProvider: a cheap stat-only walk (count + max mtime + total size).
+   * - GitStorageProvider:  the last-known branch head (cooldown governs freshness).
+   * - InMemoryStorageProvider: a bump-on-write counter.
+   */
+  generationToken(): Promise<string>;
+
+  /**
+   * Resolve the content namespace for a file in this provider.
+   *
+   * The namespace identifies WHAT content collection a file belongs to
+   * (logical identity), independent of WHERE it lives (this provider).
+   * See ContentNamespace in id-grammar.ts.
+   *
+   * Resolution is provider-specific. A manifest.yaml `namespace:` field
+   * overrides where the provider supports manifests; otherwise each
+   * provider has its own fallback:
+   * - FileStorageProvider:     nearest ancestor manifest.yaml, else the
+   *                            file's top-level directory ("demos/foo.olx" → "demos")
+   * - GitStorageProvider:      repo manifest, else defaultNamespace(origin) (repo name)
+   * - InMemoryStorageProvider: constructor option
+   *
+   * The read/compile union delegates to the source that owns the ref
+   * (namespaceForAcross in lib/lofs/sourceSet.ts).
+   *
+   * Throws NamespaceResolutionError (with an author-friendly message) when
+   * no namespace can be determined — e.g., a file at the root of a
+   * multi-namespace content directory with no manifest.
+   */
+  namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
+}
+
+/** The write doorway. */
+export interface ContentWriter {
+  /**
+   * The ONE write doorway: apply a list of changes (adds/overwrites, deletes,
+   * renames) as a single atomic unit. Version-controlled providers land it as
+   * one commit; the file provider applies the list in order. Conflict policy
+   * (per-file optimistic base, force) and authorship travel in CommitOptions.
+   * A stale base or a rejected push surfaces as VersionConflictError.
+   */
+  commit(changes: FileChange[], options?: CommitOptions): Promise<CommitResult>;
+}
+
+/**
+ * A full content store. The intersection of the four consumer surfaces plus the
+ * members no single slice needs. Real stores (file, git, memory, docs)
+ * implement this whole interface; memory's commit() honestly throws "read-only
+ * source". Consumers should depend on the narrowest surface above that covers
+ * their use, not on StorageProvider, unless they truly need everything.
+ */
+export interface StorageProvider
+  extends ParseResolver, ContentSearcher, ContentEnumerator, ContentWriter {
   /**
    * Extract the relative path from a LofsRef in this provider.
    *
@@ -372,28 +493,6 @@ export interface StorageProvider {
    * @returns Promise<boolean>
    */
   validateAssetPath(assetPath: OlxRelativePath): Promise<boolean>;
-
-  /**
-   * Resolve the content namespace for a file in this provider.
-   *
-   * The namespace identifies WHAT content collection a file belongs to
-   * (logical identity), independent of WHERE it lives (this provider).
-   * See ContentNamespace in id-grammar.ts.
-   *
-   * Resolution is provider-specific. A manifest.yaml `namespace:` field
-   * overrides where the provider supports manifests; otherwise each
-   * provider has its own fallback:
-   * - FileStorageProvider:     nearest ancestor manifest.yaml, else the
-   *                            file's top-level directory ("demos/foo.olx" → "demos")
-   * - GitStorageProvider:      repo manifest, else defaultNamespace(origin) (repo name)
-   * - InMemoryStorageProvider: constructor option
-   * - StackedStorageProvider:  delegates to the provider that owns the ref
-   *
-   * Throws NamespaceResolutionError (with an author-friendly message) when
-   * no namespace can be determined — e.g., a file at the root of a
-   * multi-namespace content directory with no manifest.
-   */
-  namespaceFor(ref: LofsRef): Promise<NamespaceResolution>;
 
   /**
    * A browsable forge link for this source — the repo at its ref, or a file

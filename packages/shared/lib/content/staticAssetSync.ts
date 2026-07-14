@@ -15,7 +15,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
 import type { StorageProvider } from '@/lib/types/storage';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
@@ -23,32 +22,37 @@ const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 /**
  * Filesystem roots to copy assets from, with their URL prefixes.
  *
- * Only filesystem-backed sources have local assets to copy. A stack contributes
- * its children's roots; a FileStorageProvider contributes its own `baseDir`, at
- * a URL prefix equal to its mountPoint past "content" \u2014 so the fallback
- * (mountPoint "content") copies to the root and a directory mount
- * (mountPoint "content/<mount>") copies under "<mount>", keeping asset URLs
- * aligned with content paths. Non-filesystem sources (git, memory, network)
- * have no local assets \u2014 repo-source assets are deferred (forge URLs / a blob
- * route). instanceof rather than field-sniffing: a rename breaks the build, and
- * static-asset copying stays out of the StorageProvider interface.
+ * Only filesystem-backed sources have local assets to copy. A FileStorageProvider
+ * contributes its own `baseDir`, at a URL prefix equal to its mountPoint past
+ * "content" \u2014 so the fallback (mountPoint "content") copies to the root and a
+ * directory mount (mountPoint "content/<mount>") copies under "<mount>", keeping
+ * asset URLs aligned with content paths. Non-filesystem sources (git, memory,
+ * network) have no local assets \u2014 repo-source assets are deferred (forge URLs /
+ * a blob route). instanceof rather than field-sniffing: a rename breaks the
+ * build, and static-asset copying stays out of the StorageProvider interface.
  */
-function assetRoots(provider: StorageProvider): { dir: string; prefix: string }[] {
-  if (provider instanceof StackedStorageProvider) {
-    return provider.providers.flatMap(assetRoots);
+// TODO(local-git-assets): only FileStorageProvider-backed sources contribute
+// asset roots. A { dir, worktree: false } local-git source (added 2026-07) has
+// assets on disk but is invisible here — its images would 404. Latent: no
+// deployment uses that config yet, and this whole copy step dissolves under
+// the asset-store design (serve by hash). Fix here only if a worktree:false
+// deployment ships before the asset store does.
+function assetRoots(providers: StorageProvider[]): { dir: string; prefix: string }[] {
+  const roots: { dir: string; prefix: string }[] = [];
+  for (const provider of providers) {
+    if (provider instanceof FileStorageProvider) {
+      roots.push({ dir: provider.baseDir, prefix: provider.mountPoint.replace(/^content\/?/, '') });
+    }
   }
-  if (provider instanceof FileStorageProvider) {
-    return [{ dir: provider.baseDir, prefix: provider.mountPoint.replace(/^content\/?/, '') }];
-  }
-  return [];
+  return roots;
 }
 
-export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/server/public/content') {
+export async function copyAssetsToPublic(providers: StorageProvider[], targetDir = './apps/server/public/content') {
   const publicContentDir = targetDir;
 
   try {
     await fs.mkdir(publicContentDir, { recursive: true });
-    for (const { dir, prefix } of assetRoots(provider)) {
+    for (const { dir, prefix } of assetRoots(providers)) {
       await copyAssetsRecursive(dir, path.join(publicContentDir, prefix));
     }
     console.log(`\u2705 Assets copied to ${publicContentDir}`);

@@ -15,12 +15,13 @@ import { CATEGORY, isMediaFile } from '@/lib/util/fileTypes';
 import { windowsToPosix } from '@/lib/util/posixPath';
 import {
   type StorageProvider,
-  type XmlFileInfo,
-  type XmlScanResult,
+  type ContentFile,
   type FileSelection,
   type UriNode,
   type ReadResult,
-  type WriteOptions,
+  type FileChange,
+  type CommitOptions,
+  type CommitResult,
   type GrepOptions,
   type GrepMatch,
   type NamespaceResolution,
@@ -33,133 +34,47 @@ import {
   source, scheme, withVersion, withoutVersion, makeAddress,
   toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
 } from '../../types/address';
-import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
-import type { JSONValue } from '../../types';
 
 /** CATEGORY.content (fileTypes.ts) lists content file extensions — OLX and its
  *  parse dependencies (.olx, .md, .liquid, .cast, etc.). We need the same list
  *  with dots prepended for filename.endsWith() matching in filesystem walks. */
 const CONTENT_EXTENSIONS = CATEGORY.content.map(e => `.${e}`);
 
-/**
- * FileStorageProvider-specific metadata structure.
- * Extends the generic ProviderMetadata type with filesystem-specific fields.
- *
- * Note: fs.Stats is a class instance, but all its properties are JSON-serializable
- * (numbers, strings, booleans). We cast to JSONValue when storing in _metadata.
- */
-interface FileMetadata {
-  stat: any; // fs.Stats - properties are all numbers/strings
-}
-
 /*
  * =============================================================================
- * Path Security System
+ * Path Security System — root checks
  * =============================================================================
  *
- * CURRENT STATE (Hardcoded):
- * --------------------------
- * This module provides secure path resolution with symlink handling. Currently,
- * allowed directories are hardcoded for local development. This is intentional -
- * we're being conservative until we have a proper config system.
- *
- * FUTURE DIRECTION (Provider-based):
- * ----------------------------------
- * The allowed directories should eventually be configured per storage provider,
- * not globally. The system will support a hierarchy of providers:
- *
- *   Priority | Provider                | Read | Write | Example
- *   ---------|-------------------------|------|-------|------------------------
- *   4 (high) | In-memory / dev overlay | ✓    | ✓     | Live editing state
- *   3        | User content            | ✓    | ✓     | ~/lo-blocks-content/
- *   2        | Institution content     | ✓    | role  | University DB
- *   1 (low)  | System content          | ✓    | ✗     | project content/, blocks/
- *
- * Content IDs resolve top-down (check provider 4, then 3, then 2, then 1).
- * Write permissions depend on the provider and user role.
- *
- * Content directories are declared via content-sources.yaml (contentSources.ts),
- * which registers each configured checkout with the allow-list at load time
- * (registerAllowedContentDir, see allowedDirs.ts). Callers outside that path —
- * standalone scripts, tests — register their own content dir explicitly.
- *
- * Future work:
- * - Move getAllowedReadDirs / getAllowedWriteDirs fully to provider config
- * - User-specific providers (like ~/lo-blocks-content/) configured per-user
- * - Role-based write permissions for shared providers (institution content)
+ * Each provider serves exactly ONE base directory (its checkout / worktree), so
+ * safety is a ROOT CHECK: a resolved path must stay within that provider's
+ * baseDir. There is no global allow-list of directories any more — a provider
+ * only ever touches its own root, and a caller that wants another tree
+ * constructs another provider over it.
  *
  * SECURITY MODEL:
- * ---------------
- * 1. Path traversal prevention: Reject paths with '..' that escape base directory
- * 2. Null byte rejection: Prevent path truncation attacks
- * 3. Symlink resolution: Use realpath() to get canonical paths
- * 4. Allowlist validation: Canonical path must be within allowed directories
- * 5. Read vs Write separation: Writes are more restricted than reads
- * 6. Symlinks rejected for writes: Prevent unexpected write targets
+ *   1. Null-byte rejection (path-truncation attacks).
+ *   2. Traversal prevention: reject '..' that escapes baseDir (logical check).
+ *   3. Symlink handling via realpath():
+ *        - reads  allow symlinks whose target stays within baseDir;
+ *        - writes reject symlinks entirely (no surprise write targets).
+ *   4. The canonical (symlink-resolved) path must remain within baseDir.
  *
  * =============================================================================
  */
 
-// TODO: Move to provider configuration when config system is implemented
-const PROJECT_ROOT = process.cwd();
-
-/**
- * Get allowed directories for read operations.
- *
- * Beyond the built-in grammar/content dirs, this includes every directory
- * registered via registerAllowedContentDir — the configured content checkouts
- * (contentSources.ts) plus any a script or test registers explicitly.
- *
- * NOTE: Grammar directories here should match GRAMMAR_DIRS in packages/shared/lib/grammarDirs.ts
- * for the docs API to discover all grammars.
- */
-function getAllowedReadDirs(): string[] {
-  return [
-    path.join(PROJECT_ROOT, 'packages/shared/components/blocks'),
-    path.join(PROJECT_ROOT, 'packages/shared/lib/template'),  // For template grammar
-    path.join(PROJECT_ROOT, 'packages/shared/lib/stateLanguage'),  // For expression grammar
-    path.join(PROJECT_ROOT, 'packages/shared/lib/util/calc'),  // For calc grammar
-    path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts registered by config or callers (see allowedDirs.ts)
-    ...registeredContentDirs(),
-  ];
+/** True when `canonicalPath` is inside `baseDir` (or is baseDir itself). */
+function isWithin(baseDir: string, canonicalPath: string): boolean {
+  const relative = path.relative(baseDir, canonicalPath);
+  return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 /**
- * Get allowed directories for write operations: ./content plus every directory
- * registered via registerAllowedContentDir (configured checkouts + callers).
- */
-function getAllowedWriteDirs(): string[] {
-  return [
-    path.join(PROJECT_ROOT, 'content'),
-    // Content checkouts registered by config or callers (see allowedDirs.ts)
-    ...registeredContentDirs(),
-  ];
-}
-
-/**
- * Check if a canonical path is within any of the allowed directories.
- */
-function isPathAllowed(canonicalPath: string, allowedDirs: string[]): boolean {
-  return allowedDirs.some(dir => {
-    const relative = path.relative(dir, canonicalPath);
-    return !relative.startsWith('..') && !path.isAbsolute(relative);
-  });
-}
-
-/**
- * Resolve a path for reading, with security checks.
- * Allows symlinks if the target is within allowed read directories.
+ * Resolve a path for reading, confined to `baseDir`. Symlinks are allowed only
+ * when their canonical target stays within baseDir.
  *
- * Allowed read directories (hardcoded for now):
- * - src/components/blocks/ (block documentation, examples)
- * - content/ (course content)
- *
- * @param baseDir - Base directory for resolving relative paths
- * @param relPath - Relative path to resolve
- * @returns Resolved path (follows symlinks internally but returns logical path)
- * @throws Error if path escapes allowed directories or contains null bytes
+ * @returns the resolved (logical) path; caller handles ENOENT.
+ * @throws if the path contains null bytes or escapes baseDir.
  */
 export async function resolveSafeReadPath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
@@ -167,47 +82,36 @@ export async function resolveSafeReadPath(baseDir: string, relPath: string): Pro
   }
 
   const fs = await import('fs/promises');
+  const root = path.resolve(baseDir);
+  const full = path.resolve(root, relPath);
 
-  // Resolve to full path
-  const full = path.resolve(baseDir, relPath);
-
-  // Check logical path doesn't escape baseDir via '..'
-  const relative = path.relative(baseDir, full);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  // Logical traversal check.
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: escapes base directory');
   }
 
-  // Get canonical path (resolves all symlinks)
+  // Canonical (symlink-resolved) path must also stay within baseDir.
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      // File doesn't exist - return logical path, caller will handle ENOENT
+      // Doesn't exist yet — return the logical path; caller handles ENOENT.
       return full as FileSystemPath;
     }
     throw err;
   }
-
-  // Verify canonical path is within allowed read directories
-  if (!isPathAllowed(canonicalPath, getAllowedReadDirs())) {
+  if (!isWithin(root, canonicalPath)) {
     throw new Error('Invalid path: resolves outside allowed directories');
   }
-
   return full as FileSystemPath;
 }
 
 /**
- * Resolve a path for writing, with security checks.
- * Rejects all symlinks to prevent unexpected write targets.
+ * Resolve a path for writing, confined to `baseDir`. Rejects all symlinks (no
+ * surprise write targets) and paths that escape baseDir.
  *
- * Allowed write directories (hardcoded for now):
- * - content/ (course content only)
- *
- * @param baseDir - Base directory for resolving relative paths
- * @param relPath - Relative path to resolve
- * @returns Resolved path
- * @throws Error if path contains symlinks, escapes allowed directories, or contains null bytes
+ * @throws if the path contains null bytes, symlinks, or escapes baseDir.
  */
 export async function resolveSafeWritePath(baseDir: string, relPath: string): Promise<FileSystemPath> {
   if (typeof relPath !== 'string' || relPath.includes('\0')) {
@@ -215,33 +119,25 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
   }
 
   const fs = await import('fs/promises');
+  const root = path.resolve(baseDir);
+  const full = path.resolve(root, relPath);
 
-  // Resolve to full path
-  const full = path.resolve(baseDir, relPath);
-
-  // Check logical path doesn't escape baseDir via '..'
-  const relative = path.relative(baseDir, full);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  // Logical traversal check.
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: escapes base directory');
   }
 
-  // Check for symlinks - reject any symlinks for write operations
-  // We check the path by comparing logical vs canonical
   let canonicalPath: string;
   try {
     canonicalPath = await fs.realpath(full);
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      // File doesn't exist yet (creating new file)
-      // Check parent directory exists and is within allowed dirs
+      // Creating a new file: verify the (existing) parent is symlink-free and
+      // within baseDir.
       const parentDir = path.dirname(full);
       try {
         const canonicalParent = await fs.realpath(parentDir);
-        if (!isPathAllowed(canonicalParent, getAllowedWriteDirs())) {
-          throw new Error('Invalid path: parent directory outside allowed write directories');
-        }
-        // Check parent path has no symlinks
-        if (canonicalParent !== parentDir) {
+        if (canonicalParent !== parentDir || !isWithin(root, canonicalParent)) {
           throw new Error('Invalid path: symlinks not allowed for write operations');
         }
       } catch (parentErr: any) {
@@ -255,16 +151,13 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
     throw err;
   }
 
-  // Reject if path contains symlinks
+  // Existing target: reject symlinks and out-of-root paths.
   if (canonicalPath !== full) {
     throw new Error('Invalid path: symlinks not allowed for write operations');
   }
-
-  // Verify path is within allowed write directories
-  if (!isPathAllowed(full, getAllowedWriteDirs())) {
+  if (!isWithin(root, full)) {
     throw new Error('Invalid path: outside allowed write directories');
   }
-
   return full as FileSystemPath;
 }
 
@@ -364,8 +257,8 @@ export class FileStorageProvider implements StorageProvider {
    * 'file:content://sba/foo.olx'         + mountPoint='content'         → 'sba/foo.olx'
    * 'file:content/ee/ee101://labs/l.olx'  + mountPoint='content/ee/ee101' → 'labs/l.olx'
    *
-   * Throws on mount-point mismatch, which is how StackedStorageProvider
-   * routes to the correct provider (try/catch fallthrough).
+   * Throws on mount-point mismatch, which is how the union routes to the
+   * correct source (try/catch fallthrough; see lib/lofs/sourceSet.ts).
    */
   private extractRelativePath(uri: string): string {
     // In the LOFS address format the mount point is part of the source locator
@@ -386,22 +279,16 @@ export class FileStorageProvider implements StorageProvider {
     return normalized;
   }
 
-  async loadXmlFilesWithStats(previous: Record<LofsRef, XmlFileInfo> = {}): Promise<XmlScanResult> {
+  async listContent(): Promise<ContentFile[]> {
     const fs = await import('fs/promises');
-
-    // Only diff against refs this provider owns. In a stacked scan, `previous`
-    // contains other mounts' files — without this filter they would all be
-    // reported as deleted (they're never "found" by walking this baseDir).
-    previous = Object.fromEntries(
-      Object.entries(previous).filter(([key]) => source(brandLofsRef(key)) === this.origin)
-    ) as Record<LofsRef, XmlFileInfo>;
 
     function isContentFile(entry: any, fullPath: string) {
       const fileName = entry.name || fullPath.split('/').pop();
       return (
         entry.isFile() &&
-        // manifest.yaml files are scanned as auxiliary files so the sync
-        // can re-parse a manifest's subtree when its namespace changes.
+        // manifest.yaml files are enumerated as auxiliary content so the sync
+        // sees a manifest edit as a changed namespace (parse-cache key) and
+        // re-parses its subtree.
         (CONTENT_EXTENSIONS.some(ext => fullPath.endsWith(ext)) || fileName === 'manifest.yaml') &&
         !fileName.includes('~') &&
         !fileName.includes('#') &&
@@ -409,19 +296,7 @@ export class FileStorageProvider implements StorageProvider {
       );
     }
 
-    function fileChanged(statA: any, statB: any) {
-      if (!statA || !statB) return true;
-      return (
-        statA.size !== statB.size ||
-        statA.mtimeMs !== statB.mtimeMs ||
-        statA.ctimeMs !== statB.ctimeMs
-      );
-    }
-
-    const found: Record<LofsRef, boolean> = {};
-    const added: Record<LofsRef, XmlFileInfo> = {};
-    const changed: Record<LofsRef, XmlFileInfo> = {};
-    const unchanged: Record<LofsRef, XmlFileInfo> = {};
+    const out: ContentFile[] = [];
 
     const walk = async (currentDir: string) => {
       const entries = await fs.readdir(currentDir, { withFileTypes: true });
@@ -435,36 +310,67 @@ export class FileStorageProvider implements StorageProvider {
           const stat = await fs.stat(fullPath);
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
+          // Version is the mtime — the SAME identity read() stamps on
+          // provenance, so a parseDep recorded from a read compares equal here
+          // when unchanged (see ContentFile).
           const id = toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs))));
-          const key = withoutVersion(id);
-          found[key] = true;
-          const prev = previous[key];
-          if (prev) {
-            const prevMetadata = prev._metadata as unknown as FileMetadata;
-            if (fileChanged(prevMetadata.stat, stat)) {
-              const content = await fs.readFile(fullPath, 'utf-8');
-              changed[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
-            } else {
-              unchanged[key] = prev;
-            }
-          } else {
-            const content = await fs.readFile(fullPath, 'utf-8');
-            added[key] = { id, type, _metadata: { stat } as unknown as JSONValue, content };
-          }
+          const content = await fs.readFile(fullPath, 'utf-8');
+          out.push({ id, type, content });
         }
       }
     };
 
     await walk(this.baseDir);
+    return out;
+  }
 
-    const deleted: Record<LofsRef, XmlFileInfo> = Object.keys(previous)
-      .filter(key => !(key in found))
-      .reduce((out: Record<LofsRef, XmlFileInfo>, key: LofsRef) => {
-        out[key] = previous[key];
-        return out;
-      }, {});
+  /**
+   * Cheap change token: a stat-only walk of the content tree. No file contents
+   * are read (unlike listContent), so this stays fast enough to call
+   * on every sync/request. The token combines the content-file count, the
+   * newest mtime, and the total size — any add/remove/edit moves at least one
+   * of them. A bare `touch` moves the mtime and forces a (harmless) rescan;
+   * that's the accepted coarseness (see generationToken on StorageProvider).
+   *
+   * v1: no fs watchers (a later refinement). If the baseDir doesn't exist yet,
+   * the walk yields the empty token — treated as "no content", consistent with
+   * a scan of an absent tree.
+   */
+  async generationToken(): Promise<string> {
+    const fs = await import('fs/promises');
+    let count = 0;
+    let maxMtimeMs = 0;
+    let totalSize = 0;
 
-    return { added, changed, unchanged, deleted };
+    const walk = async (dir: string): Promise<void> => {
+      let entries: any[];
+      try {
+        entries = await fs.readdir(dir, { withFileTypes: true });
+      } catch {
+        return; // missing/unreadable dir — contributes nothing
+      }
+      for (const entry of entries) {
+        if (entry.name.startsWith('.')) continue;
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          await walk(full);
+          continue;
+        }
+        if (!entry.isFile()) continue;
+        const isContent =
+          (CONTENT_EXTENSIONS.some(ext => entry.name.endsWith(ext)) || entry.name === 'manifest.yaml') &&
+          !entry.name.includes('~') &&
+          !entry.name.includes('#');
+        if (!isContent) continue;
+        const stat = await fs.stat(full);
+        count++;
+        totalSize += stat.size;
+        if (stat.mtimeMs > maxMtimeMs) maxMtimeMs = stat.mtimeMs;
+      }
+    };
+
+    await walk(this.baseDir);
+    return `${count}:${maxMtimeMs}:${totalSize}`;
   }
 
   async read(filePath: OlxRelativePath): Promise<ReadResult> {
@@ -501,59 +407,75 @@ export class FileStorageProvider implements StorageProvider {
     }
   }
 
-  async save(filePath: OlxRelativePath, content: string, options: WriteOptions = {}): Promise<void> {
-    const { previousMetadata, force = false } = options;
+  /**
+   * Apply a change list to the filesystem. No cross-file atomicity (the git
+   * provider gives that); changes apply in order via the existing safe-write
+   * primitives. The per-file optimistic check (CommitOptions.base) preserves
+   * the former save() mtime conflict semantics, and new mtimes come back in
+   * CommitResult.versions.
+   */
+  async commit(changes: FileChange[], options: CommitOptions = {}): Promise<CommitResult> {
+    const { force = false, base = [] } = options;
     const fs = await import('fs/promises');
-    const full = await resolveSafeWritePath(this.baseDir, filePath);
+    const baseByPath = new Map(base.map(b => [String(b.path), b.version]));
+    const versions: Record<string, unknown> = {};
 
-    // Check for version conflict if previousMetadata is provided
-    if (previousMetadata && !force) {
-      try {
+    // The optimistic base check applies to EVERY destructive intent — a
+    // stale delete or rename clobbers work just as surely as a stale write.
+    const checkStale = async (full: string, p: string) => {
+      if (!force && baseByPath.has(p)) await this.checkMtime(full, baseByPath.get(p));
+    };
+    for (const c of changes) {
+      if (c.delete) {
+        const full = await resolveSafeWritePath(this.baseDir, c.path);
+        await checkStale(full, String(c.path));
+        await fs.unlink(full);
+      } else if (c.renameTo !== undefined) {
+        const fullOld = await resolveSafeWritePath(this.baseDir, c.path);
+        const fullNew = await resolveSafeWritePath(this.baseDir, c.renameTo);
+        await checkStale(fullOld, String(c.path));
+        // A rename must not silently overwrite an existing destination.
+        if (!force && await fs.stat(fullNew).then(() => true, () => false)) {
+          throw new Error(`Rename destination already exists: ${c.renameTo}`);
+        }
+        await fs.mkdir(path.dirname(fullNew), { recursive: true });
+        await fs.rename(fullOld, fullNew);
+      } else if (c.content !== undefined) {
+        const full = await resolveSafeWritePath(this.baseDir, c.path);
+        await checkStale(full, String(c.path));
+        await fs.mkdir(path.dirname(full), { recursive: true });
+        await fs.writeFile(full, c.content, 'utf-8');
         const stat = await fs.stat(full);
-        const previous = previousMetadata as { mtime?: number; size?: number };
-        if (previous.mtime !== undefined && stat.mtimeMs !== previous.mtime) {
-          throw new VersionConflictError(
-            'File has been modified since last read',
-            { mtime: stat.mtimeMs, size: stat.size }
-          );
-        }
-      } catch (err: any) {
-        // If file doesn't exist but we have previous metadata, that's also a conflict
-        if (err.code === 'ENOENT' && previousMetadata) {
-          throw new VersionConflictError('File was deleted');
-        }
-        if (err.name === 'VersionConflictError') throw err;
-        // Other errors (like permission) should propagate
-        throw err;
+        versions[String(c.path)] = { mtime: stat.mtimeMs, size: stat.size };
+      } else {
+        throw new Error(`Empty change for "${c.path}": set content, delete, or renameTo`);
       }
     }
-
-    await fs.mkdir(path.dirname(full), { recursive: true });
-    await fs.writeFile(full, content, 'utf-8');
+    return { versions };
   }
 
-
-  async remove(filePath: OlxRelativePath): Promise<void> {
+  /** Optimistic conflict: the mtime a caller last read (version) must still be
+   *  current, or the file must still be present. Throws VersionConflictError. */
+  private async checkMtime(full: string, version: unknown): Promise<void> {
     const fs = await import('fs/promises');
-    const full = await resolveSafeWritePath(this.baseDir, filePath);
-    await fs.unlink(full);
+    const previous = (version ?? {}) as { mtime?: number; size?: number };
+    try {
+      const stat = await fs.stat(full);
+      if (previous.mtime !== undefined && stat.mtimeMs !== previous.mtime) {
+        throw new VersionConflictError(
+          'File has been modified since last read',
+          { mtime: stat.mtimeMs, size: stat.size },
+        );
+      }
+    } catch (err: any) {
+      // Read a version but the file is gone now — also a conflict.
+      if (err.code === 'ENOENT') throw new VersionConflictError('File was deleted');
+      throw err;
+    }
   }
 
   toRelativePath(uri: LofsRef): OlxRelativePath {
     return this.extractRelativePath(uri) as OlxRelativePath;
-  }
-
-  async move(oldPath: OlxRelativePath, newPath: OlxRelativePath): Promise<void> {
-    const fs = await import('fs/promises');
-    // Validate both paths with write safety checks
-    const fullOld = await resolveSafeWritePath(this.baseDir, oldPath);
-    const fullNew = await resolveSafeWritePath(this.baseDir, newPath);
-
-    // Create destination directory if needed
-    await fs.mkdir(path.dirname(fullNew), { recursive: true });
-
-    // Rename/move the file
-    await fs.rename(fullOld, fullNew);
   }
 
   async listFiles(selection: FileSelection = {}): Promise<UriNode> {
@@ -568,8 +490,8 @@ export class FileStorageProvider implements StorageProvider {
 
     // extractRelativePath validates the mount point and returns
     // the path within this mount (e.g., 'sba/file.xml').
-    // Mount mismatch throws, which is how StackedStorageProvider
-    // routes to the correct provider.
+    // Mount mismatch throws, which is how the union routes to the
+    // correct source.
     const baseRelPath = this.extractRelativePath(baseProvenance);
     const baseDir = path.dirname(baseRelPath);
     // Refs are POSIX; path.normalize/join emit backslashes on Windows.
@@ -616,20 +538,19 @@ export class FileStorageProvider implements StorageProvider {
    * a file at the provider root with no manifest, or a directory name the
    * namespace grammar rejects (e.g. "lo-blocks" — hyphens are not allowed).
    *
-   * Change tracking: manifest.yaml files are included in loadXmlFilesWithStats
-   * scans as auxiliary files, and the content sync re-parses the mount's
-   * OLX when a manifest is added, changed, or deleted (see
-   * promoteFilesAffectedByManifests in syncContentFromStorage.ts). No
-   * caching here — every call re-reads manifests, so results are always
-   * current within a sync.
+   * Change tracking: manifest.yaml files are enumerated by listContent, and a
+   * manifest edit that changes the resolved namespace re-parses its subtree
+   * because the namespace is part of the parse-cache key (see
+   * syncContentFromStorage / parseCache). No caching here — every call
+   * re-reads manifests, so results are always current within a sync.
    */
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
     const relPath = this.extractRelativePath(withoutVersion(brandLofsRef(String(ref))));
 
     // Constructor override: the whole provider is one namespace, manifests
     // ignored (see constructor docs). relPath is still extracted above so
-    // mount mismatches throw — that's how StackedStorageProvider routes to
-    // the owning provider.
+    // mount mismatches throw — that's how the union routes to the owning
+    // source (namespaceForAcross in lib/lofs/sourceSet.ts).
     if (this.ns) return { ns: this.ns };
 
     const fs = await import('fs/promises');

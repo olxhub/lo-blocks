@@ -13,13 +13,16 @@ import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { registerCatalogTools } from '@/lib/catalog/tool';
-import { registerLofsTools } from '@/lib/lofs/tools';
+import { registerLofsTools, defaultProviderDeps } from '@/lib/lofs/tools';
+import { makeStateRegistryWorktree } from './worktree.js';
+import { UserStateRegistry } from '@/lib/state/sync/registry';
 import {
   validateProviderConfig,
   availableProviders,
 } from '@/lib/llm/provider';
 import { resolveLLMConfig } from '@/lib/llm/profiles';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
+import { setParseCacheKvs, parseCacheStats, resetParseCacheStats } from '@/lib/content/parseCache';
 
 // =============================================================================
 // Startup steps
@@ -110,12 +113,17 @@ async function initStorage(): Promise<KVStore> {
   return store;
 }
 
-/** 4. Initialize tool registry. */
-async function initTools() {
+/** 4. Initialize tool registry. The LOFS tools' working-tree seam is backed by
+ *  the shared per-user state registry (apps/server owns it), so tool writes
+ *  stage into the SAME materialization the WebSocket pipeline folds into. */
+async function initTools(stateRegistry: UserStateRegistry, kvs: KVStore) {
   const registry = createToolRegistry();
   registerDocsTools(registry);
   registerCatalogTools(registry);
-  registerLofsTools(registry);
+  registerLofsTools(registry, {
+    ...defaultProviderDeps(),
+    worktree: makeStateRegistryWorktree(stateRegistry, kvs),
+  });
   console.log('  Tools: docs, catalog, lofs');
   return registry;
 }
@@ -136,16 +144,27 @@ async function main() {
 
   await boot.task('Load configuration', loadConfig);
   await boot.task('Validate LLM provider', () => validateLLMProvider());
-  await boot.task('Sync content (clone, scan, parse)', async () => {
-    const { idMap } = await syncContentFromStorage();
-    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
-  });
+  // Storage is initialized BEFORE the content sync so the parse cache is live
+  // for the boot parse — a warm cache is exactly what makes cold boot cheap.
   const kvs = await boot.task('Initialize storage', initStorage);
-  const registry = await boot.task('Register MCP tools', initTools);
+  setParseCacheKvs(kvs);
+  await boot.task('Sync content (clone, scan, parse)', async () => {
+    resetParseCacheStats();
+    const { idMap } = await syncContentFromStorage();
+    const { hits, misses, memoHits } = parseCacheStats();
+    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
+    console.log(`  Parse cache: ${hits} hits, ${misses} misses` +
+      (memoHits ? `, ${memoHits} memo hits` : ''));
+  });
+  // One shared per-user state registry for the whole server: the WebSocket
+  // pipeline folds into it AND the LOFS tools' working tree stages into it, so
+  // an agent's drafts and a human's editor buffer are one per-user copy.
+  const stateRegistry = new UserStateRegistry(kvs);
+  const registry = await boot.task('Register MCP tools', () => initTools(stateRegistry, kvs));
   // startServer calls boot.handoff() itself, synchronously adjacent to the
   // request-handler attach — the swap must be atomic (see server.ts).
   const handle = await boot.task('Start server (vite, websockets, routes)',
-    () => startServer(kvs, registry, boot));
+    () => startServer(kvs, registry, stateRegistry, boot));
 
   console.log('\nReady. Press Ctrl+C to stop.\n');
 

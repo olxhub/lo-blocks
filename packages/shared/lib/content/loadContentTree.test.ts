@@ -10,8 +10,12 @@ import { getOlxJson, TEST_NS, testKey } from '../test-utils';
 import { asDefinitionKey } from '../types/id-grammar';
 import { withoutVersion } from '../types/address';
 
-it('handles added, unchanged, changed, and deleted files via filesystem mutation', async () => {
+it('enumerates content files with versioned refs, reflecting add/change/delete', async () => {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'content-test-'));
+
+  // versioned id per unversioned ref — the version moves iff the file changed.
+  const byRef = (files: { id: string }[]) =>
+    new Map(files.map(f => [String(withoutVersion(f.id as any)), String(f.id)]));
 
   try {
     // Seed with files from content/demos
@@ -25,32 +29,33 @@ it('handles added, unchanged, changed, and deleted files via filesystem mutation
     }
 
     const provider = new FileStorageProvider(tmpDir);
-    const first = await provider.loadXmlFilesWithStats();
-    for (const info of Object.values(first.added)) {
+    const first = await provider.listContent();
+    for (const info of first) {
       expect([fileTypes.xml, fileTypes.olx]).toContain(info.type);
     }
-    const prev = { ...first.added };
+    const firstByRef = byRef(first);
+    const changedRef = [...firstByRef.keys()].find(r => r.endsWith('text-changer-demo.olx'))!;
+    const stableRef = [...firstByRef.keys()].find(r => r.endsWith('linear-dialogue-demo.olx'))!;
 
-    // Mutate: modify text-changer-demo.olx
+    // mtime is the version; nudge the clock so an edit is guaranteed distinct.
+    await new Promise(r => setTimeout(r, 20));
+
+    // Change text-changer-demo.olx, add learning-observer-course.olx, delete ref-demo.xml.
     await fs.appendFile(path.join(tmpDir, 'text-changer-demo.olx'), ' ');
-    // Add learning-observer-course.olx
     await fs.copyFile(
       'content/demos/learning-observer-course.olx',
       path.join(tmpDir, 'learning-observer-course.olx')
     );
-    // Delete ref-demo.xml
     await fs.rm(path.join(tmpDir, 'ref-demo.xml'));
 
-    const second = await provider.loadXmlFilesWithStats(prev);
+    const secondByRef = byRef(await provider.listContent());
 
-    for (const info of Object.values(second.added)) {
-      expect([fileTypes.xml, fileTypes.olx]).toContain(info.type);
-    }
-
-    expect(Object.keys(second.unchanged).some(id => id.endsWith('linear-dialogue-demo.olx'))).toBe(true);
-    expect(Object.keys(second.changed).some(id => id.endsWith('text-changer-demo.olx'))).toBe(true);
-    expect(Object.keys(second.added).some(id => id.endsWith('learning-observer-course.olx'))).toBe(true);
-    expect(Object.keys(second.deleted).some(id => id.endsWith('ref-demo.xml'))).toBe(true);
+    // Added present, deleted gone.
+    expect([...secondByRef.keys()].some(r => r.endsWith('learning-observer-course.olx'))).toBe(true);
+    expect([...secondByRef.keys()].some(r => r.endsWith('ref-demo.xml'))).toBe(false);
+    // Changed → version moved; untouched → version stable.
+    expect(secondByRef.get(changedRef)).not.toBe(firstByRef.get(changedRef));
+    expect(secondByRef.get(stableRef)).toBe(firstByRef.get(stableRef));
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
   }

@@ -16,8 +16,10 @@ import type {
   StorageProvider,
   ReadResult,
   UriNode,
-  XmlFileInfo,
-  XmlScanResult,
+  ContentFile,
+  FileChange,
+  CommitOptions,
+  CommitResult,
   GrepOptions,
   GrepMatch,
 } from '../../types/storage';
@@ -41,6 +43,9 @@ export class InMemoryStorageProvider implements StorageProvider {
   ns: ContentNamespace;
   /** This store's address origin (`memory:local`), built once. */
   readonly origin: LofsOrigin = toLofsOrigin('memory:local');
+  /** Bump-on-write counter backing generationToken(). Increments on every
+   *  setContent(); the constructor's initial files are generation 0. */
+  private _writes = 0;
 
   /**
    * @param files - Virtual filesystem: { 'path.olx': '<OLX>...' }
@@ -63,9 +68,9 @@ export class InMemoryStorageProvider implements StorageProvider {
   }
 
   async namespaceFor(ref: LofsRef): Promise<NamespaceResolution> {
-    // Only own memory: refs — same scheme guard as resolveRelativePath, so a
-    // StackedStorageProvider with this provider ahead of a file provider falls
-    // through for file: refs instead of mislabeling them with this.ns.
+    // Only own memory: refs — same scheme guard as resolveRelativePath, so the
+    // union (with this provider ahead of a file provider) falls through for
+    // file: refs instead of mislabeling them with this.ns.
     if (scheme(brandLofsRef(String(ref))) !== 'memory') {
       throw new Error(
         `InMemoryStorageProvider does not own ref (not a memory: scheme): ${ref}`
@@ -98,61 +103,49 @@ export class InMemoryStorageProvider implements StorageProvider {
     throw new Error(`File not found: ${path} (available: ${availableFiles})`);
   }
 
+  /** Cheap change token: a bump-on-write counter. save() is the StorageProvider
+   *  write doorway and stays read-only; the virtual FS mutates through
+   *  setContent(), which bumps the counter this reports. */
+  async generationToken(): Promise<string> {
+    return String(this._writes);
+  }
+
+  /** Direct mutation of the in-memory FS (inline editor buffers, tests). Bumps
+   *  the write counter so generationToken() reflects the change; save() stays
+   *  read-only (it is the shared StorageProvider write doorway). */
+  setContent(name: string, content: string): void {
+    this.files[name.replace(/^\.?\//, '')] = content;
+    this._writes++;
+  }
+
   async exists(path: string): Promise<boolean> {
     const normalized = path.replace(/^\.?\//, '');
     return this.files[normalized] !== undefined;
   }
 
-  async save(): Promise<void> {
+  /** Read-only through the StorageProvider write doorway: the virtual FS
+   *  mutates via setContent(), not commit(). */
+  async commit(_changes: FileChange[], _options?: CommitOptions): Promise<CommitResult> {
     throw new Error('InMemoryStorageProvider is read-only');
   }
-
 
   async listFiles(): Promise<UriNode> {
     const children = Object.keys(this.files).map(uri => ({ uri }));
     return { uri: '', children };
   }
 
-  async loadXmlFilesWithStats(
-    previous: Record<LofsRef, XmlFileInfo> = {}
-  ): Promise<XmlScanResult> {
-    const added: Record<LofsRef, XmlFileInfo> = {};
-    const changed: Record<LofsRef, XmlFileInfo> = {};
-    const unchanged: Record<LofsRef, XmlFileInfo> = {};
-    const found = new Set<LofsRef>();
-
+  async listContent(): Promise<ContentFile[]> {
+    const out: ContentFile[] = [];
     for (const [filename, content] of Object.entries(this.files)) {
       if (!isContentFile(filename)) continue;
-
       const ref = this.toRef(filename);
       const ext = getExtension(filename);
-      found.add(ref);
-
-      const ver = toLofsVersion(await hashContent(content));
-      const id = toLofsCanonical(withVersion(ref, ver));
-
-      const prev = previous[ref];
-      if (!prev) {
-        added[ref] = { id, type: ext, _metadata: {}, content };
-      } else if (prev.id !== id) {
-        // Content hash changed — re-read needed
-        changed[ref] = { id, type: ext, _metadata: {}, content };
-      } else {
-        unchanged[ref] = prev;
-      }
+      // Version is the content hash — the SAME identity read() stamps on
+      // provenance (see ContentFile).
+      const id = toLofsCanonical(withVersion(ref, toLofsVersion(await hashContent(content))));
+      out.push({ id, type: ext, content });
     }
-
-    // Files in previous but no longer in this.files. Only check memory: refs —
-    // in a StackedStorageProvider, previous contains refs from all providers,
-    // and reporting file: refs as deleted would mask the file provider's results.
-    const deleted: Record<LofsRef, XmlFileInfo> = {};
-    for (const ref of Object.keys(previous) as LofsRef[]) {
-      if (!found.has(ref) && scheme(brandLofsRef(ref)) === 'memory') {
-        deleted[ref] = previous[ref];
-      }
-    }
-
-    return { added, changed, unchanged, deleted };
+    return out;
   }
 
   resolveRelativePath(baseProvenance: LofsRef, relativePath: string): SafeRelativePath {
@@ -265,13 +258,5 @@ export class InMemoryStorageProvider implements StorageProvider {
     }
 
     return matches;
-  }
-
-  async remove(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
-  }
-
-  async move(): Promise<void> {
-    throw new Error('InMemoryStorageProvider is read-only');
   }
 }

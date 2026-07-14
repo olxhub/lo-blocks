@@ -54,9 +54,9 @@ describe('DocsStorageProvider', () => {
       .rejects.toThrow(/matches no registered block name/);
   });
 
-  test('scan excludes _test/ fixtures', async () => {
-    const scan = await provider.loadXmlFilesWithStats();
-    const paths = Object.keys(scan.added);
+  test('enumeration excludes _test/ fixtures', async () => {
+    const files = await provider.listContent();
+    const paths = files.map(f => String(f.id));
     expect(paths.some(p => p.includes('ActionButton.olx'))).toBe(true);
     expect(paths.some(p => p.includes('_test/'))).toBe(false);
   });
