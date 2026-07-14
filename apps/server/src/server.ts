@@ -40,6 +40,7 @@ import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
+import { createFieldStateHandler } from './routes/fieldstate.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
@@ -60,7 +61,7 @@ const WS_PATH = '/wsapi/in/';
 // MCP tools too (lib/lofs/tools.ts); the /api/file|files|grep|sources REST
 // routes are retired.
 const SERVER_PREFIXES = [
-  '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
+  '/api/olxjson', '/api/fieldstate', '/api/config', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
@@ -150,6 +151,7 @@ export async function startServer(
   // 404 here strands open boot pages in their retry loop forever).
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
   app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
+  app.get('/api/fieldstate', createFieldStateHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));

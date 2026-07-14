@@ -7,6 +7,8 @@
 // The HTTP route is a passthrough to stateForContentFetch.
 
 import type { SafeUserId } from '@/lib/types/identity';
+import type { StateKey } from '@/lib/types/id-grammar';
+import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { UserStateRegistry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import { parsePartitionSpec, groupFor } from './partitions';
@@ -94,6 +96,96 @@ async function sharedStateFor(
  * caller has no state for these blocks — normal for new users and new
  * content; the response key is simply omitted.
  */
+/** What a state fetch answers, per requested key: the caller's own
+ * bucket (`component`), the shared bucket at the key's level instance
+ * (`sharedComponent`), or membership in `absent` — the explicit
+ * "confirmed: no state" a loading block needs to stop waiting. Every
+ * requested key appears in exactly one of the three... except a key
+ * with BOTH own and shared state, which appears in both maps. */
+export interface StateForKeys {
+  component: Record<string, any>;
+  sharedComponent: Record<string, any>;
+  absent: StateKey[];
+}
+
+/**
+ * The state-fetch half of the demand-driven loading path: a client that
+ * knows exactly which state instances it renders (usually because an
+ * ancestor's own state enumerates them — a dynamic list's items field
+ * IS the index of its instances) asks for those keys and nothing else.
+ * The complement of stateForContentFetch: that path bundles state for
+ * definitions the content response serves; this one serves exact keys
+ * the content response could not have named. Both are subscriptions.
+ *
+ * Reads are id-scoped end to end (readBuckets): a request costs
+ * O(keys), never O(caller's course footprint) and never O(the `all`
+ * instance). Grouped blocks resolve their partition through the leaf
+ * definition's grouped-by spec, reading ONLY the picker buckets.
+ */
+export async function stateForKeys(
+  registry: UserStateRegistry,
+  subscriptions: SubscriptionRegistry,
+  principal: SafeUserId,
+  keys: StateKey[],
+  idMap: Record<string, any>,
+): Promise<StateForKeys> {
+  const unique = [...new Set<StateKey>(keys)];
+  const own = userInstance(principal);
+
+  // Partition resolution, picker-scoped: collect the leaf definitions'
+  // grouped-by specs, read just the picker buckets, and let instancesFor
+  // apply its usual rule over an idMap slice keyed by those leaves.
+  const leafOf = new Map<StateKey, string>(
+    unique.map((key) => [key, leafDefinitionKeyFromStateKey(key) as string]));
+  const idMapSlice: Record<string, any> = {};
+  for (const leaf of leafOf.values()) {
+    if (idMap[leaf] !== undefined) idMapSlice[leaf] = idMap[leaf];
+  }
+  const pickerKeys = Object.keys(idMapSlice).flatMap((leaf) => {
+    for (const variant of Object.values(idMapSlice[leaf] ?? {})) {
+      const spec = (variant as any)?.attributes?.['grouped-by'];
+      if (spec) {
+        const parsed = parsePartitionSpec(spec, leaf);
+        return parsed ? [parsed.pickerKey] : [];
+      }
+    }
+    return [];
+  });
+  const pickerScopes = pickerKeys.length > 0
+    ? { component: await registry.readBuckets(own, pickerKeys) }
+    : null;
+  const instanceOfLeaf = instancesFor(idMapSlice, pickerScopes);
+
+  // One id-scoped read per touched instance: the caller's own copy of
+  // every key, plus each key's shared copy at its resolved instance.
+  const instanceOf = new Map<StateKey, LevelInstance>(
+    unique.map((key) => [key, instanceOfLeaf.get(leafOf.get(key)!) ?? ALL]));
+  const byInstance = new Map<LevelInstance, StateKey[]>();
+  for (const [key, instance] of instanceOf) {
+    byInstance.set(instance, [...(byInstance.get(instance) ?? []), key]);
+  }
+  const component = await registry.readBuckets(own, unique);
+  const sharedComponent: Record<string, any> = {};
+  for (const [instance, instanceKeys] of byInstance) {
+    const buckets = await registry.readBuckets(instance, instanceKeys);
+    for (const key of instanceKeys) {
+      if (buckets[key] !== undefined) sharedComponent[key] = buckets[key];
+    }
+  }
+
+  // The state fetch IS a subscription, exactly like the content fetch:
+  // live connections subscribe now; notePending covers the socket race.
+  const subKeys = unique.map((key) => subscriptionKey(instanceOf.get(key)!, key));
+  for (const connection of registry.socketsOf(own)) {
+    subscriptions.subscribe(connection, subKeys);
+  }
+  subscriptions.notePending(principal, subKeys);
+
+  const absent = unique.filter(
+    (key) => component[key] === undefined && sharedComponent[key] === undefined);
+  return { component, sharedComponent, absent };
+}
+
 export async function stateForContentFetch(
   registry: UserStateRegistry,
   subscriptions: SubscriptionRegistry,
