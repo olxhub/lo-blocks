@@ -128,6 +128,37 @@ describe('useRenderedBlock', () => {
   });
 });
 
+describe('instance closure', () => {
+  it('gates on static descendants, not just the root key', async () => {
+    const { props, wrapper } = setup();
+    const reduxStore = props.runtime.store;
+    // A template with a static kid: the instance comprises BOTH scoped
+    // keys, and rendering before the kid's state resolves would let the
+    // kid write-from-empty.
+    const PAIR = parseDefinitionKey('gatetest/pair');
+    dispatchOlxJsonSync(reduxStore, 'content', {
+      [PAIR]: {
+        'en-US': {
+          id: PAIR, tag: 'Vertical', attributes: {},
+          kids: [{ type: 'block', id: LEAF }],
+          source: '', parseDeps: [],
+        },
+      },
+    });
+    const root = parseStateKey('gatetest/list:#c1:pair');
+    const kidKey = parseStateKey('gatetest/list:#c1:note');
+    fetchMock.mockResolvedValue({ ok: true, absent: [root, kidKey] });
+
+    const { result } = renderHook(() => useRenderedBlock(props, root), { wrapper });
+    expect(result.current.loading).toBe(true);
+
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0].sort()).toEqual([root, kidKey].sort());
+    await until(() => expect(result.current.ready).toBe(true));
+  });
+});
+
 describe('useRenderedBlockMulti', () => {
   it('returns one renderable entry per key and batches their state fetch', async () => {
     const { props, wrapper } = setup();

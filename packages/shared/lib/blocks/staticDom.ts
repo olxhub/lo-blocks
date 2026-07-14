@@ -13,7 +13,7 @@
 // prefixes — see siblingScopedKey).
 //
 import { selectBlock } from '../state/olxjson';
-import { leafDefinitionKeyFromStateKey, qualifyDefinitionRef } from '../types/id-grammar';
+import { leafDefinitionKeyFromStateKey, qualifyDefinitionRef, splitScope, addScope } from '../types/id-grammar';
 import type { DefinitionKey, DefinitionRef, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 
 /** The static-DOM entry for a block, or null if content isn't loaded. */
@@ -73,4 +73,71 @@ export function inferKids(
   };
   walk(kids);
   return found;
+}
+
+// ─── Instance state-key closure ─────────────────────────────────────────────
+
+/** Runaway guard: a template deeper/wider than this is a content bug —
+ * log it rather than silently ensuring half an instance. */
+const INSTANCE_CLOSURE_CAP = 500;
+
+/**
+ * The state keys a rendered INSTANCE comprises: the root block plus
+ * every STATICALLY-reachable descendant block, each scoped by the
+ * root's scope. This is what the state lane must resolve before an
+ * instance may render — gating only the root key would leave its
+ * children free to write-from-empty.
+ *
+ *   selectInstanceStateKeys(state, props, "ee101/list:#2:tmpl")
+ *   → ["ee101/list:#2:tmpl", "ee101/list:#2:vert", "ee101/list:#2:answer", …]
+ *
+ * Static kids share their parent's scope (only scoping containers extend
+ * the idPrefix), so every descendant keys under the SAME prefix. Nested
+ * scoping containers cascade instead: their own bucket (the instance
+ * count) is in this closure; their instances get ensured after they
+ * render and read it — depth = state-determined nesting depth.
+ *
+ * The walk reads static kids from the content store, so the closure
+ * grows as content arrives; callers re-read reactively (useSelector) and
+ * re-ensure until it settles. Pure selector — blueprint-safe.
+ */
+export function selectInstanceStateKeys(
+  reduxState: any,
+  props: RuntimeProps,
+  rootKey: StateKey,
+  source: string = 'content',
+): StateKey[] {
+  const { ns, idPrefix } = splitScope(rootKey);
+  const sources = [source];
+  const locale = props.runtime.locale.code;
+
+  const keys: StateKey[] = [];
+  const visited = new Set<string>();
+  const queue: DefinitionKey[] = [splitScope(rootKey).leaf];
+
+  const enqueueBlockRefs = (kids: any) => {
+    if (!Array.isArray(kids)) return; // text / parsed payloads have no block refs
+    for (const kid of kids) {
+      if (kid?.type === 'block' && kid.id) {
+        queue.push(qualifyDefinitionRef(kid.id, ns));
+      } else if (kid?.type === 'html') {
+        enqueueBlockRefs(kid.kids); // html wrappers nest block refs
+      }
+    }
+  };
+
+  while (queue.length > 0) {
+    const defKey = queue.shift()!;
+    if (visited.has(defKey)) continue; // content is a DAG — visit once
+    visited.add(defKey);
+    if (visited.size > INSTANCE_CLOSURE_CAP) {
+      console.warn(`[staticDom] instance closure of ${rootKey} exceeds `
+        + `${INSTANCE_CLOSURE_CAP} blocks — truncating; check the content`);
+      break;
+    }
+    keys.push(addScope(defKey, idPrefix));
+    const block = selectBlock(reduxState, sources, defKey, locale);
+    if (block) enqueueBlockRefs(block.kids);
+  }
+  return keys;
 }
