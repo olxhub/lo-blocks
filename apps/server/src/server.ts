@@ -34,6 +34,7 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { subscriptionKey } from '@/lib/state/sync/levels';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
 import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
@@ -121,10 +122,16 @@ export async function startServer(
   // user's connections fold into a single materialization (userState.ts).
   // Created before the routes: /api/olxjson reads it for initial field
   // state, the WS pipeline writes it.
-  const stateRegistry = new UserStateRegistry(kvs);
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
+  // The registry evicts resident shared buckets that nobody subscribes —
+  // it never imports SubscriptionRegistry, so it takes the count as a
+  // callback (registry.ts sweep).
+  const stateRegistry = new UserStateRegistry(kvs, {
+    subscribersOf: (instance, bucket) =>
+      subscriptions.subscribers(subscriptionKey(instance, bucket)).size,
+  });
   // Grouping index (specs + picker reverse map), TTL-cached from content.
   const grouping = makeGroupingIndex(
     async () => (await syncContentFromStorage()).idMap as any,
