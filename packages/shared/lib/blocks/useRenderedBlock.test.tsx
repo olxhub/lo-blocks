@@ -139,11 +139,16 @@ describe('useRenderedBlockMulti', () => {
       () => useRenderedBlockMulti(props, [k1, k2]), { wrapper });
     expect(result.current.blocks).toHaveLength(2);
     expect(result.current.allReady).toBe(false);
+    // olxJsons is index-aligned with the keys (the raw-content view).
+    expect(result.current.olxJsons).toHaveLength(2);
 
     await flush();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0].sort()).toEqual([k1, k2].sort());
     await until(() => expect(result.current.allReady).toBe(true));
     expect(result.current.blocks).toHaveLength(2);
+    // Resolved: the raw-content view exposes each definition for callers
+    // that read attributes (tab titles, item positions) rather than render.
+    expect(result.current.olxJsons.map(o => o?.tag)).toEqual(['TextBlock', 'TextBlock']);
   });
 });

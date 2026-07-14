@@ -5,7 +5,8 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids, useKidsJson } from '@/lib/render';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useRenderedBlockMulti } from '@/lib/blocks/useRenderedBlock';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 export default function Tabs(props: RuntimeProps) {
@@ -16,9 +17,14 @@ export default function Tabs(props: RuntimeProps) {
   // Filtered kids (when= applied) — used for headers and content indexing
   const filteredKids = useKidsJson(props);
 
-  // Extract kid IDs for batch lookup (for tab labels)
+  // Extract kid IDs for batch lookup (for tab labels). The tab bar reads
+  // each child's `title` off its definition, so we take the olxJsons view
+  // of the instance hook rather than rendering these here (content renders
+  // via useKids below). Kids are own-scope, so build scoped StateKeys.
   const kidIds = filteredKids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
+  const kidStateKeys = kidIds.map(id =>
+    scopedStateKeyForBlock({ id, ns: props.runtime.ns, idPrefix: props.idPrefix }));
+  const { olxJsons: kidBlocks } = useRenderedBlockMulti(props, kidStateKeys);
 
   // Create a map for easy lookup by ID
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
