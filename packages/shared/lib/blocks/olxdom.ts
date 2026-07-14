@@ -344,7 +344,16 @@ export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): Stat
 }
 
 /**
- * Get all related input IDs.
+ * Get all related input IDs — NEAREST-RENDERED semantics: answers "what
+ * inputs are near me in the dynamic (rendered) DOM right now," which
+ * differs from the static DOM's declared wiring (when=-hidden inputs are
+ * excluded here, scoped-container instances are enumerated here, runtime-
+ * generated kids exist only here). Grading deliberately does NOT use this
+ * (lib/grading/topology.ts derives from the static DOM); the remaining
+ * callers are display-answer helpers reached from useGraderAnswer, where
+ * render-aware discovery is plausibly the RIGHT semantics. If any of those
+ * ever needs to run server-side, choose the semantics first — this is not
+ * a mechanical swap.
  *
  * @param {Object} props - Component props with nodeInfo and optional target attribute
  * @param {Object} [options] - Optional overrides
