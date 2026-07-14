@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { useRenderedBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
-import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
@@ -97,16 +97,20 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // CapaProblem is a metagrader (isGrader: true) that aggregates its child graders.
   // Watch its own correctness rather than guessing the inner grader's auto-generated ID.
   const scopedGraderRef = parseDefinitionRef(problemId, 'MasteryBank problem');
+  const scopedProblemKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
 
-  // Render problem - useRenderedBlock handles loading state with Spinner
-  const { block: renderedProblem, error } = useRenderedBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
+  // Render problem — by its SCOPED instance key: the attempt scope is the
+  // instance identity, and the state gate must resolve the attempt's own
+  // state, not the unscoped problem's (which gated the wrong bucket and
+  // let a fresh attempt write-from-empty — found by review 2026-07).
+  const { block: renderedProblem, error } = useRenderedBlock(scopedProps, scopedProblemKey);
 
   // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
   // The hook would encapsulate commonFields.correct, scopedStateKeyForBlock, and useFieldSelector.
   // Needs design work: scoped idPrefix, grader naming convention, and field selector
   // options all need to compose correctly. Would benefit all grader-aware components.
   const graderField = commonFields.correct;
-  const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
+  const scopedGraderStateKey = scopedProblemKey;
   const currentCorrectness = useFieldSelector(
     scopedProps,
     graderField,

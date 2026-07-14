@@ -904,3 +904,29 @@ export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
 export function tryParseStateKey(s: string): StateKey | null {
   return validateStateKey(s) === true ? asStateKey(s) : null;
 }
+
+/**
+ * Decompose a StateKey into namespace, scope, and leaf definition — the
+ * inverse of addScope(qualifyDefinitionRef(...), idPrefix):
+ *
+ *   splitScope("ee101/list:#2:answer")
+ *   → { ns: "ee101", idPrefix: "list:#2", leaf: "ee101/answer" }
+ *
+ *   splitScope("ee101/answer")
+ *   → { ns: "ee101", idPrefix: undefined, leaf: "ee101/answer" }
+ *
+ * The idPrefix is what SIBLINGS of the leaf share: every block rendered
+ * in the same instance scope keys its state under the same prefix.
+ */
+export function splitScope(key: StateKey): {
+  ns: ContentNamespace; idPrefix: IdPrefix | undefined; leaf: DefinitionKey;
+} {
+  const { ns, path } = splitNs(key);
+  const segments = splitPath(path);
+  // The grammar guarantees the LAST segment is the leaf id
+  // (statePath = (scopeSegment ":")* leafId).
+  const idPrefix = segments.length > 1
+    ? asIdPrefix(joinPath(segments.slice(0, -1)))
+    : undefined;
+  return { ns, idPrefix, leaf: asDefinitionKey(joinNs(ns, segments[segments.length - 1])) };
+}

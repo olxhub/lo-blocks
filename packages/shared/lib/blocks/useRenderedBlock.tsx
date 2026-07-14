@@ -30,7 +30,7 @@ import { ensureInstance } from './ensure';
 import {
   selectFieldFreshness, selectFieldAttempt, type FreshnessPolicy, type Freshness,
 } from '@/lib/state/fieldLedger';
-import { selectKidsJson } from './olxdom';
+import { selectKidsJson, selectInstanceStateKeys } from './olxdom';
 
 export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
@@ -88,6 +88,57 @@ function stateBlockData(
 }
 
 /**
+ * The STATE GATE for one rendered instance: resolves the instance's
+ * whole state-key closure (root + statically-reachable descendants,
+ * selectInstanceStateKeys) through the state lane and reports the
+ * aggregate as plain block data. Gating only the root key would leave
+ * the instance's children free to write-from-empty — the closure is
+ * what makes the client residency invariant hold for a subtree.
+ *
+ * For scoping containers that render instances through templates
+ * (DynamicList, MasteryBank) rather than by StateKey: call this with
+ * the instance's root key and hold rendering until `ready`.
+ * useRenderedBlock/Multi call it internally — most code never touches
+ * it directly.
+ */
+export function useInstanceState(
+  props: RuntimeProps,
+  rootKey: StateKey | null,
+  { source = 'content', policy }: InstanceOptions = {},
+): BlockDataResult {
+  const view = useSelector(
+    (state: any) => {
+      if (!rootKey) return { keys: [] as StateKey[], gate: null as BlockDataResult | null };
+      const keys = selectInstanceStateKeys(state, props, rootKey, source);
+      // Aggregate: any failure wins (surface it), else any non-ready
+      // key holds the gate, else ready.
+      let gate: BlockDataResult | null = null;
+      for (const key of keys) {
+        const fresh = selectFieldFreshness(state, key, { policy });
+        const objection = stateBlockData(fresh, key,
+          fresh === 'failed' ? selectFieldAttempt(state, key) : undefined);
+        if (objection?.error) { gate = objection; break; }
+        gate ??= objection;
+      }
+      return { keys, gate };
+    },
+    (a, b) => a.keys.length === b.keys.length
+      && a.gate?.status === b.gate?.status && a.gate?.error === b.gate?.error
+      && a.keys.every((k, i) => k === b.keys[i]),
+  );
+
+  useEffect(() => {
+    if (view.keys.length > 0) ensureInstance(props, view.keys, { policy });
+    // ensureInstance is idempotent and ledger-gated; the joined keys and
+    // gate status re-arm it as content arrives (closure grows) and as
+    // failures become retry-eligible.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.keys.join('|'), view.gate?.status, source, props.runtime.sideEffectFree]);
+
+  return view.gate ?? blockData('ready');
+}
+
+/**
  * Render a block INSTANCE by StateKey: content via useOlxJson (the leaf
  * definition — OlxJson doesn't need state), field state via the state
  * lane (ensureInstance + the field ledger). Returns a renderable
@@ -109,24 +160,15 @@ export function useRenderedBlock(
   const gateReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
   const renderedOnceRef = React.useRef(false);
 
-  const fresh: Freshness = useSelector((state: any) =>
-    stateKey ? selectFieldFreshness(state, stateKey, { policy }) : 'ready');
-  const attempt = useSelector((state: any) =>
-    stateKey && fresh === 'failed' ? selectFieldAttempt(state, stateKey) : undefined,
-    shallowEqual);
-
-  useEffect(() => {
-    if (stateKey) ensureInstance(props, [stateKey], { policy });
-    // ensureInstance is idempotent and ledger-gated; `fresh` in the deps
-    // re-arms it when a failure becomes eligible for retry.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stateKey, fresh, source, props.runtime.sideEffectFree]);
+  // The state gate covers the instance's whole closure (root + static
+  // descendants) — its children must not write-from-empty either.
+  const stateGate = useInstanceState(props, stateKey, { source, policy });
 
   if (!stateKey) {
     return { block: null, olxJson: undefined, ...blockData('ready') };
   }
 
-  const stateObjection = stateBlockData(fresh, stateKey, attempt);
+  const stateObjection = stateGate.status === 'ready' ? null : stateGate;
   const depsReady = renderedOnceRef.current || gateReady;
 
   if (olxResult.loading || !depsReady || stateObjection?.loading) {
@@ -183,40 +225,53 @@ export function useRenderedBlockMulti(
     olxJson: OlxJson | null;
     olxStatus: string;
     olxError?: string;
-    fresh: Freshness;
-    attempt?: { failures: number; startedAt: number; lastError?: string };
+    /** Aggregate state-gate objection over the key's CLOSURE (root +
+     * static descendants — selectInstanceStateKeys), or null if ready. */
+    stateObjection: BlockDataResult | null;
+    closureKeys: StateKey[];
   }
   const view: KeyView[] = useSelector(
     (state: any) => stateKeys.map((key): KeyView => {
       const defRef = leafDefinitionKeyFromStateKey(key);
       const olx = selectOlxJson(state, props, defRef, source);
-      const fresh = selectFieldFreshness(state, key, { policy });
+      const closureKeys = selectInstanceStateKeys(state, props, key, source);
+      let stateObjection: BlockDataResult | null = null;
+      for (const closureKey of closureKeys) {
+        const fresh = selectFieldFreshness(state, closureKey, { policy });
+        const objection = stateBlockData(fresh, closureKey,
+          fresh === 'failed' ? selectFieldAttempt(state, closureKey) : undefined);
+        if (objection?.error) { stateObjection = objection; break; }
+        stateObjection ??= objection;
+      }
       return {
         key,
         olxJson: olx.olxJson,
         olxStatus: olx.status,
         olxError: olx.error ?? undefined,
-        fresh,
-        attempt: fresh === 'failed' ? selectFieldAttempt(state, key) : undefined,
+        stateObjection,
+        closureKeys,
       };
     }),
     (a, b) => a.length === b.length && a.every((av, i) => {
       const bv = b[i];
       return av.key === bv.key && av.olxJson === bv.olxJson
         && av.olxStatus === bv.olxStatus && av.olxError === bv.olxError
-        && av.fresh === bv.fresh;
+        && av.stateObjection?.status === bv.stateObjection?.status
+        && av.stateObjection?.error === bv.stateObjection?.error
+        && av.closureKeys.length === bv.closureKeys.length;
     }),
   );
 
   useEffect(() => {
-    ensureInstance(props, stateKeys, { policy });
+    const allKeys = [...new Set(view.flatMap((v) => v.closureKeys))];
+    if (allKeys.length > 0) ensureInstance(props, allKeys, { policy });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(stateKeys), source, props.runtime.sideEffectFree,
-      view.map((v) => v.fresh).join('|')]);
+  }, [view.map((v) => `${v.closureKeys.join(',')}:${v.stateObjection?.status ?? 'ready'}`).join('|'),
+      source, props.runtime.sideEffectFree]);
 
   let allReady = true;
   const blocks = view.map((v) => {
-    const stateObjection = stateBlockData(v.fresh, v.key, v.attempt);
+    const { stateObjection } = v;
     const error = v.olxError
       ?? stateObjection?.error
       ?? (v.olxStatus === 'ready' && !v.olxJson ? `Block "${v.key}" not found` : null);

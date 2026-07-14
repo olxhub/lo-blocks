@@ -17,7 +17,7 @@ import {
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   scopedStateKeyForBlock, stateKeyForGlobalRef,
   qualifyDefinitionRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
-  tryParseStateKey,
+  tryParseStateKey, splitScope, addScope,
   asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
@@ -689,6 +689,27 @@ describe("allDefinitionKeysFromStateKey", () => {
 // but may be componentSetting tags, storage URIs, or system sentinels.
 // It parses at the boundary and keeps the null case — the grammar module
 // never returns an unbranded id-shaped string.
+
+describe("splitScope", () => {
+  it("scoped key → prefix + leaf definition", () => {
+    const { ns, idPrefix, leaf } = splitScope(parseStateKey("ee101/list:#2:answer"));
+    expect(String(ns)).toBe("ee101");
+    expect(String(idPrefix)).toBe("list:#2");
+    expect(String(leaf)).toBe("ee101/answer");
+  });
+
+  it("unscoped key → no prefix, leaf = itself", () => {
+    const { idPrefix, leaf } = splitScope(parseStateKey("ee101/answer"));
+    expect(idPrefix).toBeUndefined();
+    expect(String(leaf)).toBe("ee101/answer");
+  });
+
+  it("round-trips with addScope", () => {
+    const key = parseStateKey("physics/outer:#0:inner:#1:leaf");
+    const { idPrefix, leaf } = splitScope(key);
+    expect(String(addScope(leaf, idPrefix))).toBe(String(key));
+  });
+});
 
 describe("tryParseStateKey", () => {
   it("valid keys parse to the branded key", () => {
