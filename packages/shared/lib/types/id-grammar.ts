@@ -895,3 +895,12 @@ export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
   const { ns, path } = splitNs(key);
   return blockSegments(path).map(id => asDefinitionKey(joinNs(ns, id)));
 }
+
+/** Non-throwing boundary parse: the branded StateKey when valid, else
+ * null. For callers handling id-shaped strings that may not be StateKeys
+ * (componentSetting tags, storage URIs, system ids) — the caller keeps
+ * the null case and decides what non-key means THERE; this module never
+ * returns an unbranded id-shaped string. */
+export function tryParseStateKey(s: string): StateKey | null {
+  return validateStateKey(s) === true ? asStateKey(s) : null;
+}
