@@ -15,22 +15,23 @@ import { parsePartitionSpec, groupFor } from './partitions';
 import { ALL, type LevelInstance, userInstance, setInstance, subscriptionKey } from './levels';
 
 /**
- * Pick the caller's per-user component buckets that belong to the ids
- * being served. State keys usually equal block ids; scoped variants
- * extend the id (`{id}#{qualifier}`), so prefix matches are included.
+ * The picker state keys the served blocks' grouped-by specs read —
+ * exactly what partition resolution needs from the caller's own state,
+ * so instancesFor never needs the whole instance.
  */
-export function fieldStateForIds(
-  scopes: Record<string, any> | null,
-  ids: string[],
-): Record<string, any> | null {
-  if (!scopes?.component) return null;
-  const component: Record<string, any> = {};
-  for (const key of Object.keys(scopes.component)) {
-    if (ids.some((id) => key === id || key.startsWith(`${id}#`))) {
-      component[key] = scopes.component[key];
+function pickerKeysFor(responseIdMap: Record<string, any>): string[] {
+  const keys: string[] = [];
+  for (const id of Object.keys(responseIdMap)) {
+    for (const variant of Object.values(responseIdMap[id] ?? {})) {
+      const spec = (variant as any)?.attributes?.['grouped-by'];
+      if (spec) {
+        const parsed = parsePartitionSpec(spec, id);
+        if (parsed) keys.push(parsed.pickerKey);
+        break;
+      }
     }
   }
-  return Object.keys(component).length > 0 ? { component } : null;
+  return keys;
 }
 
 /**
@@ -141,16 +142,7 @@ export async function stateForKeys(
   for (const leaf of leafOf.values()) {
     if (idMap[leaf] !== undefined) idMapSlice[leaf] = idMap[leaf];
   }
-  const pickerKeys = Object.keys(idMapSlice).flatMap((leaf) => {
-    for (const variant of Object.values(idMapSlice[leaf] ?? {})) {
-      const spec = (variant as any)?.attributes?.['grouped-by'];
-      if (spec) {
-        const parsed = parsePartitionSpec(spec, leaf);
-        return parsed ? [parsed.pickerKey] : [];
-      }
-    }
-    return [];
-  });
+  const pickerKeys = pickerKeysFor(idMapSlice);
   const pickerScopes = pickerKeys.length > 0
     ? { component: await registry.readBuckets(own, pickerKeys) }
     : null;
@@ -192,11 +184,27 @@ export async function stateForContentFetch(
   principal: SafeUserId,
   responseIdMap: Record<string, any>,
 ): Promise<Record<string, any> | null> {
-  const callerScopes = await registry.read(userInstance(principal));
-  const instanceOf = instancesFor(responseIdMap, callerScopes);
+  const own = userInstance(principal);
+
+  // The served DEFINITION ids ARE the caller's static state keys
+  // (StateKey = DefinitionKey when no scope applies), so both partition
+  // resolution and the own-state read are id-scoped constructions —
+  // never "assemble the caller's whole instance and filter", which
+  // scaled with their course footprint, guessed key membership by
+  // prefix, and spoke a dead '#'-suffix grammar (found by review
+  // 2026-07). Scoped instances (ns/list:#2:answer) deliberately do NOT
+  // ride content responses: only an ancestor's own state enumerates
+  // them, so the client requests them exactly (stateForKeys) after it
+  // renders that ancestor.
+  const servedIds = Object.keys(responseIdMap);
+  const pickerKeys = pickerKeysFor(responseIdMap);
+  const pickerScopes = pickerKeys.length > 0
+    ? { component: await registry.readBuckets(own, pickerKeys) }
+    : null;
+  const instanceOf = instancesFor(responseIdMap, pickerScopes);
 
   const keys = [...instanceOf].map(([id, instance]) => subscriptionKey(instance, id));
-  for (const connection of registry.socketsOf(userInstance(principal))) {
+  for (const connection of registry.socketsOf(own)) {
     subscriptions.subscribe(connection, keys);
   }
   // The fetch may have raced the caller's WebSocket (page load fetches
@@ -204,11 +212,11 @@ export async function stateForContentFetch(
   // principal so the arriving connection adopts them (subscriptions.ts).
   subscriptions.notePending(principal, keys);
 
-  const own = fieldStateForIds(callerScopes, [...instanceOf.keys()]);
+  const component = await registry.readBuckets(own, servedIds);
   const shared = await sharedStateFor(registry, instanceOf);
-  if (!own && Object.keys(shared).length === 0) return null;
+  if (Object.keys(component).length === 0 && Object.keys(shared).length === 0) return null;
   return {
-    ...(own ? { component: own.component } : {}),
+    ...(Object.keys(component).length > 0 ? { component } : {}),
     ...(Object.keys(shared).length > 0 ? { sharedComponent: shared } : {}),
   };
 }

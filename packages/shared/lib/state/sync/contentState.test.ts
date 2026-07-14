@@ -1,14 +1,15 @@
 // @vitest-environment node
 // packages/shared/lib/state/sync/contentState.test.ts
 //
-// fieldStateForIds: the filter picking which of a caller's component
-// buckets ride a content response (fields-design step 2b).
+// stateForContentFetch: state bundled on a content response by
+// CONSTRUCTED keys (served definition ids ARE the static state keys) —
+// never by assembling and filtering the caller's whole instance.
 // stateForKeys: the exact-key state fetch (demand-driven loading) —
 // id-scoped reads, partition resolution via picker buckets only, and
 // explicit absence confirmation.
 
 import { test, expect } from 'vitest';
-import { fieldStateForIds, stateForKeys } from './contentState';
+import { stateForContentFetch, stateForKeys } from './contentState';
 import { UserStateRegistry } from './registry';
 import { SubscriptionRegistry } from './subscriptions';
 import { MemoryKVStore } from '@/lib/storage/kvs';
@@ -16,32 +17,50 @@ import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import { parseStateKey } from '@/lib/types/id-grammar';
 import { ALL, userInstance, setInstance, subscriptionKey } from './levels';
 
-const scopes = {
-  system: { locale: 'en' },
-  component: {
-    'course/page1': { seen: true },
-    'course/page1#attempt_0': { value: 'scoped child' },
-    'course/page2': { value: 'other page' },
-  },
-  componentSetting: {},
-};
+// ── stateForContentFetch ─────────────────────────────────────────────────
 
-test('exact ids and their scoped variants are included', () => {
-  const out = fieldStateForIds(scopes, ['course/page1']);
-  expect(Object.keys(out!.component).sort()).toEqual([
-    'course/page1', 'course/page1#attempt_0',
-  ]);
+const P2 = 'guest-Fetcher' as SafeUserId;
+const OWN2 = userInstance(P2);
+
+test('own state comes from constructed keys; scoped instances never bundle', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const store = (instance: string, id: string, bucket: Record<string, any>) =>
+    kvs.set(kvsKey.field(instance, 'component', id), JSON.stringify(bucket));
+  await store(OWN2, 'demos/page1', { seen: true });
+  await store(OWN2, 'demos/list:#0:answer', { value: 'dynamic instance' });
+  await store(OWN2, 'demos/elsewhere', { value: 'other page' });
+
+  const responseIdMap = { 'demos/page1': { v1: { tag: 'TextBlock' } } };
+  const out = await stateForContentFetch(registry, new SubscriptionRegistry(), P2, responseIdMap);
+
+  expect(out!.component).toEqual({ 'demos/page1': { seen: true } });
+  // The scoped instance is enumerable only from student state — it rides
+  // the exact-key fetch (stateForKeys) after its ancestor renders, never
+  // the content bundle.
 });
 
-test('unrelated buckets and other scopes never leak', () => {
-  const out = fieldStateForIds(scopes, ['course/page1']);
-  expect(out!.component['course/page2']).toBeUndefined();
-  expect((out as any).system).toBeUndefined();
+test('no state anywhere → null (response key omitted)', async () => {
+  const registry = new UserStateRegistry(new MemoryKVStore());
+  const out = await stateForContentFetch(
+    registry, new SubscriptionRegistry(), P2, { 'demos/new': { v1: { tag: 'TextBlock' } } });
+  expect(out).toBeNull();
 });
 
-test('no matching state → null (key omitted from the response)', () => {
-  expect(fieldStateForIds(scopes, ['course/never-seen'])).toBeNull();
-  expect(fieldStateForIds(null, ['course/page1'])).toBeNull();
+test('grouped blocks resolve their partition through the picker bucket only', async () => {
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const store = (instance: string, id: string, bucket: Record<string, any>) =>
+    kvs.set(kvsKey.field(instance, 'component', id), JSON.stringify(bucket));
+  await store(OWN2, 'demos/topic', { value: 'Cats' });
+  await store(setInstance('topic.value', 'Cats'), 'demos/notes', { notes: 'cat notes' });
+  await store(ALL, 'demos/notes', { notes: 'unpartitioned' });
+
+  const responseIdMap = {
+    'demos/notes': { v1: { tag: 'SharedNotes', attributes: { 'grouped-by': 'topic.value' } } },
+  };
+  const out = await stateForContentFetch(registry, new SubscriptionRegistry(), P2, responseIdMap);
+  expect(out!.sharedComponent).toEqual({ 'demos/notes': { notes: 'cat notes' } });
 });
 
 // ── stateForKeys ─────────────────────────────────────────────────────────
