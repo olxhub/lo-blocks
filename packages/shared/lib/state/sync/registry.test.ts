@@ -31,17 +31,16 @@ test('empty id list reads nothing', async () => {
   expect(await registry.readBuckets(ALL, [])).toEqual({});
 });
 
-test('a live, seeded materialization is authoritative over storage', async () => {
+test('a RESIDENT bucket is authoritative over storage', async () => {
   const kvs = new MemoryKVStore();
   await storeBucket(kvs, 'poll1', { votes: 3 });
   const registry = new UserStateRegistry(kvs);
 
+  // Making the bucket resident adopts its stored value into the
+  // materialization — from here the live entry, not storage, is authority.
   const entry = registry.acquire(ALL);
-  await entry.ensureSeeded(async () => {
-    entry.serverState.seed({ component: { poll1: { votes: 3 } } });
-  });
-  // Storage moves on (e.g. another flush cycle wrote something stale-r):
-  // the live entry, not storage, is the instance's authority.
+  await entry.ensureBucketLoaded('poll1');
+  // Storage moves on (another flush cycle wrote something stale-r).
   await storeBucket(kvs, 'poll1', { votes: -1 });
 
   const buckets = await registry.readBuckets(ALL, ['poll1']);
@@ -49,17 +48,47 @@ test('a live, seeded materialization is authoritative over storage', async () =>
   await entry.release();
 });
 
-test('an unseeded live entry overlays its buckets on stored ones', async () => {
+test('a non-resident bucket reads straight from storage', async () => {
   const kvs = new MemoryKVStore();
   await storeBucket(kvs, 'poll1', { votes: 3 });
   await storeBucket(kvs, 'poll2', { votes: 7 });
   const registry = new UserStateRegistry(kvs);
 
-  // Acquired but never seeded (no connection load ran): its
-  // materialization holds only this session's events — here, none for
-  // poll1, so storage shows through; a live bucket would win wholesale.
+  // Acquired but no bucket loaded: nothing resident, so storage shows
+  // through (and readBuckets warms the entry with what it read).
   const entry = registry.acquire(ALL);
   const buckets = await registry.readBuckets(ALL, ['poll1', 'poll2']);
   expect(buckets).toEqual({ poll1: { votes: 3 }, poll2: { votes: 7 } });
+  await entry.release();
+});
+
+test('ROGUE REDUCER: an ungated fold warns loudly and the repair keeps stored fields', async () => {
+  // INV-1 rests on "an event with an id writes only component[event.id]".
+  // If a reducer instead dirties some OTHER, never-gated bucket, the
+  // backstop must fire (loud contract-check) and repair merges the stored
+  // copy under the live fold so nothing on disk is clobbered.
+  const kvs = new MemoryKVStore();
+  await storeBucket(kvs, 'rogue', { keep: 'stored', value: 'old' });
+  const registry = new UserStateRegistry(kvs);
+  const entry = registry.acquire(ALL);
+
+  const warns: string[] = [];
+  const orig = console.warn;
+  console.warn = (...a: any[]) => { warns.push(a.join(' ')); };
+  try {
+    // Bypass routeEvent's gate: dispatch straight into the materialization,
+    // then run the diff — 'rogue' was never made resident.
+    entry.serverState.dispatch({
+      event: 'UPDATE_VALUE', field: 'value', scope: 'component',
+      id: 'rogue', value: 'new', ts: 1, actor: 'x',
+    });
+    entry.persister.stateChanged(entry.serverState.state);
+    await new Promise((r) => setTimeout(r, 10)); // let the async repair run
+  } finally { console.warn = orig; }
+
+  expect(warns.some((w) => w.includes('INV-1 VIOLATION') && w.includes('rogue'))).toBe(true);
+  const buckets = await registry.readBuckets(ALL, ['rogue']);
+  expect(buckets.rogue.keep).toBe('stored'); // stored field preserved by the repair
+  expect(buckets.rogue.value).toBe('new');   // live fold still applied
   await entry.release();
 });

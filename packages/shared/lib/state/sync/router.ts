@@ -28,7 +28,7 @@ import { parsePartitionSpec, groupFor } from './partitions';
 import {
   tryParseStateKey, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
 } from '@/lib/types/id-grammar';
-import { assembleFieldState } from './persistence';
+import { assembleFieldState, CORE_SCOPES } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
@@ -75,11 +75,12 @@ export async function entryFor(session: SyncSession, instance: LevelInstance): P
   const entry = session.registry.acquire(instance, session.origin);
   session.holdings.set(instance, entry);
   await entry.ensureSeeded(async () => {
-    const scopes = await assembleFieldState(session.kvs, instance);
-    if (scopes) {
-      entry.serverState.seed(scopes);
-      entry.persister.startFromPersisted(entry.serverState.state);
-    }
+    // EAGER core scopes only — `component` is lazy (ensureBucketLoaded per
+    // bucket, gated at dispatch). The whole-instance seed at connect (which
+    // scaled with the instance's total footprint and pinned it for the
+    // connection's life) is gone.
+    const core = await assembleFieldState(session.kvs, instance, CORE_SCOPES);
+    if (core) entry.seedCore(core);
   });
   return entry;
 }
@@ -116,6 +117,11 @@ async function sharedInstanceFor(session: SyncSession, stateId: string): Promise
   if (!spec) return ALL;
   const parsed = parsePartitionSpec(spec, stateId);
   const own = session.holdings.get(userInstance(session.principal));
+  // The picker bucket lives in the sender's OWN materialization and may be
+  // cold under lazy residency — gate it, or partition resolution silently
+  // reads empty and misroutes the event to `all` instead of the user's set
+  // instance (the worst failure mode: cross-partition leakage).
+  if (parsed && own) await own.ensureBucketLoaded(parsed.pickerKey);
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
     : undefined;
@@ -165,6 +171,12 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
     ? await sharedInstanceFor(session, event.id!)
     : userInstance(session.principal);
   const entry = await entryFor(session, instance);
+  // INV-1 dispatch gate: make the target `component` bucket resident BEFORE
+  // the fold — a fold into a non-resident bucket would flush over storage
+  // from an empty base. Same-bucket FIFO is preserved: awaiters of the same
+  // cached promise resume in registration order. Events without an id touch
+  // only eager scopes (already seeded whole).
+  if (event.id) await entry.ensureBucketLoaded(event.id);
   const ownInstance = isUserInstance(instance);
 
   // Capture the TRANSITION for distant folds (aggregations.ts): views
@@ -236,6 +248,9 @@ async function switchGroup(
   if (oldInstance === newInstance) return;
 
   const newEntry = await entryFor(session, newInstance);
+  // The pushed patch reads the NEW instance's bucket from its
+  // materialization — gate it resident first (the OLD side uses readBuckets).
+  await newEntry.ensureBucketLoaded(blockId);
   const newBucket = (newEntry.serverState.state as any).component?.[blockId] ?? {};
   const oldBuckets = await session.registry.readBuckets(oldInstance, [blockId]);
   const blanks: Record<string, any> = {};
@@ -267,6 +282,9 @@ async function applyAggregation(
 ) {
   const instance = await sharedInstanceFor(session, view.viewId);
   const entry = await entryFor(session, instance);
+  // The aggregate bucket is the fold BASE — a cold read would restart the
+  // fold from initial and the flush would overwrite the real aggregate.
+  await entry.ensureBucketLoaded(view.viewId);
   const state = entry.serverState.state as any;
   const bucket = state.component?.[view.viewId] ?? {};
   let base = bucket[view.resultField];

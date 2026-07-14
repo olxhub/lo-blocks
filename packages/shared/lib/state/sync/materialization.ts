@@ -39,10 +39,37 @@ export class ServerState {
   }
 
   /**
-   * Adopt previously persisted scopes (from the user's stored blob or the
-   * per-field store). The client does the same on load (deserializeOnLoad
-   * in store.ts) — without this, a connection's materialized state covers
-   * only this session's events and can never match the client's.
+   * Adopt a single COMPONENT bucket from storage under INV-1: the bucket
+   * was non-resident (no event has folded into it yet), so its stored
+   * value is authoritative and there is NOTHING to merge — plain
+   * assignment. This is why the lazy path needs no seed()-style merge: the
+   * dispatch gate (router.ts) makes a bucket resident BEFORE the first
+   * fold, so a fold can never precede its adopt. A missing stored value
+   * leaves the bucket absent (resident-empty — the fold may create it).
+   */
+  adoptBucket(scope: string, bucket: string, value: Record<string, any> | undefined) {
+    if (value === undefined) return;
+    const scopeMap = (this.state as any)[scope] ?? {};
+    this.state = { ...this.state, [scope]: { ...scopeMap, [bucket]: value } } as any;
+  }
+
+  /** Drop a component bucket from the materialization (eviction, registry.ts):
+   * it becomes non-resident, so storage is authoritative again and the next
+   * event re-adopts it through the gate. */
+  dropBucket(scope: string, bucket: string) {
+    const scopeMap = (this.state as any)[scope];
+    if (!scopeMap || !(bucket in scopeMap)) return;
+    const next = { ...scopeMap };
+    delete next[bucket];
+    this.state = { ...this.state, [scope]: next } as any;
+  }
+
+  /**
+   * Adopt previously persisted CORE scopes (system/componentSetting/
+   * storage) from the field store or the legacy blob — the eager scopes,
+   * loaded whole at first acquire (O(app), not O(content)). The `component`
+   * scope does NOT come through here; it is lazy (adoptBucket per bucket).
+   * The client does the same on load (deserializeOnLoad in store.ts).
    */
   seed(persistedScopes: Record<string, any> | null | undefined) {
     if (!persistedScopes) return;
