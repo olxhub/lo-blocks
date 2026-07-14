@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Provider } from 'react-redux';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/content/fetchOlxJson', () => ({
@@ -22,15 +22,19 @@ import { useRenderedBlock, useRenderedBlockMulti } from './useRenderedBlock';
 import { resetEnsureForTests } from './ensure';
 import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
+import { mockRuntime } from '@/lib/test-utils';
+import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import { parseStateKey } from '@/lib/types/id-grammar';
 
 const fetchMock = fetchFieldState as ReturnType<typeof vi.fn>;
 
-const LEAF = testKey('note');           // CONTENT/note
+// A namespace no fixture shares: demo-render tests load real content
+// into the SAME lo_event singleton store under CONTENT/, and a leaked
+// entry for our keys would defeat the gate assertions (flaked 2026-07).
+const LEAF = parseDefinitionKey('gatetest/note');
 // The lo_event store is a module singleton surviving store.init — every
 // test uses its OWN scope marker so ledger entries can't leak between them.
-const SCOPED = parseStateKey('CONTENT/list:#0:note');
+const SCOPED = parseStateKey('gatetest/list:#0:note');
 
 function setup() {
   const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
@@ -58,12 +62,13 @@ function setup() {
   return { reduxStore, props, wrapper };
 }
 
-// Two timer rounds: the microtask fetch batch, then lo_event's own
-// dispatch tick (adoptFieldState lands one tick after the response).
+// The pipeline is multi-tick (microtask fetch batch, then lo_event's own
+// dispatch tick) and tick counts vary under load — poll, never count.
 const flush = () => act(async () => {
   await new Promise((r) => setTimeout(r, 0));
   await new Promise((r) => setTimeout(r, 10));
 });
+const until = (probe: () => void) => waitFor(probe, { timeout: 5000 });
 
 beforeEach(() => {
   resetEnsureForTests();
@@ -82,7 +87,7 @@ describe('useRenderedBlock', () => {
     await flush();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toEqual([SCOPED]);
-    expect(result.current.ready).toBe(true);
+    await until(() => expect(result.current.ready).toBe(true));
     expect(result.current.olxJson?.tag).toBe('TextBlock');
   });
 
@@ -94,25 +99,23 @@ describe('useRenderedBlock', () => {
     act(() => adoptFieldState(undefined, [LEAF]));
 
     const { result } = renderHook(() => useRenderedBlock(props, LEAF as any), { wrapper });
-    await flush();
+    await until(() => expect(result.current.ready).toBe(true));
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(result.current.ready).toBe(true);
     expect(reduxStore.getState().application_state.fieldLedger[LEAF].resolvedAt).toBeTruthy();
   });
 
   it('ephemeral policy renders without any state fetch', async () => {
     const { props, wrapper } = setup();
     const { result } = renderHook(
-      () => useRenderedBlock(props, parseStateKey('CONTENT/list:#eph:note'), { policy: policies.ephemeral }),
+      () => useRenderedBlock(props, parseStateKey('gatetest/list:#eph:note'), { policy: policies.ephemeral }),
       { wrapper });
-    await flush();
+    await until(() => expect(result.current.ready).toBe(true));
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(result.current.ready).toBe(true);
   });
 
   it('reports error with attempt facts once retries are exhausted', async () => {
     const { props, wrapper } = setup();
-    const failKey = parseStateKey('CONTENT/list:#fail:note');
+    const failKey = parseStateKey('gatetest/list:#fail:note');
     fetchMock.mockResolvedValue({ ok: false, error: 'server exploded' });
     // Exhaust attempts: retry timers fire on the ledger's backoff; rather
     // than fake timers across microtask batching, use a policy-free path
@@ -128,8 +131,8 @@ describe('useRenderedBlock', () => {
 describe('useRenderedBlockMulti', () => {
   it('returns one renderable entry per key and batches their state fetch', async () => {
     const { props, wrapper } = setup();
-    const k1 = parseStateKey('CONTENT/list:#m1:note');
-    const k2 = parseStateKey('CONTENT/list:#m2:note');
+    const k1 = parseStateKey('gatetest/list:#m1:note');
+    const k2 = parseStateKey('gatetest/list:#m2:note');
     fetchMock.mockResolvedValue({ ok: true, absent: [k1, k2] });
 
     const { result } = renderHook(
@@ -142,7 +145,7 @@ describe('useRenderedBlockMulti', () => {
     await flush();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0].sort()).toEqual([k1, k2].sort());
-    expect(result.current.allReady).toBe(true);
+    await until(() => expect(result.current.allReady).toBe(true));
     expect(result.current.blocks).toHaveLength(2);
     // Resolved: the raw-content view exposes each definition for callers
     // that read attributes (tab titles, item positions) rather than render.
