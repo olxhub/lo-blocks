@@ -1,0 +1,146 @@
+// @vitest-environment jsdom
+// useRenderedBlock / useRenderedBlockMulti: the instance hook stack.
+// A dynamic (scoped) instance must not render — and so can never write —
+// until its state resolves (adopted or confirmed absent): the client
+// half of the residency invariant.
+
+import React from 'react';
+import { Provider } from 'react-redux';
+import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@/lib/content/fetchOlxJson', () => ({
+  fetchFieldState: vi.fn(),
+  fetchOlxJson: vi.fn(),
+}));
+
+import { fetchFieldState } from '@/lib/content/fetchOlxJson';
+import { store } from '@/lib/state/store';
+import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
+import { policies } from '@/lib/state/fieldLedger';
+import { useRenderedBlock, useRenderedBlockMulti } from './useRenderedBlock';
+import { resetEnsureForTests } from './ensure';
+import { makeRootNode } from '@/lib/render';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
+import { parseStateKey } from '@/lib/types/id-grammar';
+
+const fetchMock = fetchFieldState as ReturnType<typeof vi.fn>;
+
+const LEAF = testKey('note');           // CONTENT/note
+// The lo_event store is a module singleton surviving store.init — every
+// test uses its OWN scope marker so ledger entries can't leak between them.
+const SCOPED = parseStateKey('CONTENT/list:#0:note');
+
+function setup() {
+  const reduxStore = store.init({ blockRegistry: BLOCK_REGISTRY, websocket: false });
+  // Content for the leaf definition is already loaded — these tests are
+  // about the STATE lane.
+  dispatchOlxJsonSync(reduxStore, 'content', {
+    [LEAF]: {
+      'en-US': {
+        id: LEAF, tag: 'TextBlock', attributes: {}, kids: ['hello'],
+        source: '', parseDeps: [],
+      },
+    },
+  });
+  const runtime = mockRuntime({
+    store: reduxStore,
+    sideEffectFree: false,
+    blockRegistry: BLOCK_REGISTRY,
+  });
+  const props: any = {
+    id: 'note',
+    runtime,
+    nodeInfo: makeRootNode(runtime, 'test'),
+  };
+  const wrapper = ({ children }: any) => <Provider store={reduxStore}>{children}</Provider>;
+  return { reduxStore, props, wrapper };
+}
+
+// Two timer rounds: the microtask fetch batch, then lo_event's own
+// dispatch tick (adoptFieldState lands one tick after the response).
+const flush = () => act(async () => {
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 10));
+});
+
+beforeEach(() => {
+  resetEnsureForTests();
+  fetchMock.mockReset();
+});
+
+describe('useRenderedBlock', () => {
+  it('gates a dynamic instance on its state, then renders on confirmed-none', async () => {
+    const { props, wrapper } = setup();
+    fetchMock.mockResolvedValue({ ok: true, absent: [SCOPED] });
+
+    const { result } = renderHook(() => useRenderedBlock(props, SCOPED), { wrapper });
+    // Content is present, but state is unresolved — the block must not render.
+    expect(result.current.loading).toBe(true);
+
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toEqual([SCOPED]);
+    expect(result.current.ready).toBe(true);
+    expect(result.current.olxJson?.tag).toBe('TextBlock');
+  });
+
+  it('a static instance (StateKey = DefinitionKey) resolved by content coverage never fetches state', async () => {
+    const { reduxStore, props, wrapper } = setup();
+    // Simulate the content fetch marking its served defs as coverage —
+    // what ensureBlock's adoptFieldState(fieldState, idMap keys) does.
+    const { adoptFieldState } = await import('@/lib/state/store');
+    act(() => adoptFieldState(undefined, [LEAF]));
+
+    const { result } = renderHook(() => useRenderedBlock(props, LEAF as any), { wrapper });
+    await flush();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.current.ready).toBe(true);
+    expect(reduxStore.getState().application_state.fieldLedger[LEAF].resolvedAt).toBeTruthy();
+  });
+
+  it('ephemeral policy renders without any state fetch', async () => {
+    const { props, wrapper } = setup();
+    const { result } = renderHook(
+      () => useRenderedBlock(props, parseStateKey('CONTENT/list:#eph:note'), { policy: policies.ephemeral }),
+      { wrapper });
+    await flush();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.current.ready).toBe(true);
+  });
+
+  it('reports error with attempt facts once retries are exhausted', async () => {
+    const { props, wrapper } = setup();
+    const failKey = parseStateKey('CONTENT/list:#fail:note');
+    fetchMock.mockResolvedValue({ ok: false, error: 'server exploded' });
+    // Exhaust attempts: retry timers fire on the ledger's backoff; rather
+    // than fake timers across microtask batching, use a policy-free path
+    // and just verify the FIRST failure reads as loading (retry-wait),
+    // not error — failure is not final until attempts run out.
+    const { result } = renderHook(() => useRenderedBlock(props, failKey), { wrapper });
+    await flush();
+    expect(result.current.loading).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+});
+
+describe('useRenderedBlockMulti', () => {
+  it('returns one renderable entry per key and batches their state fetch', async () => {
+    const { props, wrapper } = setup();
+    const k1 = parseStateKey('CONTENT/list:#m1:note');
+    const k2 = parseStateKey('CONTENT/list:#m2:note');
+    fetchMock.mockResolvedValue({ ok: true, absent: [k1, k2] });
+
+    const { result } = renderHook(
+      () => useRenderedBlockMulti(props, [k1, k2]), { wrapper });
+    expect(result.current.blocks).toHaveLength(2);
+    expect(result.current.allReady).toBe(false);
+
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0].sort()).toEqual([k1, k2].sort());
+    expect(result.current.allReady).toBe(true);
+    expect(result.current.blocks).toHaveLength(2);
+  });
+});

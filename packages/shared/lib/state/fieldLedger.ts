@@ -227,6 +227,14 @@ export function selectFieldFreshness(
   return freshness(entry, opts);
 }
 
+/** The current page load's fetch attempt for a key, if any — what an
+ * error placeholder renders ("Tried loading at …, N failures so far"). */
+export function selectFieldAttempt(state: any, stateKey: StateKey): LedgerAttempt | undefined {
+  const entry: LedgerEntry | undefined = state?.application_state?.fieldLedger?.[stateKey];
+  const attempt = entry?.attempt;
+  return attempt && attempt.loadGuid === getActorId() ? attempt : undefined;
+}
+
 export function getFieldFreshness(
   props: { runtime: { store: { getState(): any } } },
   stateKey: StateKey,
