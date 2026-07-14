@@ -81,7 +81,7 @@ function pendingBlocks(
 }
 
 /** Tags in a redux olxjson source map — one wrapper deeper than the server
- *  shape: id → { olxJson: variantMap, loadingState } (OlxJsonBlockEntry). */
+ *  shape: id → { olxJson: variantMap, ledger } (OlxJsonBlockEntry). */
 function tagsInSourceMap(sourceMap: Record<string, any>): Set<string> {
   const tags = new Set<string>();
   for (const entry of Object.values(sourceMap)) {

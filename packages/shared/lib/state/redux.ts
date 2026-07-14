@@ -50,9 +50,9 @@ import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimePro
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
-import { selectBlock, selectBlockState } from './olxjson';
+import { selectBlock, selectBlockState, contentFreshness } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
-import { ensureBlock } from '../blocks/useOlxJson';
+import { ensureBlock } from '../blocks/ensure';
 import { getReduxStoreInstance } from './store';
 import { writeEncoded } from './encode';
 
@@ -575,8 +575,8 @@ export function valueSelector(
 
   if (!targetNode || !loBlock) {
     const bs = selectBlockState(state, sources, mapKey);
-    if (bs?.loadingState?.status === 'error') {
-      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${stateKey}" not found`) };
+    if (contentFreshness(bs) === 'failed') {
+      return { value: fallback, ...blockData('error', bs?.ledger?.attempt?.lastError ?? `Block "${stateKey}" not found`) };
     }
     return { value: fallback, ...blockData('loading') };
   }

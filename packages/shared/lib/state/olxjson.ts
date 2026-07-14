@@ -21,10 +21,13 @@ import * as lo_event from 'lo_event';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type {
   OlxJson, DefinitionKey, IdMap, UserLocale, VariantMap, RootState,
-  LoadingStatus, VariantStatus, VariantStatusEntry,
+  VariantStatus, VariantStatusEntry,
   OlxJsonBlockEntry, OlxJsonSourceState, OlxJsonState,
 } from '../types';
 import type { LogEventFn } from '../render';
+import { getActorId } from '@/lib/crdt/actorId';
+import { freshness, policies, type LedgerEntry, type LedgerAttempt, type Freshness } from '@/lib/state/fieldLedger';
+import type { RetryPolicy } from '@/lib/util/async';
 
 
 // =============================================================================
@@ -90,7 +93,8 @@ export function useOlxJsonSourceIdMap(source: string): IdMap {
 export function dispatchOlxJson(
   props: { runtime: { logEvent: LogEventFn } },
   source: string,
-  blocks: IdMap
+  blocks: IdMap,
+  profile?: string
 ): void {
   if (!blocks || Object.keys(blocks).length === 0) {
     return; // Nothing to dispatch
@@ -98,7 +102,7 @@ export function dispatchOlxJson(
 
   // Pass nested structure as-is - selectors will extract the correct language variant
   // based on runtime.locale.code
-  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks });
+  props.runtime.logEvent(LOAD_OLXJSON, { source, blocks, at: Date.now(), loadGuid: getActorId(), profile });
 }
 
 /**
@@ -116,7 +120,8 @@ export function dispatchOlxJson(
 export function dispatchOlxJsonSync(
   reduxStore: any,
   source: string,
-  blocks: IdMap
+  blocks: IdMap,
+  profile?: string
 ): void {
   if (!blocks || Object.keys(blocks).length === 0) {
     return;
@@ -127,7 +132,7 @@ export function dispatchOlxJsonSync(
   reduxStore.dispatch({
     redux_type: 'EMIT_EVENT',
     type: 'lo_event',
-    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks })
+    payload: JSON.stringify({ event: LOAD_OLXJSON, source, blocks, at: Date.now(), loadGuid: getActorId(), profile })
   });
 }
 
@@ -141,9 +146,10 @@ export function dispatchOlxJsonSync(
 export function dispatchOlxJsonLoading(
   props: { runtime: { logEvent: LogEventFn } },
   source: string,
-  id: string
+  id: string,
+  profile?: string
 ): void {
-  props.runtime.logEvent(OLXJSON_LOADING, { source, id });
+  props.runtime.logEvent(OLXJSON_LOADING, { source, id, at: Date.now(), loadGuid: getActorId(), profile });
 }
 
 /**
@@ -173,6 +179,10 @@ export function dispatchOlxJsonTranslating(
  * @param source - Source identifier
  * @param id - Block ID that failed
  * @param error - Error information
+ * @param fatal - True when the server answered "no" (404/API error): the
+ *   ledger records it as terminal and never retries. False for transient
+ *   (network) failures — the ledger's backoff makes the key eligible again.
+ *   Ignored for variant-level errors.
  * @param variant - Optional: specific variant that failed
  */
 export function dispatchOlxJsonError(
@@ -180,10 +190,15 @@ export function dispatchOlxJsonError(
   source: string,
   id: string,
   error: string | Error,
+  fatal: boolean = false,
   variant?: string
 ): void {
   const message = typeof error === 'string' ? error : error.message;
-  props.runtime.logEvent(OLXJSON_ERROR, { source, id, error: { message }, ...(variant && { variant }) });
+  props.runtime.logEvent(OLXJSON_ERROR, {
+    source, id, error: { message }, fatal,
+    at: Date.now(), loadGuid: getActorId(),
+    ...(variant && { variant }),
+  });
 }
 
 /**
@@ -220,6 +235,13 @@ export function olxjsonReducer(
       const { source, blocks } = action;
       if (!source || !blocks) return state;
 
+      // Replay/legacy tolerance: events in old logs carry no at/loadGuid/
+      // profile. resolvedAt: 0 with loadGuid/profile undefined reads ready
+      // under the content policy (anyValid) — correct for loaded content.
+      const at = typeof action.at === 'number' ? action.at : 0;
+      const loadGuid: string | undefined = action.loadGuid;
+      const profile: string | undefined = action.profile;
+
       const entries: OlxJsonSourceState = {};
       for (const [id, variantMap] of Object.entries(blocks)) {
         // Merge with existing variants so a partial update (e.g., a new
@@ -238,7 +260,8 @@ export function olxjsonReducer(
         }
         entries[id] = {
           olxJson: { ...existing, ...variantMap as VariantMap },
-          loadingState: { status: 'ready' },
+          // Resolved fact — attempt cleared (mirrors FIELDSTATE_RESOLVED).
+          ledger: { resolvedAt: at, loadGuid, profile },
           ...(newVS && { variantStatus: newVS }),
         };
       }
@@ -253,17 +276,30 @@ export function olxjsonReducer(
     }
 
     case OLXJSON_LOADING: {
-      // Mark block as loading: { source, id }
+      // Mark block as loading: { source, id } — records an in-flight
+      // attempt fact (mirrors FIELDSTATE_LOADING). Failure count carries
+      // across attempts within one page load; a new load starts clean.
       const { source, id } = action;
       if (!source || !id) return state;
+
+      const at = typeof action.at === 'number' ? action.at : 0;
+      const loadGuid: string | undefined = action.loadGuid;
+      const profile: string | undefined = action.profile;
+
+      const prev = state[source]?.[id];
+      const prevLedger = prev?.ledger;
+      const prevAttempt = prevLedger?.attempt;
+      const failures = prevAttempt && prevAttempt.loadGuid === loadGuid
+        ? prevAttempt.failures : 0;
 
       return {
         ...state,
         [source]: {
           ...state[source],
           [id]: {
-            olxJson: state[source]?.[id]?.olxJson ?? null,
-            loadingState: { status: 'loading' },
+            ...prev,
+            olxJson: prev?.olxJson ?? null,
+            ledger: { ...prevLedger, attempt: { loadGuid: loadGuid!, startedAt: at, failures, profile } },
           },
         },
       };
@@ -282,7 +318,9 @@ export function olxjsonReducer(
           [id]: {
             ...existing,
             olxJson: existing?.olxJson ?? null,
-            loadingState: existing?.loadingState ?? { status: 'ready' },
+            // Preserve the content ledger — a variant translation is not a
+            // content (re)load. resolved-at-0 default: the content is present.
+            ledger: existing?.ledger ?? { resolvedAt: 0 },
             variantStatus: {
               ...existing?.variantStatus,
               [variant]: { status: 'translanguaging' },
@@ -293,13 +331,14 @@ export function olxjsonReducer(
     }
 
     case OLXJSON_ERROR: {
-      // Mark block or variant as failed: { source, id, error, variant? }
+      // Mark block or variant as failed: { source, id, error, fatal?, variant? }
       const { source, id, error, variant } = action;
       if (!source || !id) return state;
 
       const existing = state[source]?.[id];
 
-      // Variant-level error (e.g., translation failed)
+      // Variant-level error (e.g., translation failed) — variantStatus
+      // owns it; preserve the content ledger untouched.
       if (variant) {
         return {
           ...state,
@@ -308,7 +347,7 @@ export function olxjsonReducer(
             [id]: {
               ...existing,
               olxJson: existing?.olxJson ?? null,
-              loadingState: existing?.loadingState ?? { status: 'ready' },
+              ledger: existing?.ledger ?? { resolvedAt: 0 },
               variantStatus: {
                 ...existing?.variantStatus,
                 [variant]: { status: 'error', error: error?.message || String(error) },
@@ -318,15 +357,35 @@ export function olxjsonReducer(
         };
       }
 
-      // Block-level error (initial fetch failed)
+      // Block-level error (initial fetch failed) — a failure fact against
+      // the attempt (mirrors FIELDSTATE_ERROR). `fatal` marks a server "no"
+      // (never retry); a transient failure stays retryable via backoff.
+      const at = typeof action.at === 'number' ? action.at : 0;
+      const loadGuid: string | undefined = action.loadGuid;
+      const message = error?.message || String(error);
+      const prevLedger = existing?.ledger;
+      const prevAttempt = prevLedger?.attempt;
+      const base: LedgerAttempt = prevAttempt && prevAttempt.loadGuid === loadGuid
+        ? prevAttempt
+        : { loadGuid: loadGuid!, startedAt: at, failures: 0 };
+
       return {
         ...state,
         [source]: {
           ...state[source],
           [id]: {
+            ...existing,
             olxJson: existing?.olxJson ?? null,
-            loadingState: { status: 'error' },
-            error: { message: error?.message || String(error) },
+            ledger: {
+              ...prevLedger,
+              attempt: {
+                ...base,
+                failures: base.failures + 1,
+                lastFailureAt: at,
+                lastError: message,
+                fatal: action.fatal === true,
+              },
+            },
           },
         },
       };
@@ -344,6 +403,26 @@ export function olxjsonReducer(
     default:
       return state;
   }
+}
+
+// =============================================================================
+// The one policy point — content freshness derived from ledger facts
+// =============================================================================
+
+/** Content freshness: content lives in Redux, so anything resolved is
+ * fresh (anyValid); transient failures retry on CONTENT_RETRY's
+ * backoff; fatal failures (the server answered: no such content) never
+ * retry. THE single place deciding whether an outdated ledger causes a
+ * (re)load. */
+export const CONTENT_RETRY: RetryPolicy = { attempts: 4, baseMs: 1000, maxMs: 30_000 };
+
+/** Block-facing readiness for a content entry, derived from its ledger.
+ * Every content status read goes through here; blocks themselves keep a
+ * plain ready/loading/error (see selectOlxJson) and never see Freshness.
+ * `profile` (the request locale) makes a resolution under a different
+ * profile read not-ready, so ensureBlock refetches on a locale change. */
+export function contentFreshness(entry: OlxJsonBlockEntry | undefined, profile?: string): Freshness {
+  return freshness(entry?.ledger, { policy: policies.anyValid, retry: CONTENT_RETRY, profile });
 }
 
 // =============================================================================
@@ -387,7 +466,7 @@ export function selectBlock(
 
   for (const source of sources) {
     const entry = olxjson[source]?.[id];
-    if (entry?.loadingState.status === 'ready' && entry.olxJson) {
+    if (contentFreshness(entry) === 'ready' && entry?.olxJson) {
       const langVariant = extractLocalizedVariant(entry.olxJson, locale);
       if (langVariant?.tag) {
         return langVariant;
@@ -438,7 +517,9 @@ export function selectBlocksReady(state: RootState, sources: string[]): boolean 
     if (!sourceState) continue;
 
     for (const entry of Object.values(sourceState)) {
-      if (entry.loadingState.status === 'loading') {
+      // Only an in-flight fetch counts as "not settled" — retry-wait /
+      // unknown / failed are all settled outcomes here.
+      if (contentFreshness(entry) === 'pending') {
         return false;
       }
     }

@@ -19,6 +19,7 @@ import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { ContentVariant, LocaleContext } from './i18n';
+import type { LedgerEntry } from '../state/fieldLedger';
 
 /**
  * ════════════
@@ -1484,13 +1485,17 @@ export interface VariantStatusEntry {
 }
 
 /** A single block's entry in the OlxJson Redux slice — its parsed variants,
- *  loading state, and any per-variant async status (translations, etc.). */
+ *  its content-lane LEDGER (timestamped fetch facts; readiness is derived
+ *  by contentFreshness, not stored as a status), and any per-variant async
+ *  status (translations, etc.). */
 export interface OlxJsonBlockEntry {
   olxJson: VariantMap | null;
-  loadingState: { status: LoadingStatus };
+  /** Content-lane ledger — see fieldLedger.ts. Facts (resolvedAt / attempt
+   *  with fatal + profile), never a status; the block-facing ready/loading/
+   *  error is derived at read time by olxjson.ts's contentFreshness. */
+  ledger: LedgerEntry;
   /** Per-variant status for in-flight translations and variant-level errors. */
   variantStatus?: Record<string, VariantStatusEntry>;
-  error?: { message: string };
 }
 
 /** All blocks from one content source (namespace), keyed by DefinitionKey. */
@@ -1654,6 +1659,8 @@ export interface Repository {
 /** One catalog query result — the repositories returned and its loading state. */
 export interface CatalogEntry {
   repositories: Repository[];
+  // Same shape as the old content ledger (status + error); converts to the
+  // fieldLedger fact/freshness pattern when this slice is next touched.
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }
@@ -1677,6 +1684,8 @@ export interface SourceOption {
 /** The sources slice: one global list (writable sources first). */
 export interface SourcesState {
   sources: SourceOption[];
+  // Same shape as the old content ledger (status + error); converts to the
+  // fieldLedger fact/freshness pattern when this slice is next touched.
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }
