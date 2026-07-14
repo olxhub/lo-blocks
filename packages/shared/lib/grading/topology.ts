@@ -11,10 +11,15 @@
 // member's instance StateKey is derivable from any anchor member's key
 // plus the member's DefinitionKey (siblingScopedKey).
 //
-// KNOWN LIMITATION: kids hidden by when= are still counted (the dynamic-
-// DOM walk excluded them for free). No shipped problem puts when= on a
-// grader today; when one does, filter the kid walk through the when=
-// machinery (selectKidsJson evaluates it purely from Redux).
+// SEMANTICS (decided, not a limitation): a problem's grader topology is
+// STATIC. Kids hidden by when= still count toward grading. If visibility
+// could add or remove graders, the problem's grade would be a function of
+// transient render state, and everything downstream of grades — progress
+// tracking, learning analytics, gamification, completion gating — would
+// inherit that instability through dependencies that are practically
+// impossible to analyze. A homework may have a variable number of
+// problems (a container concern); a problem does not have a variable set
+// of graders.
 //
 import { selectBlock } from '../state/olxjson';
 import {
