@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect } from 'react';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 import { useFieldState, useValue } from '@/lib/state';
 import type { StateRef } from '@/lib/types';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
@@ -11,7 +11,7 @@ import HistoryBar from '@/components/common/HistoryBar';
 
 function HistoryContent({ props, current }: { props: RuntimeProps; current: StateRef }) {
   const stateKey = stateKeyForGlobalRef(current, props.runtime.ns);
-  const { block } = useBlock(props, stateKey);
+  const { block } = useRenderedBlock(props, stateKey);
   return <>{block}</>;
 }
 

@@ -208,8 +208,8 @@ describe('Block components should not access idMap directly', () => {
 
       const details = violations.map(v => `  Line ${v.line}: ${v.content}`).join('\n');
       expect.fail(
-        `Found direct idMap access (use useBlock/useOlxJson instead):\n${details}\n\n` +
-        `Block components should use useBlock, useKids, useOlxJson instead of accessing idMap directly.\n` +
+        `Found direct idMap access (use useRenderedBlock/useOlxJson instead):\n${details}\n\n` +
+        `Block components should use useRenderedBlock, useKids, useOlxJson instead of accessing idMap directly.\n` +
         `This ensures content loading is handled properly.`
       );
     });

@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
@@ -98,8 +98,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Watch its own correctness rather than guessing the inner grader's auto-generated ID.
   const scopedGraderRef = parseDefinitionRef(problemId, 'MasteryBank problem');
 
-  // Render problem - useBlock handles loading state with Spinner
-  const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
+  // Render problem - useRenderedBlock handles loading state with Spinner
+  const { block: renderedProblem, error } = useRenderedBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
 
   // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
   // The hook would encapsulate commonFields.correct, scopedStateKeyForBlock, and useFieldSelector.
@@ -180,7 +180,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     );
   }
 
-  // useBlock returns Spinner when loading - just render the block
+  // useRenderedBlock returns Spinner when loading - just render the block
   return (
     <div className="lo-mastery-bank__problem">
       {renderedProblem}

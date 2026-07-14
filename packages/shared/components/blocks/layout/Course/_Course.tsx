@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useBlock, useKidsJson } from '@/lib/render';
+import { useRenderedBlock, useKidsJson } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
@@ -12,7 +12,7 @@ import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {
-  const { block } = useBlock(props, selectedChild);
+  const { block } = useRenderedBlock(props, selectedChild);
   return <>{block}</>;
 }
 

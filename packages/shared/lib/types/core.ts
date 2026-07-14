@@ -1442,7 +1442,7 @@ export type ContentTier = 'supported' | 'bestEffort';
 //   olxjson
 //     Parsed OLX content — the IdMap for each content source (namespace).
 //     This is the content database: block definitions, their variants, and
-//     provenance. Blocks read from it via useBlock/useKids; the parse pipeline
+//     provenance. Blocks read from it via useRenderedBlock/useKids; the parse pipeline
 //     writes to it. See OlxJson / IdMap above for the per-block shape.
 //
 //   catalog
@@ -1450,7 +1450,7 @@ export type ContentTier = 'supported' | 'bestEffort';
 //     launchable listings, forge links. Interim: this should evolve toward
 //     OlxJson (repositories and launchables are content, not a separate
 //     data model). The MCP tool would write into OlxJson, and catalog UI
-//     would read via the same useBlock/useKids hooks as everything else.
+//     would read via the same useRenderedBlock/useKids hooks as everything else.
 //
 //   chat
 //     LLM chat sessions — messages, status. Interim: chat state should
@@ -1588,7 +1588,7 @@ export type ChatDisplayEntry = ChatMessage | ElementEntry;
 //
 // Interim: the catalog is a separate data model today. It should converge
 // with OlxJson — repositories and launchables are content, and catalog UI
-// should read via the same useBlock/useKids hooks as everything else.
+// should read via the same useRenderedBlock/useKids hooks as everything else.
 
 /** What a launchable IS in the courseware model. course/activity are public
  *  learning objects; internal is a building block composed into others. */

@@ -4,7 +4,7 @@
 //
 // Two modes:
 // - useKids: Synchronous rendering via renderCompiledKids (for normal use)
-// - useBlock: Can trigger async load for dynamic references
+// - useRenderedBlock: Can trigger async load for dynamic references
 //
 // The key insight: initial render is synchronous. Content is already in Redux
 // (or idMap for legacy). Async loading is only for dynamic content loaded later.
@@ -49,91 +49,12 @@ export type RenderedBlockResult = BlockDataResult & {
  * @param stateKey - The StateKey identifying which runtime instance to render
  * @param source - Content source for Redux lookup (default: 'content')
  */
-export function useBlock(
-  props: any,
-  stateKey: StateKey | null,
-  source: string = 'content'
-): RenderedBlockResult {
-  const defRef: DefinitionRef | null = stateKey
-    ? leafDefinitionKeyFromStateKey(stateKey)
-    : null;
-
-  // Always call hooks unconditionally (React rules of hooks)
-  const olxResult = useOlxJson(props, defRef, source);
-  const { olxJson: reduxOlxJson } = olxResult;
-  const translationState = useTranslation(props, reduxOlxJson, source);
-  // Block readiness (lazy engines + component chunks) rides along with OLX
-  // loading — every useBlock consumer gets both for free. See
-  // useBlocksReady for scope and failure semantics.
-  //
-  // LATCHED per instance: the gate holds only the FIRST content render
-  // (cold-start correctness — engines before anything evaluates). Once this
-  // instance has rendered, later content arriving in the source (an editor
-  // insert, a sibling pane's fetch) must not re-suspend it — a cold chunk
-  // then falls to LazyBlock's own spinner for just the new block.
-  const gateReady = useBlocksReadyForSources([source], props.runtime.blockRegistry);
-  const renderedOnceRef = React.useRef(false);
-  const depsReady = renderedOnceRef.current || gateReady;
-
-  if (!stateKey) {
-    return { block: null, olxJson: undefined, ...blockData('ready') };
-  }
-
-  // Check Redux state
-  if (olxResult.loading || !depsReady) {
-    return {
-      block: <Spinner>{`Loading ${stateKey}...`}</Spinner>,
-      ...blockData('loading')
-    };
-  }
-
-  if (olxResult.error) {
-    return {
-      block: (
-        <DisplayError
-          id={`block-error-${stateKey}`}
-          title="useBlock"
-          message={olxResult.error}
-          data={{ stateKey }}
-        />
-      ),
-      ...blockData('error', olxResult.error)
-    };
-  }
-
-  if (!reduxOlxJson) {
-    const msg = `Block "${stateKey}" not found in Redux`;
-    return {
-      block: (
-        <DisplayError
-          id={`block-missing-${stateKey}`}
-          title="useBlock"
-          message={msg}
-          data={{ stateKey, definitionKey: defRef }}
-        />
-      ),
-      ...blockData('error', msg)
-    };
-  }
-
-  // Ready from Redux - render the block, wrapped with translation indicator
-  renderedOnceRef.current = true;  // latch: never regress to the deps gate
-  const rendered = render({ ...props, node: reduxOlxJson });
-  const block = (
-    <TranslatingIndicator translationState={translationState}>
-      {rendered}
-    </TranslatingIndicator>
-  );
-  return { block, olxJson: reduxOlxJson, ...blockData('ready') };
-}
-
 // ─── The instance hook stack ────────────────────────────────────────────────
 //
 // THE INVARIANT: every rendered block instance enters through these
 // hooks; the hooks ensure everything the instance needs (content and
 // state today, code eventually — blocks/ensure.ts); render() assumes
-// readiness and fails fast. useBlock/useOlxJsonMultiple above predate
-// the state lane and migrate onto this stack.
+// readiness and fails fast.
 
 export interface InstanceOptions {
   source?: string;
@@ -415,7 +336,7 @@ export function useKidsJson(props: RuntimeProps): any[] {
  * condition is false. This enables adaptive content — blocks that appear
  * or disappear based on runtime state.
  *
- * For async loading of dynamic content, use useBlock instead.
+ * For async loading of dynamic content, use useRenderedBlock instead.
  */
 export function useKids(props: any): { kids: React.ReactNode[] } {
   const filteredKids = useKidsJson(props);
@@ -444,6 +365,6 @@ export function useKidsWithState(props: any): {
  * Used for dynamic content that may not be pre-loaded.
  */
 export function BlockRef({ id, ...props }: { id: StateKey; [key: string]: any }) {
-  const { block } = useBlock(props, id);
+  const { block } = useRenderedBlock(props as any, id);
   return <>{block}</>;
 }

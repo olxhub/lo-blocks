@@ -3,10 +3,10 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 
 function ReadingContent({ props, blockId }) {
-  const { block } = useBlock(props, blockId);
+  const { block } = useRenderedBlock(props, blockId);
   return <>{block}</>;
 }
 
