@@ -1,23 +1,13 @@
 // packages/shared/components/blocks/CapaProblem/_CapaProblem.tsx
 'use client';
-import type { RuntimeProps } from '@/lib/types';
+import type { RuntimeProps, StateKey } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { useGradingState, childGraderKeys, graderBlueprintForKey } from '@/lib/grading';
+import { useGradingState, childGraderStateKeys, graderBlueprintForStateKey } from '@/lib/grading';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
-
-/**
- * The direct child graders this problem governs — from the STATIC DOM
- * (topology.ts), boundary-aware: the same rule aggregation uses, so
- * validation, the submit button's targets, and derived grading all agree
- * on which graders are "this problem's".
- */
-function findChildGraderIds(props) {
-  return childGraderKeys(props.runtime.store.getState(), props, props.nodeInfo.stateKey);
-}
 
 /**
  * Find DemandHints ID within this CapaProblem (if any).
@@ -43,7 +33,7 @@ function getHeaderStateClass(correctnessValue: string) {
   }
 }
 
-function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[]) {
+function noGraderTechnicalDetails(props: RuntimeProps, directChildGraderStateKeys: StateKey[]) {
   const node = props.nodeInfo?.olxJson;
   return {
     hint: 'CapaProblem expects at least one child block with isGrader=true',
@@ -54,7 +44,7 @@ function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[])
     source: node?.source,
     parseDeps: node?.parseDeps,
     sourceOffset: node?._sourceOffset,
-    childGraderIds,
+    directChildGraderStateKeys,
     consoleHint: 'Raw props.kids and props.nodeInfo.renderedKids are logged in this DisplayError data payload.',
   };
 }
@@ -104,8 +94,14 @@ export default function CapaProblem(props: RuntimeProps) {
   // Render content first to populate dynamic OLX DOM
   const { kids: content } = useKids(props);
 
-  // Find child graders and DemandHints
-  const childGraderIds = findChildGraderIds(props);
+  // Boundary-aware static topology: these are the grader instances governed
+  // directly by this problem (nested problems own their own descendants).
+  const reduxState = props.runtime.store.getState();
+  const directChildGraderStateKeys = childGraderStateKeys(
+    reduxState,
+    props,
+    props.nodeInfo.stateKey,
+  );
   const hintsId = findDemandHintsId(props);
 
   // Grading state is DERIVED (never stored): useGradingState aggregates the
@@ -120,30 +116,30 @@ export default function CapaProblem(props: RuntimeProps) {
   // every immediate-mode render so live edits to a grader's configuration take
   // effect.
   if (isImmediate) {
-    const asyncChildIds = childGraderIds.filter(
-      gid => graderBlueprintForKey(props.runtime.store.getState(), props, gid)?.grading?.execution === 'async'
+    const asyncChildGraderStateKeys = directChildGraderStateKeys.filter(
+      stateKey => graderBlueprintForStateKey(reduxState, props, stateKey)!.grading?.execution === 'async'
     );
-    if (asyncChildIds.length > 0) {
+    if (asyncChildGraderStateKeys.length > 0) {
       return (
         <DisplayError
           props={props}
           id={`${id}_grade_mode`}
           title="CapaProblem"
-          message={`grade="immediate" cannot be used with async graders (problem "${id}": ${asyncChildIds.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
+          message={`grade="immediate" cannot be used with async graders (problem "${id}": ${asyncChildGraderStateKeys.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
         />
       );
     }
   }
 
   // Validate: require at least one grader unless explicitly allowed
-  if (childGraderIds.length === 0 && !props.allowEmpty) {
+  if (directChildGraderStateKeys.length === 0 && !props.allowEmpty) {
     return (
       <DisplayError
         props={props}
         id={`${id}_no_grader`}
         title="CapaProblem"
         message={`No grader found in CapaProblem "${id}". Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem.`}
-        technical={noGraderTechnicalDetails(props, childGraderIds)}
+        technical={noGraderTechnicalDetails(props, directChildGraderStateKeys)}
         data={noGraderDebugData(props)}
       />
     );
@@ -155,7 +151,7 @@ export default function CapaProblem(props: RuntimeProps) {
   const footerNode = (
     <Block props={props} tag="CapaFooter"
       id={`${id}_footer_controls`}
-      target={childGraderIds.join(',')}
+      target={directChildGraderStateKeys.join(',')}
       hintsTarget={hintsId}
       // Author override for the button label; falls back to computed Check/Submit.
       label={props.submitLabel}

@@ -23,7 +23,7 @@ import { aggregateGradingStates } from './aggregators';
 import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
 } from './pipeline';
-import { staticEntryForStateKey, blueprintFor, childGraderKeys, gradeModeOf } from './topology';
+import { staticEntryForStateKey, blueprintFor, childGraderStateKeys, gradeModeOf } from './topology';
 import { fieldSelector } from '../state/redux';
 import type { GraderInput, GradingState } from './model';
 import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
@@ -61,9 +61,11 @@ export function isImmediateEntry(entry: OlxJson): boolean {
 // ---------------------------------------------------------------------------
 
 function deriveMetagraderState(state: unknown, props: RuntimeProps, metagraderKey: StateKey): GradingState {
-  const childKeys = childGraderKeys(state, props, metagraderKey);
-  if (childKeys.length === 0) return UNGRADED;
-  return aggregateGradingStates(childKeys.map(key => selectGradingState(state, props, key)));
+  const directChildGraderStateKeys = childGraderStateKeys(state, props, metagraderKey);
+  if (directChildGraderStateKeys.length === 0) return UNGRADED;
+  return aggregateGradingStates(
+    directChildGraderStateKeys.map(stateKey => selectGradingState(state, props, stateKey)),
+  );
 }
 
 /**

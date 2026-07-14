@@ -83,11 +83,11 @@ function collectBoundaryKids(
  * under the metagrader's own scope prefix. Boundary-aware: a nested
  * problem is itself the child; its graders belong to it.
  */
-export function childGraderKeys(state: unknown, props: RuntimeProps, metagraderKey: StateKey): StateKey[] {
-  const entry = staticEntryForStateKey(state, props, metagraderKey);
+export function childGraderStateKeys(state: unknown, props: RuntimeProps, metagraderStateKey: StateKey): StateKey[] {
+  const entry = staticEntryForStateKey(state, props, metagraderStateKey);
   if (!entry) return [];
   const defKeys = collectBoundaryKids(state, props, entry.kids, b => b.isGrader);
-  return defKeys.map(defKey => siblingScopedKey(metagraderKey, defKey));
+  return defKeys.map(defKey => siblingScopedKey(metagraderStateKey, defKey));
 }
 
 /**
@@ -100,8 +100,8 @@ export function childGraderKeys(state: unknown, props: RuntimeProps, metagraderK
  * pass through globally. Without target=, graders that infer collect input
  * blocks from their own static kids.
  */
-export function graderInputKeys(state: unknown, props: RuntimeProps, graderKey: StateKey): StateKey[] {
-  const entry = staticEntryForStateKey(state, props, graderKey);
+export function graderInputStateKeys(state: unknown, props: RuntimeProps, graderStateKey: StateKey): StateKey[] {
+  const entry = staticEntryForStateKey(state, props, graderStateKey);
   if (!entry) return [];
 
   const target = entry.attributes.target;
@@ -115,18 +115,18 @@ export function graderInputKeys(state: unknown, props: RuntimeProps, graderKey: 
       // this grader instance's scope.
       const global = stateKeyForGlobalRef(parseAnyStateRef(ref), props.runtime.ns);
       if (ref.includes(':') || ref.includes('/')) return global;
-      return siblingScopedKey(graderKey, leafDefinitionKeyFromStateKey(global));
+      return siblingScopedKey(graderStateKey, leafDefinitionKeyFromStateKey(global));
     });
   }
 
   const descriptor = blueprintFor(props, entry)?.grading;
   if (descriptor && descriptor.infer === false) return [];
   const defKeys = collectBoundaryKids(state, props, entry.kids, b => b.isInput);
-  return defKeys.map(defKey => siblingScopedKey(graderKey, defKey));
+  return defKeys.map(defKey => siblingScopedKey(graderStateKey, defKey));
 }
 
 /** A grader's blueprint from its instance StateKey (static DOM + registry). */
-export function graderBlueprintForKey(state: unknown, props: RuntimeProps, stateKey: StateKey): LoBlock | undefined {
+export function graderBlueprintForStateKey(state: unknown, props: RuntimeProps, stateKey: StateKey): LoBlock | undefined {
   const entry = staticEntryForStateKey(state, props, stateKey);
   return entry ? blueprintFor(props, entry) : undefined;
 }

@@ -15,7 +15,7 @@ import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
 import { commonFields } from '../state/commonFields';
 import { valueSelector } from '../state/redux';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
-import { staticEntryForStateKey, blueprintFor, graderInputKeys } from './topology';
+import { staticEntryForStateKey, blueprintFor, graderInputStateKeys } from './topology';
 import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
@@ -217,7 +217,7 @@ export function prepareGrade(
 
   let inputs: GraderInput[];
   try {
-    inputs = readGraderInputs(props, state, graderInputKeys(state, props, graderKey));
+    inputs = readGraderInputs(props, state, graderInputStateKeys(state, props, graderKey));
   } catch (e) {
     if (e instanceof InputContentPending) {
       return { ok: false, inputs: [], error: `Input "${e.stateKey}" is still loading` };
