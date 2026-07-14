@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState, useFieldSelector } from '@/lib/state';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
@@ -61,7 +61,7 @@ export default function Carousel(props: RuntimeProps) {
   }
 
   const currentRef = displayOrder[position] as StateRef;
-  const { block: renderedItem, olxJson } = useBlock(props, stateKeyForGlobalRef(currentRef, props.runtime.ns));
+  const { block: renderedItem, olxJson } = useRenderedBlock(props, stateKeyForGlobalRef(currentRef, props.runtime.ns));
 
   // 2. No items — early exit
   if (itemIds.length === 0) {

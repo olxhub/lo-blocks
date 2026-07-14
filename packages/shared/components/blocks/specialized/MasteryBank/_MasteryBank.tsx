@@ -3,8 +3,8 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
-import { useBlock } from '@/lib/render';
-import { useFieldState } from '@/lib/state';
+import { useRenderedBlock } from '@/lib/render';
+import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
 import { useGradingState } from '@/lib/grading';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
@@ -99,8 +99,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Watch its own correctness rather than guessing the inner grader's auto-generated ID.
   const scopedGraderRef = parseDefinitionRef(problemId, 'MasteryBank problem');
 
-  // Render problem - useBlock handles loading state with Spinner
-  const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
+  // Render problem - useRenderedBlock handles loading state with Spinner
+  const { block: renderedProblem, error } = useRenderedBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
 
   // CapaProblem's aggregate correctness is derived from its child graders
   // (never stored) — useGradingState handles the aggregation.
@@ -174,7 +174,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     );
   }
 
-  // useBlock returns Spinner when loading - just render the block
+  // useRenderedBlock returns Spinner when loading - just render the block
   return (
     <div className="lo-mastery-bank__problem">
       {renderedProblem}

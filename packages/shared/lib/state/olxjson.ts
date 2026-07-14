@@ -10,7 +10,7 @@
 // Currently lives at state.application_state.olxjson due to lo_event's state
 // wrapping. See TODO in store.ts for future cleanup.
 //
-// Block authors don't interact with this directly - they use useKids/useBlock
+// Block authors don't interact with this directly - they use useKids/useRenderedBlock
 // hooks which handle all the complexity internally.
 //
 'use client';

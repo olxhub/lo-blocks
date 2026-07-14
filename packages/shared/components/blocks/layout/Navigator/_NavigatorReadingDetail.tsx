@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { StateRef } from '@/lib/types';
 
@@ -11,10 +11,10 @@ function ReadingContent({ props, readingRef }) {
   // readingRef comes from the Navigator's YAML item data, parsed at runtime —
   // it never passes through the parser's namespace qualification the way an
   // authored OLX attribute (e.g. <Use ref>) does. Qualify it here against the
-  // block's own namespace before handing it to useBlock (which expects a
-  // fully-qualified StateKey), mirroring how _UseDynamic resolves its target.
+  // block's own namespace before handing it to useRenderedBlock (which expects
+  // a fully-qualified StateKey), mirroring how _UseDynamic resolves its target.
   const stateKey = stateKeyForGlobalRef(readingRef as StateRef, props.runtime.ns);
-  const { block } = useBlock(props, stateKey);
+  const { block } = useRenderedBlock(props, stateKey);
   return <>{block}</>;
 }
 
