@@ -22,6 +22,16 @@
      * their own sockets. Running both double-applies events (RGA splices
      * duplicate text). Retire tab-sync fully once fan-out soaks. */
     tab-sync: false;
+    /* Runtime dynamic block loading (docs/dynamic-blocks.md). Off by default:
+     * a dynamic block is untrusted code run on the server and in every
+     * browser. Enabled below for development only. */
+    dynamicBlockLoading: false;
+}
+
+/* Development deployments may load blocks at runtime. The `development` class
+ * is injected by loadServerConfig based on NODE_ENV (see config.ts). */
+.development {
+    dynamicBlockLoading: true;
 }
 
 /* Server-backed apps: websocket + session persistence */

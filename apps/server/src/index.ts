@@ -14,6 +14,7 @@ import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { registerCatalogTools } from '@/lib/catalog/tool';
 import { registerLofsTools } from '@/lib/lofs/tools';
+import { registerDynamicBlockTools } from './dynamicBlocks.js';
 import {
   validateProviderConfig,
   availableProviders,
@@ -116,7 +117,8 @@ async function initTools() {
   registerDocsTools(registry);
   registerCatalogTools(registry);
   registerLofsTools(registry);
-  console.log('  Tools: docs, catalog, lofs');
+  registerDynamicBlockTools(registry);
+  console.log('  Tools: docs, catalog, lofs, dynamic-blocks');
   return registry;
 }
 

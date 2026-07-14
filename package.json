@@ -15,6 +15,7 @@
     "dev:redis": "NO_SANDBOX=1 KVS_BACKEND=valkey KVS_URL='redis://localhost:6379' npm run dev",
     "dev:static": "./sandbox.sh npx vite dev apps/static",
     "server": "./sandbox.sh ./node_modules/.bin/tsx --watch apps/server/src/index.ts",
+    "load-blocks": "./sandbox.sh ./node_modules/.bin/tsx scripts/load-blocks.ts",
     "server:legacy": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/event-server.ts",
     "start": "NODE_ENV=production ./sandbox.sh ./node_modules/.bin/tsx apps/server/src/index.ts",
     "build": "npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry",

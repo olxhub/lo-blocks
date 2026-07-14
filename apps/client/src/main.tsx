@@ -5,6 +5,7 @@
 import { createRoot } from 'react-dom/client';
 import { initConfig } from '@/lib/config';
 import { resolveRoute } from './router';
+import { loadDynamicBlocks } from './dynamicBlocks';
 import './globals.css';
 
 function showError(message: string) {
@@ -46,6 +47,11 @@ async function boot() {
   }
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
   initConfig(pmss, ['client', env, ...classes], attributes);
+
+  // Register runtime-loaded blocks into BLOCK_REGISTRY before App.tsx runs
+  // store.init() — so the store's reducer registration includes them and
+  // parseOLX resolves their tags on the first render.
+  await loadDynamicBlocks();
 
   // Dynamic import: App.tsx has module-level getConfigBool() calls that
   // require initConfig() to have completed first.

@@ -69,6 +69,21 @@ function collectSnapshotErrors(snapshot: ContentSnapshot): OLXLoadingError[] {
 
 let _snapshot: ContentSnapshot = EMPTY_SNAPSHOT;
 
+/**
+ * Drop the cached snapshot so the next sync re-parses every file. Needed when
+ * the BLOCK REGISTRY changes rather than the content: a file parsed while a
+ * tag was unknown caches its parse error, and no file mtime will ever change
+ * to flush it. Dynamic block loading calls this after (un)registering blocks.
+ *
+ * HACK: a full re-parse is heavier than needed — re-parsing only the files
+ * that referenced the changed tags requires an unknown-tag index we don't
+ * keep yet. Fine at current content sizes; revisit with that index if sync
+ * time becomes noticeable.
+ */
+export function resetContentSnapshot(): void {
+  _snapshot = EMPTY_SNAPSHOT;
+}
+
 // =============================================================================
 // Query Functions (read from _snapshot)
 // =============================================================================
