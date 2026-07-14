@@ -14,8 +14,8 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, isMatch, inferRelatedNodes, getBlockByOLXId } from '@/lib/blocks';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { core, grader, isMatch, getBlockByOLXId } from '@/lib/blocks';
+import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
@@ -41,15 +41,17 @@ async function gradeRules(props: RuntimeProps, context) {
     return { correct: correctness.unsubmitted, message: '', score: 0 };
   }
 
-  // Evaluate child Match rules in order
-  const matchIds = inferRelatedNodes(props, {
-    selector: n => isMatch(n.loBlock),
-    infer: 'kids'
-  });
-  for (const matchId of matchIds) {
-    const childEntry = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(matchId));
-    if (!childEntry) continue;
-
+  // Evaluate child Match rules in order, discovered from the STATIC DOM's
+  // kids structure — this grade function runs wherever grading runs
+  // (selectors, node, analytics), where there is no dynamic (rendered) DOM.
+  const matchEntries = isKidArray(props.kids)
+    ? props.kids.flatMap(kid => {
+      if (kid.type !== 'block') return [];
+      const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
+      return entry && isMatch(blockRegistry[entry.tag]) ? [entry] : [];
+    })
+    : [];
+  for (const childEntry of matchEntries) {
     const childBlueprint = blockRegistry[childEntry.tag];
 
     // Attributes are already parsed/transformed at parse time by parseOLX
