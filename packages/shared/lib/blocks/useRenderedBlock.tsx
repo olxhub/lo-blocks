@@ -291,28 +291,3 @@ export function useKids(props: any): { kids: React.ReactNode[] } {
   const kids = renderCompiledKids({ ...props, kids: filteredKids }) as React.ReactNode[];
   return { kids };
 }
-
-/**
- * Hook for rendering kids with explicit loading/error state.
- *
- * Use when you need to know if all dynamic kid blocks are loaded.
- * Note: This checks Redux state, not the render tree.
- */
-export function useKidsWithState(props: any): {
-  kids: React.ReactNode[];
-  ready: boolean;
-  error: string | null;
-} {
-  const filteredKids = useKidsJson(props);
-  const kids = renderCompiledKids({ ...props, kids: filteredKids }) as React.ReactNode[];
-  return { kids, ready: true, error: null };
-}
-
-/**
- * Component for rendering a block reference with async loading.
- * Used for dynamic content that may not be pre-loaded.
- */
-export function BlockRef({ id, ...props }: { id: StateKey; [key: string]: any }) {
-  const { block } = useRenderedBlock(props as any, id);
-  return <>{block}</>;
-}
