@@ -72,10 +72,13 @@ async function sharedStateFor(
   }
   const sharedComponent: Record<string, any> = {};
   for (const [instance, ids] of byInstance) {
-    const scopes = await registry.read(instance);
+    // Id-scoped read: shared buckets live under plain block ids, so this
+    // is a direct batched lookup — never "assemble the whole `all`
+    // instance to pick out a page's worth of buckets", which scaled with
+    // total deployment state, not this page (found by review 2026-07).
+    const buckets = await registry.readBuckets(instance, ids);
     for (const id of ids) {
-      const bucket = scopes?.component?.[id];
-      if (bucket !== undefined) sharedComponent[id] = bucket;
+      if (buckets[id] !== undefined) sharedComponent[id] = buckets[id];
     }
   }
   return sharedComponent;

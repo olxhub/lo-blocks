@@ -20,10 +20,10 @@
 // arriving mid-flush finds the entry still in the map and reuses it (the
 // refcount check after the flush notices and keeps it).
 
-import type { KVStore } from '@/lib/storage/kvs';
+import { getMany, type KVStore } from '@/lib/storage/kvs';
 import type { LevelInstance } from './levels';
 import { type StateConnection, trySend } from './connection';
-import type { SafeUserId } from '@/lib/types/identity';
+import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import { ServerState } from './materialization';
 import { FieldPersister, PERSISTED_SCOPES, assembleFieldState } from './persistence';
 
@@ -199,5 +199,55 @@ export class UserStateRegistry {
       return merged;
     }
     return assembleFieldState(this.kvs, user);
+  }
+
+  /**
+   * Read specific COMPONENT buckets of an instance by id — the id-scoped
+   * sibling of read(). Buckets are stored under plain block ids at every
+   * level (levels.ts), so the ids ARE the storage keys: one batched
+   * getMany, no index, no assembling the whole instance. This is what
+   * keeps reading the `all` instance O(ids served) instead of O(every
+   * shared bucket in the deployment) (found by review 2026-07).
+   *
+   * Same authority rule as read(), per bucket: a live, seeded
+   * materialization is fresher than storage; an unseeded live entry's
+   * buckets overlay stored ones (this session's events only). Missing
+   * buckets are absent from the result, not null.
+   */
+  async readBuckets(
+    user: LevelInstance,
+    ids: string[],
+  ): Promise<Record<string, Record<string, any>>> {
+    if (ids.length === 0) return {};
+    const live = this.entries.get(user);
+    if (live) {
+      if (live.seedPromise) await live.seedPromise;
+      const component = (live.serverState.state as Record<string, any>).component ?? {};
+      if (live.seedPromise) {
+        const out: Record<string, Record<string, any>> = {};
+        for (const id of ids) if (component[id] !== undefined) out[id] = component[id];
+        return out;
+      }
+      const stored = await this.storedBuckets(user, ids);
+      // Live bucket wins wholesale over its stored copy — matches
+      // read()'s bucket-granularity overlay for the unseeded-live case.
+      for (const id of ids) if (component[id] !== undefined) stored[id] = component[id];
+      return stored;
+    }
+    return this.storedBuckets(user, ids);
+  }
+
+  /** The stored copies of specific component buckets, one batched read. */
+  private async storedBuckets(
+    user: LevelInstance,
+    ids: string[],
+  ): Promise<Record<string, Record<string, any>>> {
+    const values = await getMany(this.kvs, ids.map((id) => kvsKey.field(user, 'component', id)));
+    const out: Record<string, Record<string, any>> = {};
+    ids.forEach((id, i) => {
+      const value = values[i];
+      if (value !== null) out[id] = JSON.parse(value);
+    });
+    return out;
   }
 }

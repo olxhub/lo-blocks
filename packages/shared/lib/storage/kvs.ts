@@ -18,9 +18,27 @@ import type { KVSKey } from '@/lib/types/identity';
 export interface KVStore {
   ready: Promise<void>;
   get(key: KVSKey): Promise<string | null>;
+  /** Batched point reads, same order as `keys` (null per miss). Optional:
+   * backends with a native batch op (Valkey MGET, Postgres `= ANY`)
+   * implement it; callers go through getMany() below, which falls back
+   * to concurrent get()s. Still a dumb byte store — this batches point
+   * reads, it is not enumeration. */
+  getMany?(keys: KVSKey[]): Promise<(string | null)[]>;
   set(key: KVSKey, value: string): Promise<void>;
   del(key: KVSKey): Promise<void>;
   close?(): Promise<void>;
+}
+
+/**
+ * Batched read through any KVStore: the backend's native getMany when it
+ * has one, else concurrent get()s (one round trip per key, but in
+ * flight together — never the sequential await-per-key loop that made
+ * page loads O(buckets) round trips, found by review 2026-07).
+ */
+export function getMany(store: KVStore, keys: KVSKey[]): Promise<(string | null)[]> {
+  if (keys.length === 0) return Promise.resolve([]);
+  if (store.getMany) return store.getMany(keys);
+  return Promise.all(keys.map((key) => store.get(key)));
 }
 
 /**
@@ -33,6 +51,10 @@ export class MemoryKVStore implements KVStore {
 
   async get(key: KVSKey) {
     return this.data.get(key) ?? null;
+  }
+
+  async getMany(keys: KVSKey[]) {
+    return keys.map((key) => this.data.get(key) ?? null);
   }
 
   async set(key: KVSKey, value: string) {
