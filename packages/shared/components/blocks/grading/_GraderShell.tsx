@@ -8,12 +8,13 @@
 //
 'use client';
 import { useKids, Block } from '@/lib/render';
-import { isImmediateContext } from '@/lib/grading';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function GraderShell(props: RuntimeProps) {
   const { kids } = useKids(props);
-  const immediate = isImmediateContext(props.nodeInfo);
+  // gradeMode is stamped onto boundary graders at parse time by the
+  // enclosing problem (static DOM), and arrives here as a plain attribute.
+  const immediate = props.gradeMode === 'immediate';
 
   if (!immediate) return <>{kids}</>;
   return (

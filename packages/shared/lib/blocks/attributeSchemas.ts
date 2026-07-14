@@ -293,6 +293,8 @@ export const graderAttributes = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
   target: z_stateRefList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
+  gradeMode: z.enum(['submit', 'immediate']).optional()
+    .describe('(system) Grading mode inherited from the enclosing problem — stamped at parse time by the problem parser, not authored'),
 });
 
 // =============================================================================

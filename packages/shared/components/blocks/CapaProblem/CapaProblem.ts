@@ -66,6 +66,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
   let graderIndex = 0;
   let nodeIndex = 0;
   const graders: GraderMapping[] = [];
+  const boundaryGraders: DefinitionKey[] = [];
   // Parent ref for building child IDs via joinDefinitionRef.
   const parentRef = asDefinitionRef(splitNs(id).path);
 
@@ -111,6 +112,10 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
 
       let mapping = currentGrader;
       if (blockType.isGrader) {
+        // A grader with no enclosing grader inside this problem is a
+        // BOUNDARY grader: this problem governs it, so it inherits this
+        // problem's grading mode (nested problems restamp their own).
+        if (currentGrader === null) boundaryGraders.push(blockId);
         mapping = { id: blockId, inputs: [] };
         graders.push(mapping);
       }
@@ -163,6 +168,17 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
         attributes: { ...existing.attributes, target: g.inputs.join(',') }
       }));
     }
+  }
+
+  // Stamp the problem's grading mode onto its boundary graders (parse-time
+  // static-DOM fact: grading derivation must not consult the dynamic DOM,
+  // and the static DOM has no parent pointers to walk).
+  const gradeMode = attributes.grade === 'immediate' ? 'immediate' : 'submit';
+  for (const graderId of boundaryGraders) {
+    storeEntry(graderId, (existing) => ({
+      ...existing,
+      attributes: { ...existing.attributes, gradeMode }
+    }));
   }
 
   const entry = { id, tag, attributes, source, parseDeps, kids: kidsParsed };

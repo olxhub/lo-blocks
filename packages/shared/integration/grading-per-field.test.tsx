@@ -187,6 +187,50 @@ describe('grading dispatches per-field events', () => {
     await waitFor(() => expect(container.textContent).toContain('BONUS_CONTENT_MARKER'));
   });
 
+  it('grades unrendered problems from the static DOM (cross-page gating)', async () => {
+    // Sequential unmounts non-current pages; content gating (and analytics/
+    // server grading) must not depend on rendering. The gate on page 2
+    // references a problem on page 1 — after answering on page 1 and
+    // advancing (page 1 unmounts), the gate must still see the grade.
+    const SEQ_OLX = `<Sequential id="SeqGate">
+      <Vertical id="seq_page1" title="Question">
+        <CapaProblem id="seq_problem" title="Geography">
+          Capital of France?
+          <KeyGrader>
+            <ChoiceInput>
+              <Key>Paris</Key>
+              <Distractor>London</Distractor>
+            </ChoiceInput>
+          </KeyGrader>
+        </CapaProblem>
+      </Vertical>
+      <Vertical id="seq_page2" title="Result">
+        <Markdown id="seq_bonus" when="@seq_problem.correct === correctness.correct">
+          GATED_CONTENT_MARKER
+        </Markdown>
+        <Markdown id="seq_filler">Always here.</Markdown>
+      </Vertical>
+    </Sequential>`;
+    const { container, getByText } = await mountProblem(SEQ_OLX);
+
+    // Page 1: answer correctly and submit
+    const radios = container.querySelectorAll('input[type="radio"]');
+    expect(radios.length).toBeGreaterThan(0);
+    fireEvent.click(radios[0]); // Paris
+    await waitFor(() => expect(getByText(/Check|Submit/)).toBeTruthy());
+    fireEvent.click(getByText(/Check|Submit/));
+    await waitFor(() => expect(container.textContent).toContain('✅'));
+
+    // Advance to page 2 — page 1 (the problem) unmounts
+    fireEvent.click(getByText(/Next/));
+    await waitFor(() => expect(container.textContent).toContain('Always here.'));
+    expect(container.querySelectorAll('input[type="radio"]').length).toBe(0);
+
+    // The gate references the now-unrendered problem: static-DOM topology
+    // aggregates its stored leaf state; dynamic-DOM topology saw nothing.
+    await waitFor(() => expect(container.textContent).toContain('GATED_CONTENT_MARKER'));
+  });
+
   it('immediate mode derives correctness from live input values', async () => {
     const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
 

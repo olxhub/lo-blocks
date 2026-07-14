@@ -19,11 +19,12 @@ export {
 
 // Grading pipeline — shared preparation/evaluation for both grading modes
 export { prepareGrade, evaluateGrade, buildGraderParam, readGraderInputs, gradingField, normalizeGraderResult } from './pipeline';
+export { childGraderKeys, graderInputKeys, gradeModeOf, graderBlueprintForKey } from './topology';
 export { grader } from './submitGrade';
 export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradePreparation, PreparedGrade } from './model';
 
 // Grading-state read model — the single read point for grader state
-export { selectGradingState, gradingModeFor, isImmediateContext, findDirectChildGraders } from './selectGradingState';
+export { selectGradingState, isImmediateEntry } from './selectGradingState';
 export { useGradingState } from './useGradingState';
 export { registerGradingResolvers } from './registerResolvers';
 

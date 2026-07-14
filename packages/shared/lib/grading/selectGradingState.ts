@@ -19,15 +19,14 @@
 //       Covers submit mode and the async pending→final lifecycle.
 //
 import { correctness } from '../blocks/correctness';
-import { getDomNodeByStateKey, getParents } from '../blocks/olxdom';
-import { inferRelatedNodes } from '../blocks/olxdom';
 import { aggregateGradingStates } from './aggregators';
 import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
 } from './pipeline';
+import { staticEntryForStateKey, blueprintFor, childGraderKeys, gradeModeOf } from './topology';
 import { fieldSelector } from '../state/redux';
 import type { GraderInput, GradingState } from './model';
-import type { LoBlock, OlxDomNode, RuntimeProps, StateKey } from '../types';
+import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 
 export type { GradingState };
 
@@ -39,7 +38,7 @@ const UNGRADED: GradingState = {
 };
 
 // ---------------------------------------------------------------------------
-// Grader classification
+// Grader classification — all from the static DOM + registry (topology.ts)
 // ---------------------------------------------------------------------------
 
 /** A metagrader aggregates children; only the grader() mixin sets `grading`. */
@@ -48,60 +47,23 @@ function isMetagrader(loBlock: LoBlock): boolean {
 }
 
 /**
- * The grading mode a node lives under: its nearest enclosing problem
- * (metagrader) decides. A problem without a `grade` attribute is
- * submit-mode (the default), so a plain nested <CapaProblem> inside an
- * immediate one grades on submit rather than inheriting immediacy.
+ * Is this block's grading mode immediate? Reads the parse-time gradeMode
+ * stamp its enclosing problem wrote (see CapaProblem.ts) — no ancestor
+ * walk, no dynamic DOM. Component convenience (GraderShell): the stamp is
+ * also spread into props as props.gradeMode.
  */
-export function gradingModeFor(node: OlxDomNode): 'immediate' | 'submit' {
-  const boundary = getParents(node, {
-    selector: n => isMetagrader(n.loBlock) || typeof n.olxJson.attributes.grade === 'string',
-  });
-  return boundary[0]?.olxJson.attributes.grade === 'immediate' ? 'immediate' : 'submit';
-}
-
-/** Null-tolerant convenience for components (GraderShell). */
-export function isImmediateContext(node: OlxDomNode | null | undefined): boolean {
-  return node ? gradingModeFor(node) === 'immediate' : false;
-}
-
-/**
- * The DIRECT child graders of a metagrader — a nested problem is a
- * boundary. The DOM walk returns every descendant grader, so an outer
- * problem would otherwise count an inner CapaProblem AND its leaf graders
- * (double-counting scores, and evaluating the inner leaves under the outer
- * problem's grade mode instead of the inner's own). Identity is by DOM
- * node, not definition id: repeated instances of one definition (e.g.
- * MasteryBank's attempt-scoped remounts) are distinct graders.
- */
-export function findDirectChildGraders(props: RuntimeProps, node: OlxDomNode): StateKey[] {
-  const descendantIds = inferRelatedNodes(
-    { ...props, nodeInfo: node },
-    {
-      selector: n => n.loBlock.isGrader && n !== node,
-      infer: ['kids'],
-      targets: node.olxJson.attributes.target,
-    }
-  );
-  return descendantIds.filter(id => {
-    // A missing node is a mid-mount transient (the DOM registers top-down);
-    // include it — its own selectGradingState falls back to stored fields.
-    const childNode = getDomNodeByStateKey(props, id);
-    for (let cur = childNode?.parent; cur && cur !== node; cur = cur.parent) {
-      if (cur.loBlock.isGrader) return false; // enclosed by a nearer grader
-    }
-    return true;
-  });
+export function isImmediateEntry(entry: OlxJson): boolean {
+  return gradeModeOf(entry) === 'immediate';
 }
 
 // ---------------------------------------------------------------------------
 // The three strategies
 // ---------------------------------------------------------------------------
 
-function deriveMetagraderState(state: unknown, props: RuntimeProps, node: OlxDomNode): GradingState {
-  const childIds = findDirectChildGraders(props, node);
-  if (childIds.length === 0) return UNGRADED;
-  return aggregateGradingStates(childIds.map(id => selectGradingState(state, props, id)));
+function deriveMetagraderState(state: unknown, props: RuntimeProps, metagraderKey: StateKey): GradingState {
+  const childKeys = childGraderKeys(state, props, metagraderKey);
+  if (childKeys.length === 0) return UNGRADED;
+  return aggregateGradingStates(childKeys.map(key => selectGradingState(state, props, key)));
 }
 
 /**
@@ -119,15 +81,17 @@ function softenLiveIncorrectResult(
   return allCommitOnChange ? correct : correctness.incomplete;
 }
 
-function deriveImmediateState(state: unknown, props: RuntimeProps, node: OlxDomNode): GradingState {
-  const descriptor = node.loBlock.grading!;
-  const preparation = prepareGrade(props, state, node, descriptor);
+function deriveImmediateState(
+  state: unknown, props: RuntimeProps, graderKey: StateKey, loBlock: LoBlock,
+): GradingState {
+  const descriptor = loBlock.grading!;
+  const preparation = prepareGrade(props, state, graderKey, descriptor);
   const raw = preparation.ok ? evaluateGrade(preparation.prepared) : preparationErrorResult(preparation.error);
   if (raw && typeof (raw as Promise<unknown>).then === 'function') {
     // Async graders are rejected from immediate problems at authoring time
     // (CapaProblem renders a DisplayError), so an async result here is a
     // broken invariant, not a mode to fall back from.
-    throw new Error(`[grading] ${node.loBlock.name} returned a Promise during immediate evaluation`);
+    throw new Error(`[grading] ${loBlock.name} returned a Promise during immediate evaluation`);
   }
   const result = normalizeGraderResult(raw as Awaited<typeof raw>);
   const correct = softenLiveIncorrectResult(result.correct, preparation.inputs);
@@ -160,16 +124,18 @@ function readStoredGradingState(
 // ---------------------------------------------------------------------------
 
 function computeGradingState(state: unknown, props: RuntimeProps, stateKey: StateKey): GradingState {
-  const node = getDomNodeByStateKey(props, stateKey);
-  // Not rendered (or a non-React caller before mount): stored fields are
-  // the only truth available.
-  if (!node) return readStoredGradingState(state, props, stateKey, undefined);
+  const entry = staticEntryForStateKey(state, props, stateKey);
+  // Content not loaded yet: stored fields are the only truth available
+  // (heals on the content dispatch).
+  if (!entry) return readStoredGradingState(state, props, stateKey, undefined);
+  const loBlock = blueprintFor(props, entry);
+  if (!loBlock) return readStoredGradingState(state, props, stateKey, undefined);
 
-  if (isMetagrader(node.loBlock)) return deriveMetagraderState(state, props, node);
-  if (node.loBlock.grading && node.loBlock.grading.execution !== 'async' && gradingModeFor(node) === 'immediate') {
-    return deriveImmediateState(state, props, node);
+  if (isMetagrader(loBlock)) return deriveMetagraderState(state, props, stateKey);
+  if (loBlock.grading && loBlock.grading.execution !== 'async' && isImmediateEntry(entry)) {
+    return deriveImmediateState(state, props, stateKey, loBlock);
   }
-  return readStoredGradingState(state, props, stateKey, node.loBlock);
+  return readStoredGradingState(state, props, stateKey, loBlock);
 }
 
 /**
@@ -177,19 +143,12 @@ function computeGradingState(state: unknown, props: RuntimeProps, stateKey: Stat
  * actions, orchestrators, the state language, and server code as well as
  * React (via useGradingState).
  *
- * Deliberately UNCACHED: grading depends on the mutable rendered OLX DOM
- * as well as Redux state, and DOM registration doesn't dispatch — a cache
- * keyed on (state, key) can go stale mid-mount (metagrader registered,
- * children not yet). Correctness over saved tree walks; if profiling ever
- * says otherwise, a correct cache needs an OLX-DOM revision in its key.
- *
- * KNOWN LIMITATION (same root cause): subscribers only recompute on Redux
- * dispatch, so a value computed mid-mount (children not yet registered)
- * heals on the next dispatch — which in practice arrives during load
- * (content/field-state adoption), but is not guaranteed for fully restored
- * state with zero interaction. The architectural fix is deriving grader
- * topology from the parsed content graph (capaParser already records
- * grader→input wiring) or making DOM topology a versioned selector input.
+ * A pure function of Redux state (component scope + the static DOM) plus
+ * the block registry — the dynamic (rendered) DOM is NOT an input, so
+ * grading works for unrendered content (cross-page gating), in analytics,
+ * replay, and server code, and every input change arrives via dispatch
+ * (no mid-mount staleness). That also makes per-state memoization sound
+ * again if profiling ever wants it.
  */
 export function selectGradingState(
   state: unknown,

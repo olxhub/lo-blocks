@@ -2,21 +2,21 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
-import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
-import { useGradingState, findDirectChildGraders } from '@/lib/grading';
+import { inferRelatedNodes } from '@/lib/blocks/olxdom';
+import { useGradingState, childGraderKeys, graderBlueprintForKey } from '@/lib/grading';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
 
 /**
- * The direct child graders this problem governs. Boundary-aware (a nested
- * problem's graders belong to that problem): the same rule aggregation
- * uses, so validation, the submit button's targets, and derived grading
- * all agree on which graders are "this problem's".
+ * The direct child graders this problem governs — from the STATIC DOM
+ * (topology.ts), boundary-aware: the same rule aggregation uses, so
+ * validation, the submit button's targets, and derived grading all agree
+ * on which graders are "this problem's".
  */
 function findChildGraderIds(props) {
-  return props.nodeInfo ? findDirectChildGraders(props, props.nodeInfo) : [];
+  return childGraderKeys(props.runtime.store.getState(), props, props.nodeInfo.stateKey);
 }
 
 /**
@@ -121,7 +121,7 @@ export default function CapaProblem(props: RuntimeProps) {
   // effect.
   if (isImmediate) {
     const asyncChildIds = childGraderIds.filter(
-      gid => getDomNodeByStateKey(props, gid)?.loBlock.grading?.execution === 'async'
+      gid => graderBlueprintForKey(props.runtime.store.getState(), props, gid)?.grading?.execution === 'async'
     );
     if (asyncChildIds.length > 0) {
       return (

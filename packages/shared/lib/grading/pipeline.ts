@@ -11,13 +11,12 @@
 // (e.g. input-type compatibility) applies to both modes by construction.
 //
 import { correctness, normalizeCorrectness } from '../blocks/correctness';
-import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
-import { getBlockByOLXId } from '../blocks/getBlockByOLXId';
-import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
 import { commonFields } from '../state/commonFields';
 import { valueSelector } from '../state/redux';
-import type { FieldInfo, LoBlock, OlxDomNode, RuntimeProps, StateKey } from '../types';
+import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import { staticEntryForStateKey, blueprintFor, graderInputKeys } from './topology';
+import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
   PreparedGrade, RawGraderResult,
@@ -45,55 +44,42 @@ export function normalizeGraderResult(raw: RawGraderResult): GradingResult {
 }
 
 // ---------------------------------------------------------------------------
-// Preparation stages
+// Preparation stages — STATIC DOM ONLY. The dynamic (rendered) DOM is not
+// an input to grading: topology comes from OlxJson in Redux (topology.ts),
+// values from component state, behavior from the block registry. Grading
+// therefore runs identically in selectors, analytics, replay, and server
+// code, whether or not anything is mounted.
 // ---------------------------------------------------------------------------
 
-/** Input blocks this grader grades: explicit target= or DOM inference. */
-export function findGraderInputIds(
-  props: RuntimeProps,
-  node: OlxDomNode,
-  infer: boolean = true,
-): StateKey[] {
-  return inferRelatedNodes(
-    { ...props, nodeInfo: node },
-    {
-      selector: n => n.loBlock.isInput,
-      infer,
-      targets: node.olxJson.attributes.target,
-    }
-  );
+/** Build a block's props from its static-DOM entry (no dynamic DOM). */
+export function staticProps(props: RuntimeProps, defKey: string, entry: OlxJson, loBlock: LoBlock): RuntimeProps {
+  return {
+    runtime: props.runtime,
+    nodeInfo: undefined,
+    id: defKey,
+    kids: entry.kids || [],
+    loBlock,
+    fields: loBlock.fields || {},
+    locals: loBlock.locals || {},
+    ...entry.attributes,
+  } as unknown as RuntimeProps;
 }
 
 /**
  * Resolve one input to a GraderInput: live value (from the Redux snapshot),
- * bound locals API, and authoring metadata. Reads from the rendered DOM
- * node when available; falls back to the content idMap when not — the DOM
- * registers top-down during mount, so a metagrader's selector can run
- * before its child inputs have registered, and target= may address blocks
- * outside the rendered subtree. (Do NOT fail fast here: the mid-mount case
- * is a self-healing transient, not a broken invariant.)
+ * bound locals API, and authoring metadata — all from the static DOM plus
+ * the block registry.
  */
 function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey): GraderInput {
-  const node = getDomNodeByStateKey(props, stateKey);
   const defKey = leafDefinitionKeyFromStateKey(stateKey);
-  const inst = node?.olxJson ?? getBlockByOLXId(props, defKey);
-  if (!inst) {
-    // Unlike a missing DOM node (mid-mount transient), missing CONTENT is a
-    // broken invariant — grading undefined would masquerade as a real answer.
-    throw new Error(`[grading] Input block "${stateKey}" not found in content`);
+  const olxJson = staticEntryForStateKey(state, props, stateKey);
+  if (!olxJson) {
+    // Content still loading (ensureBlock in flight) — a transient, not an
+    // answer. The caller surfaces it as a preparation error.
+    throw new InputContentPending(stateKey);
   }
-  const loBlock = node?.loBlock ?? props.runtime.blockRegistry[inst.tag];
-  const olxJson = inst;
-  const inputProps = node ? propsFromNode(node) : ({
-    runtime: props.runtime,
-    nodeInfo: undefined,
-    id: defKey,
-    kids: inst.kids || [],
-    loBlock,
-    fields: loBlock.fields || {},
-    locals: loBlock.locals || {},
-    ...inst.attributes,
-  } as unknown as RuntimeProps);
+  const loBlock = props.runtime.blockRegistry[olxJson.tag];
+  const inputProps = staticProps(props, defKey, olxJson, loBlock);
 
   // valueSelector for uniform handling of withStatus / raw selectValue
   const { value } = valueSelector(inputProps, state, stateKey);
@@ -121,6 +107,14 @@ function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey
 
 export function readGraderInputs(props: RuntimeProps, state: unknown, ids: StateKey[]): GraderInput[] {
   return ids.map(id => readGraderInput(props, state, id));
+}
+
+/** An input whose content hasn't loaded yet — surfaced as a preparation
+ *  error (transient; heals on the content dispatch), never as an answer. */
+class InputContentPending extends Error {
+  constructor(public stateKey: StateKey) {
+    super(`Input content for "${stateKey}" is not loaded`);
+  }
 }
 
 /**
@@ -213,12 +207,23 @@ export function buildGraderParam(
 export function prepareGrade(
   props: RuntimeProps,
   state: unknown,
-  node: OlxDomNode,
+  graderKey: StateKey,
   descriptor: GradingDescriptor,
 ): GradePreparation {
-  const graderProps = propsFromNode(node);
-  const inputIds = findGraderInputIds(props, node, descriptor.infer ?? true);
-  const inputs = readGraderInputs(props, state, inputIds);
+  const entry = staticEntryForStateKey(state, props, graderKey);
+  if (!entry) return { ok: false, inputs: [], error: 'Grader content is not loaded' };
+  const loBlock = blueprintFor(props, entry)!;
+  const graderProps = staticProps(props, leafDefinitionKeyFromStateKey(graderKey), entry, loBlock);
+
+  let inputs: GraderInput[];
+  try {
+    inputs = readGraderInputs(props, state, graderInputKeys(state, props, graderKey));
+  } catch (e) {
+    if (e instanceof InputContentPending) {
+      return { ok: false, inputs: [], error: `Input "${e.stateKey}" is still loading` };
+    }
+    throw e;
+  }
 
   const typeError = validateInputTypes(graderProps, inputs);
   if (typeError) return { ok: false, inputs, error: typeError };
@@ -234,7 +239,7 @@ export function prepareGrade(
       descriptor,
       inputs,
       param,
-      ensureReady: node.loBlock.ensureReady,
+      ensureReady: loBlock.ensureReady,
     },
   };
 }

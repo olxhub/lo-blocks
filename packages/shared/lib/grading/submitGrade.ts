@@ -11,7 +11,7 @@ import { graderAttributes } from '../blocks/attributeSchemas';
 import { errorMessage } from '../util/errorMessage';
 import { updateField, fieldSelector } from '../state/redux';
 import type { Correctness } from '../blocks/correctness';
-import type { LoBlock, OlxDomNode, RuntimeProps, StateKey } from '../types';
+import type { LoBlock, RuntimeProps, StateKey } from '../types';
 import type { GradePreparation, GraderFn, GradingDescriptor, GradingResult } from './model';
 import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
@@ -79,10 +79,9 @@ async function evaluateSubmission(preparation: GradePreparation): Promise<Gradin
   }
 }
 
-/** The submission lifecycle for one grader node. */
-async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: GradingDescriptor) {
-  const stateKey = node.stateKey;
-  const loBlock = node.loBlock;
+/** The submission lifecycle for one grader instance. */
+async function submitGrade(props: RuntimeProps, stateKey: StateKey, descriptor: GradingDescriptor) {
+  const loBlock = props.loBlock;
   const state = props.runtime.store.getState();
 
   // Re-entrancy guard: a submission is already being graded (the button
@@ -91,7 +90,7 @@ async function submitGrade(props: RuntimeProps, node: OlxDomNode, descriptor: Gr
   const pending = readGradingField<Correctness>(state, props, stateKey, loBlock, 'correct', correctness.unsubmitted);
   if (descriptor.execution === 'async' && pending === correctness.submitted) return undefined;
 
-  const preparation = prepareGrade(props, state, node, descriptor);
+  const preparation = prepareGrade(props, state, stateKey, descriptor);
 
   // Capture what is being graded (shown by the UI during async grading and
   // for changed-since-submission indicators afterwards). Preparation
@@ -148,8 +147,10 @@ export function grader({ grader, infer = true, slots, inputType, execution = 'sy
   const descriptor: GradingDescriptor = { fn: grader, inputType, slots, execution, infer };
 
   const action = async ({ props }: { props: RuntimeProps }) => {
-    // executeNodeActions builds props from the grader's own DOM node.
-    return submitGrade(props, props.nodeInfo, descriptor);
+    // executeNodeActions builds props from the grader's own dynamic-DOM
+    // node; only its stateKey (the instance identity) is used — grading
+    // itself runs off the static DOM.
+    return submitGrade(props, props.nodeInfo.stateKey, descriptor);
   };
 
   // Everything the helper contributes is packaged as a `graderMixin` layer.
