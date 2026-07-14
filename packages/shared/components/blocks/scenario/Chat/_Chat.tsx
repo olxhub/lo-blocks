@@ -4,13 +4,14 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { useFieldState, settings } from '@/lib/state';
-import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';
+import { useRenderedBlockMulti } from '@/lib/blocks/useRenderedBlock';
+import { parseAnyStateRef, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { advanceFrom } from '@/lib/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import type { ChatDisplayEntry } from '@/lib/types';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
-import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
+import type { RuntimeProps, PeggyKids, StateKey } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions, interludeExitAllowed } from './waitConditions';
 import { useLlmInterlude } from './llmInterlude';
@@ -96,20 +97,22 @@ export default function Chat(props: RuntimeProps) {
   // Clamp index to within the clip
   const windowedIndex = Math.max(clipRange.start, Math.min(index, clipRange.end));
 
-  // Collect all embedded block IDs from the visible window
-  const embedIds = useMemo(() => {
+  // Collect embedded block StateKeys from the visible window. Embed refs are
+  // authored cross-references (global scope), so they resolve through
+  // stateKeyForGlobalRef, not the caller's own idPrefix.
+  const embedKeys = useMemo(() => {
     const window = allEntries.slice(windowRange.start, windowedIndex + 1);
-    const ids: DefinitionRef[] = [];
+    const keys: StateKey[] = [];
     for (const entry of window) {
       if (entry.type === 'EmbedCommand') {
-        ids.push(entry.ref as DefinitionRef);
+        keys.push(stateKeyForGlobalRef(parseAnyStateRef(entry.ref), props.runtime.ns));
       }
     }
-    return ids;
-  }, [allEntries, windowRange, windowedIndex]);
+    return keys;
+  }, [allEntries, windowRange, windowedIndex, props.runtime.ns]);
 
-  // Use lazy-loading hook to render all embedded blocks
-  const { blocks: renderedBlocks } = useRenderedBlocksMultiple(props, embedIds);
+  // Render all embedded blocks behind the instance state gate
+  const { blocks: renderedBlocks } = useRenderedBlockMulti(props, embedKeys);
 
   // Build visible messages, mapping EmbedCommands to their rendered blocks
   // TODO: The embedIndex counter assumes embedIds and visibleMessages iterate the same window

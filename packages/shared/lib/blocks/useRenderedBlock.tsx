@@ -16,7 +16,7 @@
 
 import React, { useEffect } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { useOlxJson, selectOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useOlxJson, selectOlxJson } from '@/lib/blocks/useOlxJson';
 import { useBlocksReadyForSources } from '@/lib/blocks/useBlocksReady';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { render, renderCompiledKids } from '@/lib/render';
@@ -167,12 +167,17 @@ export function useRenderedBlock(
  * a container cannot call useRenderedBlock in a loop). Same readiness
  * semantics per key; `blocks` is always the same length as `stateKeys`
  * and every entry is renderable (block, Spinner, or DisplayError).
+ *
+ * `olxJsons` is the same-length raw-content view (null while a key is
+ * unresolved), for containers that read the definitions themselves —
+ * e.g. a tab bar pulling `title` off each child's attributes — rather
+ * than only rendering them.
  */
 export function useRenderedBlockMulti(
   props: RuntimeProps,
   stateKeys: StateKey[],
   { source = 'content', policy }: InstanceOptions = {},
-): { blocks: React.ReactNode[]; allReady: boolean } {
+): { blocks: React.ReactNode[]; olxJsons: (OlxJson | null)[]; allReady: boolean } {
   interface KeyView {
     key: StateKey;
     olxJson: OlxJson | null;
@@ -233,64 +238,7 @@ export function useRenderedBlockMulti(
     return render({ ...props, node: v.olxJson });
   });
 
-  return { blocks, allReady };
-}
-
-// ─── Rendered blocks from ID lists ─────────────────────────────────────────
-//
-// Hook and getter for rendering multiple blocks from an array of IDs.
-// Fills the gap between useKids (for kids lists) and useBlock (single ID).
-//
-
-/**
- * Hook for rendering multiple blocks from an array of IDs.
- *
- * Takes an array of DefinitionRef IDs and returns rendered React elements.
- * Each block is fetched via useOlxJsonMultiple and rendered via render().
- * Placeholders (Spinner/ErrorNode) are automatically returned for loading/error states
- * by useOlxJsonMultiple's contract.
- *
- * This is the missing piece: useKids handles kids lists, useBlock handles
- * single IDs, and this handles ID lists.
- *
- * @param props - Component props (runtime, nodeInfo, etc.)
- * @param ids - Array of OLX IDs to render
- * @param source - Content source (default: 'content')
- */
-export function useRenderedBlocksMultiple(
-  props: RuntimeProps,
-  ids: DefinitionRef[],
-  source: string = 'content'
-): {
-  blocks: React.ReactNode[];
-  allReady: boolean;
-} {
-  const { olxJsons, allReady } = useOlxJsonMultiple(props, ids, source);
-
-  // useOlxJsonMultiple guarantees non-null entries (Spinner/ErrorNode OlxJson for loading/error)
-  // Just render each one through the normal block pipeline
-  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
-
-  return { blocks, allReady };
-}
-
-/**
- * One-shot imperative form: renders multiple blocks from IDs.
- *
- * Use in callbacks or non-reactive contexts. Not for regular use —
- * prefer useRenderedBlocksMultiple in components.
- */
-export function getRenderedBlocksMultiple(
-  props: RuntimeProps,
-  ids: DefinitionRef[],
-  source: string = 'content'
-): {
-  blocks: React.ReactNode[];
-  allReady: boolean;
-} {
-  const { olxJsons, allReady } = getOlxJsonMultiple(props, ids, source);
-  const blocks = olxJsons.map(olxJson => render({ ...props, node: olxJson }));
-  return { blocks, allReady };
+  return { blocks, olxJsons: view.map((v) => v.olxJson), allReady };
 }
 
 // ─── when= filtering ───────────────────────────────────────────────────────
