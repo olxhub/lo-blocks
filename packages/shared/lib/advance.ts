@@ -18,7 +18,7 @@
 // Global spacebar: auto-installed on first registerAdvanceRoot call.
 
 import type { OlxDomNode } from '@/lib/types';
-import { propsFromNode } from '@/lib/blocks/olxdom';
+import { propsFromNode } from '@/lib/blocks/dynamicDom';
 
 /* ----------------------------------------------------------------
  * Tree walkers

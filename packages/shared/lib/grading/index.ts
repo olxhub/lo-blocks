@@ -19,7 +19,7 @@ export {
 
 // Grading pipeline — shared preparation/evaluation for both grading modes
 export { prepareGrade, evaluateGrade, buildGraderParam, readGraderInputs, gradingField, normalizeGraderResult } from './pipeline';
-export { childGraderStateKeys, graderInputStateKeys, gradeModeOf, graderBlueprintForStateKey } from './topology';
+export { childGraderStateKeys, graderInputStateKeys, gradeModeOf, graderBlueprintForStateKey, whenGatedGradingKids } from './topology';
 export { grader } from './submitGrade';
 export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradePreparation, PreparedGrade } from './model';
 

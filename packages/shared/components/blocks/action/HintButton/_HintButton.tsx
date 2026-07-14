@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
-import { getAllNodes } from '@/lib/blocks/olxdom';
+import { getAllNodes } from '@/lib/blocks/dynamicDom';
 import { DisplayError } from '@/lib/util/debug';
 import * as DemandHints from '@/components/blocks/display/DemandHints/DemandHints';
 

@@ -21,67 +21,13 @@
 // problems (a container concern); a problem does not have a variable set
 // of graders.
 //
-import { selectBlock } from '../state/olxjson';
 import {
   leafDefinitionKeyFromStateKey, siblingScopedKey, stateKeyForGlobalRef, parseAnyStateRef,
-  qualifyDefinitionRef,
 } from '../types/id-grammar';
-import type { DefinitionRef } from '../types';
-import type { DefinitionKey, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
+import { staticEntry, staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
+import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 
-/** The static-DOM entry for a block, or null if content isn't loaded. */
-export function staticEntry(state: unknown, props: RuntimeProps, defKey: DefinitionKey): OlxJson | null {
-  const sources = props.runtime.olxJsonSources ?? ['content'];
-  return selectBlock(state as any, sources, defKey, props.runtime.locale.code) ?? null;
-}
-
-export function staticEntryForStateKey(state: unknown, props: RuntimeProps, stateKey: StateKey): OlxJson | null {
-  return staticEntry(state, props, leafDefinitionKeyFromStateKey(stateKey));
-}
-
-/** A block's blueprint from its static-DOM entry. */
-export function blueprintFor(props: RuntimeProps, entry: OlxJson): LoBlock | undefined {
-  return props.runtime.blockRegistry[entry.tag];
-}
-
-/**
- * Walk a static-DOM kids structure, collecting block DefinitionKeys that
- * match, descending through html/non-matching blocks, and stopping at
- * matches (boundary semantics: a matched block owns its own subtree).
- */
-function collectBoundaryKids(
-  state: unknown,
-  props: RuntimeProps,
-  kids: unknown,
-  matches: (loBlock: LoBlock) => boolean,
-): DefinitionKey[] {
-  const found: DefinitionKey[] = [];
-  const walk = (kidList: unknown) => {
-    if (!Array.isArray(kidList)) return;
-    for (const kid of kidList) {
-      if (!kid || typeof kid !== 'object') continue;
-      const k = kid as { type?: string; id?: string; kids?: unknown };
-      if (k.type === 'block' && k.id) {
-        // Kid ids may be bare DefinitionRefs (generated content, e.g.
-        // MarkupProblem's expansion) or qualified DefinitionKeys
-        // (capaParser) — qualify uniformly.
-        const defKey = qualifyDefinitionRef(k.id as DefinitionRef, props.runtime.ns);
-        const entry = staticEntry(state, props, defKey);
-        if (!entry) continue; // content not loaded yet — heals on its dispatch
-        const loBlock = blueprintFor(props, entry);
-        if (loBlock && matches(loBlock)) {
-          found.push(defKey);      // boundary: don't descend
-        } else {
-          walk(entry.kids);
-        }
-      } else if (k.type === 'html') {
-        walk(k.kids);
-      }
-    }
-  };
-  walk(kids);
-  return found;
-}
+export { staticEntry, staticEntryForStateKey, blueprintFor };
 
 /**
  * The direct child graders a metagrader governs, as instance StateKeys
@@ -91,7 +37,7 @@ function collectBoundaryKids(
 export function childGraderStateKeys(state: unknown, props: RuntimeProps, metagraderStateKey: StateKey): StateKey[] {
   const entry = staticEntryForStateKey(state, props, metagraderStateKey);
   if (!entry) return [];
-  const defKeys = collectBoundaryKids(state, props, entry.kids, b => b.isGrader);
+  const defKeys = inferKids(state, props, entry.kids, { selector: b => b.isGrader });
   return defKeys.map(defKey => siblingScopedKey(metagraderStateKey, defKey));
 }
 
@@ -126,7 +72,7 @@ export function graderInputStateKeys(state: unknown, props: RuntimeProps, grader
 
   const descriptor = blueprintFor(props, entry)?.grading;
   if (descriptor && descriptor.infer === false) return [];
-  const defKeys = collectBoundaryKids(state, props, entry.kids, b => b.isInput);
+  const defKeys = inferKids(state, props, entry.kids, { selector: b => b.isInput });
   return defKeys.map(defKey => siblingScopedKey(graderStateKey, defKey));
 }
 
@@ -143,4 +89,19 @@ export function graderBlueprintForStateKey(state: unknown, props: RuntimeProps, 
  */
 export function gradeModeOf(entry: OlxJson): 'immediate' | 'submit' {
   return entry.attributes.gradeMode === 'immediate' ? 'immediate' : 'submit';
+}
+
+/**
+ * Grading blocks (a problem's graders and their inputs) that carry when=.
+ * Grader topology is static — when=-hidden blocks still count toward the
+ * grade — so visibility on a grading block almost certainly doesn't do
+ * what the author expects. Surfaced as an authoring error (CapaProblem)
+ * until a real use case shows up.
+ */
+export function whenGatedGradingKids(state: unknown, props: RuntimeProps, problemStateKey: StateKey): StateKey[] {
+  const hasWhen = (stateKey: StateKey): boolean =>
+    staticEntryForStateKey(state, props, stateKey)?.attributes.when !== undefined;
+  return childGraderStateKeys(state, props, problemStateKey)
+    .flatMap(graderKey => [graderKey, ...graderInputStateKeys(state, props, graderKey)])
+    .filter(hasWhen);
 }

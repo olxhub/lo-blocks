@@ -7,7 +7,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { getBlockByOLXId } from '@/lib/blocks';
-import { getInputs } from '@/lib/blocks/olxdom';
+import { getInputs } from '@/lib/blocks/dynamicDom';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';

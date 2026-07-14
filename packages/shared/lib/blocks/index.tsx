@@ -12,7 +12,7 @@
 //
 export { blocks } from './factory';
 export { core, dev, test } from './namespaces';
-export { getAllNodes, getDomNodeByStateKey, getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getGrader, getInputs, getValueById, extractChildText, propsFromNode } from './olxdom';
+export { getAllNodes, getDomNodeByStateKey, getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getGrader, getInputs, getValueById, extractChildText, propsFromNode } from './dynamicDom';
 export { scopeMarker } from '../types/id-grammar';
 export { action, executeNodeActions, input, isAction, isInput, isMatch } from './actions';
 // grader() lives with the rest of the grading subsystem

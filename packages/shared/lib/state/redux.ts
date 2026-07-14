@@ -51,7 +51,7 @@ import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
 import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
-import { getDomNodeByStateKey, propsFromNode } from '../blocks/olxdom';
+import { getDomNodeByStateKey, propsFromNode } from '../blocks/dynamicDom';
 import { ensureBlock } from '../blocks/useOlxJson';
 import { getReduxStoreInstance } from './store';
 import { writeEncoded } from './encode';

@@ -8,7 +8,7 @@
 //
 import { useSelector } from 'react-redux';
 import { correctness } from './correctness';
-import { inferRelatedNodes } from './olxdom';
+import { inferRelatedNodes } from './dynamicDom';
 import { selectGradingState } from '@/lib/grading';
 
 /**

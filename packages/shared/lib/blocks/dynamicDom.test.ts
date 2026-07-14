@@ -1,5 +1,5 @@
-// packages/shared/lib/blocks/olxdom.test.ts
-import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './olxdom';
+// packages/shared/lib/blocks/dynamicDom.test.ts
+import { getKidsBFS, getKidsDFS, getParents, inferRelatedNodes, getAllNodes, __testables } from './dynamicDom';
 import { TEST_NS, testKey, mockRuntime as createMockRuntime } from '../test-utils';
 
 const { normalizeTargetIds, normalizeInfer} = __testables;

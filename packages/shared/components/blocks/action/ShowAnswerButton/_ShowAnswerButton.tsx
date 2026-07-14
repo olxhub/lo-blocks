@@ -6,7 +6,7 @@ import React, { useMemo, useCallback } from 'react';
 import * as state from '@/lib/state';
 import { showAnswer as showAnswerField } from '@/lib/state/commonFields';
 import { getGrader } from '@/lib/blocks';
-import { normalizeTargetIds } from '@/lib/blocks/olxdom';
+import { normalizeTargetIds } from '@/lib/blocks/dynamicDom';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { DisplayError } from '@/lib/util/debug';
 

@@ -2,8 +2,8 @@
 'use client';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import { useGradingState, childGraderStateKeys, graderBlueprintForStateKey } from '@/lib/grading';
+import { inferRelatedNodes } from '@/lib/blocks/dynamicDom';
+import { useGradingState, childGraderStateKeys, graderBlueprintForStateKey, whenGatedGradingKids } from '@/lib/grading';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -129,6 +129,24 @@ export default function CapaProblem(props: RuntimeProps) {
         />
       );
     }
+  }
+
+  // Grader topology is static: when=-hidden graders/inputs still COUNT
+  // toward the grade, which is almost never what when= on a grading block
+  // intends. Error until someone has a real use case.
+  const whenGated = whenGatedGradingKids(reduxState, props, props.nodeInfo.stateKey);
+  if (whenGated.length > 0) {
+    return (
+      <DisplayError
+        props={props}
+        id={`${id}_when_gated_grading`}
+        title="CapaProblem"
+        message={`when= on a grader or its input (problem "${id}": ${whenGated.join(', ')}) is probably a bug: `
+          + `a problem's grading structure is fixed, so a hidden grader or input still counts toward the grade. `
+          + `Use when= on content around the problem, or split into separate problems. `
+          + `If you have a use case for visibility-gated grading blocks, email us — we can enable this if it turns out to be usable. But it looks wrong!`}
+      />
+    );
   }
 
   // Validate: require at least one grader unless explicitly allowed

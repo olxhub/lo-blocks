@@ -19,7 +19,7 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './olxdom';
+import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './dynamicDom';
 import { useOlxJson } from './useOlxJson';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, qualifyDefinitionRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';

@@ -16,7 +16,7 @@
 // historical state.
 //
 import { z } from 'zod';
-import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
+import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './dynamicDom';
 import { inputAttributes } from './attributeSchemas';
 import type { BlockAction, RuntimeProps, LoBlock, ValueSelectorFn } from '@/lib/types';
 

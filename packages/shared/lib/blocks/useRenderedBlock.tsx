@@ -26,7 +26,7 @@ import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { DefinitionRef, StateKey, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import { selectKidsJson } from './olxdom';
+import { selectKidsJson } from './staticDynamicDom';
 
 export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
@@ -192,7 +192,7 @@ export function getRenderedBlocksMultiple(
 // module's render-layer dependencies. Re-exported here for render-side
 // callers; only the hook wrapper is defined in this file.
 
-export { selectKidsJson, getKidsJson } from './olxdom';
+export { selectKidsJson, getKidsJson } from './staticDynamicDom';
 
 /**
  * Hook that returns kids as OlxJson nodes with `when=` filtering applied.
