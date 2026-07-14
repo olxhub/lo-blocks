@@ -19,7 +19,7 @@
 // bucket names per scope; it is rewritten only when a new bucket first
 // appears (rare after warm-up).
 
-import type { KVStore } from '@/lib/storage/kvs';
+import { getMany, type KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { LevelInstance } from './levels';
 
@@ -248,15 +248,21 @@ export async function assembleFieldState(
   if (!raw) return null;
   const index: FieldIndex = { ...emptyIndex(), ...JSON.parse(raw) };
 
+  // One batched read for every indexed bucket — the sequential
+  // await-per-bucket loop this replaces made cold loads O(buckets)
+  // round trips on network stores (found by review 2026-07).
+  const entries = PERSISTED_SCOPES.flatMap((scope) =>
+    index[scope].map((bucket) => ({ scope, bucket })));
+  const values = await getMany(kvs, entries.map(({ scope, bucket }) =>
+    kvsKey.field(user, scope, bucket)));
+
   const state: AppStateLike = { system: {}, component: {}, componentSetting: {}, storage: {} };
-  for (const scope of PERSISTED_SCOPES) {
-    for (const bucket of index[scope]) {
-      const value = await kvs.get(kvsKey.field(user, scope, bucket));
-      if (value === null) continue;
-      if (scope === 'system') state.system = JSON.parse(value);
-      else state[scope]![bucket] = JSON.parse(value);
-    }
-  }
+  entries.forEach(({ scope, bucket }, i) => {
+    const value = values[i];
+    if (value === null) return;
+    if (scope === 'system') state.system = JSON.parse(value);
+    else state[scope]![bucket] = JSON.parse(value);
+  });
   return state;
 }
 

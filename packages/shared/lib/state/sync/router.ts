@@ -221,9 +221,9 @@ async function switchGroup(
 
   const newEntry = await entryFor(session, newInstance);
   const newBucket = (newEntry.serverState.state as any).component?.[blockId] ?? {};
-  const oldScopes = await session.registry.read(oldInstance);
+  const oldBuckets = await session.registry.readBuckets(oldInstance, [blockId]);
   const blanks: Record<string, any> = {};
-  for (const field of Object.keys(oldScopes?.component?.[blockId] ?? {})) blanks[field] = '';
+  for (const field of Object.keys(oldBuckets[blockId] ?? {})) blanks[field] = '';
   const patch = { ...blanks, ...newBucket };
 
   const sockets = session.registry.socketsOf(userInstance(session.principal));
