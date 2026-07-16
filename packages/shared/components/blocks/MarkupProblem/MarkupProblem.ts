@@ -12,7 +12,7 @@
 //
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser } from '@/lib/content/parsers';
+import { peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
@@ -528,12 +528,10 @@ const MarkupProblem = dev({
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
   attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
-  // blocks (graders, inputs, hints) dynamically during PEG parsing.
-  // Without this, the content API's static-kids mode won't include them.
-  staticKids: (entry: any) => {
-    if (!Array.isArray(entry?.kids)) return [];
-    return entry.kids.filter((k: any) => k?.id).map((k: any) => k.id);
-  },
+  // blocks (graders, inputs, hints) dynamically during PEG parsing. Without a
+  // staticKids that reports them, the content API's static-kids serving mode
+  // won't ship them and the client renders "Block <id> not found in content".
+  staticKids: directKidIds,
 });
 
 export default MarkupProblem;

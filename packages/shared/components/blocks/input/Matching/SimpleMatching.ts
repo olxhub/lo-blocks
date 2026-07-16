@@ -16,7 +16,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser } from '@/lib/content/parsers';
+import { peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { DefinitionRef } from '@/lib/types';
@@ -148,6 +148,13 @@ const SimpleMatching = dev({
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   attributes: srcAttributes.passthrough(), // Allow passthrough for CapaProblem attributes
+  // peggyParser sets staticKids: () => [], but SimpleMatching generates its
+  // CapaProblem (and its grader/input/item subtree) dynamically in postprocess.
+  // Without this, collectBlockWithKids won't ship the generated CapaProblem and
+  // the client render fails with "Block <id>_problem not found in content".
+  // Mirrors MarkupProblem; the generated CapaProblem's own staticKids recurses
+  // the rest of the subtree.
+  staticKids: directKidIds,
 });
 
 export default SimpleMatching;

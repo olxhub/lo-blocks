@@ -23,7 +23,7 @@
 */
 
 import { dev } from '@/lib/blocks';
-import { childParser } from '@/lib/content/parsers';
+import { childParser, kidIds } from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 
 export const fields = state.fields([
@@ -76,21 +76,15 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
   return { sections };
 });
 
-courseParser.staticKids = entry => {
-  const allChildren: any[] = [];
-  for (const section of entry.kids.sections || []) {
-    if (section.type === 'chapter') {
-      for (const child of section.children || []) {
-        if (child && child.id) {
-          allChildren.push(child.id);
-        }
-      }
-    } else if (section.type === 'block' && section.id) {
-      allChildren.push(section.id);
-    }
-  }
-  return allChildren;
-};
+// Flatten the chapter/section structure to a single list of child entries
+// (chapter children + top-level block sections), then collect their ids.
+courseParser.staticKids = entry => kidIds(
+  (entry.kids.sections || []).flatMap((section: any) =>
+    section.type === 'chapter' ? (section.children || [])
+      : section.type === 'block' ? [section]
+        : []
+  )
+);
 
 const Course = dev({
   ...courseParser(),

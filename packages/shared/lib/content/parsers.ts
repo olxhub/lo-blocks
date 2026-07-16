@@ -297,6 +297,40 @@ export const xml = {
 //   requiredChildren: N - enforce exactly N block children at parse time.
 //                     Children cannot use when= (filtering would break the
 //                     fixed structure). E.g. SplitPanel requires exactly 2.
+// ─── staticKids id collection ────────────────────────────────────────────────
+//
+// A block's `staticKids(entry)` tells collectBlockWithKids (the content-serving
+// path) which child block ids to ship to the client. Blocks whose parsed `kids`
+// is a flat array of child entries all need the same logic — return the ids of
+// the entries that carry one — so it lives here next to the parser factories
+// that default it. Forgetting it (or getting it wrong) is exactly what makes a
+// generated child fail to serve and render as "Block <id> not found in
+// content"; reuse these instead of re-deriving.
+
+/**
+ * Ids of the kid entries that carry one, in order.
+ *
+ * Text/HTML/CDATA kids (no `id`) are skipped. Operates on any flat array of
+ * parsed kid entries, so blocks whose kids are grouped under named slots can
+ * spread the slots together first (see SideBarPanel/SplitPanel/Course).
+ */
+export function kidIds(kids: readonly unknown[]): DefinitionRef[] {
+  return kids.flatMap((k) => {
+    const id = (k as { id?: unknown } | null | undefined)?.id;
+    return id ? [id as DefinitionRef] : [];
+  });
+}
+
+/**
+ * The canonical `staticKids` for blocks whose parsed `kids` is a flat array of
+ * child entries — the shape the blocks parser produces and the shape generator
+ * blocks build when they `storeEntry` their children. Returns the direct child
+ * ids; collectBlockWithKids recurses into each to gather the rest of the subtree.
+ */
+export function directKidIds(entry: { kids?: unknown }): DefinitionRef[] {
+  return kidIds(Array.isArray(entry?.kids) ? entry.kids : []);
+}
+
 // Text handling modes for blocks parser:
 //   'error'       — throw on non-whitespace text (default; prevents silent data loss)
 //   'passthrough' — include text/HTML as mixed content (legacy allowHTML behavior)
@@ -393,12 +427,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
   }
 
   const factory = childParser(blocksParser, 'blocksParser');
-  factory.staticKids = (entry) => {
-    if (!Array.isArray(entry.kids)) return [];
-    return entry.kids
-      .filter(k => k && (k.id || (k.type === 'block' && k.id)))
-      .map(k => k.id);
-  };
+  factory.staticKids = directKidIds;
   factory.childMode = 'blocks';
 
   return factory;
@@ -406,8 +435,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
 
 // Default blocks parser (no HTML)
 const blocksFactory = createBlocksParser();
-blocksFactory.staticKids = (entry) =>
-  (Array.isArray(entry.kids) ? entry.kids : []).filter(k => k && k.id).map(k => k.id);
+blocksFactory.staticKids = directKidIds;
 export const blocks = Object.assign(blocksFactory, {
   // blocks.allowHTML() returns parser that includes HTML/text as mixed content
   allowHTML: () => createBlocksParser({ text: 'passthrough' })(),

@@ -79,11 +79,7 @@ const llmActionParser = async function({ id, rawParsed, tag, attributes, source,
 
 const LLMAction = blocks.test({
   parser: llmActionParser,
-  staticKids: (entry: any) => {
-    return (Array.isArray(entry.kids) ? entry.kids : [])
-      .filter((k: any) => k && typeof k === 'object' && k.id)
-      .map((k: any) => k.id);
-  },
+  staticKids: parsers.directKidIds,
   ...blocks.action({
     action: llmAction,
   }),

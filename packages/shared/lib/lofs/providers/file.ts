@@ -232,23 +232,38 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
     canonicalPath = await fs.realpath(full);
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      // File doesn't exist yet (creating new file)
-      // Check parent directory exists and is within allowed dirs
-      const parentDir = path.dirname(full);
-      try {
-        const canonicalParent = await fs.realpath(parentDir);
-        if (!isPathAllowed(canonicalParent, getAllowedWriteDirs())) {
-          throw new Error('Invalid path: parent directory outside allowed write directories');
+      // File doesn't exist yet (creating new file). The parent directory may
+      // also not exist yet - callers create missing parents with mkdir -p. Walk
+      // up to the nearest existing ancestor and validate *it*: as long as a real
+      // (symlink-free) directory inside the allowed write dirs exists somewhere
+      // above the target, any parents created beneath it are guaranteed to stay
+      // within the mount. The logical-path '..' escape check above already
+      // ensures `full` does not climb out of baseDir.
+      let ancestor = path.dirname(full);
+      let canonicalAncestor: string;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        try {
+          canonicalAncestor = await fs.realpath(ancestor);
+          break;
+        } catch (ancestorErr: any) {
+          if (ancestorErr.code !== 'ENOENT') {
+            throw ancestorErr;
+          }
+          const next = path.dirname(ancestor);
+          if (next === ancestor) {
+            // Reached the filesystem root without finding an existing directory.
+            throw new Error('Invalid path: parent directory does not exist');
+          }
+          ancestor = next;
         }
-        // Check parent path has no symlinks
-        if (canonicalParent !== parentDir) {
-          throw new Error('Invalid path: symlinks not allowed for write operations');
-        }
-      } catch (parentErr: any) {
-        if (parentErr.code === 'ENOENT') {
-          throw new Error('Invalid path: parent directory does not exist');
-        }
-        throw parentErr;
+      }
+      if (!isPathAllowed(canonicalAncestor, getAllowedWriteDirs())) {
+        throw new Error('Invalid path: parent directory outside allowed write directories');
+      }
+      // Reject symlinks anywhere in the existing ancestor chain.
+      if (canonicalAncestor !== ancestor) {
+        throw new Error('Invalid path: symlinks not allowed for write operations');
       }
       return full as FileSystemPath;
     }

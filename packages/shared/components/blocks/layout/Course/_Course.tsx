@@ -6,13 +6,21 @@ import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useBlock, useKidsJson } from '@/lib/render';
 import { getBlockByOLXId } from '@/lib/blocks';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import type { StateRef } from '@/lib/types';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {
-  const { block } = useBlock(props, selectedChild);
+  // selectedChild is a bare block id read out of the parsed section structure
+  // (never through the OLX parser's attribute qualification). useBlock expects
+  // a fully-qualified StateKey, so qualify it against this block's namespace —
+  // the same thing getBlockByOLXId does internally, and mirroring
+  // _NavigatorReadingDetail and the other dynamic-ref consumers.
+  const stateKey = stateKeyForGlobalRef(selectedChild as StateRef, props.runtime.ns);
+  const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }
 
