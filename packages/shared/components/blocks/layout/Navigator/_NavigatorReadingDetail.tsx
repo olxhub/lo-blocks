@@ -4,9 +4,17 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useBlock } from '@/lib/render';
+import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import type { StateRef } from '@/lib/types';
 
-function ReadingContent({ props, blockId }) {
-  const { block } = useBlock(props, blockId);
+function ReadingContent({ props, readingRef }) {
+  // readingRef comes from the Navigator's YAML item data, parsed at runtime —
+  // it never passes through the parser's namespace qualification the way an
+  // authored OLX attribute (e.g. <Use ref>) does. Qualify it here against the
+  // block's own namespace before handing it to useBlock (which expects a
+  // fully-qualified StateKey), mirroring how _UseDynamic resolves its target.
+  const stateKey = stateKeyForGlobalRef(readingRef as StateRef, props.runtime.ns);
+  const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }
 
@@ -30,7 +38,7 @@ export default function _NavigatorReadingDetail(props: RuntimeProps) {
         {subtitle && <p className="text-sm text-secondary mt-1">{subtitle}</p>}
       </div>
       <div className="p-6 prose prose-sm max-w-none">
-        <ReadingContent props={props} blockId={ref} />
+        <ReadingContent props={props} readingRef={ref} />
       </div>
     </div>
   );

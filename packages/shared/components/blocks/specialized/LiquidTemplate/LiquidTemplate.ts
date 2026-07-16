@@ -17,7 +17,7 @@ import { Liquid } from 'liquidjs';
 
 import { core } from '@/lib/blocks';
 import { parseXmlFragment } from '@/lib/content/xmlParser';
-import { loadExternalSource, extractTextFromXmlNodes } from '@/lib/content/parsers';
+import { loadExternalSource, extractTextFromXmlNodes, directKidIds } from '@/lib/content/parsers';
 import { isDataFile, getExtension } from '@/lib/util/fileTypes';
 import { registerFilters } from './liquidFilters';
 
@@ -189,10 +189,7 @@ async function liquidTemplateParser({
 
 const LiquidTemplate = core({
   parser: liquidTemplateParser,
-  staticKids: (entry) => {
-    if (!Array.isArray(entry.kids)) return [];
-    return entry.kids.filter(k => k && k.id).map(k => k.id);
-  },
+  staticKids: directKidIds,
   name: 'LiquidTemplate',
   description: 'Renders a Liquid template with data at parse time, producing child OLX blocks.',
   attributes: z.object({

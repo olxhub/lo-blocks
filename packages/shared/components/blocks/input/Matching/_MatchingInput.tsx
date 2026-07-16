@@ -286,8 +286,15 @@ export default function MatchingInput(props: RuntimeProps) {
     if ('error' in result) {
       arrangementError = result.error;
     } else {
-      // Map arranged blocks back to their rightIds and store for future renders
-      const blockIdToRightId = new Map(pairs.map((p) => [p.rightKid.id, p.rightId]));
+      // Map arranged blocks back to their rightIds and store for future renders.
+      // Key by the FETCHED block's id, not the bare kid ref: the stored/fetched
+      // entries carry namespace-qualified ids (e.g. "greenheart/..._right_0")
+      // while pair.rightKid.id is the bare authored ref. Keying by block.id
+      // (the exact id buildArrangementWithPositions reads via idSelector)
+      // guarantees the lookup matches regardless of namespace qualification.
+      const blockIdToRightId = new Map(
+        pairs.map((p) => [rightKidBlockMap[p.rightKid.id].id, p.rightId])
+      );
       const arrangedOrder = result.arrangement.map((block) => blockIdToRightId.get(block.id));
       setEndOrder(arrangedOrder);
       // Use the computed order immediately in this render

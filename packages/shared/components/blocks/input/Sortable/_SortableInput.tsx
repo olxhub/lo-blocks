@@ -72,8 +72,16 @@ export default function SortableInput(props: RuntimeProps) {
       return <DisplayError {...result.error} props={props} />;
     }
 
-    // Convert arranged blocks back to indices based on original kids array
-    const kidIdToIndex = new Map(blockKids.map((kid, i) => [kid.id, i]));
+    // Convert arranged blocks back to indices based on original kids array.
+    // Key by the FETCHED block's id, not the bare kid ref: the stored/fetched
+    // entries carry namespace-qualified ids (e.g. "greenheart/..._item_0")
+    // while kid.id is the bare authored ref. Keying by block.id (the exact id
+    // buildArrangementWithPositions reads via idSelector) guarantees the lookup
+    // matches regardless of namespace qualification. (Same fix as
+    // _MatchingInput.tsx; without it the arrangement collapses to undefined.)
+    const kidIdToIndex = new Map(
+      blockKids.map((kid, i) => [kidBlockMap[kid.id].id, i])
+    );
     const indicesArrangement = result.arrangement.map(
       (block) => kidIdToIndex.get(block.id)
     );

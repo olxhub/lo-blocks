@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/layout/SplitPanel/SplitPanel.ts
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
-import { childParser } from '@/lib/content/parsers';
+import { childParser, kidIds } from '@/lib/content/parsers';
 
 const splitParser = childParser(async function splitPanelParser({ rawKids, parseNode }) {
   let left: any = null;
@@ -34,12 +34,12 @@ const splitParser = childParser(async function splitPanelParser({ rawKids, parse
   return { left, right, start, end };
 });
 
-splitParser.staticKids = entry => [
+splitParser.staticKids = entry => kidIds([
   ...(Array.isArray(entry.kids.left) ? entry.kids.left : []),
   ...(Array.isArray(entry.kids.right) ? entry.kids.right : []),
   ...(Array.isArray(entry.kids.start) ? entry.kids.start : []),
   ...(Array.isArray(entry.kids.end) ? entry.kids.end : [])
-].filter(k => k && k.id).map(k => k.id);
+]);
 
 const SplitPanel = dev({
   ...splitParser(),
