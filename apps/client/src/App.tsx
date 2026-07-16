@@ -4,12 +4,13 @@
 //
 import React from 'react';
 
-import { store, extendSettings } from '@/lib/state';
+import { store, extendSettings, refreshReducers } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { chatFields } from '@/lib/state/chatFields';
 import { editorMirrorFields } from '@/components/blocks/authoring/Studio/locals';
 import { getConfigBool } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { setReducerRefresh } from '@/lib/blocks/dynamicRegistry';
 import StoreShell from '@/components/common/StoreShell';
 import type { Route } from './router';
 import PreviewPage from './pages/PreviewPage';
@@ -18,14 +19,20 @@ import RepoDetailPage from './pages/RepoDetailPage';
 import DocsPage from './pages/DocsPage';
 import StudioPage from './pages/StudioPage';
 
+const extraFields = extendSettings(editorFields).extend(chatFields, editorMirrorFields);
+
 const reduxStore = store.init({
   // editorFields/chatFields must be registered or the redux logger silently
   // drops their events (Studio's working-tree buffers; chat transcripts).
-  extraFields: extendSettings(editorFields).extend(chatFields, editorMirrorFields),
+  extraFields,
   blockRegistry: BLOCK_REGISTRY,
   websocket: getConfigBool('websocket'),
   tabSync: getConfigBool('tab-sync'),
 });
+
+// Blocks loaded at runtime AFTER this initial store.init (dynamic loading,
+// docs/dynamic-blocks.md) re-register the reducers over the grown registry.
+setReducerRefresh(() => refreshReducers(BLOCK_REGISTRY, extraFields));
 
 export default function App({ route }: { route: Route }) {
   let page: React.ReactNode;

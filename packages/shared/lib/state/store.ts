@@ -466,6 +466,32 @@ export function initReducers(blockRegistry: BlockRegistryParam, extraFields: Ext
   collectEventTypes(extraFields, blockRegistry);
 }
 
+// Event types already wired to updateResponseReducer via lo_event's
+// reduxLogger. lo_event's registerReducer APPENDS per key — registering an
+// event type twice runs the reducer twice per event (double-applied splices).
+// So (re-)registration must only ever pass the delta.
+const wiredEventTypes = new Set<string>();
+
+function registerNewEventTypes(allEventTypes: string[]) {
+  const fresh = allEventTypes.filter((eventType) => !wiredEventTypes.has(eventType));
+  if (fresh.length === 0) return;
+  fresh.forEach((eventType) => wiredEventTypes.add(eventType));
+  reduxLogger.registerReducer(fresh, updateResponseReducer);
+}
+
+/**
+ * Re-register the field/event reducers for the CLIENT store after the block
+ * registry changes at runtime (dynamic block loading, docs/dynamic-blocks.md).
+ * Rebuilds the field-reducer map AND wires any NEW event types to the
+ * reduxLogger (already-wired types are skipped — see registerNewEventTypes).
+ * Safe to call repeatedly; pass the same extraFields the store was
+ * initialized with so their reducers survive the rebuild.
+ */
+export function refreshReducers(blockRegistry: BlockRegistryParam, extraFields: ExtraFieldsParam = []) {
+  const allEventTypes = collectEventTypes(extraFields, blockRegistry);
+  registerNewEventTypes(allEventTypes);
+}
+
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
@@ -486,10 +512,7 @@ function configureStore({
   blockRegistry: BlockRegistryParam;
 }) {
   const allEventTypes = collectEventTypes(extraFields, blockRegistry);
-  reduxLogger.registerReducer(
-    allEventTypes,
-    updateResponseReducer
-  );
+  registerNewEventTypes(allEventTypes);
 
   // Create event capture logger for debugging/replay
   eventCaptureLogger = createArrayLogger();

@@ -47,6 +47,8 @@ import { handleTranslate } from './routes/translate.js';
 import { handleActivities } from './routes/activities.js';
 import { handleShutdown } from './routes/admin.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
+import { handleDynamicBlocks } from './routes/dynamicBlocks.js';
+import { setViteServer } from './dynamicBlocks.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
 
 // --- Constants ---------------------------------------------------------------
@@ -61,7 +63,7 @@ const WS_PATH = '/wsapi/in/';
 // routes are retired.
 const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
-  '/api/activities', '/api/admin/', '/boot-status',
+  '/api/activities', '/api/admin/', '/api/dynamic-blocks', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
 
@@ -112,8 +114,18 @@ export async function startServer(
       ...clientViteConfig,
       configFile: false,
       appType: 'custom',
-      server: { middlewareMode: true, hmr: { server } },
+      server: {
+        middlewareMode: true,
+        hmr: { server },
+        // Allow the repo root so dynamic block dirs outside apps/client (e.g.
+        // blocks-dynamic/) are servable over /@fs. The dynamic block loader
+        // extends this further per registered directory (dynamicBlocks.ts).
+        fs: { allow: [process.cwd()] },
+      },
     });
+    // Hand the dynamic block loader the live Vite instance (ssrLoadModule +
+    // fs.allow). Loading fails with a clear message until this is set.
+    setViteServer(vite);
   }
 
   // One shared per-user state registry for the whole server — all of a
@@ -155,6 +167,7 @@ export async function startServer(
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
   app.get('/api/activities', handleActivities);
   app.get('/api/admin/shutdown', handleShutdown);
+  app.get('/api/dynamic-blocks', handleDynamicBlocks);
 
   // Vite-built client (static files from apps/client/dist/)
   app.use('/assets/*', serveStatic({ root: './apps/client/dist' }));

@@ -1,0 +1,10 @@
+/* blocks-dynamic/Blink/blink.css */
+.lo-blink {
+  animation: lo-blink 1s steps(2, start) infinite;
+}
+
+@keyframes lo-blink {
+  to {
+    visibility: hidden;
+  }
+}

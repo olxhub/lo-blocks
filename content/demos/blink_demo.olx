@@ -1,0 +1,3 @@
+<Vertical id="blink_demo">
+  <Blink id="blink_hello">Hello, dynamic world!</Blink>
+</Vertical>
