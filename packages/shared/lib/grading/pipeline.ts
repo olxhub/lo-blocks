@@ -15,7 +15,8 @@ import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
 import { commonFields } from '../state/commonFields';
 import { valueSelector } from '../state/redux';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
-import { staticEntryForStateKey, blueprintFor, graderInputStateKeys } from './topology';
+import { graderInputStateKeys } from './topology';
+import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
 import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,

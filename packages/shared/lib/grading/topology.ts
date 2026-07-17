@@ -24,10 +24,8 @@
 import {
   leafDefinitionKeyFromStateKey, siblingScopedKey, stateKeyForGlobalRef, parseAnyStateRef,
 } from '../types/id-grammar';
-import { staticEntry, staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
+import { staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
 import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
-
-export { staticEntry, staticEntryForStateKey, blueprintFor };
 
 /**
  * The direct child graders a metagrader governs, as instance StateKeys

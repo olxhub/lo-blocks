@@ -17,14 +17,17 @@ export {
   aggregateGradingStates,
 } from './aggregators';
 
-// Grading pipeline — shared preparation/evaluation for both grading modes
-export { prepareGrade, evaluateGrade, buildGraderParam, readGraderInputs, gradingField, normalizeGraderResult } from './pipeline';
-export { childGraderStateKeys, graderInputStateKeys, gradeModeOf, graderBlueprintForStateKey, whenGatedGradingKids } from './topology';
+// The consumed surface. Pipeline internals (prepareGrade, evaluateGrade,
+// buildGraderParam, ...) are exported by their own modules for the grading
+// subsystem's cross-module use, not re-exported here — import from
+// './pipeline' etc. if you're inside the subsystem, and reconsider if
+// you're not.
+export { childGraderStateKeys, graderBlueprintForStateKey, whenGatedGradingKids } from './topology';
 export { grader } from './submitGrade';
-export type { GraderInput, GraderParams, GraderFn, RawGraderResult, GradingResult, GradingState, GradePreparation, PreparedGrade } from './model';
+export type { GradingState } from './model';
 
 // Grading-state read model — the single read point for grader state
-export { selectGradingState, isImmediateEntry } from './selectGradingState';
+export { selectGradingState } from './selectGradingState';
 export { useGradingState } from './useGradingState';
 export { registerGradingResolvers } from './registerResolvers';
 

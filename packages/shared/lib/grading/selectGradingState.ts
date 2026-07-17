@@ -23,10 +23,11 @@ import { aggregateGradingStates } from './aggregators';
 import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
 } from './pipeline';
-import { staticEntryForStateKey, blueprintFor, childGraderStateKeys, gradeModeOf } from './topology';
+import { childGraderStateKeys, gradeModeOf } from './topology';
+import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
 import { fieldSelector } from '../state/redux';
 import type { GraderInput, GradingState } from './model';
-import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
+import type { LoBlock, RuntimeProps, StateKey } from '../types';
 
 export type { GradingState };
 
@@ -44,16 +45,6 @@ const UNGRADED: GradingState = {
 /** A metagrader aggregates children; only the grader() mixin sets `grading`. */
 function isMetagrader(loBlock: LoBlock): boolean {
   return loBlock.isGrader && !loBlock.grading;
-}
-
-/**
- * Is this block's grading mode immediate? Reads the parse-time gradeMode
- * stamp its enclosing problem wrote (see CapaProblem.ts) — no ancestor
- * walk, no dynamic DOM. Component convenience (GraderShell): the stamp is
- * also spread into props as props.gradeMode.
- */
-export function isImmediateEntry(entry: OlxJson): boolean {
-  return gradeModeOf(entry) === 'immediate';
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +125,9 @@ function computeGradingState(state: unknown, props: RuntimeProps, stateKey: Stat
   if (!loBlock) return readStoredGradingState(state, props, stateKey, undefined);
 
   if (isMetagrader(loBlock)) return deriveMetagraderState(state, props, stateKey);
-  if (loBlock.grading && loBlock.grading.execution !== 'async' && isImmediateEntry(entry)) {
+  // gradeModeOf reads the parse-time stamp the enclosing problem wrote
+  // (see CapaProblem.ts) — no ancestor walk, no dynamic DOM.
+  if (loBlock.grading && loBlock.grading.execution !== 'async' && gradeModeOf(entry) === 'immediate') {
     return deriveImmediateState(state, props, stateKey, loBlock);
   }
   return readStoredGradingState(state, props, stateKey, loBlock);
