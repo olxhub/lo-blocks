@@ -3,7 +3,8 @@
 import type { RuntimeProps, StateKey } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/dynamicDom';
-import { useGradingState, childGraderStateKeys, graderBlueprintForStateKey, whenGatedGradingKids } from '@/lib/grading';
+import { useGradingState, childGraderStateKeys, whenGatedGradingKids } from '@/lib/grading';
+import { staticEntryForStateKey, blueprintFor } from '@/lib/blocks/staticDom';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -116,9 +117,10 @@ export default function CapaProblem(props: RuntimeProps) {
   // every immediate-mode render so live edits to a grader's configuration take
   // effect.
   if (isImmediate) {
-    const asyncChildGraderStateKeys = directChildGraderStateKeys.filter(
-      stateKey => graderBlueprintForStateKey(reduxState, props, stateKey)!.grading?.execution === 'async'
-    );
+    const asyncChildGraderStateKeys = directChildGraderStateKeys.filter(stateKey => {
+      const entry = staticEntryForStateKey(reduxState, props, stateKey);
+      return entry && blueprintFor(props, entry)?.grading?.execution === 'async';
+    });
     if (asyncChildGraderStateKeys.length > 0) {
       return (
         <DisplayError

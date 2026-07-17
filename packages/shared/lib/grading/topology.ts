@@ -25,7 +25,7 @@ import {
   leafDefinitionKeyFromStateKey, siblingScopedKey, stateKeyForGlobalRef, parseAnyStateRef,
 } from '../types/id-grammar';
 import { staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
-import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
+import type { OlxJson, RuntimeProps, StateKey } from '../types';
 
 /**
  * The direct child graders a metagrader governs, as instance StateKeys
@@ -72,12 +72,6 @@ export function graderInputStateKeys(state: unknown, props: RuntimeProps, grader
   if (descriptor && descriptor.infer === false) return [];
   const defKeys = inferKids(state, props, entry.kids, { selector: b => b.isInput });
   return defKeys.map(defKey => siblingScopedKey(graderStateKey, defKey));
-}
-
-/** A grader's blueprint from its instance StateKey (static DOM + registry). */
-export function graderBlueprintForStateKey(state: unknown, props: RuntimeProps, stateKey: StateKey): LoBlock | undefined {
-  const entry = staticEntryForStateKey(state, props, stateKey);
-  return entry ? blueprintFor(props, entry) : undefined;
 }
 
 /**
