@@ -29,7 +29,7 @@ import { isKidArray } from '@/lib/util/kids';
  * @param {Object} context - { input, inputs, inputApi, inputApis }
  * @returns {{ correct: correctness, message: string, score?: number }}
  */
-async function gradeRules(props: RuntimeProps, context) {
+function gradeRules(props: RuntimeProps, context) {
   const blockRegistry = props.runtime.blockRegistry;
 
   // Check for empty input → unsubmitted
@@ -57,12 +57,11 @@ async function gradeRules(props: RuntimeProps, context) {
     // Attributes are already parsed/transformed at parse time by parseOLX
     const attrs = childEntry.attributes || {};
 
-    // Math match blocks (NumericalMatch, FormulaMatch) declare ensureReady.
-    // The grading action only readies the TARGET's blueprint (this
-    // RulesGrader, which needs nothing) — and in browsers rendering
-    // pre-parsed content, parseOLX's ensureReady never ran. Ready each
-    // child before its synchronous match function runs.
-    if (childBlueprint.ensureReady) await childBlueprint.ensureReady();
+    // Math match blocks (NumericalMatch, FormulaMatch) declare lazy
+    // engines; readiness is PREPARATION, not evaluation — prepareGrade
+    // readies the grader's whole static subtree (and useBlocksReady gates
+    // rendered content), so this grade function stays synchronous and
+    // immediate-capable.
 
     // Call the match function
     const matchFn = childBlueprint.locals!.match;

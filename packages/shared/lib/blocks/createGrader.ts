@@ -181,12 +181,21 @@ interface CreateGraderConfig {
    * Custom grader function. If match is provided and grader is not, the grader
    * is auto-generated from match. Required if match is not provided.
    *
-   * May be async — the grading action awaits results (the seam for slow
-   * graders, and for readying lazy engines before sync match calls, e.g.
-   * RulesGrader awaiting child match blocks' ensureReady).
+   * May be async — declare execution: 'async' so the grading action
+   * awaits it with a persisted pending state. (Lazy engines are NOT a
+   * reason to be async: prepareGrade readies the grader's whole static
+   * subtree before evaluation.)
    */
   grader?: (props: RuntimeProps, params: GraderParams) =>
     { correct: any; message: any } | Promise<{ correct: any; message: any }>;
+  /**
+   * How grading completes — forwarded to the grader() mixin. 'async'
+   * (LLM, instructor/peer queue, code-in-sandbox) gets a persisted
+   * pending state and cannot be used in grade="immediate" problems.
+   * Default 'sync'; a sync grader returning a Promise is a contract
+   * violation (immediate mode throws on it).
+   */
+  execution?: 'sync' | 'async';
   /**
    * Zod schema for the input(s) this grader expects. Required when using match.
    *
@@ -309,6 +318,7 @@ export function createGrader({
   getDisplayAnswers,
   locals,
   infer = true,
+  execution = 'sync',
   createMatch = true,
   component,
   componentLoader,
@@ -365,7 +375,7 @@ export function createGrader({
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
     ...(parser ?? parsers.blocks.allowHTML()),
-    ...grader({ grader: graderFn, infer, slots, inputType }),
+    ...grader({ grader: graderFn, infer, slots, inputType, execution }),
     name: graderName,
     description,
     category: 'grading',

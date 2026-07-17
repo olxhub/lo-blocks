@@ -16,7 +16,7 @@ import { commonFields } from '../state/commonFields';
 import { valueSelector } from '../state/redux';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { graderInputStateKeys } from './topology';
-import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
+import { staticEntry, staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
 import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
@@ -232,6 +232,23 @@ export function prepareGrade(
   const { param, error } = buildGraderParam(descriptor, inputs);
   if (error || !param) return { ok: false, inputs, error: error ?? 'Could not build grader parameters' };
 
+  // Readiness covers the grader's whole static subtree, not just its own
+  // blueprint: RulesGrader's Match children (NumericalMatch, FormulaMatch)
+  // declare lazy engines, and readying them HERE is what lets grade
+  // functions stay synchronous — evaluation never awaits. (The render
+  // gate, useBlocksReady, readies rendered blocks; this covers headless
+  // callers: submit actions, analytics, server.)
+  const engineDefKeys = inferKids(state, props, entry.kids, {
+    selector: b => Boolean(b.ensureReady),
+  });
+  const engines = [loBlock, ...engineDefKeys.map(k => {
+    const kidEntry = staticEntry(state, props, k);
+    return kidEntry ? blueprintFor(props, kidEntry) : undefined;
+  })].filter((b): b is LoBlock => Boolean(b?.ensureReady));
+  const ensureReady = engines.length > 0
+    ? async () => { await Promise.all(engines.map(b => b.ensureReady!())); }
+    : undefined;
+
   return {
     ok: true,
     inputs,
@@ -240,7 +257,7 @@ export function prepareGrade(
       descriptor,
       inputs,
       param,
-      ensureReady: loBlock.ensureReady,
+      ensureReady,
     },
   };
 }
