@@ -23,7 +23,7 @@ const TextArea = core({
   // Read Redux value, falling back to initial text from OLX children
   selectors: {
     value: (reduxState: any, props: RuntimeProps, _stateKey: StateKey) => {
-      const value = state.getField(props, fields.value, { fallback: undefined });
+      const value = state.getDecodedField(props, fields.value, { fallback: undefined });
       if (value !== undefined) {
         return value;
       }

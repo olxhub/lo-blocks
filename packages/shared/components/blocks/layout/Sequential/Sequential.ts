@@ -22,13 +22,13 @@ export const fields = state.fields([
 
 function sequentialCanAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
-  const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
+  const index = state.decodedFieldSelector(reduxState, props, fields.index, { fallback: 0 });
   return index < selectKidsJson(props, reduxState).length - 1;
 }
 
 function sequentialAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
-  const index = state.fieldSelector(reduxState, props, fields.index, { fallback: 0 });
+  const index = state.decodedFieldSelector(reduxState, props, fields.index, { fallback: 0 });
   if (index < selectKidsJson(props, reduxState).length - 1) {
     state.updateField(props, fields.index, index + 1);
     return true;

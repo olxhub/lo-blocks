@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector } from '@/lib/state';
+import { decodedFieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -21,7 +21,7 @@ const SortableInput = core({
   fields,
   selectors: {
     value: (state, props: RuntimeProps, _stateKey) => ({
-      arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
+      arrangement: decodedFieldSelector(state, props, fields.arrangement, { fallback: [] })
     }),
   },
   attributes: z.object({

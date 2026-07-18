@@ -15,7 +15,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { hashContent } from '@/lib/util';
-import { useFieldState, appendToLog, fieldSelector } from '@/lib/state';
+import { useFieldState, appendToLog, decodedFieldSelector } from '@/lib/state';
 import { callLLM } from '@/lib/llm/reduxClient';
 import { ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
 import { advanceFrom } from '@/lib/advance';
@@ -213,7 +213,7 @@ export function useLlmInterlude(
           message: { type: 'SystemMessage', text: `${active.participant} ended the conversation.` },
         });
         const reduxState = props.runtime.store.getState();
-        const cursor = fieldSelector(reduxState, props, props.fields.value, { fallback: -1 });
+        const cursor = decodedFieldSelector(reduxState, props, props.fields.value, { fallback: -1 });
         if (cursor === activeIndex) {
           advanceFrom(props.nodeInfo, reduxState);
         }

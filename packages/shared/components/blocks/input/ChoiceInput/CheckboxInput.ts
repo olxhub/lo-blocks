@@ -6,12 +6,16 @@
 import { z } from 'zod';
 import { core, input, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { getChoices } from './choiceHelpers';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
+
+// Getters run inside useSelector subscriptions — a fresh [] per call would
+// defeat the equality gate and re-render every dispatch while unanswered.
+const EMPTY_VALUE: string[] = [];
 
 const CheckboxInput = core({
   ...parsers.blocks(),
@@ -22,10 +26,10 @@ const CheckboxInput = core({
   fields,
   selectors: {
     value: (state, props: RuntimeProps, _stateKey) => {
-      const value = fieldSelector(state, props, fields.value, { fallback: [] });
+      const value = decodedFieldSelector(state, props, fields.value, { fallback: EMPTY_VALUE });
       // Ensure array even if stored value was a string (migration case)
       if (!Array.isArray(value)) {
-        return value ? [value] : [];
+        return value ? [value] : EMPTY_VALUE;
       }
       return value;
     },

@@ -538,11 +538,14 @@ const textWithTargetParserMixin = {
   selectors: {
     value: (reduxState: any, props: RuntimeProps, id: StateKey) => {
       const kids = typeof props.kids === 'string' ? props.kids : '';
-      return state.fieldSelector(
+      // Level 2: this IS the value getter, so it reads its own backing store
+      // (a level-3 read would re-enter itself). Decoded, with kids as the
+      // pre-write fallback.
+      return state.decodedFieldSelector(
         reduxState,
         props,
         state.commonFields.value,
-        { fallback: kids, stateKey: id, stored: true }
+        { fallback: kids, stateKey: id }
       );
     },
   },

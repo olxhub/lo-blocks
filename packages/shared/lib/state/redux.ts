@@ -49,7 +49,6 @@ import { scopes } from '../state/scopes';
 import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
-import type { Store } from 'redux';
 import { selectBlock, selectBlockState } from './olxjson';
 import { getDomNodeByStateKey, propsFromNode } from '../blocks/dynamicDom';
 import { ensureBlock } from '../blocks/useOlxJson';
@@ -70,23 +69,36 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 export interface SelectorOptions<T> {
   stateKey?: StateKey;
   tag?: string;
+  /** @deprecated A custom bucket projection selects the level by option
+   *  rather than by function name. The only remaining user is useInputField's
+   *  selection read, removed in the selection redesign. Do not add callers. */
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
-  /** Read the raw backing store, bypassing blueprint selectors. For
-   *  selector implementations reading their own stored state, and for
-   *  write paths diffing against raw storage. */
+  /** @deprecated A storage-level read expressed as an option. Superseded by
+   *  rawFieldSelector/decodedFieldSelector — the level is the function name.
+   *  Retained only until the last call sites migrate; do not add callers. */
   stored?: boolean;
 }
 
+// The three read levels. One meaning per function name; the level is chosen at
+// the call site by the name, never by an option:
+//   1 rawFieldSelector     — storage representation (no decode, no getter)
+//   2 decodedFieldSelector — field.read applied (no getter)
+//   3 fieldSelector        — observable value: blueprint getter ?? decoded
+// Each level strictly strips interpretation from the one above. Level 3 is the
+// only one block-facing code reads; levels 1–2 are storage-layer tools
+// (selector implementations, write-path diffing, the DOM↔storage editing
+// binding). All three accept BaselineProps or RuntimeProps: component/storage
+// scope needs id/nodeInfo for ID resolution, system scope needs only the field.
+
 /**
- * Core selector for field values.
- *
- * Accepts BaselineProps or RuntimeProps. For component/storage scope, needs the
- * full props object with id/nodeInfo for ID resolution. For system scope, only
- * needs the scope name from field.
+ * Level 1 — the raw backing store for a field: no field.read, no blueprint
+ * getter. This is the storage representation (a docField's RgaDoc, a setField's
+ * SetDoc). Write-path diffing and selector implementations that own the store
+ * read here.
  */
-export const fieldSelector = <T>(
+export const rawFieldSelector = <T>(
   state,
   props,
   field: FieldInfo,
@@ -95,32 +107,10 @@ export const fieldSelector = <T>(
   const {
     stateKey,
     tag: optTag,
-    // TODO: This should run over the field. We do this for when we need multiple fields (ReduxInput),
-    // but really, field should be a list
     selector = (s: any) => s?.[field.name],
     fallback,
   } = options;
   const { scope } = field;
-
-  // Blueprint selectors — the getter half of the getter/setter pattern
-  // (selectValue generalized): a block's observable field may be COMPUTED.
-  // Applies to CROSS-BLOCK reads of the whole field (an explicit stateKey,
-  // no custom bucket projection): the state language, StatusText,
-  // orchestrators. A block's own internal reads (no stateKey — e.g.
-  // useInputField's backing store and selection siblings) go straight to
-  // storage, like a method touching its own private state.
-  if (
-    stateKey && !options.stored && !options.selector && scope === scopes.component
-  ) {
-    const sel = blueprintSelectorFor(state, props, stateKey, field.name);
-    if (sel) {
-      const raw = sel.select(state, sel.targetProps, stateKey);
-      // withStatus selectors return BlockDataResult — unwrap to the value.
-      const value = (sel.select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
-      return (value === undefined ? (fallback as T) : value) as T;
-    }
-  }
-
   const scopedState = state?.application_state?.[scope];
   const value: T | undefined = (() => {
     switch (scope) {
@@ -139,13 +129,67 @@ export const fieldSelector = <T>(
         throw new Error('Unrecognized scope');
     }
   })();
-  return value === undefined ? (fallback as T) : value;
+  return (value === undefined ? (fallback as T) : value) as T;
 };
 
 /**
- * Resolve the blueprint selector for a field on the block a StateKey
- * addresses, plus the target props to call it with. Null when the target
- * block is unknown (content loading) or declares no selector for it.
+ * Level 2 — the decoded field value: field.read applied to the raw store, no
+ * blueprint getter. Selector implementations reading their own backing field,
+ * grading state reads, and write-path display reads live here — they want the
+ * value, not the representation.
+ */
+export const decodedFieldSelector = <T>(
+  state,
+  props,
+  field: FieldInfo,
+  options: SelectorOptions<T> = {}
+): T => {
+  const raw = rawFieldSelector(state, props, field, options);
+  return decodeField(field, raw) as T;
+};
+
+/**
+ * Level 3 — the OBSERVABLE value of a field: a block's blueprint getter
+ * (`selectors[name]`) when it declares one, else the decoded store. Identical
+ * for own-block and cross-block reads (no stateKey-presence routing). This is
+ * the level components, the state language, and orchestrators read.
+ */
+export const fieldSelector = <T>(
+  state,
+  props,
+  field: FieldInfo,
+  options: SelectorOptions<T> = {}
+): T => {
+  // Blueprint getter — the getter half of the getter/setter pattern
+  // (selectValue generalized): a block's observable field may be COMPUTED
+  // (fallbacks, grading's mode dispatch, coercion, purely-derived
+  // Navigator/metagrader fields). A getter masks only its own backing field,
+  // so its body must reach the store through level 1/2 — reading back through
+  // level 3 on its own field recurses (the guard in evalGetter throws).
+  if (field.scope === scopes.component && !options.stored && !options.selector) {
+    const resolved = resolveGetter(state, props, options.stateKey, field.name);
+    if (resolved) return evalGetter(state, resolved, field.name, options.fallback) as T;
+  }
+  return decodedFieldSelector(state, props, field, options);
+};
+
+/**
+ * Resolve the blueprint getter for a field plus the props/key to call it with.
+ * Cross reads (an explicit stateKey) resolve against the addressed block's
+ * content node; own reads resolve straight off props.loBlock — cheaper, no
+ * content lookup. Null when there is no getter (a plain stored field).
+ */
+function resolveGetter(state: any, props: any, stateKey: StateKey | undefined, fieldName: string) {
+  if (stateKey) return blueprintSelectorFor(state, props, stateKey, fieldName);
+  const select = props?.loBlock?.selectors?.[fieldName];
+  if (!select) return null;
+  return { select, targetProps: props as RuntimeProps, stateKey: scopedStateKeyForBlock(props) };
+}
+
+/**
+ * Resolve the blueprint getter for a field on the block a StateKey addresses,
+ * plus the target props/key to call it with. Null when the target block is
+ * unknown (content loading) or declares no getter for the field.
  */
 function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string) {
   const runtime = props?.runtime;
@@ -162,48 +206,74 @@ function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldN
   const loBlock = node ? runtime.blockRegistry[node.tag] : undefined;
   const select = loBlock?.selectors?.[fieldName];
   if (!select || !node) return null;
-  return { select, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps };
+  return { select, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps, stateKey };
 }
 
-// Convenience selector that fetches the current Redux state automatically.
-export const selectFromStore = <T>(
-  props: { runtime: { store: Store } },
-  field: FieldInfo,
-  options: SelectorOptions<T> = {}
-): T => {
-  const state = props.runtime.store.getState();
-  return fieldSelector(state, undefined, field, options);
-};
+// Getter evaluations in flight, keyed `${stateKey}|${fieldName}`. A getter that
+// reads its own field back through level-3 fieldSelector recurses forever; we
+// throw instead. Always on (cheap) — the fix is to read the backing store.
+const gettersInFlight = new Set<string>();
 
-// Synchronous getter for Redux state - mirrors useFieldState but without re-renders.
-// Gets store from singleton internally (initialized in storeWrapper.tsx).
-export const getReduxState = (
+function evalGetter(
+  state: any,
+  resolved: { select: any; targetProps: RuntimeProps; stateKey: StateKey },
+  fieldName: string,
+  fallback: any,
+) {
+  const { select, targetProps, stateKey } = resolved;
+  const guardKey = `${stateKey}|${fieldName}`;
+  if (gettersInFlight.has(guardKey)) {
+    throw new Error(
+      `selector for ${fieldName} on ${stateKey} re-enters itself — `
+      + 'read the backing store with decodedFieldSelector/rawFieldSelector',
+    );
+  }
+  gettersInFlight.add(guardKey);
+  try {
+    const raw = select(state, targetProps, stateKey);
+    // withStatus selectors return BlockDataResult — unwrap to the value.
+    const value = (select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
+    return value === undefined ? fallback : value;
+  } finally {
+    gettersInFlight.delete(guardKey);
+  }
+}
+
+// Non-hook store conveniences — one per read level, mirroring the selectors.
+// For actions, graders, and callbacks that read the singleton store without
+// subscribing. Hook callers use useFieldSelector.
+
+/** Level 1 (raw store) for non-hook callers. */
+export const getRawField = <T>(
   props: any,
   field: FieldInfo,
-  fallback: any,
-  { stateKey, tag }: { stateKey?: StateKey; tag?: string } = {}
-): any => {
+  options: SelectorOptions<any> = {}
+): T => {
   assertValidField(field);
-
-  const store = getReduxStoreInstance();
-  const state = store.getState();
-  return fieldSelector(state, props, field, { fallback, stateKey, tag });
+  const state = getReduxStoreInstance().getState();
+  return rawFieldSelector(state, props, field, options);
 };
 
-/**
- * Synchronous getter for a decoded field value.
- * Keeps field materialization in state layer for non-hook callers.
- */
+/** Level 2 (decoded store) for non-hook callers. */
+export const getDecodedField = <T>(
+  props: any,
+  field: FieldInfo,
+  options: SelectorOptions<any> = {}
+): T => {
+  assertValidField(field);
+  const state = getReduxStoreInstance().getState();
+  return decodedFieldSelector(state, props, field, options);
+};
+
+/** Level 3 (observable value) for non-hook callers. */
 export const getField = <T>(
   props: any,
   field: FieldInfo,
   options: SelectorOptions<any> = {}
 ): T => {
   assertValidField(field);
-  const store = getReduxStoreInstance();
-  const state = store.getState();
-  const raw = fieldSelector(state, props, field, options);
-  return decodeField(field, raw);
+  const state = getReduxStoreInstance().getState();
+  return fieldSelector(state, props, field, options);
 };
 
 /**
@@ -264,21 +334,49 @@ export const useFieldSelector = <T>(
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): T => {
-  // field.equality compares the FIELD'S raw value (e.g. docField's Object.is
-  // on RgaDoc references). A custom selector returns something else entirely
-  // (e.g. useInputField's fresh {selectionStart, selectionEnd} object), so it
-  // must bring its own equalityFn — the field's would compare apples to
-  // oranges and report every dispatch as a change.
+  // The hook implements level 3: getter-backed fields subscribe the getter
+  // result (own and cross alike — same semantics as fieldSelector); stored
+  // fields subscribe level 1 (raw) for the equality gate and decode AFTER it.
+  // decode() may mint a new object each call (a Set from an OR-Set CRDT); the
+  // raw value is reference-stable between dispatches, so gating on it is what
+  // keeps re-renders — and input cursors — stable. Do NOT "simplify" this to
+  // wrap fieldSelector, which decodes before returning and would defeat the
+  // gate.
+  //
+  // field.equality compares the field's RAW value. A custom selector projection
+  // (deprecated) returns something else entirely (useInputField's fresh
+  // {selectionStart, selectionEnd}), so it must bring its own equalityFn.
+  // On getter-backed fields the gate compares getter RESULTS: fine for the
+  // scalar getters every current consumer reads; object-returning getters
+  // churn until step 4's declared getter equality lands.
   const equality = options.selector
     ? options.equalityFn
     : (field.equality ?? options.equalityFn);
+  // Own-read getter presence is state-independent (props.loBlock), so whether
+  // the subscription below returns a getter result or raw storage is knowable
+  // here — it drives the decode decision after the gate.
+  const ownGetter = !options.stateKey && !options.stored && !options.selector
+    && field.scope === scopes.component && !!props?.loBlock?.selectors?.[field.name];
   const raw = useSelector(
-    (state) => fieldSelector(state, props, field, options),
+    (state) => {
+      // Blueprint getters are honored for own AND cross reads — the hook must
+      // agree with fieldSelector (one meaning per level). Getterless fields
+      // subscribe raw storage so the gate compares the reference-stable
+      // representation; decode runs after, below.
+      if (!options.stored && !options.selector && field.scope === scopes.component) {
+        const resolved = resolveGetter(state, props, options.stateKey, field.name);
+        if (resolved) return evalGetter(state, resolved, field.name, options.fallback);
+      }
+      return rawFieldSelector(state, props, field, options);
+    },
     equality
   );
-  // Apply field.read only when using the default selector (reading the field's own value).
-  // Custom selectors (e.g., reading selection sibling fields) handle their own transformation.
-  if (!options.selector && field.read) {
+  // Apply field.read only for the default raw projection. Own getter results
+  // are already the final observable value — never re-decoded. (Cross getter
+  // results pass through field.read as they always have; presence depends on
+  // content loading, and current read transforms are idempotent on decoded
+  // values.) Custom selectors handle their own transformation.
+  if (!ownGetter && !options.selector && field.read) {
     return field.read(raw) as T;
   }
   return raw;
@@ -393,7 +491,7 @@ export function updateField(
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();
-    const oldRaw = fieldSelector(store.getState(), props, field, { stateKey, tag, stored: true });
+    const oldRaw = rawFieldSelector(store.getState(), props, field, { stateKey, tag });
     const results = field.write(oldRaw, newValue);
     // Extra payload (e.g., selection state from useInputField) is appended only
     // to the last event — it represents final cursor position, not per-event state.

@@ -410,12 +410,15 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
 
   assertUnimplemented(parsed.reducers, 'reducers');
 
-  // Default value selector for input blocks: read commonFields.value
+  // Default value getter for input blocks: the decoded commonFields.value.
+  // Level 2 (not 3): this getter IS the block's value getter, so it must read
+  // its own backing store — a level-3 read would re-enter itself. Decoded so
+  // docField-valued inputs yield their string, not the raw RgaDoc.
   if (block.isInput && !block.selectors?.value) {
     block.selectors = {
       ...block.selectors,
       value: (reduxState, props, id) =>
-        state.fieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '', stored: true }),
+        state.decodedFieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '' }),
     };
   }
 

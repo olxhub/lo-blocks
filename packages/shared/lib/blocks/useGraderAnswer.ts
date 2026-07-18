@@ -163,21 +163,16 @@ export function useGraderAnswer(props: RuntimeProps) {
     ? state.componentFieldByStateKey(props, graderId, 'showAnswer')
     : null;
 
-  // Subscribe to field (hook must always be called, but selector handles null field)
-  // When no grader exists and component has no fields, create a dummy field for hook compliance
-  const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  // graderId is already a StateKey; fall back to own scoped key for hook stability
+  // The hook must always run; read commonFields.showAnswer on the own scoped
+  // key when there is no grader (a harmless read kept for hook stability), then
+  // gate to false. graderId is already a StateKey.
   const graderStateKey = graderId || scopedStateKeyForBlock(props);
-  const showAnswer = useFieldSelector<boolean>(
+  const rawShowAnswer = useFieldSelector<boolean>(
     props,
-    showAnswerField || fallbackField,
-    {
-      stateKey: graderStateKey,
-      fallback: false,
-      // When no grader, selector always returns false
-      selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
-    }
+    showAnswerField ?? state.commonFields.showAnswer,
+    { stateKey: graderStateKey ?? undefined, fallback: false },
   );
+  const showAnswer = showAnswerField ? rawShowAnswer : false;
 
   // Get grader instance unconditionally (hook must always be called).
   // Convert StateKey to DefinitionKey for useOlxJson lookup.
@@ -238,18 +233,15 @@ export function useGraderSummary(props: RuntimeProps, graderId: StateKey | null)
     ? state.componentFieldByStateKey(props, graderId, 'showAnswer')
     : null;
 
-  const fallbackField = props.fields?.value ?? { scope: 'component', name: 'showAnswer' };
-  // graderId is already a StateKey; fall back to own scoped key for hook stability
+  // graderId is already a StateKey; fall back to own scoped key for hook
+  // stability, then gate to false when there is no grader.
   const summaryGraderStateKey = graderId || scopedStateKeyForBlock(props);
-  const showAnswer = useFieldSelector(
+  const rawShowAnswer = useFieldSelector<boolean>(
     props,
-    showAnswerField || fallbackField,
-    {
-      stateKey: summaryGraderStateKey,
-      fallback: false,
-      selector: showAnswerField ? (s => s?.showAnswer ?? false) : (() => false)
-    }
+    showAnswerField ?? state.commonFields.showAnswer,
+    { stateKey: summaryGraderStateKey ?? undefined, fallback: false },
   );
+  const showAnswer = showAnswerField ? rawShowAnswer : false;
 
   const summaryGraderDefKey = graderId ? leafDefinitionKeyFromStateKey(graderId) : null;
   const { olxJson: graderInstance } = useOlxJson(props, summaryGraderDefKey);

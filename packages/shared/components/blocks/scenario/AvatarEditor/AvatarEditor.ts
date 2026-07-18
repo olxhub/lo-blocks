@@ -5,7 +5,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, docField, decodeField } from '@/lib/state';
+import { decodedFieldSelector, docField } from '@/lib/state';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import {
   isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
@@ -81,20 +81,20 @@ const AvatarEditor = dev({
 
   selectors: {
     value: (reduxState: any, props: any, _stateKey: any) => {
-    const characterId = fieldSelector(reduxState, props, fields.characterId, { fallback: '' });
-    const name = fieldSelector(reduxState, props, fields.name, { fallback: '' });
-    const seed = fieldSelector(reduxState, props, fields.seed, { fallback: '' });
-    const face = fieldSelector(reduxState, props, fields.face, { fallback: '' });
-    const head = fieldSelector(reduxState, props, fields.head, { fallback: '' });
-    const accessories = fieldSelector(reduxState, props, fields.accessories, { fallback: '' });
-    const facialHair = fieldSelector(reduxState, props, fields.facialHair, { fallback: '' });
-    const mask = fieldSelector(reduxState, props, fields.mask, { fallback: '' });
-    const skinColor = fieldSelector(reduxState, props, fields.skinColor, { fallback: '' });
-    const clothingColor = fieldSelector(reduxState, props, fields.clothingColor, { fallback: '' });
-    const headContrastColor = fieldSelector(reduxState, props, fields.headContrastColor, { fallback: '' });
-    const role = fieldSelector(reduxState, props, fields.role, { fallback: '' });
-    const bio = decodeField(fields.bio, fieldSelector(reduxState, props, fields.bio, { fallback: '' }));
-    const groups = fieldSelector(reduxState, props, fields.groups, { fallback: '' });
+    const characterId = decodedFieldSelector(reduxState, props, fields.characterId, { fallback: '' });
+    const name = decodedFieldSelector(reduxState, props, fields.name, { fallback: '' });
+    const seed = decodedFieldSelector(reduxState, props, fields.seed, { fallback: '' });
+    const face = decodedFieldSelector(reduxState, props, fields.face, { fallback: '' });
+    const head = decodedFieldSelector(reduxState, props, fields.head, { fallback: '' });
+    const accessories = decodedFieldSelector(reduxState, props, fields.accessories, { fallback: '' });
+    const facialHair = decodedFieldSelector(reduxState, props, fields.facialHair, { fallback: '' });
+    const mask = decodedFieldSelector(reduxState, props, fields.mask, { fallback: '' });
+    const skinColor = decodedFieldSelector(reduxState, props, fields.skinColor, { fallback: '' });
+    const clothingColor = decodedFieldSelector(reduxState, props, fields.clothingColor, { fallback: '' });
+    const headContrastColor = decodedFieldSelector(reduxState, props, fields.headContrastColor, { fallback: '' });
+    const role = decodedFieldSelector(reduxState, props, fields.role, { fallback: '' });
+    const bio = decodedFieldSelector(reduxState, props, fields.bio, { fallback: '' });
+    const groups = decodedFieldSelector(reduxState, props, fields.groups, { fallback: '' });
     return buildYaml(
       characterId, name, seed,
       { face, head, accessories, facialHair, mask, skinColor, clothingColor, headContrastColor },

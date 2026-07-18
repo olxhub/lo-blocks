@@ -69,13 +69,13 @@ function getState(props: RuntimeProps, reduxState: any) {
   }
 
   // Read current index from Redux
-  const index = state.fieldSelector(reduxState, props, fields.value, { fallback: clipStart });
+  const index = state.decodedFieldSelector(reduxState, props, fields.value, { fallback: clipStart });
   const windowedIndex = Math.max(clipStart, Math.min(index, clipEnd));
 
   // Instructor mode: ignore wait conditions (requires both the per-block
   // toggle and the global instructor mode setting to be active)
   const instructorMode = state.fieldSelector(reduxState, null, state.settings.instructorMode, { fallback: false });
-  const ignoreWaits = instructorMode && state.fieldSelector(reduxState, props, fields.ignoreWaits, { fallback: false });
+  const ignoreWaits = instructorMode && state.decodedFieldSelector(reduxState, props, fields.ignoreWaits, { fallback: false });
 
   // Build wait condition context
   const allRefs = extractWaitRefs(allEntries);
@@ -147,10 +147,8 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
   // container would walk past a student mid-conversation.
   const current = allEntries[windowedIndex];
   if (current?.type === 'LlmCommand' && !ignoreWaits) {
-    // fieldSelector returns the RAW field value — materialize the log doc
-    // through the field's read transform (idempotent on arrays).
-    const rawItems = state.fieldSelector(reduxState, props, fields.messages, { fallback: [] });
-    const items = (fields.messages.read ? fields.messages.read(rawItems) : rawItems) as
+    // Level 2: the decoded log doc (the read transform is idempotent on arrays).
+    const items = state.decodedFieldSelector(reduxState, props, fields.messages, { fallback: [] }) as
       Array<{ atIndex: number; control?: string; message: { type: string; speaker?: string } }>;
     if (!interludeExitAllowed(current, waitContext, items, windowedIndex)) {
       return true; // interlude still active — don't let parent advance past us

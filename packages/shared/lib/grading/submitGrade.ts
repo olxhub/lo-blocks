@@ -9,7 +9,7 @@
 import { correctness } from '../blocks/correctness';
 import { graderAttributes } from '../blocks/attributeSchemas';
 import { errorMessage } from '../util/errorMessage';
-import { updateField, fieldSelector } from '../state/redux';
+import { updateField, decodedFieldSelector } from '../state/redux';
 import type { Correctness } from '../blocks/correctness';
 import type { LoBlock, RuntimeProps, StateKey } from '../types';
 import type { GradePreparation, GraderFn, GradingDescriptor, GradingResult } from './model';
@@ -49,7 +49,7 @@ function readGradingField<T>(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock,
   name: GradingFieldName, fallback: T,
 ): T {
-  return fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback, stored: true });
+  return decodedFieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
 }
 
 /**

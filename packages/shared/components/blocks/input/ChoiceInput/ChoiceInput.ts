@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { core, input, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { getChoices } from './choiceHelpers';
 import type { RuntimeProps } from '@/lib/types';
@@ -24,7 +24,7 @@ const ChoiceInput = core({
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
   selectors: {
-    value: (state, props: RuntimeProps, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
+    value: (state, props: RuntimeProps, _stateKey) => decodedFieldSelector(state, props, fields.value, { fallback: '' }),
   },
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

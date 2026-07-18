@@ -46,7 +46,7 @@
 import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, docField, decodeField } from '@/lib/state';
+import { decodedFieldSelector, docField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
@@ -179,12 +179,12 @@ function readCardData(
   const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(cardId)]);
   const scoped = { ...props, idPrefix };
   return {
-    cardType:     fieldSelector(reduxState, scoped, fields.cardType,     { fallback: '' }),
-    dimensionKey: fieldSelector(reduxState, scoped, fields.dimensionKey, { fallback: '' }),
-    value:        decodeField(fields.value,        fieldSelector(reduxState, scoped, fields.value,        { fallback: '' })),
-    customPrompt: decodeField(fields.customPrompt, fieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' })),
-    statPreset:   fieldSelector(reduxState, scoped, fields.statPreset,   { fallback: '' }),
-    statValues:   fieldSelector(reduxState, scoped, fields.statValues,   { fallback: '' }),
+    cardType:     decodedFieldSelector(reduxState, scoped, fields.cardType,     { fallback: '' }),
+    dimensionKey: decodedFieldSelector(reduxState, scoped, fields.dimensionKey, { fallback: '' }),
+    value:        decodedFieldSelector(reduxState, scoped, fields.value,        { fallback: '' }),
+    customPrompt: decodedFieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' }),
+    statPreset:   decodedFieldSelector(reduxState, scoped, fields.statPreset,   { fallback: '' }),
+    statValues:   decodedFieldSelector(reduxState, scoped, fields.statValues,   { fallback: '' }),
   };
 }
 
@@ -193,19 +193,19 @@ function readCardData(
 export function readCharacterState(
   reduxState: any, props: RuntimeProps, aeFields: Record<string, any>,
 ): CharacterState {
-  const characterName = fieldSelector(reduxState, props, fields.characterName, { fallback: '' });
-  const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
+  const characterName = decodedFieldSelector(reduxState, props, fields.characterName, { fallback: '' });
+  const arrangement: string[] = decodedFieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
 
   // Avatar data from scoped Open Peeps fields
-  const avatarMode = fieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
-  const avatarSrc = fieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
-  const avatarEmoji = fieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
+  const avatarMode = decodedFieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
+  const avatarSrc = decodedFieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
+  const avatarEmoji = decodedFieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
   const { idPrefix: peepsPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
   const peepsScoped = { ...props, idPrefix: peepsPrefix };
-  const seed = fieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
+  const seed = decodedFieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
   const openPeeps: Record<string, string> = {};
   for (const k of OPEN_PEEPS_KEYS) {
-    openPeeps[k] = fieldSelector(reduxState, peepsScoped, (aeFields as any)[k], { fallback: '' });
+    openPeeps[k] = decodedFieldSelector(reduxState, peepsScoped, (aeFields as any)[k], { fallback: '' });
   }
 
   const cards = arrangement.map(cardId => readCardData(reduxState, props, cardId));

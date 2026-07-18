@@ -25,7 +25,7 @@ import {
 } from './pipeline';
 import { childGraderStateKeys, gradeModeOf } from './topology';
 import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
-import { fieldSelector } from '../state/redux';
+import { decodedFieldSelector } from '../state/redux';
 import type { GraderInput, GradingState } from './model';
 import type { LoBlock, RuntimeProps, StateKey } from '../types';
 
@@ -103,8 +103,8 @@ function readStoredGradingState(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
 ): GradingState {
   const read = <T,>(name: 'correct' | 'message' | 'score' | 'submitCount', fallback: T): T =>
-    // stored: this IS the selector implementation reading its backing store
-    fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback, stored: true });
+    // Level 2: the grading state reader wants the value, not the representation.
+    decodedFieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
   return {
     correct: read('correct', correctness.unsubmitted),
     message: read('message', ''),

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { fieldSelector } from '@/lib/state';
+import { decodedFieldSelector } from '@/lib/state';
 
 export const fields = state.fields(['expanded']);
 
@@ -15,7 +15,7 @@ const Collapsible = dev({
   fields: fields,
   selectors: {
     value: (state, props, _stateKey) => {
-      const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
+      const expanded = decodedFieldSelector(state, props, fields.expanded, { fallback: false });
       return { expanded };
     },
   },

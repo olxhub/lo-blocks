@@ -463,7 +463,7 @@ export function initReducers(blockRegistry: BlockRegistryParam, extraFields: Ext
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
-// Module-level store reference for getReduxState
+// Module-level store reference for the non-hook getRawField/getDecodedField/getField
 let reduxStoreInstance: any = null;
 
 function configureStore({
@@ -589,7 +589,7 @@ function configureStore({
   lo_event.lockFields([{ activity: 'lo-blocks' }]);
   lo_event.go();
 
-  // Store the reference for getReduxState to use
+  // Store the reference for the non-hook field getters to use
   reduxStoreInstance = reduxLogger.store;
 
   // Inbound fan-out (docs/fields-design.md step 2a): the server relays
@@ -638,7 +638,7 @@ export function adoptFieldState(fieldState: Record<string, any> | undefined) {
   });
 }
 
-// Singleton access for getReduxState - internal to /state/
+// Singleton access for the non-hook field getters - internal to /state/
 export const getReduxStoreInstance = () => {
   if (!reduxStoreInstance) {
     throw new Error('Redux store not initialized. Call store.init() first.');

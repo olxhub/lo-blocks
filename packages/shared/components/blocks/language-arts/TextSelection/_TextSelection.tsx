@@ -2,11 +2,16 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useEffect, useMemo, useRef } from 'react';
-import { useFieldState } from '@/lib/state';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { useFieldState, decodedFieldSelector, updateField } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
+
+// Stable fallback for the level-2 selection read: the subscription compares by
+// reference, so the empty case must not mint a new array per store dispatch.
+const EMPTY_SELECTIONS: number[] = [];
 
 /**
  * Evaluate parsed scoring rules against current selection stats.
@@ -138,8 +143,17 @@ export default function TextSelection(props: RuntimeProps) {
     return words;
   }, [parsed.segments]);
 
-  // Redux state management - store as array, work with as Set
-  const [selectedArray, setSelectedArray] = useFieldState(props, fields.value, []);
+  // Redux state management - store as array, work with as Set.
+  // selectors.value masks this store with the composite observable
+  // {selections, attempts, score}; the component's own read wants the
+  // backing array, so it reads level 2 with a direct writer.
+  const selectedArray = useSelector(
+    (s: any) => decodedFieldSelector<number[]>(s, props, fields.value, { fallback: EMPTY_SELECTIONS }),
+  );
+  const setSelectedArray = useCallback(
+    (v: number[]) => updateField(props, fields.value, v),
+    [props],
+  );
   const selectedIndices = useMemo(() => new Set(selectedArray || []), [selectedArray]);
   const setSelectedIndices = (newSet) => setSelectedArray(Array.from(newSet));
 

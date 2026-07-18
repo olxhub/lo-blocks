@@ -2,7 +2,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector } from '@/lib/state';
+import { decodedFieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 
 export const fields = state.fields(['activeTab']);
@@ -14,7 +14,7 @@ const Tabs = dev({
   fields: fields,
   selectors: {
     value: (state, props, _stateKey) => {
-      const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
+      const activeTab = decodedFieldSelector(state, props, fields.activeTab, { fallback: 0 });
       return { activeTab };
     },
   },

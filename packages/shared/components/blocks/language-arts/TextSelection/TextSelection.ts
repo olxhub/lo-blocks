@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
@@ -21,9 +21,9 @@ const TextSelection = test({
   }),
   selectors: {
     value: (state, props, _stateKey) => {
-      const selections = fieldSelector(state, props, fields.value, { fallback: [] });
-      const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
-      const score = fieldSelector(state, props, fields.score, { fallback: 0 });
+      const selections = decodedFieldSelector(state, props, fields.value, { fallback: [] });
+      const attempts = decodedFieldSelector(state, props, fields.attempts, { fallback: 0 });
+      const score = decodedFieldSelector(state, props, fields.score, { fallback: 0 });
       return { selections, attempts, score };
     },
   },

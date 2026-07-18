@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import { yamlParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 
@@ -198,13 +198,17 @@ const tabularMCQSchema = z.object({
 
 export const fields = state.fields([commonFields.value]);
 
+// Getters run inside useSelector subscriptions — a fresh {} per call would
+// defeat the equality gate and re-render every dispatch while unanswered.
+const EMPTY_VALUE: Record<string, number | number[]> = {};
+
 const TabularMCQ = core({
   ...yamlParser(tabularMCQSchema),
   ...blocks.input({
   }),
   selectors: {
     value: (reduxState, props, _stateKey) => {
-      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
+      const value = decodedFieldSelector(reduxState, props, fields.value, { fallback: EMPTY_VALUE });
       return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
     },
   },
@@ -282,7 +286,7 @@ const TabularMCQ = core({
 
     // Calculate total score based on selections and column values
     getScore: (props, reduxState) => {
-      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
+      const value = decodedFieldSelector(reduxState, props, fields.value, { fallback: {} });
       const cols = props.kids.parsed.cols;
       let total = 0;
       Object.values(value).forEach(colIdx => {

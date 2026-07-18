@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { store } from '../lib/state/store';
-import { fieldSelector } from '../lib/state/redux';
+import { decodedFieldSelector } from '../lib/state/redux';
 import { commonFields } from '../lib/state/commonFields';
 import { selectBlock } from '../lib/state/olxjson';
 import type { DefinitionKey, UserLocale } from '../lib/types';
@@ -52,19 +52,19 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // Query final values
-    const inputValue = fieldSelector(state, {}, commonFields.value, {
+    const inputValue = decodedFieldSelector(state, {}, commonFields.value, {
       stateKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('144');
 
-    const correct = fieldSelector(state, {}, commonFields.correct, {
+    const correct = decodedFieldSelector(state, {}, commonFields.correct, {
       stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('correct');
 
-    const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
+    const submitCount = decodedFieldSelector(state, {}, commonFields.submitCount, {
       stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });
@@ -78,19 +78,19 @@ describe('Event Replay', () => {
     const state = reduxStore.getState();
 
     // At this point, student has submitted wrong answer
-    const inputValue = fieldSelector(state, {}, commonFields.value, {
+    const inputValue = decodedFieldSelector(state, {}, commonFields.value, {
       stateKey: 'NumericalGraderBasic.input' as any,
       fallback: ''
     });
     expect(inputValue).toBe('100'); // Wrong answer
 
-    const correct = fieldSelector(state, {}, commonFields.correct, {
+    const correct = decodedFieldSelector(state, {}, commonFields.correct, {
       stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: ''
     });
     expect(correct).toBe('incorrect');
 
-    const submitCount = fieldSelector(state, {}, commonFields.submitCount, {
+    const submitCount = decodedFieldSelector(state, {}, commonFields.submitCount, {
       stateKey: 'NumericalGraderBasic.grader' as any,
       fallback: 0
     });

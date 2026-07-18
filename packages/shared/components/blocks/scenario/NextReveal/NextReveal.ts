@@ -22,7 +22,7 @@ export const fields = state.fields([
 function nextRevealCanAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (canAdvanceChildren(props.nodeInfo, reduxState)) return true;
   const numItems = selectKidsJson(props, reduxState).length;
-  const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
+  const currentStep = state.decodedFieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   return currentStep < numItems;
 }
 
@@ -30,7 +30,7 @@ function nextRevealAdvance(props: RuntimeProps, reduxState: any): boolean {
   if (advanceChildren(props.nodeInfo, reduxState)) return true;
 
   const numItems = selectKidsJson(props, reduxState).length;
-  const currentStep = state.fieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
+  const currentStep = state.decodedFieldSelector(reduxState, props, fields.currentStep, { fallback: 1 });
   if (currentStep < numItems) {
     state.updateField(props, fields.currentStep, currentStep + 1);
     return true;

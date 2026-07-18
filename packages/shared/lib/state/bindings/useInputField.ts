@@ -21,7 +21,7 @@
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useFieldState, useFieldSelector, updateField } from '../redux';
+import { useFieldSelector, updateField } from '../redux';
 import { shallowEqual } from 'react-redux';
 import type { FieldInfo, RuntimeProps, StateKey } from '../../types';
 
@@ -43,7 +43,13 @@ export function useInputField(
   fallback = '',
   { updateValidator, stateKey, tag }: InputFieldOptions = {}
 ) {
-  const [value, setValue] = useFieldState(props, field, fallback, { stateKey, tag });
+  // The binding is storage infrastructure: it edits the RAW backing store
+  // (decoded for display — level 2). The block's observable getter (a
+  // TextArea's kids fallback, CharacterBuilder's composite YAML view) must
+  // not leak into the edit loop, or typing would round-trip through policy.
+  // `stored:` is the deprecated spelling of that level until step 2 rewires
+  // this binding onto rawFieldSelector/decodedFieldSelector directly.
+  const value = useFieldSelector(props, field, { fallback, stateKey, tag, stored: true });
 
   // Selection state — stored as sibling keys in Redux alongside the value
   const selection = useFieldSelector(

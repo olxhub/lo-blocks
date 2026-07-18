@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { test, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, docField, decodeField } from '@/lib/state';
+import { decodedFieldSelector, docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 
@@ -22,7 +22,7 @@ const CodeInput = test({
   fields,
   selectors: {
     value: (reduxState, props, _stateKey) => {
-      const fieldValue = decodeField(fields.value, fieldSelector(reduxState, props, fields.value, { fallback: null }));
+      const fieldValue = decodedFieldSelector(reduxState, props, fields.value, { fallback: null });
       return fieldValue ?? props.kids ?? null;
     },
   },
