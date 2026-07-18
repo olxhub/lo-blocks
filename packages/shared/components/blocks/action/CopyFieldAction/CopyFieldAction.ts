@@ -11,6 +11,7 @@ import * as state from '@/lib/state';
 import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
+import type { ObservableValue } from '@/lib/types';
 
 async function copyFieldAction({ props }) {
   // OLX attributes are spread into props by propsFromNode
@@ -22,7 +23,9 @@ async function copyFieldAction({ props }) {
   // on screen, not the "" the raw store holds before the first edit.
   const targetStateKey = stateKeyForGlobalRef(target.ref, props.runtime.ns);
   const srcField = state.componentFieldByStateKey(props, targetStateKey, target.field);
-  const value = state.getField(props, srcField, {
+  // Only an observable value may be copied — the brand enforces that this
+  // payload came from a level-3 read, never from someone's backing store.
+  const value: ObservableValue = state.getField(props, srcField, {
     stateKey: targetStateKey,
     fallback: '',
   });

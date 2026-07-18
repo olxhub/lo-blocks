@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
+import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
 import type { Correctness } from '../blocks/correctness';
 
@@ -416,7 +417,7 @@ export interface FieldInfo {
   /** Materialize raw Redux value → consumer-facing value. Default: identity.
    *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
    *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
-  read?: (raw: any) => any;
+  read?: (raw: RawFieldValue<any>) => any;
 
   /** Equality check for useSelector on the RAW (pre-read) value.
    *  Default: Object.is (referential equality).
@@ -434,7 +435,7 @@ export interface FieldInfo {
    *
    *  Returns an array of WriteResult — usually one event, but some operations
    *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
-  write?: (oldRaw: any, newValue: any) => WriteResult[];
+  write?: (oldRaw: RawFieldValue<any>, newValue: any) => WriteResult[];
 
   /** Field-level reducer. Receives the component's state object and returns a
    *  patch to merge back. The main reducer routes events to field.reduce based
@@ -448,7 +449,7 @@ export interface FieldInfo {
    *
    *  Fields without reduce use the default behavior: spread action payload
    *  directly into componentState (plain key-value merge). */
-  reduce?: (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+  reduce?: (componentState: Record<string, RawFieldValue<any>>, action: any, fieldName: string) => Record<string, RawFieldValue<any>>;
 
   /** Human/LLM-readable string representation. Distinct from `read`:
    *  - read: programmatic value (Set, number, structured object)

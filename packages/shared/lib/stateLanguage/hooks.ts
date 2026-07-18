@@ -12,6 +12,7 @@ import { selectBlock } from '../state/olxjson';
 // blockData is a leaf module — importing state/redux here would close the
 // module cycle attributeSchemas → stateLanguage → hooks → redux → ... .
 import { RETURNS_BLOCK_DATA } from '../state/blockData';
+import { asObservableValue } from '../types/fieldValues';
 import type { FieldInfo, StateKey } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
@@ -74,12 +75,14 @@ function materializeComponentState(
   const cached = byKey.get(stateKey);
   if (cached) return cached;
 
-  // Stored values, decoded via field.read where declared
+  // Stored values, decoded via field.read where declared. The materializer is
+  // a level-3 read (getters overlaid below), so decoded values are stamped
+  // ObservableValue on the way into the view (types/fieldValues.ts doctrine).
   const view = { ...(rawState && typeof rawState === 'object' ? rawState : {}) };
   for (const [fname, finfo] of Object.entries(blockDef.fields ?? {})) {
     const fi = finfo as FieldInfo;
     if (fi.type === 'field' && fi.read && view[fname] !== undefined) {
-      view[fname] = fi.read(view[fname]);
+      view[fname] = asObservableValue(fi.read(view[fname]));
     }
   }
 
@@ -99,7 +102,8 @@ function materializeComponentState(
     for (const [name, select] of Object.entries(selectors) as [string, (s: any, p: any, k: StateKey) => unknown][]) {
       const raw = select(state, targetProps as any, stateKey);
       // withStatus selectors return BlockDataResult — the DSL wants the value.
-      view[name] = (select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
+      // Getter authors return plain values; the overlay stamps them final.
+      view[name] = asObservableValue((select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw);
     }
   }
 

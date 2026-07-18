@@ -11,7 +11,7 @@ import { graderAttributes } from '../blocks/attributeSchemas';
 import { errorMessage } from '../util/errorMessage';
 import { updateField, decodedFieldSelector } from '../state/redux';
 import type { Correctness } from '../blocks/correctness';
-import type { LoBlock, RuntimeProps, StateKey } from '../types';
+import type { LoBlock, ObservableValue, RuntimeProps, StateKey } from '../types';
 import type { GradePreparation, GraderFn, GradingDescriptor, GradingResult } from './model';
 import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
@@ -97,7 +97,8 @@ async function submitGrade(props: RuntimeProps, stateKey: StateKey, descriptor: 
   // for changed-since-submission indicators afterwards). Preparation
   // resolves inputs even when it fails, so a configuration error still
   // records what the learner actually submitted.
-  const submittedValues = preparation.inputs.map(i => i.value);
+  // Captured observable values — what the learner actually submitted.
+  const submittedValues: ObservableValue[] = preparation.inputs.map(i => i.value);
   updateField(props, gradingField(loBlock, 'lastSubmission'), submittedValues, { stateKey });
 
   if (descriptor.execution === 'async') {

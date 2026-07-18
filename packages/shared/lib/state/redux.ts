@@ -47,6 +47,8 @@ import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
 import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
+import { asObservableValue } from '../types/fieldValues';
+import type { RawFieldValue, ObservableValue } from '../types/fieldValues';
 import { assertValidField } from './fields';
 import { getUrlOverride, setUrlValue } from './urlFields';
 import { selectBlock, selectBlockState } from './olxjson';
@@ -103,7 +105,7 @@ export const rawFieldSelector = <T>(
   props,
   field: FieldInfo,
   options: SelectorOptions<T> = {}
-): T => {
+): RawFieldValue<T> => {
   const {
     stateKey,
     tag: optTag,
@@ -129,7 +131,10 @@ export const rawFieldSelector = <T>(
         throw new Error('Unrecognized scope');
     }
   })();
-  return (value === undefined ? (fallback as T) : value) as T;
+  // The level-1 accessor is the boundary where untyped store contents — and
+  // the caller's fallback, substituting for absent storage — acquire the raw
+  // brand (see the cast doctrine in types/fieldValues.ts).
+  return (value === undefined ? fallback : value) as RawFieldValue<T>;
 };
 
 /**
@@ -159,18 +164,22 @@ export const fieldSelector = <T>(
   props,
   field: FieldInfo,
   options: SelectorOptions<T> = {}
-): T => {
+): ObservableValue<T> => {
   // Blueprint getter — the getter half of the getter/setter pattern
   // (selectValue generalized): a block's observable field may be COMPUTED
   // (fallbacks, grading's mode dispatch, coercion, purely-derived
   // Navigator/metagrader fields). A getter masks only its own backing field,
   // so its body must reach the store through level 1/2 — reading back through
   // level 3 on its own field recurses (the guard in evalGetter throws).
+  // Getter authors return plain values; the exits below are the stamp points
+  // where results become ObservableValue (types/fieldValues.ts doctrine).
   if (field.scope === scopes.component && !options.stored && !options.selector) {
     const resolved = resolveGetter(state, props, options.stateKey, field.name);
-    if (resolved) return evalGetter(state, resolved, field.name, options.fallback) as T;
+    if (resolved) {
+      return asObservableValue(evalGetter(state, resolved, field.name, options.fallback)) as ObservableValue<T>;
+    }
   }
-  return decodedFieldSelector(state, props, field, options);
+  return asObservableValue(decodedFieldSelector(state, props, field, options));
 };
 
 /**
@@ -248,7 +257,7 @@ export const getRawField = <T>(
   props: any,
   field: FieldInfo,
   options: SelectorOptions<any> = {}
-): T => {
+): RawFieldValue<T> => {
   assertValidField(field);
   const state = getReduxStoreInstance().getState();
   return rawFieldSelector(state, props, field, options);
@@ -270,7 +279,7 @@ export const getField = <T>(
   props: any,
   field: FieldInfo,
   options: SelectorOptions<any> = {}
-): T => {
+): ObservableValue<T> => {
   assertValidField(field);
   const state = getReduxStoreInstance().getState();
   return fieldSelector(state, props, field, options);
@@ -288,12 +297,10 @@ export const getField = <T>(
  * Naming: "decode" because it transforms raw storage → consumer value.
  * The inverse (consumer → storage events) is field.write, conceptually "encode."
  *
- * // Future: branded types to prevent raw/decoded confusion at compile time
- * // type RawFieldValue<T> = T & { readonly __raw: 'RawFieldValue' };
- * // type DecodedFieldValue<T> = T & { readonly __decoded: 'DecodedFieldValue' };
- * // fieldSelector would return RawFieldValue, decodeField would return DecodedFieldValue
+ * The RawFieldValue brand (types/fieldValues.ts) enforces the input side:
+ * only level-1 reads produce values this function accepts.
  */
-export function decodeField(field: FieldInfo, raw: any): any {
+export function decodeField(field: FieldInfo, raw: RawFieldValue): any {
   // Absence passes through: read decodes PRESENT values. Running read on
   // undefined would manufacture a value from nothing (docField's
   // read(undefined) → ''), swallowing the caller's fallback — which broke
@@ -307,7 +314,7 @@ export function decodeField(field: FieldInfo, raw: any): any {
  * Get a human/LLM-readable string from a raw field value.
  * Uses field.display if defined, otherwise falls back to stringifying the read value.
  */
-export function displayField(field: FieldInfo, raw: any): string {
+export function displayField(field: FieldInfo, raw: RawFieldValue): string {
   if (field.display) return field.display(raw);
   const value = decodeField(field, raw);
   if (value === undefined || value === null) return '';
@@ -333,7 +340,7 @@ export const useFieldSelector = <T>(
   props: any,               // TODO: narrow when convenient
   field: FieldInfo,
   options: SelectorOptions<T> = {}
-): T => {
+): ObservableValue<T> => {
   // The hook implements level 3: getter-backed fields subscribe the getter
   // result (own and cross alike — same semantics as fieldSelector); stored
   // fields subscribe level 1 (raw) for the equality gate and decode AFTER it.
@@ -372,14 +379,15 @@ export const useFieldSelector = <T>(
     equality
   );
   // Apply field.read only for the default raw projection. Own getter results
-  // are already the final observable value — never re-decoded. (Cross getter
-  // results pass through field.read as they always have; presence depends on
-  // content loading, and current read transforms are idempotent on decoded
-  // values.) Custom selectors handle their own transformation.
-  if (!ownGetter && !options.selector && field.read) {
-    return field.read(raw) as T;
-  }
-  return raw;
+  // are already final — never re-decoded. (Cross getter results pass through
+  // field.read as they always have; presence depends on content loading, and
+  // current read transforms are idempotent on decoded values.) Custom
+  // selectors handle their own transformation. This post-gate return is the
+  // hook's single ObservableValue stamp point (types/fieldValues.ts doctrine).
+  const value = (!ownGetter && !options.selector && field.read)
+    ? field.read(raw)
+    : raw;
+  return asObservableValue(value) as ObservableValue<T>;
 };
 
 
@@ -721,9 +729,11 @@ export function valueSelector(
   state: any,
   stateKey: StateKey | null | undefined,
   { fallback = '' } = {} as { fallback?: any }
-): BlockDataResult & { value: any } {
+): BlockDataResult & { value: ObservableValue<any> } {
+  // valueSelector is a level-3 read: every exit below is a stamp point where
+  // getter-author output (or the fallback) becomes ObservableValue.
   if (stateKey === undefined || stateKey === null) {
-    return { value: fallback, ...blockData('ready') };
+    return { value: asObservableValue(fallback), ...blockData('ready') };
   }
 
   // StateKey → DefinitionKey for content store lookup
@@ -736,9 +746,9 @@ export function valueSelector(
   if (!targetNode || !loBlock) {
     const bs = selectBlockState(state, sources, mapKey);
     if (bs?.loadingState?.status === 'error') {
-      return { value: fallback, ...blockData('error', bs.error?.message ?? `Block "${stateKey}" not found`) };
+      return { value: asObservableValue(fallback), ...blockData('error', bs.error?.message ?? `Block "${stateKey}" not found`) };
     }
-    return { value: fallback, ...blockData('loading') };
+    return { value: asObservableValue(fallback), ...blockData('loading') };
   }
 
   const valueSelect = loBlock.selectors?.value;
@@ -746,10 +756,10 @@ export function valueSelector(
     const targetProps = propsForNode(props, stateKey, targetNode, loBlock) as RuntimeProps;
 
     if ((valueSelect as any)[RETURNS_BLOCK_DATA]) {
-      return valueSelect(state, targetProps, stateKey) as BlockDataResult & { value: any };
+      return valueSelect(state, targetProps, stateKey) as BlockDataResult & { value: ObservableValue<any> };
     }
 
-    return { value: valueSelect(state, targetProps, stateKey), ...blockData('ready') };
+    return { value: asObservableValue(valueSelect(state, targetProps, stateKey)), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field
@@ -778,7 +788,7 @@ export function useValue(
     target?: StateRef | null;
     fallback?: any;
   } = {}
-): BlockDataResult & { value: any } {
+): BlockDataResult & { value: ObservableValue<any> } {
   // Priority: explicit stateKey > target (resolved) > own component
   const resolvedKey: StateKey | null =
     stateKey !== undefined ? stateKey

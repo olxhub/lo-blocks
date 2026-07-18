@@ -34,10 +34,11 @@ export function getStudioContent(fileId: LofsRef): string {
 }
 
 /** Whether the redux working tree already has a value for this file — a
- *  presence check on the raw store, so getRawField with a missing sentinel. */
+ *  presence check on the raw store, so getRawField with a missing sentinel.
+ *  <any>: only presence is tested; the raw doc's shape is irrelevant here. */
 export function hasStudioContent(fileId: LofsRef): boolean {
   const missing = Symbol('missing-studio-content');
-  return getRawField(null, editorFields.content, { fallback: missing, stateKey: asStateKey(fileId) }) !== missing;
+  return getRawField<any>(null, editorFields.content, { fallback: missing, stateKey: asStateKey(fileId) }) !== missing;
 }
 
 /** Write a file's content synchronously (the editor's hook re-renders). */

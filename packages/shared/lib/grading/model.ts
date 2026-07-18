@@ -15,7 +15,7 @@ import type { z } from 'zod';
 import type { Correctness } from '../blocks/correctness';
 import type {
   DictParam, GraderFn, GraderParams, GradingDescriptor, ListParam,
-  RawGraderResult, RuntimeProps, SingleParam, StateKey,
+  ObservableValue, RawGraderResult, RuntimeProps, SingleParam, StateKey,
 } from '../types';
 
 // Canonical declarations live in types/core.ts (one home, no cycles);
@@ -30,7 +30,9 @@ export interface GraderInput {
   stateKey: StateKey;
   /** Display name for authoring-error messages (block name or tag). */
   name: string;
-  value: unknown;
+  /** The input's observable value — graders only ever see level-3 reads.
+   *  ObservableValue (types/fieldValues.ts) declares that finality. */
+  value: ObservableValue;
   api: Record<string, (...args: unknown[]) => unknown>;
   /** Explicit slot= attribute, for multi-input graders. */
   slot?: string;
