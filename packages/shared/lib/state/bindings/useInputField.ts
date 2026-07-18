@@ -22,9 +22,9 @@
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useFieldSelector, updateField } from '../redux';
+import { useSelector, shallowEqual } from 'react-redux';
+import { useFieldSelector, rawFieldSelector, decodeField, updateField } from '../redux';
 import { commonFields } from '../commonFields';
-import { shallowEqual } from 'react-redux';
 import type { FieldInfo, RuntimeProps, StateKey } from '../../types';
 
 // Stable empty cursor: the selection read compares with shallowEqual, and the
@@ -55,9 +55,14 @@ export function useInputField(
   // (decoded for display — level 2). The block's observable getter (a
   // TextArea's kids fallback, CharacterBuilder's composite YAML view) must
   // not leak into the edit loop, or typing would round-trip through policy.
-  // `stored:` is the deprecated spelling of that level until step 3 rewires
-  // this binding onto rawFieldSelector/decodedFieldSelector directly.
-  const value = useFieldSelector(props, field, { fallback, stateKey, tag, stored: true });
+  // Same spine as useFieldSelector's invariant: subscribe level 1 (raw),
+  // gate on field.equality (raw representations are reference-stable
+  // between dispatches), decode AFTER the gate — never inside it.
+  const raw = useSelector(
+    (state: any) => rawFieldSelector(state, props, field, { fallback, stateKey, tag }),
+    field.equality
+  );
+  const value = decodeField(field, raw);
 
   // Cursor state — a plain whole-field read of the shared selection field,
   // which the extras envelope folds into the same bucket as the value.

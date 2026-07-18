@@ -68,20 +68,16 @@ const UPDATE_INPUT = 'UPDATE_INPUT'; // TODO: Import
 // Options for fieldSelector and friends.
 // stateKey overrides which component's state to access (cross-component access).
 // If omitted, the component's own key is resolved from props.
+// No option changes a read's LEVEL — that is chosen by function name
+// (rawFieldSelector / decodedFieldSelector / fieldSelector).
 export interface SelectorOptions<T> {
   stateKey?: StateKey;
   tag?: string;
-  /** @deprecated A custom bucket projection selects the level by option
-   *  rather than by function name. Zero users remain (the selection redesign
-   *  removed the last one); the option is deleted in step 3. Do not add
-   *  callers. */
-  selector?: (state) => T;
   fallback?: T;
+  /** Caller-side equality override. Prefer declared equality where it
+   *  exists: field.equality (level-1 representations) or a getter's
+   *  declared equality (level-3 results). */
   equalityFn?: (a: T, b: T) => boolean;
-  /** @deprecated A storage-level read expressed as an option. Superseded by
-   *  rawFieldSelector/decodedFieldSelector — the level is the function name.
-   *  Retained only until the last call sites migrate; do not add callers. */
-  stored?: boolean;
 }
 
 // The three read levels. One meaning per function name; the level is chosen at
@@ -107,31 +103,23 @@ export const rawFieldSelector = <T>(
   field: FieldInfo,
   options: SelectorOptions<T> = {}
 ): RawFieldValue<T> => {
-  const {
-    stateKey,
-    tag: optTag,
-    selector = (s: any) => s?.[field.name],
-    fallback,
-  } = options;
+  const { stateKey, tag: optTag, fallback } = options;
   const { scope } = field;
   const scopedState = state?.application_state?.[scope];
-  const value: T | undefined = (() => {
+  const bucket = (() => {
     switch (scope) {
-      case scopes.componentSetting: {
-        const tag = optTag ?? props?.loBlock?.name;
-        return selector(scopedState?.[tag]);
-      }
+      case scopes.componentSetting:
+        return scopedState?.[optTag ?? props?.loBlock?.name];
       case scopes.system:
-        return selector(scopedState);
+        return scopedState;
       case scopes.storage:
-      case scopes.component: {
-        const key = stateKey ?? scopedStateKeyForBlock(props);
-        return selector(scopedState?.[key]);
-      }
+      case scopes.component:
+        return scopedState?.[stateKey ?? scopedStateKeyForBlock(props)];
       default:
         throw new Error('Unrecognized scope');
     }
   })();
+  const value: T | undefined = bucket?.[field.name];
   // The level-1 accessor is the boundary where untyped store contents — and
   // the caller's fallback, substituting for absent storage — acquire the raw
   // brand (see the cast doctrine in types/fieldValues.ts).
@@ -174,7 +162,7 @@ export const fieldSelector = <T>(
   // level 3 on its own field recurses (the guard in evalGetter throws).
   // Getter authors return plain values; the exits below are the stamp points
   // where results become ObservableValue (types/fieldValues.ts doctrine).
-  if (field.scope === scopes.component && !options.stored && !options.selector) {
+  if (field.scope === scopes.component) {
     const resolved = resolveGetter(state, props, options.stateKey, field.name);
     if (resolved) {
       return asObservableValue(evalGetter(state, resolved, field.name, options.fallback)) as ObservableValue<T>;
@@ -351,19 +339,15 @@ export const useFieldSelector = <T>(
   // wrap fieldSelector, which decodes before returning and would defeat the
   // gate.
   //
-  // field.equality compares the field's RAW value. A custom selector projection
-  // (deprecated, zero users) returns something else entirely, so it must bring
-  // its own equalityFn.
-  // On getter-backed fields the gate compares getter RESULTS: fine for the
-  // scalar getters every current consumer reads; object-returning getters
-  // churn until step 4's declared getter equality lands.
-  const equality = options.selector
-    ? options.equalityFn
-    : (field.equality ?? options.equalityFn);
+  // field.equality compares the field's RAW value. On getter-backed fields the
+  // gate compares getter RESULTS: fine for the scalar getters every current
+  // consumer reads; object-returning getters churn until step 4's declared
+  // getter equality lands.
+  const equality = field.equality ?? options.equalityFn;
   // Own-read getter presence is state-independent (props.loBlock), so whether
   // the subscription below returns a getter result or raw storage is knowable
   // here — it drives the decode decision after the gate.
-  const ownGetter = !options.stateKey && !options.stored && !options.selector
+  const ownGetter = !options.stateKey
     && field.scope === scopes.component && !!props?.loBlock?.selectors?.[field.name];
   const raw = useSelector(
     (state) => {
@@ -371,7 +355,7 @@ export const useFieldSelector = <T>(
       // agree with fieldSelector (one meaning per level). Getterless fields
       // subscribe raw storage so the gate compares the reference-stable
       // representation; decode runs after, below.
-      if (!options.stored && !options.selector && field.scope === scopes.component) {
+      if (field.scope === scopes.component) {
         const resolved = resolveGetter(state, props, options.stateKey, field.name);
         if (resolved) return evalGetter(state, resolved, field.name, options.fallback);
       }
@@ -379,15 +363,12 @@ export const useFieldSelector = <T>(
     },
     equality
   );
-  // Apply field.read only for the default raw projection. Own getter results
-  // are already final — never re-decoded. (Cross getter results pass through
-  // field.read as they always have; presence depends on content loading, and
-  // current read transforms are idempotent on decoded values.) Custom
-  // selectors handle their own transformation. This post-gate return is the
+  // Apply field.read only to raw storage reads. Own getter results are already
+  // final — never re-decoded. (Cross getter results pass through field.read as
+  // they always have; presence depends on content loading, and current read
+  // transforms are idempotent on decoded values.) This post-gate return is the
   // hook's single ObservableValue stamp point (types/fieldValues.ts doctrine).
-  const value = (!ownGetter && !options.selector && field.read)
-    ? field.read(raw)
-    : raw;
+  const value = (!ownGetter && field.read) ? field.read(raw) : raw;
   return asObservableValue(value) as ObservableValue<T>;
 };
 
