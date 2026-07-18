@@ -228,18 +228,16 @@ export const updateResponseReducer = (state = initialState, action) => {
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
     // One rule for event payloads: the field reducer owns the field value;
-    // the ONLY other keys that land in the bucket are sibling metadata
-    // prefixed "<fieldName>." (e.g. value.selectionStart from useInputField's
-    // cursor tracking). Everything else — event envelope, operation
-    // parameters like a splice's index/deleteCount/inserted — never becomes
-    // state. (Dropping the prefixed keys broke cursor persistence once;
-    // spreading unprefixed keys is how the old compound UPDATE_CORRECT
-    // leaked five fields through one event.)
-    const prefix = `${fieldName}.`;
-    const extra: Record<string, any> = {};
-    for (const [key, val] of Object.entries(action)) {
-      if (key.startsWith(prefix)) extra[key] = val;
-    }
+    // the ONLY other keys that land in the bucket are sibling fields carried
+    // by the `extras` envelope (fieldName → value; useInputField's
+    // `selection` cursor is the canonical case). Everything else — event
+    // envelope, operation parameters like a splice's index/deleteCount/
+    // inserted — never becomes state. (An earlier prefixed-key convention
+    // broke cursor persistence once when dropped; spreading unprefixed keys
+    // is how the old compound UPDATE_CORRECT leaked five fields through one
+    // event. The explicit envelope replaces both failure modes.)
+    const extra: Record<string, any> =
+      (action.extras && typeof action.extras === 'object') ? action.extras : {};
 
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the plain-spread switch below.
@@ -300,7 +298,14 @@ export const updateResponseReducer = (state = initialState, action) => {
   // authority is routing metadata (fields-design), never state — strip it
   // alongside the other envelope keys or shared/server events would
   // persist { authority: '…' } into buckets as if it were user data.
-  const { scope = scopes.component, id, tag, context, event, metadata, authority, ...rest } = action;
+  // extras is the sibling-field envelope (fieldName → value): folded into
+  // the bucket alongside the payload, never stored as a literal key. This
+  // is the classic-strategy/unregistered-event twin of the field-reducer
+  // path's fold above (classic events don't stamp `field`, so cursor
+  // extras land here).
+  const { scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest } = action;
+  const extrasFold: Record<string, any> =
+    (extras && typeof extras === 'object') ? extras : {};
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
@@ -321,14 +326,14 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         componentSetting: {
           ...state.componentSetting,
-          [tag]: { ...(state.componentSetting?.[tag]), ...rest }
+          [tag]: { ...(state.componentSetting?.[tag]), ...rest, ...extrasFold }
         }
       };
 
     case scopes.system:
       return {
         ...state,
-        system: { ...state.system, ...rest }
+        system: { ...state.system, ...rest, ...extrasFold }
       };
 
     case scopes.storage:
@@ -336,7 +341,7 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         storage: {
           ...state.storage,
-          [id]: { ...(state.storage?.[id]), ...rest }
+          [id]: { ...(state.storage?.[id]), ...rest, ...extrasFold }
         }
       };
 
@@ -345,7 +350,7 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         component: {
           ...state.component,
-          [id]: { ...(state.component?.[id]), ...rest }
+          [id]: { ...(state.component?.[id]), ...rest, ...extrasFold }
         }
       };
     default:

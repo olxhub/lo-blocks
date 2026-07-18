@@ -17,9 +17,11 @@
 //   and actor as sibling keys:
 //     { value: 'hello', 'value.ts': 1710000000, 'value.actor': 'uuid-123' }
 //
-//   This pattern matches selection state (value.selectionStart, etc.) and
-//   keeps backward compatibility — code that reads state[fieldName] directly
-//   (e.g., useInputField) still gets the value without unwrapping.
+//   The prefixed siblings are LWW's own bookkeeping, invisible to readers —
+//   code that reads state[fieldName] directly still gets the value without
+//   unwrapping. (Cursor state, which once rode the same prefix convention,
+//   is now a real `selection` field carried by the event's extras envelope
+//   — see store.ts.)
 //
 // Relationship to other CRDTs in this directory:
 //   - rga.ts: sequence CRDT for collaborative text (used by docField)

@@ -85,11 +85,10 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
         }
       }];
     }),
+    // Doc reduce owns ONLY the doc — sibling data (the cursor's `selection`
+    // field) rides the event's extras envelope and is folded by store.ts.
     reduce: opts?.reduce ?? ((componentState: Record<string, any>, action: any, fieldName: string) => {
       const { index, deleteCount, inserted, initText, actor } = action;
-      // Selection keys are prefixed by useInputField: "value.selectionStart"
-      const selectionStart = action[`${fieldName}.selectionStart`];
-      const selectionEnd = action[`${fieldName}.selectionEnd`];
       let doc = componentState[fieldName];
 
       // Auto-init on first splice: create RgaDoc from existing value or initText
@@ -102,10 +101,7 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       doc = rgaSplice(doc, index, deleteCount, inserted);
       doc = rgaCompact(doc, rgaVersionVector(doc));  // Single-user: all ops are seen
 
-      const patch: Record<string, any> = { [fieldName]: doc };
-      if (selectionStart !== undefined) patch[`${fieldName}.selectionStart`] = selectionStart;
-      if (selectionEnd !== undefined) patch[`${fieldName}.selectionEnd`] = selectionEnd;
-      return patch;
+      return { [fieldName]: doc };
     }),
     equality: opts?.equality ?? Object.is,
   };

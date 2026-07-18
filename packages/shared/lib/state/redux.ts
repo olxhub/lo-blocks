@@ -72,8 +72,9 @@ export interface SelectorOptions<T> {
   stateKey?: StateKey;
   tag?: string;
   /** @deprecated A custom bucket projection selects the level by option
-   *  rather than by function name. The only remaining user is useInputField's
-   *  selection read, removed in the selection redesign. Do not add callers. */
+   *  rather than by function name. Zero users remain (the selection redesign
+   *  removed the last one); the option is deleted in step 3. Do not add
+   *  callers. */
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
@@ -351,8 +352,8 @@ export const useFieldSelector = <T>(
   // gate.
   //
   // field.equality compares the field's RAW value. A custom selector projection
-  // (deprecated) returns something else entirely (useInputField's fresh
-  // {selectionStart, selectionEnd}), so it must bring its own equalityFn.
+  // (deprecated, zero users) returns something else entirely, so it must bring
+  // its own equalityFn.
   // On getter-backed fields the gate compares getter RESULTS: fine for the
   // scalar getters every current consumer reads; object-returning getters
   // churn until step 4's declared getter equality lands.
@@ -456,7 +457,11 @@ export function updateField(
   props: BaselineProps | null,
   field: FieldInfo,
   newValue,
-  { stateKey, tag, extraPayload }: { stateKey?: StateKey; tag?: string; extraPayload?: Record<string, any> } = {}
+  // extras: sibling FIELD values riding this field's event — one envelope key
+  // on the wire (`extras: { selection: {...} }`), folded into the same bucket
+  // by the reducer. Each entry names a declared field (useInputField's
+  // selection is the canonical case). Never spread into the payload.
+  { stateKey, tag, extras }: { stateKey?: StateKey; tag?: string; extras?: Record<string, any> } = {}
 ) {
   assertValidField(field);
 
@@ -486,14 +491,14 @@ export function updateField(
   // instead they ship as their own unstamped (level-user) event, landing
   // in the caller's copy of the same bucket key. Client Redux merges both
   // into one local bucket, so readers are oblivious.
-  if (extraPayload && field.level && field.level !== 'user') {
+  if (extras && field.level && field.level !== 'user') {
     const logEvent = props ? (props as any).runtime.logEvent : lo_event.logEvent;
     logEvent(UPDATE_INPUT, {
       scope: field.scope,
       id: stateKey ?? scopedStateKeyForBlock(props as RuntimeProps),
-      ...extraPayload,
+      extras,
     });
-    extraPayload = undefined;
+    extras = undefined;
   }
 
   if (field.write) {
@@ -501,16 +506,18 @@ export function updateField(
     const store = props?.runtime?.store ?? getReduxStoreInstance();
     const oldRaw = rawFieldSelector(store.getState(), props, field, { stateKey, tag });
     const results = field.write(oldRaw, newValue);
-    // Extra payload (e.g., selection state from useInputField) is appended only
-    // to the last event — it represents final cursor position, not per-event state.
+    // The extras envelope rides only the LAST event — it represents final
+    // cursor position, not per-event state.
     for (let i = 0; i < results.length; i++) {
       const { event, payload } = results[i];
-      const extra = (i === results.length - 1) ? extraPayload : undefined;
-      dispatchFieldEvent(props, field, event, { ...payload, ...extra }, { stateKey, tag });
+      const last = i === results.length - 1;
+      dispatchFieldEvent(props, field, event,
+        { ...payload, ...(last && extras ? { extras } : {}) }, { stateKey, tag });
     }
   } else {
     // Default: single event with { [fieldName]: newValue }
-    dispatchFieldEvent(props, field, field.event!, { [field.name]: newValue, ...extraPayload }, { stateKey, tag });
+    dispatchFieldEvent(props, field, field.event!,
+      { [field.name]: newValue, ...(extras ? { extras } : {}) }, { stateKey, tag });
   }
 }
 

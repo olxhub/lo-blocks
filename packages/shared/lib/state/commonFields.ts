@@ -51,6 +51,15 @@ export const commonFields = {
 
   /** Popout expanded state - tracks whether a block's popout overlay is open */
   popoutExpanded: stateField('popoutExpanded'),
+
+  /** Input cursor position, { field, start, end } — written by useInputField
+   *  as an `extras` envelope entry riding the value event (never dispatched
+   *  standalone, so its auto-derived UPDATE_SELECTION event goes unused).
+   *  The bucket holds one selection; `field` names the input that owns it, so
+   *  co-bucketed inputs ignore each other's cursor on restore. Declared here
+   *  because the binding is generic: any block wired through useInputField
+   *  gets cursor tracking without declaring the field itself. */
+  selection: stateField('selection'),
 } as const;
 
 // Named exports for convenient destructuring
