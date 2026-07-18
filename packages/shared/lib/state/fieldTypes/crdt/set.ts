@@ -20,7 +20,7 @@ import { assertValidField } from '../../fields';
 import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
 // Re-export constructor from cycle-safe module
-export { setField } from './setConstructor';
+export { orSetField } from './setConstructor';
 
 const EMPTY_SET: Set<string> = new Set();
 

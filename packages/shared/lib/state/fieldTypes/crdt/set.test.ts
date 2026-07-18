@@ -1,11 +1,11 @@
 // @vitest-environment node
 // packages/shared/lib/state/fieldTypes/crdt/set.test.ts
-import { setField } from './set';
+import { orSetField } from './set';
 
-describe('setField', () => {
+describe('orSetField', () => {
   describe('constructor', () => {
     it('creates a FieldInfo with SET_ADD and SET_REMOVE events', () => {
-      const field = setField('visited');
+      const field = orSetField('visited');
       expect(field.type).toBe('field');
       expect(field.name).toBe('visited');
       expect(field.events).toEqual(['SET_ADD', 'SET_REMOVE']);
@@ -14,18 +14,18 @@ describe('setField', () => {
     });
 
     it('sets kind to set', () => {
-      const field = setField('visited');
+      const field = orSetField('visited');
       expect(field.kind).toBe('set');
     });
 
     it('accepts scope override', () => {
-      const field = setField('tags', { scope: 'componentSetting' as any });
+      const field = orSetField('tags', { scope: 'componentSetting' as any });
       expect(field.scope).toBe('componentSetting');
     });
   });
 
   describe('read (SetDoc → Set<string>)', () => {
-    const field = setField('tags');
+    const field = orSetField('tags');
 
     it('returns empty set for null/undefined', () => {
       expect(field.read!(null)).toEqual(new Set());
@@ -55,7 +55,7 @@ describe('setField', () => {
   });
 
   describe('write (diff → events)', () => {
-    const field = setField('tags');
+    const field = orSetField('tags');
 
     it('produces SET_ADD events for new elements', () => {
       const oldDoc = { 'SVD': { ts: 100, actor: 'a' } };
@@ -115,7 +115,7 @@ describe('setField', () => {
   });
 
   describe('reduce', () => {
-    const field = setField('tags');
+    const field = orSetField('tags');
 
     it('adds an element', () => {
       const state = {};
@@ -193,7 +193,7 @@ describe('setField', () => {
   });
 
   describe('display', () => {
-    const field = setField('tags');
+    const field = orSetField('tags');
 
     it('displays empty set as empty string', () => {
       expect(field.display!(null)).toBe('');
@@ -221,7 +221,7 @@ describe('setField', () => {
   });
 
   describe('round-trip: write → reduce → read', () => {
-    const field = setField('visited');
+    const field = orSetField('visited');
 
     it('add-only round trip', () => {
       let state: any = {};

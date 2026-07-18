@@ -35,7 +35,7 @@ import * as parsers from '@/lib/content/parsers';
 
 export const fields = state.fields([
   state.idField('memberIds'),
-  state.setField('members'),
+  state.orSetField('members'),
   'arrangement',
   'activeMember',
   'copied',

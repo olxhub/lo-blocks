@@ -30,12 +30,14 @@ async function copyFieldAction({ props }) {
     fallback: '',
   });
 
-  // Write to each output — field.write handles storage-specific dispatch
-  // (e.g., docField computes splice deltas, plain field sets value directly)
+  // Write each output's OBSERVABLE field (setField): a destination with a
+  // blueprint setter (CharacterBuilder's derived YAML value) fans the copy
+  // out to its backing fields; plain fields take the storage write. The copy
+  // reads the observable value and writes the observable field — symmetric.
   for (const dest of output) {
     const destStateKey = stateKeyForGlobalRef(dest.ref, props.runtime.ns);
     const destField = state.componentFieldByStateKey(props, destStateKey, dest.field);
-    state.updateField(props, destField, value, { stateKey: destStateKey });
+    state.setField(props, destField, value, { stateKey: destStateKey });
   }
 }
 

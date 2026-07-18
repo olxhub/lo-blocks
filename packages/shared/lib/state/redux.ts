@@ -32,8 +32,14 @@
 // (useFieldSelector's docstring has the mechanics; do not "simplify" it to
 // wrap fieldSelector).
 //
-// Writes flow through one path: updateField (useFieldState's setter,
-// useInputField's onChange) → field.write → dispatchFieldEvent.
+// WRITES mirror the reads, level chosen by function name:
+//   setField    — OBSERVABLE write: blueprint setter ?? updateField. The
+//                 block-facing write for OTHER blocks' fields (actions, DSL).
+//   updateField — storage write: field.write/encoder → dispatchFieldEvent.
+//                 Correct for a block writing its own declared backing fields
+//                 and for bindings/storage code.
+// Both fail fast on purely-derived fields (getter, no same-name stored field,
+// no setter): a raw write there lands in a masked key no read can observe.
 
 'use client';
 
@@ -46,7 +52,7 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGloba
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, FieldSelector, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
+import { FieldInfo, FieldSelector, FieldSetterFn, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
 import { asObservableValue } from '../types/fieldValues';
 import type { RawFieldValue, ObservableValue } from '../types/fieldValues';
 import { assertValidField } from './fields';
@@ -183,27 +189,52 @@ function resolveGetter(state: any, props: any, stateKey: StateKey | undefined, f
   return { decl, targetProps: props as RuntimeProps, stateKey: scopedStateKeyForBlock(props) };
 }
 
+/** A resolved setter: the declaration plus the target props/key. */
+type ResolvedSetter = { decl: FieldSetterFn; targetProps: RuntimeProps; stateKey: StateKey };
+
+/** resolveGetter's write twin: the blueprint setter for a field, own or cross. */
+function resolveSetter(state: any, props: any, stateKey: StateKey | undefined, fieldName: string): ResolvedSetter | null {
+  if (stateKey) {
+    const target = targetBlueprint(state, props, stateKey);
+    const decl = target?.loBlock.setters?.[fieldName];
+    if (!decl) return null;
+    return { decl, targetProps: propsForNode(props, stateKey, target!.node, target!.loBlock) as RuntimeProps, stateKey };
+  }
+  const decl = props?.loBlock?.setters?.[fieldName];
+  if (!decl) return null;
+  return { decl, targetProps: props as RuntimeProps, stateKey: scopedStateKeyForBlock(props) };
+}
+
 /**
- * Resolve the blueprint getter for a field on the block a StateKey addresses,
- * plus the target props/key to call it with. Null when the target block is
- * unknown (content loading) or declares no getter for the field.
+ * Resolve the content node + blueprint a StateKey addresses. Null when the
+ * key is outside the content grammar (app-level buffers, test fixtures —
+ * no blueprint, plain stored access) or the content isn't loaded.
  */
-function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string): ResolvedGetter | null {
+function targetBlueprint(state: any, props: any, stateKey: StateKey): { node: OlxJson; loBlock: LoBlock } | null {
   const runtime = props?.runtime;
   if (!runtime) return null;
   let defKey: DefinitionKey;
   try {
     defKey = leafDefinitionKeyFromStateKey(stateKey);
   } catch {
-    // Keys outside the content grammar (app-level buffers, test fixtures)
-    // have no blueprint — plain stored reads.
     return null;
   }
   const node = selectBlock(state, runtime.olxJsonSources ?? ['content'], defKey, runtime.locale?.code);
   const loBlock = node ? runtime.blockRegistry[node.tag] : undefined;
-  const decl = loBlock?.selectors?.[fieldName];
-  if (!decl || !node) return null;
-  return { decl, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps, stateKey };
+  if (!node || !loBlock) return null;
+  return { node, loBlock };
+}
+
+/**
+ * Resolve the blueprint getter for a field on the block a StateKey addresses,
+ * plus the target props/key to call it with. Null when the target block is
+ * unknown (content loading) or declares no getter for the field.
+ */
+function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string): ResolvedGetter | null {
+  const target = targetBlueprint(state, props, stateKey);
+  const decl = target?.loBlock.selectors?.[fieldName];
+  if (!decl) return null;
+  return { decl, targetProps: propsForNode(props, stateKey, target!.node, target!.loBlock) as RuntimeProps, stateKey };
 }
 
 // Getter evaluations in flight, keyed `${stateKey}|${fieldName}`. A getter that
@@ -242,6 +273,43 @@ function evalGetter(
     const value = selectorReturnsBlockData(decl) ? (raw as any)?.value : raw;
     return value === undefined ? fallback : value;
   });
+}
+
+// The setter guard mirrors the getter guard. Setter bodies write through
+// updateField, which never consults setters, so normal fan-out can't trip
+// it — re-entry means a setter called setField on its own field.
+const settersInFlight = new Set<string>();
+
+function withSetterGuard(stateKey: StateKey, fieldName: string, run: () => void): void {
+  const guardKey = `${stateKey}|${fieldName}`;
+  if (settersInFlight.has(guardKey)) {
+    throw new Error(
+      `setter for ${fieldName} on ${stateKey} re-enters itself — `
+      + 'write the backing store with updateField',
+    );
+  }
+  settersInFlight.add(guardKey);
+  try {
+    run();
+  } finally {
+    settersInFlight.delete(guardKey);
+  }
+}
+
+/**
+ * Fail fast on writes to purely-derived fields: a getter masks the name and
+ * the block declares no same-name stored field, so a raw write lands in a
+ * bucket key no read can ever observe — always a bug. Self-masked fields
+ * (declared field + getter — TextArea, every input) pass untouched.
+ */
+function assertWritableField(loBlock: LoBlock | undefined | null, fieldName: string): void {
+  if (!loBlock) return;
+  if (loBlock.selectors?.[fieldName] && !loBlock.fields?.[fieldName]) {
+    throw new Error(
+      `field '${fieldName}' on ${loBlock.name} is derived; there is nothing `
+      + `to write. Declare setters.${fieldName} or write the backing fields.`,
+    );
+  }
 }
 
 // Non-hook store conveniences — one per read level, mirroring the selectors.
@@ -468,6 +536,41 @@ export function dispatchFieldEvent(
   });
 }
 
+/**
+ * The OBSERVABLE write — setField is to updateField what fieldSelector is to
+ * decodedFieldSelector: blueprint setter ?? storage write. A block's setter
+ * (LoBlock.setters — see FieldSetterFn in types/core.ts) translates
+ * assignment into events on its backing fields; blocks without one fall
+ * through to updateField unchanged. Purely-derived fields with no setter
+ * reject the write (updateField's fail-fast guard).
+ *
+ * This is the block-facing write for OTHER blocks' fields (actions, the DSL
+ * later). updateField remains correct for a block writing its own declared
+ * backing fields and for bindings/storage code.
+ */
+export function setField(
+  props: BaselineProps | null,
+  field: FieldInfo,
+  value: any,
+  { stateKey, tag, extras }: { stateKey?: StateKey; tag?: string; extras?: Record<string, any> } = {}
+): void {
+  assertValidField(field);
+  if (field.scope === scopes.component) {
+    // Cross-target setter resolution needs state for the content lookup;
+    // own-block resolution reads props.loBlock directly.
+    const state = stateKey
+      ? (props?.runtime?.store ?? getReduxStoreInstance()).getState()
+      : null;
+    const resolved = resolveSetter(state, props, stateKey, field.name);
+    if (resolved) {
+      withSetterGuard(resolved.stateKey, field.name, () =>
+        resolved.decl(value, resolved.targetProps, resolved.stateKey));
+      return;
+    }
+  }
+  updateField(props, field, value, { stateKey, tag, extras });
+}
+
 // Accepts BaselineProps (system scope) or RuntimeProps (component/storage scope).
 // Polymorphic: branches on field.scope to access different properties.
 // TODO: Consider splitting into updateSystemField / updateComponentField for type safety.
@@ -482,6 +585,18 @@ export function updateField(
   { stateKey, tag, extras }: { stateKey?: StateKey; tag?: string; extras?: Record<string, any> } = {}
 ) {
   assertValidField(field);
+
+  // Fail fast on writes to purely-derived fields (see assertWritableField).
+  // Cross writes resolve the target blueprint when the runtime is available;
+  // null-props callers (app-level buffers) have no blueprint to check.
+  if (field.scope === scopes.component) {
+    const target = stateKey
+      ? (props?.runtime?.store
+        ? targetBlueprint(props.runtime.store.getState(), props, stateKey)?.loBlock
+        : undefined)
+      : (props as RuntimeProps | null)?.loBlock;
+    assertWritableField(target, field.name);
+  }
 
   // Schema validation runs before write — coerce/validate regardless of field type.
   if (field.schema) {

@@ -23,7 +23,10 @@ import type { FieldInfo, FieldName, FieldEvent } from '../../../types';
  *
  * For the natural Set API (has, add, del), use useSet instead of useField.
  */
-export function setField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
+// Named orSetField (the OR-set CRDT it declares), not setField: that name
+// belongs to the observable WRITE (state/redux.ts setField, the getter/
+// setter axis' verb) — a verb and a data-structure must not share it.
+export function orSetField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
   const events = opts?.events ?? ['SET_ADD' as FieldEvent, 'SET_REMOVE' as FieldEvent];
   return {
     // Caller opts pass through WHOLESALE (see classic/state.ts — allow-

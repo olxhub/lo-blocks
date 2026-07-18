@@ -24,7 +24,9 @@ async function setFieldAction({ props }) {
 
   const targetStateKey = stateKeyForGlobalRef(target, props.runtime.ns);
   const field = state.componentFieldByStateKey(props, targetStateKey, fieldName);
-  state.updateField(props, field, value, { stateKey: targetStateKey });
+  // setField: actions write the target's OBSERVABLE field — a blueprint
+  // setter (derived fields) fans out; plain fields take the storage write.
+  state.setField(props, field, value, { stateKey: targetStateKey });
 }
 
 const SetFieldAction = blocks.core({

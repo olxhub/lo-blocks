@@ -44,7 +44,7 @@ const active = LO_FIELD_STRATEGY === 'crdt' ? crdt : classic;
 export const stateField = active.stateField;
 export const plainField = active.plainField;
 export const docField = active.docField;
-export const setField = active.setField;
+export const orSetField = active.orSetField;
 export const idField = active.idField;
 
 // ---------------------------------------------------------------------------

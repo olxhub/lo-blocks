@@ -637,8 +637,8 @@ export type FieldSelectorFn = (state: unknown, props: RuntimeProps, stateKey: St
 /**
  * A blueprint field selector — the getter half of the getter/setter
  * pattern (selectValue generalized): a block's observable field may be
- * COMPUTED rather than stored. Setters, when needed, translate assignment
- * into events — they never mutate Redux directly.
+ * COMPUTED rather than stored. The write half is the separate `setters`
+ * axis (FieldSetterFn below).
  *
  * Three declaration forms:
  *
@@ -661,6 +661,13 @@ export type FieldSelectorFn = (state: unknown, props: RuntimeProps, stateKey: St
  * primitives; never freshly-built objects), exactly as loudly as the
  * purity rules. `compute` sees only the dep values, so it cannot re-enter
  * the store.
+ *
+ * Self-masking: a getter masks only its own backing field of the SAME name.
+ * Per-sub-scope internal fields (per-card, per-member idPrefix scopes) must
+ * NOT share a name with a block-level getter — idPrefix scoping shares the
+ * blueprint, so the getter would mask the scoped field in every sub-scope
+ * (CharacterBuilder's per-card field is `text`, not `value`, for exactly
+ * this reason).
  */
 export type FieldSelector =
   | FieldSelectorFn
@@ -669,6 +676,27 @@ export type FieldSelector =
       deps: (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown[];
       compute: (...deps: any[]) => unknown;
     };
+
+/**
+ * A blueprint field setter — the write half of the getter/setter axis
+ * (`setters`, parallel to `selectors`). A getter maps state → value; a
+ * setter maps value → dispatches. setField (lib/state/redux.ts) routes
+ * observable writes through it: setter ?? updateField.
+ *
+ * Contract (as binding as the getter purity rules, cross-referenced above):
+ * - Synchronous; never async, never React.
+ * - Translates assignment into EVENTS: writes only via updateField (or
+ *   actions that reduce to it), and only the setter's own block's fields —
+ *   the self-masking rule, symmetric with getters.
+ * - May read current state through non-hook reads (getField /
+ *   getDecodedField) when the translation needs it.
+ * - Never mutates Redux directly.
+ *
+ * `props` are the TARGET block's props (same convention as FieldSelectorFn).
+ * A setters key with neither a same-name getter nor a declared stored field
+ * is legal (a write-only virtual field).
+ */
+export type FieldSetterFn = (value: any, props: RuntimeProps, stateKey: StateKey) => void;
 
 /** Everything the grading pipeline needs from a leaf grader blueprint
  *  outside its dispatching action. Set by the grader() mixin. */
@@ -714,6 +742,13 @@ export const BlockBlueprintSchema = z.object({
    * declare the grading quartet here; inputs declare `value`.
    */
   selectors: z.custom<Record<string, FieldSelector>>().optional(),
+  /**
+   * Field setters, by name (see FieldSetterFn) — the write half of the
+   * getter/setter axis. setField consults these before falling through to
+   * updateField; a purely-derived field (getter, no same-name stored field)
+   * with no setter rejects writes entirely.
+   */
+  setters: z.custom<Record<string, FieldSetterFn>>().optional(),
   /**
    * Grading descriptor (set by the grader() mixin) — everything the grading
    * pipeline needs outside the dispatching action: `fn` (the raw grade
@@ -977,6 +1012,8 @@ export interface LoBlock {
   isGrader: boolean;
   /** Computed fields by name — see BlockBlueprintSchema.selectors. */
   selectors?: Record<string, FieldSelector>;
+  /** Field setters by name — see BlockBlueprintSchema.setters. */
+  setters?: Record<string, FieldSetterFn>;
   /** Grading descriptor (grader() mixin) — see BlockBlueprintSchema.grading. */
   grading?: GradingDescriptor;
   /** Input commits on change (radio/dropdown) — immediate mode may show incorrect instantly. */
