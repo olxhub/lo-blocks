@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { decodedFieldSelector } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields(['expanded']);
@@ -17,7 +17,7 @@ const Collapsible = dev({
   selectors: {
     value: {
       select: (state, props, _stateKey) => {
-        const expanded = decodedFieldSelector(state, props, fields.expanded, { fallback: false });
+        const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
         return { expanded };
       },
       // Fresh object per evaluation — subscribers gate on content.

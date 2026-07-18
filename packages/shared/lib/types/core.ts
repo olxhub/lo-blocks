@@ -663,11 +663,14 @@ export type FieldSelectorFn = (state: unknown, props: RuntimeProps, stateKey: St
  * the store.
  *
  * Self-masking: a getter masks only its own backing field of the SAME name.
- * Per-sub-scope internal fields (per-card, per-member idPrefix scopes) must
- * NOT share a name with a block-level getter — idPrefix scoping shares the
- * blueprint, so the getter would mask the scoped field in every sub-scope
- * (CharacterBuilder's per-card field is `text`, not `value`, for exactly
- * this reason).
+ * Inside a getter body, the SELF-read (that backing field) uses level 2
+ * (decodedFieldSelector); reads of any OTHER field compose at level 3
+ * (fieldSelector/selectFields) — through that field's getter if one exists.
+ * Genuine cycles throw via the re-entrancy guard. Per-sub-scope internal
+ * fields (per-card, per-member idPrefix scopes) must NOT share a name with
+ * a block-level getter — idPrefix scoping shares the blueprint, so the
+ * getter would mask the scoped field in every sub-scope (CharacterBuilder's
+ * per-card field is `text`, not `value`, for exactly this reason).
  */
 export type FieldSelector =
   | FieldSelectorFn

@@ -19,7 +19,7 @@
 import { z } from 'zod';
 import { dev, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
 import type { MatchingArrangement } from './types';
@@ -60,7 +60,7 @@ const MatchingInput = dev({
   selectors: {
     value: {
       select: (reduxState, props: RuntimeProps, _stateKey) => ({
-        arrangement: decodedFieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
+        arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
       }),
       // Fresh object per evaluation — subscribers gate on content.
       equality: shallowEqual,

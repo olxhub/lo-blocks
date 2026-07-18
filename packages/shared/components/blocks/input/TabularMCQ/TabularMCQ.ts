@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector, commonFields } from '@/lib/state';
+import { fieldSelector, decodedFieldSelector, commonFields } from '@/lib/state';
 import { yamlParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 
@@ -286,7 +286,9 @@ const TabularMCQ = core({
 
     // Calculate total score based on selections and column values
     getScore: (props, reduxState) => {
-      const value = decodedFieldSelector(reduxState, props, fields.value, { fallback: {} });
+      // Level 3: block logic consumes the observable value — composes
+      // through selectors.value (whose own self-read stays level 2).
+      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
       const cols = props.kids.parsed.cols;
       let total = 0;
       Object.values(value).forEach(colIdx => {

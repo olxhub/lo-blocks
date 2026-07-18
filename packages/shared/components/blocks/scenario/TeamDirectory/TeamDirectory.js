@@ -2,7 +2,7 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import { childParser } from '@/lib/content/parsers';
 import { cast } from '@/lib/blocks/attributeSchemas';
 import { z } from 'zod';
@@ -51,8 +51,8 @@ const TeamDirectory = dev({
   selectors: {
     value: {
       select: (state, props, _stateKey) => {
-        const selectedMember = decodedFieldSelector(state, props, fields.selectedMember, { fallback: null });
-        const viewMode = decodedFieldSelector(state, props, fields.viewMode, { fallback: 'grid' });
+        const selectedMember = fieldSelector(state, props, fields.selectedMember, { fallback: null });
+        const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'grid' });
         return { selectedMember, viewMode };
       },
       // Fresh object per evaluation — subscribers gate on content.

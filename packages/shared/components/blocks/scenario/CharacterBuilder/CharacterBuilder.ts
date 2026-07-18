@@ -46,7 +46,7 @@
 import yaml from 'js-yaml';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector, docField } from '@/lib/state';
+import { fieldSelector, selectFields, docField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import {
   DIMENSIONS, DIMENSIONS_BY_KEY, DIMENSION_CATEGORIES,
@@ -181,13 +181,15 @@ function readCardData(
 ): CardData {
   const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(cardId)]);
   const scoped = { ...props, idPrefix };
+  // Cross-field reads compose at level 3 (selectFields = plural
+  // fieldSelector). The `text` field feeds the composite's `value` slot.
+  const r = selectFields(reduxState, scoped, [
+    fields.cardType, fields.dimensionKey, fields.text,
+    fields.customPrompt, fields.statPreset, fields.statValues,
+  ], { fallback: '' });
   return {
-    cardType:     decodedFieldSelector(reduxState, scoped, fields.cardType,     { fallback: '' }),
-    dimensionKey: decodedFieldSelector(reduxState, scoped, fields.dimensionKey, { fallback: '' }),
-    value:        decodedFieldSelector(reduxState, scoped, fields.text,         { fallback: '' }),
-    customPrompt: decodedFieldSelector(reduxState, scoped, fields.customPrompt, { fallback: '' }),
-    statPreset:   decodedFieldSelector(reduxState, scoped, fields.statPreset,   { fallback: '' }),
-    statValues:   decodedFieldSelector(reduxState, scoped, fields.statValues,   { fallback: '' }),
+    cardType: r.cardType, dimensionKey: r.dimensionKey, value: r.text,
+    customPrompt: r.customPrompt, statPreset: r.statPreset, statValues: r.statValues,
   };
 }
 
@@ -196,20 +198,22 @@ function readCardData(
 export function readCharacterState(
   reduxState: any, props: RuntimeProps, aeFields: Record<string, any>,
 ): CharacterState {
-  const characterName = decodedFieldSelector(reduxState, props, fields.characterName, { fallback: '' });
-  const arrangement: string[] = decodedFieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
+  // Cross-field reads compose at level 3; arrangement reads individually
+  // (distinct fallback).
+  const { characterName, avatarMode, avatarSrc, avatarEmoji } = selectFields(
+    reduxState, props,
+    [fields.characterName, fields.avatarMode, fields.avatarSrc, fields.avatarEmoji],
+    { fallback: '' },
+  );
+  const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
 
   // Avatar data from scoped Open Peeps fields
-  const avatarMode = decodedFieldSelector(reduxState, props, fields.avatarMode, { fallback: '' });
-  const avatarSrc = decodedFieldSelector(reduxState, props, fields.avatarSrc, { fallback: '' });
-  const avatarEmoji = decodedFieldSelector(reduxState, props, fields.avatarEmoji, { fallback: '' });
   const { idPrefix: peepsPrefix } = extendIdPrefix(props, [props.id, scopeMarker('peeps')]);
   const peepsScoped = { ...props, idPrefix: peepsPrefix };
-  const seed = decodedFieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
-  const openPeeps: Record<string, string> = {};
-  for (const k of OPEN_PEEPS_KEYS) {
-    openPeeps[k] = decodedFieldSelector(reduxState, peepsScoped, (aeFields as any)[k], { fallback: '' });
-  }
+  const seed = fieldSelector(reduxState, peepsScoped, aeFields.seed, { fallback: '' });
+  const openPeeps: Record<string, string> = selectFields(
+    reduxState, peepsScoped, OPEN_PEEPS_KEYS.map(k => (aeFields as any)[k]), { fallback: '' },
+  );
 
   const cards = arrangement.map(cardId => readCardData(reduxState, props, cardId));
 
@@ -349,7 +353,7 @@ function writeCharacterState(parsed: CharacterState, props: RuntimeProps): void 
     state.updateField(peepsScoped, (avatarEditorFields as any)[k], parsed.avatar.openPeeps[k] ?? '');
   }
 
-  const existing: string[] = state.getDecodedField(props, fields.arrangement, { fallback: [] });
+  const existing: string[] = state.getField(props, fields.arrangement, { fallback: [] });
   const arrangement = parsed.cards.map((_, i) => existing[i] ?? `card_yaml_${i + 1}`);
   for (let i = 0; i < parsed.cards.length; i++) {
     const card = parsed.cards[i];

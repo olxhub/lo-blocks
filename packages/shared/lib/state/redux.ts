@@ -16,11 +16,14 @@
 // the blueprint getter. fieldSelector is identical for own-block and
 // cross-block reads (no stateKey-presence routing).
 //
-// LAYERING RULE: level 3 is the only read block-facing code uses — components,
-// the state language, orchestrators, actions. Levels 1–2 are storage-layer
-// tools: selector implementations reading their own backing field, write-path
-// diffing (updateField's oldRaw), persistence/sync, and the DOM↔storage
-// editing binding (lib/state/bindings/useInputField).
+// LAYERING RULE: level 3 is the read for everything block-facing — components,
+// the state language, orchestrators, actions, block logic (advance/locals),
+// and CROSS-FIELD reads inside getter bodies (they compose through the other
+// field's getter; genuine cycles throw via the re-entrancy guard). Levels 1–2
+// should be RARE: getter self-reads (a getter reading its own backing field),
+// write-path diffing (updateField's oldRaw), persistence/sync/encode
+// internals, useInputField's binding read, and grading's stored-leaf
+// internals (readStoredGradingState/readGradingField).
 //
 // Value brands enforce the levels at compile time: level 1 returns
 // RawFieldValue<T>, level 3 returns ObservableValue<T>, level 2 the plain
@@ -158,8 +161,9 @@ export const fieldSelector = <T>(
   // (selectValue generalized): a block's observable field may be COMPUTED
   // (fallbacks, grading's mode dispatch, coercion, purely-derived
   // Navigator/metagrader fields). A getter masks only its own backing field,
-  // so its body must reach the store through level 1/2 — reading back through
-  // level 3 on its own field recurses (the guard in evalGetter throws).
+  // so a getter body reads ITS OWN backing field through level 1/2 (a level-3
+  // self-read recurses; the guard in evalGetter throws) — but reads of OTHER
+  // fields go through fieldSelector, composing through their getters if any.
   // Getter authors return plain values; the exits below are the stamp points
   // where results become ObservableValue (types/fieldValues.ts doctrine).
   if (field.scope === scopes.component) {
@@ -170,6 +174,23 @@ export const fieldSelector = <T>(
   }
   return asObservableValue(decodedFieldSelector(state, props, field, options));
 };
+
+/**
+ * Multi-field level-3 read: each field's observable value, keyed by
+ * field.name. The plural spelling of fieldSelector for getter bodies and
+ * block logic that read several sibling fields at once. One shared
+ * fallback — fields needing distinct fallbacks read individually.
+ */
+export function selectFields(
+  state: any,
+  props: any,
+  fieldList: FieldInfo[],
+  options: { fallback?: any; stateKey?: StateKey; tag?: string } = {},
+): Record<string, ObservableValue<any>> {
+  return Object.fromEntries(
+    fieldList.map((f) => [f.name, fieldSelector(state, props, f, options)]),
+  );
+}
 
 /** A resolved getter: the raw DECLARATION (any of the three FieldSelector
  *  forms — never a pre-bound closure, so callers can split the pipelined

@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { shallowEqual } from 'react-redux';
@@ -26,9 +26,9 @@ const Navigator = dev({
   selectors: {
     value: {
       select: (state, props, _stateKey) => {
-        const selectedItem = decodedFieldSelector(state, props, fields.selectedItem, { fallback: null });
-        const searchQuery = decodedFieldSelector(state, props, fields.searchQuery, { fallback: '' });
-        const viewMode = decodedFieldSelector(state, props, fields.viewMode, { fallback: 'default' });
+        const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
+        const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
+        const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
         return { selectedItem, searchQuery, viewMode };
       },
       // Fresh object per evaluation — subscribers gate on content.

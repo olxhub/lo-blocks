@@ -5,7 +5,7 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { decodedFieldSelector, docField } from '@/lib/state';
+import { selectFields, docField } from '@/lib/state';
 import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import {
   isValidCastIdInput, isValidGroupInput, isValidHexInput, isCompleteHex,
@@ -81,25 +81,24 @@ const AvatarEditor = dev({
 
   selectors: {
     value: (reduxState: any, props: any, _stateKey: any) => {
-    const characterId = decodedFieldSelector(reduxState, props, fields.characterId, { fallback: '' });
-    const name = decodedFieldSelector(reduxState, props, fields.name, { fallback: '' });
-    const seed = decodedFieldSelector(reduxState, props, fields.seed, { fallback: '' });
-    const face = decodedFieldSelector(reduxState, props, fields.face, { fallback: '' });
-    const head = decodedFieldSelector(reduxState, props, fields.head, { fallback: '' });
-    const accessories = decodedFieldSelector(reduxState, props, fields.accessories, { fallback: '' });
-    const facialHair = decodedFieldSelector(reduxState, props, fields.facialHair, { fallback: '' });
-    const mask = decodedFieldSelector(reduxState, props, fields.mask, { fallback: '' });
-    const skinColor = decodedFieldSelector(reduxState, props, fields.skinColor, { fallback: '' });
-    const clothingColor = decodedFieldSelector(reduxState, props, fields.clothingColor, { fallback: '' });
-    const headContrastColor = decodedFieldSelector(reduxState, props, fields.headContrastColor, { fallback: '' });
-    const role = decodedFieldSelector(reduxState, props, fields.role, { fallback: '' });
-    const bio = decodedFieldSelector(reduxState, props, fields.bio, { fallback: '' });
-    const groups = decodedFieldSelector(reduxState, props, fields.groups, { fallback: '' });
-    return buildYaml(
-      characterId, name, seed,
-      { face, head, accessories, facialHair, mask, skinColor, clothingColor, headContrastColor },
-      { role, bio, groups },
-    );
+      // Cross-field reads compose at level 3 (selectFields = plural
+      // fieldSelector); no field here is the getter's own backing store.
+      const {
+        characterId, name, seed,
+        face, head, accessories, facialHair, mask,
+        skinColor, clothingColor, headContrastColor,
+        role, bio, groups,
+      } = selectFields(reduxState, props, [
+        fields.characterId, fields.name, fields.seed,
+        fields.face, fields.head, fields.accessories, fields.facialHair, fields.mask,
+        fields.skinColor, fields.clothingColor, fields.headContrastColor,
+        fields.role, fields.bio, fields.groups,
+      ], { fallback: '' });
+      return buildYaml(
+        characterId, name, seed,
+        { face, head, accessories, facialHair, mask, skinColor, clothingColor, headContrastColor },
+        { role, bio, groups },
+      );
     },
   },
 });
