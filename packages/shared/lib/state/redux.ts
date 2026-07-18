@@ -37,8 +37,8 @@
 
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { useSelector, useStore, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
@@ -46,7 +46,7 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGloba
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
-import { FieldInfo, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
+import { FieldInfo, FieldSelector, DefinitionRef, DefinitionKey, StateRef, StateKey, RuntimeProps, BaselineProps, OlxJson, LoBlock, BlockDataResult, BlockDataStatus, CurrentUser } from '../types';
 import { asObservableValue } from '../types/fieldValues';
 import type { RawFieldValue, ObservableValue } from '../types/fieldValues';
 import { assertValidField } from './fields';
@@ -171,17 +171,22 @@ export const fieldSelector = <T>(
   return asObservableValue(decodedFieldSelector(state, props, field, options));
 };
 
+/** A resolved getter: the raw DECLARATION (any of the three FieldSelector
+ *  forms — never a pre-bound closure, so callers can split the pipelined
+ *  form around a gate) plus the target props/key to evaluate it with. */
+type ResolvedGetter = { decl: FieldSelector; targetProps: RuntimeProps; stateKey: StateKey };
+
 /**
  * Resolve the blueprint getter for a field plus the props/key to call it with.
  * Cross reads (an explicit stateKey) resolve against the addressed block's
  * content node; own reads resolve straight off props.loBlock — cheaper, no
  * content lookup. Null when there is no getter (a plain stored field).
  */
-function resolveGetter(state: any, props: any, stateKey: StateKey | undefined, fieldName: string) {
+function resolveGetter(state: any, props: any, stateKey: StateKey | undefined, fieldName: string): ResolvedGetter | null {
   if (stateKey) return blueprintSelectorFor(state, props, stateKey, fieldName);
-  const select = props?.loBlock?.selectors?.[fieldName];
-  if (!select) return null;
-  return { select, targetProps: props as RuntimeProps, stateKey: scopedStateKeyForBlock(props) };
+  const decl = props?.loBlock?.selectors?.[fieldName];
+  if (!decl) return null;
+  return { decl, targetProps: props as RuntimeProps, stateKey: scopedStateKeyForBlock(props) };
 }
 
 /**
@@ -189,7 +194,7 @@ function resolveGetter(state: any, props: any, stateKey: StateKey | undefined, f
  * plus the target props/key to call it with. Null when the target block is
  * unknown (content loading) or declares no getter for the field.
  */
-function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string) {
+function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string): ResolvedGetter | null {
   const runtime = props?.runtime;
   if (!runtime) return null;
   let defKey: DefinitionKey;
@@ -202,23 +207,19 @@ function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldN
   }
   const node = selectBlock(state, runtime.olxJsonSources ?? ['content'], defKey, runtime.locale?.code);
   const loBlock = node ? runtime.blockRegistry[node.tag] : undefined;
-  const select = loBlock?.selectors?.[fieldName];
-  if (!select || !node) return null;
-  return { select, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps, stateKey };
+  const decl = loBlock?.selectors?.[fieldName];
+  if (!decl || !node) return null;
+  return { decl, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps, stateKey };
 }
 
 // Getter evaluations in flight, keyed `${stateKey}|${fieldName}`. A getter that
 // reads its own field back through level-3 fieldSelector recurses forever; we
 // throw instead. Always on (cheap) — the fix is to read the backing store.
+// The guard wraps ALL declaration forms (a pipelined getter's deps take state
+// and could re-enter just as a bare fn can; compute sees only dep values).
 const gettersInFlight = new Set<string>();
 
-function evalGetter(
-  state: any,
-  resolved: { select: any; targetProps: RuntimeProps; stateKey: StateKey },
-  fieldName: string,
-  fallback: any,
-) {
-  const { select, targetProps, stateKey } = resolved;
+function withGetterGuard<R>(stateKey: StateKey, fieldName: string, run: () => R): R {
   const guardKey = `${stateKey}|${fieldName}`;
   if (gettersInFlight.has(guardKey)) {
     throw new Error(
@@ -228,13 +229,25 @@ function evalGetter(
   }
   gettersInFlight.add(guardKey);
   try {
-    const raw = select(state, targetProps, stateKey);
-    // withStatus selectors return BlockDataResult — unwrap to the value.
-    const value = (select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
-    return value === undefined ? fallback : value;
+    return run();
   } finally {
     gettersInFlight.delete(guardKey);
   }
+}
+
+function evalGetter(
+  state: any,
+  resolved: ResolvedGetter,
+  fieldName: string,
+  fallback: any,
+) {
+  const { decl, targetProps, stateKey } = resolved;
+  return withGetterGuard(stateKey, fieldName, () => {
+    const raw = evaluateFieldSelector(decl, state, targetProps, stateKey);
+    // withStatus selectors return BlockDataResult — unwrap to the value.
+    const value = selectorReturnsBlockData(decl) ? (raw as any)?.value : raw;
+    return value === undefined ? fallback : value;
+  });
 }
 
 // Non-hook store conveniences — one per read level, mirroring the selectors.
@@ -331,25 +344,35 @@ export const useFieldSelector = <T>(
   options: SelectorOptions<T> = {}
 ): ObservableValue<T> => {
   // The hook implements level 3: getter-backed fields subscribe the getter
-  // result (own and cross alike — same semantics as fieldSelector); stored
-  // fields subscribe level 1 (raw) for the equality gate and decode AFTER it.
+  // (own and cross alike — same semantics as fieldSelector); stored fields
+  // subscribe level 1 (raw) for the equality gate and decode AFTER it.
   // decode() may mint a new object each call (a Set from an OR-Set CRDT); the
   // raw value is reference-stable between dispatches, so gating on it is what
   // keeps re-renders — and input cursors — stable. Do NOT "simplify" this to
   // wrap fieldSelector, which decodes before returning and would defeat the
   // gate.
   //
-  // field.equality compares the field's RAW value. On getter-backed fields the
-  // gate compares getter RESULTS: fine for the scalar getters every current
-  // consumer reads; object-returning getters churn until step 4's declared
-  // getter equality lands.
-  const equality = field.equality ?? options.equalityFn;
-  // Own-read getter presence is state-independent (props.loBlock), so whether
-  // the subscription below returns a getter result or raw storage is knowable
-  // here — it drives the decode decision after the gate.
-  const ownGetter = !options.stateKey
-    && field.scope === scopes.component && !!props?.loBlock?.selectors?.[field.name];
-  const raw = useSelector(
+  // The getter DECLARATION (and hence its form) is static per blueprint; only
+  // content-load timing is state-dependent, so it is resolved here at render.
+  // The subscription re-resolves per dispatch; content only ever gets ADDED,
+  // so a render always sees the same-or-older state than its subscription —
+  // a load transition changes the subscribed value, re-renders, and this
+  // resolution self-heals on the next render.
+  const store = useStore();
+  const renderDecl: FieldSelector | null = field.scope === scopes.component
+    ? (resolveGetter(store.getState(), props, options.stateKey, field.name)?.decl ?? null)
+    : null;
+  const pipelined = !!renderDecl && typeof renderDecl === 'object' && 'deps' in renderDecl;
+  const declaredEquality = renderDecl && typeof renderDecl === 'object' && !('deps' in renderDecl)
+    ? renderDecl.equality : undefined;
+  // Read pipeline law: subscribe cheap → gate on equality → interpret after.
+  // Pipelined getters gate on their deps ARRAY (shallow-compared);
+  // { select, equality } gates on the declared RESULT equality; bare fns and
+  // stored reads gate on field.equality ?? the caller's override.
+  const equality = pipelined
+    ? shallowEqual
+    : (declaredEquality ?? field.equality ?? options.equalityFn);
+  const gated = useSelector(
     (state) => {
       // Blueprint getters are honored for own AND cross reads — the hook must
       // agree with fieldSelector (one meaning per level). Getterless fields
@@ -357,18 +380,38 @@ export const useFieldSelector = <T>(
       // representation; decode runs after, below.
       if (field.scope === scopes.component) {
         const resolved = resolveGetter(state, props, options.stateKey, field.name);
-        if (resolved) return evalGetter(state, resolved, field.name, options.fallback);
+        if (resolved) {
+          const { decl } = resolved;
+          if (typeof decl === 'object' && 'deps' in decl) {
+            // Pipelined form: subscribe the deps array only. deps take state,
+            // so the re-entrancy guard wraps them like any getter body.
+            return withGetterGuard(resolved.stateKey, field.name, () =>
+              decl.deps(state, resolved.targetProps, resolved.stateKey));
+          }
+          return evalGetter(state, resolved, field.name, options.fallback);
+        }
       }
       return rawFieldSelector(state, props, field, options);
     },
     equality
   );
-  // Apply field.read only to raw storage reads. Own getter results are already
-  // final — never re-decoded. (Cross getter results pass through field.read as
-  // they always have; presence depends on content loading, and current read
-  // transforms are idempotent on decoded values.) This post-gate return is the
+  // Interpret after the gate. Pipelined getters compute from the gated deps —
+  // useSelector returns the PREVIOUS array while the gate holds, so the memo
+  // re-runs compute only when deps really changed. Getter results are final
+  // (never re-decoded); stored reads decode via field.read. This return is the
   // hook's single ObservableValue stamp point (types/fieldValues.ts doctrine).
-  const value = (!ownGetter && field.read) ? field.read(raw) : raw;
+  const fallback = options.fallback;
+  const value = useMemo(() => {
+    if (pipelined && Array.isArray(gated)) {
+      const computed = (renderDecl as { compute: (...deps: any[]) => unknown }).compute(...gated);
+      return computed === undefined ? fallback : computed;
+    }
+    if (renderDecl) return gated;
+    return field.read ? field.read(gated as RawFieldValue<any>) : gated;
+    // fallback participates only in the undefined-compute edge; a fresh-but-
+    // equal literal there is indistinguishable, so it stays out of the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gated, renderDecl, pipelined, field]);
   return asObservableValue(value) as ObservableValue<T>;
 };
 
@@ -692,7 +735,7 @@ export function propsForNode(callerProps: RuntimeProps, stateKey: StateKey, node
 // Block data helpers (re-exported from blockData.ts for shared server/client use)
 // =============================================================================
 
-import { blockData, RETURNS_BLOCK_DATA } from './blockData';
+import { blockData, evaluateFieldSelector, selectorReturnsBlockData } from './blockData';
 export { blockData, withStatus, RETURNS_BLOCK_DATA } from './blockData';
 
 // =============================================================================
@@ -742,12 +785,14 @@ export function valueSelector(
   const valueSelect = loBlock.selectors?.value;
   if (valueSelect) {
     const targetProps = propsForNode(props, stateKey, targetNode, loBlock) as RuntimeProps;
+    // All three declaration forms evaluate here (no gate to optimize).
+    const raw = evaluateFieldSelector(valueSelect, state, targetProps, stateKey);
 
-    if ((valueSelect as any)[RETURNS_BLOCK_DATA]) {
-      return valueSelect(state, targetProps, stateKey) as BlockDataResult & { value: ObservableValue<any> };
+    if (selectorReturnsBlockData(valueSelect)) {
+      return raw as BlockDataResult & { value: ObservableValue<any> };
     }
 
-    return { value: asObservableValue(valueSelect(state, targetProps, stateKey)), ...blockData('ready') };
+    return { value: asObservableValue(raw), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field

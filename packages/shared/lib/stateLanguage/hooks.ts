@@ -11,9 +11,9 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/
 import { selectBlock } from '../state/olxjson';
 // blockData is a leaf module — importing state/redux here would close the
 // module cycle attributeSchemas → stateLanguage → hooks → redux → ... .
-import { RETURNS_BLOCK_DATA } from '../state/blockData';
+import { evaluateFieldSelector, selectorReturnsBlockData } from '../state/blockData';
 import { asObservableValue } from '../types/fieldValues';
-import type { FieldInfo, StateKey } from '../types';
+import type { FieldInfo, FieldSelector, StateKey } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
 import { parse } from './parser';
@@ -99,11 +99,12 @@ function materializeComponentState(
       runtime: props.runtime,
       nodeInfo: undefined,
     };
-    for (const [name, select] of Object.entries(selectors) as [string, (s: any, p: any, k: StateKey) => unknown][]) {
-      const raw = select(state, targetProps as any, stateKey);
+    for (const [name, decl] of Object.entries(selectors) as [string, FieldSelector][]) {
+      // All three declaration forms evaluate here (no gate to optimize).
+      const raw = evaluateFieldSelector(decl, state, targetProps as any, stateKey);
       // withStatus selectors return BlockDataResult — the DSL wants the value.
       // Getter authors return plain values; the overlay stamps them final.
-      view[name] = asObservableValue((select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw);
+      view[name] = asObservableValue(selectorReturnsBlockData(decl) ? (raw as any)?.value : raw);
     }
   }
 

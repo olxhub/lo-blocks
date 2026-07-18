@@ -629,15 +629,46 @@ export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
 /** The contract for a block's action (the action()/grader() mixins). */
 export type BlockAction = (context: { props: RuntimeProps }) => unknown | Promise<unknown>;
 
+/** The evaluation half of a blueprint field selector. Pure, synchronous,
+ *  side-effect-free function of the Redux snapshot; never initiates loads;
+ *  never mutates anything. `props` are the TARGET block's props. */
+export type FieldSelectorFn = (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown;
+
 /**
  * A blueprint field selector — the getter half of the getter/setter
  * pattern (selectValue generalized): a block's observable field may be
- * COMPUTED rather than stored. Pure, synchronous, side-effect-free
- * function of the Redux snapshot; never initiates loads. `props` are the
- * TARGET block's props. Setters, when needed, translate assignment into
- * events — they never mutate Redux directly.
+ * COMPUTED rather than stored. Setters, when needed, translate assignment
+ * into events — they never mutate Redux directly.
+ *
+ * Three declaration forms:
+ *
+ *   fieldName: fn                          // simple: evaluated per dispatch
+ *   fieldName: { select: fn, equality }    // same, but subscribers gate on
+ *                                          //   the declared RESULT equality
+ *                                          //   (object-returning getters mint
+ *                                          //   fresh objects — declare
+ *                                          //   shallowEqual or subscribers
+ *                                          //   re-render per dispatch)
+ *   fieldName: { deps, compute }           // pipelined (reselect-shaped):
+ *                                          //   subscribers SUBSCRIBE deps
+ *                                          //   (shallow-compared array) and
+ *                                          //   run compute after the gate —
+ *                                          //   the deps gate IS the equality
+ *
+ * All forms obey the purity rules above (sync, pure, no loads, never
+ * mutate). For the pipelined form, `deps` runs on EVERY store dispatch —
+ * it must be CHEAP and return REFERENCE-STABLE entries (bucket reads,
+ * primitives; never freshly-built objects), exactly as loudly as the
+ * purity rules. `compute` sees only the dep values, so it cannot re-enter
+ * the store.
  */
-export type FieldSelector = (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown;
+export type FieldSelector =
+  | FieldSelectorFn
+  | { select: FieldSelectorFn; equality?: (a: unknown, b: unknown) => boolean }
+  | {
+      deps: (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown[];
+      compute: (...deps: any[]) => unknown;
+    };
 
 /** Everything the grading pipeline needs from a leaf grader blueprint
  *  outside its dispatching action. Set by the grader() mixin. */

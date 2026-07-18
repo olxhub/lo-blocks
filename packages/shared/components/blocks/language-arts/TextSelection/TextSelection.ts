@@ -6,6 +6,7 @@ import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   commonFields.value,      // Set of selected word indices
@@ -20,11 +21,15 @@ const TextSelection = test({
   ...blocks.input({
   }),
   selectors: {
-    value: (state, props, _stateKey) => {
-      const selections = decodedFieldSelector(state, props, fields.value, { fallback: [] });
-      const attempts = decodedFieldSelector(state, props, fields.attempts, { fallback: 0 });
-      const score = decodedFieldSelector(state, props, fields.score, { fallback: 0 });
-      return { selections, attempts, score };
+    value: {
+      select: (state, props, _stateKey) => {
+        const selections = decodedFieldSelector(state, props, fields.value, { fallback: [] });
+        const attempts = decodedFieldSelector(state, props, fields.attempts, { fallback: 0 });
+        const score = decodedFieldSelector(state, props, fields.score, { fallback: 0 });
+        return { selections, attempts, score };
+      },
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
     },
   },
   ...blocks.grader({

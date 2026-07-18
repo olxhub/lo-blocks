@@ -218,6 +218,45 @@ export function readCharacterState(
 }
 
 // ---------------------------------------------------------------------------
+// Pipelined value getter: flatten / rebuild pair
+// ---------------------------------------------------------------------------
+// The value getter uses the {deps, compute} FieldSelector form: deps is the
+// flat, shallow-comparable projection of every read the YAML depends on
+// (primitives only — the deps contract demands cheap, reference-stable
+// entries); compute rebuilds the structure and runs buildYaml post-gate.
+// CARD_DEP_KEYS is the order contract between the two halves.
+
+const CARD_DEP_KEYS = [
+  'cardType', 'dimensionKey', 'value', 'customPrompt', 'statPreset', 'statValues',
+] as const satisfies readonly (keyof CardData)[];
+
+/** deps half: every field read, flattened to primitives in a fixed order. */
+function characterDeps(
+  reduxState: any, props: RuntimeProps, aeFields: Record<string, any>,
+): unknown[] {
+  const { characterName, cards, avatar } = readCharacterState(reduxState, props, aeFields);
+  return [
+    characterName, avatar.mode, avatar.src, avatar.emoji, avatar.seed,
+    ...OPEN_PEEPS_KEYS.map(k => avatar.openPeeps[k]),
+    ...cards.flatMap(card => CARD_DEP_KEYS.map(k => card[k])),
+  ];
+}
+
+/** compute half: rebuild the structure characterDeps flattened, then serialize. */
+function computeCharacterYaml(...deps: unknown[]): string {
+  const [characterName, mode, src, emoji, seed, ...rest] = deps as string[];
+  const openPeeps = Object.fromEntries(OPEN_PEEPS_KEYS.map((k, i) => [k, rest[i]]));
+  const cardValues = rest.slice(OPEN_PEEPS_KEYS.length);
+  const cards: CardData[] = [];
+  for (let i = 0; i < cardValues.length; i += CARD_DEP_KEYS.length) {
+    cards.push(Object.fromEntries(
+      CARD_DEP_KEYS.map((k, j) => [k, cardValues[i + j]]),
+    ) as unknown as CardData);
+  }
+  return buildYaml(characterName, cards, { mode, src, emoji, seed, openPeeps });
+}
+
+// ---------------------------------------------------------------------------
 // Block definition
 // ---------------------------------------------------------------------------
 
@@ -233,9 +272,14 @@ const CharacterBuilder = dev({
   },
 
   selectors: {
-    value: (reduxState: any, props: RuntimeProps, _stateKey: any) => {
-      const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
-      return buildYaml(characterName, cards, avatar);
+    // Pipelined getter ({deps, compute} — see FieldSelector in types/core.ts):
+    // deps flattens every field read into a shallow-comparable primitive
+    // array, which subscribers gate on; compute rebuilds the structure and
+    // serializes only when something actually changed.
+    value: {
+      deps: (reduxState: any, props: RuntimeProps, _stateKey: any) =>
+        characterDeps(reduxState, props, avatarEditorFields),
+      compute: computeCharacterYaml,
     },
   },
 });

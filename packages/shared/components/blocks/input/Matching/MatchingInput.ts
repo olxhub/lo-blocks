@@ -23,6 +23,7 @@ import { decodedFieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
 import type { MatchingArrangement } from './types';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'arrangement',  // Current matching: left item ID → right item ID
@@ -57,9 +58,13 @@ const MatchingInput = dev({
   description: 'Match items from left column to right column',
   fields,
   selectors: {
-    value: (reduxState, props: RuntimeProps, _stateKey) => ({
-      arrangement: decodedFieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
-    }),
+    value: {
+      select: (reduxState, props: RuntimeProps, _stateKey) => ({
+        arrangement: decodedFieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
+      }),
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
   },
   attributes: z.object({
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle right side items initially (default: true)'),

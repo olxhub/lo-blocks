@@ -4,6 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields(['activeTab']);
 
@@ -13,9 +14,13 @@ const Tabs = dev({
   description: 'Tabbed interface component with multiple content panels',
   fields: fields,
   selectors: {
-    value: (state, props, _stateKey) => {
-      const activeTab = decodedFieldSelector(state, props, fields.activeTab, { fallback: 0 });
-      return { activeTab };
+    value: {
+      select: (state, props, _stateKey) => {
+        const activeTab = decodedFieldSelector(state, props, fields.activeTab, { fallback: 0 });
+        return { activeTab };
+      },
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
     },
   },
 });

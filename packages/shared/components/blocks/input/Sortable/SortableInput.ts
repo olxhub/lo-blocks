@@ -6,6 +6,7 @@ import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'arrangement',   // Current order of items (array of indices)
@@ -20,9 +21,13 @@ const SortableInput = core({
   description: 'Drag-and-drop sortable input for ordering tasks',
   fields,
   selectors: {
-    value: (state, props: RuntimeProps, _stateKey) => ({
-      arrangement: decodedFieldSelector(state, props, fields.arrangement, { fallback: [] })
-    }),
+    value: {
+      select: (state, props: RuntimeProps, _stateKey) => ({
+        arrangement: decodedFieldSelector(state, props, fields.arrangement, { fallback: [] })
+      }),
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
   },
   attributes: z.object({
     dragMode: z.enum(['whole', 'handle']).optional().describe('Drag mode: "whole" (entire item) or "handle" (handle only)'),
