@@ -84,6 +84,17 @@ export function gradeModeOf(entry: OlxJson): 'immediate' | 'submit' {
 }
 
 /**
+ * The WRITE half of the gradeMode stamp: derive a problem's grading mode
+ * from its authored `grade` attribute. Problems stamp this onto every
+ * boundary grader they generate at parse time (capaParser and
+ * MarkupProblem's generateProblemComponents share this one derivation);
+ * gradeModeOf above is the read half.
+ */
+export function problemGradeMode(attributes: Record<string, unknown>): 'immediate' | 'submit' {
+  return attributes.grade === 'immediate' ? 'immediate' : 'submit';
+}
+
+/**
  * Grading blocks (a problem's graders and their inputs) that carry when=.
  * Grader topology is static — when=-hidden blocks still count toward the
  * grade — so visibility on a grading block almost certainly doesn't do

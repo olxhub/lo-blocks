@@ -17,6 +17,7 @@ import { valueSelector } from '../state/redux';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { graderInputStateKeys } from './topology';
 import { staticEntry, staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
+import { staticTargetProps } from '../state/blockData';
 import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
@@ -52,19 +53,6 @@ export function normalizeGraderResult(raw: RawGraderResult): GradingResult {
 // code, whether or not anything is mounted.
 // ---------------------------------------------------------------------------
 
-/** Build a block's props from its static-DOM entry (no dynamic DOM). */
-export function staticProps(props: RuntimeProps, defKey: string, entry: OlxJson, loBlock: LoBlock): RuntimeProps {
-  return {
-    runtime: props.runtime,
-    nodeInfo: undefined,
-    id: defKey,
-    kids: entry.kids || [],
-    loBlock,
-    fields: loBlock.fields || {},
-    locals: loBlock.locals || {},
-    ...entry.attributes,
-  } as unknown as RuntimeProps;
-}
 
 /**
  * Resolve one input to a GraderInput: live value (from the Redux snapshot),
@@ -80,7 +68,9 @@ function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey
     throw new InputContentPending(stateKey);
   }
   const loBlock = props.runtime.blockRegistry[olxJson.tag];
-  const inputProps = staticProps(props, defKey, olxJson, loBlock);
+  // staticTargetProps: idPrefix derives from the ADDRESSED key, so the
+  // input's value getter reads the scoped instance buckets.
+  const inputProps = staticTargetProps(props.runtime, stateKey, defKey, olxJson, loBlock);
 
   // valueSelector for uniform handling of withStatus / raw selectors.value
   const { value } = valueSelector(inputProps, state, stateKey);
@@ -214,7 +204,7 @@ export function prepareGrade(
   const entry = staticEntryForStateKey(state, props, graderKey);
   if (!entry) return { ok: false, inputs: [], error: 'Grader content is not loaded' };
   const loBlock = blueprintFor(props, entry)!;
-  const graderProps = staticProps(props, leafDefinitionKeyFromStateKey(graderKey), entry, loBlock);
+  const graderProps = staticTargetProps(props.runtime, graderKey, leafDefinitionKeyFromStateKey(graderKey), entry, loBlock);
 
   let inputs: GraderInput[];
   try {

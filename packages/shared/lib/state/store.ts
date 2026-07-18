@@ -150,6 +150,30 @@ const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING,
 export const ADOPT_FIELD_STATE = 'ADOPT_FIELD_STATE';
 
 // Combined reducer handling both component state and olxjson
+// ---------------------------------------------------------------------------
+// Extras envelope whitelist
+// ---------------------------------------------------------------------------
+// The `extras` envelope on field events carries sibling FIELD values that
+// fold into the same bucket (useInputField's `selection` cursor). The fold
+// is whitelist-enforced HERE, in the reducer, so client and server folds
+// inherit the rule: a forged event on a shared route must not be able to
+// smuggle authority-bearing sibling fields (correct, score) into shared
+// state. Grows by declaration when a real second extra appears.
+const EXTRAS_FIELDS = new Set(['selection']);
+
+function foldExtras(extras: unknown): Record<string, any> {
+  if (!extras || typeof extras !== 'object') return {};
+  const folded: Record<string, any> = {};
+  for (const [key, value] of Object.entries(extras as Record<string, any>)) {
+    if (EXTRAS_FIELDS.has(key)) {
+      folded[key] = value;
+    } else if (process.env.NODE_ENV !== 'production') {
+      console.warn(`extras key '${key}' is not a declared extras field — dropped (see EXTRAS_FIELDS in store.ts)`);
+    }
+  }
+  return folded;
+}
+
 export const updateResponseReducer = (state = initialState, action) => {
   // Handle olxjson events first (they don't use scope)
   // Note: lo_event passes payload with .event, not .type
@@ -236,8 +260,7 @@ export const updateResponseReducer = (state = initialState, action) => {
     // broke cursor persistence once when dropped; spreading unprefixed keys
     // is how the old compound UPDATE_CORRECT leaked five fields through one
     // event. The explicit envelope replaces both failure modes.)
-    const extra: Record<string, any> =
-      (action.extras && typeof action.extras === 'object') ? action.extras : {};
+    const extra: Record<string, any> = foldExtras(action.extras);
 
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the plain-spread switch below.
@@ -304,8 +327,7 @@ export const updateResponseReducer = (state = initialState, action) => {
   // path's fold above (classic events don't stamp `field`, so cursor
   // extras land here).
   const { scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest } = action;
-  const extrasFold: Record<string, any> =
-    (extras && typeof extras === 'object') ? extras : {};
+  const extrasFold: Record<string, any> = foldExtras(extras);
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.

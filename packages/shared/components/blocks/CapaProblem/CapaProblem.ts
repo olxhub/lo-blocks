@@ -31,7 +31,7 @@ import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joi
 import { isPascalCase } from '@/lib/util';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
-import { gradingSelectors } from '@/lib/grading';
+import { gradingSelectors, problemGradeMode } from '@/lib/grading';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets.
@@ -174,7 +174,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
   // Stamp the problem's grading mode onto its boundary graders (parse-time
   // static-DOM fact: grading derivation must not consult the dynamic DOM,
   // and the static DOM has no parent pointers to walk).
-  const gradeMode = attributes.grade === 'immediate' ? 'immediate' : 'submit';
+  const gradeMode = problemGradeMode(attributes);
   for (const graderId of boundaryGraders) {
     storeEntry(graderId, (existing) => ({
       ...existing,

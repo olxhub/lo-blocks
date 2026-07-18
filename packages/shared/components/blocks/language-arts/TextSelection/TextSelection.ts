@@ -2,14 +2,18 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, decodedFieldSelector, commonFields } from '@/lib/state';
+import { fieldSelector } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
 import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
-  commonFields.value,      // Set of selected word indices
+  // Named `selections`, not `value`: the composite value getter below owns
+  // that name, and a stored field must not share a name with a getter that
+  // isn't a policy over exactly it (the CharacterBuilder text/value rule).
+  // `value` is therefore purely derived — the write guard rejects writes.
+  'selections',            // Array of selected word indices
   state.graderFields(),    // correct, message, score, lastSubmission, submitCount, showAnswer
   'attempts',              // Number of check attempts
   'feedback',              // Current feedback message
@@ -23,7 +27,8 @@ const TextSelection = test({
   selectors: {
     value: {
       select: (state, props, _stateKey) => {
-        const selections = decodedFieldSelector(state, props, fields.value, { fallback: [] });
+        // All cross-field reads (the getter is purely derived — no self-read).
+        const selections = fieldSelector(state, props, fields.selections, { fallback: [] });
         const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
         const score = fieldSelector(state, props, fields.score, { fallback: 0 });
         return { selections, attempts, score };

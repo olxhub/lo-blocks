@@ -6,7 +6,8 @@
 // These are plain functions (no React, no Redux) so they can be imported from
 // both client and server modules.
 
-import type { BlockDataResult, BlockDataStatus, FieldSelector } from '../types';
+import { scopePrefixOfStateKey } from '../types/id-grammar';
+import type { BlockDataResult, BlockDataStatus, FieldSelector, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 
 /**
  * Construct a BlockDataResult from a status and optional error message.
@@ -54,4 +55,28 @@ export function evaluateFieldSelector(
 export function selectorReturnsBlockData(decl: FieldSelector): boolean {
   const fn = typeof decl === 'function' ? decl : ('select' in decl ? decl.select : undefined);
   return !!fn && !!(fn as any)[RETURNS_BLOCK_DATA];
+}
+
+/**
+ * Build a block's TARGET props from its static-DOM entry and the ADDRESSED
+ * StateKey. Instance scope rides the KEY, not the definition: deriving
+ * idPrefix from the key makes a getter's/grader's own-field reads resolve
+ * back to the scoped buckets (ns/list:#0:input), never the base definition
+ * key. Shared by the DSL materializer and grading preparation; lives in this
+ * leaf because those sites sit inside the attributeSchemas import cycle.
+ */
+export function staticTargetProps(
+  runtime: unknown, stateKey: StateKey, defKey: string, entry: OlxJson, loBlock: LoBlock,
+): RuntimeProps {
+  return {
+    ...entry.attributes,
+    id: defKey,
+    kids: entry.kids ?? [],
+    loBlock,
+    fields: loBlock.fields ?? {},
+    locals: loBlock.locals ?? {},
+    runtime,
+    nodeInfo: undefined,
+    idPrefix: scopePrefixOfStateKey(stateKey),
+  } as unknown as RuntimeProps;
 }

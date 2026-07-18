@@ -11,7 +11,7 @@ import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/
 import { selectBlock } from '../state/olxjson';
 // blockData is a leaf module — importing state/redux here would close the
 // module cycle attributeSchemas → stateLanguage → hooks → redux → ... .
-import { evaluateFieldSelector, selectorReturnsBlockData } from '../state/blockData';
+import { evaluateFieldSelector, selectorReturnsBlockData, staticTargetProps } from '../state/blockData';
 import { asObservableValue } from '../types/fieldValues';
 import type { FieldInfo, FieldSelector, StateKey } from '../types';
 import type { References } from './references';
@@ -87,18 +87,11 @@ function materializeComponentState(
   }
 
   // Computed fields overlaid — target props from the static DOM (the DSL
-  // never touches the dynamic DOM), same shape as grading's staticProps
+  // never touches the dynamic DOM). staticTargetProps derives idPrefix from
+  // the ADDRESSED key, so getters' own-field reads resolve to the scoped
+  // instance buckets, never the base definition key.
   if (selectors) {
-    const targetProps = {
-      ...blockNode!.attributes,
-      id: definitionKey,
-      kids: blockNode!.kids ?? [],
-      loBlock: blockDef,
-      fields: blockDef.fields || {},
-      locals: blockDef.locals || {},
-      runtime: props.runtime,
-      nodeInfo: undefined,
-    };
+    const targetProps = staticTargetProps(props.runtime, stateKey, definitionKey, blockNode!, blockDef);
     for (const [name, decl] of Object.entries(selectors) as [string, FieldSelector][]) {
       // All three declaration forms evaluate here (no gate to optimize).
       const raw = evaluateFieldSelector(decl, state, targetProps as any, stateKey);

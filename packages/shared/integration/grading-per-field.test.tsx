@@ -64,6 +64,10 @@ const IMMEDIATE_OLX = `<Vertical id="ImmediateDemo">
     <ComplexInput />
   </NumericalGrader>
 </CapaProblem>
+<MarkupProblem id="ImmMarkup" title="Markup" grade="immediate"><![CDATA[
+>>What is 12 x 12?<<
+= 144
+]]></MarkupProblem>
 </Vertical>`;
 
 
@@ -238,8 +242,8 @@ describe('grading dispatches per-field events', () => {
     expect(queryByText(/Check|Submit/)).toBeNull();
 
     const problems = container.querySelectorAll('.lo-problem');
-    expect(problems.length).toBe(2);
-    const [choiceProblem, numericProblem] = Array.from(problems);
+    expect(problems.length).toBe(3);
+    const [choiceProblem, numericProblem, markupProblem] = Array.from(problems);
 
     // MCQ: radio commits on change — wrong choice grades incorrect instantly
     const radios = choiceProblem.querySelectorAll('input[type="radio"]');
@@ -256,6 +260,14 @@ describe('grading dispatches per-field events', () => {
     expect(numericProblem.textContent).not.toContain('❌');
     fireEvent.change(input, { target: { value: '144' } });
     await waitFor(() => expect(numericProblem.textContent).toContain('✅'));
+
+    // MarkupProblem: generateProblemComponents stamps gradeMode onto its
+    // generated graders (same convention as capaParser) — grade="immediate"
+    // must grade live, no submit.
+    const markupInput = markupProblem.querySelector('input') as HTMLInputElement;
+    expect(markupInput).toBeTruthy();
+    fireEvent.change(markupInput, { target: { value: '144' } });
+    await waitFor(() => expect(markupProblem.textContent).toContain('✅'));
 
     // Derived means derived: no grading state was stored for any grader in
     // the immediate problems. (The store is a singleton across tests, so

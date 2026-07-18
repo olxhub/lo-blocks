@@ -22,7 +22,7 @@ export {
 // subsystem's cross-module use, not re-exported here — import from
 // './pipeline' etc. if you're inside the subsystem, and reconsider if
 // you're not.
-export { childGraderStateKeys, whenGatedGradingKids } from './topology';
+export { childGraderStateKeys, whenGatedGradingKids, problemGradeMode } from './topology';
 export { grader } from './submitGrade';
 export type { GradingState } from './model';
 

@@ -25,10 +25,12 @@ import {
 import type { RuntimeProps } from '@/lib/types';
 
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
-function getWhen(kid: any, props: RuntimeProps) {
+// Pure over the PASSED state — one selectKidsJson evaluation reads whens and
+// reference values from the same snapshot (getKidsJson is the only boundary
+// that calls getState()).
+function getWhen(kid: any, props: RuntimeProps, reduxState: any) {
   if (kid.type === 'block') {
     const definitionKey = qualifyDefinitionRef(kid.id, props.runtime.ns);
-    const reduxState = props.runtime.store.getState();
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(reduxState, sources, definitionKey, props.runtime.locale.code);
     if (!block) return undefined;  // not yet loaded — show by default
@@ -40,10 +42,10 @@ function getWhen(kid: any, props: RuntimeProps) {
   return undefined;
 }
 
-function collectWhens(kids: any[], props: RuntimeProps) {
+function collectWhens(kids: any[], props: RuntimeProps, reduxState: any) {
   const map: Record<string, any> = {};
   for (const kid of kids) {
-    const when = getWhen(kid, props);
+    const when = getWhen(kid, props, reduxState);
     if (!when) continue;
     map[kid.id] = when;
   }
@@ -58,7 +60,7 @@ function collectWhens(kids: any[], props: RuntimeProps) {
  */
 export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
   const rawKids = (props.kids || []) as any[];
-  const whenMap = collectWhens(rawKids, props);
+  const whenMap = collectWhens(rawKids, props, reduxState);
   if (Object.keys(whenMap).length === 0) return rawKids;
 
   const allRefs = (() => {

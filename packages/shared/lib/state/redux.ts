@@ -51,7 +51,7 @@ import { useSelector, useStore, shallowEqual } from 'react-redux';
 
 import * as lo_event from 'lo_event';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyDefinitionRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, scopePrefixOfStateKey, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, isNamespaceQualified, qualifyDefinitionRef } from '../types/id-grammar';
 import { commonFields } from './commonFields';
 
 import { scopes } from '../state/scopes';
@@ -847,7 +847,10 @@ export function propsForNode(callerProps: RuntimeProps, stateKey: StateKey, node
 
   if (domNode) return propsFromNode(domNode);
 
-  // Pre-render fallback: no DomNode yet, use caller's context
+  // Pre-render fallback: no DomNode yet, use the caller's runtime context.
+  // Instance scope derives from the ADDRESSED key — the caller's own prefix
+  // is the wrong scope for a cross-instance target (a base-scope caller
+  // reading list:#0:input must produce list:#0-scoped target props).
   return {
     ...node.attributes,
     id: node.id,
@@ -857,7 +860,7 @@ export function propsForNode(callerProps: RuntimeProps, stateKey: StateKey, node
     locals: loBlock.locals,
     runtime: callerProps.runtime,
     nodeInfo: callerProps.nodeInfo,
-    idPrefix: callerProps.runtime.idPrefix,
+    idPrefix: scopePrefixOfStateKey(stateKey),
   };
 }
 
