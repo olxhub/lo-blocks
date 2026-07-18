@@ -18,25 +18,18 @@
 //     → read the per-field state the grading action wrote (submitGrade.ts).
 //       Covers submit mode and the async pending→final lifecycle.
 //
-import { correctness } from '../blocks/correctness';
+import { correctness, countsAsAttempt } from '../blocks/correctness';
 import { aggregateGradingStates } from './aggregators';
 import {
-  prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
+  prepareGrade, evaluateGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
+import { GRADING_STATE_FIELDS, UNGRADED, readStoredGradingState } from './gradingStore';
 import { childGraderStateKeys, gradeModeOf } from './topology';
 import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
-import { decodedFieldSelector } from '../state/redux';
-import type { GraderInput, GradingState } from './model';
+import type { GraderInput, GradingResult, GradingState } from './model';
 import type { LoBlock, RuntimeProps, StateKey } from '../types';
 
 export type { GradingState };
-
-const UNGRADED: GradingState = {
-  correct: correctness.unsubmitted,
-  message: '',
-  score: undefined,
-  submitCount: 0,
-};
 
 // ---------------------------------------------------------------------------
 // Grader classification — all from the static DOM + registry (topology.ts)
@@ -79,38 +72,27 @@ function deriveImmediateState(
 ): GradingState {
   const descriptor = loBlock.grading!;
   const preparation = prepareGrade(props, state, graderKey, descriptor);
-  const raw = preparation.ok ? evaluateGrade(preparation.prepared) : preparationErrorResult(preparation.error);
-  if (raw && typeof (raw as Promise<unknown>).then === 'function') {
-    // Async graders are rejected from immediate problems at authoring time
-    // (CapaProblem renders a DisplayError), so an async result here is a
-    // broken invariant, not a mode to fall back from.
-    throw new Error(`[grading] ${loBlock.name} returned a Promise during immediate evaluation`);
+  let result: GradingResult;
+  if (preparation.ok) {
+    const raw = evaluateGrade(preparation.prepared);
+    if (raw && typeof (raw as Promise<unknown>).then === 'function') {
+      // Async graders are rejected from immediate problems at authoring time
+      // (CapaProblem renders a DisplayError), so an async result here is a
+      // broken invariant, not a mode to fall back from.
+      throw new Error(`[grading] ${loBlock.name} returned a Promise during immediate evaluation`);
+    }
+    result = normalizeGraderResult(raw as Awaited<typeof raw>);
+  } else {
+    // preparationErrorResult is already normalized — no second pass.
+    result = preparationErrorResult(preparation.error);
   }
-  const result = normalizeGraderResult(raw as Awaited<typeof raw>);
   const correct = softenLiveIncorrectResult(result.correct, preparation.inputs);
 
   // submitCount is derived attempted-ness (there are no submit events in
   // immediate mode): any live-graded interaction counts as one attempt, so
   // completion (problemCompletion → inProgress) and showanswer="attempted"
   // behave.
-  const attempted = correct !== correctness.unsubmitted && correct !== correctness.invalid;
-  return { ...result, correct, submitCount: attempted ? 1 : 0 };
-}
-
-/** Stored per-field state, honoring block-specific field overrides —
- *  the read half of submitGrade's write contract (gradingField). */
-function readStoredGradingState(
-  state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
-): GradingState {
-  const read = <T,>(name: 'correct' | 'message' | 'score' | 'submitCount', fallback: T): T =>
-    // Level 2: the grading state reader wants the value, not the representation.
-    decodedFieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
-  return {
-    correct: read('correct', correctness.unsubmitted),
-    message: read('message', ''),
-    score: read<number | undefined>('score', undefined),
-    submitCount: read('submitCount', 0),
-  };
+  return { ...result, correct, submitCount: countsAsAttempt(correct) ? 1 : 0 };
 }
 
 // ---------------------------------------------------------------------------
@@ -151,12 +133,16 @@ export function selectGradingState(
   props: RuntimeProps,
   graderStateKey: StateKey,
 ): GradingState {
-  // Memoized per Redux state object: sound because this is a pure function
-  // of the snapshot (static topology — the dynamic DOM is not an input),
-  // and necessary because the four per-field blueprint selectors below
-  // share one derivation.
-  let byKey = _memo.get(state as object);
-  if (!byKey) { byKey = new Map(); _memo.set(state as object, byKey); }
+  // Memoized on (state, runtime, stateKey) — every input the computation
+  // reads: the Redux snapshot AND props.runtime (blockRegistry, ns, locale,
+  // olxJsonSources). runtime nests inside state so the same snapshot under a
+  // different runtime can't collide; both are stable-identity objects, so a
+  // WeakMap discards each generation as soon as it's unreferenced.
+  const runtime = props.runtime as unknown as object;
+  let byRuntime = _memo.get(state as object);
+  if (!byRuntime) { byRuntime = new WeakMap(); _memo.set(state as object, byRuntime); }
+  let byKey = byRuntime.get(runtime);
+  if (!byKey) { byKey = new Map(); byRuntime.set(runtime, byKey); }
   const cached = byKey.get(graderStateKey);
   if (cached) return cached;
   const result = computeGradingState(state, props, graderStateKey);
@@ -164,21 +150,19 @@ export function selectGradingState(
   return result;
 }
 
-const _memo = new WeakMap<object, Map<StateKey, GradingState>>();
+const _memo = new WeakMap<object, WeakMap<object, Map<StateKey, GradingState>>>();
 
 /**
  * The grading quartet as blueprint selectors — declared by the grader()
- * mixin and the metagraders. All four route through selectGradingState,
+ * mixin and the metagraders. Each field routes through selectGradingState,
  * whose strategies (stored / immediate / aggregate) stay grading-internal.
+ * A constant derived from GRADING_STATE_FIELDS (the declarations are static;
+ * every grader block shares this one object).
  */
-export function gradingSelectors(): Record<string, (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown> {
-  const field = (name: keyof GradingState) =>
-    (state: unknown, props: RuntimeProps, stateKey: StateKey) =>
-      selectGradingState(state, props, stateKey)[name];
-  return {
-    correct: field('correct'),
-    message: field('message'),
-    score: field('score'),
-    submitCount: field('submitCount'),
-  };
-}
+export const gradingSelectors: Record<string, (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown> =
+  Object.fromEntries(
+    GRADING_STATE_FIELDS.map(name => [
+      name,
+      (state: unknown, props: RuntimeProps, stateKey: StateKey) => selectGradingState(state, props, stateKey)[name],
+    ]),
+  );

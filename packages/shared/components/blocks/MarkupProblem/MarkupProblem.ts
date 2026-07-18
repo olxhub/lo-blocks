@@ -535,7 +535,7 @@ const MarkupProblem = dev({
   componentLoader: () => import('@/components/blocks/CapaProblem/_CapaProblem').then(m => m.default),
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
-  selectors: gradingSelectors(),
+  selectors: gradingSelectors,
   attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
   // blocks (graders, inputs, hints) dynamically during PEG parsing.

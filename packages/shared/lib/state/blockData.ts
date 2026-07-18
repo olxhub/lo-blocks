@@ -46,8 +46,25 @@ export function evaluateFieldSelector(
   decl: FieldSelector, state: unknown, targetProps: any, stateKey: any
 ): unknown {
   if (typeof decl === 'function') return decl(state, targetProps, stateKey);
-  if ('deps' in decl) return decl.compute(...decl.deps(state, targetProps, stateKey));
+  if (isPipelined(decl)) return decl.compute(...decl.deps(state, targetProps, stateKey));
   return decl.select(state, targetProps, stateKey);
+}
+
+/**
+ * The three getter forms, discriminated once (see FieldSelector in
+ * types/core.ts): a bare fn, `{ select, equality? }`, or the pipelined
+ * `{ deps, compute }`. isPipelined selects the deps-subscribed form (compute
+ * runs after the gate); declaredEquality is the RESULT equality the
+ * `{ select, equality }` form may carry (a bare fn or pipelined form has
+ * none). One home for the forms, so useFieldSelector's setup reads as the
+ * pipeline law rather than re-spelling `'deps' in decl` inline.
+ */
+export function isPipelined(decl: FieldSelector): decl is Extract<FieldSelector, { deps: unknown }> {
+  return typeof decl === 'object' && 'deps' in decl;
+}
+
+export function declaredEquality(decl: FieldSelector): ((a: unknown, b: unknown) => boolean) | undefined {
+  return typeof decl === 'object' && 'select' in decl ? decl.equality : undefined;
 }
 
 /** True when a getter declaration's underlying fn is withStatus-marked

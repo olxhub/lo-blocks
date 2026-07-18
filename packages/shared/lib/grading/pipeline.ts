@@ -12,29 +12,15 @@
 //
 import { correctness, normalizeCorrectness } from '../blocks/correctness';
 import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
-import { commonFields } from '../state/commonFields';
-import { valueSelector } from '../state/redux';
-import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import { valueSelector } from '../state/blockValues';
+import { resolveTarget } from '../state/fieldReads';
 import { graderInputStateKeys } from './topology';
-import { staticEntry, staticEntryForStateKey, blueprintFor, inferKids } from '../blocks/staticDom';
-import { staticTargetProps } from '../state/blockData';
-import type { FieldInfo, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
+import { staticEntry, blueprintFor, inferKids } from '../blocks/staticDom';
+import type { LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 import type {
   GradePreparation, GraderInput, GraderParams, GradingDescriptor, GradingResult,
   PreparedGrade, RawGraderResult,
 } from './model';
-
-// ---------------------------------------------------------------------------
-// The grading-field contract — shared by writes (submitGrade.ts) and reads
-// (selectGradingState.ts), so both sides resolve block-specific field
-// overrides the same way.
-// ---------------------------------------------------------------------------
-
-export type GradingFieldName = 'correct' | 'message' | 'score' | 'submitCount' | 'lastSubmission';
-
-export function gradingField(loBlock: LoBlock | undefined, name: GradingFieldName): FieldInfo {
-  return (loBlock?.fields?.[name] as FieldInfo) ?? (commonFields as Record<string, FieldInfo>)[name];
-}
 
 /** Normalize a grade function's raw result for display and persistence. */
 export function normalizeGraderResult(raw: RawGraderResult): GradingResult {
@@ -60,40 +46,44 @@ export function normalizeGraderResult(raw: RawGraderResult): GradingResult {
  * the block registry.
  */
 function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey): GraderInput {
-  const defKey = leafDefinitionKeyFromStateKey(stateKey);
-  const olxJson = staticEntryForStateKey(state, props, stateKey);
-  if (!olxJson) {
+  // resolveTarget resolves the static node + blueprint + target props once;
+  // idPrefix on those props derives from the ADDRESSED key, so the input's
+  // value getter reads the scoped instance buckets.
+  const resolved = resolveTarget(state, props, stateKey);
+  if (!resolved) {
     // Content still loading (ensureBlock in flight) — a transient, not an
     // answer. The caller surfaces it as a preparation error.
     throw new InputContentPending(stateKey);
   }
-  const loBlock = props.runtime.blockRegistry[olxJson.tag];
-  // staticTargetProps: idPrefix derives from the ADDRESSED key, so the
-  // input's value getter reads the scoped instance buckets.
-  const inputProps = staticTargetProps(props.runtime, stateKey, defKey, olxJson, loBlock);
+  const { node: olxJson, loBlock, targetProps: inputProps } = resolved;
 
-  // valueSelector for uniform handling of withStatus / raw selectors.value
-  const { value } = valueSelector(inputProps, state, stateKey);
-
-  // Bound API from locals — each function gets (props, state, id) pre-bound
-  const api = loBlock.locals
-    ? Object.fromEntries(
-      Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
-        name,
-        (...args: unknown[]) => fn(inputProps, state, stateKey, ...args),
-      ])
-    )
-    : {};
+  // valueSelector for uniform handling of withStatus / raw selectors.value;
+  // reuse the target we just resolved rather than resolving the key again.
+  const { value } = valueSelector(inputProps, state, stateKey, { resolved });
 
   return {
     stateKey,
     name: loBlock.name || olxJson.tag,
     value,
-    api,
+    api: bindLocals(inputProps, state, loBlock, stateKey),
     slot: olxJson.attributes.slot as string | undefined,
     valueSchema: loBlock.valueSchema,
     commitOnChange: Boolean(loBlock.commitOnChange),
   };
+}
+
+/** Bind a block's `locals` into the grade-time API: each function pre-bound to
+ *  the input's (props, state, id) so a grade fn calls `api.foo(...)` cleanly. */
+function bindLocals(
+  inputProps: RuntimeProps, state: unknown, loBlock: LoBlock, stateKey: StateKey,
+): Record<string, (...args: unknown[]) => unknown> {
+  if (!loBlock.locals) return {};
+  return Object.fromEntries(
+    Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
+      name,
+      (...args: unknown[]) => fn(inputProps, state, stateKey, ...args),
+    ]),
+  );
 }
 
 export function readGraderInputs(props: RuntimeProps, state: unknown, ids: StateKey[]): GraderInput[] {
@@ -201,10 +191,9 @@ export function prepareGrade(
   graderKey: StateKey,
   descriptor: GradingDescriptor,
 ): GradePreparation {
-  const entry = staticEntryForStateKey(state, props, graderKey);
-  if (!entry) return { ok: false, inputs: [], error: 'Grader content is not loaded' };
-  const loBlock = blueprintFor(props, entry)!;
-  const graderProps = staticTargetProps(props.runtime, graderKey, leafDefinitionKeyFromStateKey(graderKey), entry, loBlock);
+  const resolved = resolveTarget(state, props, graderKey);
+  if (!resolved) return { ok: false, inputs: [], error: 'Grader content is not loaded' };
+  const { node: entry, loBlock, targetProps: graderProps } = resolved;
 
   let inputs: GraderInput[];
   try {
@@ -222,34 +211,37 @@ export function prepareGrade(
   const { param, error } = buildGraderParam(descriptor, inputs);
   if (error || !param) return { ok: false, inputs, error: error ?? 'Could not build grader parameters' };
 
-  // Readiness covers the grader's whole static subtree, not just its own
-  // blueprint: RulesGrader's Match children (NumericalMatch, FormulaMatch)
-  // declare lazy engines, and readying them HERE is what lets grade
-  // functions stay synchronous — evaluation never awaits. (The render
-  // gate, useBlocksReady, readies rendered blocks; this covers headless
-  // callers: submit actions, analytics, server.)
-  const engineDefKeys = inferKids(state, props, entry.kids, {
-    selector: b => Boolean(b.ensureReady),
-  });
-  const engines = [loBlock, ...engineDefKeys.map(k => {
-    const kidEntry = staticEntry(state, props, k);
-    return kidEntry ? blueprintFor(props, kidEntry) : undefined;
-  })].filter((b): b is LoBlock => Boolean(b?.ensureReady));
-  const ensureReady = engines.length > 0
-    ? async () => { await Promise.all(engines.map(b => b.ensureReady!())); }
-    : undefined;
-
   return {
     ok: true,
     inputs,
     prepared: {
       graderProps,
       descriptor,
-      inputs,
       param,
-      ensureReady,
+      ensureReady: collectEnsureReady(props, state, entry, loBlock),
     },
   };
+}
+
+/**
+ * A single ensureReady covering the grader's whole static subtree, not just
+ * its own blueprint: RulesGrader's Match children (NumericalMatch,
+ * FormulaMatch) declare lazy engines, and readying them HERE is what lets
+ * grade functions stay synchronous — evaluation never awaits. (The render
+ * gate, useBlocksReady, readies rendered blocks; this covers headless
+ * callers: submit actions, analytics, server.) undefined when nothing is lazy.
+ */
+function collectEnsureReady(
+  props: RuntimeProps, state: unknown, entry: OlxJson, loBlock: LoBlock,
+): (() => Promise<void>) | undefined {
+  const engineDefKeys = inferKids(state, props, entry.kids, { selector: b => Boolean(b.ensureReady) });
+  const engines = [loBlock, ...engineDefKeys.map(k => {
+    const kidEntry = staticEntry(state, props, k);
+    return kidEntry ? blueprintFor(props, kidEntry) : undefined;
+  })].filter((b): b is LoBlock => Boolean(b?.ensureReady));
+  return engines.length > 0
+    ? async () => { await Promise.all(engines.map(b => b.ensureReady!())); }
+    : undefined;
 }
 
 /** Run the grade function against the prepared invocation. */
@@ -257,7 +249,9 @@ export function evaluateGrade(prepared: PreparedGrade): RawGraderResult | Promis
   return prepared.descriptor.fn(prepared.graderProps, prepared.param);
 }
 
-/** A preparation failure as a learner-facing grading outcome. */
-export function preparationErrorResult(error: string): RawGraderResult {
-  return { correct: correctness.invalid, message: error };
+/** A preparation failure as a learner-facing grading outcome — already
+ *  normalized (correctness.invalid, empty score), so callers use it directly
+ *  without a second normalizeGraderResult pass. */
+export function preparationErrorResult(error: string): GradingResult {
+  return { correct: correctness.invalid, message: error, score: undefined };
 }

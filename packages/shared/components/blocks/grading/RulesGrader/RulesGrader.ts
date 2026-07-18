@@ -19,7 +19,7 @@ import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import type { RuntimeProps } from '@/lib/types';
+import type { JSONValue, OlxJson, RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
 
 /**
@@ -44,13 +44,23 @@ function gradeRules(props: RuntimeProps, context) {
   // Evaluate child Match rules in order, discovered from the STATIC DOM's
   // kids structure — this grade function runs wherever grading runs
   // (selectors, node, analytics), where there is no dynamic (rendered) DOM.
-  const matchEntries = isKidArray(props.kids)
-    ? props.kids.flatMap(kid => {
-      if (kid.type !== 'block') return [];
-      const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
-      return entry && isMatch(blockRegistry[entry.tag]) ? [entry] : [];
-    })
-    : [];
+  // The block declares allowHTML(), so Match rules may sit inside inline
+  // (html) wrappers (<div><StringMatch/></div>); descend through those to
+  // reach them. Block kids resolve directly — a matched block owns its
+  // subtree, so no descent past a block.
+  const matchEntries: OlxJson[] = [];
+  const collectMatches = (kids: JSONValue): void => {
+    if (!isKidArray(kids)) return;
+    for (const kid of kids) {
+      if (kid.type === 'html') {
+        collectMatches(kid.kids);
+      } else if (kid.type === 'block') {
+        const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
+        if (entry && isMatch(blockRegistry[entry.tag])) matchEntries.push(entry);
+      }
+    }
+  };
+  collectMatches(props.kids);
   for (const childEntry of matchEntries) {
     const childBlueprint = blockRegistry[childEntry.tag];
 

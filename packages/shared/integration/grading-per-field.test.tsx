@@ -235,6 +235,41 @@ describe('grading dispatches per-field events', () => {
     await waitFor(() => expect(container.textContent).toContain('GATED_CONTENT_MARKER'));
   });
 
+  it('RulesGrader matches rules wrapped in inline HTML (allowHTML descent)', async () => {
+    // The StringMatch sits inside a <div> — an inline (html) kid. A static
+    // scan that only looks at top-level block kids would skip it and fall
+    // through to DefaultMatch (incorrect); recursive descent finds it.
+    const RULES_HTML_OLX = `<CapaProblem id="RulesHtmlWrap" title="Derivative">
+      <RulesGrader>
+        <div><StringMatch answer="2x" score="1" feedback="Correct!"/></div>
+        <DefaultMatch score="0" feedback="Nope"/>
+        <LineInput/>
+      </RulesGrader>
+    </CapaProblem>`;
+    const { reduxStore, container, getByText } = await mountProblem(RULES_HTML_OLX);
+    // The singleton store persists keys across tests, so scope lookups to
+    // this fixture's own namespaced keys (RulesHtmlWrap_*).
+    const scopedKey = (suffix: string) => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      return Object.keys(comp).find(k => k.includes('RulesHtmlWrap') && k.endsWith(suffix));
+    };
+
+    const input = container.querySelector('input[type="text"], input:not([type])') as HTMLInputElement;
+    expect(input).toBeTruthy();
+    fireEvent.change(input, { target: { value: '2x' } });
+    await waitFor(() => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_input_0');
+      expect(key && comp[key]?.value).toBe('2x');
+    });
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_grader_0');
+      expect(key && comp[key]?.correct).toBe('correct');
+    });
+  });
+
   it('immediate mode derives correctness from live input values', async () => {
     const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
 

@@ -208,7 +208,7 @@ const CapaProblem = dev({
   // Aggregate grading state is computed, never stored (fields above hold
   // only genuine state) — these selectors are how DSL refs, StatusText,
   // and orchestrators read it.
-  selectors: gradingSelectors(),
+  selectors: gradingSelectors,
   attributes: z.object({
     ...problemAttributes.shape,
     displayName: z.string().optional().describe('Display name for the problem'),

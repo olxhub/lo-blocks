@@ -153,6 +153,16 @@ export function normalizeCorrectness(c: unknown): Correctness {
 }
 
 /**
+ * Whether a graded result counts as a real attempt. Blank (unsubmitted) and
+ * malformed (invalid) submissions don't consume attempts — the answer was
+ * never judged. One invariant behind submit-mode attempt accounting
+ * (nextSubmitCount) and immediate-mode attempted-ness (deriveImmediateState).
+ */
+export function countsAsAttempt(correct: Correctness): boolean {
+  return correct !== correctness.unsubmitted && correct !== correctness.invalid;
+}
+
+/**
  * Ordering for worst-case aggregation (lower = worse).
  * Used by grading aggregators to determine priority.
  */

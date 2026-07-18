@@ -6,23 +6,22 @@
 // the pending state for async graders, attempt accounting, and writing
 // the result as per-field CRDT events.
 //
-import { correctness } from '../blocks/correctness';
+import { correctness, countsAsAttempt } from '../blocks/correctness';
 import { graderAttributes } from '../blocks/attributeSchemas';
 import { toAppError } from '@/lib/types/errors';
-import { updateField, decodedFieldSelector } from '../state/redux';
+import { updateField } from '../state/fieldWrites';
 import type { Correctness } from '../blocks/correctness';
 import type { LoBlock, ObservableValue, RuntimeProps, StateKey } from '../types';
 import type { GradePreparation, GraderFn, GradingDescriptor, GradingResult } from './model';
 import {
-  prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
-  type GradingFieldName,
+  prepareGrade, evaluateGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
+import { gradingField, readGradingField } from './gradingStore';
 import { gradingSelectors } from './selectGradingState';
 
-/** Blank and malformed submissions don't consume attempts. */
+/** Blank and malformed submissions don't consume attempts (countsAsAttempt). */
 function nextSubmitCount(current: number, correct: Correctness): number {
-  const isRealSubmission = correct !== correctness.unsubmitted && correct !== correctness.invalid;
-  return current + (isRealSubmission ? 1 : 0);
+  return current + (countsAsAttempt(correct) ? 1 : 0);
 }
 
 /**
@@ -45,13 +44,6 @@ function persistGradeResult(
   updateField(props, gradingField(loBlock, 'correct'), result.correct, writeOpts);
 }
 
-function readGradingField<T>(
-  state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock,
-  name: GradingFieldName, fallback: T,
-): T {
-  return decodedFieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
-}
-
 /**
  * Grade functions can fail for reasons outside our control (a rejected
  * LLM call, a lazy engine that failed to load, a grader bug — including
@@ -61,7 +53,7 @@ function readGradingField<T>(
  * attempt isn't counted (the answer was never judged).
  */
 async function evaluateSubmission(preparation: GradePreparation): Promise<GradingResult> {
-  if (!preparation.ok) return normalizeGraderResult(preparationErrorResult(preparation.error));
+  if (!preparation.ok) return preparationErrorResult(preparation.error);
   try {
     // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
     // declare ensureReady; await it so a synchronous match function runs
@@ -192,7 +184,7 @@ export function grader({ grader, infer = true, slots, inputType, execution = 'sy
       // Grading state reads as computed fields (see FieldSelector) —
       // stored in submit mode, derived in immediate mode; the selector
       // dispatches.
-      selectors: gradingSelectors(),
+      selectors: gradingSelectors,
       slots,  // Named slots for multi-input graders
       // Default display answer - can be overridden in block definition
       getDisplayAnswer: (props: RuntimeProps) => props.displayAnswer ?? props.answer,

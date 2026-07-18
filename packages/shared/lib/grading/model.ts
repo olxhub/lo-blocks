@@ -65,7 +65,6 @@ export interface PreparedGrade {
   /** The grader's own props with its OLX attributes spread in. */
   graderProps: RuntimeProps;
   descriptor: GradingDescriptor;
-  inputs: GraderInput[];
   param: GraderParams;
   ensureReady?: () => Promise<void>;
 }
