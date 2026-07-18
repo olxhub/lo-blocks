@@ -18,13 +18,15 @@ export const fields = state.fields([
 const TextSelection = test({
   ...peggyParser(parser),
   ...blocks.input({
-    selectValue: (props, state, _stateKey) => {
+  }),
+  selectors: {
+    value: (state, props, _stateKey) => {
       const selections = fieldSelector(state, props, fields.value, { fallback: [] });
       const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
       const score = fieldSelector(state, props, fields.score, { fallback: 0 });
       return { selections, attempts, score };
-    }
-  }),
+    },
+  },
   ...blocks.grader({
     grader: (props, params) => {
       const { input } = params as { input: any };

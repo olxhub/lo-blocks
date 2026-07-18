@@ -22,13 +22,14 @@ const Navigator = dev({
   name: 'Navigator',
   description: 'Two-pane navigator with configurable preview and detail templates',
   fields: fields,
-  // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, _stateKey) => {
-    const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
-    const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
-    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
-    return { selectedItem, searchQuery, viewMode };
-  }) as any,
+  selectors: {
+    value: (state, props, _stateKey) => {
+      const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
+      const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
+      const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
+      return { selectedItem, searchQuery, viewMode };
+    },
+  },
   attributes: srcAttributes.extend({
     preview: z_stateRef.optional().describe('ID of block to use as preview template'),
     detail: z_stateRef.optional().describe('ID of block to use as detail template'),

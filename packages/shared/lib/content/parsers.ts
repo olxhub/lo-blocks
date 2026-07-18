@@ -493,15 +493,15 @@ textFactory.childMode = 'text';
 //   3. target= (reactive read)    <Mermaid target="codeEditor"/>
 //   4. own value field (settable) <Set target="myMermaid" value="..."/>
 //
-// All four routes converge on the same `selectValue` below, which reads
+// All four routes converge on the same value selector below, which reads
 // `commonFields.value` from Redux and falls back to the block's parsed
 // `kids` (which was populated at parse time from either `src=` or the
 // block's child text). The render-time hook is `useTextContent`.
 //
 // - With no `target=`, `useValue` defaults to "this block", so the read
-//   goes through *this* block's selectValue → Redux value → kids.
+//   goes through *this* block's selectors.value → Redux value → kids.
 // - With `target="other"`, the read goes through the *target* block's
-//   selectValue. If the target also uses this mixin (or any block with a
+//   selectors.value. If the target also uses this mixin (or any block with a
 //   compatible value field — TextArea, etc.), it just works.
 //
 // `target=` is tagged via `z_stateRef`, so `getRefAttributes` /
@@ -535,20 +535,16 @@ const textWithTargetParserMixin = {
   // MermaidPublish.olx — click Publish before editing and watch the
   // published diagram clear.)
   //
-  // The right fix is a general per-field "current displayed value"
-  // protocol — selectValue generalized from value-only to arbitrary
-  // fields, or a `field.display` hook that every consumer (refs,
-  // copies, LLM context, …) consults. Once that lands, this one-off
-  // selectValue goes away and every consumer sees the same
-  // semantically-meaningful value the renderer sees.
-  selectValue: (props: RuntimeProps, reduxState: any, id: StateKey) => {
-    const kids = typeof props.kids === 'string' ? props.kids : '';
-    return state.fieldSelector(
-      reduxState,
-      props,
-      state.commonFields.value,
-      { fallback: kids, stateKey: id }
-    );
+  selectors: {
+    value: (reduxState: any, props: RuntimeProps, id: StateKey) => {
+      const kids = typeof props.kids === 'string' ? props.kids : '';
+      return state.fieldSelector(
+        reduxState,
+        props,
+        state.commonFields.value,
+        { fallback: kids, stateKey: id, stored: true }
+      );
+    },
   },
   requiresUniqueId: false,
 };

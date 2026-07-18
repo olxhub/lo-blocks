@@ -170,7 +170,7 @@ export function buildYaml(
 }
 
 // ---------------------------------------------------------------------------
-// Read character state from Redux (used by selectValue and CastEditor)
+// Read character state from Redux (used by selectors.value and CastEditor)
 // ---------------------------------------------------------------------------
 
 function readCardData(
@@ -189,7 +189,7 @@ function readCardData(
 }
 
 /** Read all character data from Redux for the given props scope.
- *  Used by CharacterBuilder.selectValue and CastEditor.selectValue. */
+ *  Used by CharacterBuilder's and CastEditor's selectors.value. */
 export function readCharacterState(
   reduxState: any, props: RuntimeProps, aeFields: Record<string, any>,
 ): CharacterState {
@@ -232,9 +232,11 @@ const CharacterBuilder = dev({
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
   },
 
-  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: any) => {
-    const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
-    return buildYaml(characterName, cards, avatar);
+  selectors: {
+    value: (reduxState: any, props: RuntimeProps, _stateKey: any) => {
+      const { characterName, cards, avatar } = readCharacterState(reduxState, props, avatarEditorFields);
+      return buildYaml(characterName, cards, avatar);
+    },
   },
 });
 

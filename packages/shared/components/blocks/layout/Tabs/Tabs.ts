@@ -12,11 +12,12 @@ const Tabs = dev({
   name: 'Tabs',
   description: 'Tabbed interface component with multiple content panels',
   fields: fields,
-  // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, _stateKey) => {
-    const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
-    return { activeTab };
-  }) as any,
+  selectors: {
+    value: (state, props, _stateKey) => {
+      const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
+      return { activeTab };
+    },
+  },
 });
 
 export default Tabs;

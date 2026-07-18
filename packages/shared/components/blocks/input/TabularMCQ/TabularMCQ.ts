@@ -201,11 +201,13 @@ export const fields = state.fields([commonFields.value]);
 const TabularMCQ = core({
   ...yamlParser(tabularMCQSchema),
   ...blocks.input({
-    selectValue: (props, reduxState, _stateKey) => {
+  }),
+  selectors: {
+    value: (reduxState, props, _stateKey) => {
       const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
       return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
-    }
-  }),
+    },
+  },
   name: 'TabularMCQ',
   description: 'Tabular multiple choice matrix',
   fields,

@@ -368,7 +368,6 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     parser: effectiveConfig.parser,
     staticKids: effectiveConfig.staticKids as LoBlock['staticKids'],
     reducers: effectiveConfig.reducers ?? [],
-    selectValue: effectiveConfig.selectValue,
     advance: effectiveConfig.advance as LoBlock['advance'],
     canAdvance: effectiveConfig.canAdvance as LoBlock['canAdvance'],
     fields: (effectiveConfig.fields as Fields) ?? state.fields([]),
@@ -380,6 +379,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
     isInput: parsed.isInput,
     isMatch: typeof effectiveConfig.locals?.match === 'function',
     isGrader: parsed.isGrader,
+    selectors: effectiveConfig.selectors,
     grading: effectiveConfig.grading,
     commitOnChange: parsed.commitOnChange,
     internal: effectiveConfig.internal,
@@ -410,10 +410,13 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
 
   assertUnimplemented(parsed.reducers, 'reducers');
 
-  // Default selectValue for input blocks: read commonFields.value
-  if (block.isInput && !block.selectValue) {
-    block.selectValue = (props, reduxState, id) =>
-      state.fieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '' });
+  // Default value selector for input blocks: read commonFields.value
+  if (block.isInput && !block.selectors?.value) {
+    block.selectors = {
+      ...block.selectors,
+      value: (reduxState, props, id) =>
+        state.fieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '', stored: true }),
+    };
   }
 
   return block;

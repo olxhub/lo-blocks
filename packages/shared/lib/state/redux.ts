@@ -73,6 +73,10 @@ export interface SelectorOptions<T> {
   selector?: (state) => T;
   fallback?: T;
   equalityFn?: (a: T, b: T) => boolean;
+  /** Read the raw backing store, bypassing blueprint selectors. For
+   *  selector implementations reading their own stored state, and for
+   *  write paths diffing against raw storage. */
+  stored?: boolean;
 }
 
 /**
@@ -97,6 +101,26 @@ export const fieldSelector = <T>(
     fallback,
   } = options;
   const { scope } = field;
+
+  // Blueprint selectors — the getter half of the getter/setter pattern
+  // (selectValue generalized): a block's observable field may be COMPUTED.
+  // Applies to CROSS-BLOCK reads of the whole field (an explicit stateKey,
+  // no custom bucket projection): the state language, StatusText,
+  // orchestrators. A block's own internal reads (no stateKey — e.g.
+  // useInputField's backing store and selection siblings) go straight to
+  // storage, like a method touching its own private state.
+  if (
+    stateKey && !options.stored && !options.selector && scope === scopes.component
+  ) {
+    const sel = blueprintSelectorFor(state, props, stateKey, field.name);
+    if (sel) {
+      const raw = sel.select(state, sel.targetProps, stateKey);
+      // withStatus selectors return BlockDataResult — unwrap to the value.
+      const value = (sel.select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
+      return (value === undefined ? (fallback as T) : value) as T;
+    }
+  }
+
   const scopedState = state?.application_state?.[scope];
   const value: T | undefined = (() => {
     switch (scope) {
@@ -117,6 +141,29 @@ export const fieldSelector = <T>(
   })();
   return value === undefined ? (fallback as T) : value;
 };
+
+/**
+ * Resolve the blueprint selector for a field on the block a StateKey
+ * addresses, plus the target props to call it with. Null when the target
+ * block is unknown (content loading) or declares no selector for it.
+ */
+function blueprintSelectorFor(state: any, props: any, stateKey: StateKey, fieldName: string) {
+  const runtime = props?.runtime;
+  if (!runtime) return null;
+  let defKey: DefinitionKey;
+  try {
+    defKey = leafDefinitionKeyFromStateKey(stateKey);
+  } catch {
+    // Keys outside the content grammar (app-level buffers, test fixtures)
+    // have no blueprint — plain stored reads.
+    return null;
+  }
+  const node = selectBlock(state, runtime.olxJsonSources ?? ['content'], defKey, runtime.locale?.code);
+  const loBlock = node ? runtime.blockRegistry[node.tag] : undefined;
+  const select = loBlock?.selectors?.[fieldName];
+  if (!select || !node) return null;
+  return { select, targetProps: propsForNode(props, stateKey, node, loBlock!) as RuntimeProps };
+}
 
 // Convenience selector that fetches the current Redux state automatically.
 export const selectFromStore = <T>(
@@ -346,7 +393,7 @@ export function updateField(
   if (field.write) {
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();
-    const oldRaw = fieldSelector(store.getState(), props, field, { stateKey, tag });
+    const oldRaw = fieldSelector(store.getState(), props, field, { stateKey, tag, stored: true });
     const results = field.write(oldRaw, newValue);
     // Extra payload (e.g., selection state from useInputField) is appended only
     // to the last event — it represents final cursor position, not per-event state.
@@ -474,9 +521,16 @@ function _componentField(props: RuntimeProps, definitionKey: DefinitionKey, fiel
     throw new Error(`Unknown component type <${targetNode.tag}>. This tag is not registered as a block.`);
   }
 
-  const field = targetLoBlock.fields?.[fieldName];
+  const field = targetLoBlock.fields?.[fieldName]
+    // Selector-backed fields (computed, possibly with no stored backing —
+    // metagraders' grading quartet) resolve to the common field shape;
+    // reads route through the blueprint selector in fieldSelector.
+    ?? (targetLoBlock.selectors?.[fieldName] ? (commonFields as Record<string, FieldInfo>)[fieldName] : undefined);
   if (!field) {
-    const availableFields = Object.keys(targetLoBlock.fields || {});
+    const availableFields = [
+      ...Object.keys(targetLoBlock.fields || {}),
+      ...Object.keys(targetLoBlock.selectors || {}),
+    ];
     throw new Error(`<${targetNode.tag} id="${definitionKey}"> has no "${fieldName}" field. Available fields: ${availableFields.join(', ') || 'none'}`);
   }
 
@@ -499,7 +553,7 @@ export function componentFieldByStateKey(props: RuntimeProps, stateKey: StateKey
 
 /**
  * Selector function to get a component's value by ID.
- * Tries selectValue method first, falls back to direct field access.
+ * Tries the block's selectors.value first, falls back to direct field access.
  *
  * @param {Object} props - Component props with blockRegistry and olxJsonSources
  * @param {Object} state - Redux state
@@ -513,7 +567,7 @@ export function componentFieldByStateKey(props: RuntimeProps, stateKey: StateKey
  * Reconstruct a component's RuntimeProps from its Redux key and blueprint.
  *
  * Used when we need a component's own props outside of its render tree
- * (e.g., calling selectValue from valueSelector). Looks up the component's
+ * (e.g., calling a blueprint selector from valueSelector). Looks up the component's
  * OlxDomNode by StateKey — if found, delegates to propsFromNode.
  *
  * Falls back to manual construction with the caller's runtime context if
@@ -556,12 +610,12 @@ export { blockData, withStatus, RETURNS_BLOCK_DATA } from './blockData';
  *
  * Returns BlockDataResult & { value } — never throws.
  *
- * - If the block is in Redux and ready, calls its selectValue (or falls back
+ * - If the block is in Redux and ready, calls its selectors.value (or falls back
  *   to the common 'value' field).
  * - If the block is loading or unknown, returns { value: fallback, loading: true }.
  * - If the block errored, returns { value: fallback, error: message }.
  *
- * Blocks with `withStatus(selectValue)` return their own BlockDataResult;
+ * Blocks whose value selector is wrapped in `withStatus()` return their own BlockDataResult;
  * all others get their raw return value wrapped automatically.
  */
 export function valueSelector(
@@ -589,14 +643,15 @@ export function valueSelector(
     return { value: fallback, ...blockData('loading') };
   }
 
-  if (loBlock.selectValue) {
-    const targetProps = propsForNode(props, stateKey, targetNode, loBlock);
+  const valueSelect = loBlock.selectors?.value;
+  if (valueSelect) {
+    const targetProps = propsForNode(props, stateKey, targetNode, loBlock) as RuntimeProps;
 
-    if ((loBlock.selectValue as any)[RETURNS_BLOCK_DATA]) {
-      return loBlock.selectValue(targetProps, state, stateKey);
+    if ((valueSelect as any)[RETURNS_BLOCK_DATA]) {
+      return valueSelect(state, targetProps, stateKey) as BlockDataResult & { value: any };
     }
 
-    return { value: loBlock.selectValue(targetProps, state, stateKey), ...blockData('ready') };
+    return { value: valueSelect(state, targetProps, stateKey), ...blockData('ready') };
   }
 
   // Fall back to direct field access using the common 'value' field
@@ -665,8 +720,8 @@ export function useValue(
  *   - `target=` attribute → reactive read from another block's value
  *
  * All four routes converge on `useValue`, which routes through the
- * appropriate block's `selectValue`. The `withTarget` parserMixin
- * supplies a `selectValue` that reads `commonFields.value` with a
+ * appropriate block's value selector. The `withTarget` parserMixin
+ * supplies a `selectors.value` that reads `commonFields.value` with a
  * fallback to `kids`, so the static-text and settable-value cases both
  * work without special handling here.
  *

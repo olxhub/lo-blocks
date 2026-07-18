@@ -21,8 +21,8 @@ const DropdownInput = core({
   // Non-conventional: component file is _DropdownSelect, not _DropdownInput.
   componentLoader: () => import('./_DropdownSelect').then(m => m.default),
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => {
-    return fieldSelector(state, props, fields.value, { fallback: '' });
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   },
   attributes: srcAttributes.extend({
     placeholder: z.string().optional().describe('Placeholder text for empty selection'),

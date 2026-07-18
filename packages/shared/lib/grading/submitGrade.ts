@@ -17,6 +17,7 @@ import {
   prepareGrade, evaluateGrade, preparationErrorResult, gradingField, normalizeGraderResult,
   type GradingFieldName,
 } from './pipeline';
+import { gradingSelectors } from './selectGradingState';
 
 /** Blank and malformed submissions don't consume attempts. */
 function nextSubmitCount(current: number, correct: Correctness): number {
@@ -48,7 +49,7 @@ function readGradingField<T>(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock,
   name: GradingFieldName, fallback: T,
 ): T {
-  return fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
+  return fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback, stored: true });
 }
 
 /**
@@ -168,6 +169,10 @@ export function grader({ grader, infer = true, slots, inputType, execution = 'sy
       // is a metagrader (CapaProblem) — its state derives from child
       // graders.
       grading: descriptor,
+      // Grading state reads as computed fields (see FieldSelector) —
+      // stored in submit mode, derived in immediate mode; the selector
+      // dispatches.
+      selectors: gradingSelectors(),
       slots,  // Named slots for multi-input graders
       // Default display answer - can be overridden in block definition
       getDisplayAnswer: (props: RuntimeProps) => props.displayAnswer ?? props.answer,

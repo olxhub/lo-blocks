@@ -14,6 +14,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
+import { gradingSelectors } from '@/lib/grading';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
@@ -528,6 +529,7 @@ const MarkupProblem = dev({
   componentLoader: () => import('@/components/blocks/CapaProblem/_CapaProblem').then(m => m.default),
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
+  selectors: gradingSelectors(),
   attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
   // blocks (graders, inputs, hints) dynamically during PEG parsing.

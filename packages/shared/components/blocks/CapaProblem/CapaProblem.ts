@@ -31,6 +31,7 @@ import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joi
 import { isPascalCase } from '@/lib/util';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
+import { gradingSelectors } from '@/lib/grading';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets.
@@ -204,6 +205,10 @@ const CapaProblem = dev({
   description: 'Interactive problem with rich content, inputs, grading, hints, explanations, and feedback',
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states
+  // Aggregate grading state is computed, never stored (fields above hold
+  // only genuine state) — these selectors are how DSL refs, StatusText,
+  // and orchestrators read it.
+  selectors: gradingSelectors(),
   attributes: z.object({
     ...problemAttributes.shape,
     displayName: z.string().optional().describe('Display name for the problem'),

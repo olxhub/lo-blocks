@@ -9,6 +9,9 @@ import { useEffect, useMemo } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { selectBlock } from '../state/olxjson';
+// blockData is a leaf module — importing state/redux here would close the
+// module cycle attributeSchemas → stateLanguage → hooks → redux → ... .
+import { RETURNS_BLOCK_DATA } from '../state/blockData';
 import type { FieldInfo, StateKey } from '../types';
 import type { References } from './references';
 import { EMPTY_REFS } from './references';
@@ -37,112 +40,71 @@ const EMPTY_CONTEXT: ContextData = {
 };
 
 // ---------------------------------------------------------------------------
-// Field materialization cache
 // ---------------------------------------------------------------------------
-// WeakMap keyed on raw Redux state objects. When a component's state object
-// has fields with `read` transforms (e.g., RgaDoc → string), we cache the
-// materialized version. Same raw input → same materialized output (referential
-// stability for useSelector equality checks). Entries are GC'd when the raw
-// state object is replaced (Redux immutability ensures old objects become
-// unreachable after state changes).
+// Bucket materialization
 // ---------------------------------------------------------------------------
-const _materializeCache = new WeakMap<object, object>();
+// The view a DSL reference sees is the block's OBSERVABLE state: stored
+// values decoded through field.read (e.g. RgaDoc → string), overlaid with
+// the block's computed fields (LoBlock.selectors — the getter half of the
+// getter/setter pattern; grading state is the canonical case). Generic:
+// this module knows nothing about grading — capabilities arrive as data on
+// the blueprint via props.runtime. Cached per Redux state object for
+// referential stability (selectors may depend on more than the one bucket).
+const _bucketViewCache = new WeakMap<object, Map<string, object>>();
 
-// ---------------------------------------------------------------------------
-// Grader state resolver (injected)
-// ---------------------------------------------------------------------------
-// Grading state for grader blocks is DERIVED, not stored (metagraders like
-// CapaProblem never write correct/message/score; immediate-mode leaf graders
-// derive from live input values — see lib/grading/selectGradingState.ts). DSL
-// expressions like when="@problem.correct === correctness.correct" must see
-// that derived state, so grader references resolve through this hook.
-// Injected by lib/grading at import time rather than imported statically:
-// olxdom → stateLanguage → grading → olxdom would be a module cycle.
-type GraderStateResolver = (state: any, props: any, stateKey: StateKey) => Record<string, any>;
-let _graderStateResolver: GraderStateResolver | null = null;
-export function registerGraderStateResolver(fn: GraderStateResolver) {
-  _graderStateResolver = fn;
-}
-
-// Merged bucket cache (same referential-stability contract as
-// _materializeCache, but keyed per Redux state object since the grading
-// overlay depends on more than the one bucket).
-const _graderOverlayCache = new WeakMap<object, Map<string, object>>();
-
-/** Overlay derived grading state onto a grader block's bucket. */
-function withDerivedGrading(
-  state: any,
-  props: any,
-  stateKey: StateKey,
-  bucket: any,
-): any {
-  if (!_graderStateResolver) return bucket;
-  const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
-  const sources = props.runtime.olxJsonSources ?? ['content'];
-  const locale = props.runtime.locale.code;
-  const blockNode = selectBlock(state, sources, definitionKey, locale);
-  const blockDef = blockNode ? props.runtime.blockRegistry[blockNode.tag] : null;
-  if (!blockDef?.isGrader) return bucket;
-
-  let byKey = _graderOverlayCache.get(state);
-  if (!byKey) { byKey = new Map(); _graderOverlayCache.set(state, byKey); }
-  const cached = byKey.get(stateKey);
-  if (cached) return cached;
-  const merged = { ...bucket, ..._graderStateResolver(state, props, stateKey) };
-  byKey.set(stateKey, merged);
-  return merged;
-}
-
-/**
- * Materialize a component's raw Redux state using the block's field definitions.
- * Returns the raw state unchanged if no fields have `read` transforms.
- * Caches results for referential stability (same raw input → same output).
- */
 function materializeComponentState(
   rawState: any,
   state: any,
   props: any,
   stateKey: StateKey
 ): any {
-  if (!rawState || typeof rawState !== 'object') return rawState;
-
-  // Check cache first
-  const cached = _materializeCache.get(rawState);
-  if (cached) return cached;
-
-  // Look up block type → field definitions
   const definitionKey = leafDefinitionKeyFromStateKey(stateKey);
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale.code;
   const blockNode = selectBlock(state, sources, definitionKey, locale);
-  // Use props.runtime.blockRegistry — no static import of BLOCK_REGISTRY to
-  // avoid circular dependency (hooks → blockRegistry → blocks → factory → state → hooks).
-  const registry = props.runtime.blockRegistry;
-  const blockDef = blockNode ? registry[blockNode.tag] : null;
+  // props.runtime.blockRegistry, not a static BLOCK_REGISTRY import — avoids
+  // the circular dependency hooks → blockRegistry → blocks → factory → state.
+  const blockDef = blockNode ? props.runtime.blockRegistry[blockNode.tag] : null;
+  if (!blockDef) return rawState;
+  const selectors = blockDef.selectors;
+  if (!selectors && (!rawState || typeof rawState !== 'object')) return rawState;
 
-  if (!blockDef?.fields) return rawState;
+  let byKey = _bucketViewCache.get(state);
+  if (!byKey) { byKey = new Map(); _bucketViewCache.set(state, byKey); }
+  const cached = byKey.get(stateKey);
+  if (cached) return cached;
 
-  // Check if any field has a read transform
-  let hasReaders = false;
-  for (const [fname, finfo] of Object.entries(blockDef.fields)) {
+  // Stored values, decoded via field.read where declared
+  const view = { ...(rawState && typeof rawState === 'object' ? rawState : {}) };
+  for (const [fname, finfo] of Object.entries(blockDef.fields ?? {})) {
     const fi = finfo as FieldInfo;
-    if (fi.type === 'field' && fi.read && rawState[fname] !== undefined) {
-      hasReaders = true;
-      break;
+    if (fi.type === 'field' && fi.read && view[fname] !== undefined) {
+      view[fname] = fi.read(view[fname]);
     }
   }
-  if (!hasReaders) return rawState;
 
-  // Apply reads
-  const materialized = { ...rawState };
-  for (const [fname, finfo] of Object.entries(blockDef.fields)) {
-    const fi = finfo as FieldInfo;
-    if (fi.type === 'field' && fi.read && materialized[fname] !== undefined) {
-      materialized[fname] = fi.read(materialized[fname]);
+  // Computed fields overlaid — target props from the static DOM (the DSL
+  // never touches the dynamic DOM), same shape as grading's staticProps
+  if (selectors) {
+    const targetProps = {
+      ...blockNode!.attributes,
+      id: definitionKey,
+      kids: blockNode!.kids ?? [],
+      loBlock: blockDef,
+      fields: blockDef.fields || {},
+      locals: blockDef.locals || {},
+      runtime: props.runtime,
+      nodeInfo: undefined,
+    };
+    for (const [name, select] of Object.entries(selectors) as [string, (s: any, p: any, k: StateKey) => unknown][]) {
+      const raw = select(state, targetProps as any, stateKey);
+      // withStatus selectors return BlockDataResult — the DSL wants the value.
+      view[name] = (select as any)[RETURNS_BLOCK_DATA] ? (raw as any)?.value : raw;
     }
   }
-  _materializeCache.set(rawState, materialized);
-  return materialized;
+
+  byKey.set(stateKey, view);
+  return view;
 }
 
 /**
@@ -231,15 +193,10 @@ export function selectReferences(
     // Resolve the key to a Redux key (handles relative vs absolute paths)
     const stateKey = resolveToStateKey(props, key);
     const rawState = state?.application_state?.component?.[stateKey];
-    // Materialize field values (e.g., RgaDoc → string) using block's field definitions.
-    // Returns rawState unchanged if no fields have read transforms.
-    // Cached per raw state object for referential stability.
-    // Grader blocks additionally get derived grading state overlaid
-    // (correct/message/score/submitCount are computed, not stored).
-    componentState[key] = withDerivedGrading(
-      state, props, stateKey,
-      materializeComponentState(rawState, state, props, stateKey),
-    );
+    // The block's observable state: stored values decoded via field.read,
+    // computed fields (blueprint selectors) overlaid. Cached per state
+    // object for referential stability.
+    componentState[key] = materializeComponentState(rawState, state, props, stateKey);
   }
 
   // Resolve OLX content references (#)

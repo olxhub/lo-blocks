@@ -628,6 +628,16 @@ export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
 /** The contract for a block's action (the action()/grader() mixins). */
 export type BlockAction = (context: { props: RuntimeProps }) => unknown | Promise<unknown>;
 
+/**
+ * A blueprint field selector — the getter half of the getter/setter
+ * pattern (selectValue generalized): a block's observable field may be
+ * COMPUTED rather than stored. Pure, synchronous, side-effect-free
+ * function of the Redux snapshot; never initiates loads. `props` are the
+ * TARGET block's props. Setters, when needed, translate assignment into
+ * events — they never mutate Redux directly.
+ */
+export type FieldSelector = (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown;
+
 /** Everything the grading pipeline needs from a leaf grader blueprint
  *  outside its dispatching action. Set by the grader() mixin. */
 export interface GradingDescriptor {
@@ -664,6 +674,14 @@ export const BlockBlueprintSchema = z.object({
   ensureReady: z.custom<() => Promise<void>>().optional(),
   action: z.custom<BlockAction>().optional(),
   isGrader: z.boolean().optional().default(false),
+  /**
+   * Computed fields, by name (see FieldSelector). Cross-block reads
+   * (fieldSelector with a stateKey, the state language, valueSelector)
+   * consult these before stored state; a block's own internal reads go
+   * straight to its backing store. The grader() mixin and the metagraders
+   * declare the grading quartet here; inputs declare `value`.
+   */
+  selectors: z.custom<Record<string, FieldSelector>>().optional(),
   /**
    * Grading descriptor (set by the grader() mixin) — everything the grading
    * pipeline needs outside the dispatching action: `fn` (the raw grade
@@ -706,7 +724,6 @@ export const BlockBlueprintSchema = z.object({
   staticKids: z.function().args(z.any()).returns(z.array(z.string())).optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
-  selectValue: z.function().optional(),
   /**
    * Advance the block's internal state by one step (e.g. next dialogue line,
    * next sequence item).  Called by the advance tree walker (lib/advance.ts).
@@ -882,7 +899,6 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  *
  * For blocks using withStatus, the return type is BlockDataResult & { value }.
  */
-export type ValueSelectorFn = (props: RuntimeProps, state: any, stateKey: StateKey) => any;
 
 export interface LoBlock {
   /** Eager component. Set when the blueprint declared one, or after this
@@ -915,7 +931,6 @@ export interface LoBlock {
   parser?: Function;
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
-  selectValue?: ValueSelectorFn;
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */
   advance?: (props: RuntimeProps, state: any) => boolean;
   /** Can this block advance? See BlockBlueprintSchema.canAdvance for semantics. */
@@ -928,6 +943,8 @@ export interface LoBlock {
   isInput: boolean;
   isMatch: boolean;
   isGrader: boolean;
+  /** Computed fields by name — see BlockBlueprintSchema.selectors. */
+  selectors?: Record<string, FieldSelector>;
   /** Grading descriptor (grader() mixin) — see BlockBlueprintSchema.grading. */
   grading?: GradingDescriptor;
   /** Input commits on change (radio/dropdown) — immediate mode may show incorrect instantly. */

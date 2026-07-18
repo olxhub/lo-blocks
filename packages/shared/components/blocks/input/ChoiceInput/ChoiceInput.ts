@@ -23,8 +23,8 @@ const ChoiceInput = core({
   description: 'Single-select (radio button) input collecting student selection from Key/Distractor options. Value is a string.',
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => {
-    return fieldSelector(state, props, fields.value, { fallback: '' });
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
   },
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

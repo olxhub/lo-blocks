@@ -27,9 +27,8 @@ export { grader } from './submitGrade';
 export type { GradingState } from './model';
 
 // Grading-state read model — the single read point for grader state
-export { selectGradingState } from './selectGradingState';
+export { selectGradingState, gradingSelectors } from './selectGradingState';
 export { useGradingState } from './useGradingState';
-export { registerGradingResolvers } from './registerResolvers';
 
 // Numerical grading
 export {

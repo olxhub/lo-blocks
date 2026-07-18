@@ -13,11 +13,12 @@ const Collapsible = dev({
   name: 'Collapsible',
   description: 'Collapsible section with expandable/collapsible content',
   fields: fields,
-  // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, _stateKey) => {
-    const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
-    return { expanded };
-  }) as any,
+  selectors: {
+    value: (state, props, _stateKey) => {
+      const expanded = fieldSelector(state, props, fields.expanded, { fallback: false });
+      return { expanded };
+    },
+  },
   attributes: z.object({
     label: z.string().optional().describe('Header text for the collapsible section (alias for title)'),
   }).strict(),

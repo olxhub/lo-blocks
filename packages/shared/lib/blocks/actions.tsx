@@ -18,7 +18,7 @@
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './dynamicDom';
 import { inputAttributes } from './attributeSchemas';
-import type { BlockAction, RuntimeProps, LoBlock, ValueSelectorFn } from '@/lib/types';
+import type { BlockAction, RuntimeProps, LoBlock } from '@/lib/types';
 
 // Mix-in to make a block an action
 export function action({ action }: { action: BlockAction }) {
@@ -48,11 +48,12 @@ export function isAction(loBlock: LoBlock): boolean {
  * This enables plug-and-play composition: course authors can pair any
  * compatible input with any compatible grader.
  */
-export function input(opts: { selectValue?: ValueSelectorFn; valueSchema?: z.ZodType } = {}) {
+export function input(opts: { valueSchema?: z.ZodType } = {}) {
   // Everything the helper contributes is packaged as an `inputMixin` layer.
   // createBlock's composition pass merges this layer into the final blueprint,
-  // so callers get `isInput`, `slot` attribute, and any `selectValue`/`valueSchema`
-  // without declaring them at the top level themselves.
+  // so callers get `isInput`, the `slot` attribute, and any `valueSchema`
+  // without declaring them at the top level themselves. Computed values are
+  // declared via the top-level `selectors: { value }` blueprint axis.
   return {
     inputMixin: {
       ...opts,

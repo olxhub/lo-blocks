@@ -20,13 +20,15 @@ const CheckboxInput = core({
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => {
-    const value = fieldSelector(state, props, fields.value, { fallback: [] });
-    // Ensure array even if stored value was a string (migration case)
-    if (!Array.isArray(value)) {
-      return value ? [value] : [];
-    }
-    return value;
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => {
+      const value = fieldSelector(state, props, fields.value, { fallback: [] });
+      // Ensure array even if stored value was a string (migration case)
+      if (!Array.isArray(value)) {
+        return value ? [value] : [];
+      }
+      return value;
+    },
   },
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

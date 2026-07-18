@@ -21,10 +21,10 @@ export function blockData(status: BlockDataStatus, error?: string): BlockDataRes
 }
 
 /**
- * Symbol marking a selectValue function that returns BlockDataResult & { value }.
+ * Symbol marking a value selector that returns BlockDataResult & { value }.
  *
- * Most blocks' selectValue returns a raw value — the system wraps it.
- * Blocks that need to signal loading/error (like Ref) wrap their selectValue
+ * Most blocks' selectors.value returns a raw value — the system wraps it.
+ * Blocks that need to signal loading/error (like Ref) wrap their value selector
  * with `withStatus()` so the system knows to pass the result through as-is.
  */
 export const RETURNS_BLOCK_DATA: unique symbol = Symbol('returnsBlockData');

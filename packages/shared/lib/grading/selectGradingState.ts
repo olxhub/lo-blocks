@@ -103,7 +103,8 @@ function readStoredGradingState(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
 ): GradingState {
   const read = <T,>(name: 'correct' | 'message' | 'score' | 'submitCount', fallback: T): T =>
-    fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback });
+    // stored: this IS the selector implementation reading its backing store
+    fieldSelector(state, props, gradingField(loBlock, name), { stateKey, fallback, stored: true });
   return {
     correct: read('correct', correctness.unsubmitted),
     message: read('message', ''),
@@ -150,5 +151,34 @@ export function selectGradingState(
   props: RuntimeProps,
   graderStateKey: StateKey,
 ): GradingState {
-  return computeGradingState(state, props, graderStateKey);
+  // Memoized per Redux state object: sound because this is a pure function
+  // of the snapshot (static topology — the dynamic DOM is not an input),
+  // and necessary because the four per-field blueprint selectors below
+  // share one derivation.
+  let byKey = _memo.get(state as object);
+  if (!byKey) { byKey = new Map(); _memo.set(state as object, byKey); }
+  const cached = byKey.get(graderStateKey);
+  if (cached) return cached;
+  const result = computeGradingState(state, props, graderStateKey);
+  byKey.set(graderStateKey, result);
+  return result;
+}
+
+const _memo = new WeakMap<object, Map<StateKey, GradingState>>();
+
+/**
+ * The grading quartet as blueprint selectors — declared by the grader()
+ * mixin and the metagraders. All four route through selectGradingState,
+ * whose strategies (stored / immediate / aggregate) stay grading-internal.
+ */
+export function gradingSelectors(): Record<string, (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown> {
+  const field = (name: keyof GradingState) =>
+    (state: unknown, props: RuntimeProps, stateKey: StateKey) =>
+      selectGradingState(state, props, stateKey)[name];
+  return {
+    correct: field('correct'),
+    message: field('message'),
+    score: field('score'),
+    submitCount: field('submitCount'),
+  };
 }

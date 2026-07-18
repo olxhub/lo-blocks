@@ -56,9 +56,11 @@ const MatchingInput = dev({
   name: 'MatchingInput',
   description: 'Match items from left column to right column',
   fields,
-  selectValue: (props: RuntimeProps, reduxState, _stateKey) => ({
-    arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
-  }),
+  selectors: {
+    value: (reduxState, props: RuntimeProps, _stateKey) => ({
+      arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
+    }),
+  },
   attributes: z.object({
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle right side items initially (default: true)'),
   }).strict(),

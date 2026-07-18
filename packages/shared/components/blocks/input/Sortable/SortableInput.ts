@@ -19,9 +19,11 @@ const SortableInput = core({
   name: 'SortableInput',
   description: 'Drag-and-drop sortable input for ordering tasks',
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => ({
-    arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
-  }),
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => ({
+      arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
+    }),
+  },
   attributes: z.object({
     dragMode: z.enum(['whole', 'handle']).optional().describe('Drag mode: "whole" (entire item) or "handle" (handle only)'),
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle items initially (default: true)'),
