@@ -82,7 +82,7 @@ function readGraderInput(props: RuntimeProps, state: unknown, stateKey: StateKey
   const loBlock = props.runtime.blockRegistry[olxJson.tag];
   const inputProps = staticProps(props, defKey, olxJson, loBlock);
 
-  // valueSelector for uniform handling of withStatus / raw selectValue
+  // valueSelector for uniform handling of withStatus / raw selectors.value
   const { value } = valueSelector(inputProps, state, stateKey);
 
   // Bound API from locals — each function gets (props, state, id) pre-bound

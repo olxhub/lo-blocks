@@ -1,39 +1,39 @@
 // packages/shared/lib/state/redux.ts
 //
-// Redux integration layer - React hooks and utilities for accessing Learning Observer state.
+// Redux integration layer — field reads and writes for Learning Observer state.
 //
-// Provides the interface between React components and the Redux store, with
-// Learning Observer-specific features:
-// - Field-based selectors that understand scoping and ID resolution
-// - Automatic state updates through lo_event logging
-// - Input-specific hooks for form controls with selection tracking
-// - Type-safe state access with fallback values
+// THE THREE READ LEVELS (example: TextArea's `value`, backed by a docField):
 //
-// Key functions:
-// - `useFieldSelector`: Get state values with automatic re-rendering
-// - `updateField`: Update state and trigger analytics logging
-// - `fieldSelector`: Core selector logic for different state scopes
+//   level | selector (state, …)  | non-hook getter | returns                       | example
+//   ------+----------------------+-----------------+-------------------------------+----------------------------
+//     1   | rawFieldSelector     | getRawField     | storage representation        | RgaDoc ops
+//     2   | decodedFieldSelector | getDecodedField | field.read applied            | "hello world"
+//     3   | fieldSelector        | getField        | OBSERVABLE: getter ?? decoded | "hello world" or kids-fallback
 //
-// The system bridges the educational semantics (fields, scopes, analytics)
-// with standard React patterns, making it easy for block developers to
-// build stateful learning components.
+// One meaning per name: a read's level is chosen at the call site BY FUNCTION
+// NAME, never by an option. Qualifier monotonicity: each level strictly strips
+// interpretation from the one below it — 2 is 1 plus field.read, 3 is 2 plus
+// the blueprint getter. fieldSelector is identical for own-block and
+// cross-block reads (no stateKey-presence routing).
 //
+// LAYERING RULE: level 3 is the only read block-facing code uses — components,
+// the state language, orchestrators, actions. Levels 1–2 are storage-layer
+// tools: selector implementations reading their own backing field, write-path
+// diffing (updateField's oldRaw), persistence/sync, and the DOM↔storage
+// editing binding (lib/state/bindings/useInputField).
 //
-// Design:
+// Value brands enforce the levels at compile time: level 1 returns
+// RawFieldValue<T>, level 3 returns ObservableValue<T>, level 2 the plain
+// interior — flow diagram and cast doctrine in lib/types/fieldValues.ts.
 //
-// There should be a hierarchy of **selectors** usable within hooks.
+// Getters (blueprint `selectors`) come in three declaration forms — see
+// FieldSelector in lib/types/core.ts. Reads obey the pipeline law everywhere:
+// subscribe cheap → gate on equality → interpret after the gate
+// (useFieldSelector's docstring has the mechanics; do not "simplify" it to
+// wrap fieldSelector).
 //
-// For each selector, there should be two functions, a hook and a
-// functional version, e.g.
-//
-// fieldSelector
-// - useField (reactive hook version)
-// - getField (functional version, used e.g. inside of an action, grader, or callback)
-//
-// These should be grouped together. The hook and function should be thin wrappers for
-// the selector. The selector is where all logic happens.
-//
-// TODO: Clean up code to reflect the design.
+// Writes flow through one path: updateField (useFieldState's setter,
+// useInputField's onChange) → field.write → dispatchFieldEvent.
 
 'use client';
 
@@ -80,16 +80,10 @@ export interface SelectorOptions<T> {
   equalityFn?: (a: T, b: T) => boolean;
 }
 
-// The three read levels. One meaning per function name; the level is chosen at
-// the call site by the name, never by an option:
-//   1 rawFieldSelector     — storage representation (no decode, no getter)
-//   2 decodedFieldSelector — field.read applied (no getter)
-//   3 fieldSelector        — observable value: blueprint getter ?? decoded
-// Each level strictly strips interpretation from the one above. Level 3 is the
-// only one block-facing code reads; levels 1–2 are storage-layer tools
-// (selector implementations, write-path diffing, the DOM↔storage editing
-// binding). All three accept BaselineProps or RuntimeProps: component/storage
-// scope needs id/nodeInfo for ID resolution, system scope needs only the field.
+// The three read levels — table, layering rule, and monotonicity invariant in
+// the module header above. All three accept BaselineProps or RuntimeProps:
+// component/storage scope needs id/nodeInfo for ID resolution, system scope
+// needs only the field.
 
 /**
  * Level 1 — the raw backing store for a field: no field.read, no blueprint

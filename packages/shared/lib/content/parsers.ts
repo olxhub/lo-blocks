@@ -524,17 +524,9 @@ const textWithTargetParserMixin = {
   //   <Mermaid>graph TD; A --> B</Mermaid>
   // form render before anyone has written to the value field, and what
   // makes a `<Ref target="myMermaid">` see the diagram's current text.
-  //
-  // TODO: This selectValue is a stopgap living at the *value* field
-  // only. It lets `<Ref>` and any other `valueSelector` consumer read
-  // a sensible "current displayed value" off this block — Redux value
-  // when set, kids when not. But sibling actions like CopyFieldAction,
-  // SetFieldAction, LLMAction read fields via raw `getField` and so
-  // bypass selectValue entirely. They see "" for an unset value field
-  // even when the rendered block clearly shows kids text. (See
-  // MermaidPublish.olx — click Publish before editing and watch the
-  // published diagram clear.)
-  //
+  // Every level-3 reader — `<Ref>`, valueSelector consumers, actions like
+  // CopyFieldAction via getField — sees this same observable value; the
+  // days of actions bypassing the getter and copying "" are over.
   selectors: {
     value: (reduxState: any, props: RuntimeProps, id: StateKey) => {
       const kids = typeof props.kids === 'string' ? props.kids : '';

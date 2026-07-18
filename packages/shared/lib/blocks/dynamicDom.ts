@@ -233,7 +233,7 @@ export function getDomNodeByStateKey(props: RuntimeProps, key: StateKey): OlxDom
  *
  * The OlxDomNode already carries the block's OlxJson, LoBlock, and runtime
  * context — this just reshapes them into the props object that blueprint
- * functions (advance, canAdvance, action, selectValue) expect.
+ * functions (advance, canAdvance, action, selectors.value) expect.
  */
 export function propsFromNode(node: OlxDomNode): RuntimeProps {
   const { olxJson, loBlock, runtime } = node;
@@ -381,7 +381,7 @@ export function getValueById(props: RuntimeProps, id: DefinitionRef | null | und
   const reduxState = props.runtime.store.getState();
   const stateKey = id ? scopedStateKeyForBlock({ ...props, id }) : null;
 
-  // valueSelector handles content lookup and selectValue dispatch.
+  // valueSelector handles content lookup and selectors.value dispatch.
   // Unwrap .value — non-hook callers get the raw value (by the time actions
   // run, content should be loaded; if not, they get the fallback).
   return state.valueSelector(props, reduxState, stateKey).value;

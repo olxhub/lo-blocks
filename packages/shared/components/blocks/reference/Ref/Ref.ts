@@ -11,7 +11,7 @@ import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/l
 
 /**
  * Convert any value to a string representation for display.
- * Used by both selectValue (for programmatic access) and _Ref (for rendering).
+ * Used by both selectors.value (for programmatic access) and _Ref (for rendering).
  */
 export function formatRefValue(val, fallback = '') {
   if (val === null || val === undefined) {

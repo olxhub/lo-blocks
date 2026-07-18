@@ -10,7 +10,7 @@ import type { MatchingArrangement, MatchingGradingResult } from './types';
  * Called by the grader framework with (props, { input, inputApi })
  *
  * @param props Grader props
- * @param input Object containing arrangement from MatchingInput.selectValue()
+ * @param input Object containing arrangement from MatchingInput's selectors.value
  * @param inputApi API from MatchingInput with getCorrectArrangement method
  * @returns Object with correct, score, message
  */
