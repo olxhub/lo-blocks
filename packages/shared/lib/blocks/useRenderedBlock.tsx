@@ -102,6 +102,27 @@ function stateBlockData(
  * useRenderedBlock/Multi call it internally — most code never touches
  * it directly.
  */
+/**
+ * Aggregate the state gate over a closure's keys: any failure wins
+ * (surface it), else any non-ready key holds the gate, else null (ready).
+ * The one aggregation both instance hooks share.
+ */
+function closureObjection(
+  state: any,
+  keys: StateKey[],
+  policy: FreshnessPolicy | undefined,
+): BlockDataResult | null {
+  let gate: BlockDataResult | null = null;
+  for (const key of keys) {
+    const fresh = selectFieldFreshness(state, key, { policy });
+    const objection = stateBlockData(fresh, key,
+      fresh === 'failed' ? selectFieldAttempt(state, key) : undefined);
+    if (objection?.error) return objection;
+    gate ??= objection;
+  }
+  return gate;
+}
+
 export function useInstanceState(
   props: RuntimeProps,
   rootKey: StateKey | null,
@@ -111,17 +132,7 @@ export function useInstanceState(
     (state: any) => {
       if (!rootKey) return { keys: [] as StateKey[], gate: null as BlockDataResult | null };
       const keys = selectInstanceStateKeys(state, props, rootKey, source);
-      // Aggregate: any failure wins (surface it), else any non-ready
-      // key holds the gate, else ready.
-      let gate: BlockDataResult | null = null;
-      for (const key of keys) {
-        const fresh = selectFieldFreshness(state, key, { policy });
-        const objection = stateBlockData(fresh, key,
-          fresh === 'failed' ? selectFieldAttempt(state, key) : undefined);
-        if (objection?.error) { gate = objection; break; }
-        gate ??= objection;
-      }
-      return { keys, gate };
+      return { keys, gate: closureObjection(state, keys, policy) };
     },
     (a, b) => a.keys.length === b.keys.length
       && a.gate?.status === b.gate?.status && a.gate?.error === b.gate?.error
@@ -236,14 +247,7 @@ export function useRenderedBlockMulti(
       const defRef = leafDefinitionKeyFromStateKey(key);
       const olx = selectOlxJson(state, props, defRef, source);
       const closureKeys = selectInstanceStateKeys(state, props, key, source);
-      let stateObjection: BlockDataResult | null = null;
-      for (const closureKey of closureKeys) {
-        const fresh = selectFieldFreshness(state, closureKey, { policy });
-        const objection = stateBlockData(fresh, closureKey,
-          fresh === 'failed' ? selectFieldAttempt(state, closureKey) : undefined);
-        if (objection?.error) { stateObjection = objection; break; }
-        stateObjection ??= objection;
-      }
+      const stateObjection = closureObjection(state, closureKeys, policy);
       return {
         key,
         olxJson: olx.olxJson,
