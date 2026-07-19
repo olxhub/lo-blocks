@@ -14,6 +14,11 @@ export const fields = state.fields([
   'dragOverIndex'  // Index of drop target
 ]);
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh [] fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_ARRANGEMENT: string[] = [];
+
 const SortableInput = core({
   ...parsers.blocks(), // Handle child blocks
   ...input(),
@@ -23,7 +28,7 @@ const SortableInput = core({
   selectors: {
     value: {
       select: (state, props: RuntimeProps, _stateKey) => ({
-        arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
+        arrangement: fieldSelector(state, props, fields.arrangement, { fallback: EMPTY_ARRANGEMENT })
       }),
       // Fresh object per evaluation — subscribers gate on content.
       equality: shallowEqual,

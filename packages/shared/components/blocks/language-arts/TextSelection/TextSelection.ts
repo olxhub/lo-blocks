@@ -20,6 +20,11 @@ export const fields = state.fields([
   'checked',               // Whether graded mode has been checked
 ]);
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh [] fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_SELECTIONS: unknown[] = [];
+
 const TextSelection = test({
   ...peggyParser(parser),
   ...blocks.input({
@@ -28,7 +33,7 @@ const TextSelection = test({
     value: {
       select: (state, props, _stateKey) => {
         // All cross-field reads (the getter is purely derived — no self-read).
-        const selections = fieldSelector(state, props, fields.selections, { fallback: [] });
+        const selections = fieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS });
         const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
         const score = fieldSelector(state, props, fields.score, { fallback: 0 });
         return { selections, attempts, score };

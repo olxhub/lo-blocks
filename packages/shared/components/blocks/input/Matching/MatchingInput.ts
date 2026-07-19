@@ -51,6 +51,11 @@ function getCorrectArrangement(props: RuntimeProps) {
   return correct;
 }
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh {} fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_ARRANGEMENT: Record<string, string> = {};
+
 const MatchingInput = dev({
   ...parsers.blocks(), // Handle child blocks
   ...input(),
@@ -60,7 +65,7 @@ const MatchingInput = dev({
   selectors: {
     value: {
       select: (reduxState, props: RuntimeProps, _stateKey) => ({
-        arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
+        arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: EMPTY_ARRANGEMENT })
       }),
       // Fresh object per evaluation — subscribers gate on content.
       equality: shallowEqual,
