@@ -358,8 +358,19 @@ export class UserStateRegistry {
     }
     if (cold.length > 0) {
       const stored = await this.storedBuckets(user, cold);
+      // Residency RECHECKED after the await: an event's dispatch gate may
+      // have made a cold bucket resident while storage was read. Once its
+      // adoption has landed, the live fold is authoritative — answering
+      // with our stored copy would hand the client a regressed bucket
+      // (sharedComponent adoption is server-wins, so a late fetch response
+      // would overwrite a newer socket patch; found by review 2026-07).
+      // Mid-adoption (resident claimed, nothing adopted yet) the stored
+      // copy IS the gate's baseline — same bytes, safe to answer with.
+      const liveNow = (live.serverState.state as Record<string, any>).component ?? {};
       for (const id of cold) {
-        if (stored[id] !== undefined) {
+        if (live.resident.has(id) && liveNow[id] !== undefined) {
+          out[id] = liveNow[id];
+        } else if (stored[id] !== undefined) {
           out[id] = stored[id];
           this.warm(live, id, stored[id]); // handoff; no-op if now resident
         }

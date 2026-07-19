@@ -62,6 +62,38 @@ test('a non-resident bucket reads straight from storage', async () => {
   await entry.release();
 });
 
+test('a bucket that turns RESIDENT during the storage read answers with its live value', async () => {
+  // The race (found by review 2026-07): readBuckets partitions a bucket
+  // as cold and awaits storage; meanwhile an event's dispatch gate makes
+  // the bucket resident and folds. The response must carry the LIVE fold
+  // — the client's sharedComponent adoption is server-wins, so a stale
+  // late response would overwrite the newer socket patch.
+  const kvs = new MemoryKVStore();
+  await storeBucket(kvs, 'poll1', { value: 'stored' });
+
+  // Hold getMany (the cold-read path) open; get() — the gate's read —
+  // stays fast, so the gate can win the race mid-await.
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  const baseGetMany = kvs.getMany.bind(kvs);
+  kvs.getMany = async (keys) => { await gate; return baseGetMany(keys); };
+
+  const registry = new UserStateRegistry(kvs);
+  const entry = registry.acquire(ALL);
+
+  const pending = registry.readBuckets(ALL, ['poll1']);
+  await entry.ensureBucketLoaded('poll1'); // the gate wins the race
+  entry.serverState.dispatch({
+    event: 'UPDATE_VALUE', field: 'value', scope: 'component',
+    id: 'poll1', value: 'live fold', ts: 1, actor: 'x',
+  });
+  release();
+
+  const buckets = await pending;
+  expect(buckets.poll1.value).toBe('live fold');
+  await entry.release();
+});
+
 test('ROGUE REDUCER: an ungated fold warns loudly and the repair keeps stored fields', async () => {
   // INV-1 rests on "an event with an id writes only component[event.id]".
   // If a reducer instead dirties some OTHER, never-gated bucket, the
