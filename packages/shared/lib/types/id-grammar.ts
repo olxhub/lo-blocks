@@ -878,12 +878,7 @@ export function stateKeyForGlobalRef(
  *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
  */
 export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
-  const { path } = splitNs(key);
-  const leaf = leafBlock(path);
-  // Only the plain trailing-leaf shape has a derivable prefix; a container's
-  // own key ("list:#0") has no leaf suffix to strip.
-  if (leaf === path || !path.endsWith(`${SCOPE_SEPARATOR}${leaf}`)) return undefined;
-  return asIdPrefix(path.slice(0, path.length - leaf.length - SCOPE_SEPARATOR.length));
+  return splitScope(key).idPrefix;
 }
 
 /**
