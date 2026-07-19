@@ -270,6 +270,41 @@ describe('grading dispatches per-field events', () => {
     });
   });
 
+  it('RulesGrader matches rules wrapped in a block container (wrapper-transparent descent)', async () => {
+    // The StringMatch sits inside a <Vertical> — a non-match, non-grader BLOCK
+    // kid. A walk that stopped at non-match blocks would skip it and fall
+    // through to DefaultMatch (incorrect); wrapper-transparent descent through
+    // the block's static kids finds it (the boundary is a nested grader, which
+    // a plain layout wrapper is not).
+    const RULES_BLOCK_OLX = `<CapaProblem id="RulesBlockWrap" title="Derivative">
+      <RulesGrader>
+        <Vertical><StringMatch answer="2x" score="1" feedback="Correct!"/></Vertical>
+        <DefaultMatch score="0" feedback="Nope"/>
+        <LineInput/>
+      </RulesGrader>
+    </CapaProblem>`;
+    const { reduxStore, container, getByText } = await mountProblem(RULES_BLOCK_OLX);
+    const scopedKey = (suffix: string) => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      return Object.keys(comp).find(k => k.includes('RulesBlockWrap') && k.endsWith(suffix));
+    };
+
+    const input = container.querySelector('input[type="text"], input:not([type])') as HTMLInputElement;
+    expect(input).toBeTruthy();
+    fireEvent.change(input, { target: { value: '2x' } });
+    await waitFor(() => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_input_0');
+      expect(key && comp[key]?.value).toBe('2x');
+    });
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_grader_0');
+      expect(key && comp[key]?.correct).toBe('correct');
+    });
+  });
+
   it('immediate mode derives correctness from live input values', async () => {
     const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
 

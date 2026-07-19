@@ -28,6 +28,7 @@ import {
   readGradingField, readStoredGradingState,
 } from './gradingStore';
 import type { PendingGrade } from './gradingStore';
+import { schedulePendingTimeout } from './pendingTimeout';
 import { childGraderStateKeys, gradeModeOf } from './topology';
 import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
 import type { GraderInput, GradingResult, GradingState } from './model';
@@ -132,12 +133,19 @@ function deriveImmediateState(
  * unlock and a fresh submit overwrites the stale pendingGrade record — and the
  * learner sees a try-again message.
  *
- * PURITY: the flip is evaluated at READ TIME from Date.now() — there is no
- * timer. Any dispatch/render after the deadline sees the failed state; one that
- * lands before it still sees pending. That is acceptable, documented UX, not a
- * bug. (selectGradingState memoizes on the state object, so within one state
- * generation Date.now() is sampled once and the flip is observed on the next
- * dispatch — the same read-time granularity.)
+ * PURITY: the flip is evaluated at READ TIME from Date.now() — the derivation
+ * itself owns no timer. Any dispatch/render after the deadline sees the failed
+ * state; one that lands before it still sees pending. selectGradingState no
+ * longer PINS a still-pending result in its memo (see there), so every read
+ * re-samples Date.now() — the flip is observed the instant a read happens past
+ * the deadline. What makes a read happen at the deadline is the ONE pragmatic
+ * side effect: while the record is still fresh we ensure a browser timer exists
+ * (schedulePendingTimeout) that will dispatch PENDING_GRADE_TIMEOUT then. This
+ * covers RELOAD (a stranded record read on a fresh page arms its own timer);
+ * submitGrade's phase-1 arms the same timer in-session. The scheduler is a
+ * browser-only no-op in headless/node grading (analytics, replay, server), and
+ * arming it here is the same class of read-time impurity the Date.now() read
+ * already is — documented, bounded, not a bug.
  */
 function readStoredLeafState(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
@@ -148,7 +156,13 @@ function readStoredLeafState(
   const pending = readGradingField<PendingGrade | undefined>(
     state, props, stateKey, loBlock, 'pendingGrade', undefined);
   const fresh = pending && (Date.now() - pending.submittedAt) < PENDING_GRADE_TIMEOUT_MS;
-  if (fresh) return stored;
+  if (fresh) {
+    // Still pending: guarantee the deadline will fire a dispatch so this
+    // derivation is re-read and the UI unlocks even if nothing else moves the
+    // store. Browser-only, deduped per stateKey (see pendingTimeout.ts).
+    schedulePendingTimeout(props, stateKey, pending.submittedAt + PENDING_GRADE_TIMEOUT_MS);
+    return stored;
+  }
 
   return {
     ...stored,
@@ -210,7 +224,15 @@ export function selectGradingState(
   const cached = byKey.get(graderStateKey);
   if (cached) return cached;
   const result = computeGradingState(state, props, graderStateKey);
-  byKey.set(graderStateKey, result);
+  // A still-pending result ('submitted') is TIME-DEPENDENT: it flips to
+  // failed-retryable the moment Date.now() crosses the deadline (see
+  // readStoredLeafState). Pinning it in this per-state memo would keep
+  // handing back 'submitted' for reads within the SAME state generation even
+  // after the deadline — the memo would out-live the value's truth. So cache
+  // everything terminal and re-derive pending on each read (cheap, and it
+  // re-samples the clock); the scheduled PENDING_GRADE_TIMEOUT dispatch is what
+  // forces a read once the deadline arrives.
+  if (result.correct !== correctness.submitted) byKey.set(graderStateKey, result);
   return result;
 }
 

@@ -19,8 +19,9 @@ import type {
 import {
   prepareGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
-import { gradingField, readGradingField } from './gradingStore';
+import { gradingField, readGradingField, PENDING_GRADE_TIMEOUT_MS } from './gradingStore';
 import type { PendingGrade } from './gradingStore';
+import { schedulePendingTimeout, clearPendingTimeout } from './pendingTimeout';
 import { gradingSelectors, selectGradingState } from './selectGradingState';
 
 /** Blank and malformed submissions don't consume attempts (countsAsAttempt). */
@@ -145,6 +146,13 @@ async function runSubmission(
     const pending: PendingGrade = { id: mintPendingGradeId(), submittedAt: Date.now() };
     updateField(props, gradingField(loBlock, 'pendingGrade'), pending, { stateKey });
     updateField(props, gradingField(loBlock, 'correct'), correctness.submitted, { stateKey });
+    // In-session liveness: if the grader HANGS (a Promise that never settles),
+    // no result dispatch will ever land to re-read the derivation and unlock
+    // the inputs. Arm the deadline timer now (browser-only, deduped) so the
+    // stranded-pending flip fires even then. A grader that DOES settle clears
+    // this below, before the timer fires. (readStoredLeafState arms the same
+    // timer on reload, when this call site is gone.)
+    schedulePendingTimeout(props, stateKey, pending.submittedAt + PENDING_GRADE_TIMEOUT_MS);
   }
 
   const result = await evaluateSubmission(preparation);
@@ -162,6 +170,10 @@ async function runSubmission(
     // (persistGradeResult writes it last) so no reader ever sees the
     // 'submitted'+no-record shape that the timeout derivation reads as failed.
     updateField(props, gradingField(loBlock, 'pendingGrade'), undefined, { stateKey });
+    // Cancel the in-session deadline timer we armed at phase 1: the grade
+    // landed, so its dispatch would now be a needless (confusing) analytics
+    // event minutes later.
+    clearPendingTimeout(stateKey);
   }
   return result.correct;
 }

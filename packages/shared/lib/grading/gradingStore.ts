@@ -29,15 +29,20 @@ export type GradingFieldName = typeof GRADING_STATE_FIELDS[number] | 'lastSubmis
  *   │ Today `id` is a client-minted GUID and the only async grader is      │
  *   │ client-side (callLLMSimple): a reload kills the request, so the      │
  *   │ pending record strands and the timeout below is what unlocks retry.  │
+ *   │ Liveness for that unlock is a CLIENT timer that dispatches a         │
+ *   │ PENDING_GRADE_TIMEOUT event at the deadline (lib/grading/            │
+ *   │ pendingTimeout.ts) — pure client scaffolding for a request the       │
+ *   │ client itself was awaiting.                                          │
  *   │                                                                      │
  *   │ The B end state: `id` becomes a DURABLE SERVER JOB ID. This field is │
  *   │ server-shared state (the direction is client read-only) — the        │
  *   │ server writes the record when it enqueues the job and writes the     │
  *   │ result when the job finishes. On reload the client RE-ATTACHES by    │
- *   │ polling the job named by `id` instead of deriving failure. Timeout   │
- *   │ and retry stop being the module constant below and become            │
- *   │ module-contributed PMSS policy, overrideable at the server level.    │
- *   │ Keep this field the single home for that state as it grows.          │
+ *   │ polling the job named by `id` instead of deriving failure — so the   │
+ *   │ client timer/PENDING_GRADE_TIMEOUT dispatch retires in favor of the  │
+ *   │ poll. Timeout and retry stop being the module constant below and     │
+ *   │ become module-contributed PMSS policy, overrideable at the server    │
+ *   │ level. Keep this field the single home for that state as it grows.   │
  *   └──────────────────────────────────────────────────────────────────────┘
  */
 export interface PendingGrade {

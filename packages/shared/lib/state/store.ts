@@ -37,6 +37,7 @@ function createArrayLogger() {
 import { websocketLogger } from 'lo_event/websocket';
 import { consumeCustomEvent } from 'lo_event/util';
 import { scopes, Scope } from './scopes';
+import { PENDING_GRADE_TIMEOUT_EVENT } from '../grading/pendingTimeout';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields, AppState } from '../types';
 import {
@@ -444,6 +445,12 @@ function collectEventTypes(
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
     'SPLICE_INPUT',
+    // Async-pending liveness (lib/grading/pendingTimeout.ts). A field-less
+    // event; it must be REGISTERED here or updateResponseReducer never runs
+    // for it and the deadline dispatch can't produce the new state object that
+    // unlocks the UI. It carries no field, so it falls to the plain-spread
+    // path and folds an empty patch — a benign touch of the grader's bucket.
+    PENDING_GRADE_TIMEOUT_EVENT,
   ];
   // extraFields (app-level fields with no owning block — editor buffers,
   // chat transcripts) register their reducers too, LAST so they take

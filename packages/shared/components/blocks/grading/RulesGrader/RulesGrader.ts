@@ -44,10 +44,15 @@ function gradeRules(props: RuntimeProps, context) {
   // Evaluate child Match rules in order, discovered from the STATIC DOM's
   // kids structure — this grade function runs wherever grading runs
   // (selectors, node, analytics), where there is no dynamic (rendered) DOM.
-  // The block declares allowHTML(), so Match rules may sit inside inline
-  // (html) wrappers (<div><StringMatch/></div>); descend through those to
-  // reach them. Block kids resolve directly — a matched block owns its
-  // subtree, so no descent past a block.
+  //
+  // The walk is WRAPPER-TRANSPARENT (same doctrine as when=-hidden graders
+  // still counting, and as choiceHelpers.choiceKeysFromKids descending through
+  // non-choice blocks): Match rules may sit inside inline (html) wrappers
+  // (<div><StringMatch/></div>) OR inside block wrappers (a <Vertical> laying
+  // the rules out), so descend through BOTH to reach them. The ONE boundary is
+  // a nested GRADER: its Match children are ITS rules, not ours (grader-ness
+  // read off the blueprint, the way lib/grading/topology.ts does), so we stop
+  // at it. A matched Match block is itself terminal — no descent past a rule.
   const matchEntries: OlxJson[] = [];
   const collectMatches = (kids: JSONValue): void => {
     if (!isKidArray(kids)) return;
@@ -56,7 +61,13 @@ function gradeRules(props: RuntimeProps, context) {
         collectMatches(kid.kids);
       } else if (kid.type === 'block') {
         const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
-        if (entry && isMatch(blockRegistry[entry.tag])) matchEntries.push(entry);
+        if (!entry) continue;
+        const blueprint = blockRegistry[entry.tag];
+        if (isMatch(blueprint)) { matchEntries.push(entry); continue; }
+        // Non-match block: a nested grader owns its own rules — stop; any
+        // other block is a transparent wrapper — descend into its kids.
+        if (blueprint?.isGrader) continue;
+        collectMatches(entry.kids ?? []);
       }
     }
   };
