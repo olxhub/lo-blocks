@@ -74,7 +74,11 @@ export function selectOlxJson(
   // Blocks keep a plain ready/loading/error — the ledger's Freshness is
   // mapped to it here (contentFreshness is the one policy point):
   //   ready → resolved content; failed → error; everything else → loading.
-  const fresh = contentFreshness(blockState);
+  // The locale is the request PROFILE: a resolution under a different
+  // locale reads not-ready, so the hook's effect refetches after a locale
+  // change (without the profile, an entry resolved under the old locale
+  // reads ready forever and no refetch ever fires).
+  const fresh = contentFreshness(blockState, props.runtime.locale.code);
 
   if (fresh === 'failed') {
     return {
