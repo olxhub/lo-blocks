@@ -6,49 +6,40 @@
 // Kids are block references (from blocks() parser or MarkupProblem's generated
 // Markdown blocks). Rendered via renderCompiledKids.
 //
+// The parent input's identity (its StateKey, and whether it is single- or
+// multi-select) arrives through ChoiceGroupContext, provided by _ChoiceGroup.
+// The item does NOT search its rendered ancestors for the parent — that
+// discovery was fragile across render entries. See ChoiceGroupContext.
+//
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useMemo } from 'react';
+import React, { useContext } from 'react';
 import * as state from '@/lib/state';
 import { value as valueFieldCommon } from '@/lib/state/commonFields';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
-import { inferRelatedNodes, useGraderAnswer } from '@/lib/blocks';
+import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
+import { ChoiceGroupContext } from './ChoiceGroupContext';
 
 export default function ChoiceItem(props: RuntimeProps) {
-  // Find parent input - could be ChoiceInput (radio) or CheckboxInput (checkbox)
-  const { parentId, isCheckbox } = useMemo(() => {
-    // First try CheckboxInput
-    const checkboxParents = inferRelatedNodes(props, {
-      selector: n => n.loBlock.name === 'CheckboxInput',
-      infer: ['parents']
-    });
-    if (checkboxParents.length > 0) {
-      return { parentId: checkboxParents[0], isCheckbox: true };
-    }
+  // The parent ChoiceInput/CheckboxInput passes its identity down. null means
+  // this Key/Distractor was rendered outside any choice input — we render a
+  // DisplayError below (hooks still run first, for hook-order stability).
+  const group = useContext(ChoiceGroupContext);
 
-    // Fall back to ChoiceInput
-    const choiceParents = inferRelatedNodes(props, {
-      selector: n => n.loBlock.name === 'ChoiceInput',
-      infer: ['parents']
-    });
-    return { parentId: choiceParents[0], isCheckbox: false };
-  // props intentionally omitted: structural relationships are stable once rendered
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // When orphaned, fall back to the block's own key + the global value field
+  // so the hooks below stay valid; the value read is unused since we bail out
+  // to DisplayError.
+  const parentStateKey = group?.parentStateKey ?? scopedStateKeyForBlock(props);
+  const isCheckbox = group?.isCheckbox ?? false;
 
-  // parentId is already a StateKey from inferRelatedNodes. When no parent is
-  // found, fall back to the block's own key + the global value field for hook
-  // stability — the value is unused since we render DisplayError below.
-  const parentStateKey = parentId ?? scopedStateKeyForBlock(props);
-
-  // Get the parent input's value field dynamically
-  const valueField = parentId
-    ? state.componentFieldByStateKey(props, parentId, 'value')
+  // The parent input's value field, read/written under the parent's StateKey.
+  const valueField = group
+    ? state.componentFieldByStateKey(props, parentStateKey, 'value')
     : valueFieldCommon;
-  // For checkboxes, fallback to empty array; for radio, fallback to empty string
+  // Checkboxes store an array of selected values; radios store a single string.
   const selected = state.useFieldSelector(
     props,
     valueField,
@@ -62,33 +53,30 @@ export default function ChoiceItem(props: RuntimeProps) {
 
   const itemValue = props.value ?? props.id;
 
-  // For checkboxes, check if value is in the array; for radio, check equality
+  // For checkboxes, check membership in the array; for radio, check equality.
   const checked = isCheckbox
     ? Array.isArray(selected) && (selected as any[]).includes(itemValue)
     : selected === itemValue;
 
   const handleChange = () => {
     if (isCheckbox) {
-      // Toggle: add or remove from array
+      // Toggle: add or remove from the array.
       const currentSelection: any[] = Array.isArray(selected) ? selected : [];
       const newSelection = currentSelection.includes(itemValue)
         ? currentSelection.filter(v => v !== itemValue)
         : [...currentSelection, itemValue];
       state.updateField(props, valueField, newSelection, { stateKey: parentStateKey });
     } else {
-      // Radio: set single value
+      // Radio: set the single value.
       state.updateField(props, valueField, itemValue, { stateKey: parentStateKey });
     }
   };
 
-  // Radio button name needs the scoped ID for proper grouping
-  const scopedParentId = parentStateKey;
-
   const { kids: renderedKids } = useKids(props);
 
-  if (!parentId) {
+  if (!group) {
     return (
-      <DisplayError title="ChoiceItem" message="No parent ChoiceInput or CheckboxInput found" data={{ id: props.id }} />
+      <DisplayError title="ChoiceItem" message="Key/Distractor must be inside a ChoiceInput or CheckboxInput" data={{ id: props.id }} />
     );
   }
 
@@ -103,7 +91,9 @@ export default function ChoiceItem(props: RuntimeProps) {
     <label className={labelClasses}>
       <input
         type={isCheckbox ? 'checkbox' : 'radio'}
-        name={scopedParentId}
+        // The parent's StateKey groups sibling radios (and is a stable,
+        // scoped name for checkboxes).
+        name={parentStateKey}
         checked={checked}
         onChange={handleChange}
         className="lo-choice-item__input"

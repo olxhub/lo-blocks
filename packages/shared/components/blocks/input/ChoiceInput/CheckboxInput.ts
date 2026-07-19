@@ -22,7 +22,9 @@ const CheckboxInput = core({
   name: 'CheckboxInput',
   ...input({ valueSchema: z.array(z.string()) }),
   description: 'Multi-select checkbox input collecting student selections from Key/Distractor options. Value is an array.',
-  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
+  // Renders its kids inside a ChoiceGroupContext so each Key/Distractor learns
+  // its parent input directly (see _ChoiceGroup) rather than discovering it.
+  componentLoader: () => import('./_ChoiceGroup').then(m => m.default),
   fields,
   selectors: {
     value: (state, props: RuntimeProps, _stateKey) => {
