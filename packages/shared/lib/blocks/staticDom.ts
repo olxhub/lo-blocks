@@ -100,12 +100,45 @@ const INSTANCE_CLOSURE_CAP = 500;
  * The walk reads static kids from the content store, so the closure
  * grows as content arrives; callers re-read reactively (useSelector) and
  * re-ensure until it settles. Pure selector — blueprint-safe.
+ *
+ * Memoized on the olxjson slice identity: the BFS depends only on
+ * content (and locale), which changes rarely, while useSelector runs
+ * this on EVERY dispatch for every mounted instance — unmemoized, each
+ * keystroke re-walks every closure on the page. Entries are tiny (a key
+ * string and an array of keys); the map is cleared whenever the slice
+ * changes. A stable array identity also lets useSelector equality checks
+ * short-circuit.
  */
+const closureCache = {
+  slice: undefined as unknown,
+  byKey: new Map<string, StateKey[]>(),
+};
+
 export function selectInstanceStateKeys(
   reduxState: any,
   props: RuntimeProps,
   rootKey: StateKey,
   source: string = 'content',
+): StateKey[] {
+  const slice = (reduxState as any)?.application_state?.olxjson;
+  const cacheKey = `${source}|${props.runtime.locale.code}|${rootKey}`;
+  if (closureCache.slice === slice) {
+    const hit = closureCache.byKey.get(cacheKey);
+    if (hit) return hit;
+  } else {
+    closureCache.slice = slice;
+    closureCache.byKey.clear();
+  }
+  const keys = walkInstanceStateKeys(reduxState, props, rootKey, source);
+  closureCache.byKey.set(cacheKey, keys);
+  return keys;
+}
+
+function walkInstanceStateKeys(
+  reduxState: any,
+  props: RuntimeProps,
+  rootKey: StateKey,
+  source: string,
 ): StateKey[] {
   const { ns, idPrefix } = splitScope(rootKey);
   const sources = [source];
