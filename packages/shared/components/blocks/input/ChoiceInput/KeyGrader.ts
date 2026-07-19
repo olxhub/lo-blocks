@@ -6,10 +6,10 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { getBlockByOLXId } from '@/lib/blocks';
-import { getInputs } from '@/lib/blocks/olxdom';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { graderInputStateKeys } from '@/lib/grading/topology';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
+import { resolveTarget } from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
 
 export const fields = state.fields(state.graderFields());
@@ -37,23 +37,26 @@ function getKeyDisplayAnswer(props) {
 
   // TODO: This grader logic should move to /lib/blocks/. Components shouldn't access
   // blockRegistry and construct props - that's infrastructure logic.
-  const inputIds = getInputs(props);
+  //
+  // Which input does this grader grade? Answered once, from the STATIC DOM
+  // (graderInputStateKeys) — the same discovery grading itself uses. The
+  // grader's props come from staticTargetProps (nodeInfo undefined by
+  // design), so dynamic-DOM discovery is neither available nor correct here.
+  const reduxState = props.runtime.store.getState();
+  const inputIds = graderInputStateKeys(reduxState, props, scopedStateKeyForBlock(props));
   if (inputIds.length === 0) {
     throw new Error(`KeyGrader "${props.id}": No input found. Nest a ChoiceInput inside, or add target="inputId".`);
   }
 
+  // Resolve the input's OWN props — never spread this grader's props into
+  // them: the grader's auto-wired target= would leak in, and getChoices would
+  // follow it back to the input itself instead of walking its choices.
   const inputStateKey = inputIds[0];
-  const inputDefKey = leafDefinitionKeyFromStateKey(inputStateKey);
-  const inputNode = getBlockByOLXId(props, inputDefKey);
-  if (!inputNode) {
+  const input = resolveTarget(reduxState, props, inputStateKey);
+  if (!input) {
     throw new Error(`KeyGrader "${props.id}": Input "${inputStateKey}" not found. Check the target attribute.`);
   }
-
-  // TODO: This grader logic should move to /lib/blocks/. Components shouldn't access
-  // blockRegistry and construct props - that's infrastructure logic.
-  const inputBlueprint = props.runtime.blockRegistry[inputNode.tag];
-  const inputProps = { ...props, id: inputDefKey, ...inputNode.attributes, kids: inputNode.kids };
-  const choices = inputBlueprint.locals.getChoices(inputProps);
+  const choices = input.loBlock.locals.getChoices(input.targetProps);
   const keyChoice = choices.find(c => c.tag === 'Key');
   if (!keyChoice) {
     throw new Error(`KeyGrader "${props.id}": No Key choice found. Add a <Key> element inside the ChoiceInput.`);
@@ -67,7 +70,7 @@ const KeyGrader = blocks.test({
   name: 'KeyGrader',
   description: 'Grades multiple choice selections by checking if Key was chosen over Distractor',
   category: 'grading',
-  componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
+  componentLoader: () => import('@/components/blocks/grading/_GraderShell').then(m => m.default),
   fields,
   getDisplayAnswer: getKeyDisplayAnswer,
   inputSchema: z.string(),

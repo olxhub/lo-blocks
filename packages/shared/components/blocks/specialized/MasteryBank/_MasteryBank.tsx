@@ -4,7 +4,8 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
 import { useBlock } from '@/lib/render';
-import { useFieldState, useFieldSelector, commonFields } from '@/lib/state';
+import { useFieldState } from '@/lib/state';
+import { useGradingState } from '@/lib/grading';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
@@ -101,17 +102,10 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // Render problem - useBlock handles loading state with Spinner
   const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
 
-  // TODO: Replace this 7-line pattern with a useCorrectness(props, graderRef) one-liner.
-  // The hook would encapsulate commonFields.correct, scopedStateKeyForBlock, and useFieldSelector.
-  // Needs design work: scoped idPrefix, grader naming convention, and field selector
-  // options all need to compose correctly. Would benefit all grader-aware components.
-  const graderField = commonFields.correct;
+  // CapaProblem's aggregate correctness is derived from its child graders
+  // (never stored) — useGradingState handles the aggregation.
   const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
-  const currentCorrectness = useFieldSelector(
-    scopedProps,
-    graderField,
-    { stateKey: scopedGraderStateKey, fallback: correctness.unsubmitted, selector: s => s?.correct }
-  );
+  const currentCorrectness = useGradingState(scopedProps, scopedGraderStateKey).correct;
 
   const prevCorrectnessRef = useRef(currentCorrectness);
 

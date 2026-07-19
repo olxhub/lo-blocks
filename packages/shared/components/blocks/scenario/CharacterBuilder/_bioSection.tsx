@@ -17,7 +17,7 @@ export default function FreeformSection({
   onDone: () => void; onRemove: () => void;
 }) {
   const scoped = scopedCardProps(props, cardId);
-  const [value, valueProps] = useInputField(scoped, fields.value, '');
+  const [value, valueProps] = useInputField(scoped, fields.text, '');
   const [customPrompt, promptProps] = useInputField(scoped, fields.customPrompt, '');
 
   return (

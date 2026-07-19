@@ -12,8 +12,9 @@
 //
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { core, correctness, getInputs, getBlockByOLXId } from '@/lib/blocks';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { core, correctness, getBlockByOLXId } from '@/lib/blocks';
+import { graderInputStateKeys } from '@/lib/grading/topology';
+import { leafDefinitionKeyFromStateKey, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 
 export const fields = state.fields(state.graderFields());
@@ -28,8 +29,14 @@ function getTabularMCQDisplayAnswer(props) {
 
   // TODO: This grader logic should move to /lib/blocks/. Components shouldn't access
   // blockRegistry and construct props - that's infrastructure logic.
+  //
+  // Which input does this grader grade? Answered once, from the STATIC DOM
+  // (graderInputStateKeys) — the same discovery grading itself uses. The
+  // grader's props come from staticTargetProps (nodeInfo undefined by
+  // design), so dynamic-DOM discovery is neither available nor correct here.
   try {
-    const inputIds = getInputs(props);
+    const reduxState = props.runtime.store.getState();
+    const inputIds = graderInputStateKeys(reduxState, props, scopedStateKeyForBlock(props));
     const inputDefKey = leafDefinitionKeyFromStateKey(inputIds[0]);
     const inputNode = getBlockByOLXId(props, inputDefKey);
     const inputBlueprint = inputNode ? props.runtime.blockRegistry?.[inputNode.tag] : null;

@@ -11,40 +11,33 @@ import * as state from '@/lib/state';
 import { z_blockFieldRef, z_blockFieldRefList } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { BlockFieldRef } from '@/lib/blocks/attributeSchemas';
+import type { ObservableValue } from '@/lib/types';
 
-async function copyFieldAction({ targetInstance, props }) {
-  const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = targetInstance.attributes;
+async function copyFieldAction({ props }) {
+  // OLX attributes are spread into props by propsFromNode
+  const { target, output }: { target: BlockFieldRef, output: BlockFieldRef[] } = props;
 
-  // Read from source — materialize via field.read (e.g., RgaDoc → string).
-  //
-  // TODO: This reads the source's raw Redux field. It does NOT consult
-  // the source block's per-field "currently displayed value" — e.g., a
-  // TextArea with starter text in its OLX kids visibly shows that text
-  // but its value field is unset until the user edits, so we copy ""
-  // instead of what's on screen. TextArea's selectValue knows about
-  // this fallback, but selectValue is value-field-only and we can't
-  // call it for arbitrary `target.field`.
-  //
-  // The right fix is a general per-field "current displayed value"
-  // read protocol — the generalization of selectValue to arbitrary
-  // fields. Once that lands, every action (this one, SetFieldAction,
-  // LLMAction, …) and `<Ref>` see the same semantically-meaningful
-  // value the renderer sees, and the per-block fallback semantics live
-  // in one place. See parsers.ts textWithTargetParserMixin for the
-  // matching note, and MermaidPublish.olx for the canonical bite.
+  // Read the source's OBSERVABLE value (level 3): the source block's blueprint
+  // getter when it has one, else the decoded store. For a field with a getter
+  // — a TextArea's value, which falls back to its OLX kids — this copies what's
+  // on screen, not the "" the raw store holds before the first edit.
   const targetStateKey = stateKeyForGlobalRef(target.ref, props.runtime.ns);
   const srcField = state.componentFieldByStateKey(props, targetStateKey, target.field);
-  const value = state.getField(props, srcField, {
+  // Only an observable value may be copied — the brand enforces that this
+  // payload came from a level-3 read, never from someone's backing store.
+  const value: ObservableValue = state.getField(props, srcField, {
     stateKey: targetStateKey,
     fallback: '',
   });
 
-  // Write to each output — field.write handles storage-specific dispatch
-  // (e.g., docField computes splice deltas, plain field sets value directly)
+  // Write each output's OBSERVABLE field (setField): a destination with a
+  // blueprint setter (CharacterBuilder's derived YAML value) fans the copy
+  // out to its backing fields; plain fields take the storage write. The copy
+  // reads the observable value and writes the observable field — symmetric.
   for (const dest of output) {
     const destStateKey = stateKeyForGlobalRef(dest.ref, props.runtime.ns);
     const destField = state.componentFieldByStateKey(props, destStateKey, dest.field);
-    state.updateField(props, destField, value, { stateKey: destStateKey });
+    state.setField(props, destField, value, { stateKey: destStateKey });
   }
 }
 

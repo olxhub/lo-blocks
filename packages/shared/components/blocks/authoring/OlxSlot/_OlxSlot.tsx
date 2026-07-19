@@ -60,7 +60,7 @@ function OlxSlot(props: RuntimeProps) {
   const ownValue = useFieldSelector(props, fields.value, { fallback: '' });
   const status = useFieldSelector(props, fields.state, { fallback: LLM_STATUS.INIT });
 
-  // Mode 2: Read from target component's selectValue (respects initial content, etc.)
+  // Mode 2: Read from target component's selectors.value (respects initial content, etc.)
   const { value: targetValue } = useValue(props, { target, fallback: '' });
 
   // Use target value if target is set, otherwise own value

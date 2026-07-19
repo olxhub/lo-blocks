@@ -11,7 +11,7 @@ import type { RuntimeProps, StateKey, DefinitionKey, BlockDataResult } from '@/l
 
 /**
  * Convert any value to a string representation for display.
- * Used by both selectValue (for programmatic access) and _Ref (for rendering).
+ * Used by both selectors.value (for programmatic access) and _Ref (for rendering).
  */
 export function formatRefValue(val, fallback = '') {
   if (val === null || val === undefined) {
@@ -58,8 +58,9 @@ const Ref = core({
     fallback: z.string().optional().describe('Fallback value when target is empty'),
     format: z.enum(['code']).optional().describe('Display format for the value'),
   }),
-  selectValue: withStatus((props: RuntimeProps, state: any, stateKey: StateKey): BlockDataResult & { value: any } => {
-    // TODO: This logic is infrastructure, not component logic. selectValue should move to /lib/
+  selectors: {
+    value: withStatus((state: any, props: RuntimeProps, stateKey: StateKey): BlockDataResult & { value: any } => {
+    // TODO: This logic is infrastructure, not component logic. It should move to /lib/
     // so it can access runtime context properly without accessing props directly.
     // Get the Ref block from Redux to access its attributes and content
     const sources = props.runtime.olxJsonSources ?? ['content'];
@@ -110,7 +111,8 @@ const Ref = core({
     // Use valueSelector to get the target's value — propagate its status
     const { value: rawValue, ...status } = valueSelector(props, state, targetStateKey, { fallback });
     return { value: formatRefValue(rawValue, fallback), ...status };
-  })
+    }),
+  },
 });
 
 export default Ref;

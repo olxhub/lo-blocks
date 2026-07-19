@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps } from '@/lib/types';
@@ -17,9 +17,11 @@ const NumberInput = core({
   fields,
   // TODO: Figure out this signature. In the generic, we'll probably need
   // more than this. It might be dependent on the component spec, etc.
-  selectValue: (props: RuntimeProps, state, _stateKey) => {
-    const v = fieldSelector(state, props, fields.value);
-    return v === undefined ? undefined : parseFloat(v as string);
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => {
+      const v = decodedFieldSelector(state, props, fields.value);
+      return v === undefined ? undefined : parseFloat(v as string);
+    },
   },
   attributes: srcAttributes.extend({
     ...placeholder,

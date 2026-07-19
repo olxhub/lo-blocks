@@ -6,7 +6,7 @@ import React, { useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
@@ -45,7 +45,7 @@ export default function SortableInput(props: RuntimeProps) {
   const [draggedItem, setDraggedItem] = useFieldState(props, fields.draggedItem, null);
   const [dragOverIndex, setDragOverIndex] = useFieldState(props, fields.dragOverIndex, null);
   const { showAnswer } = useGraderAnswer(props);
-  const readOnly = isInputReadOnly(props);
+  const readOnly = useInputReadOnly(props);
 
   if (!kidsValid) {
     return (

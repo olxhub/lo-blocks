@@ -37,6 +37,7 @@ function createArrayLogger() {
 import { websocketLogger } from 'lo_event/websocket';
 import { consumeCustomEvent } from 'lo_event/util';
 import { scopes, Scope } from './scopes';
+import { PENDING_GRADE_TIMEOUT_EVENT } from '../grading/pendingTimeout';
 import { commonFields } from './commonFields';
 import type { FieldInfo, Fields, AppState } from '../types';
 import {
@@ -70,7 +71,7 @@ import {
 // Maps event key → { reduce, fieldName }.
 // Populated during configureStore from block registry fields.
 // When an event comes in, the main reducer uses this map; events with no
-// registered field reducer fall through to the default legacy spread.
+// registered field reducer fall through to the default plain spread.
 //
 // Two-level lookup: first tries "eventType:fieldName" (disambiguates when
 // multiple fields share an event type, e.g. two docFields both using
@@ -150,6 +151,30 @@ const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING,
 export const ADOPT_FIELD_STATE = 'ADOPT_FIELD_STATE';
 
 // Combined reducer handling both component state and olxjson
+// ---------------------------------------------------------------------------
+// Extras envelope whitelist
+// ---------------------------------------------------------------------------
+// The `extras` envelope on field events carries sibling FIELD values that
+// fold into the same bucket (useInputField's `selection` cursor). The fold
+// is whitelist-enforced HERE, in the reducer, so client and server folds
+// inherit the rule: a forged event on a shared route must not be able to
+// smuggle authority-bearing sibling fields (correct, score) into shared
+// state. Grows by declaration when a real second extra appears.
+const EXTRAS_FIELDS = new Set(['selection']);
+
+function foldExtras(extras: unknown): Record<string, any> {
+  if (!extras || typeof extras !== 'object') return {};
+  const folded: Record<string, any> = {};
+  for (const [key, value] of Object.entries(extras as Record<string, any>)) {
+    if (EXTRAS_FIELDS.has(key)) {
+      folded[key] = value;
+    } else if (process.env.NODE_ENV !== 'production') {
+      console.warn(`extras key '${key}' is not a declared extras field — dropped (see EXTRAS_FIELDS in store.ts)`);
+    }
+  }
+  return folded;
+}
+
 export const updateResponseReducer = (state = initialState, action) => {
   // Handle olxjson events first (they don't use scope)
   // Note: lo_event passes payload with .event, not .type
@@ -215,40 +240,31 @@ export const updateResponseReducer = (state = initialState, action) => {
 
   // Field-level reducers — route events to field.reduce when registered.
   // Fields register their reducers during configureStore (see collectEventTypes).
-  // Events with no registered field reducer fall through to the legacy spread.
+  // Events with no registered field reducer fall through to the plain spread.
   //
   // Two-level lookup: prefer specific "eventType:fieldName" key (disambiguates
   // shared event types like SPLICE_INPUT across multiple docFields), fall back
-  // to bare "eventType" for unique event names or legacy events without action.field.
-  //
-  // HACK: Compound events (e.g. UPDATE_CORRECT from graders) carry multiple
-  // data properties beyond the registered CRDT field. The field reducer handles
-  // the registered field with proper LWW; remaining properties (submitCount,
-  // score, etc.) are legacy-spread alongside it, gated by the LWW result so
-  // stale events are rejected atomically. This means the extras don't get their
-  // own CRDT metadata — they should be stored in a CRDT dictionary or dispatched
-  // as separate per-field events with proper conflict resolution.
+  // to bare "eventType" for events that don't stamp action.field (the classic
+  // field strategy's default write path).
   const fieldReducerEntry = (action.field && _fieldReducers.get(`${eventType}:${action.field}`))
     || _fieldReducers.get(eventType);
   if (fieldReducerEntry) {
     const { scope = scopes.component, id, tag } = action;
     const fieldName = action.field ?? fieldReducerEntry.fieldName;
 
-    // For compound events (no action.field, e.g. UPDATE_CORRECT from graders),
-    // strip metadata and spread remaining data properties alongside the field
-    // patch. For field-specific events (with action.field, e.g. SPLICE_INPUT),
-    // DON'T spread — their extra keys (index, deleteCount, inserted) are
-    // operation parameters, not state properties.
-    let extra: Record<string, any> = {};
-    if (!action.field) {
-      const { scope: _s, id: _id, tag: _t, context: _ctx, event: _ev,
-        type: _type, metadata: _m, field: _f, ts: _ts, actor: _a,
-        authority: _auth, [fieldName]: _fv, ...rest } = action;
-      extra = rest;
-    }
+    // One rule for event payloads: the field reducer owns the field value;
+    // the ONLY other keys that land in the bucket are sibling fields carried
+    // by the `extras` envelope (fieldName → value; useInputField's
+    // `selection` cursor is the canonical case). Everything else — event
+    // envelope, operation parameters like a splice's index/deleteCount/
+    // inserted — never becomes state. (An earlier prefixed-key convention
+    // broke cursor persistence once when dropped; spreading unprefixed keys
+    // is how the old compound UPDATE_CORRECT leaked five fields through one
+    // event. The explicit envelope replaces both failure modes.)
+    const extra: Record<string, any> = foldExtras(action.extras);
 
     // Scope-aware: read from and write to the correct state bucket,
-    // mirroring the legacy-spread switch below.
+    // mirroring the plain-spread switch below.
     switch (scope) {
       case scopes.componentSetting: {
         const bucket = state.componentSetting?.[tag] ?? {};
@@ -306,12 +322,18 @@ export const updateResponseReducer = (state = initialState, action) => {
   // authority is routing metadata (fields-design), never state — strip it
   // alongside the other envelope keys or shared/server events would
   // persist { authority: '…' } into buckets as if it were user data.
-  const { scope = scopes.component, id, tag, context, event, metadata, authority, ...rest } = action;
+  // extras is the sibling-field envelope (fieldName → value): folded into
+  // the bucket alongside the payload, never stored as a literal key. This
+  // is the classic-strategy/unregistered-event twin of the field-reducer
+  // path's fold above (classic events don't stamp `field`, so cursor
+  // extras land here).
+  const { scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest } = action;
+  const extrasFold: Record<string, any> = foldExtras(extras);
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
   // Actions with no bucket key are not ours: redux internals (@@INIT,
-  // @@redux/INIT) and stray events used to legacy-spread into a literal
+  // @@redux/INIT) and stray events used to spread into a literal
   // component["undefined"] bucket here, which then leaked into every saved
   // blob. Foreign actions leave state untouched.
   if ((scope === scopes.component || scope === scopes.storage) && id === undefined) {
@@ -327,14 +349,14 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         componentSetting: {
           ...state.componentSetting,
-          [tag]: { ...(state.componentSetting?.[tag]), ...rest }
+          [tag]: { ...(state.componentSetting?.[tag]), ...rest, ...extrasFold }
         }
       };
 
     case scopes.system:
       return {
         ...state,
-        system: { ...state.system, ...rest }
+        system: { ...state.system, ...rest, ...extrasFold }
       };
 
     case scopes.storage:
@@ -342,7 +364,7 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         storage: {
           ...state.storage,
-          [id]: { ...(state.storage?.[id]), ...rest }
+          [id]: { ...(state.storage?.[id]), ...rest, ...extrasFold }
         }
       };
 
@@ -351,7 +373,7 @@ export const updateResponseReducer = (state = initialState, action) => {
         ...state,
         component: {
           ...state.component,
-          [id]: { ...(state.component?.[id]), ...rest }
+          [id]: { ...(state.component?.[id]), ...rest, ...extrasFold }
         }
       };
     default:
@@ -408,7 +430,7 @@ function collectEventTypes(
       // Specific key wins at lookup time, so two docFields ('draft', 'notes')
       // both using SPLICE_INPUT get separate entries via SPLICE_INPUT:draft
       // and SPLICE_INPUT:notes. The bare SPLICE_INPUT entry is overwritten
-      // but only used when action.field is absent (legacy events).
+      // but only used when action.field is absent (classic-strategy events).
       if (fi.reduce) {
         for (const event of events) {
           _fieldReducers.set(`${event}:${fi.name}`, { reduce: fi.reduce, fieldName: fi.name });
@@ -423,6 +445,12 @@ function collectEventTypes(
     'STEPTHROUGH_NEXT', 'STEPTHROUGH_PREV', 'STORE_SETTING',
     'STORE_VARIABLE', 'UPDATE_INPUT', 'UPDATE_LLM_RESPONSE', 'VIDEO_TIME_EVENT',
     'SPLICE_INPUT',
+    // Async-pending liveness (lib/grading/pendingTimeout.ts). A field-less
+    // event; it must be REGISTERED here or updateResponseReducer never runs
+    // for it and the deadline dispatch can't produce the new state object that
+    // unlocks the UI. It carries no field, so it falls to the plain-spread
+    // path and folds an empty patch — a benign touch of the grader's bucket.
+    PENDING_GRADE_TIMEOUT_EVENT,
   ];
   // extraFields (app-level fields with no owning block — editor buffers,
   // chat transcripts) register their reducers too, LAST so they take
@@ -469,7 +497,7 @@ export function initReducers(blockRegistry: BlockRegistryParam, extraFields: Ext
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
-// Module-level store reference for getReduxState
+// Module-level store reference for the non-hook getRawField/getDecodedField/getField
 let reduxStoreInstance: any = null;
 
 function configureStore({
@@ -595,7 +623,7 @@ function configureStore({
   lo_event.lockFields([{ activity: 'lo-blocks' }]);
   lo_event.go();
 
-  // Store the reference for getReduxState to use
+  // Store the reference for the non-hook field getters to use
   reduxStoreInstance = reduxLogger.store;
 
   // Inbound fan-out (docs/fields-design.md step 2a): the server relays
@@ -644,7 +672,7 @@ export function adoptFieldState(fieldState: Record<string, any> | undefined) {
   });
 }
 
-// Singleton access for getReduxState - internal to /state/
+// Singleton access for the non-hook field getters - internal to /state/
 export const getReduxStoreInstance = () => {
   if (!reduxStoreInstance) {
     throw new Error('Redux store not initialized. Call store.init() first.');

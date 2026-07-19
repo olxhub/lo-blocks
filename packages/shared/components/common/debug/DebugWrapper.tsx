@@ -70,6 +70,11 @@ function ReplayProvider({
 
   const activeStore = replayMode && replayStore ? replayStore : liveStore;
 
+  // Store-binding invariant: hooks read through the Provider, so swapping it
+  // here retargets every hook in the subtree to the replay store. runtime.store
+  // deliberately stays live — its readers are content lookups (identical in
+  // both stores) and the write path (a replay preview doesn't write; if
+  // something does, live is the right target). Don't "fix" either side.
   return <Provider store={activeStore}>{children}</Provider>;
 }
 

@@ -46,11 +46,26 @@ export const commonFields = {
   /** Submit count field - tracks number of submissions */
   submitCount: stateField('submitCount'),
 
+  /** Durable record of an in-flight async submission ({ id, submittedAt } —
+   *  see grading/gradingStore.ts PendingGrade). Written when async grading
+   *  starts, cleared when the result lands; its presence + age is how a reader
+   *  tells a genuinely-pending grade from a stranded one. */
+  pendingGrade: stateField('pendingGrade'),
+
   /** Show answer toggle - controls answer display */
   showAnswer: stateField('showAnswer'),
 
   /** Popout expanded state - tracks whether a block's popout overlay is open */
   popoutExpanded: stateField('popoutExpanded'),
+
+  /** Input cursor position, { field, start, end } — written by useInputField
+   *  as an `extras` envelope entry riding the value event (never dispatched
+   *  standalone, so its auto-derived UPDATE_SELECTION event goes unused).
+   *  The bucket holds one selection; `field` names the input that owns it, so
+   *  co-bucketed inputs ignore each other's cursor on restore. Declared here
+   *  because the binding is generic: any block wired through useInputField
+   *  gets cursor tracking without declaring the field itself. */
+  selection: stateField('selection'),
 } as const;
 
 // Named exports for convenient destructuring
@@ -61,8 +76,8 @@ export const { value, correct, message, score, lastSubmission, submitCount, show
  *
  *   state.fields([graderFields(), 'customHint'])
  *
- * Returns [correct, message, score, lastSubmission, submitCount, showAnswer] —
- * every field the grader action dispatches plus showAnswer.
+ * Returns [correct, message, score, lastSubmission, submitCount, pendingGrade,
+ * showAnswer] — every field the grader action dispatches plus showAnswer.
  * Using this explicitly is preferred over relying on applyGraderExtensions
  * auto-add, since it makes field declarations honest.
  */
@@ -73,6 +88,7 @@ export function graderFields() {
     commonFields.score,
     commonFields.lastSubmission,
     commonFields.submitCount,
+    commonFields.pendingGrade,
     commonFields.showAnswer,
   ];
 }

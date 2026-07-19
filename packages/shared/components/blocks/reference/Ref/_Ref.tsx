@@ -14,7 +14,7 @@ export default function Ref(props: RuntimeProps) {
   const { visible = true, fallback = '', format } = props;
   const { t } = useBlockTranslation(props);
 
-  // Call Ref's own selectValue via useValue - this is the single source of truth
+  // Call Ref's own selectors.value via useValue - this is the single source of truth
   // for value formatting, field access, and validation
   const { value, loading, error } = useValue(props, { fallback });
 

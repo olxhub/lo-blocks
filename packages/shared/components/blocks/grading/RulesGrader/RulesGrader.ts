@@ -14,12 +14,12 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, isMatch, inferRelatedNodes, getBlockByOLXId } from '@/lib/blocks';
-import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { core, grader, isMatch, getBlockByOLXId } from '@/lib/blocks';
+import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import type { RuntimeProps } from '@/lib/types';
+import type { JSONValue, OlxJson, RuntimeProps } from '@/lib/types';
 import { isKidArray } from '@/lib/util/kids';
 
 /**
@@ -29,7 +29,7 @@ import { isKidArray } from '@/lib/util/kids';
  * @param {Object} context - { input, inputs, inputApi, inputApis }
  * @returns {{ correct: correctness, message: string, score?: number }}
  */
-async function gradeRules(props: RuntimeProps, context) {
+function gradeRules(props: RuntimeProps, context) {
   const blockRegistry = props.runtime.blockRegistry;
 
   // Check for empty input → unsubmitted
@@ -41,26 +41,48 @@ async function gradeRules(props: RuntimeProps, context) {
     return { correct: correctness.unsubmitted, message: '', score: 0 };
   }
 
-  // Evaluate child Match rules in order
-  const matchIds = inferRelatedNodes(props, {
-    selector: n => isMatch(n.loBlock),
-    infer: 'kids'
-  });
-  for (const matchId of matchIds) {
-    const childEntry = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(matchId));
-    if (!childEntry) continue;
-
+  // Evaluate child Match rules in order, discovered from the STATIC DOM's
+  // kids structure — this grade function runs wherever grading runs
+  // (selectors, node, analytics), where there is no dynamic (rendered) DOM.
+  //
+  // The walk is WRAPPER-TRANSPARENT (same doctrine as when=-hidden graders
+  // still counting, and as choiceHelpers.choiceKeysFromKids descending through
+  // non-choice blocks): Match rules may sit inside inline (html) wrappers
+  // (<div><StringMatch/></div>) OR inside block wrappers (a <Vertical> laying
+  // the rules out), so descend through BOTH to reach them. The ONE boundary is
+  // a nested GRADER: its Match children are ITS rules, not ours (grader-ness
+  // read off the blueprint, the way lib/grading/topology.ts does), so we stop
+  // at it. A matched Match block is itself terminal — no descent past a rule.
+  const matchEntries: OlxJson[] = [];
+  const collectMatches = (kids: JSONValue): void => {
+    if (!isKidArray(kids)) return;
+    for (const kid of kids) {
+      if (kid.type === 'html') {
+        collectMatches(kid.kids);
+      } else if (kid.type === 'block') {
+        const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
+        if (!entry) continue;
+        const blueprint = blockRegistry[entry.tag];
+        if (isMatch(blueprint)) { matchEntries.push(entry); continue; }
+        // Non-match block: a nested grader owns its own rules — stop; any
+        // other block is a transparent wrapper — descend into its kids.
+        if (blueprint?.isGrader) continue;
+        collectMatches(entry.kids ?? []);
+      }
+    }
+  };
+  collectMatches(props.kids);
+  for (const childEntry of matchEntries) {
     const childBlueprint = blockRegistry[childEntry.tag];
 
     // Attributes are already parsed/transformed at parse time by parseOLX
     const attrs = childEntry.attributes || {};
 
-    // Math match blocks (NumericalMatch, FormulaMatch) declare ensureReady.
-    // The grading action only readies the TARGET's blueprint (this
-    // RulesGrader, which needs nothing) — and in browsers rendering
-    // pre-parsed content, parseOLX's ensureReady never ran. Ready each
-    // child before its synchronous match function runs.
-    if (childBlueprint.ensureReady) await childBlueprint.ensureReady();
+    // Math match blocks (NumericalMatch, FormulaMatch) declare lazy
+    // engines; readiness is PREPARATION, not evaluation — prepareGrade
+    // readies the grader's whole static subtree (and useBlocksReady gates
+    // rendered content), so this grade function stays synchronous and
+    // immediate-capable.
 
     // Call the match function
     const matchFn = childBlueprint.locals!.match;

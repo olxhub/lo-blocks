@@ -1,0 +1,19 @@
+<CapaProblem id="CapaProblemImmediate" title="Immediate Grading" grade="immediate">
+  Immediate mode grades as you answer - no Check button. Selecting a choice
+  grades instantly; typed answers stay neutral until they match, so a partial
+  answer never flashes incorrect.
+
+  <KeyGrader>
+    Which planet is closest to the Sun?
+    <ChoiceInput>
+      <Distractor>Venus</Distractor>
+      <Key>Mercury</Key>
+      <Distractor>Earth</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+
+  What is 12 x 12?
+  <NumericalGrader answer="144">
+    <ComplexInput />
+  </NumericalGrader>
+</CapaProblem>

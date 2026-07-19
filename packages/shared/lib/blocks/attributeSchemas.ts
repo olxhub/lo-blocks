@@ -293,6 +293,8 @@ export const graderAttributes = z.object({
   answer: z.string().optional().describe('Expected answer for grading'),
   displayAnswer: z.string().optional().describe('Answer shown to student (may differ from grading answer)'),
   target: z_stateRefList.optional().describe('Target input ID(s) to grade, comma-separated for multi-input graders (inferred if omitted)'),
+  gradeMode: z.enum(['submit', 'immediate']).optional()
+    .describe('(system) Grading mode inherited from the enclosing problem — stamped at parse time by the problem parser, not authored'),
 });
 
 // =============================================================================
@@ -306,9 +308,9 @@ export const showAnswerModes = [
   'always',     // Always visible
   'never',      // Never visible
   'attempted',  // After first attempt (submitCount > 0)
-  'answered',   // After correct answer
+  'correct',    // After a correct answer
   'closed',     // After attempts exhausted (submitCount >= maxAttempts)
-  'finished',   // answered OR closed (default)
+  'finished',   // correct OR closed
 ] as const;
 
 export type ShowAnswerMode = typeof showAnswerModes[number];
@@ -317,7 +319,7 @@ export type ShowAnswerMode = typeof showAnswerModes[number];
  * Schema for showanswer attribute - validates against allowed modes.
  */
 export const showAnswerAttr = z.enum(showAnswerModes).optional()
-  .describe('When to show answer: always, never, attempted, answered, closed, finished');
+  .describe('When to show answer: always, never, attempted, correct, closed, finished');
 
 /**
  * Schema for maxAttempts attribute - positive integer string or empty for unlimited.
@@ -328,12 +330,34 @@ export const maxAttemptsAttr = z.string()
   .describe('Maximum submission attempts (empty = unlimited)');
 
 /**
+ * Valid grading trigger modes - when grading runs.
+ *
+ * 'submit' (default): the Check/Submit button triggers the grading action,
+ *   which writes stored per-field grading state.
+ * 'immediate': correctness is DERIVED from the live input values as the
+ *   learner answers — no button, no submit events. Inputs that commit on
+ *   change (radio buttons) grade strictly; free-form inputs soften a
+ *   non-match to 'incomplete' so mid-typing never flashes a red X.
+ *   Incompatible with async graders. See lib/grading/selectGradingState.ts.
+ */
+export const gradeModes = [
+  'submit',
+  'immediate',
+] as const;
+
+export type GradeMode = typeof gradeModes[number];
+
+export const gradeAttr = z.enum(gradeModes).optional()
+  .describe('Grading trigger: submit (button, default) or immediate (grade as the learner answers, no button)');
+
+/**
  * Problem attributes - added to problem container blocks.
- * Contains attributes for attempts and answer visibility.
+ * Contains attributes for attempts, answer visibility, and grading trigger.
  */
 export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
   showanswer: showAnswerAttr,
+  grade: gradeAttr,
 });
 
 // =============================================================================

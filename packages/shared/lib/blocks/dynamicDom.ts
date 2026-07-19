@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/olxdom.ts
+// packages/shared/lib/blocks/dynamicDom.ts
 //
 // OLX DOM traversal - navigation utilities for the Learning Observer
 // dynamic content DAG.
@@ -6,12 +6,6 @@
 import * as state from '@/lib/state';
 import { parseAnyStateRef, stateKeyForGlobalRef, scopedStateKeyForBlock, qualifyDefinitionRef } from '../types/id-grammar';
 import type { OlxDomNode, OlxDomSelector, ContentNamespace, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
-import { selectBlock } from '@/lib/state/olxjson';
-import {
-  evaluate, createContext,
-  extractStructuredRefs, mergeReferences, EMPTY_REFS,
-  selectReferences,
-} from '@/lib/stateLanguage';
 //
 // The OLX DOM is Learning Observer's internal representation of educational content,
 // distinct from both the React virtual DOM and the browser DOM. It represents the
@@ -123,7 +117,7 @@ export function getKidsDFS(nodeInfo: OlxDomNode, { selector = (_: OlxDomNode) =>
  * @param {any} targets - Target attribute from OLX (user-authored references)
  * @returns {StateKey[] | false}
  */
-function normalizeTargetIds(targets, ns: ContentNamespace): StateKey[] | false {
+export function normalizeTargetIds(targets, ns: ContentNamespace): StateKey[] | false {
   if (!targets) return false; // Target was not specified
   if (targets === true) throw new Error('Boolean true is not a valid target');
   // Target attrs are validated as StateRef by Zod. Parse as StateRef (accepts
@@ -239,7 +233,7 @@ export function getDomNodeByStateKey(props: RuntimeProps, key: StateKey): OlxDom
  *
  * The OlxDomNode already carries the block's OlxJson, LoBlock, and runtime
  * context — this just reshapes them into the props object that blueprint
- * functions (advance, canAdvance, action, selectValue) expect.
+ * functions (advance, canAdvance, action, selectors.value) expect.
  */
 export function propsFromNode(node: OlxDomNode): RuntimeProps {
   const { olxJson, loBlock, runtime } = node;
@@ -343,21 +337,12 @@ export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): Stat
   return ids[0];
 }
 
-/**
- * Get all related input IDs.
- *
- * @param {Object} props - Component props with nodeInfo and optional target attribute
- * @param {Object} [options] - Optional overrides
- * @param {string|string[]} [options.infer] - Override inference direction ('parents', 'kids', or both)
- * @returns {string[]} Array of input IDs (may be empty)
- */
-export function getInputs(props, { infer }: { infer? } = {}) {
-  return inferRelatedNodes(props, {
-    selector: n => n.loBlock.isInput,
-    targets: props.target,
-    infer
-  });
-}
+// "Which inputs does this grader grade?" has ONE answer, from the STATIC
+// DOM: graderInputStateKeys in lib/grading/topology.ts. The former getInputs
+// here answered the same question from the dynamic (rendered) DOM — a DRY
+// violation that also crashed the display-answer helpers, which run on
+// staticTargetProps (nodeInfo undefined) and so have no rendered tree to
+// walk. Those helpers now call graderInputStateKeys directly.
 
 
 // TODO: These functions belong in a new utility module (perhaps blocks/util.js)
@@ -378,7 +363,7 @@ export function getValueById(props: RuntimeProps, id: DefinitionRef | null | und
   const reduxState = props.runtime.store.getState();
   const stateKey = id ? scopedStateKeyForBlock({ ...props, id }) : null;
 
-  // valueSelector handles content lookup and selectValue dispatch.
+  // valueSelector handles content lookup and selectors.value dispatch.
   // Unwrap .value — non-hook callers get the raw value (by the time actions
   // run, content should be loaded; if not, they get the fallback).
   return state.valueSelector(props, reduxState, stateKey).value;
@@ -434,71 +419,3 @@ export const __testables = {
   normalizeTargetIds,
   normalizeInfer
 };
-
-// ─── Kid selection with when= filtering ─────────────────────────────────────
-//
-// Pure selector forms — blueprint-safe (no React, no render layer), so
-// blueprint functions (advance, canAdvance, actions) can use them. The
-// reactive hook wrapper (useKidsJson) lives in useRenderedBlock.tsx with
-// the other hooks; it delegates to selectKidsJson here.
-//
-// Collects `when` expressions from kid blocks, resolves their
-// dependencies, evaluates each, and filters out kids whose condition
-// is false. This enables adaptive content.
-
-// Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
-function getWhen(kid: any, props: RuntimeProps) {
-  if (kid.type === 'block') {
-    const definitionKey = qualifyDefinitionRef(kid.id, props.runtime.ns);
-    const reduxState = props.runtime.store.getState();
-    const sources = props.runtime.olxJsonSources ?? ['content'];
-    const block = selectBlock(reduxState, sources, definitionKey, props.runtime.locale.code);
-    if (!block) return undefined;  // not yet loaded — show by default
-    return block.attributes.when;
-  }
-  if (kid.tag) {
-    return kid.attributes.when;
-  }
-  return undefined;
-}
-
-function collectWhens(kids: any[], props: RuntimeProps) {
-  const map: Record<string, any> = {};
-  for (const kid of kids) {
-    const when = getWhen(kid, props);
-    if (!when) continue;
-    map[kid.id] = when;
-  }
-  return map;
-}
-
-/**
- * Pure selector: returns kids as OlxJson nodes with `when=` filtering applied.
- *
- * Use in blueprint functions (advance, canAdvance, actions) where hooks
- * are unavailable.  Composable — wrap with `.length` for kid count, etc.
- */
-export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
-  const rawKids = (props.kids || []) as any[];
-  const whenMap = collectWhens(rawKids, props);
-  if (Object.keys(whenMap).length === 0) return rawKids;
-
-  const allRefs = (() => {
-    const entries = Object.values(whenMap) as { expr: string }[];
-    if (entries.length === 0) return EMPTY_REFS;
-    return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
-  })();
-
-  const resolved = selectReferences(reduxState, props, allRefs);
-  const ctx = createContext(resolved);
-  return rawKids.filter(kid => {
-    const when = whenMap[kid.id];
-    if (!when) return true;
-    return Boolean(evaluate(when.ast, ctx));
-  });
-}
-
-/** One-shot imperative form: grabs current state and calls selectKidsJson. */
-export function getKidsJson(props: RuntimeProps): any[] {
-  return selectKidsJson(props, props.runtime.store.getState());
-}

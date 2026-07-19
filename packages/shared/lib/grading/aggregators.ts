@@ -24,6 +24,7 @@ import {
   validateCorrectness,
   getAllCorrectnessStates
 } from '@/lib/blocks/correctness';
+import type { GradingState } from './model';
 
 // Type for counts keyed by correctness value
 type CorrectnessCounts = Record<string, number> & { total: number };
@@ -166,4 +167,22 @@ export function formatScore(
   }
 
   return `${correct}/${counts.total}`;
+}
+
+/**
+ * Combine child graders' grading states into a problem-level (metagrader)
+ * state. Correctness is worst-case; score counts fully-correct children;
+ * submitCount is the max (drives the problem-level flash animation).
+ *
+ * TODO: message aggregation is known-bad for multipart problems (feedback
+ * floats to the footer disconnected from its question). Kept pending the
+ * multipart feedback redesign.
+ */
+export function aggregateGradingStates(kids: GradingState[]): GradingState {
+  return {
+    correct: worstCaseCorrectness(kids.map(k => k.correct)) as GradingState['correct'],
+    message: kids.map(k => k.message).filter(Boolean).join(' '),
+    score: kids.filter(k => k.correct === correctness.correct).length,
+    submitCount: Math.max(0, ...kids.map(k => k.submitCount)),
+  };
 }

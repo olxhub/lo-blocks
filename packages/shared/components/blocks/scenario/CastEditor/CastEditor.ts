@@ -35,7 +35,7 @@ import * as parsers from '@/lib/content/parsers';
 
 export const fields = state.fields([
   state.idField('memberIds'),
-  state.setField('members'),
+  state.orSetField('members'),
   'arrangement',
   'activeMember',
   'copied',
@@ -55,34 +55,36 @@ const CastEditor = dev({
     STAT_PRESETS, STAT_PRESETS_BY_KEY,
   },
 
-  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: any) => {
-    const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
-    if (arrangement.length === 0) return '';
+  selectors: {
+    value: (reduxState: any, props: RuntimeProps, _stateKey: any) => {
+      const arrangement: string[] = fieldSelector(reduxState, props, fields.arrangement, { fallback: [] });
+      if (arrangement.length === 0) return '';
 
-    const cast: Record<string, any> = {};
+      const cast: Record<string, any> = {};
 
-    for (let i = 0; i < arrangement.length; i++) {
-      const memberId = arrangement[i];
-      const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
-      const memberProps = { ...props, idPrefix } as RuntimeProps;
+      for (let i = 0; i < arrangement.length; i++) {
+        const memberId = arrangement[i];
+        const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(memberId)]);
+        const memberProps = { ...props, idPrefix } as RuntimeProps;
 
-      const { characterName, cards, avatar } = readCharacterState(
-        reduxState, memberProps, avatarEditorFields,
-      );
+        const { characterName, cards, avatar } = readCharacterState(
+          reduxState, memberProps, avatarEditorFields,
+        );
 
-      const memberYaml = buildCharacterYaml(characterName, cards, avatar, `character_${i + 1}`);
-      if (!memberYaml) continue;
+        const memberYaml = buildCharacterYaml(characterName, cards, avatar, `character_${i + 1}`);
+        if (!memberYaml) continue;
 
-      try {
-        const parsed = yaml.load(memberYaml, { schema: yaml.JSON_SCHEMA }) as Record<string, any>;
-        if (parsed && typeof parsed === 'object') {
-          Object.assign(cast, parsed);
-        }
-      } catch (err) { console.warn('CastEditor: malformed member YAML:', err); }
-    }
+        try {
+          const parsed = yaml.load(memberYaml, { schema: yaml.JSON_SCHEMA }) as Record<string, any>;
+          if (parsed && typeof parsed === 'object') {
+            Object.assign(cast, parsed);
+          }
+        } catch (err) { console.warn('CastEditor: malformed member YAML:', err); }
+      }
 
-    if (Object.keys(cast).length === 0) return '';
-    return yaml.dump(cast, { lineWidth: -1, noCompatMode: true }).trimEnd();
+      if (Object.keys(cast).length === 0) return '';
+      return yaml.dump(cast, { lineWidth: -1, noCompatMode: true }).trimEnd();
+    },
   },
 });
 

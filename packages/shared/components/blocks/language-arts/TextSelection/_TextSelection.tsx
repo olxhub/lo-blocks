@@ -8,6 +8,10 @@ import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/util/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
+// Stable fallback for the level-2 selection read: the subscription compares by
+// reference, so the empty case must not mint a new array per store dispatch.
+const EMPTY_SELECTIONS: number[] = [];
+
 /**
  * Evaluate parsed scoring rules against current selection stats.
  * Returns the feedback string from the first matching rule, or null.
@@ -138,8 +142,10 @@ export default function TextSelection(props: RuntimeProps) {
     return words;
   }, [parsed.segments]);
 
-  // Redux state management - store as array, work with as Set
-  const [selectedArray, setSelectedArray] = useFieldState(props, fields.value, []);
+  // Redux state management - store as array, work with as Set. A plain
+  // stored field (the composite `value` getter reads it cross-field), so
+  // the ordinary hook applies.
+  const [selectedArray, setSelectedArray] = useFieldState(props, fields.selections, EMPTY_SELECTIONS);
   const selectedIndices = useMemo(() => new Set(selectedArray || []), [selectedArray]);
   const setSelectedIndices = (newSet) => setSelectedArray(Array.from(newSet));
 

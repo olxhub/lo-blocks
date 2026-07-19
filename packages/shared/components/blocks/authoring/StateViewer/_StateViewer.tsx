@@ -19,7 +19,7 @@ export default function StateViewer(props: RuntimeProps) {
 
   // Hooks must be called unconditionally, so call before any early returns
   const { olxJson: targetBlock } = useOlxJson(props, targetId || null);
-  const componentState = useComponentState(props, targetStateKey, { scope });
+  const componentState = useComponentState(targetStateKey, { scope });
 
   if (!targetId) {
     return <DisplayError title="StateViewer" message="No target specified. Use target attribute or provide component ID as content." />;

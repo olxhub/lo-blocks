@@ -12,16 +12,12 @@ import { useFieldSelector } from '@/lib/state';
 function StatusText(props: RuntimeProps) {
   const { field = 'message', graderId } = props;
 
-  // Get the field from the target component (not from our own fields)
-  // graderId is a StateKey injected by render (requiresGrader: true)
+  // One generic read: componentFieldByStateKey resolves stored AND
+  // computed (blueprint-selector) fields — grading state, values, all the
+  // same path. No grading knowledge here.
   const targetField = state.componentFieldByStateKey(props, graderId, field);
-
-  const text = useFieldSelector(
-    props,
-    targetField,
-    { selector: s => s?.[field] ?? '', fallback: '', stateKey: graderId }
-  );
-  return <span>{text}</span>;
+  const text = useFieldSelector(props, targetField, { fallback: '', stateKey: graderId });
+  return <span>{String(text ?? '')}</span>;
 }
 
 export default StatusText;

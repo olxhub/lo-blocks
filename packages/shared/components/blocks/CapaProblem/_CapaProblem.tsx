@@ -1,27 +1,14 @@
 // packages/shared/components/blocks/CapaProblem/_CapaProblem.tsx
 'use client';
-import type { RuntimeProps } from '@/lib/types';
-import React, { useEffect } from 'react';
-import { correctness, worstCaseCorrectness } from '@/lib/blocks';
-import { inferRelatedNodes } from '@/lib/blocks/olxdom';
-import * as state from '@/lib/state';
+import type { RuntimeProps, StateKey } from '@/lib/types';
+import { correctness } from '@/lib/blocks';
+import { inferRelatedNodes } from '@/lib/blocks/dynamicDom';
+import { useGradingState, childGraderStateKeys, whenGatedGradingKids } from '@/lib/grading';
+import { staticEntryForStateKey, blueprintFor } from '@/lib/blocks/staticDom';
 import { useKids, Block } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---
-
-/**
- * Find child grader IDs within this CapaProblem.
- * Excludes self to avoid finding parent CapaProblems in nested structures.
- */
-function findChildGraderIds(props) {
-  const { id, target } = props;
-  return inferRelatedNodes(props, {
-    selector: n => n.loBlock.isGrader && n.olxJson.id !== id,
-    infer: ['kids'],
-    targets: target
-  });
-}
 
 /**
  * Find DemandHints ID within this CapaProblem (if any).
@@ -47,7 +34,7 @@ function getHeaderStateClass(correctnessValue: string) {
   }
 }
 
-function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[]) {
+function noGraderTechnicalDetails(props: RuntimeProps, directChildGraderStateKeys: StateKey[]) {
   const node = props.nodeInfo?.olxJson;
   return {
     hint: 'CapaProblem expects at least one child block with isGrader=true',
@@ -58,7 +45,7 @@ function noGraderTechnicalDetails(props: RuntimeProps, childGraderIds: string[])
     source: node?.source,
     parseDeps: node?.parseDeps,
     sourceOffset: node?._sourceOffset,
-    childGraderIds,
+    directChildGraderStateKeys,
     consoleHint: 'Raw props.kids and props.nodeInfo.renderedKids are logged in this DisplayError data payload.',
   };
 }
@@ -68,131 +55,6 @@ function noGraderDebugData(props: RuntimeProps) {
     kids: props.kids,
     renderedKids: props.nodeInfo?.renderedKids,
   };
-}
-
-// --- Hooks ---
-
-/**
- * Aggregate correctness and messages from child graders.
- * Updates CapaProblem's own fields with aggregated values.
- *
- * TODO: This whole hook should be replaced by moving aggregation into the
- * grading action pipeline. The current approach has several problems:
- *
- * 1. **Architecture:** Uses useEffect + state.updateField to write derived
- *    state back to Redux, rather than computing it in the grading action
- *    that already sets child grader fields. The grading action should set
- *    the parent's aggregated fields (correct, message, score, submitCount)
- *    at the same time it sets child fields — no component-level effects needed.
- *
- * 2. **Replay:** useEffect doesn't replay reliably. Moving to the action
- *    pipeline makes aggregation part of the event stream.
- *
- * 3. **Lag:** Aggregated values are one render cycle behind child values.
- *
- * TODO: Multipart problem aggregation needs work. Current issues:
- * - Messages are joined with spaces, so feedback from one part floats to the footer
- *   disconnected from its question (e.g., "Correct! Bandura's..." appears at bottom)
- * - No way to know which part the feedback belongs to
- * - Same issue affects demand hints - unclear which question hints apply to
- * - "Show Answer" displays answers inline but feedback aggregates to footer
- *
- * Possible fixes:
- * 1. Show feedback inline with each grader, footer only shows aggregate status
- * 2. Prefix messages with question context: "Q3: Correct! Bandura's..."
- * 3. Don't aggregate messages for multipart - just show correctness
- *
- * Note: Multipart problems are pedagogically tricky anyway - if student gets one
- * part wrong, there's no clear way to identify which part or see the right answer.
- * Checkbox and text input problems have similar issues. See MarkupProblemMultipart.olx.
- */
-function useGraderAggregation(props, childGraderIds) {
-  const { id, fields } = props;
-  const hasChildGraders = childGraderIds.length > 0;
-  // Even when childGraderIds is empty, useAggregate needs a valid field
-  // reference. Fall back to self (CapaProblem also has grader fields).
-  const sampleGraderId = childGraderIds[0] || id;
-
-  // inferRelatedNodes returns StateKeys — use directly for useAggregate
-  const childGraderStateKeys = childGraderIds;
-
-  // Subscribe to child grader correctness values
-  const correctField = state.componentFieldByStateKey(props, sampleGraderId, 'correct');
-  const childCorrectnessValues = state.useAggregate(
-    props,
-    correctField,
-    hasChildGraders ? childGraderStateKeys : [],
-    {
-      fallback: correctness.unsubmitted,
-      aggregate: (values) => values.map(v => v ?? correctness.unsubmitted)
-    }
-  );
-
-  const aggregatedCorrectness = hasChildGraders
-    ? worstCaseCorrectness(childCorrectnessValues)
-    : correctness.unsubmitted;
-
-  // Subscribe to child grader messages
-  const messageField = state.componentFieldByStateKey(props, sampleGraderId, 'message');
-  const childMessages = state.useAggregate(
-    props,
-    messageField,
-    hasChildGraders ? childGraderStateKeys : [],
-    {
-      fallback: '',
-      aggregate: (values) => values.map(v => v ?? '')
-    }
-  );
-  const message = childMessages.filter(m => m).join(' ');
-
-  // Subscribe to child grader submitCounts - sum them for flash animation
-  // TODO: Wire this more cleanly?
-  const submitCountField = state.componentFieldByStateKey(props, sampleGraderId, 'submitCount');
-  const childSubmitCounts = state.useAggregate(
-    props,
-    submitCountField,
-    hasChildGraders ? childGraderStateKeys : [],
-    {
-      fallback: 0,
-      aggregate: (values) => values.map(v => v ?? 0)
-    }
-  );
-  const totalSubmitCount = Math.max(...childSubmitCounts, 0);
-
-  // Aggregate score: count of correct children
-  const score = childCorrectnessValues.filter(v => v === correctness.correct).length;
-
-  // Mirror the aggregated child state onto CapaProblem's own fields — but only
-  // when the value actually changed. This skip-if-unchanged guard keeps the
-  // writes idempotent: a re-render (or, once cross-tab sync is enabled, an
-  // echoed grader action from another tab) that recomputes the same aggregate
-  // produces no redundant UPDATE_* event.
-  // (props object changes every render, so deps track the computed values.)
-  const store = props.runtime.store;
-  const writeIfChanged = (field, value) => {
-    if (state.fieldSelector(store.getState(), props, field) !== value) {
-      state.updateField(props, field, value);
-    }
-  };
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    writeIfChanged(fields.correct, aggregatedCorrectness);
-  }, [aggregatedCorrectness, props.id, fields]);
-
-  useEffect(() => {
-    writeIfChanged(fields.message, message);
-  }, [message, props.id, fields]);
-
-  useEffect(() => {
-    writeIfChanged(fields.submitCount, totalSubmitCount);
-  }, [totalSubmitCount, props.id, fields]);
-
-  useEffect(() => {
-    writeIfChanged(fields.score, score);
-  }, [score, props.id, fields]);
-  /* eslint-enable react-hooks/exhaustive-deps */
-
-  return { correctness: aggregatedCorrectness, message, submitCount: totalSubmitCount };
 }
 
 // --- Presentation Components ---
@@ -228,25 +90,76 @@ function FooterWrapper({ children }) {
 export default function CapaProblem(props: RuntimeProps) {
   const { id } = props;
 
+  const isImmediate = props.grade === 'immediate';
+
   // Render content first to populate dynamic OLX DOM
   const { kids: content } = useKids(props);
 
-  // Find child graders and DemandHints
-  const childGraderIds = findChildGraderIds(props);
+  // Boundary-aware static topology: these are the grader instances governed
+  // directly by this problem (nested problems own their own descendants).
+  const reduxState = props.runtime.store.getState();
+  const directChildGraderStateKeys = childGraderStateKeys(
+    reduxState,
+    props,
+    props.nodeInfo.stateKey,
+  );
   const hintsId = findDemandHintsId(props);
 
-  // Aggregate state from child graders
-  const { correctness, submitCount } = useGraderAggregation(props, childGraderIds);
+  // Grading state is DERIVED (never stored): useGradingState aggregates the
+  // child graders on read — stored fields in submit mode, live evaluation
+  // of input values in immediate mode. See lib/grading/selectGradingState.ts.
+  // (The render entrypoint's useBlocksReady gate readies lazy engines before
+  // this component renders.)
+  const { correct: problemCorrectness, submitCount } = useGradingState(props, props.nodeInfo.stateKey);
+
+  // Slow graders can't grade immediately — there is no submit button to
+  // trigger them and no meaningful per-keystroke pending state. Recompute on
+  // every immediate-mode render so live edits to a grader's configuration take
+  // effect.
+  if (isImmediate) {
+    const asyncChildGraderStateKeys = directChildGraderStateKeys.filter(stateKey => {
+      const entry = staticEntryForStateKey(reduxState, props, stateKey);
+      return entry && blueprintFor(props, entry)?.grading?.execution === 'async';
+    });
+    if (asyncChildGraderStateKeys.length > 0) {
+      return (
+        <DisplayError
+          props={props}
+          id={`${id}_grade_mode`}
+          title="CapaProblem"
+          message={`grade="immediate" cannot be used with async graders (problem "${id}": ${asyncChildGraderStateKeys.join(', ')}). Use grade="submit" for LLM/instructor-graded problems.`}
+        />
+      );
+    }
+  }
+
+  // Grader topology is static: when=-hidden graders/inputs still COUNT
+  // toward the grade, which is almost never what when= on a grading block
+  // intends. Error until someone has a real use case.
+  const whenGated = whenGatedGradingKids(reduxState, props, props.nodeInfo.stateKey);
+  if (whenGated.length > 0) {
+    return (
+      <DisplayError
+        props={props}
+        id={`${id}_when_gated_grading`}
+        title="CapaProblem"
+        message={`when= on a grader or its input (problem "${id}": ${whenGated.join(', ')}) is probably a bug: `
+          + `a problem's grading structure is fixed, so a hidden grader or input still counts toward the grade. `
+          + `Use when= on content around the problem, or split into separate problems. `
+          + `If you have a use case for visibility-gated grading blocks, email us — we can enable this if it turns out to be usable. But it looks wrong!`}
+      />
+    );
+  }
 
   // Validate: require at least one grader unless explicitly allowed
-  if (childGraderIds.length === 0 && !props.allowEmpty) {
+  if (directChildGraderStateKeys.length === 0 && !props.allowEmpty) {
     return (
       <DisplayError
         props={props}
         id={`${id}_no_grader`}
         title="CapaProblem"
         message={`No grader found in CapaProblem "${id}". Add a grader block (e.g., NumericalGrader, KeyGrader) to this problem.`}
-        technical={noGraderTechnicalDetails(props, childGraderIds)}
+        technical={noGraderTechnicalDetails(props, directChildGraderStateKeys)}
         data={noGraderDebugData(props)}
       />
     );
@@ -258,21 +171,22 @@ export default function CapaProblem(props: RuntimeProps) {
   const footerNode = (
     <Block props={props} tag="CapaFooter"
       id={`${id}_footer_controls`}
-      target={childGraderIds.join(',')}
+      target={directChildGraderStateKeys.join(',')}
       hintsTarget={hintsId}
       // Author override for the button label; falls back to computed Check/Submit.
       label={props.submitLabel}
       // Problem mode settings
       maxAttempts={props.maxAttempts}
       showanswer={props.showanswer}
+      grade={props.grade}
       submitCount={submitCount}
-      correct={correctness}
+      correct={problemCorrectness}
     />
   );
 
   return (
     <div className="lo-problem">
-      <CapaHeader title={title} correctness={correctness} headerNode={headerNode} />
+      <CapaHeader title={title} correctness={problemCorrectness} headerNode={headerNode} />
       <CapaContent>{content}</CapaContent>
       <FooterWrapper>{footerNode}</FooterWrapper>
     </div>

@@ -10,6 +10,7 @@ import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes, z_stateRef } from '@/lib/blocks/attributeSchemas';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'selectedItem',     // Currently selected item ID
@@ -22,13 +23,18 @@ const Navigator = dev({
   name: 'Navigator',
   description: 'Two-pane navigator with configurable preview and detail templates',
   fields: fields,
-  // as any: See selectValue spec in lib/blocks/actions.tsx
-  selectValue: ((props, state, _stateKey) => {
-    const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
-    const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
-    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
-    return { selectedItem, searchQuery, viewMode };
-  }) as any,
+  selectors: {
+    value: {
+      select: (state, props, _stateKey) => {
+        const selectedItem = fieldSelector(state, props, fields.selectedItem, { fallback: null });
+        const searchQuery = fieldSelector(state, props, fields.searchQuery, { fallback: '' });
+        const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'default' });
+        return { selectedItem, searchQuery, viewMode };
+      },
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
+  },
   attributes: srcAttributes.extend({
     preview: z_stateRef.optional().describe('ID of block to use as preview template'),
     detail: z_stateRef.optional().describe('ID of block to use as detail template'),

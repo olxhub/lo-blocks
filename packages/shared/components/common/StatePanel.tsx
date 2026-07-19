@@ -22,7 +22,7 @@
 
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getKidsBFS } from '@/lib/blocks/olxdom';
+import { getKidsBFS } from '@/lib/blocks/dynamicDom';
 import { decodeState } from '@/lib/state/stateDisplay';
 import type { OlxDomNode, StateKey, FieldInfo } from '@/lib/types';
 

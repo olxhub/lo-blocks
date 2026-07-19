@@ -14,7 +14,21 @@ export {
   proportionalCorrectness,
   computeScore,
   formatScore,
+  aggregateGradingStates,
 } from './aggregators';
+
+// The consumed surface. Pipeline internals (prepareGrade, evaluateGrade,
+// buildGraderParam, ...) are exported by their own modules for the grading
+// subsystem's cross-module use, not re-exported here — import from
+// './pipeline' etc. if you're inside the subsystem, and reconsider if
+// you're not.
+export { childGraderStateKeys, whenGatedGradingKids, problemGradeMode } from './topology';
+export { grader } from './submitGrade';
+export type { GradingState } from './model';
+
+// Grading-state read model — the single read point for grader state
+export { selectGradingState, gradingSelectors } from './selectGradingState';
+export { useGradingState } from './useGradingState';
 
 // Numerical grading
 export {

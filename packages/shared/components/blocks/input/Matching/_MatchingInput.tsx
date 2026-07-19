@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
-import { isInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
 import { qualifyDefinitionRef, extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
@@ -305,7 +305,7 @@ export default function MatchingInput(props: RuntimeProps) {
   // useState-ok: ephemeral visual feedback state (mouse position for preview line only)
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
-  const readOnly = isInputReadOnly(props);
+  const readOnly = useInputReadOnly(props);
   const { showAnswer } = useGraderAnswer(props);
 
   const containerRef = useRef<HTMLDivElement>(null);

@@ -14,8 +14,8 @@ import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 
-function flashAction({ targetInstance }) {
-  const { target, duration = '500ms', color = 'gold' } = targetInstance.attributes;
+function flashAction({ props }) {
+  const { target, duration = '500ms', color = 'gold' } = props;
 
   if (!target) {
     console.warn('[Flash] No target specified');

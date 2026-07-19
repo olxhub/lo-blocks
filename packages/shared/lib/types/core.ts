@@ -18,7 +18,9 @@ import { z } from 'zod';
 import { scopeNames } from '../state/scopes';
 import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
+import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
+import type { Correctness } from '../blocks/correctness';
 
 /**
  * ════════════
@@ -415,7 +417,7 @@ export interface FieldInfo {
   /** Materialize raw Redux value → consumer-facing value. Default: identity.
    *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
    *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
-  read?: (raw: any) => any;
+  read?: (raw: RawFieldValue<any>) => any;
 
   /** Equality check for useSelector on the RAW (pre-read) value.
    *  Default: Object.is (referential equality).
@@ -433,7 +435,7 @@ export interface FieldInfo {
    *
    *  Returns an array of WriteResult — usually one event, but some operations
    *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
-  write?: (oldRaw: any, newValue: any) => WriteResult[];
+  write?: (oldRaw: RawFieldValue<any>, newValue: any) => WriteResult[];
 
   /** Field-level reducer. Receives the component's state object and returns a
    *  patch to merge back. The main reducer routes events to field.reduce based
@@ -447,7 +449,7 @@ export interface FieldInfo {
    *
    *  Fields without reduce use the default behavior: spread action payload
    *  directly into componentState (plain key-value merge). */
-  reduce?: (componentState: Record<string, any>, action: any, fieldName: string) => Record<string, any>;
+  reduce?: (componentState: Record<string, RawFieldValue<any>>, action: any, fieldName: string) => Record<string, RawFieldValue<any>>;
 
   /** Human/LLM-readable string representation. Distinct from `read`:
    *  - read: programmatic value (Set, number, structured object)
@@ -601,6 +603,143 @@ export const ReduxFieldsReturn = z.record(
 export type ComponentLoader = () => Promise<React.ComponentType<any>>;
 
 // === Schema ===
+// ---------------------------------------------------------------------------
+// Grading contracts — canonical declarations (lib/grading/model.ts re-exports
+// these for grading-domain ergonomics; one home, no cycles).
+// ---------------------------------------------------------------------------
+
+// Param shapes a grade function receives — exactly one of these, chosen by
+// the descriptor's InputBinding kind (slots → dict, list → list, single →
+// single).
+export type SingleParam = { input: unknown; inputApi: object };
+export type ListParam = { inputList: unknown[]; inputApis: object[] };
+export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
+export type GraderParams = SingleParam | ListParam | DictParam;
+
+/** How a grader's inputs are shaped into the param its grade function
+ *  receives. The kind IS the shape — no independent slots/inputType pair with
+ *  a precedence rule to remember (the ambiguity of declaring both is gone). */
+export type InputBinding =
+  | { kind: 'single' }
+  | { kind: 'list' }
+  | { kind: 'slots'; names: readonly string[] };
+
+/** What a grade function returns. May be a Promise for async graders.
+ *  Custom/user-authored code is the untrusted boundary — it validates and
+ *  coerces its own result (see CustomGrader) before it reaches this type. */
+export interface RawGraderResult {
+  correct: boolean | Correctness;
+  message?: string;
+  score?: number;
+}
+
+// The grading function family, keyed by its declaration name in grader()
+// (grader: / asyncGrader:). The declaration key IS the execution discriminant,
+// so there is no loose "either shape" caller type to normalize and no
+// execution flag that could disagree with the fn — each key is typed to
+// exactly one of these.
+/** A synchronous grader's fn: returns a result directly (no Promise), so
+ *  immediate-mode selectors can evaluate it in place. */
+export type SyncGraderFn = (props: RuntimeProps, params: GraderParams) => RawGraderResult;
+/** An async grader's fn: grading finishes later (LLM, instructor/peer queue,
+ *  code-in-sandbox). */
+export type AsyncGraderFn = (props: RuntimeProps, params: GraderParams) => Promise<RawGraderResult>;
+
+/** The contract for a block's action (the action()/grader() mixins). */
+export type BlockAction = (context: { props: RuntimeProps }) => unknown | Promise<unknown>;
+
+/** The evaluation half of a blueprint field selector. Pure, synchronous,
+ *  side-effect-free function of the Redux snapshot; never initiates loads;
+ *  never mutates anything. `props` are the TARGET block's props. */
+export type FieldSelectorFn = (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown;
+
+/**
+ * A blueprint field selector — the getter half of the getter/setter
+ * pattern (selectValue generalized): a block's observable field may be
+ * COMPUTED rather than stored. The write half is the separate `setters`
+ * axis (FieldSetterFn below).
+ *
+ * Three declaration forms:
+ *
+ *   fieldName: fn                          // simple: evaluated per dispatch
+ *   fieldName: { select: fn, equality }    // same, but subscribers gate on
+ *                                          //   the declared RESULT equality
+ *                                          //   (object-returning getters mint
+ *                                          //   fresh objects — declare
+ *                                          //   shallowEqual or subscribers
+ *                                          //   re-render per dispatch)
+ *   fieldName: { deps, compute }           // pipelined (reselect-shaped):
+ *                                          //   subscribers SUBSCRIBE deps
+ *                                          //   (shallow-compared array) and
+ *                                          //   run compute after the gate —
+ *                                          //   the deps gate IS the equality
+ *
+ * All forms obey the purity rules above (sync, pure, no loads, never
+ * mutate). For the pipelined form, `deps` runs on EVERY store dispatch —
+ * it must be CHEAP and return REFERENCE-STABLE entries (bucket reads,
+ * primitives; never freshly-built objects), exactly as loudly as the
+ * purity rules. `compute` sees only the dep values, so it cannot re-enter
+ * the store.
+ *
+ * Self-masking: a getter masks only its own backing field of the SAME name.
+ * Inside a getter body, the SELF-read (that backing field) uses level 2
+ * (decodedFieldSelector); reads of any OTHER field compose at level 3
+ * (fieldSelector/selectFields) — through that field's getter if one exists.
+ * Genuine cycles throw via the re-entrancy guard. Per-sub-scope internal
+ * fields (per-card, per-member idPrefix scopes) must NOT share a name with
+ * a block-level getter — idPrefix scoping shares the blueprint, so the
+ * getter would mask the scoped field in every sub-scope (CharacterBuilder's
+ * per-card field is `text`, not `value`, for exactly this reason).
+ */
+export type FieldSelector =
+  | FieldSelectorFn
+  | { select: FieldSelectorFn; equality?: (a: unknown, b: unknown) => boolean }
+  | {
+      deps: (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown[];
+      compute: (...deps: any[]) => unknown;
+    };
+
+/**
+ * A blueprint field setter — the write half of the getter/setter axis
+ * (`setters`, parallel to `selectors`). A getter maps state → value; a
+ * setter maps value → dispatches. setField (lib/state/redux.ts) routes
+ * observable writes through it: setter ?? updateField.
+ *
+ * Contract (as binding as the getter purity rules, cross-referenced above):
+ * - Synchronous; never async, never React.
+ * - Translates assignment into EVENTS: writes only via updateField (or
+ *   actions that reduce to it), and only the setter's own block's fields —
+ *   the self-masking rule, symmetric with getters.
+ * - May read current state through non-hook reads (getField /
+ *   getDecodedField) when the translation needs it.
+ * - Never mutates Redux directly.
+ *
+ * `props` are the TARGET block's props (same convention as FieldSelectorFn).
+ * A setters key with neither a same-name getter nor a declared stored field
+ * is legal (a write-only virtual field).
+ */
+export type FieldSetterFn = (value: any, props: RuntimeProps, stateKey: StateKey) => void;
+
+/**
+ * Everything the grading pipeline needs from a leaf grader blueprint outside
+ * its dispatching action — set (and normalized from the caller-facing
+ * slots?/inputType?/execution? options) by the grader() mixin. The pipeline
+ * consumes only this discriminated form.
+ *
+ * Discriminated on `execution`. 'sync': the grade function returns a result
+ * directly (immediate-mode selectors evaluate it in place, no Promise
+ * duck-typing). 'async': grading finishes later — an LLM call, an
+ * instructor/peer queue, code-in-sandbox — so the fn returns a Promise, the
+ * submission gets a persisted pending state (correct='submitted', inputs
+ * locked), and it cannot be used in grade="immediate" problems.
+ *
+ * `inputs` (InputBinding) fixes the param shape. `infer` inputs from the DOM
+ * hierarchy (default true); false = target= only.
+ */
+export type GradingDescriptor =
+  | { execution: 'sync'; fn: SyncGraderFn; inputs: InputBinding; infer?: boolean }
+  | { execution: 'async'; fn: AsyncGraderFn; inputs: InputBinding; infer?: boolean };
+
 export const BlockBlueprintSchema = z.object({
   name: z.string().optional(),
   namespace: z.string().nonempty(),
@@ -617,9 +756,41 @@ export const BlockBlueprintSchema = z.object({
    * (match functions, instant-mode grading) runs against a loaded engine.
    */
   ensureReady: z.custom<() => Promise<void>>().optional(),
-  action: z.function().optional(),
+  action: z.custom<BlockAction>().optional(),
   isGrader: z.boolean().optional().default(false),
+  /**
+   * Computed fields, by name (see FieldSelector). Cross-block reads
+   * (fieldSelector with a stateKey, the state language, valueSelector)
+   * consult these before stored state; a block's own internal reads go
+   * straight to its backing store. The grader() mixin and the metagraders
+   * declare the grading quartet here; inputs declare `value`.
+   */
+  selectors: z.custom<Record<string, FieldSelector>>().optional(),
+  /**
+   * Field setters, by name (see FieldSetterFn) — the write half of the
+   * getter/setter axis. setField consults these before falling through to
+   * updateField; a purely-derived field (getter, no same-name stored field)
+   * with no setter rejects writes entirely.
+   */
+  setters: z.custom<Record<string, FieldSetterFn>>().optional(),
+  /**
+   * Grading descriptor (set by the grader() mixin) — everything the grading
+   * pipeline needs outside the dispatching action: `fn` (the raw grade
+   * function, evaluated in selectors for derived immediate-mode
+   * correctness), `inputType`/`slots` (param shape), and `execution`
+   * grader: the action two-phase dispatches correct='submitted' before
+   * awaiting). A blueprint with isGrader but no `grading` is a metagrader —
+   * its state derives from child graders (lib/grading/selectGradingState.ts).
+   */
+  grading: z.custom<GradingDescriptor>().optional(),
   isInput: z.boolean().optional().default(false),
+  /**
+   * Input commits on change (radio buttons, dropdowns): each interaction is
+   * a deliberate answer, so immediate-mode grading may show incorrect right
+   * away. Free-form inputs (text) leave this false — mid-typing non-matches
+   * display as incomplete, not a red X ("4" while typing "42").
+   */
+  commitOnChange: z.boolean().optional().default(false),
   isMatch: z.boolean().optional().default(false),
   /**
    * Named slots for multi-input graders.
@@ -644,7 +815,6 @@ export const BlockBlueprintSchema = z.object({
   staticKids: z.function().args(z.any()).returns(z.array(z.string())).optional(),
   reducers: z.array(z.function()).optional(),
   fields: ReduxFieldsReturn.optional(),
-  selectValue: z.function().optional(),
   /**
    * Advance the block's internal state by one step (e.g. next dialogue line,
    * next sequence item).  Called by the advance tree walker (lib/advance.ts).
@@ -820,7 +990,6 @@ export type BlockBlueprint = z.infer<typeof BlockBlueprintSchema>;
  *
  * For blocks using withStatus, the return type is BlockDataResult & { value }.
  */
-export type ValueSelectorFn = (props: RuntimeProps, state: any, stateKey: StateKey) => any;
 
 export interface LoBlock {
   /** Eager component. Set when the blueprint declared one, or after this
@@ -849,11 +1018,10 @@ export interface LoBlock {
    *  for this block, success or not. Owned by useBlocksReady(). */
   _gateSettled?: boolean;
   _isBlock: true;
-  action?: Function;
+  action?: BlockAction;
   parser?: Function;
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
-  selectValue?: ValueSelectorFn;
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */
   advance?: (props: RuntimeProps, state: any) => boolean;
   /** Can this block advance? See BlockBlueprintSchema.canAdvance for semantics. */
@@ -866,6 +1034,14 @@ export interface LoBlock {
   isInput: boolean;
   isMatch: boolean;
   isGrader: boolean;
+  /** Computed fields by name — see BlockBlueprintSchema.selectors. */
+  selectors?: Record<string, FieldSelector>;
+  /** Field setters by name — see BlockBlueprintSchema.setters. */
+  setters?: Record<string, FieldSetterFn>;
+  /** Grading descriptor (grader() mixin) — see BlockBlueprintSchema.grading. */
+  grading?: GradingDescriptor;
+  /** Input commits on change (radio/dropdown) — immediate mode may show incorrect instantly. */
+  commitOnChange?: boolean;
   /**
    * Marks this block as internal/system use only.
    * Internal blocks are hidden from the main documentation navigation.

@@ -6,82 +6,35 @@
 // related grader correctness states. This replaces the problematic "submitted" boolean
 // approach with a proper state query system based on existing correctness states.
 //
+import { useSelector } from 'react-redux';
 import { correctness } from './correctness';
-import { inferRelatedNodes } from './olxdom';
-import * as state from '@/lib/state';
+import { inferRelatedNodes } from './dynamicDom';
+import { selectGradingState } from '@/lib/grading';
 
 /**
- * Determines if an input should be read-only
+ * Hook: should this input be read-only?
  *
  * Priority order:
  * 1. Explicit readOnly prop (for Survey, custom containers, etc.)
- * 2. Related grader correctness state (for CapaProblem, graded contexts)
+ * 2. Related grader correctness state — locked while ANY related grader is
+ *    in 'submitted' (pending async grading); a shared input must not be
+ *    editable while one of its graders is still grading the snapshot.
  * 3. Default to interactive (fail open)
  *
- * @param {Object} props - Component props with nodeInfo and state access
- * @returns {boolean} - True if input should be read-only
+ * TODO: Add attempt limiting logic based on container configuration.
  */
-export function isInputReadOnly(props) {
-  // 1. Check for explicit readOnly prop (takes precedence)
-  if (props.readOnly !== undefined) {
-    return Boolean(props.readOnly);
-  }
+export function useInputReadOnly(props): boolean {
+  const explicit = props.readOnly !== undefined;
 
-  // 2. Try to determine from related grader states
-  const graderIds = inferRelatedNodes(props, {
+  const graderIds = explicit ? [] : inferRelatedNodes(props, {
     selector: n => n.loBlock.isGrader,
     infer: true
   });
 
-  if (graderIds.length === 0) {
-    // No graders found - input remains interactive
-    return false;
-  }
+  const anyPending = useSelector((state: any) =>
+    graderIds.some(id =>
+      selectGradingState(state, props, id).correct === correctness.submitted));
 
-  // Check correctness state of related graders
-  // For now, use the first grader - in the future we might want more sophisticated logic
-  const graderId = graderIds[0];
-
-  try {
-    const correctField = state.componentFieldByStateKey(props, graderId, 'correct');
-    const correctnessValue = state.useFieldSelector(
-      props,
-      correctField,
-      {
-        stateKey: graderId,
-        fallback: correctness.unsubmitted,
-        selector: s => s?.correct
-      }
-    );
-
-    // Default behavior: allow infinite attempts (only lock if explicitly SUBMITTED and not allowing retries)
-    // For now, we'll be more permissive - only lock on SUBMITTED pending grading
-    // TODO: Add attempt limiting logic based on container configuration
-    return correctnessValue === correctness.submitted;
-
-  } catch (e) {
-    // If we can't determine grader state, default to interactive (fail open)
-    console.warn('Could not determine grader correctness state, defaulting to interactive', e);
-    return false;
-  }
-}
-
-/**
- * Gets a descriptive interaction mode for debugging/display
- * @dev - Development/debugging helper function
- *
- * @param {Object} props - Component props
- * @returns {string} - 'interactive', 'read-only', or 'no-grader'
- */
-function getInputInteractionMode(props) {
-  const graderIds = inferRelatedNodes(props, {
-    selector: n => n.loBlock.isGrader,
-    infer: true
-  });
-
-  if (graderIds.length === 0) {
-    return 'no-grader';
-  }
-
-  return isInputReadOnly(props) ? 'read-only' : 'interactive';
+  if (explicit) return Boolean(props.readOnly);
+  return anyPending;
 }

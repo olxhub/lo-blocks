@@ -23,6 +23,7 @@ import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
 import type { MatchingArrangement } from './types';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'arrangement',  // Current matching: left item ID → right item ID
@@ -50,15 +51,26 @@ function getCorrectArrangement(props: RuntimeProps) {
   return correct;
 }
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh {} fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_ARRANGEMENT: Record<string, string> = {};
+
 const MatchingInput = dev({
   ...parsers.blocks(), // Handle child blocks
   ...input(),
   name: 'MatchingInput',
   description: 'Match items from left column to right column',
   fields,
-  selectValue: (props: RuntimeProps, reduxState, _stateKey) => ({
-    arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: {} })
-  }),
+  selectors: {
+    value: {
+      select: (reduxState, props: RuntimeProps, _stateKey) => ({
+        arrangement: fieldSelector(reduxState, props, fields.arrangement, { fallback: EMPTY_ARRANGEMENT })
+      }),
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
+  },
   attributes: z.object({
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle right side items initially (default: true)'),
   }).strict(),

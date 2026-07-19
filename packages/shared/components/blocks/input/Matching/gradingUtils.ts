@@ -2,7 +2,7 @@
  * Grading logic for matching exercises
  */
 
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness, type Correctness } from '@/lib/blocks/correctness';
 import type { MatchingArrangement, MatchingGradingResult } from './types';
 
 /**
@@ -10,7 +10,7 @@ import type { MatchingArrangement, MatchingGradingResult } from './types';
  * Called by the grader framework with (props, { input, inputApi })
  *
  * @param props Grader props
- * @param input Object containing arrangement from MatchingInput.selectValue()
+ * @param input Object containing arrangement from MatchingInput's selectors.value
  * @param inputApi API from MatchingInput with getCorrectArrangement method
  * @returns Object with correct, score, message
  */
@@ -33,7 +33,7 @@ export function gradeMatching(props: any, { input, inputApi }: any) {
   const score = totalMatches > 0 ? correctMatches / totalMatches : 0;
 
   // Determine correctness
-  let correct: string;
+  let correct: Correctness;
   if (score === 1) {
     correct = correctness.correct;
   } else if (correctMatches === 0) {

@@ -15,15 +15,18 @@ import * as state from '@/lib/state';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 
-async function setFieldAction({ targetInstance, props }) {
-  const { target, field: fieldName, value } = targetInstance.attributes;
+async function setFieldAction({ props }) {
+  // OLX attributes are spread into props by propsFromNode
+  const { target, field: fieldName, value } = props;
 
   if (!target) { console.warn('SetFieldAction: No target specified'); return; }
   if (!fieldName) { console.warn('SetFieldAction: No field specified'); return; }
 
   const targetStateKey = stateKeyForGlobalRef(target, props.runtime.ns);
   const field = state.componentFieldByStateKey(props, targetStateKey, fieldName);
-  state.updateField(props, field, value, { stateKey: targetStateKey });
+  // setField: actions write the target's OBSERVABLE field — a blueprint
+  // setter (derived fields) fans out; plain fields take the storage write.
+  state.setField(props, field, value, { stateKey: targetStateKey });
 }
 
 const SetFieldAction = blocks.core({

@@ -2,9 +2,8 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
-import * as state from '@/lib/state';
-import { useFieldSelector } from '@/lib/state';
-import { correctness, computeVisibility } from '@/lib/blocks';
+import { computeVisibility } from '@/lib/blocks';
+import { useGradingState } from '@/lib/grading';
 import { useKids } from '@/lib/render';
 
 /**
@@ -25,12 +24,9 @@ function Explanation(props: RuntimeProps) {
   // showWhen validated by attributes schema
   const { showWhen = 'correct', title, graderId } = props;
 
-  const correctField = state.componentFieldByStateKey(props, graderId, 'correct');
-  const correctnessValue = useFieldSelector(
-    props,
-    correctField,
-    { stateKey: graderId, fallback: correctness.unsubmitted, selector: s => s?.correct }
-  ) ?? correctness.unsubmitted;
+  // Works for leaf graders and metagraders alike — metagrader correctness
+  // is derived from children, not stored.
+  const { correct: correctnessValue } = useGradingState(props, graderId);
 
   // useKids must be called unconditionally
   const { kids } = useKids(props);

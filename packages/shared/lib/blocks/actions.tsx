@@ -1,55 +1,32 @@
 // packages/shared/lib/blocks/actions.tsx
 //
-// Block actions system - enables blocks to perform behaviors beyond rendering.
+// Generic block actions - enables blocks to perform behaviors beyond rendering.
 //
-// Actions allow blocks to respond to events (clicks, submissions, etc.) by:
-// - Grading student inputs and updating correctness state
-// - Making LLM API calls to generate dynamic content
-// - Triggering workflows across multiple related blocks
+// - `action()` mixin: makes a block executable with custom logic
+// - `input()` mixin: makes a block's value accessible to other blocks
+// - `executeNodeActions()`: finds and runs all related actions automatically
 //
-// Key concepts:
-// - `action()` mixin: Makes a block executable with custom logic
-// - `grader()` mixin: Specialized action for assessment that collects inputs,
-//   runs grading logic, and logs results to learning analytics
-// - `input()` mixin: Makes a block's value accessible to other blocks
-// - `executeNodeActions()`: Finds and runs all related actions automatically
+// The system uses inference to automatically find related blocks (inputs
+// for graders, targets for actions) based on DOM hierarchy and explicit
+// targeting. Grading — the largest consumer of this machinery — lives in
+// lib/grading (the grader() mixin is submitGrade.ts).
 //
-// The system uses inference to automatically find related blocks (inputs for
-// graders, targets for actions) based on DOM hierarchy and explicit targeting.
-//
-// NOTE: Actions receive a Redux store from their caller (typically ActionButton).
-// This enables replay mode where a different store provides historical state.
+// NOTE: Actions receive a Redux store from their caller (typically
+// ActionButton). This enables replay mode where a different store provides
+// historical state.
 //
 import { z } from 'zod';
-import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './olxdom';
-import * as lo_event from 'lo_event';
-import { correctness } from './correctness';
-import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
-import { getBlockByOLXId } from './getBlockByOLXId';
-import { valueSelector } from '@/lib/state/redux';
-import { isZodCompatible, describeZodType } from './zodCompat';
-import { inputAttributes, graderAttributes } from './attributeSchemas';
-import type { RuntimeProps, DefinitionKey, DefinitionRef, StateKey, LoBlock, ValueSelectorFn } from '@/lib/types';
-import type { Store } from 'redux';
-
-// Grader parameter types - each grader receives exactly one of these
-export type SingleParam = { input: unknown; inputApi: object };
-export type ListParam = { inputList: unknown[]; inputApis: object[] };
-export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
-export type GraderParams = SingleParam | ListParam | DictParam;
-
-// May return a Promise — the grading action awaits results (slow graders,
-// and graders that ready lazy engines before sync match calls).
-type GraderResult = { correct: unknown; message: unknown; score?: number };
-type GraderFn = (props: RuntimeProps, params: GraderParams) => GraderResult | Promise<GraderResult>;
+import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './dynamicDom';
+import { inputAttributes } from './attributeSchemas';
+import type { BlockAction, RuntimeProps, LoBlock } from '@/lib/types';
 
 // Mix-in to make a block an action
-export function action({ action }) {
+export function action({ action }: { action: BlockAction }) {
   return { action };
 }
 
-export function isAction(loBlock) {
-  return typeof loBlock?.action === "function";
+export function isAction(loBlock: LoBlock): boolean {
+  return typeof loBlock?.action === 'function';
 }
 
 /**
@@ -71,11 +48,12 @@ export function isAction(loBlock) {
  * This enables plug-and-play composition: course authors can pair any
  * compatible input with any compatible grader.
  */
-export function input(opts: { selectValue?: ValueSelectorFn; valueSchema?: z.ZodType } = {}) {
+export function input(opts: { valueSchema?: z.ZodType } = {}) {
   // Everything the helper contributes is packaged as an `inputMixin` layer.
   // createBlock's composition pass merges this layer into the final blueprint,
-  // so callers get `isInput`, `slot` attribute, and any `selectValue`/`valueSchema`
-  // without declaring them at the top level themselves.
+  // so callers get `isInput`, the `slot` attribute, and any `valueSchema`
+  // without declaring them at the top level themselves. Computed values are
+  // declared via the top-level `selectors: { value }` blueprint axis.
   return {
     inputMixin: {
       ...opts,
@@ -93,321 +71,27 @@ export function isMatch(loBlock) {
 }
 
 /**
- * Resolve input IDs to named slots.
- *
- * If the grader declares `slots` (e.g., ['numerator', 'denominator']),
- * this function maps inputs to slots by:
- * 1. Explicit `slot="numerator"` attribute on input (highest priority)
- * 2. Positional: first input → first slot, second → second slot
- *
- * Returns { slotMap, errors } where slotMap is { slot: inputId } and errors
- * contains any validation issues (missing slots, unknown slots, etc.)
+ * Find and execute every action related to the caller (explicit target= or
+ * DOM inference). Each action receives its own node's full RuntimeProps —
+ * stateKey, olxJson attributes, and blueprint are all reachable from props
+ * (attributes are spread in; the rest via props.nodeInfo / props.loBlock).
  */
-function resolveInputSlots(
-  slots: string[],
-  inputIds: StateKey[],
-  getInputSlot: (id: StateKey) => string | undefined
-): { slotMap: Record<string, string>; errors: string[] } {
-  const errors: string[] = [];
-  const slotMap: Record<string, string> = {};
-  const usedSlots = new Set<string>();
-  const slotSet = new Set(slots);
-
-  // First pass: handle explicit slot= attributes
-  for (const inputId of inputIds) {
-    const explicitSlot = getInputSlot(inputId);
-    if (explicitSlot) {
-      if (!slotSet.has(explicitSlot)) {
-        errors.push(`Unknown slot "${explicitSlot}" on input "${inputId}", expected: ${slots.join(', ')}`);
-        continue;
-      }
-      if (usedSlots.has(explicitSlot)) {
-        errors.push(`Duplicate slot "${explicitSlot}" - each slot can only be assigned once`);
-        continue;
-      }
-      slotMap[explicitSlot] = inputId;
-      usedSlots.add(explicitSlot);
-    }
-  }
-
-  // Second pass: positional assignment for remaining inputs
-  let slotIndex = 0;
-  for (const inputId of inputIds) {
-    const explicitSlot = getInputSlot(inputId);
-    if (explicitSlot) continue; // Already handled
-
-    // Find next unassigned slot
-    while (slotIndex < slots.length && usedSlots.has(slots[slotIndex])) {
-      slotIndex++;
-    }
-
-    if (slotIndex >= slots.length) {
-      errors.push(`Too many inputs: grader expects ${slots.length} (${slots.join(', ')}), found more`);
-      break;
-    }
-
-    const slot = slots[slotIndex];
-    slotMap[slot] = inputId;
-    usedSlots.add(slot);
-    slotIndex++;
-  }
-
-  // Check for missing slots
-  for (const slot of slots) {
-    if (!usedSlots.has(slot)) {
-      errors.push(`Missing input for slot "${slot}"`);
-    }
-  }
-
-  return { slotMap, errors };
-}
-
-// Helper to define a grading action. This used to be called a
-// "response" in OLX 1.0 terminology.
-//
-// Param shape the grader receives:
-// - slots defined: { inputDict, inputApiDict } - named slots
-// - inputType: 'list': { inputList, inputApis } - array of inputs
-// - default (single): { input, inputApi } - one input (most common)
-export function grader({ grader, infer = true, slots, inputType }: {
-  grader: GraderFn;
-  infer?: boolean;
-  slots?: string[];
-  inputType?: 'single' | 'list';
-}) {
-  // Props reconstruction: We have full props from the action source (grader).
-  // For inputs and other related blocks, we reconstruct complete props with their
-  // blueprint and nodeInfo. The runtime context is shared from the source props.
-
-  const action = async ({ targetId, targetInstance, props }) => {
-    // targetId is already a StateKey from inferRelatedNodes (via executeNodeActions)
-    const targetNodeInfo = getDomNodeByStateKey(props, targetId);
-    const targetAttributes = targetInstance.attributes;
-
-    const inputIds = inferRelatedNodes(
-      { ...props, nodeInfo: targetNodeInfo },
-      {
-        selector: n => n.loBlock && isInput(n.loBlock),
-        infer,
-        targets: targetAttributes?.target,
-      }
-    );
-
-    const state = props.runtime.store.getState();
-    const map = props.runtime.blockRegistry;
-
-    // Gather values and APIs from each input (synchronous - blocks are in idMap)
-    const inputData = inputIds.map(id => {
-      const defKey = leafDefinitionKeyFromStateKey(id);
-      const inst = getBlockByOLXId(props, defKey);
-      if (!inst) {
-        console.warn(`[runGrader] Input block "${id}" not found in idMap`);
-        return { value: undefined, api: {} };
-      }
-      const loBlock = map[inst.tag];
-      // id is already a StateKey from inferRelatedNodes
-      const inputNodeInfo = getDomNodeByStateKey(props, id);
-
-      // Use the input's own runtime (captured at render time) for correct idPrefix,
-      // logEvent context, etc. Falls back to caller's runtime if nodeInfo unavailable.
-      const inputProps = {
-        runtime: inputNodeInfo?.runtime ?? props.runtime,
-        nodeInfo: inputNodeInfo,
-        id: defKey,
-        kids: inst.kids || [],
-        loBlock,
-        fields: loBlock.fields || {},
-        locals: loBlock.locals || {},
-        ...inst.attributes,  // Spread OLX attributes
-      };
-
-      // Use valueSelector for uniform handling of withStatus / raw selectValue
-      const { value } = valueSelector(inputProps as RuntimeProps, state, id);
-
-      // Create bound API from locals - each function gets (props, state, id) pre-bound
-      const api = loBlock.locals
-        ? Object.fromEntries(
-          Object.entries(loBlock.locals).map(([name, fn]: [string, Function]) => [
-            name,
-            (...args: any[]) => fn(inputProps, state, id, ...args)
-          ])
-        )
-        : {};
-
-      return { value, api };
-    });
-
-    const values = inputData.map(d => d.value);
-    const apis = inputData.map(d => d.api);
-
-    // Check input/grader type compatibility via Zod schemas.
-    // On mismatch, set result directly instead of returning early — we still
-    // need to dispatch UPDATE_CORRECT so the UI updates (executeNodeActions
-    // ignores return values).
-    let zodMismatchResult: { correct: string; message: string; score?: number } | null = null;
-    const graderInputSchema = props.loBlock?.inputSchema;
-    if (graderInputSchema) {
-      for (const id of inputIds) {
-        const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-        if (!inst) continue;
-        const inputBlock = map[inst.tag];
-        if (!inputBlock?.valueSchema) continue;
-        if (!isZodCompatible(inputBlock.valueSchema, graderInputSchema)) {
-          const graderName = props.loBlock?.name || 'Grader';
-          const inputName = inputBlock.name || inst.tag;
-          zodMismatchResult = {
-            correct: correctness.invalid,
-            message: `${graderName} expects ${describeZodType(graderInputSchema)} input, but ${inputName} provides ${describeZodType(inputBlock.valueSchema)}.`,
-          };
-          break;
-        }
-      }
-    }
-
-    // Build grader parameters and run grader (skip if Zod already caught a mismatch)
-    let correct: any, message: any, score: any;
-    if (zodMismatchResult) {
-      ({ correct, message, score } = zodMismatchResult);
-    } else {
-      let param: GraderParams | undefined;
-
-      if (slots && slots.length > 0) {
-        // Dict mode: resolve inputs to named slots
-        const getInputSlot = (id: StateKey) => {
-          const inst = getBlockByOLXId(props, leafDefinitionKeyFromStateKey(id));
-          return inst?.attributes?.slot as string | undefined;
-        };
-
-        const { slotMap, errors } = resolveInputSlots(slots, inputIds, getInputSlot);
-
-        if (errors.length > 0) {
-          // Slot resolution failed — fall through to dispatch so UI updates
-          correct = correctness.invalid;
-          message = errors[0];
-        } else {
-          // Build slot→value and slot→api maps
-          const inputDict: Record<string, unknown> = {};
-          const inputApiDict: Record<string, object> = {};
-
-          for (const [slot, inputId] of Object.entries(slotMap)) {
-            const idx = (inputIds as string[]).indexOf(inputId);
-            if (idx >= 0) {
-              inputDict[slot] = values[idx];
-              inputApiDict[slot] = apis[idx];
-            }
-          }
-
-          param = { inputDict, inputApiDict };
-        }
-      } else if (inputType === 'list') {
-        // List mode - explicitly requested
-        param = { inputList: values, inputApis: apis };
-      } else {
-        // Single input mode (default when no slots specified)
-        // Most graders expect a single input
-        if (values.length === 0) {
-          // No input — fall through to dispatch so UI updates
-          correct = correctness.invalid;
-          message = 'No input found';
-        } else {
-          param = { input: values[0], inputApi: apis[0] };
-        }
-      }
-      if (param) {
-        // Blueprints with slow dependencies (e.g. FormulaGrader's mathjs)
-        // declare ensureReady; await it so the (synchronous) match function
-        // runs against a loaded engine. The await on grader also accepts
-        // async grader functions — the seam for slow graders (LLM,
-        // code-in-sandbox).
-        await map[targetInstance.tag]?.ensureReady?.();
-        ({ correct, message, score } = await grader(
-          { ...props, ...targetAttributes },
-          param
-        ));
-      }
-    }
-
-    // Convert boolean correct to correctness enum for display
-    const correctnessValue = correct === true ? correctness.correct :
-      correct === false ? correctness.incorrect :
-        correct; // In case it's already a correctness value
-
-    // targetId is already a StateKey — use directly
-    // Get current submitCount — only increment for real submissions (not blank/invalid)
-    const currentState = state.application_state?.component?.[targetId] || {};
-    const isRealSubmission = correctnessValue !== correctness.unsubmitted &&
-                             correctnessValue !== correctness.invalid;
-    const submitCount = (currentState.submitCount || 0) + (isRealSubmission ? 1 : 0);
-
-    // HACK: This sends a compound event with multiple data properties, but only
-    // `correct` is a declared CRDT field. The extras (submitCount, score, message,
-    // answers) are spread as plain values in the reducer, gated by `correct`'s LWW
-    // timestamp for consistency. This should be replaced with a CRDT dictionary
-    // (or per-field events) so all properties get proper conflict resolution.
-    const logEvent = props.runtime.logEvent;
-    logEvent('UPDATE_CORRECT', {
-      id: targetId,
-      correct: correctnessValue,
-      message,
-      score,
-      submitCount,
-      lastSubmission: values
-    });
-    return correct;
-  };
-
-  // Everything the helper contributes is packaged as a `graderMixin` layer.
-  // createBlock's composition pass merges this layer into the final blueprint,
-  // so callers get `isGrader`, the grading action, `slots`, `getDisplayAnswer`,
-  // and the `answer`/`displayAnswer`/`target` attributes without declaring them
-  // at the top level themselves.
-  return {
-    graderMixin: {
-      action,
-      isGrader: true,
-      slots,  // Named slots for multi-input graders
-      // Default display answer - can be overridden in block definition
-      getDisplayAnswer: (props) => props.displayAnswer ?? props.answer,
-      attributes: graderAttributes,
-    },
-  };
-}
-
 export async function executeNodeActions(props: RuntimeProps) {
   const ids = inferRelatedNodes(props, {
     selector: n => isAction(n.loBlock),
     infer: props.infer,
     targets: props.target
   });
-  const map = props.runtime.blockRegistry;
   for (const targetId of ids) {
-    const targetDefKey = leafDefinitionKeyFromStateKey(targetId);
-    const targetInstance = getBlockByOLXId(props, targetDefKey);
-    if (!targetInstance) {
-      console.warn(`[executeNodeActions] Action block "${targetId}" not found in Redux`);
-      continue;
-    }
-    const targetBlueprint = map[targetInstance.tag];
-    if (!targetBlueprint?.action) {
-      console.warn(`[executeNodeActions] Block "${targetId}" (${targetInstance.tag}) has no action method`);
-      continue;
-    }
-
-    // Find the action's OlxDomNode
     // targetId is already a StateKey from inferRelatedNodes
-    const actionNodeInfo = getDomNodeByStateKey(props, targetId);
-
-    if (!actionNodeInfo) {
+    const node = getDomNodeByStateKey(props, targetId);
+    if (!node) {
       throw new Error(`Action ${targetId} not found in dynamic DOM tree - this indicates a bug in the rendering system`);
     }
-
-    const actionProps = propsFromNode(actionNodeInfo);
-
-    await targetBlueprint.action({
-      targetId,
-      targetInstance,
-      targetBlueprint,
-      props: actionProps
-    });
+    if (!node.loBlock.action) {
+      console.warn(`[executeNodeActions] Block "${targetId}" (${node.olxJson.tag}) has no action method`);
+      continue;
+    }
+    await node.loBlock.action({ props: propsFromNode(node) });
   }
 }

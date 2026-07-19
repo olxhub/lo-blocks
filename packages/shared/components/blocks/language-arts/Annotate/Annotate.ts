@@ -53,7 +53,7 @@ import * as parsers from '@/lib/content/parsers';
 // separate Redux keys (e.g., "annotate_demo:#0:quote").
 export const fields = state.fields([
   state.idField('noteIds'),
-  state.setField('notes'),
+  state.orSetField('notes'),
   'pendingQuote',
   'pendingStart',
   'pendingEnd',

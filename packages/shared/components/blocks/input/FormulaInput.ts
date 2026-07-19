@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps } from '@/lib/types';
@@ -19,7 +19,9 @@ const FormulaInput = core({
   name: 'FormulaInput',
   description: 'Math expression input with live LaTeX preview (supports variables, functions, operators)',
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => decodedFieldSelector(state, props, fields.value, { fallback: '' }),
+  },
   attributes: z.object({
     ...placeholder,
     variables: z.string().optional().describe('Comma-separated variable names allowed in expressions (e.g. "x,y,z")'),

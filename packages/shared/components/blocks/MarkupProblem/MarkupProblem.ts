@@ -14,6 +14,7 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
+import { gradingSelectors, problemGradeMode } from '@/lib/grading';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
@@ -63,6 +64,10 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   // Expressions (@ref syntax) also need bare IDs since the expression parser
   // doesn't understand namespace syntax.
   const parentRef = asDefinitionRef(splitNs(id).path);
+  // Every generated grader is a boundary grader of this problem — stamp the
+  // problem's grading mode on each (same parse-time convention as capaParser;
+  // grading derivation reads it via gradeModeOf, never the dynamic DOM).
+  const gradeMode = problemGradeMode(attributes);
   let graderIndex = 0;
   let inputIndex = 0;
   let hintIndex = 0;
@@ -150,7 +155,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
               storeEntry(graderId, {
                 id: graderId,
                 tag: 'KeyGrader',
-                attributes: { id: graderId, target: inputId },
+                attributes: { id: graderId, target: inputId, gradeMode },
                 kids: [{ type: 'block', id: inputId }]
               });
 
@@ -212,7 +217,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         storeEntry(graderId, {
           id: graderId,
           tag: 'KeyGrader',
-          attributes: { id: graderId, target: inputId },
+          attributes: { id: graderId, target: inputId, gradeMode },
           kids: [{ type: 'block', id: inputId }]
         });
 
@@ -271,9 +276,10 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         // CheckboxGrader - optionally add partialCredit="true" if block specifies it
         // Inline type: graderMixin contributes target/answer/displayAnswer at factory time,
         // but here we're emitting raw OLX attributes, so target is a single string.
-        const graderAttrs: { id: string; target: string; partialCredit?: 'true' | 'false' } = {
+        const graderAttrs: { id: string; target: string; gradeMode: string; partialCredit?: 'true' | 'false' } = {
           id: graderId,
           target: inputId,
+          gradeMode,
         };
         if (block.partialCredit) {
           graderAttrs.partialCredit = 'true';
@@ -357,7 +363,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         storeEntry(graderId, {
           id: graderId,
           tag: 'RulesGrader',
-          attributes: { id: graderId },
+          attributes: { id: graderId, gradeMode },
           kids: matchKids
         });
 
@@ -394,7 +400,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             id: graderId,
             answer,
             ...(tolerance && { tolerance }),
-            target: inputId
+            target: inputId,
+            gradeMode,
           },
           kids: [{ type: 'block', id: inputId }]
         });
@@ -420,7 +427,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         storeEntry(graderId, {
           id: graderId,
           tag: 'KeyGrader',
-          attributes: { id: graderId, target: inputId },
+          attributes: { id: graderId, target: inputId, gradeMode },
           kids: [{ type: 'block', id: inputId }]
         });
 
@@ -511,7 +518,9 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   return problemKids;
 }
 
-export const fields = state.fields(state.graderFields());
+// Metagrader like CapaProblem: aggregate grading state is derived on read
+// (lib/grading/selectGradingState.ts), not stored. Only showAnswer is real state.
+export const fields = state.fields([state.commonFields.showAnswer]);
 
 const MarkupProblem = dev({
   ...peggyParser(capaParser, {
@@ -526,6 +535,7 @@ const MarkupProblem = dev({
   componentLoader: () => import('@/components/blocks/CapaProblem/_CapaProblem').then(m => m.default),
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states (same as CapaProblem)
+  selectors: gradingSelectors,
   attributes: srcAttributes.extend(problemAttributes.shape).strict(),
   // peggyParser sets staticKids: () => [], but MarkupProblem generates child
   // blocks (graders, inputs, hints) dynamically during PEG parsing. Without a

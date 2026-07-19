@@ -225,7 +225,7 @@ describe('Block components should not access idMap directly', () => {
   React components, PopoutWrapper/lucide-react, and the full block
   registry (circularly) — bloats every server process and once forced a
   'use client' workaround. Pure helpers blueprints need (selectKidsJson,
-  DOM traversal) live in lib/blocks/olxdom.
+  DOM traversal) live in lib/blocks/dynamicDom.
 
   Importing the block registry from a blueprint is the same class of
   violation with a worse failure mode: it is a blueprint → registry →
@@ -267,7 +267,7 @@ describe('Blueprint files should not import lib/render or the registry', () => {
         `Blueprint imports the render layer or the registry:\n${details}\n\n` +
         `Blueprints load in node and server routes; lib/render drags in React\n` +
         `components, and importing the registry creates a blueprint → registry\n` +
-        `import cycle. Use blueprint-safe helpers from @/lib/blocks/olxdom.\n` +
+        `import cycle. Use blueprint-safe helpers from @/lib/blocks/dynamicDom.\n` +
         `There is deliberately no general parse-time block lookup — see the\n` +
         `HACK note in parseOLX.ts's parser context.`
       );

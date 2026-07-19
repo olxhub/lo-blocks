@@ -21,16 +21,21 @@ const TextArea = core({
     readonly: z_olx_boolean.optional().describe('Make textarea read-only'),
   }).strict(),
   // Read Redux value, falling back to initial text from OLX children
-  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: StateKey) => {
-    const value = state.getField(props, fields.value, { fallback: undefined });
-    if (value !== undefined) {
-      return value;
-    }
+  selectors: {
+    value: (reduxState: any, props: RuntimeProps, _stateKey: StateKey) => {
+      // Self-read of the getter's backing field (level 2) — against the
+      // PASSED state, like the kids fallback below: one evaluation, one
+      // snapshot (getters are pure over the state they're handed).
+      const value = state.decodedFieldSelector(reduxState, props, fields.value, { fallback: undefined });
+      if (value !== undefined) {
+        return value;
+      }
 
-    // No Redux state yet — fall back to parsed children text
-    const sources = props.runtime.olxJsonSources ?? ['content'];
-    const locale = props.runtime.locale.code;
-    return (selectBlock(reduxState, sources, props.id, locale)!.kids as string).trim();
+      // No Redux state yet — fall back to parsed children text
+      const sources = props.runtime.olxJsonSources ?? ['content'];
+      const locale = props.runtime.locale.code;
+      return (selectBlock(reduxState, sources, props.id, locale)!.kids as string).trim();
+    },
   },
 });
 

@@ -4,6 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useInputField, useFieldSelector } from '@/lib/state';
+import { useInputReadOnly } from '@/lib/blocks';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 // OLX attributes → React DOM props (rename where conventions differ)
@@ -22,6 +23,8 @@ function TextArea( props: RuntimeProps ) {
   );
 
   const isReadonly = useFieldSelector(props, fields.readonly, { fallback: props.readonly });
+  // Also locked while a related slow grader is grading the snapshot.
+  const gradingLocked = useInputReadOnly(props);
 
   const passthrough = Object.fromEntries(
     Object.entries(attrMap)
@@ -34,7 +37,7 @@ function TextArea( props: RuntimeProps ) {
       <textarea
         {...inputProps}
         {...passthrough}
-        readOnly={isReadonly}
+        readOnly={isReadonly || gradingLocked}
         className={className}
       />
       <DisplayAnswer props={props} />

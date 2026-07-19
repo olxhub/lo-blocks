@@ -29,7 +29,7 @@ export default function DimensionSection({
   busyRef: React.MutableRefObject<boolean>;
 }) {
   const scoped = scopedCardProps(props, cardId);
-  const [value, valueProps] = useInputField(scoped, fields.value, '');
+  const [value, valueProps] = useInputField(scoped, fields.text, '');
   const [characterName] = useFieldState(props, fields.characterName, '');
   // useState-ok: transient UI indicators for async LLM call, no need to persist
   const [generating, setGenerating] = React.useState(false);
@@ -69,7 +69,7 @@ export default function DimensionSection({
       ].filter(Boolean).join('\n');
 
       const result = await callLLMSimple(prompt);
-      updateField(scoped, fields.value, result.trim());
+      updateField(scoped, fields.text, result.trim());
     } catch (err) {
       console.warn('LLM generation failed:', err);
       setGenError(true);

@@ -5,6 +5,7 @@
 export * from './address';
 export * from './core';
 export * from './errors';
+export * from './fieldValues';
 export * from './i18n';
 export * from './storage';
 export * from './identity';

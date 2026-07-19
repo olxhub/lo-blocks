@@ -147,10 +147,8 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
   // container would walk past a student mid-conversation.
   const current = allEntries[windowedIndex];
   if (current?.type === 'LlmCommand' && !ignoreWaits) {
-    // fieldSelector returns the RAW field value — materialize the log doc
-    // through the field's read transform (idempotent on arrays).
-    const rawItems = state.fieldSelector(reduxState, props, fields.messages, { fallback: [] });
-    const items = (fields.messages.read ? fields.messages.read(rawItems) : rawItems) as
+    // Level 3: the observable message log (block logic consumes observable state).
+    const items = state.fieldSelector(reduxState, props, fields.messages, { fallback: [] }) as
       Array<{ atIndex: number; control?: string; message: { type: string; speaker?: string } }>;
     if (!interludeExitAllowed(current, waitContext, items, windowedIndex)) {
       return true; // interlude still active — don't let parent advance past us
@@ -259,8 +257,7 @@ function autoadvance(props: RuntimeProps): void {
  * Action handler — targeted advance from ActionButton
  * -------------------------------------------------------------- */
 
-// Action signature requires targetId but Chat advances itself, not a target.
-function advanceChat({ props }: { targetId: DefinitionKey; props: RuntimeProps }) {
+function advanceChat({ props }: { props: RuntimeProps }) {
   advance(props, props.runtime.store.getState());
 }
 

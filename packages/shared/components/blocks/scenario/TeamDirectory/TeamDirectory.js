@@ -7,6 +7,7 @@ import { childParser } from '@/lib/content/parsers';
 import { cast } from '@/lib/blocks/attributeSchemas';
 import { z } from 'zod';
 import { withCastSupport, parseCastYaml } from '@/lib/avatar/cast';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'selectedMember',   // Currently selected team member ID
@@ -47,11 +48,17 @@ const TeamDirectory = dev({
       .describe('Filter to cast members belonging to this group'),
     // `title` (used as the directory heading) comes from baseAttributes.
   }).strict(),
-  selectValue: (props, state, _stateKey) => {
-    const selectedMember = fieldSelector(state, props, fields.selectedMember, { fallback: null });
-    const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'grid' });
-    return { selectedMember, viewMode };
-  }
+  selectors: {
+    value: {
+      select: (state, props, _stateKey) => {
+        const selectedMember = fieldSelector(state, props, fields.selectedMember, { fallback: null });
+        const viewMode = fieldSelector(state, props, fields.viewMode, { fallback: 'grid' });
+        return { selectedMember, viewMode };
+      },
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
+  },
 });
 
 export default TeamDirectory;

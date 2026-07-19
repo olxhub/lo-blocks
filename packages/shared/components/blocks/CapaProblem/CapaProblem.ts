@@ -31,6 +31,7 @@ import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joi
 import { isPascalCase } from '@/lib/util';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
+import { gradingSelectors, problemGradeMode } from '@/lib/grading';
 import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
 
 // Grader-input mapping for auto-wiring targets.
@@ -44,10 +45,13 @@ type GraderMapping = { id: DefinitionKey; inputs: DefinitionRef[] };
 const GRADER = parseLeafId('grader');
 const INPUT  = parseLeafId('input');
 
-// CapaProblem acts as a "metagrader" - it aggregates correctness from child graders.
-// This allows Correctness/StatusText inside CapaProblem to find CapaProblem itself
-// as their grader and display aggregate state.
-export const fields = state.fields(state.graderFields());
+// CapaProblem acts as a "metagrader" - it aggregates correctness from child
+// graders. Aggregate grading state is DERIVED, never stored: Correctness/
+// StatusText inside CapaProblem find CapaProblem as their grader and read it
+// through useGradingState/selectGradingState (lib/grading), which aggregates
+// the child graders' stored fields on read. Only genuine state (the
+// showAnswer toggle) is declared here.
+export const fields = state.fields([state.commonFields.showAnswer]);
 
 // CapaProblem parser:
 // 1. Assigns scoped IDs to descendant inputs and graders
@@ -63,6 +67,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
   let graderIndex = 0;
   let nodeIndex = 0;
   const graders: GraderMapping[] = [];
+  const boundaryGraders: DefinitionKey[] = [];
   // Parent ref for building child IDs via joinDefinitionRef.
   const parentRef = asDefinitionRef(splitNs(id).path);
 
@@ -108,6 +113,10 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
 
       let mapping = currentGrader;
       if (blockType.isGrader) {
+        // A grader with no enclosing grader inside this problem is a
+        // BOUNDARY grader: this problem governs it, so it inherits this
+        // problem's grading mode (nested problems restamp their own).
+        if (currentGrader === null) boundaryGraders.push(blockId);
         mapping = { id: blockId, inputs: [] };
         graders.push(mapping);
       }
@@ -162,6 +171,17 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
     }
   }
 
+  // Stamp the problem's grading mode onto its boundary graders (parse-time
+  // static-DOM fact: grading derivation must not consult the dynamic DOM,
+  // and the static DOM has no parent pointers to walk).
+  const gradeMode = problemGradeMode(attributes);
+  for (const graderId of boundaryGraders) {
+    storeEntry(graderId, (existing) => ({
+      ...existing,
+      attributes: { ...existing.attributes, gradeMode }
+    }));
+  }
+
   const entry = { id, tag, attributes, source, parseDeps, kids: kidsParsed };
   storeEntry(id, entry);
   return id;
@@ -185,6 +205,10 @@ const CapaProblem = dev({
   description: 'Interactive problem with rich content, inputs, grading, hints, explanations, and feedback',
   fields,
   isGrader: true,  // Metagrader: aggregates child grader states
+  // Aggregate grading state is computed, never stored (fields above hold
+  // only genuine state) — these selectors are how DSL refs, StatusText,
+  // and orchestrators read it.
+  selectors: gradingSelectors,
   attributes: z.object({
     ...problemAttributes.shape,
     displayName: z.string().optional().describe('Display name for the problem'),

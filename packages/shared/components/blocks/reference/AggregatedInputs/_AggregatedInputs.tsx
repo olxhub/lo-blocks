@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
-import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/olxdom';
+import { inferRelatedNodes, getDomNodeByStateKey } from '@/lib/blocks/dynamicDom';
 import { stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
 import { useAggregate, componentFieldByStateKey } from '@/lib/state';
 import { value as valueFieldCommon } from '@/lib/state/commonFields';

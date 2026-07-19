@@ -31,8 +31,8 @@
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 5: showanswer="answered" (only after correct) -->
-  <CapaProblem id="test_answered" title="Show Answer After Correct" showanswer="answered">
+  <!-- Test 5: showanswer="correct" (only after correct) -->
+  <CapaProblem id="test_correct" title="Show Answer After Correct" showanswer="correct">
     What is 8 + 8?
     <NumericalGrader answer="16">
       <NumberInput placeholder="Enter answer" />

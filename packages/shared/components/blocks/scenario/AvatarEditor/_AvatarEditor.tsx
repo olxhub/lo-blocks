@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useFieldState, useInputField, fieldSelector, decodeField } from '@/lib/state';
+import { useFieldState, useInputField, fieldSelector } from '@/lib/state';
 import { isValidCastIdInput, isValidGroupInput } from '@/lib/avatar/types';
 import { OPEN_PEEPS_KEYS } from '@/lib/avatar/cast';
 import OpenPeepsSelector from '@/components/common/avatar/OpenPeepsSelector';
@@ -44,7 +44,7 @@ function AvatarEditor(props: RuntimeProps) {
       fv[k] = fieldSelector(reduxState, props, fields[k], { fallback: '' });
     }
     const rl = fieldSelector(reduxState, props, fields.role, { fallback: '' });
-    const bi = decodeField(fields.bio, fieldSelector(reduxState, props, fields.bio, { fallback: '' }));
+    const bi = fieldSelector(reduxState, props, fields.bio, { fallback: '' });
     const gr = fieldSelector(reduxState, props, fields.groups, { fallback: '' });
     return locals.buildYaml(cid, nm, sd, fv, { role: rl, bio: bi, groups: gr });
   });

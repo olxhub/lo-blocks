@@ -9,13 +9,17 @@ import { correctness, completion } from '@/lib/blocks/correctness';
 import { ACTIVE_METHODS } from './keywords';
 import { qualifyRef } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types/id-grammar';
+import type { ObservableValue } from '@/lib/types/fieldValues';
 
 /**
  * Context data for evaluation.
  * The three standard namespaces plus caller-provided bindings.
  */
 export interface ContextData {
-  componentState: Record<string, any>;
+  /** Per-reference bucket views. Each view's field values are OBSERVABLE
+   *  (level 3): decoded storage overlaid with blueprint getters, stamped by
+   *  the materializer (stateLanguage/hooks.ts). */
+  componentState: Record<string, Record<string, ObservableValue<any>>>;
   olxContent: Record<string, string>;
   globalVar: Record<string, any>;
   /** Content namespace of the expression's host block. When present,

@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps } from '@/lib/types';
@@ -25,7 +25,9 @@ const LineInput = core({
   ...input({ valueSchema: z.string() }),
   description: 'Single-line text input field for student responses',
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => fieldSelector(state, props, fields.value, { fallback: '' }),
+  selectors: {
+    value: (state, props: RuntimeProps, _stateKey) => decodedFieldSelector(state, props, fields.value, { fallback: '' }),
+  },
   attributes: z.object({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value (for numeric types)'),

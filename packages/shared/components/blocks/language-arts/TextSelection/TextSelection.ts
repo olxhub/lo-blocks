@@ -2,29 +2,55 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { fieldSelector, decodedFieldSelector } from '@/lib/state';
 import * as blocks from '@/lib/blocks';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
-  commonFields.value,      // Set of selected word indices
+  // Named `selections`, not `value`: the composite value getter below owns
+  // that name, and a stored field must not share a name with a getter that
+  // isn't a policy over exactly it (the CharacterBuilder text/value rule).
+  // `value` is therefore purely derived — the write guard rejects writes.
+  'selections',            // Array of selected word indices
   state.graderFields(),    // correct, message, score, lastSubmission, submitCount, showAnswer
   'attempts',              // Number of check attempts
   'feedback',              // Current feedback message
   'checked',               // Whether graded mode has been checked
 ]);
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh [] fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_SELECTIONS: unknown[] = [];
+
 const TextSelection = test({
   ...peggyParser(parser),
   ...blocks.input({
-    selectValue: (props, state, _stateKey) => {
-      const selections = fieldSelector(state, props, fields.value, { fallback: [] });
-      const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
-      const score = fieldSelector(state, props, fields.score, { fallback: 0 });
-      return { selections, attempts, score };
-    }
   }),
+  selectors: {
+    value: {
+      select: (state, props, _stateKey) => {
+        // Cross-field reads only — this getter is purely derived (it never reads
+        // its own `value`). selections/attempts are plain stored fields with no
+        // masking getter, so their level-3 read equals a level-2 read.
+        const selections = fieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS });
+        const attempts = fieldSelector(state, props, fields.attempts, { fallback: 0 });
+        // `score` is DELIBERATELY read at level 2 (decodedFieldSelector — this
+        // block's OWN stored bookkeeping), not level 3: the grader() mixin
+        // installs a `score` grading selector, and composing through it would
+        // return the grading PIPELINE's derived score, which diverges from the
+        // stored value in immediate mode. This is a wart of TextSelection being
+        // input and grader in one block; the planned split into a separate
+        // input + grader dissolves it.
+        const score = decodedFieldSelector(state, props, fields.score, { fallback: 0 });
+        return { selections, attempts, score };
+      },
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
+  },
   ...blocks.grader({
     grader: (props, params) => {
       const { input } = params as { input: any };

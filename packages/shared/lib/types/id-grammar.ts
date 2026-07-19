@@ -871,6 +871,38 @@ export function stateKeyForGlobalRef(
 }
 
 /**
+ * The scope prefix of a StateKey (everything before the leaf block), or
+ * undefined when unscoped.
+ *
+ *   scopePrefixOfStateKey("CONTENT/list:#0:answer") → "list:#0"
+ *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
+ */
+export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
+  const { path } = splitNs(key);
+  const leaf = leafBlock(path);
+  // Only the plain trailing-leaf shape has a derivable prefix; a container's
+  // own key ("list:#0") has no leaf suffix to strip.
+  if (leaf === path || !path.endsWith(`${SCOPE_SEPARATOR}${leaf}`)) return undefined;
+  return asIdPrefix(path.slice(0, path.length - leaf.length - SCOPE_SEPARATOR.length));
+}
+
+/**
+ * A sibling's StateKey under the same scope as an anchor key. Scope
+ * prefixes are shared by everything inside a scoping container — a
+ * <DynamicList><CapaProblem/></DynamicList> instance prefixes the problem,
+ * its graders, and its inputs identically — so a child/sibling block's
+ * instance key is derivable from any member's key plus the child's
+ * DefinitionKey. This is what lets grading resolve its topology from the
+ * static DOM without the dynamic (rendered) DOM.
+ *
+ *   siblingScopedKey("CONTENT/list:#0:problem", "CONTENT/problem_grader_0")
+ *   → "CONTENT/list:#0:problem_grader_0"
+ */
+export function siblingScopedKey(anchor: StateKey, defKey: DefinitionKey): StateKey {
+  return addScope(defKey, scopePrefixOfStateKey(anchor));
+}
+
+/**
  * Extract the leaf DefinitionKey from a StateKey.
  *
  * Replaces stateKeyToDefinitionKey from id.ts. Namespace-aware.

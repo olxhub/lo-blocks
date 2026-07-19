@@ -16,6 +16,7 @@
 // level — partitioning lives in the address, never in the bucket key.
 
 import type { SafeUserId } from '@/lib/types/identity';
+import type { DefinitionKey, StateKey } from '@/lib/types';
 
 /** An instance address segment. Deliberately a string (it IS a key). */
 export type LevelInstance = string;
@@ -45,4 +46,21 @@ export function isUserInstance(instance: LevelInstance): boolean {
 /** Subscription key for a block within an instance. */
 export function subscriptionKey(instance: LevelInstance, blockId: string): string {
   return `${instance}|${blockId}`;
+}
+
+/**
+ * HACK: Ephemeral namespaces are identified by the `docs.` prefix.
+ * Their field state is never folded, persisted, or returned on content fetches
+ * — a page refresh starts clean.
+ *
+ * Currently the `docs.<BlockName>` namespaces (block-documentation demo
+ * sandboxes, lib/lofs/providers/docs.ts): poking a docs example is
+ * exploration, not coursework.
+ *
+ * TODO(persistence): make this an explicit content-source or namespace policy
+ * (for example, persistence: 'ephemeral') rather than inferring it from an
+ * identifier's spelling.
+ */
+export function isEphemeralNamespaceKey(key: DefinitionKey | StateKey): boolean {
+  return key.startsWith('docs.');
 }

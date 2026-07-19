@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { fieldSelector, commonFields } from '@/lib/state';
+import { fieldSelector, decodedFieldSelector, commonFields } from '@/lib/state';
 import { yamlParser } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 
@@ -198,14 +198,20 @@ const tabularMCQSchema = z.object({
 
 export const fields = state.fields([commonFields.value]);
 
+// Getters run inside useSelector subscriptions — a fresh {} per call would
+// defeat the equality gate and re-render every dispatch while unanswered.
+const EMPTY_VALUE: Record<string, number | number[]> = {};
+
 const TabularMCQ = core({
   ...yamlParser(tabularMCQSchema),
   ...blocks.input({
-    selectValue: (props, reduxState, _stateKey) => {
-      const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
-      return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
-    }
   }),
+  selectors: {
+    value: (reduxState, props, _stateKey) => {
+      const value = decodedFieldSelector(reduxState, props, fields.value, { fallback: EMPTY_VALUE });
+      return value;  // { rowId: colIndex } for radio, { rowId: [colIndex, ...] } for checkbox
+    },
+  },
   name: 'TabularMCQ',
   description: 'Tabular multiple choice matrix',
   fields,
@@ -280,6 +286,8 @@ const TabularMCQ = core({
 
     // Calculate total score based on selections and column values
     getScore: (props, reduxState) => {
+      // Level 3: block logic consumes the observable value — composes
+      // through selectors.value (whose own self-read stays level 2).
       const value = fieldSelector(reduxState, props, fields.value, { fallback: {} });
       const cols = props.kids.parsed.cols;
       let total = 0;

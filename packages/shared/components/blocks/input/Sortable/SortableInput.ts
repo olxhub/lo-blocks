@@ -6,6 +6,7 @@ import * as state from '@/lib/state';
 import { fieldSelector } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import type { RuntimeProps } from '@/lib/types';
+import { shallowEqual } from 'react-redux';
 
 export const fields = state.fields([
   'arrangement',   // Current order of items (array of indices)
@@ -13,15 +14,26 @@ export const fields = state.fields([
   'dragOverIndex'  // Index of drop target
 ]);
 
+// shallowEqual gates one level deep (Object.is per key) — a fresh [] fallback
+// per evaluation would fail that check and re-render unanswered blocks on
+// every dispatch.
+const EMPTY_ARRANGEMENT: string[] = [];
+
 const SortableInput = core({
   ...parsers.blocks(), // Handle child blocks
   ...input(),
   name: 'SortableInput',
   description: 'Drag-and-drop sortable input for ordering tasks',
   fields,
-  selectValue: (props: RuntimeProps, state, _stateKey) => ({
-    arrangement: fieldSelector(state, props, fields.arrangement, { fallback: [] })
-  }),
+  selectors: {
+    value: {
+      select: (state, props: RuntimeProps, _stateKey) => ({
+        arrangement: fieldSelector(state, props, fields.arrangement, { fallback: EMPTY_ARRANGEMENT })
+      }),
+      // Fresh object per evaluation — subscribers gate on content.
+      equality: shallowEqual,
+    },
+  },
   attributes: z.object({
     dragMode: z.enum(['whole', 'handle']).optional().describe('Drag mode: "whole" (entire item) or "handle" (handle only)'),
     shuffle: z.coerce.boolean().optional().describe('Whether to shuffle items initially (default: true)'),

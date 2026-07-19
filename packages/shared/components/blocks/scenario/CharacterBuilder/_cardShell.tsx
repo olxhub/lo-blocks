@@ -72,7 +72,7 @@ export default function Section({
   const scoped = scopedCardProps(props, cardId);
   const [cardType] = useFieldState(scoped, fields.cardType, '');
   const [dimensionKey] = useFieldState(scoped, fields.dimensionKey, '');
-  const [value] = useFieldState(scoped, fields.value, '');
+  const [value] = useFieldState(scoped, fields.text, '');
   const [customPrompt] = useFieldState(scoped, fields.customPrompt, '');
   const [statPreset] = useFieldState(scoped, fields.statPreset, '');
   const [statValuesJson] = useFieldState(scoped, fields.statValues, '{}');
