@@ -1,7 +1,14 @@
 // @vitest-environment node
 // packages/shared/components/blocks/language-arts/TextSelection/textSelection.test.ts
 import { test, expect } from 'vitest';
-import { parseTextSelection } from './textSelectionUtils';
+import * as parserModule from './_textSelectionParser';
+import {
+  expectedSelections, computeStats, scoreFromStats, type ParsedDocument,
+} from './textSelectionModel';
+
+// The compiled peggy parser (grammar untouched). These cases pin the grammar.
+const parser = (parserModule as any).default || parserModule;
+const parseTextSelection = (input: string): ParsedDocument => parser.parse(input);
 
 test('parses simple required highlights', () => {
   const input = `Highlight the nouns:
@@ -197,4 +204,34 @@ The function returns \\[array\\] not [real array].`;
     content: 'real array',
     id: null
   });
+});
+
+// --- Corrected subtractive scoring (owner ruling) ---
+// The old implementation divided requiredFound by totalRequired and never
+// subtracted wrong picks, so "select every word" scored a perfect 1. The fix:
+// score = clamp((requiredFound − wrongSelected) / totalRequired, 0, 1).
+test('subtractive scoring: selecting every word does not earn full credit', () => {
+  const parsed = parseTextSelection(`Highlight the nouns:
+---
+The [cat] sat on the [mat].`);
+  const expected = expectedSelections(parsed);
+
+  // Exactly the required phrases → full credit.
+  const requiredOnly = new Set<number>(
+    expected.segments.filter(s => s.type === 'required').flatMap(s => s.wordIndices),
+  );
+  const onKey = computeStats(requiredOnly, expected);
+  expect(onKey.totalRequired).toBe(2);
+  expect(onKey.requiredFound).toBe(2);
+  expect(onKey.complete).toBe(true);
+  expect(scoreFromStats(onKey)).toBe(1);
+
+  // Every word selected → all required found, but the plain words are penalties,
+  // so the score collapses (not 1).
+  const everything = new Set<number>(expected.segments.flatMap(s => s.wordIndices));
+  const onAll = computeStats(everything, expected);
+  expect(onAll.requiredFound).toBe(2);
+  expect(onAll.wrongSelected).toBeGreaterThan(0);
+  expect(onAll.complete).toBe(false);
+  expect(scoreFromStats(onAll)).toBeLessThan(1);
 });

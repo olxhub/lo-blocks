@@ -1,0 +1,272 @@
+// packages/shared/components/blocks/language-arts/TextSelection/textSelectionModel.ts
+//
+// Pure, framework-free model shared by the three pieces of the TextSelection
+// family:
+//
+//   - _TextSelectionInput.tsx   renders the passage and reads back tokens
+//   - TextSelectionInput.ts     exposes `getExpectedSelections` as a local
+//   - TextSelectionGrader.ts    scores a stored selection against the key
+//
+// ONE tokenization lives here. The passage is tokenized exactly once (by the
+// input, at render, and by the grader, through the input's local) so a stored
+// selection — an array of word indices — means the same thing everywhere.
+// The grader never re-tokenizes: it consumes segment-level facts projected by
+// `expectedSelections`.
+//
+// The grammar (textSelection.pegjs) marks four kinds of segment in the passage:
+//   [required]        words the learner must select
+//   {optional}        bonus words — never help nor hurt the score
+//   <<trigger>>       decoy words that, when selected, count against the score
+//   plain text        everything else — selecting it counts against the score
+//
+// A parsed Document is `{ prompt, segments, scoring, targetedFeedback }`.
+
+// ─── Parsed grammar shapes ───────────────────────────────────────────────────
+
+export type SegmentType = 'required' | 'optional' | 'feedback_trigger' | 'text';
+
+export interface ParsedSegment {
+  type: SegmentType;
+  content: string;
+  id?: string | null;
+}
+
+export interface ScoringRule {
+  condition: string;
+  feedback: string;
+}
+
+export interface ParsedDocument {
+  prompt: string;
+  segments: ParsedSegment[];
+  scoring: ScoringRule[];
+  targetedFeedback: Record<string, string>;
+  error?: boolean;
+}
+
+// ─── Tokenization ────────────────────────────────────────────────────────────
+
+// A word token carries a stable `index` (its position in the selection space)
+// plus the metadata the renderer needs for styling. Whitespace is preserved as
+// its own token (index -1) so the passage reads naturally, but only real words
+// are selectable.
+export interface WordToken {
+  index: number;
+  text: string;
+  segmentIndex: number;
+  segmentType: SegmentType;
+  segmentId: string | null;
+  isRequired: boolean;
+  isOptional: boolean;
+  isFeedbackTrigger: boolean;
+  isSpace: false;
+}
+export interface SpaceToken { index: -1; text: string; isSpace: true }
+export type Token = WordToken | SpaceToken;
+
+/**
+ * Split a parsed passage into word/space tokens with stable indices. This is
+ * the single source of truth for what a selected index refers to.
+ */
+export function tokenize(segments: ParsedSegment[]): Token[] {
+  const tokens: Token[] = [];
+  let wordIndex = 0;
+
+  segments.forEach((segment, segmentIndex) => {
+    // Split on whitespace runs, keeping the separators so spacing survives.
+    for (const piece of segment.content.split(/(\s+)/)) {
+      if (piece === '') continue;
+      if (piece.trim() === '') {
+        tokens.push({ index: -1, text: piece, isSpace: true });
+        continue;
+      }
+      tokens.push({
+        index: wordIndex++,
+        text: piece,
+        segmentIndex,
+        segmentType: segment.type,
+        segmentId: segment.id ?? null,
+        isRequired: segment.type === 'required',
+        isOptional: segment.type === 'optional',
+        isFeedbackTrigger: segment.type === 'feedback_trigger',
+        isSpace: false,
+      });
+    }
+  });
+
+  return tokens;
+}
+
+// ─── Answer-key projection ───────────────────────────────────────────────────
+
+// One projected segment: its type, the word indices it spans, and its words as
+// text (for the display answer). Empty (whitespace-only) segments drop out.
+export interface SegmentProjection {
+  id: string | null;
+  type: SegmentType;
+  wordIndices: number[];
+  words: string[];
+}
+
+// Everything the grader needs, computed from the parsed passage alone.
+export interface ExpectedSelections {
+  segments: SegmentProjection[];
+  scoring: ScoringRule[];
+  targetedFeedback: Record<string, string>;
+}
+
+/**
+ * Project the parsed passage into the segment-level facts the grader consumes.
+ * Pure over the parse — callable from selectors, node, and analytics, none of
+ * which have a rendered DOM.
+ */
+export function expectedSelections(parsed: ParsedDocument): ExpectedSelections {
+  const byIndex = new Map<number, SegmentProjection>();
+  const projections: SegmentProjection[] = [];
+
+  for (const token of tokenize(parsed.segments)) {
+    if (token.isSpace) continue;
+    let projection = byIndex.get(token.segmentIndex);
+    if (!projection) {
+      projection = { id: token.segmentId, type: token.segmentType, wordIndices: [], words: [] };
+      byIndex.set(token.segmentIndex, projection);
+      projections.push(projection);
+    }
+    projection.wordIndices.push(token.index);
+    projection.words.push(token.text);
+  }
+
+  return {
+    segments: projections,
+    scoring: parsed.scoring ?? [],
+    targetedFeedback: parsed.targetedFeedback ?? {},
+  };
+}
+
+/** The required phrases, in passage order — the answer to reveal on Show Answer. */
+export function displayAnswerFromExpected(expected: ExpectedSelections): string[] {
+  return expected.segments
+    .filter(s => s.type === 'required')
+    .map(s => s.words.join(' '));
+}
+
+// ─── Scoring ─────────────────────────────────────────────────────────────────
+
+export interface SelectionStats {
+  requiredFound: number;   // required segments with EVERY word selected
+  totalRequired: number;   // required segments in the passage
+  wrongSelected: number;   // selected plain words + selected trigger segments
+  complete: boolean;       // all required found AND nothing wrong selected
+}
+
+/**
+ * Tally a stored selection against the answer key.
+ *
+ * A required segment counts as "found" only when all of its words are selected
+ * (a two-word phrase needs both). Optional segments are ignored entirely.
+ * `wrongSelected` is the penalty pool: every selected plain-text word counts
+ * once, and every trigger segment with any word selected counts once.
+ */
+export function computeStats(selected: Set<number>, expected: ExpectedSelections): SelectionStats {
+  let requiredFound = 0;
+  let totalRequired = 0;
+  let wrongSelected = 0;
+
+  for (const segment of expected.segments) {
+    if (segment.wordIndices.length === 0) continue;
+    switch (segment.type) {
+      case 'required':
+        totalRequired += 1;
+        if (segment.wordIndices.every(i => selected.has(i))) requiredFound += 1;
+        break;
+      case 'text':
+        // Each selected plain word is its own error.
+        wrongSelected += segment.wordIndices.filter(i => selected.has(i)).length;
+        break;
+      case 'feedback_trigger':
+        // A decoy touched at all is one error.
+        if (segment.wordIndices.some(i => selected.has(i))) wrongSelected += 1;
+        break;
+      case 'optional':
+        break; // never counts, either way
+    }
+  }
+
+  const complete = totalRequired > 0 && requiredFound === totalRequired && wrongSelected === 0;
+  return { requiredFound, totalRequired, wrongSelected, complete };
+}
+
+/**
+ * Subtractive partial credit (the owner's ruling):
+ *   score = clamp((requiredFound − wrongSelected) / totalRequired, 0, 1)
+ *
+ * The subtraction is what stops "select every word" from earning full credit —
+ * the old implementation divided by required alone and handed out a perfect
+ * score for selecting the whole passage.
+ */
+export function scoreFromStats(stats: SelectionStats): number {
+  if (stats.totalRequired === 0) return 0;
+  const raw = (stats.requiredFound - stats.wrongSelected) / stats.totalRequired;
+  return Math.max(0, Math.min(1, raw));
+}
+
+// ─── Scoring-rules → feedback message ────────────────────────────────────────
+
+// The grammar's scoring section maps conditions to messages, evaluated against
+// the same stats the score uses. Condition formats:
+//   'all'              all required found, no errors
+//   'found>=1'         a comparison on one field (found | errors | incorrect)
+//   'found>0,errors=0' comma-separated conjunction
+//   ''                 always matches (the default/fallback rule)
+type RuleVars = { found: number; errors: number; incorrect: number; total: number };
+
+function compare(val: number, op: string, num: number): boolean {
+  switch (op) {
+    case '>=': return val >= num;
+    case '<=': return val <= num;
+    case '>':  return val > num;
+    case '<':  return val < num;
+    case '=':  return val === num;
+    default:   return false;
+  }
+}
+
+function evalPart(part: string, vars: RuleVars): boolean {
+  const m = part.match(/^(found|errors|incorrect)?(>=|<=|>|<|=)(\d+)$/);
+  if (!m) return false;
+  const field = (m[1] || 'found') as keyof RuleVars;
+  return compare(vars[field], m[2], parseInt(m[3], 10));
+}
+
+/** First matching rule's feedback, or null if none match (or no rules). */
+export function evaluateScoringRules(rules: ScoringRule[], vars: RuleVars): string | null {
+  for (const rule of rules) {
+    const cond = rule.condition.trim();
+    if (cond === '') return rule.feedback; // default/fallback
+    if (cond === 'all') {
+      if (vars.found === vars.total && vars.errors === 0) return rule.feedback;
+      continue;
+    }
+    if (cond.split(',').every(p => evalPart(p.trim(), vars))) return rule.feedback;
+  }
+  return null;
+}
+
+/**
+ * The feedback message for a graded selection: an authored scoring rule if one
+ * matches, otherwise a plain "n/m found" summary. Complete answers get no
+ * message (the correctness icon says it) unless a rule speaks up.
+ */
+export function messageForStats(stats: SelectionStats, scoring: ScoringRule[]): string {
+  const vars: RuleVars = {
+    found: stats.requiredFound,
+    errors: stats.wrongSelected,
+    incorrect: stats.wrongSelected,
+    total: stats.totalRequired,
+  };
+  const ruleMessage = scoring.length > 0 ? evaluateScoringRules(scoring, vars) : null;
+  if (ruleMessage != null) return ruleMessage;
+  if (stats.complete) return '';
+  const errorNote = stats.wrongSelected > 0 ? ` • ${stats.wrongSelected} incorrect` : '';
+  return `${stats.requiredFound}/${stats.totalRequired} found${errorNote}`;
+}
