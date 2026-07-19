@@ -44,11 +44,20 @@ export function readGradingField<T>(
 }
 
 /** The stored per-field grading state — the read half of submitGrade's write
- *  contract, honoring block-specific field overrides. */
+ *  contract, honoring block-specific field overrides. Four explicit,
+ *  type-checked reads: the fields are domain-significant and few, and spelling
+ *  them out lets each read's fallback and return type be checked against
+ *  GradingState (the Object.fromEntries form needed an `as unknown as` cast
+ *  that bypassed exactly that). */
 export function readStoredGradingState(
   state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
 ): GradingState {
-  return Object.fromEntries(
-    GRADING_STATE_FIELDS.map(name => [name, readGradingField(state, props, stateKey, loBlock, name, UNGRADED[name])]),
-  ) as unknown as GradingState;
+  const read = <T>(name: GradingFieldName, fallback: T) =>
+    readGradingField(state, props, stateKey, loBlock, name, fallback);
+  return {
+    correct: read('correct', UNGRADED.correct),
+    message: read('message', UNGRADED.message),
+    score: read('score', UNGRADED.score),
+    submitCount: read('submitCount', UNGRADED.submitCount),
+  };
 }

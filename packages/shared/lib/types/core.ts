@@ -609,11 +609,20 @@ export type ComponentLoader = () => Promise<React.ComponentType<any>>;
 // ---------------------------------------------------------------------------
 
 // Param shapes a grade function receives — exactly one of these, chosen by
-// the descriptor (slots → dict, inputType 'list' → list, default → single).
+// the descriptor's InputBinding kind (slots → dict, list → list, single →
+// single).
 export type SingleParam = { input: unknown; inputApi: object };
 export type ListParam = { inputList: unknown[]; inputApis: object[] };
 export type DictParam = { inputDict: Record<string, unknown>; inputApiDict: Record<string, object> };
 export type GraderParams = SingleParam | ListParam | DictParam;
+
+/** How a grader's inputs are shaped into the param its grade function
+ *  receives. The kind IS the shape — no independent slots/inputType pair with
+ *  a precedence rule to remember (the ambiguity of declaring both is gone). */
+export type InputBinding =
+  | { kind: 'single' }
+  | { kind: 'list' }
+  | { kind: 'slots'; names: readonly string[] };
 
 /** What a grade function returns. May be a Promise for async graders.
  *  Custom/user-authored code is the untrusted boundary — it validates and
@@ -623,8 +632,18 @@ export interface RawGraderResult {
   message?: string;
   score?: number;
 }
+
+/** Caller-facing grade function — grades synchronously OR returns a Promise.
+ *  The grader() mixin accepts this loose form and normalizes it into the
+ *  execution-discriminated descriptor (SyncGraderFn / AsyncGraderFn). */
 export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
   RawGraderResult | Promise<RawGraderResult>;
+/** A synchronous grader's fn: returns a result directly (no Promise), so
+ *  immediate-mode selectors can evaluate it in place. */
+export type SyncGraderFn = (props: RuntimeProps, params: GraderParams) => RawGraderResult;
+/** An async grader's fn: grading finishes later (LLM, instructor/peer queue,
+ *  code-in-sandbox). */
+export type AsyncGraderFn = (props: RuntimeProps, params: GraderParams) => Promise<RawGraderResult>;
 
 /** The contract for a block's action (the action()/grader() mixins). */
 export type BlockAction = (context: { props: RuntimeProps }) => unknown | Promise<unknown>;
@@ -701,23 +720,25 @@ export type FieldSelector =
  */
 export type FieldSetterFn = (value: any, props: RuntimeProps, stateKey: StateKey) => void;
 
-/** Everything the grading pipeline needs from a leaf grader blueprint
- *  outside its dispatching action. Set by the grader() mixin. */
-export interface GradingDescriptor {
-  fn: GraderFn;
-  inputType?: 'single' | 'list';
-  slots?: string[];
-  /**
-   * How grading completes. 'sync' (default): the grade function returns a
-   * result directly. 'async': grading finishes later — an LLM call, an
-   * instructor/peer queue, code-in-sandbox. Async grading gets a persisted
-   * pending state (correct='submitted', inputs locked) and cannot be used
-   * in grade="immediate" problems.
-   */
-  execution?: 'sync' | 'async';
-  /** Infer inputs from DOM hierarchy (default true); false = target= only. */
-  infer?: boolean;
-}
+/**
+ * Everything the grading pipeline needs from a leaf grader blueprint outside
+ * its dispatching action — set (and normalized from the caller-facing
+ * slots?/inputType?/execution? options) by the grader() mixin. The pipeline
+ * consumes only this discriminated form.
+ *
+ * Discriminated on `execution`. 'sync': the grade function returns a result
+ * directly (immediate-mode selectors evaluate it in place, no Promise
+ * duck-typing). 'async': grading finishes later — an LLM call, an
+ * instructor/peer queue, code-in-sandbox — so the fn returns a Promise, the
+ * submission gets a persisted pending state (correct='submitted', inputs
+ * locked), and it cannot be used in grade="immediate" problems.
+ *
+ * `inputs` (InputBinding) fixes the param shape. `infer` inputs from the DOM
+ * hierarchy (default true); false = target= only.
+ */
+export type GradingDescriptor =
+  | { execution: 'sync'; fn: SyncGraderFn; inputs: InputBinding; infer?: boolean }
+  | { execution: 'async'; fn: AsyncGraderFn; inputs: InputBinding; infer?: boolean };
 
 export const BlockBlueprintSchema = z.object({
   name: z.string().optional(),

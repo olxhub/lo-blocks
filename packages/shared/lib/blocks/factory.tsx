@@ -110,14 +110,15 @@ type BlueprintInputWithMixins = WithMixins<BlueprintInput>;
  */
 function mixinConflictMessage(
   blockName: string,
-  kind: 'attribute' | 'field',
+  kind: 'attribute' | 'field' | 'selector' | 'setter',
   key: string,
   layerA: string,
   layerB: string,
 ): string {
+  const label = kind.charAt(0).toUpperCase() + kind.slice(1);
   return (
     `createBlock(${blockName}): mixin composition conflict. ` +
-    `${kind === 'attribute' ? 'Attribute' : 'Field'} \`${key}\` is defined by ` +
+    `${label} \`${key}\` is defined by ` +
     `both \`${layerA}\` and \`${layerB}\`. We raise on duplicate ` +
     `fields/attributes because in 99% of cases this is a bug. If this ` +
     `override is intentional, add \`allowOverrides: ['${key}']\` to the ` +
@@ -212,6 +213,32 @@ function mergeLocals(
 }
 
 /**
+ * Merge two keyed-function maps (`selectors` or `setters`) per-key: union of
+ * keys, raising on the SAME key from two layers. Without this, a blueprint
+ * that declares its own `selectors`/`setters` falls into the generic
+ * later-wins branch and SILENTLY REPLACES the whole map a mixin contributed —
+ * e.g. a grader() block that also declares `selectors: { value }` would drop
+ * the grading quartet (correct/message/score/submitCount) from graderMixin.
+ * A genuine same-key override is rare enough to be worth an explicit error
+ * rather than a silent precedence rule.
+ */
+function mergeKeyedFns<V>(
+  a: Record<string, V> | undefined,
+  b: Record<string, V> | undefined,
+  blockName: string,
+  kind: 'selector' | 'setter',
+  layerA: string,
+  layerB: string,
+): Record<string, V> | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  for (const key of Object.keys(b)) {
+    if (key in a) throw new Error(mixinConflictMessage(blockName, kind, key, layerA, layerB));
+  }
+  return { ...a, ...b };
+}
+
+/**
  * Compose a sequence of partial blueprint layers into a single effective
  * config. Most keys use later-wins override. `fields` and `attributes`
  * accumulate and raise on duplicates. `locals` merges per-key.
@@ -226,7 +253,7 @@ function composeBlueprint(
   const result: Record<string, any> = {};
   // Track which layer last contributed each accumulating key so the
   // conflict message names the right two layers.
-  const lastSource: { fields?: string; attributes?: string } = {};
+  const lastSource: { fields?: string; attributes?: string; selectors?: string; setters?: string } = {};
 
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
@@ -268,6 +295,19 @@ function composeBlueprint(
           result.locals as Record<string, any> | undefined,
           value as Record<string, any>,
         );
+      } else if (key === 'selectors' || key === 'setters') {
+        // Per-key union with a conflict error — NOT later-wins, which would
+        // silently drop a mixin's whole map (e.g. graderMixin's grading
+        // quartet) when a blueprint declares its own.
+        result[key] = mergeKeyedFns(
+          result[key] as Record<string, any> | undefined,
+          value as Record<string, any>,
+          blockName,
+          key === 'selectors' ? 'selector' : 'setter',
+          lastSource[key] ?? '(previous layer)',
+          layerName,
+        );
+        lastSource[key] = layerName;
       } else {
         // All other keys: later wins.
         result[key] = value;

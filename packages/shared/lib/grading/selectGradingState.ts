@@ -21,7 +21,7 @@
 import { correctness, countsAsAttempt } from '../blocks/correctness';
 import { aggregateGradingStates } from './aggregators';
 import {
-  prepareGrade, evaluateGrade, preparationErrorResult, normalizeGraderResult,
+  prepareGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
 import { GRADING_STATE_FIELDS, UNGRADED, readStoredGradingState } from './gradingStore';
 import { childGraderStateKeys, gradeModeOf } from './topology';
@@ -74,14 +74,16 @@ function deriveImmediateState(
   const preparation = prepareGrade(props, state, graderKey, descriptor);
   let result: GradingResult;
   if (preparation.ok) {
-    const raw = evaluateGrade(preparation.prepared);
-    if (raw && typeof (raw as Promise<unknown>).then === 'function') {
-      // Async graders are rejected from immediate problems at authoring time
-      // (CapaProblem renders a DisplayError), so an async result here is a
-      // broken invariant, not a mode to fall back from.
-      throw new Error(`[grading] ${loBlock.name} returned a Promise during immediate evaluation`);
+    const { descriptor: prepared, graderProps, param } = preparation.prepared;
+    // Async graders are rejected from immediate problems at authoring time
+    // (CapaProblem renders a DisplayError), so reaching one here is a broken
+    // invariant. The discriminated descriptor makes the sync return type a
+    // fact — a SyncGraderFn returns a RawGraderResult, never a Promise, so no
+    // Promise duck-typing on the result.
+    if (prepared.execution !== 'sync') {
+      throw new Error(`[grading] ${loBlock.name} is async; it cannot evaluate in immediate mode`);
     }
-    result = normalizeGraderResult(raw as Awaited<typeof raw>);
+    result = normalizeGraderResult(prepared.fn(graderProps, param));
   } else {
     // preparationErrorResult is already normalized — no second pass.
     result = preparationErrorResult(preparation.error);

@@ -14,15 +14,16 @@
 import type { z } from 'zod';
 import type { Correctness } from '../blocks/correctness';
 import type {
-  DictParam, GraderFn, GraderParams, GradingDescriptor, ListParam,
-  ObservableValue, RawGraderResult, RuntimeProps, SingleParam, StateKey,
+  AsyncGraderFn, DictParam, GraderFn, GraderParams, GradingDescriptor, InputBinding,
+  ListParam, ObservableValue, RawGraderResult, RuntimeProps, SingleParam, StateKey,
+  SyncGraderFn,
 } from '../types';
 
 // Canonical declarations live in types/core.ts (one home, no cycles);
 // re-exported here for grading-domain ergonomics.
 export type {
-  DictParam, GraderFn, GraderParams, GradingDescriptor, ListParam,
-  RawGraderResult, SingleParam,
+  AsyncGraderFn, DictParam, GraderFn, GraderParams, GradingDescriptor, InputBinding,
+  ListParam, RawGraderResult, SingleParam, SyncGraderFn,
 };
 
 /** One resolved grader input: live value, bound API, authoring metadata. */

@@ -106,10 +106,7 @@ export const useFieldSelector = <T>(
     }
     if (renderDecl) return gated;
     return field.read ? field.read(gated as RawFieldValue<any>) : gated;
-    // fallback participates only in the undefined-compute edge; a fresh-but-
-    // equal literal there is indistinguishable, so it stays out of the deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gated, renderDecl, pipelined, field]);
+  }, [gated, renderDecl, pipelined, field, fallback]);
   return asObservableValue(value) as ObservableValue<T>;
 };
 
