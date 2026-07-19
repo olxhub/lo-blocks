@@ -6,7 +6,8 @@
 import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { getInputs } from '@/lib/blocks/dynamicDom';
+import { graderInputStateKeys } from '@/lib/grading/topology';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { resolveTarget } from '@/lib/state';
 import { correctness } from '@/lib/blocks/correctness';
@@ -36,7 +37,13 @@ function getKeyDisplayAnswer(props) {
 
   // TODO: This grader logic should move to /lib/blocks/. Components shouldn't access
   // blockRegistry and construct props - that's infrastructure logic.
-  const inputIds = getInputs(props);
+  //
+  // Which input does this grader grade? Answered once, from the STATIC DOM
+  // (graderInputStateKeys) — the same discovery grading itself uses. The
+  // grader's props come from staticTargetProps (nodeInfo undefined by
+  // design), so dynamic-DOM discovery is neither available nor correct here.
+  const reduxState = props.runtime.store.getState();
+  const inputIds = graderInputStateKeys(reduxState, props, scopedStateKeyForBlock(props));
   if (inputIds.length === 0) {
     throw new Error(`KeyGrader "${props.id}": No input found. Nest a ChoiceInput inside, or add target="inputId".`);
   }
@@ -45,7 +52,7 @@ function getKeyDisplayAnswer(props) {
   // them: the grader's auto-wired target= would leak in, and getChoices would
   // follow it back to the input itself instead of walking its choices.
   const inputStateKey = inputIds[0];
-  const input = resolveTarget(props.runtime.store.getState(), props, inputStateKey);
+  const input = resolveTarget(reduxState, props, inputStateKey);
   if (!input) {
     throw new Error(`KeyGrader "${props.id}": Input "${inputStateKey}" not found. Check the target attribute.`);
   }

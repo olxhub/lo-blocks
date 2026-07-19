@@ -9,7 +9,7 @@
 // The parent input's identity (its StateKey, and whether it is single- or
 // multi-select) arrives through ChoiceGroupContext, provided by _ChoiceGroup.
 // The item does NOT search its rendered ancestors for the parent — that
-// discovery was fragile across render entries. See ChoiceGroupContext.
+// discovery was fragile across render entries. See _ChoiceGroup.
 //
 'use client';
 import type { RuntimeProps } from '@/lib/types';
@@ -21,7 +21,7 @@ import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useGraderAnswer } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { useKids } from '@/lib/render';
-import { ChoiceGroupContext } from './ChoiceGroupContext';
+import { ChoiceGroupContext } from './_ChoiceGroup';
 
 export default function ChoiceItem(props: RuntimeProps) {
   // The parent ChoiceInput/CheckboxInput passes its identity down. null means

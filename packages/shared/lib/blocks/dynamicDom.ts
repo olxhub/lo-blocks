@@ -337,30 +337,12 @@ export function getGrader(props: RuntimeProps, { infer }: { infer? } = {}): Stat
   return ids[0];
 }
 
-/**
- * Get all related input IDs — NEAREST-RENDERED semantics: answers "what
- * inputs are near me in the dynamic (rendered) DOM right now," which
- * differs from the static DOM's declared wiring (when=-hidden inputs are
- * excluded here, scoped-container instances are enumerated here, runtime-
- * generated kids exist only here). Grading deliberately does NOT use this
- * (lib/grading/topology.ts derives from the static DOM); the remaining
- * callers are display-answer helpers reached from useGraderAnswer, where
- * render-aware discovery is plausibly the RIGHT semantics. If any of those
- * ever needs to run server-side, choose the semantics first — this is not
- * a mechanical swap.
- *
- * @param {Object} props - Component props with nodeInfo and optional target attribute
- * @param {Object} [options] - Optional overrides
- * @param {string|string[]} [options.infer] - Override inference direction ('parents', 'kids', or both)
- * @returns {string[]} Array of input IDs (may be empty)
- */
-export function getInputs(props, { infer }: { infer? } = {}) {
-  return inferRelatedNodes(props, {
-    selector: n => n.loBlock.isInput,
-    targets: props.target,
-    infer
-  });
-}
+// "Which inputs does this grader grade?" has ONE answer, from the STATIC
+// DOM: graderInputStateKeys in lib/grading/topology.ts. The former getInputs
+// here answered the same question from the dynamic (rendered) DOM — a DRY
+// violation that also crashed the display-answer helpers, which run on
+// staticTargetProps (nodeInfo undefined) and so have no rendered tree to
+// walk. Those helpers now call graderInputStateKeys directly.
 
 
 // TODO: These functions belong in a new utility module (perhaps blocks/util.js)
