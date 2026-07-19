@@ -174,9 +174,13 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
   // INV-1 dispatch gate: make the target `component` bucket resident BEFORE
   // the fold — a fold into a non-resident bucket would flush over storage
   // from an empty base. Same-bucket FIFO is preserved: awaiters of the same
-  // cached promise resume in registration order. Events without an id touch
-  // only eager scopes (already seeded whole).
-  if (event.id) await entry.ensureBucketLoaded(event.id);
+  // cached promise resume in registration order. Component-scope only
+  // (scope defaults to component, mirroring the reducer): the other scopes
+  // are CORE — seeded whole, eagerly resident — and gating them here would
+  // load and mark resident the unrelated component bucket that happens to
+  // share the event's id.
+  const eventScope = event.scope ?? 'component';
+  if (event.id && eventScope === 'component') await entry.ensureBucketLoaded(event.id);
   const ownInstance = isUserInstance(instance);
 
   // Capture the TRANSITION for distant folds (aggregations.ts): views
