@@ -14,7 +14,7 @@
 import type { z } from 'zod';
 import type { Correctness } from '../blocks/correctness';
 import type {
-  AsyncGraderFn, DictParam, GraderFn, GraderParams, GradingDescriptor, InputBinding,
+  AsyncGraderFn, DictParam, GraderParams, GradingDescriptor, InputBinding,
   ListParam, ObservableValue, RawGraderResult, RuntimeProps, SingleParam, StateKey,
   SyncGraderFn,
 } from '../types';
@@ -22,7 +22,7 @@ import type {
 // Canonical declarations live in types/core.ts (one home, no cycles);
 // re-exported here for grading-domain ergonomics.
 export type {
-  AsyncGraderFn, DictParam, GraderFn, GraderParams, GradingDescriptor, InputBinding,
+  AsyncGraderFn, DictParam, GraderParams, GradingDescriptor, InputBinding,
   ListParam, RawGraderResult, SingleParam, SyncGraderFn,
 };
 

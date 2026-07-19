@@ -178,24 +178,24 @@ interface CreateGraderConfig {
    */
   match?: MatchFunction;
   /**
-   * Custom grader function. If match is provided and grader is not, the grader
-   * is auto-generated from match. Required if match is not provided.
+   * Custom SYNCHRONOUS grader function. If match is provided and grader is
+   * not, the grader is auto-generated from match. Required if neither match
+   * nor asyncGrader is provided.
    *
-   * May be async — declare execution: 'async' so the grading action
-   * awaits it with a persisted pending state. (Lazy engines are NOT a
-   * reason to be async: prepareGrade readies the grader's whole static
-   * subtree before evaluation.)
+   * (Lazy engines are NOT a reason to reach for asyncGrader: prepareGrade
+   * readies the grader's whole static subtree before evaluation, so a match
+   * function stays synchronous.)
    */
-  grader?: (props: RuntimeProps, params: GraderParams) =>
-    { correct: any; message: any } | Promise<{ correct: any; message: any }>;
+  grader?: (props: RuntimeProps, params: GraderParams) => { correct: any; message: any };
   /**
-   * How grading completes — forwarded to the grader() mixin. 'async'
-   * (LLM, instructor/peer queue, code-in-sandbox) gets a persisted
-   * pending state and cannot be used in grade="immediate" problems.
-   * Default 'sync'; a sync grader returning a Promise is a contract
-   * violation (immediate mode throws on it).
+   * Custom ASYNCHRONOUS grader function — grading finishes later (LLM,
+   * instructor/peer queue, code-in-sandbox). Gets a persisted pending state
+   * and cannot be used in grade="immediate" problems. Mutually exclusive with
+   * grader:/match — the DECLARATION KEY is the sync/async discriminant, so
+   * there is no separate execution flag to keep in sync (see grader() /
+   * GraderOptions). Future grading-selector kinds extend by adding keys here.
    */
-  execution?: 'sync' | 'async';
+  asyncGrader?: (props: RuntimeProps, params: GraderParams) => Promise<{ correct: any; message: any }>;
   /**
    * Zod schema for the input(s) this grader expects. Required when using match.
    *
@@ -307,6 +307,7 @@ export function createGrader({
   description,
   match: matchFn,
   grader: customGraderFn,
+  asyncGrader: customAsyncGraderFn,
   inputSchema,
   slots,
   inputType,
@@ -318,7 +319,6 @@ export function createGrader({
   getDisplayAnswers,
   locals,
   infer = true,
-  execution = 'sync',
   createMatch = true,
   component,
   componentLoader,
@@ -342,18 +342,28 @@ export function createGrader({
     registerDSLFunction(dslFunctionName, matchFn);
   }
 
-  // Auto-generate grader from match function, or use custom grader if provided
-  let graderFn: ((props: RuntimeProps, params: GraderParams) => { correct: any; message: any } | Promise<{ correct: any; message: any }>) | undefined;
-
-  if (customGraderFn) {
-    graderFn = customGraderFn;
-  } else if (matchFn) {
-    graderFn = graderFromMatch(matchFn, { validateInputs, slots, inputType });
+  // Resolve the grade function and its family key. asyncGrader: is its own
+  // key (two-phase grading, persisted pending state); grader:/match are
+  // synchronous. The declaration key is the sync/async discriminant, so the
+  // two kinds are mutually exclusive.
+  if (customAsyncGraderFn && (customGraderFn || matchFn)) {
+    throw new Error(
+      `createGrader(${base}): declare asyncGrader, OR grader/match — not both ` +
+      `(the declaration key is the sync/async discriminant).`,
+    );
   }
 
-  if (!graderFn) {
-    throw new Error(`createGrader(${base}): Either match or grader must be provided`);
+  // Sync path: an explicit grader, else auto-generated from the match predicate.
+  const syncGraderFn = customGraderFn
+    ?? (matchFn ? graderFromMatch(matchFn, { validateInputs, slots, inputType }) : undefined);
+
+  if (!syncGraderFn && !customAsyncGraderFn) {
+    throw new Error(`createGrader(${base}): match, grader, or asyncGrader must be provided`);
   }
+
+  // The grade function a Match block reuses as its predicate — sync only
+  // (RulesGrader rules are boolean predicates; an async grader isn't one).
+  const graderFn = syncGraderFn ?? customAsyncGraderFn!;
 
   // Determine default answer display mode based on input configuration
   const effectiveAnswerDisplayMode = answerDisplayMode ?? (slots ? 'summary' : 'per-input');
@@ -375,7 +385,9 @@ export function createGrader({
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
     ...(parser ?? parsers.blocks.allowHTML()),
-    ...grader({ grader: graderFn, infer, slots, inputType, execution }),
+    ...grader(customAsyncGraderFn
+      ? { asyncGrader: customAsyncGraderFn, infer, slots, inputType }
+      : { grader: syncGraderFn!, infer, slots, inputType }),
     name: graderName,
     description,
     category: 'grading',

@@ -46,6 +46,12 @@ export const commonFields = {
   /** Submit count field - tracks number of submissions */
   submitCount: stateField('submitCount'),
 
+  /** Durable record of an in-flight async submission ({ id, submittedAt } —
+   *  see grading/gradingStore.ts PendingGrade). Written when async grading
+   *  starts, cleared when the result lands; its presence + age is how a reader
+   *  tells a genuinely-pending grade from a stranded one. */
+  pendingGrade: stateField('pendingGrade'),
+
   /** Show answer toggle - controls answer display */
   showAnswer: stateField('showAnswer'),
 
@@ -70,8 +76,8 @@ export const { value, correct, message, score, lastSubmission, submitCount, show
  *
  *   state.fields([graderFields(), 'customHint'])
  *
- * Returns [correct, message, score, lastSubmission, submitCount, showAnswer] —
- * every field the grader action dispatches plus showAnswer.
+ * Returns [correct, message, score, lastSubmission, submitCount, pendingGrade,
+ * showAnswer] — every field the grader action dispatches plus showAnswer.
  * Using this explicitly is preferred over relying on applyGraderExtensions
  * auto-add, since it makes field declarations honest.
  */
@@ -82,6 +88,7 @@ export function graderFields() {
     commonFields.score,
     commonFields.lastSubmission,
     commonFields.submitCount,
+    commonFields.pendingGrade,
     commonFields.showAnswer,
   ];
 }

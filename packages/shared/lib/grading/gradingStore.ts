@@ -11,12 +11,50 @@ import { decodedFieldSelector } from '../state/fieldReads';
 import type { FieldInfo, LoBlock, RuntimeProps, StateKey } from '../types';
 import type { GradingState } from './model';
 
-/** The stored grading quartet. `lastSubmission` is captured separately (submit
- *  mode only) and is not part of the read-back state, so it lives in
- *  GradingFieldName but not this list. */
+/** The stored grading quartet. `lastSubmission` and `pendingGrade` are
+ *  captured separately (submit mode only) and are not part of the read-back
+ *  GradingState, so they live in GradingFieldName but not this list. */
 export const GRADING_STATE_FIELDS = ['correct', 'message', 'score', 'submitCount'] as const;
 
-export type GradingFieldName = typeof GRADING_STATE_FIELDS[number] | 'lastSubmission';
+export type GradingFieldName = typeof GRADING_STATE_FIELDS[number] | 'lastSubmission' | 'pendingGrade';
+
+/**
+ * The durable record of an in-flight async submission, stored in the grader's
+ * `pendingGrade` field beside the quartet. Written at phase-1 submit (when
+ * `correct` becomes 'submitted'), cleared when the result lands. Its presence
+ * plus `submittedAt` is what lets a reader tell a genuinely-pending grade from
+ * a STRANDED one (see selectGradingState's timeout derivation).
+ *
+ *   ┌─ BREADCRUMB for the follow-up PR (server-owned async jobs) ──────────┐
+ *   │ Today `id` is a client-minted GUID and the only async grader is      │
+ *   │ client-side (callLLMSimple): a reload kills the request, so the      │
+ *   │ pending record strands and the timeout below is what unlocks retry.  │
+ *   │                                                                      │
+ *   │ The B end state: `id` becomes a DURABLE SERVER JOB ID. This field is │
+ *   │ server-shared state (the direction is client read-only) — the        │
+ *   │ server writes the record when it enqueues the job and writes the     │
+ *   │ result when the job finishes. On reload the client RE-ATTACHES by    │
+ *   │ polling the job named by `id` instead of deriving failure. Timeout   │
+ *   │ and retry stop being the module constant below and become            │
+ *   │ module-contributed PMSS policy, overrideable at the server level.    │
+ *   │ Keep this field the single home for that state as it grows.          │
+ *   └──────────────────────────────────────────────────────────────────────┘
+ */
+export interface PendingGrade {
+  /** Client-minted GUID today; a durable server job ID in the follow-up. */
+  id: string;
+  /** Epoch ms stamped at phase-1 submit — the clock the timeout reads. */
+  submittedAt: number;
+}
+
+/**
+ * How long a stored `correct='submitted'` stays believable before a reader
+ * treats it as a stranded submission (failed-retryable). Three minutes covers
+ * a slow LLM round-trip with margin. In the follow-up this becomes
+ * module-contributed PMSS policy (timeout + retry), overrideable at the server
+ * level; today it is one fixed constant for the one client-side async grader.
+ */
+export const PENDING_GRADE_TIMEOUT_MS = 3 * 60 * 1000;
 
 /** The blank grading state — doubling as the per-field fallbacks for a store
  *  read (readStoredGradingState indexes it by field name). */

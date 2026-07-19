@@ -83,7 +83,7 @@ async function gradeWithLLM(props: RuntimeProps, { input }: any) {
 
 const LLMGrader = dev({
   ...parsers.blocks.allowHTML(),
-  ...grader({ grader: gradeWithLLM, execution: 'async' }),
+  ...grader({ asyncGrader: gradeWithLLM }),
   name: 'LLMGrader',
   fields,
   inputSchema: z.string(),

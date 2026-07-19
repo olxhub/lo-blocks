@@ -633,11 +633,11 @@ export interface RawGraderResult {
   score?: number;
 }
 
-/** Caller-facing grade function — grades synchronously OR returns a Promise.
- *  The grader() mixin accepts this loose form and normalizes it into the
- *  execution-discriminated descriptor (SyncGraderFn / AsyncGraderFn). */
-export type GraderFn = (props: RuntimeProps, params: GraderParams) =>
-  RawGraderResult | Promise<RawGraderResult>;
+// The grading function family, keyed by its declaration name in grader()
+// (grader: / asyncGrader:). The declaration key IS the execution discriminant,
+// so there is no loose "either shape" caller type to normalize and no
+// execution flag that could disagree with the fn — each key is typed to
+// exactly one of these.
 /** A synchronous grader's fn: returns a result directly (no Promise), so
  *  immediate-mode selectors can evaluate it in place. */
 export type SyncGraderFn = (props: RuntimeProps, params: GraderParams) => RawGraderResult;

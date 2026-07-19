@@ -23,7 +23,11 @@ import { aggregateGradingStates } from './aggregators';
 import {
   prepareGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
-import { GRADING_STATE_FIELDS, UNGRADED, readStoredGradingState } from './gradingStore';
+import {
+  GRADING_STATE_FIELDS, PENDING_GRADE_TIMEOUT_MS, UNGRADED,
+  readGradingField, readStoredGradingState,
+} from './gradingStore';
+import type { PendingGrade } from './gradingStore';
 import { childGraderStateKeys, gradeModeOf } from './topology';
 import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
 import type { GraderInput, GradingResult, GradingState } from './model';
@@ -74,16 +78,30 @@ function deriveImmediateState(
   const preparation = prepareGrade(props, state, graderKey, descriptor);
   let result: GradingResult;
   if (preparation.ok) {
-    const { descriptor: prepared, graderProps, param } = preparation.prepared;
+    // The outer `descriptor` IS preparation.prepared.descriptor (same object) —
+    // no need to re-destructure it under a second name.
+    const { graderProps, param } = preparation.prepared;
     // Async graders are rejected from immediate problems at authoring time
     // (CapaProblem renders a DisplayError), so reaching one here is a broken
-    // invariant. The discriminated descriptor makes the sync return type a
-    // fact — a SyncGraderFn returns a RawGraderResult, never a Promise, so no
-    // Promise duck-typing on the result.
-    if (prepared.execution !== 'sync') {
+    // invariant. The declaration-key discriminant (grader: vs asyncGrader:)
+    // makes the sync return type a fact — a SyncGraderFn returns a
+    // RawGraderResult, never a Promise.
+    if (descriptor.execution !== 'sync') {
       throw new Error(`[grading] ${loBlock.name} is async; it cannot evaluate in immediate mode`);
     }
-    result = normalizeGraderResult(prepared.fn(graderProps, param));
+    // Insurance for the one shape the definition-time AsyncFunction check can't
+    // see: a plain (non-`async`) function declared under grader: that
+    // nonetheless returns a Promise. This restores the load-bearing diagnostic
+    // the old Promise duck-type gave, naming the block and the asyncGrader:
+    // remedy — at the point evaluation would otherwise treat a thenable as a
+    // grade result.
+    const raw = descriptor.fn(graderProps, param);
+    if (raw instanceof Promise) {
+      throw new Error(
+        `[grading] ${loBlock.name}: grader: returned a Promise — declare it under asyncGrader:.`,
+      );
+    }
+    result = normalizeGraderResult(raw);
   } else {
     // preparationErrorResult is already normalized — no second pass.
     result = preparationErrorResult(preparation.error);
@@ -95,6 +113,48 @@ function deriveImmediateState(
   // completion (problemCompletion → inProgress) and showanswer="attempted"
   // behave.
   return { ...result, correct, submitCount: countsAsAttempt(correct) ? 1 : 0 };
+}
+
+/**
+ * The stored-leaf read, plus the async-pending TIMEOUT policy.
+ *
+ * A stored correct='submitted' means an async submission went in flight. It
+ * counts as genuinely pending ONLY while a pendingGrade record exists AND that
+ * record is younger than PENDING_GRADE_TIMEOUT_MS. Past the deadline — or
+ * 'submitted' with NO record (legacy-shape data written before this field
+ * existed) — the async job has STRANDED: today the only async grader is
+ * client-side (callLLMSimple), so a reload killed the request and nothing will
+ * ever write the result (see the PendingGrade breadcrumb in gradingStore.ts).
+ *
+ * We then derive a FAILED-RETRYABLE state: `correct` is no longer 'submitted'
+ * (correctness.invalid — the answer was never judged), so BOTH the submission
+ * guard (submitGrade) and useInputReadOnly treat it as retryable — inputs
+ * unlock and a fresh submit overwrites the stale pendingGrade record — and the
+ * learner sees a try-again message.
+ *
+ * PURITY: the flip is evaluated at READ TIME from Date.now() — there is no
+ * timer. Any dispatch/render after the deadline sees the failed state; one that
+ * lands before it still sees pending. That is acceptable, documented UX, not a
+ * bug. (selectGradingState memoizes on the state object, so within one state
+ * generation Date.now() is sampled once and the flip is observed on the next
+ * dispatch — the same read-time granularity.)
+ */
+function readStoredLeafState(
+  state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
+): GradingState {
+  const stored = readStoredGradingState(state, props, stateKey, loBlock);
+  if (stored.correct !== correctness.submitted) return stored;
+
+  const pending = readGradingField<PendingGrade | undefined>(
+    state, props, stateKey, loBlock, 'pendingGrade', undefined);
+  const fresh = pending && (Date.now() - pending.submittedAt) < PENDING_GRADE_TIMEOUT_MS;
+  if (fresh) return stored;
+
+  return {
+    ...stored,
+    correct: correctness.invalid,
+    message: 'Grading did not complete. Please try again.',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +175,9 @@ function computeGradingState(state: unknown, props: RuntimeProps, stateKey: Stat
   if (loBlock.grading && loBlock.grading.execution !== 'async' && gradeModeOf(entry) === 'immediate') {
     return deriveImmediateState(state, props, stateKey, loBlock);
   }
-  return readStoredGradingState(state, props, stateKey, loBlock);
+  // Stored leaf — submit mode and the async pending→final lifecycle, including
+  // the stranded-pending timeout (readStoredLeafState).
+  return readStoredLeafState(state, props, stateKey, loBlock);
 }
 
 /**

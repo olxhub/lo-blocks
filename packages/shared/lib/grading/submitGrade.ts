@@ -13,18 +13,29 @@ import { updateField } from '../state/fieldWrites';
 import type { Correctness } from '../blocks/correctness';
 import type { LoBlock, ObservableValue, RuntimeProps, StateKey } from '../types';
 import type {
-  AsyncGraderFn, GradePreparation, GraderFn, GradingDescriptor, GradingResult,
+  AsyncGraderFn, GradePreparation, GradingDescriptor, GradingResult,
   InputBinding, SyncGraderFn,
 } from './model';
 import {
-  prepareGrade, evaluateGrade, preparationErrorResult, normalizeGraderResult,
+  prepareGrade, preparationErrorResult, normalizeGraderResult,
 } from './pipeline';
 import { gradingField, readGradingField } from './gradingStore';
-import { gradingSelectors } from './selectGradingState';
+import type { PendingGrade } from './gradingStore';
+import { gradingSelectors, selectGradingState } from './selectGradingState';
 
 /** Blank and malformed submissions don't consume attempts (countsAsAttempt). */
 function nextSubmitCount(current: number, correct: Correctness): number {
   return current + (countsAsAttempt(correct) ? 1 : 0);
+}
+
+/** Mint the pending record's id. A client GUID today; in the follow-up the
+ *  SERVER mints a durable job ID and writes the record instead (see the
+ *  PendingGrade breadcrumb in gradingStore.ts). Falls back to time+random in
+ *  Node test environments where crypto.randomUUID is absent. */
+function mintPendingGradeId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 /**
@@ -65,7 +76,8 @@ async function evaluateSubmission(preparation: GradePreparation): Promise<Gradin
     // boundary: a malformed result (missing `correct`) must not strand
     // the pending state either.
     await preparation.prepared.ensureReady?.();
-    return normalizeGraderResult(await evaluateGrade(preparation.prepared));
+    const { descriptor, graderProps, param } = preparation.prepared;
+    return normalizeGraderResult(await descriptor.fn(graderProps, param));
   } catch (error: unknown) {
     console.error('[grading] evaluation failed:', error);
     return {
@@ -75,13 +87,14 @@ async function evaluateSubmission(preparation: GradePreparation): Promise<Gradin
   }
 }
 
-// Async submissions in flight, per runtime, keyed by the grader's scoped
-// stateKey. Keyed by runtime (props.runtime — the identity selectGradingState
-// memoizes on) so two stores/runtimes sharing a content key don't suppress
-// each other's grades. The Redux 'submitted' check is the persistent
-// cross-session guard; this WeakMap is its atomic same-session half — the
-// queued correct='submitted' event hasn't folded when a fast second click
-// arrives.
+// Submissions in flight, per runtime, keyed by the grader's scoped stateKey.
+// Keyed by runtime (props.runtime — the identity selectGradingState memoizes
+// on) so two stores/runtimes sharing a content key don't suppress each other's
+// grades. This WeakMap is the atomic same-session guard for ANY grader with an
+// await window: an async grader awaiting its result, or a SYNC grader awaiting
+// ensureReady (FormulaGrader loading mathjs) — in both a fast second click can
+// arrive before the first run's events fold. The persisted 'submitted'/
+// pendingGrade record is the separate cross-session guard (async only).
 const submissionsInFlight = new WeakMap<object, Set<StateKey>>();
 
 /**
@@ -124,8 +137,13 @@ async function runSubmission(
 
   if (descriptor.execution === 'async') {
     // Phase 1 of two-phase grading: pending before awaiting the grader;
-    // inputs lock via useInputReadOnly. A final unsubmitted/invalid result
-    // (e.g. empty input) simply overwrites the transient pending state.
+    // inputs lock via useInputReadOnly. Alongside correct='submitted' we
+    // stamp the DURABLE pendingGrade record — { id, submittedAt } — which is
+    // what selectGradingState reads to distinguish a genuinely-pending grade
+    // from a stranded one past the timeout. A final unsubmitted/invalid
+    // result (e.g. empty input) simply overwrites the transient pending state.
+    const pending: PendingGrade = { id: mintPendingGradeId(), submittedAt: Date.now() };
+    updateField(props, gradingField(loBlock, 'pendingGrade'), pending, { stateKey });
     updateField(props, gradingField(loBlock, 'correct'), correctness.submitted, { stateKey });
   }
 
@@ -139,22 +157,32 @@ async function runSubmission(
   );
 
   persistGradeResult(props, stateKey, loBlock, result, submitCount);
+  if (descriptor.execution === 'async') {
+    // The result now governs; clear the pending record. Cleared AFTER `correct`
+    // (persistGradeResult writes it last) so no reader ever sees the
+    // 'submitted'+no-record shape that the timeout derivation reads as failed.
+    updateField(props, gradingField(loBlock, 'pendingGrade'), undefined, { stateKey });
+  }
   return result.correct;
 }
 
-/** The submission lifecycle for one grader instance. Sync graders complete in
- *  one turn and need no lock; async graders serialize per (runtime, stateKey)
- *  and additionally honor the persisted cross-session 'submitted' guard. */
+/** The submission lifecycle for one grader instance. EVERY submission runs
+ *  under the per-(runtime, stateKey) lock: a sync grader that declares
+ *  ensureReady (FormulaGrader awaits mathjs) has an await window in which a
+ *  double-click could interleave two runs and undercount submitCount, so the
+ *  lock is not async-only. The persisted cross-session guard IS async-only —
+ *  only async graders leave a durable pending record to honor. */
 async function submitGrade(props: RuntimeProps, stateKey: StateKey, descriptor: GradingDescriptor) {
-  if (descriptor.execution !== 'async') {
-    return runSubmission(props, stateKey, descriptor);
-  }
   return withSubmissionLock(props.runtime as unknown as object, stateKey, async () => {
-    // Cross-session half: a prior submission already landed 'submitted'
-    // (survives reload). The in-flight lock is the atomic same-session half.
-    const pending = readGradingField<Correctness>(
-      props.runtime.store.getState(), props, stateKey, props.loBlock, 'correct', correctness.unsubmitted);
-    if (pending === correctness.submitted) return undefined;
+    if (descriptor.execution === 'async') {
+      // Cross-session half: a prior submission already landed 'submitted' and
+      // survives reload. Read the DERIVED state, not the raw stored `correct`,
+      // so a pending grade past PENDING_GRADE_TIMEOUT_MS is retryable — the
+      // derived failed state is not 'submitted', so the resubmit proceeds and
+      // overwrites the stranded pendingGrade record.
+      const derived = selectGradingState(props.runtime.store.getState(), props, stateKey);
+      if (derived.correct === correctness.submitted) return undefined;
+    }
     return runSubmission(props, stateKey, descriptor);
   });
 }
@@ -164,17 +192,48 @@ async function submitGrade(props: RuntimeProps, stateKey: StateKey, descriptor: 
 // ---------------------------------------------------------------------------
 
 /**
+ * The caller-facing grader() options. The grading FUNCTION FAMILY is keyed by
+ * DECLARATION NAME — the key IS the discriminant, so execution can never be
+ * declared to disagree with the fn's actual shape (the two can no longer drift
+ * apart, and there is no `execution:` caller option to keep in sync):
+ *
+ *   grader:      a SyncGraderFn   → execution 'sync'  (evaluable in immediate mode)
+ *   asyncGrader: an AsyncGraderFn → execution 'async' (LLM / queue / sandbox;
+ *                                   two-phase, gets a pending state, cannot run
+ *                                   in grade="immediate" problems)
+ *
+ * Exactly one must be declared. Future family members (matcher:, other
+ * grading-selector kinds) extend by ADDING KEYS here — never by overloading one
+ * slot with a mode flag.
+ */
+interface GraderOptions {
+  grader?: SyncGraderFn;
+  asyncGrader?: AsyncGraderFn;
+  infer?: boolean;
+  slots?: string[];
+  inputType?: 'single' | 'list';
+}
+
+/**
  * Normalize the caller-facing options into the discriminated descriptor the
- * pipeline consumes. `slots` and `inputType` collapse into one InputBinding —
- * declaring BOTH is the ambiguity this kills, so it throws at definition time
- * rather than silently applying a slots-win precedence rule. The sync/async
- * cast is the one place the loose GraderFn meets the strict fn types: a block
- * that declares execution:'sync' promises its fn returns synchronously.
+ * pipeline consumes. Two definition-time guards:
+ *  - exactly one of grader:/asyncGrader: (the key picks execution; declaring
+ *    both — or neither — is a definition error, not a silent default);
+ *  - `slots` and `inputType` collapse into one InputBinding — declaring BOTH
+ *    is an ambiguity, so it throws rather than applying a slots-win rule.
+ * Each key is typed to its own fn shape (SyncGraderFn / AsyncGraderFn), so the
+ * descriptor's fn is built with NO cast.
  */
 function normalizeGradingDescriptor(
-  grader: GraderFn, infer: boolean, execution: 'sync' | 'async',
-  slots?: string[], inputType?: 'single' | 'list',
+  { grader, asyncGrader, infer = true, slots, inputType }: GraderOptions,
 ): GradingDescriptor {
+  if ((grader ? 1 : 0) + (asyncGrader ? 1 : 0) !== 1) {
+    throw new Error(
+      `grader(): declare exactly one of grader: (synchronous) or asyncGrader: ` +
+      `(returns a Promise — LLM, instructor/peer queue, code-in-sandbox). ` +
+      `Got ${grader && asyncGrader ? 'both' : 'neither'}.`,
+    );
+  }
   if (slots && slots.length > 0 && inputType) {
     throw new Error(
       `grader(): pass either slots or inputType, not both ` +
@@ -185,9 +244,23 @@ function normalizeGradingDescriptor(
     slots && slots.length > 0 ? { kind: 'slots', names: slots }
     : inputType === 'list' ? { kind: 'list' }
     : { kind: 'single' };
-  return execution === 'async'
-    ? { execution, fn: grader as AsyncGraderFn, inputs, infer }
-    : { execution: 'sync', fn: grader as SyncGraderFn, inputs, infer };
+
+  if (asyncGrader) {
+    return { execution: 'async', fn: asyncGrader, inputs, infer };
+  }
+  // Synchronous grader. JS won't stop an `async` function declared under
+  // grader: — but that would strand immediate-mode evaluation (which calls the
+  // fn expecting a value, not a Promise). Catch the common case (a genuine
+  // `async` function) HERE at definition time; a plain function that happens to
+  // return a Promise slips this check and is caught at the immediate-mode call
+  // site (see deriveImmediateState).
+  if (grader!.constructor?.name === 'AsyncFunction') {
+    throw new Error(
+      `grader(): the function under grader: is an async function — ` +
+      `declare it under asyncGrader: instead.`,
+    );
+  }
+  return { execution: 'sync', fn: grader!, inputs, infer };
 }
 
 // Helper to define a grading action. This used to be called a
@@ -197,20 +270,13 @@ function normalizeGradingDescriptor(
 // - slots defined: { inputDict, inputApiDict } - named slots
 // - inputType: 'list': { inputList, inputApis } - array of inputs
 // - default (single): { input, inputApi } - one input (most common)
-export function grader({ grader, infer = true, slots, inputType, execution = 'sync' }: {
-  grader: GraderFn;
-  infer?: boolean;
-  slots?: string[];
-  inputType?: 'single' | 'list';
-  /** How grading completes. 'async' — LLM, instructor/peer queue,
-   *  code-in-sandbox: the action writes correct='submitted' BEFORE
-   *  awaiting the grader, so the UI shows a pending state and inputs lock
-   *  (useInputReadOnly) while grading is in flight; the final result
-   *  overwrites it when it lands. UI reads via useGradingState/selectors,
-   *  so both phases are ordinary field writes. */
-  execution?: 'sync' | 'async';
-}) {
-  const descriptor = normalizeGradingDescriptor(grader, infer, execution, slots, inputType);
+//
+// Declare the grade function under grader: (synchronous) or asyncGrader:
+// (returns a Promise) — see GraderOptions. execution is DERIVED from that key,
+// never passed.
+export function grader(options: GraderOptions) {
+  const { slots } = options;
+  const descriptor = normalizeGradingDescriptor(options);
 
   const action = async ({ props }: { props: RuntimeProps }) => {
     // executeNodeActions builds props from the grader's own dynamic-DOM

@@ -116,13 +116,27 @@ function mixinConflictMessage(
   layerB: string,
 ): string {
   const label = kind.charAt(0).toUpperCase() + kind.slice(1);
-  return (
+  const head =
     `createBlock(${blockName}): mixin composition conflict. ` +
-    `${label} \`${key}\` is defined by ` +
-    `both \`${layerA}\` and \`${layerB}\`. We raise on duplicate ` +
-    `fields/attributes because in 99% of cases this is a bug. If this ` +
-    `override is intentional, add \`allowOverrides: ['${key}']\` to the ` +
-    `\`${layerB}\` layer to silence this error.`
+    `${label} \`${key}\` is defined by both \`${layerA}\` and \`${layerB}\`.`;
+
+  // Selectors/setters are the getter/setter axis — a field's SINGLE semantic
+  // owner. Unlike fields/attributes (where a layer may legitimately narrow a
+  // default), there is no valid selector/setter override: allowOverrides does
+  // NOT apply to these kinds (mergeKeyedFns never consults it, by design). The
+  // only remedy is to rename one field so the two owners stop colliding.
+  if (kind === 'selector' || kind === 'setter') {
+    return (
+      `${head} A ${kind} is a field's single semantic owner, so overriding one ` +
+      `is forbidden — allowOverrides does not apply here. Rename one of the ` +
+      `two fields so they no longer share a name.`
+    );
+  }
+
+  return (
+    `${head} We raise on duplicate fields/attributes because in 99% of cases ` +
+    `this is a bug. If this override is intentional, add ` +
+    `\`allowOverrides: ['${key}']\` to the \`${layerB}\` layer to silence this error.`
   );
 }
 
