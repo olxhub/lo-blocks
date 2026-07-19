@@ -130,7 +130,12 @@ export async function stateForKeys(
   keys: StateKey[],
   idMap: Record<string, any>,
 ): Promise<StateForKeys> {
-  const unique = [...new Set<StateKey>(keys)];
+  // Ephemeral keys (docs sandboxes) answer `absent` without a read: the
+  // server never folds or persists them (router.ts drops their events), so
+  // "confirmed: no state" is true by policy — and it is exactly what the
+  // client's state gate needs to stop waiting and render.
+  const ephemeral = keys.filter((key) => isEphemeralNamespaceKey(key));
+  const unique = [...new Set<StateKey>(keys.filter((key) => !isEphemeralNamespaceKey(key)))];
   const own = userInstance(principal);
 
   // Partition resolution, picker-scoped: collect the leaf definitions'
@@ -173,8 +178,11 @@ export async function stateForKeys(
   }
   subscriptions.notePending(principal, subKeys);
 
-  const absent = unique.filter(
-    (key) => component[key] === undefined && sharedComponent[key] === undefined);
+  const absent = [
+    ...unique.filter(
+      (key) => component[key] === undefined && sharedComponent[key] === undefined),
+    ...new Set(ephemeral),
+  ];
   return { component, sharedComponent, absent };
 }
 

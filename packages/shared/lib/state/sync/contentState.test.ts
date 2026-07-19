@@ -98,6 +98,20 @@ test('exact keys return own buckets; the rest are confirmed absent', async () =>
   expect(out.component['demos/elsewhere']).toBeUndefined();
 });
 
+test('ephemeral keys answer absent by policy — no read, no subscription', async () => {
+  // The router drops ephemeral (docs.) events, so "no state" is true by
+  // construction; the gate needs the confirmation to stop waiting. Even
+  // state persisted before the ephemeral policy must not surface.
+  const h = harness();
+  await h.store(OWN, 'docs.TextBlock/demo', { value: 'pre-policy leftover' });
+
+  const out = await stateForKeys(
+    h.registry, h.subscriptions, PRINCIPAL, [parseStateKey('docs.TextBlock/demo')], {});
+  expect(out.component).toEqual({});
+  expect(out.sharedComponent).toEqual({});
+  expect(out.absent).toEqual(['docs.TextBlock/demo']);
+});
+
 test('shared buckets come from the `all` instance', async () => {
   const h = harness();
   await h.store(ALL, 'demos/poll', { votes: 12 });
