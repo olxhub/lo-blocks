@@ -47,6 +47,7 @@
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { makeRootNode } from '@/lib/render';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
@@ -417,11 +418,21 @@ export default function RenderOLX({
 
   const localeReady = !!runtime.locale?.code;
 
+  // The gate must resolve the key the tree will actually RENDER under:
+  // with an idPrefix (repo detail pages, scoped embeds), the root block's
+  // state lives at the SCOPED key. Gating the unscoped id instead would
+  // mark the wrong bucket ready while the rendered instance's bucket was
+  // never fetched — its fields would initialize from defaults and write
+  // over persisted state.
+  const rootStateKey = (!localeReady || parsingPending)
+    ? null
+    : scopedStateKeyForBlock({ id: renderIdToQuery, ns: runtime.ns, idPrefix: runtime.idPrefix });
+
   // useRenderedBlock must be called unconditionally (Rules of Hooks) - pass null
   // when locale or content isn't ready yet, which useRenderedBlock handles gracefully
   const { block, ready } = useRenderedBlock(
     blockProps as unknown as RuntimeProps,
-    (!localeReady || parsingPending) ? null : renderIdToQuery,
+    rootStateKey,
     { source }
   );
 
