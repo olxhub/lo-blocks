@@ -33,7 +33,7 @@ export interface KVStore {
  * Batched read through any KVStore: the backend's native getMany when it
  * has one, else concurrent get()s (one round trip per key, but in
  * flight together — never the sequential await-per-key loop that made
- * page loads O(buckets) round trips, found by review 2026-07).
+ * page loads O(buckets) round trips).
  */
 export function getMany(store: KVStore, keys: KVSKey[]): Promise<(string | null)[]> {
   if (keys.length === 0) return Promise.resolve([]);

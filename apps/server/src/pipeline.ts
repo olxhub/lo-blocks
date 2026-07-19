@@ -368,8 +368,8 @@ export async function runPipeline(context: PipelineContext) {
     // Runs on normal close AND when a stage throws (a malformed event,
     // say): without it, a crashed pipeline leaked its registry refs
     // (phantom live entries), its subscriptions, and its pending field
-    // writes (found by review 2026-07). Every held instance releases —
-    // the last holder's release flushes and drops the entry.
+    // writes. Every held instance releases — the last holder's release
+    // flushes and drops the entry.
     context.subscriptions.unsubscribeAll(context.ws);
     for (const entry of session.holdings.values()) await entry.release();
   }

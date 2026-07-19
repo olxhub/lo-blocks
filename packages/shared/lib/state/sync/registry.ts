@@ -363,7 +363,7 @@ export class UserStateRegistry {
       // adoption has landed, the live fold is authoritative — answering
       // with our stored copy would hand the client a regressed bucket
       // (sharedComponent adoption is server-wins, so a late fetch response
-      // would overwrite a newer socket patch; found by review 2026-07).
+      // would overwrite a newer socket patch).
       // Mid-adoption (resident claimed, nothing adopted yet) the stored
       // copy IS the gate's baseline — same bytes, safe to answer with.
       const liveNow = (live.serverState.state as Record<string, any>).component ?? {};

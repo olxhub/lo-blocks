@@ -102,8 +102,8 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
 
   // Render problem — by its SCOPED instance key: the attempt scope is the
   // instance identity, and the state gate must resolve the attempt's own
-  // state, not the unscoped problem's (which gated the wrong bucket and
-  // let a fresh attempt write-from-empty — found by review 2026-07).
+  // state: gating the unscoped problem's key would leave the attempt's
+  // bucket unresolved and let a fresh attempt write from empty.
   const { block: renderedProblem, error } = useRenderedBlock(scopedProps, scopedProblemKey);
 
   // CapaProblem's aggregate correctness is derived from its child graders

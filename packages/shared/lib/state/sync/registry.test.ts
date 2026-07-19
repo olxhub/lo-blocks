@@ -4,7 +4,7 @@
 // readBuckets: the id-scoped read. Shared buckets are stored under plain
 // block ids, so a page's worth of `all` state is one batched lookup —
 // never an assembly of the whole instance (which scaled with total
-// deployment state, found by review 2026-07).
+// deployment state).
 
 import { test, expect } from 'vitest';
 import { MemoryKVStore } from '@/lib/storage/kvs';
@@ -63,8 +63,8 @@ test('a non-resident bucket reads straight from storage', async () => {
 });
 
 test('a bucket that turns RESIDENT during the storage read answers with its live value', async () => {
-  // The race (found by review 2026-07): readBuckets partitions a bucket
-  // as cold and awaits storage; meanwhile an event's dispatch gate makes
+  // The race: readBuckets partitions a bucket as cold and awaits
+  // storage; meanwhile an event's dispatch gate makes
   // the bucket resident and folds. The response must carry the LIVE fold
   // — the client's sharedComponent adoption is server-wins, so a stale
   // late response would overwrite the newer socket patch.

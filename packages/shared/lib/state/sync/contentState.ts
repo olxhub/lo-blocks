@@ -78,7 +78,7 @@ async function sharedStateFor(
     // Id-scoped read: shared buckets live under plain block ids, so this
     // is a direct batched lookup — never "assemble the whole `all`
     // instance to pick out a page's worth of buckets", which scaled with
-    // total deployment state, not this page (found by review 2026-07).
+    // total deployment state, not this page.
     const buckets = await registry.readBuckets(instance, ids);
     for (const id of ids) {
       if (buckets[id] !== undefined) sharedComponent[id] = buckets[id];
@@ -205,13 +205,12 @@ export async function stateForContentFetch(
   // The served DEFINITION ids ARE the caller's static state keys
   // (StateKey = DefinitionKey when no scope applies), so both partition
   // resolution and the own-state read are id-scoped constructions —
-  // never "assemble the caller's whole instance and filter", which
-  // scaled with their course footprint, guessed key membership by
-  // prefix, and spoke a dead '#'-suffix grammar (found by review
-  // 2026-07). Scoped instances (ns/list:#2:answer) deliberately do NOT
-  // ride content responses: only an ancestor's own state enumerates
-  // them, so the client requests them exactly (stateForKeys) after it
-  // renders that ancestor.
+  // never "assemble the caller's whole instance and filter", whose cost
+  // scales with the caller's whole course footprint rather than this
+  // page. Scoped instances (ns/list:#2:answer) deliberately do NOT ride
+  // content responses: only an ancestor's own state enumerates them, so
+  // the client requests them exactly (stateForKeys) after it renders
+  // that ancestor.
   const servedIds = Object.keys(persistentIdMap);
   const pickerKeys = pickerKeysFor(persistentIdMap);
   const pickerScopes = pickerKeys.length > 0

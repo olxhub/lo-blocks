@@ -256,8 +256,8 @@ export class FieldPersister {
     // The in-memory index mutates only AFTER its KVS write succeeds: a
     // failed index write with a mutated cache would make every later
     // flush skip the rewrite (includes() already true) while cold
-    // assembleFieldState can't discover the keys (found by review
-    // 2026-07). Work on a copy; commit on success.
+    // assembleFieldState can't discover the keys. Work on a copy;
+    // commit on success.
     const index = await this.loadIndex();
     const nextIndex: FieldIndex = {
       system: [...index.system],
@@ -278,7 +278,7 @@ export class FieldPersister {
         // Put back the FAILED entry and every unwritten one after it —
         // clearing the dirty set up front must not turn a write failure
         // into data loss, and the throw skips the rest of the batch
-        // (found by review 2026-07: only the failing bucket was re-added,
+        // (only the failing bucket was re-added,
         // silently dropping its successors). The next stateChanged()/
         // close() retries them all.
         for (const remaining of batch.slice(i)) this.dirty.add(remaining);
@@ -327,7 +327,7 @@ export async function assembleFieldState(
 
   // One batched read for every indexed bucket — the sequential
   // await-per-bucket loop this replaces made cold loads O(buckets)
-  // round trips on network stores (found by review 2026-07). Passing a
+  // round trips on network stores. Passing a
   // scope subset (CORE_SCOPES) reads only the eager scopes; `component`
   // then loads lazily per bucket (registry.ensureBucketLoaded).
   const entries = scopes.flatMap((scope) =>

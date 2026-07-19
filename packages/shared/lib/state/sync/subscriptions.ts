@@ -76,22 +76,22 @@ export class SubscriptionRegistry {
   // ── Pending subscriptions ──────────────────────────────────────────────
   // A content fetch can win the startup race against the WebSocket: the
   // caller has NO live connection yet, so there is nothing to subscribe —
-  // and nothing would ever subscribe it (found by review 2026-07). The
-  // fetch records its keys against the PRINCIPAL; the pipeline adopts
-  // them when the principal's connection arrives.
+  // and nothing would ever subscribe it. The fetch records its keys
+  // against the PRINCIPAL; the pipeline adopts them when the principal's
+  // connection arrives.
 
   private pending = new Map<string, { keys: Set<string>; at: number }>();
   /** The pending map is the ONE structure keyed by identity, not a live
    * socket — bots/prefetch/abandoned tabs fetch content and never open a
    * socket, so opportunistic pruning (inside note/adopt) never runs when
-   * traffic goes quiet and the map is retained forever (found by review
-   * 2026-07). Sweep on a timer; unref so tests and shutdown don't hang. */
+   * traffic goes quiet and the map is retained forever. Sweep on a
+   * timer; unref so tests and shutdown don't hang. */
   private sweeper = setInterval(() => this.prunePending(), 60 * 1000).unref?.();
   /** Pending entries outlive the startup race, not the session: TWO tabs
    * can both fetch before their sockets open, so adoption must NOT
    * consume the set (the second tab's fetch already happened and won't
-   * refetch — found by review 2026-07). Entries expire by age instead;
-   * re-adoption is an idempotent re-subscribe. */
+   * refetch). Entries expire by age instead; re-adoption is an
+   * idempotent re-subscribe. */
   private static PENDING_TTL_MS = 5 * 60 * 1000;
 
   private prunePending() {
