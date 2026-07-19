@@ -158,6 +158,29 @@ function isSafeExecutionEnvironment(): boolean {
 }
 
 /**
+ * Map the AUTHORED correctness spellings onto the enum. CustomGrader code
+ * is authored content, and its documented API accepted 'partially-correct'
+ * / 'partial' and case-insensitive variants — content written against that
+ * API must keep grading. The leniency lives HERE, at the authored-string
+ * boundary, and nowhere else: internal grading code speaks the enum, and
+ * normalizeCorrectness stays fail-fast (a typo'd string in a NEW grader is
+ * still a surfaced bug, not a value to pass along).
+ */
+function normalizeAuthoredCorrectness(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const lower = value.toLowerCase();
+  if (lower === 'partially-correct' || lower === 'partial'
+    || lower === correctness.partiallyCorrect.toLowerCase()) {
+    return correctness.partiallyCorrect;
+  }
+  const direct = [
+    correctness.correct, correctness.incorrect, correctness.invalid,
+    correctness.unsubmitted,
+  ].find((c) => c === lower);
+  return direct ?? value;
+}
+
+/**
  * Execute author-provided grading code in a controlled environment.
  *
  * The code runs with access to:
@@ -218,7 +241,7 @@ function executeGradingCode(
     }
 
     return {
-      correct: normalizeCorrectness(result.correct),
+      correct: normalizeCorrectness(normalizeAuthoredCorrectness(result.correct)),
       message: String(result.message ?? ''),
       score: typeof result.score === 'number' ? result.score : undefined,
     };
