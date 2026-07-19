@@ -23,6 +23,7 @@ import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from 
 import { useOlxJson } from './useOlxJson';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, qualifyDefinitionRef, scopedStateKeyForBlock } from '../types/id-grammar';
 import { getBlockByOLXId } from './getBlockByOLXId';
+import { staticTargetProps } from '../state/blockData';
 import { isInput } from './actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 
@@ -189,14 +190,13 @@ export function useGraderAnswer(props: RuntimeProps) {
 
     // Only show per-input answer in 'per-input' mode
     if (displayMode === 'per-input') {
-      // TODO: graderProps should include complete runtime context and blueprint fields
+      // The GRADER's own props — built from its static entry, never by
+      // spreading this component's props (a choice item's attributes must
+      // not leak under the grader's).
       const graderDefKey = leafDefinitionKeyFromStateKey(graderId);
-      const graderProps = {
-        ...props,
-        id: graderDefKey,
-        kids: graderInstance.kids,
-        ...graderInstance.attributes,
-      };
+      const graderProps = staticTargetProps(
+        props.runtime, graderId, graderDefKey, graderInstance, graderBlueprint,
+      );
 
       // Check for slot-based display answers
       if (graderBlueprint.getDisplayAnswers && graderBlueprint.slots) {
