@@ -15,7 +15,7 @@
 // Importing this module also installs the jsdom shims and the fetch mock
 // (side effects) — every demo-render test file needs them.
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { toMemoryRef } from '@/lib/types/storage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
@@ -24,11 +24,12 @@ import * as lo_event from 'lo_event';
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadCodeEditor } from '@/components/common/CodeEditor/CodeEditor';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';
 import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
-import { render as rtlRender, cleanup } from '@testing-library/react';
+import { render as rtlRender, cleanup, act } from '@testing-library/react';
 import fs from 'fs/promises';
 import path from 'path';
 import { injectPreviewContent } from '@/lib/template/previewTemplate';
@@ -37,6 +38,28 @@ import { mockRuntime, TEST_NS } from '@/lib/test-utils';
 import { toUserLocale } from '@/lib/types/i18n';
 import type { SafeRelativePath } from '@/lib/types';
 import { initConfig } from '@/lib/config';
+
+// Mock the MCP client (docs/catalog/sources all funnel through it —
+// authoring blocks like DocsBrowser/BlockIndex/Catalog call useDocs/
+// useFormats/ensureCatalog/ensureSources on mount). The real client opens a
+// StreamableHTTPClientTransport to /mcp, which jsdom/undici's cross-realm
+// AbortSignal handling can't complete — it fails (twice, since docs fetches
+// opt into retry:true), asynchronously, well after the mount's `act()` has
+// returned. Stubbing at this boundary (rather than mocking the /mcp fetch
+// response) skips the transport entirely, so there's nothing to retry and
+// nothing to warn about act().
+vi.mock('@/lib/mcp/client', () => ({
+  callMcpTool: async (name: string, _args: Record<string, unknown> = {}) => {
+    switch (name) {
+      case 'get_blocks': return { blocks: [], total: 0 };
+      case 'get_formats': return { formats: [], total: 0 };
+      case 'get_repositories': return { repositories: [], total: 0 };
+      case 'get_sources': return { sources: [] };
+      default: return {};
+    }
+  },
+  listMcpTools: async () => [],
+}));
 
 // Rendering reads config (needsTranslation → getConfigBool), which fails
 // fast when uninitialized. Empty PMSS: every getConfig resolves to null,
@@ -110,7 +133,13 @@ const CONTENT_DIR = path.resolve('./content');
 export const missingAssets: string[] = [];
 global.fetch = async (url: string | URL | Request, options?: RequestInit) => {
   const urlStr = typeof url === 'string' ? url : url.toString();
-  if (urlStr.includes('/api/olxjson/')) {
+  // fetchOlxJson.ts calls '/api/olxjson?id=...' — match the pathname (not a
+  // substring) so the query string doesn't matter and other /api/olxjson*
+  // routes (there are none today) wouldn't be swallowed by accident.
+  const pathname = (() => {
+    try { return new URL(urlStr, window.location.origin).pathname; } catch { return null; }
+  })();
+  if (pathname === '/api/olxjson') {
     return new Response(JSON.stringify({ ok: false, error: `Block not found (test environment)` }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
@@ -319,8 +348,15 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
     }
 
     // Flush microtasks/timers so async asset loads kicked off by mount
-    // (e.g. Transcript's VTT fetch) settle and record their failures.
-    await new Promise(resolve => setTimeout(resolve, 0));
+    // (e.g. Transcript's VTT fetch) settle and record their failures. Two
+    // ticks under act(): the now-in-process MCP mock (see callMcpTool mock
+    // above) still resolves via a real Promise.then chain that dispatches
+    // Redux actions, so one tick isn't always enough to land the resulting
+    // state update before the test moves on.
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
     if (missingAssets.length > 0) {
       const missing = [...new Set(missingAssets)];
       missingAssets.length = 0;
@@ -355,7 +391,17 @@ export function registerDemoRenderShard(shardName: keyof typeof DEMO_RENDER_SHAR
   // sweep meaningful — without it, lazy blocks would render as spinners and
   // "renders without errors" would silently stop exercising the components.
   beforeAll(async () => {
-    await preloadBlockComponents(Object.values(BLOCK_REGISTRY));
+    await Promise.all([
+      preloadBlockComponents(Object.values(BLOCK_REGISTRY)),
+      // useReferences (lib/stateLanguage/hooks.ts) dynamically imports this
+      // inside a useEffect to break a module cycle — warm the chunk here so
+      // that import resolves synchronously-ish during mount instead of
+      // still being in flight when the test asserts.
+      import('@/lib/blocks/useOlxJson'),
+      // CodeEditor (authoring blocks embed it) lazy-loads CodeMirror the
+      // same way; same reasoning.
+      preloadCodeEditor(),
+    ]);
   }, 60_000);
 
   describe(`Demo OLX files render without errors (${shardName}: ${categories.join(', ')})`, () => {

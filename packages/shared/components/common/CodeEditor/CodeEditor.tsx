@@ -36,6 +36,17 @@ function useCodeMirrorComponent() {
   return comp;
 }
 
+/** Warm the module-level CodeMirror cache outside of a component mount —
+ *  for test harnesses that mount CodeEditor and assert synchronously
+ *  (the lazy import above would otherwise still be in flight, updating
+ *  state after the test body returns). No-op once already loaded. */
+export async function preloadCodeEditor(): Promise<void> {
+  if (!_CodeMirror) {
+    const m = await import('@uiw/react-codemirror');
+    _CodeMirror = m.default;
+  }
+}
+
 // OLX schema for CodeMirror autocompletion — lazy singleton to avoid
 // circular-init issues (BLOCK_REGISTRY is a module-level const too).
 let _olxSchema: ReturnType<typeof generateOlxSchema> | null = null;
