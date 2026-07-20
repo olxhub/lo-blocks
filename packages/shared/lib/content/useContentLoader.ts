@@ -56,7 +56,12 @@ export function useContentLoader(id: DefinitionKey, source = 'content') {
         } else {
           // Field state rides the content response (fields-design 2b);
           // adopt before content so blocks first render with saved state.
-          adoptFieldState(data.fieldState);
+          // The served definitions are the response's state COVERAGE — for
+          // static blocks StateKey = DefinitionKey, so passing them as
+          // resolvedKeys marks the field ledger resolved in the same
+          // dispatch and the state lane never issues a redundant
+          // /api/fieldstate refetch for keys that already arrived.
+          adoptFieldState(data.fieldState, Object.keys(data.idMap));
           // Dispatch to Redux for reactive block access
           dispatchOlxJson(baselineProps, source, data.idMap);
           setIdMap(data.idMap);
