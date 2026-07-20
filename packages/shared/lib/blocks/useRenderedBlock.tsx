@@ -263,7 +263,11 @@ export function useRenderedBlockMulti(
         && av.olxStatus === bv.olxStatus && av.olxError === bv.olxError
         && av.stateObjection?.status === bv.stateObjection?.status
         && av.stateObjection?.error === bv.stateObjection?.error
-        && av.closureKeys.length === bv.closureKeys.length;
+        // selectInstanceStateKeys memoizes on the olxjson slice: the array
+        // identity is stable while content is unchanged and changes when a
+        // descendant is added, removed, OR replaced. Identity comparison
+        // therefore catches a same-count swap that a length check misses.
+        && av.closureKeys === bv.closureKeys;
     }),
   );
 
