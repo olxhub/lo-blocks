@@ -94,6 +94,41 @@ test('a bucket that turns RESIDENT during the storage read answers with its live
   await entry.release();
 });
 
+test('a sweep during an in-flight load must not leave the bucket live-but-non-resident', async () => {
+  // ensureBucketLoaded claims residency synchronously, then reads storage.
+  // If an eviction sweep drops the bucket while that read is in flight, the
+  // load's continuation must NOT re-adopt into the materialization: the
+  // eviction won, and adopting anyway would leave the bucket live in state
+  // yet absent from residency — resident content that reads as non-resident,
+  // which triggers spurious refetch and false INV-1 backstop warnings.
+  const kvs = new MemoryKVStore();
+  await storeBucket(kvs, 'poll1', { votes: 3 });
+
+  // Hold the gate's read open so the sweep can run mid-load.
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  const baseGet = kvs.get.bind(kvs);
+  kvs.get = async (key: string) => { await gate; return baseGet(key); };
+
+  // coldMinMs 0: a just-claimed bucket is immediately eligible for eviction.
+  const registry = new UserStateRegistry(kvs, { coldMinMs: 0 });
+  const entry = registry.acquire(ALL);
+
+  const pending = entry.ensureBucketLoaded('poll1'); // claims residency; read in flight
+  expect(registry.isResident(ALL, 'poll1')).toBe(true);
+  await registry.sweepNow(); // clean + unsubscribed + past cold-min → evicted
+  expect(registry.isResident(ALL, 'poll1')).toBe(false);
+
+  release();
+  await pending;
+
+  // The evicted record no longer owns the slot, so the continuation skipped
+  // adoption: the bucket is neither resident nor live in the materialization.
+  expect(registry.isResident(ALL, 'poll1')).toBe(false);
+  expect((entry.serverState.state as any).component?.poll1).toBeUndefined();
+  await entry.release();
+});
+
 test('ROGUE REDUCER: an ungated fold warns loudly and the repair keeps stored fields', async () => {
   // INV-1 rests on "an event with an id writes only component[event.id]".
   // If a reducer instead dirties some OTHER, never-gated bucket, the

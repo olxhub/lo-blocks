@@ -206,16 +206,27 @@ export class UserStateRegistry {
       ensureBucketLoaded(key) {
         const existing = e.resident.get(key);
         if (existing) return existing.ready;
+        // This record OWNS the residency slot for the duration of the load.
+        // The read races eviction: a sweep may drop the bucket (and a later
+        // load re-claim it) while kvs.get is in flight. Adopting regardless
+        // would leave the bucket live in serverState but absent from
+        // residency — resident state that reads as non-resident, which
+        // spuriously refetches and trips the INV-1 backstop. So the
+        // continuation adopts only while THIS record still owns the slot;
+        // if it was evicted or replaced, the newer owner is authoritative.
+        let record: Residency | undefined;
         const ready = (async () => {
           const raw = await kvs.get(kvsKey.field(user, 'component', key));
           const value = raw !== null ? JSON.parse(raw) : undefined;
+          if (e.resident.get(key) !== record) return;
           // Adopt is a PLAIN assignment: INV-1 guarantees no fold has
           // reached this bucket yet (we gate before dispatch), so there is
           // nothing to merge.
           e.serverState.adoptBucket('component', key, value);
           e.persister.adoptBaseline('component', key, e.serverState.state);
         })();
-        e.resident.set(key, { ready, at: Date.now() });
+        record = { ready, at: Date.now() };
+        e.resident.set(key, record);
         return ready;
       },
 
