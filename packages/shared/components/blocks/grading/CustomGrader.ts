@@ -10,9 +10,9 @@
 //
 // Usage:
 //   <CustomGrader target="answer">
-//     if (input === 42) return { correct: 'correct', message: 'Perfect!' };
+//     if (input === 42) return { correct: correctness.correct, message: 'Perfect!' };
 //     if (Math.abs(input - 42) < 5) return { correct: correctness.partiallyCorrect, message: 'Close!', score: 0.5 };
-//     return { correct: 'incorrect', message: 'Try again' };
+//     return { correct: correctness.incorrect, message: 'Try again' };
 //   </CustomGrader>
 //
 // The code has access to:
@@ -22,7 +22,8 @@
 //
 // The code must return an object with:
 //   - correct: a `correctness` constant (correctness.correct, correctness.partiallyCorrect, ...)
-//     or boolean. Fail-fast: unrecognized strings are grading errors.
+//     or a boolean (true → correct, false → incorrect). One format: the
+//     enum. Unrecognized values are grading errors, not silently coerced.
 //   - message: Feedback string (optional)
 //   - score: Numeric score 0-1 (optional, defaults based on correct value)
 //
@@ -158,29 +159,6 @@ function isSafeExecutionEnvironment(): boolean {
 }
 
 /**
- * Map the AUTHORED correctness spellings onto the enum. CustomGrader code
- * is authored content, and its documented API accepted 'partially-correct'
- * / 'partial' and case-insensitive variants — content written against that
- * API must keep grading. The leniency lives HERE, at the authored-string
- * boundary, and nowhere else: internal grading code speaks the enum, and
- * normalizeCorrectness stays fail-fast (a typo'd string in a NEW grader is
- * still a surfaced bug, not a value to pass along).
- */
-function normalizeAuthoredCorrectness(value: unknown): unknown {
-  if (typeof value !== 'string') return value;
-  const lower = value.toLowerCase();
-  if (lower === 'partially-correct' || lower === 'partial'
-    || lower === correctness.partiallyCorrect.toLowerCase()) {
-    return correctness.partiallyCorrect;
-  }
-  const direct = [
-    correctness.correct, correctness.incorrect, correctness.invalid,
-    correctness.unsubmitted,
-  ].find((c) => c === lower);
-  return direct ?? value;
-}
-
-/**
  * Execute author-provided grading code in a controlled environment.
  *
  * The code runs with access to:
@@ -241,7 +219,7 @@ function executeGradingCode(
     }
 
     return {
-      correct: normalizeCorrectness(normalizeAuthoredCorrectness(result.correct)),
+      correct: normalizeCorrectness(result.correct),
       message: String(result.message ?? ''),
       score: typeof result.score === 'number' ? result.score : undefined,
     };
