@@ -17,6 +17,7 @@ import { useStaticContent } from './StaticContentProvider';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { localeFromVariant } from '@/lib/i18n/localeUtils';
 import { parseDefinitionKey, addScope, splitNs } from '@/lib/types/id-grammar';
+import { policies } from '@/lib/state/fieldLedger';
 import { variantMapLocaleEntries } from '@/lib/types/i18n';
 import type { Locale } from '@/lib/types';
 
@@ -53,6 +54,9 @@ export default function StaticPage({ definitionKey, title, contentNotice }: { de
           ns={splitNs(key).ns}
           baseIdMap={idMap}
           eventContext="static"
+          // A static host has no server state: blocks render at once with
+          // defaults, and the state lane never fetches /api/fieldstate.
+          statePolicy={policies.ephemeral}
         />
       </div>
       <footer className="border-t border-gray-200 px-6 py-4 text-xs leading-relaxed space-y-2">

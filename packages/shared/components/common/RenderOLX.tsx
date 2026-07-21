@@ -60,6 +60,7 @@ import { useRenderedBlock } from '@/lib/blocks/useRenderedBlock';
 import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
+import type { FreshnessPolicy } from '@/lib/state/fieldLedger';
 import type { ContentNamespace, IdPrefix, StateKey, RuntimeProps, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
 import { toLofsRef } from '@/lib/types/address';
 
@@ -294,6 +295,12 @@ interface RenderOLXProps {
    *  should share state with a scoped instance inside another tree
    *  (e.g., a repo detail page sharing state with a catalog card). */
   idPrefix?: IdPrefix;
+  /** The host's state-freshness demand, placed in the runtime so EVERY
+   *  instance gate in the tree (including nested containers) inherits
+   *  it. Hosts with no server state (static exports) pass
+   *  policies.ephemeral so blocks render at once with defaults and the
+   *  state lane never fetches. */
+  statePolicy?: FreshnessPolicy;
   /** Ref to expose the root OlxDomNode for external tree inspection.
    *
    *  TIMING CAVEAT: The ref is populated during render, but the tree (renderedKids)
@@ -328,6 +335,7 @@ export default function RenderOLX({
   eventContext,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
+  statePolicy,
 }: RenderOLXProps) {
   // Build baseline runtime context - use bare runtime, not wrapped BaselineProps
   let runtimeContext = useBaselineRuntime();
@@ -376,6 +384,7 @@ export default function RenderOLX({
     ns,
     locale: renderProps.locale,
     cast: {},
+    ...(statePolicy && { statePolicy }),
   };
 
   // Stabilize root nodeInfo across renders so renderedKids accumulates

@@ -126,6 +126,23 @@ describe('useRenderedBlock', () => {
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBeNull();
   });
+
+  it('the runtime statePolicy is ambient: every gate inherits it without a per-call option', async () => {
+    // A host with no server state (static exports) declares its policy once
+    // on the runtime; nested containers gate their own instances and never
+    // see caller options, so the runtime is the only seam that reaches them.
+    const { props, wrapper } = setup();
+    const ambient = {
+      ...props,
+      runtime: { ...props.runtime, statePolicy: policies.ephemeral },
+    };
+    const { result } = renderHook(
+      () => useRenderedBlock(ambient, parseStateKey('gatetest/list:#amb:note')),
+      { wrapper });
+    await until(() => expect(result.current.ready).toBe(true));
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
 });
 
 describe('instance closure', () => {

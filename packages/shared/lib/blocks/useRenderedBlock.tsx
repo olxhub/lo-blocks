@@ -126,8 +126,11 @@ function closureObjection(
 export function useInstanceState(
   props: RuntimeProps,
   rootKey: StateKey | null,
-  { source = 'content', policy }: InstanceOptions = {},
+  { source = 'content', policy: optionPolicy }: InstanceOptions = {},
 ): BlockDataResult {
+  // The host's ambient demand (runtime.statePolicy — static exports pass
+  // policies.ephemeral) unless the caller demands otherwise.
+  const policy = optionPolicy ?? props.runtime.statePolicy;
   const view = useSelector(
     (state: any) => {
       if (!rootKey) return { keys: [] as StateKey[], gate: null as BlockDataResult | null };
@@ -230,8 +233,9 @@ export function useRenderedBlock(
 export function useRenderedBlockMulti(
   props: RuntimeProps,
   stateKeys: StateKey[],
-  { source = 'content', policy }: InstanceOptions = {},
+  { source = 'content', policy: optionPolicy }: InstanceOptions = {},
 ): { blocks: React.ReactNode[]; olxJsons: (OlxJson | null)[]; allReady: boolean } {
+  const policy = optionPolicy ?? props.runtime.statePolicy;
   interface KeyView {
     key: StateKey;
     olxJson: OlxJson | null;

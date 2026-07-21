@@ -20,7 +20,7 @@ import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
-import type { LedgerEntry } from '../state/fieldLedger';
+import type { LedgerEntry, FreshnessPolicy } from '../state/fieldLedger';
 import type { Correctness } from '../blocks/correctness';
 
 /**
@@ -1293,6 +1293,13 @@ export interface LoBlockRuntimeContext {
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
+  /** The host's state-freshness demand, ambient for every instance gate
+   *  in the tree (nested containers gate their own instances, so a
+   *  per-call option cannot reach them). Hosts with no server state
+   *  (static exports) declare policies.ephemeral: blocks render at once
+   *  with defaults and the state lane never fetches. Absent → the gate's
+   *  default (currentLoad — fieldLedger.ts). */
+  statePolicy?: FreshnessPolicy;
 }
 
 /**
