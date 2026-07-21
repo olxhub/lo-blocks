@@ -34,12 +34,14 @@ import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './ev
 import { runPipeline } from './pipeline.js';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { subscriptionKey } from '@/lib/state/sync/levels';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
 import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
+import { createFieldStateHandler } from './routes/fieldstate.js';
 import { handleConfig } from './routes/config.js';
 import { getConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
@@ -60,7 +62,7 @@ const WS_PATH = '/wsapi/in/';
 // MCP tools too (lib/lofs/tools.ts); the /api/file|files|grep|sources REST
 // routes are retired.
 const SERVER_PREFIXES = [
-  '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
+  '/api/olxjson', '/api/fieldstate', '/api/config', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
@@ -120,10 +122,16 @@ export async function startServer(
   // user's connections fold into a single materialization (userState.ts).
   // Created before the routes: /api/olxjson reads it for initial field
   // state, the WS pipeline writes it.
-  const stateRegistry = new UserStateRegistry(kvs);
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
+  // The registry evicts resident shared buckets that nobody subscribes —
+  // it never imports SubscriptionRegistry, so it takes the count as a
+  // callback (registry.ts sweep).
+  const stateRegistry = new UserStateRegistry(kvs, {
+    subscribersOf: (instance, bucket) =>
+      subscriptions.subscribers(subscriptionKey(instance, bucket)).size,
+  });
   // Grouping index (specs + picker reverse map), TTL-cached from content.
   const grouping = makeGroupingIndex(
     async () => (await syncContentFromStorage()).idMap as any,
@@ -150,6 +158,7 @@ export async function startServer(
   // 404 here strands open boot pages in their retry loop forever).
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
   app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
+  app.get('/api/fieldstate', createFieldStateHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));

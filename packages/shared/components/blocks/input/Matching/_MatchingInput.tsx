@@ -6,9 +6,9 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
-import { qualifyDefinitionRef, extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
+import { qualifyDefinitionRef, extendIdPrefix, scopeMarker, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { HandleCommon } from '@/components/common/DragHandle';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useRenderedBlockMulti } from '@/lib/blocks/useRenderedBlock';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { assertKidArray } from '@/lib/util/kids';
 import { fields } from './MatchingInput';
@@ -261,7 +261,11 @@ export default function MatchingInput(props: RuntimeProps) {
   // pairs may be null (invalid child count); use [] so the hooks below run
   // unconditionally — we render the DisplayError guard after all hooks.
   const rightKidIds = pairs ? pairs.map((p) => p.rightKid.id).filter((id) => id) : [];
-  const { olxJsons: rightKidBlocks } = useOlxJsonMultiple(props, rightKidIds);
+  // Only the right items' definition attributes (initialPosition) are read here;
+  // own-scope kids, so gate on scoped StateKeys.
+  const rightKidStateKeys = rightKidIds.map(id =>
+    scopedStateKeyForBlock({ id, ns: props.runtime.ns, idPrefix }));
+  const { olxJsons: rightKidBlocks, allReady: rightKidsReady } = useRenderedBlockMulti(props, rightKidStateKeys);
   const rightKidBlockMap = Object.fromEntries(rightKidIds.map((id, i) => [id, rightKidBlocks[i]]));
 
   // State management
@@ -274,8 +278,8 @@ export default function MatchingInput(props: RuntimeProps) {
   // Captured (not returned) so the remaining hooks below still run; the
   // DisplayError guard is emitted after all hooks.
   let arrangementError: any = null;
-  if (pairs && (!endOrder || endOrder.length === 0)) {
-    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]);
+  if (pairs && rightKidsReady && (!endOrder || endOrder.length === 0)) {
+    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]!);
 
     const result = buildArrangementWithPositions(rightKidBlocks, {
       idSelector: (block) => block.id,

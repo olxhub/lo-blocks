@@ -7,8 +7,8 @@ import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
-import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { extendIdPrefix, scopeMarker, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
+import { useRenderedBlockMulti } from '@/lib/blocks/useRenderedBlock';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { isKidArray } from '@/lib/util/kids';
 
@@ -37,7 +37,11 @@ export default function SortableInput(props: RuntimeProps) {
   type BlockKid = Extract<import('@/lib/types').KidEntry, { type: 'block' }>;
   const blockKids = kidsValid ? kids.filter((k): k is BlockKid => k.type === 'block') : [];
   const kidIds = blockKids.map((k) => k.id);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
+  // Only the items' definition attributes (initialPosition) are read here;
+  // own-scope kids, so gate on scoped StateKeys.
+  const kidStateKeys = kidIds.map(id =>
+    scopedStateKeyForBlock({ id, ns: props.runtime.ns, idPrefix: props.idPrefix }));
+  const { olxJsons: kidBlocks, allReady: kidsReady } = useRenderedBlockMulti(props, kidStateKeys);
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
 
   // State management
@@ -59,8 +63,8 @@ export default function SortableInput(props: RuntimeProps) {
 
   // Initialize arrangement if empty
   let currentArrangement = arrangement;
-  if (arrangement.length === 0 && blockKids.length > 0) {
-    const blockDefinitions = blockKids.map((kid) => kidBlockMap[kid.id]);
+  if (kidsReady && arrangement.length === 0 && blockKids.length > 0) {
+    const blockDefinitions = blockKids.map((kid) => kidBlockMap[kid.id]!);
 
     const result = buildArrangementWithPositions(blockDefinitions, {
       idSelector: (block) => block.id,
@@ -80,7 +84,7 @@ export default function SortableInput(props: RuntimeProps) {
     // matches regardless of namespace qualification. (Same fix as
     // _MatchingInput.tsx; without it the arrangement collapses to undefined.)
     const kidIdToIndex = new Map(
-      blockKids.map((kid, i) => [kidBlockMap[kid.id].id, i])
+      blockKids.map((kid, i) => [kidBlockMap[kid.id]!.id, i])
     );
     const indicesArrangement = result.arrangement.map(
       (block) => kidIdToIndex.get(block.id)

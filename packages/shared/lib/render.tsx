@@ -22,14 +22,12 @@ import htmlTags from 'html-tags';
 import React from 'react';
 import { DisplayError, DebugWrapper } from '@/lib/util/debug';
 import PopoutWrapper from '@/components/common/PopoutWrapper';
-import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { resolveBlockComponent } from '@/lib/blocks/lazyBlockComponent';
 import { getGrader, getEventContext } from '@/lib/blocks/dynamicDom';
 import { qualifyDefinitionRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
-import type { Store } from 'redux';
 
 /**
  * Assigns unique React keys to an array of children.
@@ -111,22 +109,16 @@ export function render({ node, nodeInfo, runtime }: {
   nodeInfo: any;
   runtime: LoBlockRuntimeContext;
 }): React.ReactNode {
-  if (!runtime) {
+  if (!runtime || !runtime.store) {
     throw new Error(
-      'render() requires runtime context. ' +
+      'render() requires runtime context (with store). ' +
       'This indicates incomplete prop threading - ' +
       'all components should receive and pass through the runtime bundle.'
     );
   }
 
-  const {
-    blockRegistry: actualBlockRegistry = runtime.blockRegistry,
-    idPrefix: actualIdPrefix = runtime.idPrefix ?? ('' as IdPrefix),
-    olxJsonSources: actualOlxJsonSources = runtime.olxJsonSources,
-    store: actualStore = runtime.store,
-    logEvent: actualLogEvent = runtime.logEvent,
-    sideEffectFree: actualSideEffectFree = runtime.sideEffectFree,
-  } = runtime;
+  const { blockRegistry, store, logEvent } = runtime;
+  const idPrefix = runtime.idPrefix ?? ('' as IdPrefix);
   if (!node) return null;
 
   // JSX should not be passed to render() - the OLX pipeline produces structured nodes
@@ -146,27 +138,22 @@ export function render({ node, nodeInfo, runtime }: {
     node.type === 'block' &&
     typeof node.id === 'string'
   ) {
-    // Synchronous lookup in Redux store
-    if (!actualStore) {
-      return (
-        <DisplayError
-          id={`missing-store-${node.id}`}
-          title="render"
-          message="Redux store not available"
-          technical={{ blockId: node.id, hint: 'Store is missing from runtime context' }}
-        />
-      );
-    }
     const locale = runtime.locale.code;
     const definitionKey = qualifyDefinitionRef(node.id, runtime.ns);
-    const sources = actualOlxJsonSources ?? ['content'];
-    const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
+    const sources = runtime.olxJsonSources ?? ['content'];
+    const entry = selectBlock(store.getState(), sources, definitionKey, locale);
     if (!entry) {
+      // Fail-fast, never "still loading": the ensure gate resolves a block's
+      // content BEFORE it renders, and a kid's entry arrives atomically in
+      // the same content bundle (one LOAD_OLXJSON dispatch) as its parent's.
+      // A missing entry here is a bad ref in authored content or a gate bug —
+      // surfaced as a per-block error card so a typo'd ref breaks that
+      // block, not the page.
       return (
         <DisplayError
           id={`block-missing-${node.id}`}
           title="render"
-          message={`Block "${node.id}" not found in content`}
+          message={`Block "${node.id}" is not in loaded content — bad ref, or rendered without its ensure gate`}
           technical={{ blockId: node.id, definitionKey, locale, sources }}
         />
       );
@@ -180,7 +167,7 @@ export function render({ node, nodeInfo, runtime }: {
   // Handle structured OLX-style node
   const { tag, attributes = {}, kids = [] } = node;
 
-  if (!actualBlockRegistry[tag]) {
+  if (!blockRegistry[tag]) {
     return (
       <DisplayError
         id={`unknown-tag-${tag}`}
@@ -191,7 +178,7 @@ export function render({ node, nodeInfo, runtime }: {
     );
   }
 
-  const blockType = actualBlockRegistry[tag];
+  const blockType = blockRegistry[tag];
   // Eager, lazy (spinner until the chunk arrives), or headless — the
   // resolver owns that distinction. See lib/blocks/lazyBlockComponent.tsx.
   const Component = resolveBlockComponent(blockType);
@@ -239,7 +226,7 @@ export function render({ node, nodeInfo, runtime }: {
   //
   // Note: render() can be called multiple times (e.g. in Strict mode),
   // so we reuse existing entries if present.
-  const stateKey = scopedStateKeyForBlock({ id: node.id, ns: runtime.ns, idPrefix: actualIdPrefix });
+  const stateKey = scopedStateKeyForBlock({ id: node.id, ns: runtime.ns, idPrefix: idPrefix });
   let childNodeInfo = nodeInfo.renderedKids[stateKey];
   if (!childNodeInfo) {
     childNodeInfo = { olxJson: renderedNode, stateKey, renderedKids: {}, parent: nodeInfo, loBlock: blockType };
@@ -252,8 +239,8 @@ export function render({ node, nodeInfo, runtime }: {
     ...parsedAttributes,
     id: node.id,
     nodeInfo: childNodeInfo,
-    blockRegistry: actualBlockRegistry,
-    idPrefix: actualIdPrefix,
+    blockRegistry: blockRegistry,
+    idPrefix: idPrefix,
     runtime,
   };
 
@@ -284,14 +271,14 @@ export function render({ node, nodeInfo, runtime }: {
 
   // Wrap logEvent to include context from OLX DOM hierarchy
   // Don't overwrite if context already set by a deeper child
-  const contextualLogEvent: LogEventFn = actualLogEvent
+  const contextualLogEvent: LogEventFn = logEvent
     ? (event, payload) => {
         if (payload?.context) {
           // Child already set context - pass through unchanged
-          actualLogEvent(event, payload);
+          logEvent(event, payload);
         } else {
           const context = getEventContext(childNodeInfo);
-          actualLogEvent(event, { ...payload, ...(context && { context }) });
+          logEvent(event, { ...payload, ...(context && { context }) });
         }
       }
     : (() => {}) as LogEventFn;  // No-op if logEvent not provided
@@ -300,7 +287,7 @@ export function render({ node, nodeInfo, runtime }: {
   const finalRuntime: LoBlockRuntimeContext = {
     ...runtime,
     logEvent: contextualLogEvent,
-    idPrefix: actualIdPrefix,
+    idPrefix: idPrefix,
   };
 
   // Capture the correct runtime context (with proper idPrefix, logEvent, etc.)
@@ -319,7 +306,7 @@ export function render({ node, nodeInfo, runtime }: {
         fields={blockType.fields}
         nodeInfo={childNodeInfo}
         runtime={finalRuntime}
-        idPrefix={actualIdPrefix}
+        idPrefix={idPrefix}
         {...(graderId && { graderId })}
       />
     </div>
@@ -342,22 +329,13 @@ export function render({ node, nodeInfo, runtime }: {
  * @returns Array of React elements
  */
 export function renderCompiledKids(props): React.ReactNode[] {
-  let { kids, children, nodeInfo, runtime } = props;
+  const { kids, nodeInfo, runtime } = props;
 
   if (!runtime) {
     throw new Error(
       'renderCompiledKids() requires runtime context in props. ' +
       'This indicates broken prop threading - render() should pass runtime to all components.'
     );
-  }
-
-  const { blockRegistry = BLOCK_REGISTRY, idPrefix = '', olxJsonSources, store, logEvent, sideEffectFree } = runtime;
-
-  if (kids === undefined && children !== undefined) {
-    console.log(
-      "[renderCompiledKids] WARNING: 'children' prop used instead of 'kids'. Please migrate to 'kids'."
-    );
-    kids = children;
   }
 
   if (!Array.isArray(kids)) {
@@ -435,21 +413,20 @@ export function renderCompiledKids(props): React.ReactNode[] {
 }
 
 // =============================================================================
-// HOOKS - Re-exported from useRenderedBlock.ts
+// HOOKS - the render-layer barrel
 // =============================================================================
 //
-// The actual hook implementations live in src/lib/blocks/useRenderedBlock.ts
-// They are re-exported here for backward compatibility with existing imports.
+// '@/lib/render' is the canonical import path for the render-facing hooks;
+// the implementations live in lib/blocks/useRenderedBlock.tsx (and the pure
+// selector forms in lib/blocks/staticDynamicDom.ts).
 //
-// Hooks:
-// - useBlock(props, id) - Render a single block with loading/error handling
+// - useRenderedBlock(props, stateKey) - Render one block; gated on content + state
 // - useKids(props) - Render children from props.kids
-// - useKidsWithState(props) - Like useKids but exposes ready/error state
 // - useKidsJson(props) - Raw kids with when= filtering (for structural access)
 // - selectKidsJson(props, reduxState) - Pure selector form (for blueprint functions)
 // - getKidsJson(props) - One-shot imperative form
 //
-export { useBlock, useKids, useKidsWithState, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
+export { useRenderedBlock, useKids, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
 
 /**
  * Render a virtual block as JSX — the composition form of the render

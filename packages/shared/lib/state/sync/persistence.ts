@@ -19,14 +19,20 @@
 // bucket names per scope; it is rewritten only when a new bucket first
 // appears (rare after warm-up).
 
-import type { KVStore } from '@/lib/storage/kvs';
+import { getMany, type KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { LevelInstance } from './levels';
 
 /** Scopes persisted per-field — must match serializeForSave in store.ts
  * (system, component, componentSetting, storage; olxjson/chat excluded). */
 export const PERSISTED_SCOPES = ['system', 'component', 'componentSetting', 'storage'] as const;
-type PersistedScope = (typeof PERSISTED_SCOPES)[number];
+export type PersistedScope = (typeof PERSISTED_SCOPES)[number];
+
+/** The EAGER scopes: small (O(app), not O(content)) and their target
+ * bucket is decided by the reducer, not knowable from the wire — so they
+ * load whole at first acquire. `component` is the one lazy scope (its
+ * bucket id IS the event id), loaded per-bucket through the dispatch gate. */
+export const CORE_SCOPES = ['system', 'componentSetting', 'storage'] as const;
 
 /** Bucket name for the unkeyed system scope. */
 const SYSTEM_BUCKET = '_';
@@ -94,6 +100,14 @@ export class FieldPersister {
   private index: FieldIndex | null = null; // lazy-loaded from KVS
   private pendingFlush: Promise<void> = Promise.resolve();
 
+  // Residency backstop (INV-1 contract-check, wired by the registry): a
+  // component bucket may go dirty ONLY after it was made resident by the
+  // dispatch gate. isResident answers "is this bucket resident?"; when a
+  // newly-dirty component bucket is NOT, onUnexpectedDirty fires (a reducer
+  // wrote a bucket other than the gated event.id — a contract violation).
+  private isResident: ((bucket: string) => boolean) | null = null;
+  private onUnexpectedDirty: ((scope: PersistedScope, bucket: string) => void) | null = null;
+
   constructor(
     private kvs: KVStore,
     private user: LevelInstance,
@@ -102,6 +116,58 @@ export class FieldPersister {
   ) {
     this.lastFlushed = {};
     this.lastSeen = {};
+  }
+
+  /** Wire the residency backstop (registry.ts). Kept out of the hot diff
+   * path unless set. */
+  setResidencyBackstop(
+    isResident: (bucket: string) => boolean,
+    onUnexpectedDirty: (scope: PersistedScope, bucket: string) => void,
+  ) {
+    this.isResident = isResident;
+    this.onUnexpectedDirty = onUnexpectedDirty;
+  }
+
+  /**
+   * Record that this bucket's current in-memory object came FROM storage
+   * (the lazy adopt of a component bucket, or a core-scope seed): patch
+   * lastFlushed at bucket granularity so the reference-diff treats it as
+   * clean until the next fold replaces it. lastSeen is untouched — it is
+   * only the identity fast-path in stateChanged, not the diff baseline.
+   */
+  adoptBaseline(scope: PersistedScope, bucket: string, state: AppStateLike) {
+    if (scope === 'system') {
+      this.lastFlushed = { ...this.lastFlushed, system: state.system };
+      return;
+    }
+    this.lastFlushed = {
+      ...this.lastFlushed,
+      [scope]: { ...this.lastFlushed[scope], [bucket]: state[scope]?.[bucket] },
+    };
+  }
+
+  /** Forget a bucket's baseline (eviction): the bucket is leaving memory,
+   * so the next reload must re-adopt from storage rather than diff against
+   * a stale baseline. */
+  dropBaseline(scope: PersistedScope, bucket: string) {
+    if (scope === 'system' || !this.lastFlushed[scope]) return;
+    const next = { ...this.lastFlushed[scope] };
+    delete next[bucket];
+    this.lastFlushed = { ...this.lastFlushed, [scope]: next };
+  }
+
+  /** Is this bucket pending a flush? (Eviction must never drop dirty state.) */
+  isDirty(scope: PersistedScope, bucket: string): boolean {
+    return this.dirty.has(`${scope}${SEP}${bucket}`);
+  }
+
+  /** Run `fn` on the serialized flush chain, so eviction never interleaves
+   * with a flush's read-modify-write of the index. */
+  whenIdle(fn: () => void): Promise<void> {
+    this.pendingFlush = this.pendingFlush.then(() => fn()).catch((err) => {
+      console.error(`[fieldStore] whenIdle task failed for ${this.user}:`, err);
+    });
+    return this.pendingFlush;
   }
 
   /** Start from a snapshot that is ALREADY in this store (the connect-time
@@ -139,7 +205,17 @@ export class FieldPersister {
       }
       for (const bucket of Object.keys(next)) {
         if (!before || before[bucket] !== next[bucket]) {
-          this.dirty.add(`${scope}${SEP}${bucket}`);
+          const key = `${scope}${SEP}${bucket}`;
+          const wasDirty = this.dirty.has(key);
+          this.dirty.add(key);
+          // INV-1 backstop: a component bucket must be resident before any
+          // fold reaches it. A newly-dirty NON-resident bucket means a
+          // reducer wrote a bucket other than the gated event.id — report
+          // it (the registry warns loudly and repairs).
+          if (!wasDirty && scope === 'component' && this.isResident
+            && !this.isResident(bucket)) {
+            this.onUnexpectedDirty?.(scope, bucket);
+          }
         }
       }
     }
@@ -180,8 +256,8 @@ export class FieldPersister {
     // The in-memory index mutates only AFTER its KVS write succeeds: a
     // failed index write with a mutated cache would make every later
     // flush skip the rewrite (includes() already true) while cold
-    // assembleFieldState can't discover the keys (found by review
-    // 2026-07). Work on a copy; commit on success.
+    // assembleFieldState can't discover the keys. Work on a copy;
+    // commit on success.
     const index = await this.loadIndex();
     const nextIndex: FieldIndex = {
       system: [...index.system],
@@ -202,7 +278,7 @@ export class FieldPersister {
         // Put back the FAILED entry and every unwritten one after it —
         // clearing the dirty set up front must not turn a write failure
         // into data loss, and the throw skips the rest of the batch
-        // (found by review 2026-07: only the failing bucket was re-added,
+        // (only the failing bucket was re-added,
         // silently dropping its successors). The next stateChanged()/
         // close() retries them all.
         for (const remaining of batch.slice(i)) this.dirty.add(remaining);
@@ -243,20 +319,29 @@ export class FieldPersister {
 export async function assembleFieldState(
   kvs: KVStore,
   user: LevelInstance,
+  scopes: readonly PersistedScope[] = PERSISTED_SCOPES,
 ): Promise<AppStateLike | null> {
   const raw = await kvs.get(kvsKey.fieldIndex(user));
   if (!raw) return null;
   const index: FieldIndex = { ...emptyIndex(), ...JSON.parse(raw) };
 
+  // One batched read for every indexed bucket — the sequential
+  // await-per-bucket loop this replaces made cold loads O(buckets)
+  // round trips on network stores. Passing a
+  // scope subset (CORE_SCOPES) reads only the eager scopes; `component`
+  // then loads lazily per bucket (registry.ensureBucketLoaded).
+  const entries = scopes.flatMap((scope) =>
+    index[scope].map((bucket) => ({ scope, bucket })));
+  const values = await getMany(kvs, entries.map(({ scope, bucket }) =>
+    kvsKey.field(user, scope, bucket)));
+
   const state: AppStateLike = { system: {}, component: {}, componentSetting: {}, storage: {} };
-  for (const scope of PERSISTED_SCOPES) {
-    for (const bucket of index[scope]) {
-      const value = await kvs.get(kvsKey.field(user, scope, bucket));
-      if (value === null) continue;
-      if (scope === 'system') state.system = JSON.parse(value);
-      else state[scope]![bucket] = JSON.parse(value);
-    }
-  }
+  entries.forEach(({ scope, bucket }, i) => {
+    const value = values[i];
+    if (value === null) return;
+    if (scope === 'system') state.system = JSON.parse(value);
+    else state[scope]![bucket] = JSON.parse(value);
+  });
   return state;
 }
 

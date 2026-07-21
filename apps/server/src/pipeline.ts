@@ -28,7 +28,7 @@ import type { KVStore } from './kvs.js';
 import { kvsKey } from '@/lib/types/identity';
 import type { ServerState } from '@/lib/state/sync/materialization';
 import type { FieldPersister } from '@/lib/state/sync/persistence';
-import { assembleFieldState, compareToBlob } from '@/lib/state/sync/persistence';
+import { assembleFieldState, compareToBlob, CORE_SCOPES } from '@/lib/state/sync/persistence';
 import type { UserStateRegistry, UserStateEntry } from '@/lib/state/sync/registry';
 import type { GroupingIndex } from '@/lib/state/sync/partitions';
 import { userInstance } from '@/lib/state/sync/levels';
@@ -227,30 +227,30 @@ async function* handleBlobs(
         // blob-sourced seed is adopted into the field store (migration,
         // once per user); a fields-sourced seed only rebases.
         await entry.ensureSeeded(async () => {
-          let scopes: Record<string, any> | null = null;
-          let source = 'blob';
+          let source = 'nothing';
           if (context.canonical === 'fields') {
-            scopes = await assembleFieldState(kvs, userInstance(user.safe_user_id));
-            if (scopes) source = 'fields';
-            // No per-field state yet (user predates the field store):
-            // fall back to the blob — adopt() below writes it into the
-            // field store, so the fallback runs once per user.
+            // EAGER core scopes only; `component` loads lazily per bucket
+            // through the dispatch gate. A user with a fieldindex is already
+            // migrated even when their core scopes are empty.
+            const core = await assembleFieldState(
+              kvs, userInstance(user.safe_user_id), CORE_SCOPES);
+            if (core) { entry.seedCore(core); source = 'fields'; }
           }
-          if (!scopes) {
+          if (source === 'nothing') {
+            // No per-field state yet (user predates the field store): fall
+            // back to the blob and migrate the WHOLE instance (component
+            // included, marked dirty+resident) — this runs once per user.
             const raw = await kvs.get(key);
-            scopes = raw ? JSON.parse(raw)?.application_state ?? null : null;
+            const scopes = raw ? JSON.parse(raw)?.application_state ?? null : null;
+            if (scopes) { entry.seedFromBlob(scopes); source = 'blob'; }
           }
-          if (scopes) {
-            entry.serverState.seed(scopes);
-            if (source === 'fields') entry.persister.startFromPersisted(entry.serverState.state);
-            else entry.persister.startFromUnpersisted(entry.serverState.state);
-          }
-          console.log(`[${context.conn.id}] user state seeded from ${scopes ? source : 'nothing'}`);
+          console.log(`[${context.conn.id}] user state seeded from ${source}`);
         });
         // Serve the LIVE materialization — for a second connection this is
         // fresher than storage by up to a flush debounce, and it already
-        // includes the user's other-tab events.
-        const data = entry.liveState();
+        // includes the user's other-tab events. Component is assembled from
+        // storage and overlaid with resident live buckets.
+        const data = await entry.liveState();
         safeSend(ws, { status: 'fetch_blob', data });
         // Log the response so event logs are self-contained for replay
         appendEvent(context.conn, { event: 'fetch_blob_response', data });
@@ -368,8 +368,8 @@ export async function runPipeline(context: PipelineContext) {
     // Runs on normal close AND when a stage throws (a malformed event,
     // say): without it, a crashed pipeline leaked its registry refs
     // (phantom live entries), its subscriptions, and its pending field
-    // writes (found by review 2026-07). Every held instance releases —
-    // the last holder's release flushes and drops the entry.
+    // writes. Every held instance releases — the last holder's release
+    // flushes and drops the entry.
     context.subscriptions.unsubscribeAll(context.ws);
     for (const entry of session.holdings.values()) await entry.release();
   }

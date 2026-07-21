@@ -20,6 +20,7 @@ import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
+import type { LedgerEntry, FreshnessPolicy } from '../state/fieldLedger';
 import type { Correctness } from '../blocks/correctness';
 
 /**
@@ -1292,6 +1293,13 @@ export interface LoBlockRuntimeContext {
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
+  /** The host's state-freshness demand, ambient for every instance gate
+   *  in the tree (nested containers gate their own instances, so a
+   *  per-call option cannot reach them). Hosts with no server state
+   *  (static exports) declare policies.ephemeral: blocks render at once
+   *  with defaults and the state lane never fetches. Absent → the gate's
+   *  default (currentLoad — fieldLedger.ts). */
+  statePolicy?: FreshnessPolicy;
 }
 
 /**
@@ -1618,7 +1626,7 @@ export type ContentTier = 'supported' | 'bestEffort';
 //   olxjson
 //     Parsed OLX content — the IdMap for each content source (namespace).
 //     This is the content database: block definitions, their variants, and
-//     provenance. Blocks read from it via useBlock/useKids; the parse pipeline
+//     provenance. Blocks read from it via useRenderedBlock/useKids; the parse pipeline
 //     writes to it. See OlxJson / IdMap above for the per-block shape.
 //
 //   catalog
@@ -1626,7 +1634,7 @@ export type ContentTier = 'supported' | 'bestEffort';
 //     launchable listings, forge links. Interim: this should evolve toward
 //     OlxJson (repositories and launchables are content, not a separate
 //     data model). The MCP tool would write into OlxJson, and catalog UI
-//     would read via the same useBlock/useKids hooks as everything else.
+//     would read via the same useRenderedBlock/useKids hooks as everything else.
 //
 //   chat
 //     LLM chat sessions — messages, status. Interim: chat state should
@@ -1660,13 +1668,17 @@ export interface VariantStatusEntry {
 }
 
 /** A single block's entry in the OlxJson Redux slice — its parsed variants,
- *  loading state, and any per-variant async status (translations, etc.). */
+ *  its content-lane LEDGER (timestamped fetch facts; readiness is derived
+ *  by contentFreshness, not stored as a status), and any per-variant async
+ *  status (translations, etc.). */
 export interface OlxJsonBlockEntry {
   olxJson: VariantMap | null;
-  loadingState: { status: LoadingStatus };
+  /** Content-lane ledger — see fieldLedger.ts. Facts (resolvedAt / attempt
+   *  with fatal + profile), never a status; the block-facing ready/loading/
+   *  error is derived at read time by olxjson.ts's contentFreshness. */
+  ledger: LedgerEntry;
   /** Per-variant status for in-flight translations and variant-level errors. */
   variantStatus?: Record<string, VariantStatusEntry>;
-  error?: { message: string };
 }
 
 /** All blocks from one content source (namespace), keyed by DefinitionKey. */
@@ -1764,7 +1776,7 @@ export type ChatDisplayEntry = ChatMessage | ElementEntry;
 //
 // Interim: the catalog is a separate data model today. It should converge
 // with OlxJson — repositories and launchables are content, and catalog UI
-// should read via the same useBlock/useKids hooks as everything else.
+// should read via the same useRenderedBlock/useKids hooks as everything else.
 
 /** What a launchable IS in the courseware model. course/activity are public
  *  learning objects; internal is a building block composed into others. */
@@ -1830,6 +1842,8 @@ export interface Repository {
 /** One catalog query result — the repositories returned and its loading state. */
 export interface CatalogEntry {
   repositories: Repository[];
+  // Same shape as the old content ledger (status + error); converts to the
+  // fieldLedger fact/freshness pattern when this slice is next touched.
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }
@@ -1853,6 +1867,8 @@ export interface SourceOption {
 /** The sources slice: one global list (writable sources first). */
 export interface SourcesState {
   sources: SourceOption[];
+  // Same shape as the old content ledger (status + error); converts to the
+  // fieldLedger fact/freshness pattern when this slice is next touched.
   loadingState: { status: LoadingStatus };
   error?: { message: string };
 }
@@ -1957,6 +1973,10 @@ export interface AppState {
   storage: Record<string, any>;
   /** Parsed OLX content by source namespace. */
   olxjson: OlxJsonState;
+  /** Field-state provenance, keyed by StateKey — timestamped facts
+   *  (resolvedAt/loadGuid/attempt) the state lane of the ensure pipeline
+   *  derives readiness from (state/fieldLedger.ts). */
+  fieldLedger: Record<string, import('../state/fieldLedger').LedgerEntry>;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
   /** Block documentation (get_blocks results). Interim — converges with

@@ -455,6 +455,114 @@ test('aggregation: one user, one count — twelve rewrites do not stuff the vote
   await Promise.all([runA, runB]);
 });
 
+test('CLOBBER: a fold into a cold shared bucket keeps the stored fields it does not touch', async () => {
+  // Without the dispatch gate the fold starts from an EMPTY base and the
+  // flush overwrites storage, dropping fields the event never touched.
+  const kvs = new MemoryKVStore();
+  const fieldLevels = levels({ 'shared-block|value': { level: 'everyone', delivery: 'events' } });
+  await kvs.set(kvsKey.field(ALL, 'component', 'shared-block'),
+    JSON.stringify({ log: ['a', 'b'], value: 'old' }));
+
+  await drive({ kvs, canonical: 'fields', fieldLevels },
+    [{ ...UPDATE, authority: 'shared', id: 'shared-block', value: 'new' }]);
+
+  const stored = JSON.parse((await kvs.get(kvsKey.field(ALL, 'component', 'shared-block')))!);
+  expect(stored.value).toBe('new');       // the fold applied
+  expect(stored.log).toEqual(['a', 'b']); // and the untouched field survived
+});
+
+test('PARTITION: a grouped event before any fetch routes to the set instance, not all', async () => {
+  // The worst failure mode: a cold picker bucket resolves ungrouped, so a
+  // grouped event silently leaks into `all` instead of the user's set.
+  const kvs = new MemoryKVStore();
+  // The user previously picked group 1 — their picker bucket is in storage.
+  await kvs.set(kvsKey.field(userInstance(USER.safe_user_id), 'component', 'demos/topic_picker'),
+    JSON.stringify({ activeIndex: 1 }));
+  const grouping = {
+    specOf: async (id: string) =>
+      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+    groupedBlocksFor: async () => [],
+  };
+  const fieldLevels = levels({ 'demos/chat|value': { level: 'everyone', delivery: 'events' } });
+
+  await drive({ kvs, canonical: 'fields', fieldLevels, grouping },
+    [{ ...UPDATE, authority: 'shared', id: 'demos/chat', value: 'grouped' }]);
+
+  const set1 = await kvs.get(
+    kvsKey.field(setInstance('topic_picker.activeIndex', '1'), 'component', 'demos/chat'));
+  expect(JSON.parse(set1!).value).toBe('grouped');
+  expect(await kvs.get(kvsKey.field(ALL, 'component', 'demos/chat'))).toBeNull();
+});
+
+test('AGGREGATION: a contribution folds onto the STORED aggregate, not from initial', async () => {
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.field(ALL, 'component', 'demos/dist'),
+    JSON.stringify({ distribution: { Jupiter: 5 } }));
+  const aggregations = {
+    viewsFor: async (targetId: string, field: string) =>
+      targetId === 'demos/q' && field === 'value'
+        ? [{
+            viewId: 'demos/dist', resultField: 'distribution',
+            spec: {
+              over: 'value', initial: {},
+              fold: (d: Record<string, number>, { next }: any) => {
+                const counts = { ...d };
+                if (next != null && next !== '') counts[String(next)] = (counts[String(next)] ?? 0) + 1;
+                return counts;
+              },
+            },
+          }]
+        : [],
+  };
+
+  await drive({ kvs, canonical: 'fields', aggregations }, [
+    { event: 'UPDATE_VALUE', field: 'value', scope: 'component', id: 'demos/q', value: 'Jupiter', ts: 1, actor: 'x' },
+  ]);
+
+  const stored = JSON.parse((await kvs.get(kvsKey.field(ALL, 'component', 'demos/dist')))!);
+  expect(stored.distribution).toEqual({ Jupiter: 6 }); // 5 (stored) + 1, not restarted from {}
+});
+
+test('EVICT/RELOAD: a swept shared bucket reloads its flushed value', async () => {
+  // No subscribersOf callback → the registry treats every bucket as
+  // unsubscribed (isolates the eviction mechanism); tiny thresholds sweep
+  // immediately; debounce 0 flushes at once.
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs, { coldMinMs: 0, debounceMs: 0 });
+  const subs = new SubscriptionRegistry();
+  const fieldLevels = levels({
+    'shared-block|value': { level: 'everyone', delivery: 'events' },
+    'shared-block|note': { level: 'everyone', delivery: 'events' },
+  });
+  const ws = new FakeWs();
+  const ctx: PipelineContext = {
+    ws: ws as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields',
+    stateRegistry: registry, subscriptions: subs, fieldLevels,
+  };
+  const run = runPipeline(ctx);
+
+  ws.emit('message', Buffer.from(JSON.stringify(
+    { ...UPDATE, authority: 'shared', id: 'shared-block', field: 'value', value: 'first' })));
+  await new Promise((r) => setTimeout(r, 30)); // debounce 0 → flushed
+
+  expect(registry.isResident(ALL, 'shared-block')).toBe(true);
+  await registry.sweepNow();
+  expect(registry.isResident(ALL, 'shared-block')).toBe(false); // actually dropped
+
+  // A second event on a DIFFERENT field: the fold must RELOAD the flushed
+  // bucket, so 'value' survives alongside the new 'note'.
+  ws.emit('message', Buffer.from(JSON.stringify(
+    { event: 'UPDATE_NOTE', authority: 'shared', id: 'shared-block', field: 'note', scope: 'component', note: 'n', ts: 2, actor: 'x' })));
+  await new Promise((r) => setTimeout(r, 30));
+
+  ws.emit('close');
+  await run;
+
+  const stored = JSON.parse((await kvs.get(kvsKey.field(ALL, 'component', 'shared-block')))!);
+  expect(stored.note).toBe('n');
+  expect(stored.value).toBe('first'); // reloaded from the flush, not restarted empty
+});
+
 test('an event arriving BEFORE fetch_blob survives the seed', async () => {
   // Nothing enforces fetch-first: a fast writer's first event used to be
   // erased when the later seed replaced scopes wholesale (found by

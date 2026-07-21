@@ -31,8 +31,8 @@ function isPathAllowed(resolved: string, root: string): boolean {
 // The interface (and MemoryKVStore) live in the shared library — the
 // state-sync engine (lib/state/sync) writes through them; this file is
 // the deployment half: backends with real dependencies.
-export { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
-import type { KVStore } from '@/lib/storage/kvs';
+export { MemoryKVStore, getMany, type KVStore } from '@/lib/storage/kvs';
+import { getMany, type KVStore } from '@/lib/storage/kvs';
 
 /**
  * Directory-based file KVS. Each key maps to a file on disk, using `:`
@@ -77,6 +77,10 @@ export class FileKVStore implements KVStore {
     }
   }
 
+  async getMany(keys: KVSKey[]) {
+    return Promise.all(keys.map((key) => this.get(key)));
+  }
+
   async set(key: KVSKey, value: string) {
     const filePath = this.keyToPath(key);
     await fsp.mkdir(path.dirname(filePath), { recursive: true });
@@ -117,6 +121,10 @@ export class PrefixedKVStore implements KVStore {
 
   async get(key: KVSKey) {
     return this.inner.get(this.prefixed(key));
+  }
+
+  async getMany(keys: KVSKey[]) {
+    return getMany(this.inner, keys.map((key) => this.prefixed(key)));
   }
 
   async set(key: KVSKey, value: string) {
@@ -176,6 +184,18 @@ export class PostgresKVStore implements KVStore {
     return JSON.stringify(rows[0].value);
   }
 
+  async getMany(keys: KVSKey[]) {
+    await this.ready;
+    const { rows } = await this.pool.query(
+      `SELECT key, value FROM ${this.table} WHERE key = ANY($1)`,
+      [keys],
+    );
+    const byKey = new Map<string, string>(
+      rows.map((r: { key: string; value: unknown }) => [r.key, JSON.stringify(r.value)]),
+    );
+    return keys.map((key) => byKey.get(key) ?? null);
+  }
+
   async set(key: KVSKey, value: string) {
     await this.ready;
     await this.pool.query(
@@ -219,6 +239,10 @@ export class ValkeyKVStore implements KVStore {
 
   async get(key: KVSKey) {
     return await this.client.get(key);
+  }
+
+  async getMany(keys: KVSKey[]) {
+    return await this.client.mget(keys as string[]);
   }
 
   async set(key: KVSKey, value: string) {

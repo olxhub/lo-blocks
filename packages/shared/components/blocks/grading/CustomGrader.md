@@ -23,14 +23,14 @@ For simple cases, prefer declarative graders:
   <LineInput id="answer" />
   <CustomGrader target="answer"><![CDATA[
     const value = parseFloat(input);
-    if (isNaN(value)) return { correct: 'invalid', message: 'Please enter a number' };
-    if (value === 42) return { correct: 'correct', message: 'You found the answer!' };
+    if (isNaN(value)) return { correct: correctness.invalid, message: 'Please enter a number' };
+    if (value === 42) return { correct: correctness.correct, message: 'You found the answer!' };
     if (Math.abs(value - 42) < 5) {
       const hint = value < 42 ? 'a bit low' : 'a bit high';
       return { correct: correctness.partiallyCorrect, score: 0.5, message: `Close! That's ${hint}.` };
     }
     const hint = value < 42 ? 'Too low' : 'Too high';
-    return { correct: 'incorrect', message: `${hint}. Try again.` };
+    return { correct: correctness.incorrect, message: `${hint}. Try again.` };
   ]]></CustomGrader>
 </CapaProblem>
 ```
@@ -71,8 +71,8 @@ Your code must return an object with:
 ```
 
 **Shortcuts:**
-- Return `true` → `{ correct: 'correct' }`
-- Return `false` → `{ correct: 'incorrect' }`
+- Return `true` → `correctness.correct`
+- Return `false` → `correctness.incorrect`
 
 ## Examples
 
@@ -86,19 +86,19 @@ Accept multiple representations of the same value:
   <LineInput id="half" />
   <CustomGrader target="half"><![CDATA[
     const s = (input || '').toLowerCase().trim();
-    if (!s) return { correct: 'unsubmitted' };
+    if (!s) return { correct: correctness.unsubmitted };
 
     // Accept various formats
-    if (s === '0.5' || s === '.5') return { correct: 'correct', message: 'Decimal form' };
-    if (s === '1/2') return { correct: 'correct', message: 'Fraction form' };
-    if (s === '50%') return { correct: 'correct', message: 'Percentage form' };
-    if (s === 'half' || s === 'one half') return { correct: 'correct', message: 'Word form' };
+    if (s === '0.5' || s === '.5') return { correct: correctness.correct, message: 'Decimal form' };
+    if (s === '1/2') return { correct: correctness.correct, message: 'Fraction form' };
+    if (s === '50%') return { correct: correctness.correct, message: 'Percentage form' };
+    if (s === 'half' || s === 'one half') return { correct: correctness.correct, message: 'Word form' };
 
     // Check numeric equivalence
     const n = parseFloat(s);
-    if (!isNaN(n) && Math.abs(n - 0.5) < 0.001) return { correct: 'correct' };
+    if (!isNaN(n) && Math.abs(n - 0.5) < 0.001) return { correct: correctness.correct };
 
-    return { correct: 'incorrect', message: 'Try a different format' };
+    return { correct: correctness.incorrect, message: 'Try a different format' };
   ]]></CustomGrader>
 </CapaProblem>
 ```
@@ -116,15 +116,15 @@ Grade two inputs that must satisfy a relationship:
   <LineInput id="r2" />
   <CustomGrader target="r1, r2"><![CDATA[
     const [r1, r2] = inputs.map(parseFloat);
-    if (isNaN(r1) || isNaN(r2)) return { correct: 'invalid', message: 'Enter numbers' };
+    if (isNaN(r1) || isNaN(r2)) return { correct: correctness.invalid, message: 'Enter numbers' };
 
     const ratio = r2 / (r1 + r2);
     const target = 0.2;
 
     if (Math.abs(ratio - target) / target <= 0.05) {
-      return { correct: 'correct', message: `Ratio = ${ratio.toFixed(3)}` };
+      return { correct: correctness.correct, message: `Ratio = ${ratio.toFixed(3)}` };
     }
-    return { correct: 'incorrect', message: `Ratio is ${ratio.toFixed(3)}, need ${target}` };
+    return { correct: correctness.incorrect, message: `Ratio is ${ratio.toFixed(3)}, need ${target}` };
   ]]></CustomGrader>
 </CapaProblem>
 ```
@@ -141,14 +141,14 @@ Award partial credit based on answer quality:
     const answer = parseFloat(input);
     const correct = 3.14159;
 
-    if (isNaN(answer)) return { correct: 'invalid', message: 'Please enter a number' };
+    if (isNaN(answer)) return { correct: correctness.invalid, message: 'Please enter a number' };
 
     const error = Math.abs(answer - correct) / correct;
 
-    if (error < 0.001) return { correct: 'correct', score: 1, message: 'Excellent precision!' };
+    if (error < 0.001) return { correct: correctness.correct, score: 1, message: 'Excellent precision!' };
     if (error < 0.01) return { correct: correctness.partiallyCorrect, score: 0.8, message: 'Good approximation' };
     if (error < 0.1) return { correct: correctness.partiallyCorrect, score: 0.5, message: 'Rough estimate' };
-    return { correct: 'incorrect', message: 'Too far off' };
+    return { correct: correctness.incorrect, message: 'Too far off' };
   ]]></CustomGrader>
 </CapaProblem>
 ```
@@ -173,9 +173,9 @@ Validate against domain constraints (e.g., standard resistor values):
     }
 
     const value = parseFloat(input);
-    if (isNaN(value)) return { correct: 'invalid', message: 'Please enter a number' };
-    if (!isStandard(value)) return { correct: 'incorrect', message: 'Not a standard E24 value' };
-    return { correct: 'correct', message: `${value} is a valid E24 value` };
+    if (isNaN(value)) return { correct: correctness.invalid, message: 'Please enter a number' };
+    if (!isStandard(value)) return { correct: correctness.incorrect, message: 'Not a standard E24 value' };
+    return { correct: correctness.correct, message: `${value} is a valid E24 value` };
   ]]></CustomGrader>
 </CapaProblem>
 ```
@@ -194,7 +194,7 @@ JavaScript code frequently uses `<`, `>`, and `&` which are special in XML. Thre
 
 ```xml
 <CustomGrader target="answer">
-  if (x &lt; 5 &amp;&amp; y &gt; 0) return { correct: 'correct' };
+  if (x &lt; 5 &amp;&amp; y &gt; 0) return { correct: correctness.correct };
 </CustomGrader>
 ```
 
@@ -208,11 +208,11 @@ CDATA sections let you write code without escaping:
   <LineInput id="answer" />
   <CustomGrader target="answer"><![CDATA[
     const x = parseFloat(input);
-    if (isNaN(x)) return { correct: 'invalid', message: 'Enter a number' };
+    if (isNaN(x)) return { correct: correctness.invalid, message: 'Enter a number' };
     if (x > 0 && x < 5) {
-      return { correct: 'correct', message: 'In range!' };
+      return { correct: correctness.correct, message: 'In range!' };
     }
-    return { correct: 'incorrect', message: 'Out of range' };
+    return { correct: correctness.incorrect, message: 'Out of range' };
   ]]></CustomGrader>
 </CapaProblem>
 ```

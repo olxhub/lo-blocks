@@ -878,12 +878,7 @@ export function stateKeyForGlobalRef(
  *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
  */
 export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
-  const { path } = splitNs(key);
-  const leaf = leafBlock(path);
-  // Only the plain trailing-leaf shape has a derivable prefix; a container's
-  // own key ("list:#0") has no leaf suffix to strip.
-  if (leaf === path || !path.endsWith(`${SCOPE_SEPARATOR}${leaf}`)) return undefined;
-  return asIdPrefix(path.slice(0, path.length - leaf.length - SCOPE_SEPARATOR.length));
+  return splitScope(key).idPrefix;
 }
 
 /**
@@ -926,4 +921,39 @@ export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
 export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
   const { ns, path } = splitNs(key);
   return blockSegments(path).map(id => asDefinitionKey(joinNs(ns, id)));
+}
+
+/** Non-throwing boundary parse: the branded StateKey when valid, else
+ * null. For callers handling id-shaped strings that may not be StateKeys
+ * (componentSetting tags, storage URIs, system ids) — the caller keeps
+ * the null case and decides what non-key means THERE; this module never
+ * returns an unbranded id-shaped string. */
+export function tryParseStateKey(s: string): StateKey | null {
+  return validateStateKey(s) === true ? asStateKey(s) : null;
+}
+
+/**
+ * Decompose a StateKey into namespace, scope, and leaf definition — the
+ * inverse of addScope(qualifyDefinitionRef(...), idPrefix):
+ *
+ *   splitScope("ee101/list:#2:answer")
+ *   → { ns: "ee101", idPrefix: "list:#2", leaf: "ee101/answer" }
+ *
+ *   splitScope("ee101/answer")
+ *   → { ns: "ee101", idPrefix: undefined, leaf: "ee101/answer" }
+ *
+ * The idPrefix is what SIBLINGS of the leaf share: every block rendered
+ * in the same instance scope keys its state under the same prefix.
+ */
+export function splitScope(key: StateKey): {
+  ns: ContentNamespace; idPrefix: IdPrefix | undefined; leaf: DefinitionKey;
+} {
+  const { ns, path } = splitNs(key);
+  const segments = splitPath(path);
+  // The grammar guarantees the LAST segment is the leaf id
+  // (statePath = (scopeSegment ":")* leafId).
+  const idPrefix = segments.length > 1
+    ? asIdPrefix(joinPath(segments.slice(0, -1)))
+    : undefined;
+  return { ns, idPrefix, leaf: asDefinitionKey(joinNs(ns, segments[segments.length - 1])) };
 }

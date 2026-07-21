@@ -6,6 +6,7 @@
 //
 
 import type { DefinitionKey, IdMap } from '@/lib/types';
+import type { StateKey } from '@/lib/types/id-grammar';
 
 /**
  * Fetch content by ID.
@@ -21,6 +22,35 @@ export async function fetchOlxJson(
 ): Promise<{ ok: boolean; idMap: IdMap; fieldState?: Record<string, any>; error?: string }> {
   const res = await globalThis.fetch(`/api/olxjson?id=${encodeURIComponent(id)}`, options);
   if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
+  return res.json();
+}
+
+/**
+ * Fetch field state for EXACT StateKeys — the state lane of the ensure
+ * pipeline, for dynamic instances whose state cannot ride a content
+ * response (only an ancestor's own state enumerates them).
+ *
+ * Returns /api/fieldstate's shape: every requested key is covered —
+ * present in fieldState.component / .sharedComponent, or listed in
+ * `absent` ("confirmed: no state"). The caller treats BOTH as resolved.
+ */
+export async function fetchFieldState(
+  keys: StateKey[],
+  options?: RequestInit
+): Promise<{
+  ok: boolean;
+  fieldState?: { component: Record<string, any>; sharedComponent: Record<string, any> };
+  absent?: StateKey[];
+  error?: string;
+}> {
+  const query = keys.map((key) => `key=${encodeURIComponent(key)}`).join('&');
+  const res = await globalThis.fetch(`/api/fieldstate?${query}`, options);
+  if (!res.ok) {
+    // The body may carry a structured error (e.g. which keys were
+    // invalid); surface its message over the bare status code.
+    const body = await res.json().catch(() => null);
+    return { ok: false, error: body?.error ?? `HTTP ${res.status}` };
+  }
   return res.json();
 }
 

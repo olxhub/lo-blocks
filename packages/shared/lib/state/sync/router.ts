@@ -25,7 +25,10 @@ import type { GroupingIndex } from './partitions';
 import type { FieldLevelIndex, FieldLevelInfo } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
-import { assembleFieldState } from './persistence';
+import {
+  tryParseStateKey, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+} from '@/lib/types/id-grammar';
+import { assembleFieldState, CORE_SCOPES } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
@@ -72,11 +75,12 @@ export async function entryFor(session: SyncSession, instance: LevelInstance): P
   const entry = session.registry.acquire(instance, session.origin);
   session.holdings.set(instance, entry);
   await entry.ensureSeeded(async () => {
-    const scopes = await assembleFieldState(session.kvs, instance);
-    if (scopes) {
-      entry.serverState.seed(scopes);
-      entry.persister.startFromPersisted(entry.serverState.state);
-    }
+    // EAGER core scopes only — `component` is lazy (ensureBucketLoaded per
+    // bucket, gated at dispatch). The whole-instance seed at connect (which
+    // scaled with the instance's total footprint and pinned it for the
+    // connection's life) is gone.
+    const core = await assembleFieldState(session.kvs, instance, CORE_SCOPES);
+    if (core) entry.seedCore(core);
   });
   return entry;
 }
@@ -101,13 +105,23 @@ async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<Fie
 
 /** The instance a level-everyone block folds into for THIS sender:
  * their partition when grouped, else `all`. The partition NEVER comes
- * from the wire: grouped fields resolve from the SENDER's own state. */
-async function sharedInstanceFor(session: SyncSession, blockId: string): Promise<LevelInstance> {
+ * from the wire: grouped fields resolve from the SENDER's own state.
+ * Grouping is declared on DEFINITIONS, so a scoped instance
+ * (`ns/list:#2:notes`) resolves via its leaf definition. `stateId` is
+ * the event's runtime state id (usually a StateKey; parsed inside). */
+async function sharedInstanceFor(session: SyncSession, stateId: string): Promise<LevelInstance> {
+  const key = tryParseStateKey(stateId);
+  const defId = key ? leafDefinitionKeyFromStateKey(key) : stateId;
   const spec = session.grouping
-    ? await session.grouping.specOf(blockId) : undefined;
+    ? await session.grouping.specOf(defId) : undefined;
   if (!spec) return ALL;
-  const parsed = parsePartitionSpec(spec, blockId);
+  const parsed = parsePartitionSpec(spec, stateId);
   const own = session.holdings.get(userInstance(session.principal));
+  // The picker bucket lives in the sender's OWN materialization and may be
+  // cold under lazy residency — gate it, or partition resolution silently
+  // reads empty and misroutes the event to `all` instead of the user's set
+  // instance (the worst failure mode: cross-partition leakage).
+  if (parsed && own) await own.ensureBucketLoaded(parsed.pickerKey);
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
     : undefined;
@@ -116,22 +130,30 @@ async function sharedInstanceFor(session: SyncSession, blockId: string): Promise
 
 /**
  * Who hears about an event at an instance: the connections subscribed to
- * (instance, blockId) — content fetch = subscription; writers
+ * (instance, stateId) — content fetch = subscription; writers
  * self-subscribe so a client that writes without fetching still hears
- * responses. Scoped state keys (`defId#anchor`) also reach BASE-id
- * subscribers (content fetches subscribe by definition id).
+ * responses. Scoped state keys (`ns/list:#2:grader`) also reach their
+ * DEFINITION subscribers, container and leaf (content fetches subscribe
+ * by DefinitionKey — whoever fetched the list hears its instances).
+ * (This used to slice at '#', a pre-id-grammar dialect nothing
+ * produces; scoped events reached only exact-key subscribers, i.e.
+ * usually nobody. Found by review 2026-07.)
  */
 function subscribersFor(
   session: SyncSession,
   instance: LevelInstance,
-  blockId: string,
+  stateId: string,
 ): Set<StateConnection> {
-  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, blockId)]);
-  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, blockId)));
-  const hash = blockId.indexOf('#');
-  if (hash > 0) {
-    const base = subscriptionKey(instance, blockId.slice(0, hash));
-    for (const sock of session.subscriptions.subscribers(base)) recipients.add(sock);
+  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, stateId)]);
+  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, stateId)));
+  // An id that isn't a StateKey has no definition chain — exact-key
+  // subscribers (above) are the only audience.
+  const key = tryParseStateKey(stateId);
+  for (const defId of key ? allDefinitionKeysFromStateKey(key) : []) {
+    if (defId === stateId) continue;
+    for (const sock of session.subscriptions.subscribers(subscriptionKey(instance, defId))) {
+      recipients.add(sock);
+    }
   }
   return recipients;
 }
@@ -149,6 +171,16 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
     ? await sharedInstanceFor(session, event.id!)
     : userInstance(session.principal);
   const entry = await entryFor(session, instance);
+  // INV-1 dispatch gate: make the target `component` bucket resident BEFORE
+  // the fold — a fold into a non-resident bucket would flush over storage
+  // from an empty base. Same-bucket FIFO is preserved: awaiters of the same
+  // cached promise resume in registration order. Component-scope only
+  // (scope defaults to component, mirroring the reducer): the other scopes
+  // are CORE — seeded whole, eagerly resident — and gating them here would
+  // load and mark resident the unrelated component bucket that happens to
+  // share the event's id.
+  const eventScope = event.scope ?? 'component';
+  if (event.id && eventScope === 'component') await entry.ensureBucketLoaded(event.id);
   const ownInstance = isUserInstance(instance);
 
   // Capture the TRANSITION for distant folds (aggregations.ts): views
@@ -220,10 +252,13 @@ async function switchGroup(
   if (oldInstance === newInstance) return;
 
   const newEntry = await entryFor(session, newInstance);
+  // The pushed patch reads the NEW instance's bucket from its
+  // materialization — gate it resident first (the OLD side uses readBuckets).
+  await newEntry.ensureBucketLoaded(blockId);
   const newBucket = (newEntry.serverState.state as any).component?.[blockId] ?? {};
-  const oldScopes = await session.registry.read(oldInstance);
+  const oldBuckets = await session.registry.readBuckets(oldInstance, [blockId]);
   const blanks: Record<string, any> = {};
-  for (const field of Object.keys(oldScopes?.component?.[blockId] ?? {})) blanks[field] = '';
+  for (const field of Object.keys(oldBuckets[blockId] ?? {})) blanks[field] = '';
   const patch = { ...blanks, ...newBucket };
 
   const sockets = session.registry.socketsOf(userInstance(session.principal));
@@ -251,6 +286,9 @@ async function applyAggregation(
 ) {
   const instance = await sharedInstanceFor(session, view.viewId);
   const entry = await entryFor(session, instance);
+  // The aggregate bucket is the fold BASE — a cold read would restart the
+  // fold from initial and the flush would overwrite the real aggregate.
+  await entry.ensureBucketLoaded(view.viewId);
   const state = entry.serverState.state as any;
   const bucket = state.component?.[view.viewId] ?? {};
   let base = bucket[view.resultField];

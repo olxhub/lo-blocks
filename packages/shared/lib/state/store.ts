@@ -64,6 +64,13 @@ import {
   SOURCES_EVENT_TYPES,
   initialSourcesState,
 } from './sources';
+import {
+  fieldLedgerReducer,
+  initialFieldLedgerState,
+  FIELD_LEDGER_EVENT_TYPES,
+  FIELDSTATE_RESOLVED,
+} from './fieldLedger';
+import { getActorId } from '../crdt/actorId';
 // ---------------------------------------------------------------------------
 // Field-level reducer registry
 // ---------------------------------------------------------------------------
@@ -138,6 +145,7 @@ const initialState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  fieldLedger: initialFieldLedgerState,
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,
@@ -189,6 +197,14 @@ export const updateResponseReducer = (state = initialState, action) => {
   // Chat is ordinary field data (lib/state/chatFields.ts) — the transcript
   // is a log CRDT in component scope, routed by the field reducers below.
 
+  // Field-ledger events (state-lane fetch provenance — fieldLedger.ts).
+  if (FIELD_LEDGER_EVENT_TYPES.includes(eventType)) {
+    return {
+      ...state,
+      fieldLedger: fieldLedgerReducer(state.fieldLedger, { ...action, type: eventType }),
+    };
+  }
+
   // Handle catalog events (MCP-sourced repository data)
   if (CATALOG_EVENT_TYPES.includes(eventType)) {
     return {
@@ -228,14 +244,28 @@ export const updateResponseReducer = (state = initialState, action) => {
       Object.entries(incoming).filter(([key]) => !(key in local)),
     );
     const shared: Record<string, any> = action.fieldState?.sharedComponent ?? {};
+
+    // Resolve ledger coverage ATOMICALLY with adoption: the response
+    // answered these keys (with buckets or with confirmed absence — a
+    // brand-new user's all-absent response is still a resolution), so
+    // readiness and data can never be observed out of step.
+    const fieldLedger = Array.isArray(action.resolvedKeys) && action.resolvedKeys.length > 0
+      ? fieldLedgerReducer(state.fieldLedger, {
+          type: FIELDSTATE_RESOLVED,
+          keys: action.resolvedKeys,
+          at: action.at,
+          loadGuid: action.loadGuid,
+        })
+      : state.fieldLedger;
+
     if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0) {
-      return state;
+      return fieldLedger === state.fieldLedger ? state : { ...state, fieldLedger };
     }
     const component = { ...adopted, ...local };
     for (const [key, bucket] of Object.entries(shared)) {
       component[key] = { ...component[key], ...(bucket as Record<string, any>) };
     }
-    return { ...state, component };
+    return { ...state, component, fieldLedger };
   }
 
   // Field-level reducers — route events to field.reduce when registered.
@@ -475,6 +505,7 @@ function collectEventTypes(
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
+    ...FIELD_LEDGER_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
     ...SOURCES_EVENT_TYPES,
@@ -538,7 +569,12 @@ function configureStore({
   // static, fetched in client), so syncing it is redundant — and shipping the
   // bundled course as one giant action corrupts the receiving tab. lo_event
   // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
-  const CONTENT_EVENTS = new Set<string>([...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES]);
+  // Ledger events are excluded too: fetch provenance is per-tab (the
+  // loadGuid IS this tab's actor id) — another tab's attempts are dead
+  // facts here, so syncing them is pure noise.
+  const CONTENT_EVENTS = new Set<string>([
+    ...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES, ...FIELD_LEDGER_EVENT_TYPES,
+  ]);
   const syncFilter = (action: any): boolean => {
     // Server-fanned events must not re-broadcast: sibling tabs have their
     // own sockets and receive the fan-out directly — a BroadcastChannel
@@ -657,17 +693,33 @@ function configureStore({
 export const store = { init: configureStore };
 
 /**
- * Adopt server-provided field state that rode a content fetch
- * (fields-design step 2b). Buckets already present locally win — adopt
- * only fills blocks this session has never touched. Dispatched directly
- * (not logEvent): it's server→client state, never an event to record.
+ * Adopt server-provided field state that rode a content fetch or a
+ * state fetch (fields-design step 2b). Buckets already present locally
+ * win — adopt only fills blocks this session has never touched.
+ * Dispatched directly (not logEvent): it's server→client state, never
+ * an event to record.
+ *
+ * `resolvedKeys` — the StateKeys this response ANSWERED (present or
+ * confirmed-absent): the field ledger marks them resolved in the same
+ * dispatch, so a block can never observe adopted data without readiness
+ * or readiness without data. A response can resolve keys while carrying
+ * no fieldState at all (brand-new user).
  */
-export function adoptFieldState(fieldState: Record<string, any> | undefined) {
-  if (!fieldState || !reduxStoreInstance) return;
+export function adoptFieldState(
+  fieldState: Record<string, any> | undefined,
+  resolvedKeys?: string[],
+) {
+  if ((!fieldState && !resolvedKeys?.length) || !reduxStoreInstance) return;
   reduxStoreInstance.dispatch({
     redux_type: 'EMIT_EVENT',
     type: ADOPT_FIELD_STATE,
-    payload: JSON.stringify({ event: ADOPT_FIELD_STATE, fieldState }),
+    payload: JSON.stringify({
+      event: ADOPT_FIELD_STATE,
+      fieldState,
+      ...(resolvedKeys?.length
+        ? { resolvedKeys, at: Date.now(), loadGuid: getActorId() }
+        : {}),
+    }),
     __fromServer: true,
   });
 }

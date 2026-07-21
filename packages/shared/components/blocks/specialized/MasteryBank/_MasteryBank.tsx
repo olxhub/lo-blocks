@@ -3,10 +3,10 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
-import { useBlock } from '@/lib/render';
+import { useRenderedBlock } from '@/lib/render';
 import { useFieldState } from '@/lib/state';
 import { useGradingState } from '@/lib/grading';
-import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
@@ -98,14 +98,17 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
   // CapaProblem is a metagrader (isGrader: true) that aggregates its child graders.
   // Watch its own correctness rather than guessing the inner grader's auto-generated ID.
   const scopedGraderRef = parseDefinitionRef(problemId, 'MasteryBank problem');
+  const scopedProblemKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
 
-  // Render problem - useBlock handles loading state with Spinner
-  const { block: renderedProblem, error } = useBlock(scopedProps, stateKeyForGlobalRef(problemId, props.runtime.ns));
+  // Render problem — by its SCOPED instance key: the attempt scope is the
+  // instance identity, and the state gate must resolve the attempt's own
+  // state: gating the unscoped problem's key would leave the attempt's
+  // bucket unresolved and let a fresh attempt write from empty.
+  const { block: renderedProblem, error } = useRenderedBlock(scopedProps, scopedProblemKey);
 
   // CapaProblem's aggregate correctness is derived from its child graders
   // (never stored) — useGradingState handles the aggregation.
-  const scopedGraderStateKey = scopedStateKeyForBlock({ id: scopedGraderRef, ns: props.runtime.ns, idPrefix: scopedIdPrefix });
-  const currentCorrectness = useGradingState(scopedProps, scopedGraderStateKey).correct;
+  const currentCorrectness = useGradingState(scopedProps, scopedProblemKey).correct;
 
   const prevCorrectnessRef = useRef(currentCorrectness);
 
@@ -174,7 +177,7 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     );
   }
 
-  // useBlock returns Spinner when loading - just render the block
+  // useRenderedBlock returns Spinner when loading - just render the block
   return (
     <div className="lo-mastery-bank__problem">
       {renderedProblem}

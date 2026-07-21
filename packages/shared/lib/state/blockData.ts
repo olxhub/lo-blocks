@@ -1,7 +1,7 @@
 // packages/shared/lib/state/blockData.ts
 //
 // Helpers for constructing BlockDataResult — the standard loading/error/ready
-// result shape used across useValue, useOlxJson, useBlock, and valueSelector.
+// result shape used across useValue, useOlxJson, useRenderedBlock, and valueSelector.
 //
 // These are plain functions (no React, no Redux) so they can be imported from
 // both client and server modules.

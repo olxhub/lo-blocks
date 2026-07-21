@@ -47,6 +47,7 @@
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { makeRootNode } from '@/lib/render';
+import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
@@ -55,11 +56,12 @@ import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
-import { useBlock } from '@/lib/blocks/useRenderedBlock';
+import { useRenderedBlock } from '@/lib/blocks/useRenderedBlock';
 import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
 import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
-import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
+import type { FreshnessPolicy } from '@/lib/state/fieldLedger';
+import type { ContentNamespace, IdPrefix, StateKey, RuntimeProps, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
 import { toLofsRef } from '@/lib/types/address';
 
 
@@ -293,6 +295,12 @@ interface RenderOLXProps {
    *  should share state with a scoped instance inside another tree
    *  (e.g., a repo detail page sharing state with a catalog card). */
   idPrefix?: IdPrefix;
+  /** The host's state-freshness demand, placed in the runtime so EVERY
+   *  instance gate in the tree (including nested containers) inherits
+   *  it. Hosts with no server state (static exports) pass
+   *  policies.ephemeral so blocks render at once with defaults and the
+   *  state lane never fetches. */
+  statePolicy?: FreshnessPolicy;
   /** Ref to expose the root OlxDomNode for external tree inspection.
    *
    *  TIMING CAVEAT: The ref is populated during render, but the tree (renderedKids)
@@ -327,6 +335,7 @@ export default function RenderOLX({
   eventContext,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
+  statePolicy,
 }: RenderOLXProps) {
   // Build baseline runtime context - use bare runtime, not wrapped BaselineProps
   let runtimeContext = useBaselineRuntime();
@@ -353,7 +362,7 @@ export default function RenderOLX({
   );
 
   // Merge parsed content into runtime context. (Block readiness — lazy
-  // engines + component chunks — is gated inside useBlock below.)
+  // engines + component chunks — is gated inside useRenderedBlock below.)
   const renderProps = mergeContentIntoProps(runtimeContext, parsed, baseIdMap);
 
   // Notify parent when content is parsed
@@ -375,6 +384,7 @@ export default function RenderOLX({
     ns,
     locale: renderProps.locale,
     cast: {},
+    ...(statePolicy && { statePolicy }),
   };
 
   // Stabilize root nodeInfo across renders so renderedKids accumulates
@@ -403,7 +413,7 @@ export default function RenderOLX({
     nodeInfoRef.current = stableRootRef.current;
   }
 
-  // Build props for useBlock
+  // Build props for useRenderedBlock
   const blockProps = {
     nodeInfo: stableRootRef.current,
     runtime,
@@ -417,12 +427,22 @@ export default function RenderOLX({
 
   const localeReady = !!runtime.locale?.code;
 
-  // useBlock must be called unconditionally (Rules of Hooks) - pass null
-  // when locale or content isn't ready yet, which useBlock handles gracefully
-  const { block, ready } = useBlock(
-    blockProps,
-    (!localeReady || parsingPending) ? null : renderIdToQuery,
-    source
+  // The gate must resolve the key the tree will actually RENDER under:
+  // with an idPrefix (repo detail pages, scoped embeds), the root block's
+  // state lives at the SCOPED key. Gating the unscoped id instead would
+  // mark the wrong bucket ready while the rendered instance's bucket was
+  // never fetched — its fields would initialize from defaults and write
+  // over persisted state.
+  const rootStateKey = (!localeReady || parsingPending)
+    ? null
+    : scopedStateKeyForBlock({ id: renderIdToQuery, ns: runtime.ns, idPrefix: runtime.idPrefix });
+
+  // useRenderedBlock must be called unconditionally (Rules of Hooks) - pass null
+  // when locale or content isn't ready yet, which useRenderedBlock handles gracefully
+  const { block, ready } = useRenderedBlock(
+    blockProps as unknown as RuntimeProps,
+    rootStateKey,
+    { source }
   );
 
   // Wait for locale to be available before rendering children
@@ -459,7 +479,7 @@ export default function RenderOLX({
     return <Spinner>Parsing...</Spinner>;
   }
 
-  // useBlock handles spinner/error display - just wrap in ErrorBoundary
+  // useRenderedBlock handles spinner/error display - just wrap in ErrorBoundary
   return (
     <ErrorBoundary
       // Reset when content identity changes OR on re-parse. On preview pages

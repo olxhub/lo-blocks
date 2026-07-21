@@ -34,14 +34,14 @@ Use standard 5% resistor values (E24 series).
       }
 
       const r1 = parse(inputs[0]), r2 = parse(inputs[1]);
-      if (isNaN(r1) || isNaN(r2)) return { correct: 'invalid', message: 'Enter values like 1k or 5.1k' };
-      if (!isE24(r1) || !isE24(r2)) return { correct: 'incorrect', message: 'Use standard E24 values' };
+      if (isNaN(r1) || isNaN(r2)) return { correct: correctness.invalid, message: 'Enter values like 1k or 5.1k' };
+      if (!isE24(r1) || !isE24(r2)) return { correct: correctness.incorrect, message: 'Use standard E24 values' };
 
       const ratio = r2 / (r1 + r2);
       if (Math.abs(ratio - 0.2) / 0.2 &lt;= 0.05) {
-        return { correct: 'correct', message: `R2/(R1+R2) = ${ratio.toFixed(3)} ≈ 0.2` };
+        return { correct: correctness.correct, message: `R2/(R1+R2) = ${ratio.toFixed(3)} ≈ 0.2` };
       }
-      return { correct: 'incorrect', message: `Ratio is ${ratio.toFixed(3)}, need ≈ 0.2` };
+      return { correct: correctness.incorrect, message: `Ratio is ${ratio.toFixed(3)}, need ≈ 0.2` };
     </CustomGrader>
   </CapaProblem>
 </Vertical>
