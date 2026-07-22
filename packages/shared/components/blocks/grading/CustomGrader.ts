@@ -10,9 +10,9 @@
 //
 // Usage:
 //   <CustomGrader target="answer">
-//     if (input === 42) return { correct: 'correct', message: 'Perfect!' };
+//     if (input === 42) return { correct: correctness.correct, message: 'Perfect!' };
 //     if (Math.abs(input - 42) < 5) return { correct: correctness.partiallyCorrect, message: 'Close!', score: 0.5 };
-//     return { correct: 'incorrect', message: 'Try again' };
+//     return { correct: correctness.incorrect, message: 'Try again' };
 //   </CustomGrader>
 //
 // The code has access to:
@@ -22,7 +22,8 @@
 //
 // The code must return an object with:
 //   - correct: a `correctness` constant (correctness.correct, correctness.partiallyCorrect, ...)
-//     or boolean. Fail-fast: unrecognized strings are grading errors.
+//     or a boolean (true → correct, false → incorrect). One format: the
+//     enum. Unrecognized values are grading errors, not silently coerced.
 //   - message: Feedback string (optional)
 //   - score: Numeric score 0-1 (optional, defaults based on correct value)
 //
