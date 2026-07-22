@@ -178,6 +178,49 @@ export function buildGraderParam(binding: InputBinding, inputs: GraderInput[]): 
   return { ok: true, value: { input: inputs[0].value, inputApi: inputs[0].api } };
 }
 
+/** A grader's STATIC-DOM topology: the input keys it grades and the lazy-
+ *  engine readiness covering its subtree. A pure function of the static DOM
+ *  (olxjson + registry + grader key) — never of live field values. */
+interface GraderTopology {
+  inputKeys: StateKey[];
+  ensureReady: (() => Promise<void>) | undefined;
+}
+
+// deriveImmediateState re-runs prepareGrade on every dispatch (a keystroke
+// anywhere yields a fresh Redux state), so the two static-DOM walks below
+// (graderInputStateKeys, collectEnsureReady — each an inferKids pass, with
+// DIFFERENT selectors and boundaries, so they cannot be merged) would re-run
+// per keystroke for every immediate grader on the page. Topology depends only
+// on the olxjson content slice, so cache on that slice's identity (mirrors
+// staticDom's selectInstanceStateKeys): the slice changes only when content
+// loads — which is also the only thing that changes topology — and a WeakMap
+// discards each generation once unreferenced. Runtime is a second key because
+// the same content under a different registry/locale can infer a different
+// topology (selectGradingState memoizes on runtime for the same reason).
+const _topologyMemo = new WeakMap<object, WeakMap<object, Map<StateKey, GraderTopology>>>();
+
+function graderTopology(
+  props: RuntimeProps, state: unknown, graderKey: StateKey, entry: OlxJson, loBlock: LoBlock,
+): GraderTopology {
+  const compute = (): GraderTopology => ({
+    inputKeys: graderInputStateKeys(state, props, graderKey),
+    ensureReady: collectEnsureReady(props, state, entry, loBlock),
+  });
+  const slice = (state as any)?.application_state?.olxjson as object | undefined;
+  if (!slice) return compute(); // no content slice to key on (analytics/replay shapes)
+
+  const runtime = props.runtime as unknown as object;
+  let byRuntime = _topologyMemo.get(slice);
+  if (!byRuntime) { byRuntime = new WeakMap(); _topologyMemo.set(slice, byRuntime); }
+  let byKey = byRuntime.get(runtime);
+  if (!byKey) { byKey = new Map(); byRuntime.set(runtime, byKey); }
+  const cached = byKey.get(graderKey);
+  if (cached) return cached;
+  const topology = compute();
+  byKey.set(graderKey, topology);
+  return topology;
+}
+
 /**
  * Given a grader node and a Redux snapshot: what exactly would we grade?
  *
@@ -195,9 +238,13 @@ export function prepareGrade(
   if (!resolved) return { ok: false, inputs: [], error: 'Grader content is not loaded' };
   const { node: entry, loBlock, targetProps: graderProps } = resolved;
 
+  // Topology (input keys + ensureReady) is static-DOM only and memoized;
+  // the input VALUES read below are live, so readGraderInputs stays per-call.
+  const topology = graderTopology(props, state, graderKey, entry, loBlock);
+
   let inputs: GraderInput[];
   try {
-    inputs = readGraderInputs(props, state, graderInputStateKeys(state, props, graderKey));
+    inputs = readGraderInputs(props, state, topology.inputKeys);
   } catch (e) {
     if (e instanceof InputContentPending) {
       return { ok: false, inputs: [], error: `Input "${e.stateKey}" is still loading` };
@@ -218,7 +265,7 @@ export function prepareGrade(
       graderProps,
       descriptor,
       param: param.value,
-      ensureReady: collectEnsureReady(props, state, entry, loBlock),
+      ensureReady: topology.ensureReady,
     },
   };
 }
