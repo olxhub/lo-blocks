@@ -31,8 +31,8 @@ function isPathAllowed(resolved: string, root: string): boolean {
 // The interface (and MemoryKVStore) live in the shared library — the
 // state-sync engine (lib/state/sync) writes through them; this file is
 // the deployment half: backends with real dependencies.
-export { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
-import type { KVStore } from '@/lib/storage/kvs';
+export { MemoryKVStore, getMany, type KVStore } from '@/lib/storage/kvs';
+import { getMany, type KVStore } from '@/lib/storage/kvs';
 
 /**
  * Directory-based file KVS. Each key maps to a file on disk, using `:`
@@ -119,6 +119,12 @@ export class PrefixedKVStore implements KVStore {
     return this.inner.get(this.prefixed(key));
   }
 
+  async getMany(keys: KVSKey[]) {
+    // Prefix, then delegate to the inner store's batch (via the helper, so
+    // the inner store's native getMany is used when it has one).
+    return getMany(this.inner, keys.map((key) => this.prefixed(key)));
+  }
+
   async set(key: KVSKey, value: string) {
     return this.inner.set(this.prefixed(key), value);
   }
@@ -176,6 +182,21 @@ export class PostgresKVStore implements KVStore {
     return JSON.stringify(rows[0].value);
   }
 
+  async getMany(keys: KVSKey[]) {
+    await this.ready;
+    // One round trip for the whole batch. Rows come back unordered, so map
+    // them by key and read back in request order (null per miss); a
+    // duplicate key resolves to the same value for each occurrence.
+    const { rows } = await this.pool.query(
+      `SELECT key, value FROM ${this.table} WHERE key = ANY($1)`,
+      [keys],
+    );
+    const byKey = new Map<string, string>(
+      rows.map((r: { key: string; value: unknown }) => [r.key, JSON.stringify(r.value)]),
+    );
+    return keys.map((key) => byKey.get(key) ?? null);
+  }
+
   async set(key: KVSKey, value: string) {
     await this.ready;
     await this.pool.query(
@@ -219,6 +240,11 @@ export class ValkeyKVStore implements KVStore {
 
   async get(key: KVSKey) {
     return await this.client.get(key);
+  }
+
+  async getMany(keys: KVSKey[]) {
+    // MGET is one round trip and already returns null per miss, in order.
+    return await this.client.mget(keys as string[]);
   }
 
   async set(key: KVSKey, value: string) {
