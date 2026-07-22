@@ -6,7 +6,11 @@
 
 import fs from 'fs';
 import { loadServerConfig, getConfig } from '@/lib/config';
-import { FileKVStore, MemoryKVStore, PostgresKVStore, ValkeyKVStore, PrefixedKVStore, type KVStore } from './kvs.js';
+import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
+import { FileKVStore } from '@/lib/storage/kvs/file';
+import { PostgresKVStore } from '@/lib/storage/kvs/pg';
+import { ValkeyKVStore } from '@/lib/storage/kvs/valkey';
+import { PrefixedKVStore } from '@/lib/storage/kvs/prefixed';
 import { startServer, type ServerHandle } from './server.js';
 import { startBoot } from './boot.js';
 import { shutdownMcp } from './mcp.js';

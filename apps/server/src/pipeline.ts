@@ -24,7 +24,7 @@ import type { WebSocket } from 'ws';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { appendEvent } from './eventLog.js';
-import type { KVStore } from './kvs.js';
+import type { KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { ServerState } from '@/lib/state/sync/materialization';
 import type { FieldPersister } from '@/lib/state/sync/persistence';

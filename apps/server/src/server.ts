@@ -25,7 +25,7 @@ import { getRequestListener } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { ViteDevServer } from 'vite';
 
-import type { KVStore } from './kvs.js';
+import type { KVStore } from '@/lib/storage/kvs';
 import type { AuthUser } from './auth.js';
 import {
   resolveUserWithSession, createSessionToken, buildSetCookie
