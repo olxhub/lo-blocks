@@ -8,9 +8,11 @@
 // (rendered) DOM.
 //
 import { getBlockByOLXId } from '@/lib/blocks';
-import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
+import {
+  qualifyDefinitionRef, parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey,
+} from '@/lib/types/id-grammar';
 import { isKidArray } from '@/lib/util/kids';
-import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
+import type { DefinitionKey, RuntimeProps, StateRef } from '@/lib/types';
 
 export interface Choice { id: DefinitionKey; tag: string; value: string }
 
@@ -33,12 +35,16 @@ function choiceKeysFromKids(props: RuntimeProps, kids: any): DefinitionKey[] {
 
 export function getChoices(props: RuntimeProps, _state: unknown, _id: unknown): Choice[] {
   // Explicit target= refs (choices not nested as kids), else the kids walk.
-  const targetRefs: DefinitionRef[] = props.target
+  // Authored refs are StateRefs by grammar — a scoped ref ("list:#0:choiceA")
+  // is legal — so parse them as such and take the LEAF definition; choices
+  // are definitions (tag + value), never instances.
+  const targetRefs: StateRef[] = props.target
     ? (Array.isArray(props.target) ? props.target : String(props.target).split(','))
-      .map((t: string) => t.trim()).filter(Boolean) as DefinitionRef[]
+      .map((t: string) => t.trim()).filter(Boolean).map(parseAnyStateRef)
     : [];
   const defIds = targetRefs.length > 0
-    ? targetRefs.map(ref => qualifyDefinitionRef(ref, props.runtime.ns))
+    ? targetRefs.map(ref => leafDefinitionKeyFromStateKey(
+        stateKeyForGlobalRef(ref, props.runtime.ns)))
     : choiceKeysFromKids(props, props.kids);
 
   return defIds.flatMap(cid => {
