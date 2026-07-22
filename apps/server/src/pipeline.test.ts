@@ -9,7 +9,7 @@ import { test, expect } from 'vitest';
 import { EventEmitter } from 'node:events';
 import zlib from 'node:zlib';
 import { runPipeline, type PipelineContext } from './pipeline.js';
-import { MemoryKVStore, type KVStore } from './kvs.js';
+import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
 import { FieldPersister } from '@/lib/state/sync/persistence';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';

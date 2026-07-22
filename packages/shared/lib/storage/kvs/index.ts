@@ -1,4 +1,4 @@
-// packages/shared/lib/storage/kvs.ts
+// packages/shared/lib/storage/kvs/index.ts
 //
 // The key-value store INTERFACE — the persistence seam the state-sync
 // library (lib/state/sync) writes through. Values are strings
@@ -8,12 +8,19 @@
 // JSON queries) get used directly is deliberately undecided
 // (docs/architecture.md §2.7).
 //
-// Backends live where their dependencies do: apps/server/src/kvs.ts
-// implements this interface with file/Postgres/Valkey stores (node, pg,
-// ioredis — deployment concerns). MemoryKVStore lives here because the
-// library's own tests need a store with no dependencies at all.
+// This is the browser-safe entrypoint: only the interface, the getMany
+// helper, and MemoryKVStore (zero dependencies) live/re-export here.
+// Backends live where their dependencies do — the sibling files
+// kvs/file.ts, kvs/pg.ts, kvs/valkey.ts, kvs/prefixed.ts implement this
+// interface with file/Postgres/Valkey stores (node, pg, ioredis —
+// deployment concerns) and are reached ONLY by explicit path import, so
+// their heavy deps never leak into the client bundle. MemoryKVStore is
+// re-exported here because the library's own tests need a store with no
+// dependencies at all.
 
 import type { KVSKey } from '@/lib/types/identity';
+
+export { MemoryKVStore } from './memory';
 
 export interface KVStore {
   ready: Promise<void>;
@@ -40,29 +47,4 @@ export function getMany(store: KVStore, keys: KVSKey[]): Promise<(string | null)
   if (keys.length === 0) return Promise.resolve([]);
   if (store.getMany) return store.getMany(keys);
   return Promise.all(keys.map((key) => store.get(key)));
-}
-
-/**
- * In-memory KVS backed by a Map. Data is lost on restart.
- * Good for tests; not for anything you care about keeping.
- */
-export class MemoryKVStore implements KVStore {
-  ready = Promise.resolve();
-  private data = new Map<KVSKey, string>();
-
-  async get(key: KVSKey) {
-    return this.data.get(key) ?? null;
-  }
-
-  async getMany(keys: KVSKey[]) {
-    return keys.map((key) => this.data.get(key) ?? null);
-  }
-
-  async set(key: KVSKey, value: string) {
-    this.data.set(key, value);
-  }
-
-  async del(key: KVSKey) {
-    this.data.delete(key);
-  }
 }
