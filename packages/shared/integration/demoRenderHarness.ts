@@ -17,6 +17,7 @@
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
+import { linkContent } from '@/lib/content/linkContent';
 import { toMemoryRef } from '@/lib/types/storage';
 import { FileStorageProvider } from '@/lib/lofs/providers/file';
 
@@ -290,6 +291,10 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
         idMap = { ...includeResult.idMap, ...idMap };
       }
     }
+
+    // Link the merged snapshot (example + sibling includes) before render.
+    // [pipeline] parse → merge → (ID-finalize: reserved) → linkContent → render
+    idMap = linkContent(idMap).idMap;
 
     if (!root || !idMap[root]) {
       return { file: relativePath, error: 'No root element found after parsing' };

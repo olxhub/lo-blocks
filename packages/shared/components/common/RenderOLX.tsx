@@ -46,6 +46,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
+import { linkContent } from '@/lib/content/linkContent';
 import { makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -147,12 +148,16 @@ function useParseContent(
             effectiveProvider,
             ns
           );
+          // Single-file parse is the degenerate merge; link before it's
+          // handed downstream so this path shares the seam too.
+          // [pipeline] parse → merge → (ID-finalize: reserved) → linkContent → render
+          const { idMap: linkedIdMap } = linkContent(result.idMap);
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
               if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
               if (!source) throw new Error('useParseContent: source is required for dispatching');
-              dispatchOlxJson({ runtime: { logEvent } }, source, result.idMap);
+              dispatchOlxJson({ runtime: { logEvent } }, source, linkedIdMap);
             }
             // startTransition prevents Suspense - shows old content while rendering new
             startTransition(() => {
@@ -189,18 +194,21 @@ function useParseContent(
             }
           }
 
+          // Link the multi-file merge once, before it's handed downstream.
+          // [pipeline] parse → merge → (ID-finalize: reserved) → linkContent → render
+          const { idMap: linkedMergedIdMap } = linkContent(mergedIdMap);
           if (!cancelled) {
             // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
             if (!sideEffectFree) {
               if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
               if (!source) throw new Error('useParseContent: source is required for dispatching');
-              dispatchOlxJson({ runtime: { logEvent } }, source, mergedIdMap);
+              dispatchOlxJson({ runtime: { logEvent } }, source, linkedMergedIdMap);
             }
             startTransition(() => {
               setParsed({
                 root: lastRoot,
-                idMap: mergedIdMap,
-                ids: Object.keys(mergedIdMap)
+                idMap: linkedMergedIdMap,
+                ids: Object.keys(linkedMergedIdMap)
               });
               setFatalError(null);
               setWarnings(allErrors);

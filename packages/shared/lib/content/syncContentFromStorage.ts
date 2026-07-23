@@ -30,6 +30,7 @@ import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
+import { linkContent } from '@/lib/content/linkContent';
 
 // =============================================================================
 // Types
@@ -220,9 +221,13 @@ export async function syncContentFromStorage(
   // Step 5: Sync static assets
   await copyAssetsToPublic(provider);
 
+  // Step 6: Link the merged snapshot once, over the whole combined index.
+  // [pipeline] parse → merge → (ID-finalize: reserved) → linkContent → render
+  const { idMap } = linkContent({ ..._snapshot.blockIndex });
+
   return {
     parsed: { ..._snapshot.parsedFiles },
-    idMap: { ..._snapshot.blockIndex },
+    idMap,
     errors: collectSnapshotErrors(_snapshot),
   };
 }
