@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/inputInteraction.ts
+// packages/shared/lib/player/inputInteraction.ts
 //
 // Input interaction state management - determines when inputs should be read-only
 //
@@ -8,7 +8,7 @@
 //
 import { useSelector } from 'react-redux';
 import { correctness } from '../grading/correctness';
-import { inferRelatedNodes } from './dynamicDom';
+import { inferRelatedNodes } from '../blocks/dynamicDom';
 import { selectGradingState } from '@/lib/grading';
 
 /**

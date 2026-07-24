@@ -18,9 +18,7 @@ export { action, executeNodeActions, input, isAction, isInput, isMatch } from '.
 // grader() lives with the rest of the grading subsystem
 export { grader } from '@/lib/grading/submitGrade';
 export { correctness, correctnessPriority, visibilityHandlers, computeVisibility, isValidCorrectness, validateCorrectness, getAllCorrectnessStates, completion, completionPriority, isValidCompletion, validateCompletion, getAllCompletionStates } from '../grading/correctness';
-export { useInputReadOnly } from './inputInteraction';
 export { baseAttributes, inputAttributes, graderAttributes, placeholder, src, z_stateRef, z_stateRefList, z_blockFieldRef, z_blockFieldRefList, z_expression } from './attributeSchemas';
 export type { BlockFieldRef, RefExtractor } from './attributeSchemas';
-export { useGraderAnswer, useGraderSummary, findGrader } from './useGraderAnswer';
 export { createGrader } from './createGrader';
 export { getBlockByOLXId, getBlocksByOLXIds } from './getBlockByOLXId';

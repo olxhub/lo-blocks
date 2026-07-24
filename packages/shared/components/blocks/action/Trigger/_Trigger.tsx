@@ -13,7 +13,7 @@ import { useReferences } from '@/lib/stateLanguage/hooks';
 import { extractStructuredRefs } from '@/lib/stateLanguage/references';
 import { evaluate, createContext } from '@/lib/stateLanguage/evaluate';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
 
 function Trigger(props: RuntimeProps) {

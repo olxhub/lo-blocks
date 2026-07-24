@@ -30,8 +30,8 @@ import { Maximize2, X } from 'lucide-react';
 import { useFieldState, updateField } from '@/lib/state';
 import { fieldByName } from '@/lib/state/fields';
 import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import { pushAdvanceScope, popAdvanceScope } from '@/lib/advance';
-import { useKids } from '@/lib/render';
+import { pushAdvanceScope, popAdvanceScope } from '@/lib/player/advance';
+import { useKids } from '@/lib/player/client/render';
 import type { RuntimeProps, StateRef } from '@/lib/types';
 import { fields } from './CompactPopout';
 

@@ -1,4 +1,4 @@
-// packages/shared/lib/render.tsx
+// packages/shared/lib/player/client/render.tsx
 //
 // Rendering engine - transforms static OLX structure into dynamic rendered tree.
 //
@@ -438,7 +438,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
 // HOOKS - Re-exported from useRenderedBlock.ts
 // =============================================================================
 //
-// The actual hook implementations live in src/lib/blocks/useRenderedBlock.ts
+// The actual hook implementations live in lib/player/client/useRenderedBlock.tsx
 // They are re-exported here for backward compatibility with existing imports.
 //
 // Hooks:
@@ -449,7 +449,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
 // - selectKidsJson(props, reduxState) - Pure selector form (for blueprint functions)
 // - getKidsJson(props) - One-shot imperative form
 //
-export { useBlock, useKids, useKidsWithState, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/blocks/useRenderedBlock';
+export { useBlock, useKids, useKidsWithState, useKidsJson, selectKidsJson, getKidsJson } from '@/lib/player/client/useRenderedBlock';
 
 /**
  * Render a virtual block as JSX — the composition form of the render

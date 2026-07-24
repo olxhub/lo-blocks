@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/lib/blocks/useBlocksReady.tsx
+// packages/shared/lib/player/client/useBlocksReady.tsx
 //
 // Render-side readiness gate: before rendering an idMap, resolve — for
 // every block type appearing in it — both halves of block readiness:

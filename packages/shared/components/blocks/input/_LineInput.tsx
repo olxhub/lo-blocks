@@ -4,8 +4,8 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useInputField } from '@/lib/state';
-import { useInputReadOnly } from '@/lib/blocks';
-import { useKids } from '@/lib/render';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 const allowedAttrs = ['min', 'max', 'placeholder', 'type', 'step'];

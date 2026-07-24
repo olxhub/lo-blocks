@@ -221,7 +221,7 @@ describe('Block components should not access idMap directly', () => {
 
   Blueprints (the [A-Z]*.ts registry files) are the logic layer: parsers,
   fields, graders, locals. They load in node (parseOLX, xml2json, tests)
-  and in Next.js server routes, so importing lib/render — which pulls in
+  and in Next.js server routes, so importing lib/player/client/render — which pulls in
   React components, PopoutWrapper/lucide-react, and the full block
   registry (circularly) — bloats every server process and once forced a
   'use client' workaround. Pure helpers blueprints need (selectKidsJson,
@@ -236,7 +236,7 @@ describe('Block components should not access idMap directly', () => {
   This checks direct imports only; the import-graph version of this rule
   is the registry bundle measurement in docs/blueprint-graph-performance.md.
 */
-describe('Blueprint files should not import lib/render or the registry', () => {
+describe('Blueprint files should not import lib/player/client/render or the registry', () => {
   const blueprintFiles = generateAllRegistryContents().blocks.files;
 
   it('finds blueprint files to check', () => {
@@ -253,7 +253,7 @@ describe('Blueprint files should not import lib/render or the registry', () => {
       lines.forEach((line, index) => {
         if (!line.trimStart().startsWith('import')) return;
         if (
-          line.includes("'@/lib/render'") || line.includes('"@/lib/render"') ||
+          line.includes("'@/lib/player/client/render'") || line.includes('"@/lib/player/client/render"') ||
           line.includes("'@/components/blockRegistry'") || line.includes('"@/components/blockRegistry"')
         ) {
           violations.push({ line: index + 1, content: line.trim() });
@@ -265,7 +265,7 @@ describe('Blueprint files should not import lib/render or the registry', () => {
       const details = violations.map(v => `  Line ${v.line}: ${v.content}`).join('\n');
       expect.fail(
         `Blueprint imports the render layer or the registry:\n${details}\n\n` +
-        `Blueprints load in node and server routes; lib/render drags in React\n` +
+        `Blueprints load in node and server routes; lib/player/client/render drags in React\n` +
         `components, and importing the registry creates a blueprint → registry\n` +
         `import cycle. Use blueprint-safe helpers from @/lib/blocks/dynamicDom.\n` +
         `There is deliberately no general parse-time block lookup — see the\n` +

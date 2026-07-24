@@ -1,4 +1,4 @@
-// packages/shared/lib/advance.ts
+// packages/shared/lib/player/advance.ts
 //
 // Advance tree walker — depth-first advancement through the OLX DOM.
 //

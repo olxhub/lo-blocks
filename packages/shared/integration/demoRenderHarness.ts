@@ -21,7 +21,7 @@ import { toMemoryRef } from '@/lib/types/storage';
 import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 
 import * as lo_event from 'lo_event';
-import { render, makeRootNode } from '@/lib/render';
+import { render, makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { preloadCodeEditor } from '@/components/common/CodeEditor/CodeEditor';
@@ -397,7 +397,7 @@ export function registerDemoRenderShard(shardName: keyof typeof DEMO_RENDER_SHAR
       // inside a useEffect to break a module cycle — warm the chunk here so
       // that import resolves synchronously-ish during mount instead of
       // still being in flight when the test asserts.
-      import('@/lib/blocks/useOlxJson'),
+      import('@/lib/player/client/useOlxJson'),
       // CodeEditor (authoring blocks embed it) lazy-loads CodeMirror the
       // same way; same reasoning.
       preloadCodeEditor(),

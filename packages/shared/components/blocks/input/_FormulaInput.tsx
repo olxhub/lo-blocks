@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useRef, useMemo, useEffect } from 'react';
 import katex from 'katex';
 import { useInputField } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 import { latexPreview } from '@/lib/grading/calc/index.js';
 

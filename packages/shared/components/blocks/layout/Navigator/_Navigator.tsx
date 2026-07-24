@@ -4,8 +4,8 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
-import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { useKids } from '@/lib/player/client/render';
+import { useOlxJson } from '@/lib/player/client/useOlxJson';
 
 type NavItem = Record<string, any> & { id: string };
 

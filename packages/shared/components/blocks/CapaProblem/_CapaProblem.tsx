@@ -5,7 +5,7 @@ import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/dynamicDom';
 import { useGradingState, childGraderStateKeys, whenGatedGradingKids } from '@/lib/grading';
 import { staticEntryForStateKey, blueprintFor } from '@/lib/blocks/staticDom';
-import { useKids, Block } from '@/lib/render';
+import { useKids, Block } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
 
 // --- Logic Functions ---

@@ -4,7 +4,7 @@ import type { RuntimeProps, KidEntry } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { isKidArray } from '@/lib/types/kids';
 
 export default function DemandHints(props: RuntimeProps) {

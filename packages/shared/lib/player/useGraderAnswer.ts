@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/useGraderAnswer.ts
+// packages/shared/lib/player/useGraderAnswer.ts
 //
 // Hook for inputs to access their grader's answer display state.
 // Returns { showAnswer, displayAnswer, graderId, slot } for rendering answer hints/highlights.
@@ -19,12 +19,12 @@
 'use client';
 import * as state from '@/lib/state';
 import { useFieldSelector } from '@/lib/state';
-import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from './dynamicDom';
-import { useOlxJson } from './useOlxJson';
+import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from '../blocks/dynamicDom';
+import { useOlxJson } from './client/useOlxJson';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, qualifyDefinitionRef, scopedStateKeyForBlock } from '../types/id-grammar';
-import { getBlockByOLXId } from './getBlockByOLXId';
+import { getBlockByOLXId } from '../blocks/getBlockByOLXId';
 import { staticTargetProps } from '../state/blockData';
-import { isInput } from './actions';
+import { isInput } from '../blocks/actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 
 /**

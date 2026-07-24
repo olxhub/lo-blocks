@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import {
   parse,
   extractStructuredRefs,

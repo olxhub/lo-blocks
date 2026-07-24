@@ -15,7 +15,7 @@ import { parseOLX } from '@/lib/content/parseOLX';
 import { collectErrors } from '@/lib/content/collectErrors';
 import { toMemoryRef } from '@/lib/types/storage';
 
-import { render, makeRootNode } from '@/lib/render';
+import { render, makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { Provider } from 'react-redux';

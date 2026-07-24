@@ -3,7 +3,7 @@
 // Unit tests for render utilities. Integration tests for rendering
 // are in demo-render.test.js which tests all .olx files.
 //
-import { assignReactKeys } from '@/lib/render';
+import { assignReactKeys } from '@/lib/player/client/render';
 
 describe('assignReactKeys', () => {
   it('assigns keys correctly and passes through primitives', () => {

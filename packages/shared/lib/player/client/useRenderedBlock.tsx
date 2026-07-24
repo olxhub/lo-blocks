@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/useRenderedBlock.tsx
+// packages/shared/lib/player/client/useRenderedBlock.tsx
 //
 // Hooks for rendering OLX blocks to React elements.
 //
@@ -16,17 +16,17 @@
 
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
-import { useBlocksReadyForSources } from '@/lib/blocks/useBlocksReady';
+import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
+import { useBlocksReadyForSources } from '@/lib/player/client/useBlocksReady';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { render, renderCompiledKids } from '@/lib/render';
+import { render, renderCompiledKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import TranslatingIndicator from '@/lib/i18n/TranslatingIndicator';
 import type { DefinitionRef, StateKey, BlockDataResult, OlxJson, RuntimeProps } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
 import { leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
-import { selectKidsJson } from './staticDynamicDom';
+import { selectKidsJson } from '../../blocks/staticDynamicDom';
 
 export type RenderedBlockResult = BlockDataResult & {
   block: React.ReactNode;
@@ -192,7 +192,7 @@ export function getRenderedBlocksMultiple(
 // module's render-layer dependencies. Re-exported here for render-side
 // callers; only the hook wrapper is defined in this file.
 
-export { selectKidsJson, getKidsJson } from './staticDynamicDom';
+export { selectKidsJson, getKidsJson } from '../../blocks/staticDynamicDom';
 
 /**
  * Hook that returns kids as OlxJson nodes with `when=` filtering applied.

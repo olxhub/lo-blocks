@@ -3,12 +3,13 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
-import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { qualifyDefinitionRef, extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { HandleCommon } from '@/components/common/DragHandle';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
 import { assertKidArray } from '@/lib/types/kids';
 import { fields } from './MatchingInput';

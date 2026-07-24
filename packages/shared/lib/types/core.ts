@@ -817,7 +817,7 @@ export const BlockBlueprintSchema = z.object({
   fields: ReduxFieldsReturn.optional(),
   /**
    * Advance the block's internal state by one step (e.g. next dialogue line,
-   * next sequence item).  Called by the advance tree walker (lib/advance.ts).
+   * next sequence item).  Called by the advance tree walker (lib/player/advance.ts).
    *
    * Return value:
    *   true  — still active (advanced, or waiting on a condition)

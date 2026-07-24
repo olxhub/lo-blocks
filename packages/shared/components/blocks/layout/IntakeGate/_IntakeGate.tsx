@@ -15,7 +15,7 @@ import type { RuntimeProps, StateRef } from '@/lib/types';
 
 import React from 'react';
 import { assertKidArray } from '@/lib/types/kids';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { parse, useDSLExpression } from '@/lib/stateLanguage';
 import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';

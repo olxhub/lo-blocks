@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect } from 'react';
-import { useBlock } from '@/lib/render';
+import { useBlock } from '@/lib/player/client/render';
 import { useFieldState, useValue } from '@/lib/state';
 import type { StateRef } from '@/lib/types';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';

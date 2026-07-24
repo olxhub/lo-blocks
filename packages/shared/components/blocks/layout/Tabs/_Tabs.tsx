@@ -4,8 +4,8 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids, useKidsJson } from '@/lib/render';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useKids, useKidsJson } from '@/lib/player/client/render';
+import { useOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 export default function Tabs(props: RuntimeProps) {

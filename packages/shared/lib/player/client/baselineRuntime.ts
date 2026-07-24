@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/baselineRuntime.ts
+// packages/shared/lib/player/client/baselineRuntime.ts
 //
 // Single source of truth for LoBlockRuntimeContext defaults.
 //

@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/useOlxJson.ts
+// packages/shared/lib/player/client/useOlxJson.ts
 //
 // OlxJson content access — fetch-on-demand from Redux.
 //
@@ -26,7 +26,7 @@ import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import type { AppError } from '@/lib/types/errors';
 import { safeStringify } from '@/lib/util';
-import type { LogEventFn } from '@/lib/render';
+import type { LogEventFn } from '@/lib/player/client/render';
 import { blockData } from '@/lib/state/redux';
 import type { LofsCanonical } from '@/lib/types/address';
 

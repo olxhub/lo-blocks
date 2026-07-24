@@ -20,7 +20,7 @@
 //
 'use client';
 import React, { createContext } from 'react';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export interface ChoiceGroupInfo {

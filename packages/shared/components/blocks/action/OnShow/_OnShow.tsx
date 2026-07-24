@@ -6,7 +6,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useRef } from 'react';
 import { executeNodeActions } from '@/lib/blocks';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 
 function OnShow(props: RuntimeProps) {
   const { mode = 'once' } = props;

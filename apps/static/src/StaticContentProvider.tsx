@@ -6,7 +6,7 @@
 //
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
-import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
+import { useBaselineProps } from '@/lib/player/client/baselineRuntime';
 import Spinner from '@/components/common/Spinner';
 import type { IdMap } from '@/lib/types';
 
