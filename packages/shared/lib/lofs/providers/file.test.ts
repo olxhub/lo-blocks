@@ -102,6 +102,14 @@ describe('FileStorageProvider security', () => {
       expect(result.content).toBe('<Nested/>');
     });
 
+    test('creates missing parent directories on write', async () => {
+      // No mkdir first: the parent dir does not exist yet. A create-write
+      // should auto-create the full parent chain (like `mkdir -p`).
+      await provider.save(toOlxRelativePath('brand-new/deeply/nested/file.olx'), '<Fresh/>');
+      const result = await provider.read(toOlxRelativePath('brand-new/deeply/nested/file.olx'));
+      expect(result.content).toBe('<Fresh/>');
+    });
+
     test('allows .. that stays within base directory', async () => {
       await fs.mkdir(path.join(tempDir, 'a', 'b'), { recursive: true });
       await provider.save(toOlxRelativePath('a/b/file.olx'), '<AB/>');
@@ -117,6 +125,40 @@ describe('FileStorageProvider security', () => {
       ['dot-slash traversal', toOlxRelativePath('./../../etc/passwd')],
     ])('rejects %s', async (_label, attackPath) => {
       await expect(provider.read(attackPath)).rejects.toThrow();
+    });
+  });
+
+  // resolveSafeWritePath walks up to the nearest EXISTING ancestor when the
+  // target's parents don't exist yet (so save() can mkdir -p them). These lock
+  // the security boundary of that walk: a symlink in the existing ancestor
+  // chain must still be rejected, whether it escapes the allowed root or not —
+  // otherwise a create-write could plant files anywhere the symlink points.
+  describe('symlink attacks on create (auto-mkdir path)', () => {
+    let outsideDir: string;
+
+    beforeAll(async () => {
+      outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), 'lo-blocks-outside-'));
+      // Existing ancestor that escapes the allowed root.
+      await fs.symlink(outsideDir, path.join(tempDir, 'escape-link'), 'dir');
+      // Existing ancestor that stays inside the allowed root but IS a symlink.
+      await fs.mkdir(path.join(tempDir, 'real-target'), { recursive: true });
+      await fs.symlink(path.join(tempDir, 'real-target'), path.join(tempDir, 'inside-link'), 'dir');
+    });
+
+    afterAll(async () => {
+      await fs.rm(outsideDir, { recursive: true, force: true });
+    });
+
+    test('rejects create through a symlinked ancestor that escapes the allowed root', async () => {
+      await expect(provider.save(toOlxRelativePath('escape-link/new/file.olx'), 'evil'))
+        .rejects.toThrow(/outside allowed write directories|symlinks not allowed/);
+      // And nothing was written to the symlink target.
+      await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+    });
+
+    test('rejects create through a symlinked ancestor even when it stays within the root', async () => {
+      await expect(provider.save(toOlxRelativePath('inside-link/new/file.olx'), 'data'))
+        .rejects.toThrow(/symlinks not allowed/);
     });
   });
 });
