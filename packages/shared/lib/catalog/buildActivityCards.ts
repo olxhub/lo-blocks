@@ -1,4 +1,4 @@
-// packages/shared/lib/content/buildActivityCards.ts
+// packages/shared/lib/catalog/buildActivityCards.ts
 //
 // Extracts activity cards from a parsed idMap. Used by both the
 // /api/activities route (with locale-aware variant picking) and

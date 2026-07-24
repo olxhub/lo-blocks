@@ -11,7 +11,7 @@ import type { z } from 'zod';
 import YAML from 'yaml';
 import { sources, readProvider } from '@/lib/storage/lofs/contentSources';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { buildActivityCards, type ActivityCard } from '@/lib/content/buildActivityCards';
+import { buildActivityCards, type ActivityCard } from '@/lib/catalog/buildActivityCards';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import { toOlxRelativePath, type StorageProvider } from '@/lib/types/storage';
 import { toAppError, type AppError } from '@/lib/types/errors';

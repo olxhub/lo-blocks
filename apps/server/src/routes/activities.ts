@@ -30,7 +30,7 @@
 
 import type { Context } from 'hono';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { buildActivityCards } from '@/lib/content/buildActivityCards';
+import { buildActivityCards } from '@/lib/catalog/buildActivityCards';
 import { getBestVariantFromHeader } from '@/lib/i18n/getBestVariant';
 
 export async function handleActivities(c: Context): Promise<Response> {

@@ -29,7 +29,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
-import { buildActivityCards } from '../lib/content/buildActivityCards';
+import { buildActivityCards } from '../lib/catalog/buildActivityCards';
 import { FileStorageProvider } from '../lib/storage/lofs/providers/file';
 import { registerAllowedContentDir } from '../lib/storage/lofs/allowedDirs';
 import { parseContentNamespace } from '../lib/types/id-grammar';
