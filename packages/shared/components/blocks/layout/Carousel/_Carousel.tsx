@@ -8,7 +8,7 @@ import { useBlock } from '@/lib/render';
 import { DisplayError } from '@/lib/util/debug';
 import NavArrow from '@/components/common/NavArrow';
 import { fisherYatesShuffleInPlace } from '@/lib/util/shuffle';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { StateRef } from '@/lib/types';

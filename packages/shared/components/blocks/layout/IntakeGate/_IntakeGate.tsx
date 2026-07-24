@@ -14,7 +14,7 @@
 import type { RuntimeProps, StateRef } from '@/lib/types';
 
 import React from 'react';
-import { assertKidArray } from '@/lib/util/kids';
+import { assertKidArray } from '@/lib/types/kids';
 import { useKids } from '@/lib/render';
 import { parse, useDSLExpression } from '@/lib/stateLanguage';
 import { DisplayError } from '@/lib/util/debug';

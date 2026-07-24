@@ -3,7 +3,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import DOMPurify from 'dompurify';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 
 export default function Html({ kids }: RuntimeProps) {
   const sanitized = useMemo(() => {

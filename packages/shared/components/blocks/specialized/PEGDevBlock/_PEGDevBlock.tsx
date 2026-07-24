@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/specialized/PEGDevBlock/_PEGDevBlock.tsx
 import React from 'react';
 import type { RuntimeProps } from '@/lib/types';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 
 export function _PEGDevBlock({ kids }: RuntimeProps) {
   assertNamedObject(kids, ['parsed']);

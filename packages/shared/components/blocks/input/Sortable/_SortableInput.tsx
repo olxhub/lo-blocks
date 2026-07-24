@@ -10,7 +10,7 @@ import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {

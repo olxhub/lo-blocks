@@ -10,7 +10,7 @@ import { qualifyDefinitionRef, extendIdPrefix, scopeMarker } from '@/lib/types/i
 import { HandleCommon } from '@/components/common/DragHandle';
 import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
-import { assertKidArray } from '@/lib/util/kids';
+import { assertKidArray } from '@/lib/types/kids';
 import { fields } from './MatchingInput';
 import type { MatchingArrangement, ItemPosition } from './types';
 

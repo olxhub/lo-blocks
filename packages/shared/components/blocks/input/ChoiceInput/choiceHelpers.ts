@@ -11,7 +11,7 @@ import { getBlockByOLXId } from '@/lib/blocks';
 import {
   qualifyDefinitionRef, parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey,
 } from '@/lib/types/id-grammar';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 import type { DefinitionKey, RuntimeProps, StateRef } from '@/lib/types';
 
 export interface Choice { id: DefinitionKey; tag: string; value: string }

@@ -1,4 +1,4 @@
-// packages/shared/lib/util/kids.ts
+// packages/shared/lib/types/kids.ts
 //
 // Type assertion helpers for narrowing JSONValue `kids` in block components.
 //

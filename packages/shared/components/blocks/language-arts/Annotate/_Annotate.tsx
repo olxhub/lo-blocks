@@ -26,7 +26,7 @@ import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useKids, useBlock } from '@/lib/render';
-import { assertKidArray } from '@/lib/util/kids';
+import { assertKidArray } from '@/lib/types/kids';
 import { groupHue, themeColors } from '@/lib/util/colorWheel';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import { fields as annotateFields } from './Annotate';
