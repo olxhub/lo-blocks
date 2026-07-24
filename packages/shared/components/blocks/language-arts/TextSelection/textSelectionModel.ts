@@ -150,6 +150,25 @@ export function displayAnswerFromExpected(expected: ExpectedSelections): string[
     .map(s => s.words.join(' '));
 }
 
+// ─── The one "is this segment selected?" predicate ───────────────────────────
+
+/**
+ * Is a segment fully selected? A segment counts as selected only when EVERY one
+ * of its words is in the selection — a two-word phrase needs both words. This is
+ * the single definition of "selected," shared by scoring (a required phrase is
+ * "found" ⇔ selected) and by targeted feedback (a segment's note shows ⇔
+ * selected). Selecting one word of "solar panels" is therefore not the phrase:
+ * it earns no credit and fires no "Correct!" note, which is exactly the mismatch
+ * this predicate exists to prevent — display and scoring can no longer disagree.
+ *
+ * (Empty/whitespace-only segments have no word indices and are never selected.
+ * The decoy penalty asks a different question — "was this decoy touched at all?"
+ * — and lives in computeStats, not here.)
+ */
+export function isSegmentSelected(wordIndices: number[], selected: Set<number>): boolean {
+  return wordIndices.length > 0 && wordIndices.every(i => selected.has(i));
+}
+
 // ─── Scoring ─────────────────────────────────────────────────────────────────
 
 export interface SelectionStats {
@@ -177,7 +196,7 @@ export function computeStats(selected: Set<number>, expected: ExpectedSelections
     switch (segment.type) {
       case 'required':
         totalRequired += 1;
-        if (segment.wordIndices.every(i => selected.has(i))) requiredFound += 1;
+        if (isSegmentSelected(segment.wordIndices, selected)) requiredFound += 1;
         break;
       case 'text':
         // Each selected plain word is its own error.
@@ -269,4 +288,34 @@ export function messageForStats(stats: SelectionStats, scoring: ScoringRule[]): 
   if (stats.complete) return '';
   const errorNote = stats.wrongSelected > 0 ? ` • ${stats.wrongSelected} incorrect` : '';
   return `${stats.requiredFound}/${stats.totalRequired} found${errorNote}`;
+}
+
+// ─── Targeted feedback ───────────────────────────────────────────────────────
+
+// A per-term note to show beneath the passage: the segment's words (the label
+// the learner sees) and the authored text.
+export interface FeedbackItem { id: string; label: string; text: string }
+
+/**
+ * The targeted-feedback notes for a selection: one per labeled segment that is
+ * fully selected (`isSegmentSelected`) and has an authored note. A partially
+ * selected phrase shows nothing — the same every-word predicate the score uses,
+ * so a note never contradicts the correctness the learner sees. Passage order;
+ * the first segment for a repeated label wins.
+ */
+export function targetedFeedbackItems(
+  selected: Set<number>,
+  expected: ExpectedSelections,
+): FeedbackItem[] {
+  const items: FeedbackItem[] = [];
+  const seen = new Set<string>();
+  for (const segment of expected.segments) {
+    const id = segment.id;
+    if (!id || seen.has(id)) continue;
+    const text = expected.targetedFeedback[id];
+    if (!text || !isSegmentSelected(segment.wordIndices, selected)) continue;
+    seen.add(id);
+    items.push({ id, label: segment.words.join(' '), text });
+  }
+  return items;
 }

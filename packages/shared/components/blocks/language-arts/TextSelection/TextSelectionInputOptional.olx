@@ -1,8 +1,3 @@
-<!-- OPTIONAL segments: {braces} mark words that are acceptable to select but
-     never required and never penalized. Here the articles ("The", "the") are
-     optional, so a learner who highlights "the cat" is scored the same as one
-     who highlights just "cat". Composed in immediate mode so the effect is
-     visible live. -->
 <CapaProblem id="optional_articles" grade="immediate" title="Nouns (articles optional)">
   <TextSelectionGrader>
     <TextSelectionInput>

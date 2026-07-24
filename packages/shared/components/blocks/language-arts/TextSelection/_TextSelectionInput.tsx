@@ -19,7 +19,10 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useGraderAnswer, useInputReadOnly } from '@/lib/blocks';
 import { DisplayError } from '@/lib/util/debug';
-import { tokenize, type ParsedDocument, type Token, type WordToken } from './textSelectionModel';
+import {
+  tokenize, expectedSelections, targetedFeedbackItems,
+  type ParsedDocument, type Token, type WordToken,
+} from './textSelectionModel';
 
 // Stable empty fallback: the subscription compares by reference, so the
 // unanswered case must not mint a new array per store dispatch.
@@ -41,6 +44,13 @@ export default function TextSelectionInput(props: RuntimeProps) {
 
   const tokens: Token[] = useMemo(
     () => (parsed?.segments ? tokenize(parsed.segments) : []),
+    [parsed],
+  );
+  // Segment-level facts (types, word indices, labels, feedback map) the model
+  // projects from the parse. The component classifies nothing itself; it renders
+  // tokens and asks the model which segments a selection has fully selected.
+  const expected = useMemo(
+    () => (parsed?.segments ? expectedSelections(parsed) : null),
     [parsed],
   );
 
@@ -164,24 +174,10 @@ export default function TextSelectionInput(props: RuntimeProps) {
     };
   };
 
-  // Targeted feedback for each selected segment that has an authored note.
-  const feedbackItems = (() => {
-    const targeted = parsed.targetedFeedback || {};
-    const seen = new Set<string>();
-    const items: { id: string; label: string; text: string }[] = [];
-    for (const token of tokens) {
-      if (token.isSpace || !effectiveSelection.has(token.index)) continue;
-      const id = token.segmentId;
-      if (!id || seen.has(id) || !targeted[id]) continue;
-      seen.add(id);
-      const label = tokens
-        .filter((t): t is WordToken => !t.isSpace && t.segmentId === id)
-        .map(t => t.text)
-        .join(' ');
-      items.push({ id, label, text: targeted[id] });
-    }
-    return items;
-  })();
+  // Targeted feedback for each FULLY selected labeled segment. The model owns
+  // the "selected ⇔ every word" rule, so these notes track the score exactly —
+  // a half-selected phrase shows nothing rather than a premature "Correct!".
+  const feedbackItems = expected ? targetedFeedbackItems(effectiveSelection, expected) : [];
 
   return (
     <div className="text-highlight-container p-4 border rounded-lg">

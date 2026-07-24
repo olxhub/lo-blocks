@@ -3,7 +3,8 @@
 import { test, expect } from 'vitest';
 import * as parserModule from './_textSelectionParser';
 import {
-  expectedSelections, computeStats, scoreFromStats, type ParsedDocument,
+  expectedSelections, computeStats, scoreFromStats, targetedFeedbackItems,
+  type ParsedDocument,
 } from './textSelectionModel';
 
 // The compiled peggy parser (grammar untouched). These cases pin the grammar.
@@ -234,4 +235,36 @@ The [cat] sat on the [mat].`);
   expect(onAll.wrongSelected).toBeGreaterThan(0);
   expect(onAll.complete).toBe(false);
   expect(scoreFromStats(onAll)).toBeLessThan(1);
+});
+
+// --- One predicate for scoring AND targeted feedback (owner's repro) ---
+// The bug: scoring counted a required phrase "found" only when EVERY word was
+// selected, but the targeted-feedback display fired on ANY word — so selecting
+// just "solar" scored 0/2 yet flashed "solar panels: Correct!". Both questions
+// now go through isSegmentSelected (every word), so display can't contradict the
+// score. This case is the spec: one word of a phrase → not found, no note.
+test('predicate: one word of a required phrase is neither found nor acknowledged', () => {
+  const parsed = parseTextSelection(`Identify renewable sources:
+---
+Power from [solar panels|solar] and <<coal plants|coal>>.
+---
+---
+solar: Correct! Solar energy is renewable.
+coal: Not quite — coal is a fossil fuel.`);
+  const expected = expectedSelections(parsed);
+
+  const solar = expected.segments.find(s => s.id === 'solar')!;
+  expect(solar.wordIndices).toHaveLength(2); // "solar" + "panels"
+
+  // One word of the two-word phrase: not found, and NO "Correct!" note.
+  const onePartial = new Set<number>([solar.wordIndices[0]]);
+  expect(computeStats(onePartial, expected).requiredFound).toBe(0);
+  expect(targetedFeedbackItems(onePartial, expected)).toEqual([]);
+
+  // Both words: found, and the note now appears — display tracks the score.
+  const fullPhrase = new Set<number>(solar.wordIndices);
+  expect(computeStats(fullPhrase, expected).requiredFound).toBe(1);
+  expect(targetedFeedbackItems(fullPhrase, expected)).toEqual([
+    { id: 'solar', label: 'solar panels', text: 'Correct! Solar energy is renewable.' },
+  ]);
 });

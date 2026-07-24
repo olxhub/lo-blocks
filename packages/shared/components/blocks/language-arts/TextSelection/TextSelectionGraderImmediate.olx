@@ -1,7 +1,3 @@
-<!-- Composed IMMEDIATE-mode grading: grade="immediate" on the CapaProblem means
-     correctness derives live as the learner clicks, with no Check button. The
-     grader is the same TextSelectionGrader; only the problem's grade attribute
-     differs from the submit example. -->
 <CapaProblem id="immediate_nouns" grade="immediate" title="Highlight the nouns">
   <TextSelectionGrader>
     <TextSelectionInput>

@@ -1,7 +1,3 @@
-<!-- Composed immediate-mode grading with per-term TARGETED FEEDBACK. Selecting a
-     labeled segment (|solar, |coal, ...) surfaces its note; the decoy <<...>>
-     terms subtract from the score. The fourth passage section keys each note by
-     the segment's label. -->
 <CapaProblem id="feedback_energy" grade="immediate" title="Renewable energy">
   <TextSelectionGrader>
     <TextSelectionInput>
