@@ -19,7 +19,7 @@ import { asDefinitionKey } from '@/lib/types/id-grammar';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { store } from '@/lib/state/store';
 import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';

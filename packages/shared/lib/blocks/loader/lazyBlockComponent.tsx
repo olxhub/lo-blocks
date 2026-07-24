@@ -1,5 +1,5 @@
 'use client';
-// packages/shared/lib/blocks/lazyBlockComponent.tsx
+// packages/shared/lib/blocks/loader/lazyBlockComponent.tsx
 //
 // Render-side half of the blueprint/component split: resolve a block to a
 // stable ComponentType, lazily loading its component on first render.

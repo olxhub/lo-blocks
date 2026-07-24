@@ -330,7 +330,7 @@ function findConventionalComponent(blockFilePath) {
 }
 
 function reduceBlockRegistry(files, outputFile, gitStatusMap) {
-  let imports = `import { withComponentLoader } from '@/lib/blocks/componentLoader';\n`;
+  let imports = `import { withComponentLoader } from '@/lib/blocks/loader/componentLoader';\n`;
   const loaderWirings = [];
   const exports = [];
   const metadata = {};

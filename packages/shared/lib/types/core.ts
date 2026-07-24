@@ -995,7 +995,7 @@ export interface LoBlock {
   /** Eager component. Set when the blueprint declared one, or after this
    *  block's componentLoader resolves. Absent on lazy blocks pre-load and
    *  on headless blocks (actions/graders with no view). Render code goes
-   *  through resolveBlockComponent() (lib/blocks/lazyBlockComponent), never
+   *  through resolveBlockComponent() (lib/blocks/loader/lazyBlockComponent), never
    *  reads this directly — the resolver owns the lazy/headless semantics. */
   component?: React.ComponentType<any>;
   /** Lazy component loader — see ComponentLoader. Declared in the blueprint

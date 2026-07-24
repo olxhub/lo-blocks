@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/componentLoader.ts
+// packages/shared/lib/blocks/loader/componentLoader.ts
 //
 // Registry-side half of the blueprint/component split (see ComponentLoader
 // in lib/types/core.ts): attach and resolve loaders WITHOUT touching React

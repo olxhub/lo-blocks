@@ -17,7 +17,7 @@ import { toMemoryRef } from '@/lib/types/storage';
 
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { Provider } from 'react-redux';
 import React from 'react';
 import { store } from '@/lib/state/store';

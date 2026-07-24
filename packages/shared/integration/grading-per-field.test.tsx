@@ -39,7 +39,7 @@ import { fireEvent, waitFor, cleanup } from '@testing-library/react';
 // Importing the harness also installs the jsdom shims + fetch mock.
 import { mountOLXString } from './demoRenderHarness';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { LO_FIELD_STRATEGY } from '@/lib/state/fieldTypes';
 
 const OLX = `<CapaProblem id="PerFieldGrading" title="Squares">

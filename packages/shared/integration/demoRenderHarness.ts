@@ -23,7 +23,7 @@ import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 import * as lo_event from 'lo_event';
 import { render, makeRootNode } from '@/lib/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { preloadCodeEditor } from '@/components/common/CodeEditor/CodeEditor';
 import { Provider } from 'react-redux';
 import React from 'react';

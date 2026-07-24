@@ -25,7 +25,7 @@ import PopoutWrapper from '@/components/common/PopoutWrapper';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson } from '@/lib/types';
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
-import { resolveBlockComponent } from '@/lib/blocks/lazyBlockComponent';
+import { resolveBlockComponent } from '@/lib/blocks/loader/lazyBlockComponent';
 import { getGrader, getEventContext } from '@/lib/blocks/dynamicDom';
 import { qualifyDefinitionRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
@@ -193,7 +193,7 @@ export function render({ node, nodeInfo, runtime }: {
 
   const blockType = actualBlockRegistry[tag];
   // Eager, lazy (spinner until the chunk arrives), or headless — the
-  // resolver owns that distinction. See lib/blocks/lazyBlockComponent.tsx.
+  // resolver owns that distinction. See lib/blocks/loader/lazyBlockComponent.tsx.
   const Component = resolveBlockComponent(blockType);
 
   // Validate attributes - use component schema if defined, else base with passthrough
