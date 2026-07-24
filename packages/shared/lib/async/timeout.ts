@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/timeout.ts
+// packages/shared/lib/async/timeout.ts
 //
 // timeout — reject if the wrapped call doesn't settle within `ms`.
 //

@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/index.ts
+// packages/shared/lib/async/index.ts
 //
 // Async-call wrappers: a family of higher-order functions that each layer one
 // cross-cutting behavior onto an async function, with a consistent

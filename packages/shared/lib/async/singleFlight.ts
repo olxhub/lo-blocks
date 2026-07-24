@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/singleFlight.ts
+// packages/shared/lib/async/singleFlight.ts
 //
 // singleFlight — coalesce concurrent calls with the same key onto one
 // in-flight promise. The first caller runs `fn`; everyone who arrives while it

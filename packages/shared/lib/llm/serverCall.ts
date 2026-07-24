@@ -10,7 +10,7 @@
 
 import { resolveLLMConfigWithFallback } from '@/lib/llm/profiles';
 import { dispatchLLMProxy } from '@/lib/llm/proxy';
-import { withRetry, type RetryPolicy } from '@/lib/util/async';
+import { withRetry, type RetryPolicy } from '@/lib/async';
 
 type Message = { role: string; content: string };
 export type LLMResult = { text: string; truncated: boolean };

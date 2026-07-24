@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/async.test.ts
+// packages/shared/lib/async/async.test.ts
 //
 // Behavior of the async-call wrapper family. Delays use tiny real intervals to
 // keep the suite fast and free of fake-timer/promise-flush fragility.

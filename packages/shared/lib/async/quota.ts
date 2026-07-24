@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/quota.ts
+// packages/shared/lib/async/quota.ts
 //
 // Per-user quota: request-rate (RPM) and token budget, backed by a key-value
 // store. The store-backed members of the async-call wrapper family.

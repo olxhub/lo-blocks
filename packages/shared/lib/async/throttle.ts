@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/throttle.ts
+// packages/shared/lib/async/throttle.ts
 //
 // throttle — run the wrapped call at most once per interval (per key).
 //

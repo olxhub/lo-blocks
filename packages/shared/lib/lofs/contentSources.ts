@@ -56,7 +56,7 @@ import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
 import { gitOrigin, toLofsOrigin } from '../types/address';
 import type { LofsOrigin } from '../types/address';
-import { memoize } from '../util/async';
+import { memoize } from '../async';
 import type { StorageProvider } from '../types/storage';
 
 const DEFAULT_CONFIG_PATH = 'config/content-sources.yaml';

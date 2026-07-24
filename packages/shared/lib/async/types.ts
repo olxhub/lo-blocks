@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/types.ts
+// packages/shared/lib/async/types.ts
 //
 // Shared shape for the async-call wrappers in this directory.
 //

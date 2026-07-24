@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/quota.test.ts
+// packages/shared/lib/async/quota.test.ts
 //
 // Per-user quota helpers against a Map-backed KvLike stub (no apps/server).
 

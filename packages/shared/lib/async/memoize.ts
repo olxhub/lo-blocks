@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/memoize.ts
+// packages/shared/lib/async/memoize.ts
 //
 // memoize — cache an async function's RESOLVED result by key.
 //

@@ -12,7 +12,7 @@ import { dispatchLLMProxy, type LLMProxyResult } from '@/lib/llm/proxy';
 import type { KVStore } from '@/lib/storage/kvs';
 import type { AuthUser } from '../auth.js';
 import { asSafeUserId } from '@/lib/types/identity';
-import { checkRateLimit, checkTokenBudget, recordTokenUsage } from '@/lib/util/async';
+import { checkRateLimit, checkTokenBudget, recordTokenUsage } from '@/lib/async';
 
 // Sentinel identity for rate limiting when user resolution somehow fails.
 // Should never happen (handleWithSession always creates a guest), but if it

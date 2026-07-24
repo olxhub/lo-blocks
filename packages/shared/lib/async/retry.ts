@@ -1,4 +1,4 @@
-// packages/shared/lib/util/async/retry.ts
+// packages/shared/lib/async/retry.ts
 //
 // withRetry — retry a transient failure with exponential backoff + jitter.
 //

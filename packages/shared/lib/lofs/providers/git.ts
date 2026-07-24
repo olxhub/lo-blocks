@@ -81,7 +81,7 @@ import {
 } from '../../types/address';
 import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../types/id-grammar';
 import { fileTypes } from '../fileTypes';
-import { withRetry, throttle, singleFlight, type RetryPolicy } from '../../util/async';
+import { withRetry, throttle, singleFlight, type RetryPolicy } from '../../async';
 
 const REPO_DIR = '/repo';
 
