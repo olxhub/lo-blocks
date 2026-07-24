@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/tools.test.ts
+// packages/shared/lib/storage/lofs/tools.test.ts
 //
 // LOFS tool semantics: the concurrency contract (content-anchored Edit,
 // version-token Write conflicts) and the write guards. Providers are
@@ -10,7 +10,7 @@
 // parseOLX + BLOCK_REGISTRY (the whole block tree). Content files here use
 // a non-validated extension (.md) to keep the test on the tool logic.
 
-import { createToolRegistry, type ToolRegistry } from '../mcp/registry';
+import { createToolRegistry, type ToolRegistry } from '../../mcp/registry';
 import { registerLofsTools, type LofsToolDeps } from './tools';
 import { FileStorageProvider } from './providers/file';
 import { registerAllowedContentDir } from './allowedDirs';

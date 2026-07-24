@@ -5,7 +5,7 @@
 //
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 import { toMemoryRef } from '@/lib/types/storage';
 import { getOlxJson, TEST_NS, testKey } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';

@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/contentSources.ts
+// packages/shared/lib/storage/lofs/contentSources.ts
 //
 // Content-source configuration: which directories this deployment serves
 // content from. SERVER-ONLY (reads the filesystem).
@@ -54,10 +54,10 @@ import path from 'path';
 import { FileStorageProvider } from './providers/file';
 import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
-import { gitOrigin, toLofsOrigin } from '../types/address';
-import type { LofsOrigin } from '../types/address';
-import { memoize } from '../async';
-import type { StorageProvider } from '../types/storage';
+import { gitOrigin, toLofsOrigin } from '../../types/address';
+import type { LofsOrigin } from '../../types/address';
+import { memoize } from '../../async';
+import type { StorageProvider } from '../../types/storage';
 
 const DEFAULT_CONFIG_PATH = 'config/content-sources.yaml';
 const LOCAL_CONFIG_PATH = 'config/content-sources.local.yaml';
@@ -132,7 +132,7 @@ function defaultConfig(): ContentSourcesConfig {
  * deployment serving from elsewhere sets `fallback:` in its local.yaml.
  *
  * fs and yaml are imported dynamically so this module can be pulled into
- * client bundles (via lib/lofs) without breaking; only server code calls it.
+ * client bundles (via lib/storage/lofs) without breaking; only server code calls it.
  */
 export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> {
   const fs = await import('fs/promises');
@@ -388,7 +388,7 @@ export async function readProvider(source?: string): Promise<StorageProvider> {
     // that always needs the full registry anyway (syncContentFromStorage, which
     // parses OLX against it unconditionally) imports it statically.
     const { DocsStorageProvider } = await import('./providers/docs');
-    const { BLOCK_REGISTRY } = await import('../../components/blockRegistry');
+    const { BLOCK_REGISTRY } = await import('../../../components/blockRegistry');
     return new DocsStorageProvider(
       Object.values(BLOCK_REGISTRY).filter((b: any) => b?._isBlock).map((b: any) => b.name)
     );

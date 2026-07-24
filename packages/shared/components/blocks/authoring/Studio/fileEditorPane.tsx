@@ -22,7 +22,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { toOlxRelativePath } from '@/lib/types/storage';
 import { makeAddress, toLofsContentPath } from '@/lib/types/address';
 import type { ContentNamespace, LofsOrigin, LofsRef } from '@/lib/types';
-import type { McpStorageProvider } from '@/lib/lofs';
+import type { McpStorageProvider } from '@/lib/storage/lofs';
 import { STUDIO_NS } from './studioNs';
 import { useStudioContent, hasStudioContent, setStudioContent } from './editorContent';
 

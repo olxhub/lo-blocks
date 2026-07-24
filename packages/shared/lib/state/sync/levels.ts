@@ -54,7 +54,7 @@ export function subscriptionKey(instance: LevelInstance, blockId: string): strin
  * — a page refresh starts clean.
  *
  * Currently the `docs.<BlockName>` namespaces (block-documentation demo
- * sandboxes, lib/lofs/providers/docs.ts): poking a docs example is
+ * sandboxes, lib/storage/lofs/providers/docs.ts): poking a docs example is
  * exploration, not coursework.
  *
  * TODO(persistence): make this an explicit content-source or namespace policy

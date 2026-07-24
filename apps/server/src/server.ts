@@ -57,7 +57,7 @@ const WS_PATH = '/wsapi/in/';
 // '/' serves the catalog SPA (a static-client route) from apps/client/dist.
 // The catalog's DATA comes from the get_repositories MCP tool over /mcp (one
 // transport) — there is no /api/catalog. File/search/source operations are
-// MCP tools too (lib/lofs/tools.ts); the /api/file|files|grep|sources REST
+// MCP tools too (lib/storage/lofs/tools.ts); the /api/file|files|grep|sources REST
 // routes are retired.
 const SERVER_PREFIXES = [
   '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',

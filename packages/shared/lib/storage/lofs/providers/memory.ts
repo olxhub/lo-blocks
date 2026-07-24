@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/memory.ts
+// packages/shared/lib/storage/lofs/providers/memory.ts
 //
 // In-memory storage provider - virtual filesystem for testing and inline content.
 //
@@ -20,20 +20,20 @@ import type {
   XmlScanResult,
   GrepOptions,
   GrepMatch,
-} from '../../types/storage';
-import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
-import { type ContentNamespace, asContentNamespace } from '../../types/id-grammar';
+} from '../../../types/storage';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../../types';
+import { type ContentNamespace, asContentNamespace } from '../../../types/id-grammar';
 
 /** Default namespace for in-memory scratch content (tests, inline parses,
  *  editor buffers) when the caller doesn't declare one. */
 const MEMORY_NS = asContentNamespace('memory');
-import { provenancePath, type NamespaceResolution } from '../../types/storage';
+import { provenancePath, type NamespaceResolution } from '../../../types/storage';
 import {
   type LofsOrigin,
   makeAddress, scheme, withVersion,
   toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsCanonical, toLofsVersion,
-} from '../../types/address';
-import { hashContent } from '../../util';
+} from '../../../types/address';
+import { hashContent } from '../../../util';
 
 export class InMemoryStorageProvider implements StorageProvider {
   files: Record<string, string>;

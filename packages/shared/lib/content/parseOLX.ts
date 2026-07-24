@@ -383,7 +383,7 @@ function extractSiblingMetadata(
 export async function parseOLX(
   xml,
   inputProvenance: LofsRef[],
-  provider: import('../lofs').StorageProvider | undefined,
+  provider: import('../storage/lofs').StorageProvider | undefined,
   ns: ContentNamespace
 ) {
   const idMap: IdMap = {};

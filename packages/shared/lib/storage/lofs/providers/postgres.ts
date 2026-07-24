@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/postgres.ts
+// packages/shared/lib/storage/lofs/providers/postgres.ts
 //
 // Postgres storage provider - database-backed content (stub).
 //
@@ -8,7 +8,7 @@
 // - Integration with existing LMS databases
 // - Content versioning and audit trails
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../../types';
 import type {
   StorageProvider,
   NamespaceResolution,
@@ -20,7 +20,7 @@ import type {
   WriteOptions,
   GrepOptions,
   GrepMatch,
-} from '../../types/storage';
+} from '../../../types/storage';
 
 export class PostgresStorageProvider implements StorageProvider {
   constructor(public options: Record<string, any>) {}

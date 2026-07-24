@@ -1,18 +1,18 @@
-// packages/shared/lib/lofs/providers/mcp.ts
+// packages/shared/lib/storage/lofs/providers/mcp.ts
 //
 // MCP storage provider — content access over the /mcp endpoint's LOFS tools
-// (lib/lofs/tools.ts). The browser-side face of the one edit path: Studio,
+// (lib/storage/lofs/tools.ts). The browser-side face of the one edit path: Studio,
 // the chat agent, and external MCP clients (Claude Code / Desktop) all
 // perform the same operations against the same server-side tool definitions.
 //
 // Replaces NetworkStorageProvider (which spoke the retired /api/file,
 // /api/files, /api/grep REST routes).
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, LofsOrigin } from '../../../types';
 import { isMediaFile } from '@/lib/util/fileTypes';
-import { provenancePath, type NamespaceResolution } from '../../types/storage';
-import { toLofsRef, toLofsCanonical } from '../../types/address';
-import { callMcpTool } from '../../mcp/client';
+import { provenancePath, type NamespaceResolution } from '../../../types/storage';
+import { toLofsRef, toLofsCanonical } from '../../../types/address';
+import { callMcpTool } from '../../../mcp/client';
 import {
   type StorageProvider,
   type XmlFileInfo,
@@ -24,7 +24,7 @@ import {
   type GrepOptions,
   type GrepMatch,
   VersionConflictError,
-} from '../../types/storage';
+} from '../../../types/storage';
 
 /** Wire shape of the Write tool's structured conflict result. */
 interface WriteConflict {

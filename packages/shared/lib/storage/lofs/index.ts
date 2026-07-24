@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/index.ts
+// packages/shared/lib/storage/lofs/index.ts
 //
 // Storage abstraction layer - pluggable and stackable content persistence.
 //
@@ -10,7 +10,7 @@
 // - PostgresStorageProvider: Database-backed content (server-only, planned)
 //
 // Server-only providers use Node.js fs and must be imported directly:
-//   import { FileStorageProvider } from '@/lib/lofs/providers/file';
+//   import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 //
 // Key property: STACKING - Storage providers can overlay on each other, enabling
 // workflows like: local development content → university database → platform content.
@@ -25,7 +25,7 @@
 //
 
 // Types
-export * from '../types/storage';
+export * from '../../types/storage';
 
 // Providers
 export * from './providers';

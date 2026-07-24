@@ -10,7 +10,7 @@ import RenderOLX from './RenderOLX';
 import PEGPreviewPane from './PEGPreviewPane';
 import RenderMarkdown from './RenderMarkdown';
 import { isPEGFile, isMarkdownFile, getContentType, PREVIEW_WRAPPER } from '@/lib/util/fileTypes';
-import { McpStorageProvider } from '@/lib/lofs';
+import { McpStorageProvider } from '@/lib/storage/lofs';
 import type { IdMap, OlxDomNode } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
 import type { AppError } from '@/lib/types/errors';

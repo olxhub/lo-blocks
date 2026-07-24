@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/file.test.ts
+// packages/shared/lib/storage/lofs/providers/file.test.ts
 //
 // Security tests for FileStorageProvider.
 // Ensures path traversal, null byte injection, and other attacks are blocked.
@@ -11,8 +11,8 @@
 
 import { FileStorageProvider } from './file';
 import { registerAllowedContentDir } from '../allowedDirs';
-import { toOlxRelativePath } from '../../types/storage';
-import type { OlxRelativePath, SafeRelativePath, LofsRef, ContentNamespace } from '../../types';
+import { toOlxRelativePath } from '../../../types/storage';
+import type { OlxRelativePath, SafeRelativePath, LofsRef, ContentNamespace } from '../../../types';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';

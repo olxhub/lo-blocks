@@ -7,7 +7,7 @@
  *   tsx sync-images.ts --source content/psychology --target dist/psych/content
  */
 
-import { FileStorageProvider } from '../lib/lofs/providers/file.js';
+import { FileStorageProvider } from '../lib/storage/lofs/providers/file.js';
 import { copyAssetsToPublic } from '../lib/content/staticAssetSync.js';
 
 function getArg(flag: string): string | undefined {

@@ -5,7 +5,7 @@
 // DRY: Single source of truth for where to find grammars.
 //
 // NOTE: If you add a directory here, also add it to getAllowedReadDirs()
-// in packages/shared/lib/lofs/providers/file.ts for the docs API to access it.
+// in packages/shared/lib/storage/lofs/providers/file.ts for the docs API to access it.
 //
 export const GRAMMAR_DIRS = [
   'packages/shared/components/blocks',

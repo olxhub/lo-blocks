@@ -9,7 +9,7 @@
 
 import type { z } from 'zod';
 import YAML from 'yaml';
-import { sources, readProvider } from '@/lib/lofs/contentSources';
+import { sources, readProvider } from '@/lib/storage/lofs/contentSources';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { buildActivityCards, type ActivityCard } from '@/lib/content/buildActivityCards';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';

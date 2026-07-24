@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/git.ts
+// packages/shared/lib/storage/lofs/providers/git.ts
 //
 // Git storage provider — content served directly from a git remote.
 //
@@ -58,7 +58,7 @@ import { Volume } from 'memfs';
 import YAML from 'yaml';
 import { minimatch } from 'minimatch';
 import { isContentFile, isMediaFile, getExtension } from '@/lib/util/fileTypes';
-import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../../types';
 import {
   type StorageProvider,
   type NamespaceResolution,
@@ -72,16 +72,16 @@ import {
   type GrepMatch,
   NamespaceResolutionError,
   VersionConflictError,
-} from '../../types/storage';
+} from '../../../types/storage';
 import {
   source, addressPath, withVersion, withoutVersion,
   makeAddress, gitOrigin, forgeLink, toLofsContentPath, toLofsVersion, toLofsCanonical,
   toLofsRef as brandLofsRef,
   type LofsOrigin, type LofsVersion, type ForgeLink,
-} from '../../types/address';
-import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../types/id-grammar';
+} from '../../../types/address';
+import { type ContentNamespace, validateContentNamespace, asContentNamespace, defaultNamespace } from '../../../types/id-grammar';
 import { fileTypes } from '../fileTypes';
-import { withRetry, throttle, singleFlight, type RetryPolicy } from '../../async';
+import { withRetry, throttle, singleFlight, type RetryPolicy } from '../../../async';
 
 const REPO_DIR = '/repo';
 

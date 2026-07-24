@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { InMemoryStorageProvider } from './memory';
-import type { LofsRef, SafeRelativePath } from '../../types';
+import type { LofsRef, SafeRelativePath } from '../../../types';
 
 describe('InMemoryStorageProvider', () => {
   const files = {

@@ -51,7 +51,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/storage/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';

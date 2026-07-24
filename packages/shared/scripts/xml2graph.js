@@ -2,8 +2,8 @@
 // packages/shared/scripts/xml2graph.js
 import stringify from 'json-stable-stringify';
 import { syncContentFromStorage } from '../lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '../lib/lofs/providers/file';
-import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
+import { FileStorageProvider } from '../lib/storage/lofs/providers/file';
+import { registerAllowedContentDir } from '../lib/storage/lofs/allowedDirs';
 import { parseIdMap } from '../lib/graph/parseIdMap';
 import fs from 'fs';
 import path from 'path';

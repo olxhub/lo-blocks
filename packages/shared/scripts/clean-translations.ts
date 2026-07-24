@@ -13,8 +13,8 @@
 //   npm run clean-translations -- --content <dir>     # custom content dir
 
 import { syncContentFromStorage, getSourceFile } from '../lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '../lib/lofs/providers/file';
-import { registerAllowedContentDir } from '../lib/lofs/allowedDirs';
+import { FileStorageProvider } from '../lib/storage/lofs/providers/file';
+import { registerAllowedContentDir } from '../lib/storage/lofs/allowedDirs';
 import { variantMapEntries } from '../lib/types/i18n';
 import path from 'path';
 import type { IdMap, DefinitionKey, LofsRef } from '../lib/types';

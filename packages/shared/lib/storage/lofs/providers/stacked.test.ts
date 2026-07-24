@@ -2,7 +2,7 @@
 import { StackedStorageProvider } from './stacked';
 import { InMemoryStorageProvider } from './memory';
 import { FileStorageProvider } from './file';
-import type { LofsRef, SafeRelativePath } from '../../types';
+import type { LofsRef, SafeRelativePath } from '../../../types';
 
 describe('StackedStorageProvider path resolution', () => {
   const memoryFiles = { 'inline.olx': '<Vertical/>' };

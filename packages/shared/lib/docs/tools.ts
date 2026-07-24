@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { extractAttributes, AttributeDocSchema } from '@/lib/docs/schemaUtils';
 import { getCategories } from '@/lib/docs/categoryUtils';
-import { resolveSafeReadPath } from '@/lib/lofs/providers/file';
+import { resolveSafeReadPath } from '@/lib/storage/lofs/providers/file';
 import { grammarInfo, PEG_CONTENT_EXTENSIONS } from '@/generated/parserRegistry';
 import { extractMetadata } from '@/lib/docs/grammar';
 import { OLXTagSchema, BlockGitStatusSchema } from '@/lib/types';
@@ -71,7 +71,7 @@ import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 // ---------------------------------------------------------------------------
 
 /** Root of the block source tree — must match DocsStorageProvider's default
- *  baseDir (lib/lofs/providers/docs.ts), which mounts this tree under
+ *  baseDir (lib/storage/lofs/providers/docs.ts), which mounts this tree under
  *  file:docs:// refs in the system content index. */
 const BLOCKS_DIR = 'packages/shared/components/blocks';
 

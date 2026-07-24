@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/tools.ts
+// packages/shared/lib/storage/lofs/tools.ts
 //
 // LOFS content tools for the ToolRegistry — file operations over the
 // configured content sources, served to every editing surface through one
@@ -38,13 +38,13 @@
 // get_sources  - The configured content sources (Studio's repo picker)
 
 import { z } from 'zod';
-import type { ToolRegistry } from '../mcp/registry';
+import type { ToolRegistry } from '../../mcp/registry';
 import { readProvider, writableSourceProvider, sources } from './contentSources';
-import { VersionConflictError, toOlxRelativePath } from '../types/storage';
-import type { StorageProvider } from '../types/storage';
+import { VersionConflictError, toOlxRelativePath } from '../../types/storage';
+import type { StorageProvider } from '../../types/storage';
 import { toRepoRelativePath } from './repoPath';
-import { toLofsRef } from '../types/address';
-import { asContentNamespace } from '../types/id-grammar';
+import { toLofsRef } from '../../types/address';
+import { asContentNamespace } from '../../types/id-grammar';
 
 /** Max content size for writes — matches the historical /api/file limit. */
 const MAX_WRITE_BYTES = 100_000;
@@ -168,7 +168,7 @@ const basePathOf = (p?: string) => (p ? toOlxRelativePath(p) : undefined);
 async function validateContent(pathStr: string, content: string, ns?: string): Promise<string | null> {
   const ext = pathStr.split('.').pop()?.toLowerCase() ?? '';
   if (ext === 'olx' || ext === 'xml') {
-    const { parseOLX } = await import('../content/parseOLX');
+    const { parseOLX } = await import('../../content/parseOLX');
     const namespace = ns ? asContentNamespace(ns) : VALIDATION_NS;
     const { errors } = await parseOLX(content, [toLofsRef('editor://')], undefined, namespace);
     if (errors.length > 0) {
@@ -177,7 +177,7 @@ async function validateContent(pathStr: string, content: string, ns?: string): P
     }
     return null;
   }
-  const { isPEGContentExtension, getParserForExtension } = await import('../../generated/parserRegistry');
+  const { isPEGContentExtension, getParserForExtension } = await import('../../../generated/parserRegistry');
   if (isPEGContentExtension(ext)) {
     const parser = getParserForExtension(ext);
     if (parser) {

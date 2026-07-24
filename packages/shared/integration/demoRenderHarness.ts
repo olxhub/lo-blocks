@@ -18,7 +18,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { toMemoryRef } from '@/lib/types/storage';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 
 import * as lo_event from 'lo_event';
 import { render, makeRootNode } from '@/lib/render';
@@ -277,7 +277,7 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
     const { root } = parseResult;
 
     // Examples may <Use ref> shared fixtures from sibling *.includes.olx
-    // files (see lib/lofs/providers/docs.ts). In production those resolve
+    // files (see lib/storage/lofs/providers/docs.ts). In production those resolve
     // through the synced docs index; here, merge same-directory includes
     // as base content (the example's own blocks take priority).
     if (!fileName.endsWith('.includes.olx')) {

@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/repoPath.ts
+// packages/shared/lib/storage/lofs/repoPath.ts
 //
 // SERVER-ONLY. The content API routes run toRepoRelativePath on a raw, untrusted
 // `?path=` before handing it to a provider — the conversion that earns the

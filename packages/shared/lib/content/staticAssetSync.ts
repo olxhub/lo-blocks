@@ -14,8 +14,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { extensionsWithDots, CATEGORY } from '@/lib/util/fileTypes';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
-import { StackedStorageProvider } from '@/lib/lofs/providers/stacked';
+import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
+import { StackedStorageProvider } from '@/lib/storage/lofs/providers/stacked';
 import type { StorageProvider } from '@/lib/types/storage';
 
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);

@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/file.ts
+// packages/shared/lib/storage/lofs/providers/file.ts
 //
 // File storage provider - local filesystem access for Learning Observer.
 //
@@ -9,8 +9,8 @@
 import path from 'path';
 import { glob as globLib } from 'glob';
 import YAML from 'yaml';
-import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../types';
-import { type ContentNamespace, validateContentNamespace, asContentNamespace } from '../../types/id-grammar';
+import type { LofsRef, OlxRelativePath, SafeRelativePath, FileSystemPath } from '../../../types';
+import { type ContentNamespace, validateContentNamespace, asContentNamespace } from '../../../types/id-grammar';
 import { CATEGORY, isMediaFile } from '@/lib/util/fileTypes';
 import { windowsToPosix } from '@/lib/util/posixPath';
 import {
@@ -27,15 +27,15 @@ import {
   VersionConflictError,
   NamespaceResolutionError,
   fileProvenancePath,
-} from '../../types/storage';
+} from '../../../types/storage';
 import {
   type LofsOrigin,
   source, scheme, withVersion, withoutVersion, makeAddress,
   toLofsRef as brandLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
-} from '../../types/address';
+} from '../../../types/address';
 import { registeredContentDirs } from '../allowedDirs';
 import { fileTypes } from '../fileTypes';
-import type { JSONValue } from '../../types';
+import type { JSONValue } from '../../../types';
 
 /** CATEGORY.content (fileTypes.ts) lists content file extensions — OLX and its
  *  parse dependencies (.olx, .md, .liquid, .cast, etc.). We need the same list

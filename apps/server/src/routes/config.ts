@@ -15,7 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import type { Context } from 'hono';
-import { loadContentSourcesConfig } from '@/lib/lofs/contentSources';
+import { loadContentSourcesConfig } from '@/lib/storage/lofs/contentSources';
 
 const SYSTEM_PMSS_PATH = 'config/system.pmss';
 

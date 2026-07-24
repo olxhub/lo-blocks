@@ -1,10 +1,10 @@
-// packages/shared/lib/lofs/providers/index.ts
+// packages/shared/lib/storage/lofs/providers/index.ts
 //
 // Re-exports storage provider implementations.
 //
 // NOTE: FileStorageProvider, GitStorageProvider, and PostgresStorageProvider
 // are server-only (they use Node.js fs). Import them directly:
-//   import { FileStorageProvider } from '@/lib/lofs/providers/file';
+//   import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 //
 export { McpStorageProvider } from './mcp';
 export { InMemoryStorageProvider } from './memory';

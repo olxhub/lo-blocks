@@ -17,7 +17,7 @@ import { shutdownMcp } from './mcp.js';
 import { createToolRegistry } from '@/lib/mcp/registry';
 import { registerDocsTools } from '@/lib/docs/tools';
 import { registerCatalogTools } from '@/lib/catalog/tool';
-import { registerLofsTools } from '@/lib/lofs/tools';
+import { registerLofsTools } from '@/lib/storage/lofs/tools';
 import {
   validateProviderConfig,
   availableProviders,

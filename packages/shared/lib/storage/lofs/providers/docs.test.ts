@@ -1,10 +1,10 @@
-// packages/shared/lib/lofs/providers/docs.test.ts
+// packages/shared/lib/storage/lofs/providers/docs.test.ts
 //
 // DocsStorageProvider: per-block namespace derivation via basename prefix
 // match, directory fallback, and _test/ exclusion.
 
 import { DocsStorageProvider } from './docs';
-import type { SafeRelativePath } from '../../types';
+import type { SafeRelativePath } from '../../../types';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';

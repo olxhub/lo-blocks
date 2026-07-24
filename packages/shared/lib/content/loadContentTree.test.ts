@@ -3,8 +3,8 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
-import { fileTypes } from '../lofs';
-import { FileStorageProvider } from '../lofs/providers/file';
+import { fileTypes } from '../storage/lofs';
+import { FileStorageProvider } from '../storage/lofs/providers/file';
 import { syncContentFromStorage } from './syncContentFromStorage';
 import { getOlxJson, TEST_NS, testKey } from '../test-utils';
 import { asDefinitionKey } from '../types/id-grammar';

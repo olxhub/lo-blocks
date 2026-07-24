@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/fileTypes.ts
+// packages/shared/lib/storage/lofs/fileTypes.ts
 //
 // File type constants - enum definitions for Learning Observer content formats.
 //
@@ -7,10 +7,10 @@
 // PEG grammars and additional content types. This is just an enum definition,
 // not detection logic.
 //
-import { enumdict } from '../util';
+import { enumdict } from '../../util';
 
 // TODO: Expand to include:
-// import pegExts from '../../generated/pegExtensions.json' assert { type: 'json' };
+// import pegExts from '../../../generated/pegExtensions.json' assert { type: 'json' };
 
 // TODO: Find a way to manage additional data, such as which parser does syntax checking,
 // info on syntax highlighting, etc. for use in CodeMirror

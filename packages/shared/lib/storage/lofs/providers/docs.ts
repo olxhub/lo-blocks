@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/docs.ts
+// packages/shared/lib/storage/lofs/providers/docs.ts
 //
 // Docs storage provider — block documentation examples as a content source.
 //
@@ -35,10 +35,10 @@
 
 import path from 'path';
 import { FileStorageProvider } from './file';
-import { withoutVersion } from '../../types/address';
-import { parseContentNamespace } from '../../types/id-grammar';
-import type { ContentNamespace, LofsRef } from '../../types';
-import { NamespaceResolutionError, type NamespaceResolution, type XmlFileInfo, type XmlScanResult } from '../../types/storage';
+import { withoutVersion } from '../../../types/address';
+import { parseContentNamespace } from '../../../types/id-grammar';
+import type { ContentNamespace, LofsRef } from '../../../types';
+import { NamespaceResolutionError, type NamespaceResolution, type XmlFileInfo, type XmlScanResult } from '../../../types/storage';
 
 export class DocsStorageProvider extends FileStorageProvider {
   /** Registered block names, longest first, for prefix matching. */
@@ -47,7 +47,7 @@ export class DocsStorageProvider extends FileStorageProvider {
   /**
    * @param blockNames - Registered block names, e.g.
    *   Object.values(BLOCK_REGISTRY).map(b => b.name). Injected by the caller
-   *   rather than imported here so lib/lofs stays free of a components/
+   *   rather than imported here so lib/storage/lofs stays free of a components/
    *   dependency (the registry imports every block's blueprint).
    * @param baseDir - Root of the block source tree.
    */

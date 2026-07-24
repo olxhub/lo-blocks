@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/git.test.ts
+// packages/shared/lib/storage/lofs/providers/git.test.ts
 //
 // GitStorageProvider: scan/read/namespace semantics against an in-memory
 // git repo. No network: the test subclass overrides the two remote
@@ -10,10 +10,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import git from 'isomorphic-git';
 import { Volume } from 'memfs';
 import { GitStorageProvider, type GitProviderOptions } from './git';
-import { syncContentFromStorage } from '../../content/syncContentFromStorage';
-import { asDefinitionKey } from '../../types/id-grammar';
-import { VersionConflictError } from '../../types/storage';
-import type { OlxRelativePath } from '../../types';
+import { syncContentFromStorage } from '../../../content/syncContentFromStorage';
+import { asDefinitionKey } from '../../../types/id-grammar';
+import { VersionConflictError } from '../../../types/storage';
+import type { OlxRelativePath } from '../../../types';
 
 const REPO_DIR = '/repo';
 const AUTHOR = { name: 'Test Teacher', email: 'teacher@test.example' };

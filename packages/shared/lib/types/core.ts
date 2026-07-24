@@ -260,7 +260,7 @@ export type SafeRelativePath = OlxRelativePath & { __safe: true };
  */
 export type RepoRelativePath = SafeRelativePath & { __contentFile: true };
 /*
- * Produced by toRepoRelativePath() (see lib/lofs/repoPath.ts — server-only, as
+ * Produced by toRepoRelativePath() (see lib/storage/lofs/repoPath.ts — server-only, as
  * it uses Node `path`) — the conversion the content API routes run on an
  * untrusted ?path= before handing it to a provider. It IS a SafeRelativePath
  * (so it flows into any provider method unchanged), plus the content-file stamp

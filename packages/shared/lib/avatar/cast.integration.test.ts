@@ -12,7 +12,7 @@
 
 import { describe, test, expect, afterEach, beforeAll } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
+import { InMemoryStorageProvider } from '@/lib/storage/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
 import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';

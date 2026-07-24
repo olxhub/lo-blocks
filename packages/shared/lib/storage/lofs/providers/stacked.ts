@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/providers/stacked.ts
+// packages/shared/lib/storage/lofs/providers/stacked.ts
 //
 // Stacked storage provider - layered content access with fallback chain.
 //
@@ -17,8 +17,8 @@
 // - loadXmlFilesWithStats(): Merged scan, higher priority files shadow lower
 // - validateAssetPath(): True if exists in any provider
 //
-import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../types';
-import type { ForgeLink } from '../../types/address';
+import type { LofsRef, OlxRelativePath, SafeRelativePath } from '../../../types';
+import type { ForgeLink } from '../../../types/address';
 import {
   NamespaceResolutionError,
   type StorageProvider,
@@ -31,7 +31,7 @@ import {
   type WriteOptions,
   type GrepOptions,
   type GrepMatch,
-} from '../../types/storage';
+} from '../../../types/storage';
 
 /**
  * Merge two UriNode trees, with nodes from `higher` taking precedence.

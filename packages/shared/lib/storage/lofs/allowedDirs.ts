@@ -1,4 +1,4 @@
-// packages/shared/lib/lofs/allowedDirs.ts
+// packages/shared/lib/storage/lofs/allowedDirs.ts
 //
 // Registry of filesystem directories the file provider may read/write.
 //
