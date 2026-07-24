@@ -1,4 +1,4 @@
-// packages/shared/lib/util/calc/schemas.ts — Attribute schemas and pure
+// packages/shared/lib/grading/calc/schemas.ts — Attribute schemas and pure
 // validation for math grading, WITHOUT the math engine.
 //
 // mathjs-free on purpose: these zod schemas validate grader attributes

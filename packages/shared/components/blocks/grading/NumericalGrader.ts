@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { numericalMatch, validateNumericalInput, validateNumericalAttributes, ensureCalcLoaded } from '@/lib/grading';
-import { ToleranceSchema } from '@/lib/util/calc/schemas';
+import { ToleranceSchema } from '@/lib/grading/calc/schemas';
 
 const NumericalGrader = createGrader({
   ensureReady: ensureCalcLoaded,

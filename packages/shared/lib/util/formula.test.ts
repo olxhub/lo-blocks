@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { formulaMatch, validateFormulaAttributes, validateFormulaInput, ensureCalcLoaded } from '@/lib/grading';
-import { validateTolerance } from '@/lib/util/calc/index.js';
+import { validateTolerance } from '@/lib/grading/calc/index.js';
 
 // The math engine is lazy (see lib/grading/calcLoader.ts); match functions
 // assume it is loaded, as the parse/grade pipelines guarantee via ensureReady.

@@ -4,7 +4,7 @@
 // Validators compose general-purpose calc/ validators into the shapes
 // that createGrader expects.
 
-import { parseTolerance, validateTolerance, type Tolerance } from '@/lib/util/calc/schemas';
+import { parseTolerance, validateTolerance, type Tolerance } from '@/lib/grading/calc/schemas';
 import { requireCalc } from './calcLoader';
 
 /** Attributes passed to NumericalGrader validation. */

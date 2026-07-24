@@ -1,4 +1,4 @@
-// packages/shared/lib/util/calc/formula.ts — Sampling-based formula comparison.
+// packages/shared/lib/grading/calc/formula.ts — Sampling-based formula comparison.
 //
 // Evaluates student and instructor formulas at random sample points within
 // a variable hypercube and checks that results agree within relative tolerance.

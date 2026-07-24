@@ -1,4 +1,4 @@
-// packages/shared/lib/util/calc/types.ts
+// packages/shared/lib/grading/calc/types.ts
 //
 // Type definitions for the calc library.
 //

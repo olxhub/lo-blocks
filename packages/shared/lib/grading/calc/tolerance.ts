@@ -1,4 +1,4 @@
-// packages/shared/lib/util/calc/tolerance.ts — Tolerance comparison.
+// packages/shared/lib/grading/calc/tolerance.ts — Tolerance comparison.
 //
 // The mathjs-coupled half of tolerance handling:
 // - compareAbsolute: |student - instructor| <= tol  (numerical grading)
