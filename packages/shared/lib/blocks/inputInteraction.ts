@@ -7,7 +7,7 @@
 // approach with a proper state query system based on existing correctness states.
 //
 import { useSelector } from 'react-redux';
-import { correctness } from './correctness';
+import { correctness } from '../grading/correctness';
 import { inferRelatedNodes } from './dynamicDom';
 import { selectGradingState } from '@/lib/grading';
 

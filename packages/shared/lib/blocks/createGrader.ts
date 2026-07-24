@@ -37,7 +37,7 @@ import { grader } from '@/lib/grading/submitGrade';
 import type { GraderParams, SingleParam, ListParam, DictParam } from '@/lib/grading/model';
 import { graderAttributes, z_stateRef } from './attributeSchemas';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
-import { correctness } from './correctness';
+import { correctness } from '../grading/correctness';
 import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
 

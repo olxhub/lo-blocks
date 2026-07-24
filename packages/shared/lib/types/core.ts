@@ -20,7 +20,7 @@ import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
-import type { Correctness } from '../blocks/correctness';
+import type { Correctness } from '../grading/correctness';
 
 /**
  * ════════════

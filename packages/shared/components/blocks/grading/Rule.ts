@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { core, z_stateRef, z_expression } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { evaluate, createContext } from '@/lib/stateLanguage/evaluate';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/grading/correctness';
 import type { RuntimeProps } from '@/lib/types';
 
 /**

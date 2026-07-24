@@ -5,7 +5,7 @@
 // block's own field overrides), one reader. submitGrade owns the WRITE
 // ordering (`correct` last); everyone else reads through here.
 //
-import { correctness } from '../blocks/correctness';
+import { correctness } from './correctness';
 import { commonFields } from '../state/commonFields';
 import { decodedFieldSelector } from '../state/fieldReads';
 import type { FieldInfo, LoBlock, RuntimeProps, StateKey } from '../types';

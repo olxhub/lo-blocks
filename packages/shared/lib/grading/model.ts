@@ -12,7 +12,7 @@
 //   immediate-mode evaluation.
 //
 import type { z } from 'zod';
-import type { Correctness } from '../blocks/correctness';
+import type { Correctness } from './correctness';
 import type {
   AsyncGraderFn, DictParam, GraderParams, GradingDescriptor, InputBinding,
   ListParam, ObservableValue, RawGraderResult, RuntimeProps, SingleParam, StateKey,

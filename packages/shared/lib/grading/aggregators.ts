@@ -23,7 +23,7 @@ import {
   correctness,
   validateCorrectness,
   getAllCorrectnessStates
-} from '@/lib/blocks/correctness';
+} from '@/lib/grading/correctness';
 import type { GradingState } from './model';
 
 // Type for counts keyed by correctness value

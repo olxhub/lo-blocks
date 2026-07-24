@@ -16,7 +16,7 @@
 import { z } from 'zod';
 import { core, grader, isMatch, getBlockByOLXId } from '@/lib/blocks';
 import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/grading/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import type { JSONValue, OlxJson, RuntimeProps } from '@/lib/types';

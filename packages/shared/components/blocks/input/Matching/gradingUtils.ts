@@ -2,7 +2,7 @@
  * Grading logic for matching exercises
  */
 
-import { correctness, type Correctness } from '@/lib/blocks/correctness';
+import { correctness, type Correctness } from '@/lib/grading/correctness';
 import type { MatchingArrangement, MatchingGradingResult } from './types';
 
 /**

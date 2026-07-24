@@ -102,7 +102,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { z_stateRefList, src } from '@/lib/blocks/attributeSchemas';
-import { correctness, normalizeCorrectness } from '@/lib/blocks/correctness';
+import { correctness, normalizeCorrectness } from '@/lib/grading/correctness';
 import * as parsers from '@/lib/content/parsers';
 
 /**

@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/correctness.ts
+// packages/shared/lib/grading/correctness.ts
 //
 // Two Orthogonal Dimensions: CORRECTNESS and COMPLETION
 // ======================================================

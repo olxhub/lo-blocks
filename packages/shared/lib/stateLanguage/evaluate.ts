@@ -5,7 +5,7 @@
 
 import type { ASTNode } from './parser';
 import { dslFunctions } from './functions';
-import { correctness, completion } from '@/lib/blocks/correctness';
+import { correctness, completion } from '@/lib/grading/correctness';
 import { ACTIVE_METHODS } from './keywords';
 import { qualifyRef } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types/id-grammar';

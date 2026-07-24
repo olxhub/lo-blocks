@@ -1,4 +1,4 @@
-// packages/shared/lib/blocks/problemModes.ts
+// packages/shared/lib/grading/problemModes.ts
 //
 // Utility functions for problem submission modes, attempts, and answer visibility.
 //
@@ -11,7 +11,7 @@
 //
 
 import { correctness as correctnessEnum, completion, type Completion } from './correctness';
-import { showAnswerModes, type ShowAnswerMode } from './attributeSchemas';
+import { showAnswerModes, type ShowAnswerMode } from '../blocks/attributeSchemas';
 
 // Re-export for consumers
 export type { ShowAnswerMode };

@@ -19,7 +19,7 @@ import {
   getAttemptsDisplay,
   parseMaxAttempts,
   type ProblemState,
-} from '@/lib/blocks/problemModes';
+} from '@/lib/grading/problemModes';
 
 /**
  * Build ProblemState from component props.
