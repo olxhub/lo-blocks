@@ -216,67 +216,44 @@ export async function resolveSafeWritePath(baseDir: string, relPath: string): Pr
 
   const fs = await import('fs/promises');
 
-  // Resolve to full path
   const full = path.resolve(baseDir, relPath);
 
-  // Check logical path doesn't escape baseDir via '..'
+  // Logical containment: `full` must not climb out of baseDir via '..'. This
+  // also guarantees the not-yet-created suffix below can't escape.
   const relative = path.relative(baseDir, full);
   if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error('Invalid path: escapes base directory');
   }
 
-  // Check for symlinks - reject any symlinks for write operations
-  // We check the path by comparing logical vs canonical
-  let canonicalPath: string;
-  try {
-    canonicalPath = await fs.realpath(full);
-  } catch (err: any) {
-    if (err.code === 'ENOENT') {
-      // File doesn't exist yet (creating new file). The parent directory may
-      // also not exist yet - callers create missing parents with mkdir -p. Walk
-      // up to the nearest existing ancestor and validate *it*: as long as a real
-      // (symlink-free) directory inside the allowed write dirs exists somewhere
-      // above the target, any parents created beneath it are guaranteed to stay
-      // within the mount. The logical-path '..' escape check above already
-      // ensures `full` does not climb out of baseDir.
-      let ancestor = path.dirname(full);
-      let canonicalAncestor: string;
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        try {
-          canonicalAncestor = await fs.realpath(ancestor);
-          break;
-        } catch (ancestorErr: any) {
-          if (ancestorErr.code !== 'ENOENT') {
-            throw ancestorErr;
-          }
-          const next = path.dirname(ancestor);
-          if (next === ancestor) {
-            // Reached the filesystem root without finding an existing directory.
-            throw new Error('Invalid path: parent directory does not exist');
-          }
-          ancestor = next;
-        }
+  // Validate against the deepest path that actually exists on disk: `full`
+  // itself if it's there, else its nearest existing ancestor. (On create, the
+  // target and some parents may not exist yet — save() mkdir -p's them.)
+  // realpath resolves every symlink in that existing prefix in one shot, so
+  // validating it covers the whole real chain; the missing suffix is created
+  // beneath it as real, '..'-free directories and so stays within the mount.
+  let existing = full;
+  let canonical: string;
+  while (true) {  // eslint-disable-line no-constant-condition
+    try {
+      canonical = await fs.realpath(existing);
+      break;
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+      const parent = path.dirname(existing);
+      if (parent === existing) {
+        // Walked to the filesystem root without finding an existing directory.
+        throw new Error('Invalid path: parent directory does not exist');
       }
-      if (!isPathAllowed(canonicalAncestor, getAllowedWriteDirs())) {
-        throw new Error('Invalid path: parent directory outside allowed write directories');
-      }
-      // Reject symlinks anywhere in the existing ancestor chain.
-      if (canonicalAncestor !== ancestor) {
-        throw new Error('Invalid path: symlinks not allowed for write operations');
-      }
-      return full as FileSystemPath;
+      existing = parent;
     }
-    throw err;
   }
 
-  // Reject if path contains symlinks
-  if (canonicalPath !== full) {
+  // Reject any symlink in the existing chain (canonical would differ), and
+  // require the real target to land inside an allowed write directory.
+  if (canonical !== existing) {
     throw new Error('Invalid path: symlinks not allowed for write operations');
   }
-
-  // Verify path is within allowed write directories
-  if (!isPathAllowed(full, getAllowedWriteDirs())) {
+  if (!isPathAllowed(canonical, getAllowedWriteDirs())) {
     throw new Error('Invalid path: outside allowed write directories');
   }
 
