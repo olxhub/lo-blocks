@@ -133,7 +133,7 @@ export function useReferences(props: any, refs: References): ContextData {
     const source = props.runtime.olxJsonSources?.[0] ?? 'content';
     // Dynamic import: a static one closes the module cycle
     // useOlxJson → attributeSchemas → stateLanguage → hooks and breaks init.
-    import('../blocks/useOlxJson').then(({ ensureBlock }) => {
+    import('../player/client/useOlxJson').then(({ ensureBlock }) => {
       for (const { key } of refs.componentState) {
         try {
           const stateKey = resolveToStateKey(props, key);

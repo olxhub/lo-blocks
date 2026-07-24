@@ -46,19 +46,19 @@
 
 import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { makeRootNode } from '@/lib/render';
+import { makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/lofs';
+import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/storage/lofs';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
-import { renderErrorOlxJson, renderErrorKey } from '@/lib/blocks/useOlxJson';
-import { useBlock } from '@/lib/blocks/useRenderedBlock';
+import { renderErrorOlxJson, renderErrorKey } from '@/lib/player/client/useOlxJson';
+import { useBlock } from '@/lib/player/client/useRenderedBlock';
 import { DisplayError } from '@/lib/util/debug';
-import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/advance';
-import { useBaselineRuntime } from '@/lib/blocks/baselineRuntime';
+import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/player/advance';
+import { useBaselineRuntime } from '@/lib/player/client/baselineRuntime';
 import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
 import { toLofsRef } from '@/lib/types/address';
 

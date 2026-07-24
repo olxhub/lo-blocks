@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids, useKidsJson } from '@/lib/render';
+import { useKids, useKidsJson } from '@/lib/player/client/render';
 function RevealedItem({ props, node }) {
   const { kids } = useKids({ ...props, kids: [node] });
   return <>{kids}</>;

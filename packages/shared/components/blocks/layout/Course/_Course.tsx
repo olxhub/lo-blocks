@@ -4,13 +4,13 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useBlock, useKidsJson } from '@/lib/render';
+import { useBlock, useKidsJson } from '@/lib/player/client/render';
 import { getBlockByOLXId } from '@/lib/blocks';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { StateRef } from '@/lib/types';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {

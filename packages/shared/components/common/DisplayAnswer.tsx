@@ -10,7 +10,7 @@
 'use client';
 
 import React from 'react';
-import { useGraderAnswer, findGrader } from '@/lib/blocks';
+import { useGraderAnswer, findGrader } from '@/lib/player/useGraderAnswer';
 
 /**
  * Helper component that always calls useGraderAnswer.

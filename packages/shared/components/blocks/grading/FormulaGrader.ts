@@ -10,7 +10,7 @@ import { createGrader } from '@/lib/blocks';
 import { formulaMatch, validateFormulaAttributes, validateFormulaInput, ensureCalcLoaded } from '@/lib/grading';
 // schemas, not calc/index: attribute validation is mathjs-free; the engine
 // itself loads via ensureReady at first parse/grade of math content.
-import { ToleranceSchema, SamplesSpecSchema } from '@/lib/util/calc/schemas';
+import { ToleranceSchema, SamplesSpecSchema } from '@/lib/grading/calc/schemas';
 
 const FormulaGrader = createGrader({
   ensureReady: ensureCalcLoaded,

@@ -24,7 +24,7 @@ import type {
   LoadingStatus, VariantStatus, VariantStatusEntry,
   OlxJsonBlockEntry, OlxJsonSourceState, OlxJsonState,
 } from '../types';
-import type { LogEventFn } from '../render';
+import type { LogEventFn } from '../player/client/render';
 
 
 // =============================================================================

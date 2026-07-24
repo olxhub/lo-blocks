@@ -18,12 +18,12 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { toMemoryRef } from '@/lib/types/storage';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 
 import * as lo_event from 'lo_event';
-import { render, makeRootNode } from '@/lib/render';
+import { render, makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { preloadCodeEditor } from '@/components/common/CodeEditor/CodeEditor';
 import { Provider } from 'react-redux';
 import React from 'react';
@@ -277,7 +277,7 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
     const { root } = parseResult;
 
     // Examples may <Use ref> shared fixtures from sibling *.includes.olx
-    // files (see lib/lofs/providers/docs.ts). In production those resolve
+    // files (see lib/storage/lofs/providers/docs.ts). In production those resolve
     // through the synced docs index; here, merge same-directory includes
     // as base content (the example's own blocks take priority).
     if (!fileName.endsWith('.includes.olx')) {
@@ -397,7 +397,7 @@ export function registerDemoRenderShard(shardName: keyof typeof DEMO_RENDER_SHAR
       // inside a useEffect to break a module cycle — warm the chunk here so
       // that import resolves synchronously-ish during mount instead of
       // still being in flight when the test asserts.
-      import('@/lib/blocks/useOlxJson'),
+      import('@/lib/player/client/useOlxJson'),
       // CodeEditor (authoring blocks embed it) lazy-loads CodeMirror the
       // same way; same reasoning.
       preloadCodeEditor(),

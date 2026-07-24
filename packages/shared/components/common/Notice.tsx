@@ -1,7 +1,7 @@
 'use client';
 
 import RenderMarkdown from './RenderMarkdown';
-import { SYSTEM_NS } from '@/lib/blocks/baselineRuntime';
+import { SYSTEM_NS } from '@/lib/player/client/baselineRuntime';
 
 /**
  * Renders a notice line. With no props, shows the platform notice.

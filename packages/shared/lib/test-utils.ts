@@ -6,7 +6,7 @@
 import { variantMapKeys } from './types/i18n';
 import type { IdMap, OlxJson, DefinitionKey, LoBlockRuntimeContext } from './types';
 import { asContentNamespace, qualifyDefinitionRef, parseDefinitionRef } from './types/id-grammar';
-import { DEFAULT_RUNTIME } from './blocks/baselineRuntime';
+import { DEFAULT_RUNTIME } from './player/client/baselineRuntime';
 
 /** The namespace tests qualify against. Historic value "CONTENT" — kept so
  *  existing fixtures and assertions don't churn. Purely a test convention;

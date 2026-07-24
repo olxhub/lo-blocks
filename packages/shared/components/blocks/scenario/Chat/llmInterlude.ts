@@ -18,7 +18,7 @@ import { hashContent } from '@/lib/util';
 import { useFieldState, appendToLog, fieldSelector } from '@/lib/state';
 import { callLLM } from '@/lib/llm/reduxClient';
 import { ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
-import { advanceFrom } from '@/lib/advance';
+import { advanceFrom } from '@/lib/player/advance';
 import {
   extractInterpolations, extractInterpolationRefs, useReferences, createContext,
   parse, evaluate,

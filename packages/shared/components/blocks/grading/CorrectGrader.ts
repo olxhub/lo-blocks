@@ -15,7 +15,7 @@
 //
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/grading/correctness';
 
 function gradeAlwaysCorrect() {
   return { correct: correctness.correct, message: '' };

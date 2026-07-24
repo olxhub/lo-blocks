@@ -3,7 +3,7 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
-import { advanceChildren, canAdvanceChildren } from '@/lib/advance';
+import { advanceChildren, canAdvanceChildren } from '@/lib/player/advance';
 import { selectKidsJson } from '@/lib/blocks/staticDynamicDom';
 import type { RuntimeProps } from '@/lib/types';
 

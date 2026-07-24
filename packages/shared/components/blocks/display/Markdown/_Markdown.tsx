@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import type { RuntimeProps } from '@/lib/types';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 import { useTextContent } from '@/lib/state/redux';
 import Spinner from '@/components/common/Spinner';
 import {

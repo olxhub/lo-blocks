@@ -6,11 +6,11 @@
 // the pending state for async graders, attempt accounting, and writing
 // the result as per-field CRDT events.
 //
-import { correctness, countsAsAttempt } from '../blocks/correctness';
+import { correctness, countsAsAttempt } from './correctness';
 import { graderAttributes } from '../blocks/attributeSchemas';
 import { toAppError } from '@/lib/types/errors';
 import { updateField } from '../state/fieldWrites';
-import type { Correctness } from '../blocks/correctness';
+import type { Correctness } from './correctness';
 import type { LoBlock, ObservableValue, RuntimeProps, StateKey } from '../types';
 import type {
   AsyncGraderFn, GradePreparation, GradingDescriptor, GradingResult,

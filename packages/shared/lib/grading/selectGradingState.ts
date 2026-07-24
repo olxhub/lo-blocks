@@ -18,7 +18,7 @@
 //     → read the per-field state the grading action wrote (submitGrade.ts).
 //       Covers submit mode and the async pending→final lifecycle.
 //
-import { correctness, countsAsAttempt } from '../blocks/correctness';
+import { correctness, countsAsAttempt } from './correctness';
 import { aggregateGradingStates } from './aggregators';
 import {
   prepareGrade, preparationErrorResult, normalizeGraderResult,

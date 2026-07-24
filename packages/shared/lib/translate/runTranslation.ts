@@ -10,7 +10,7 @@
 //
 // Module-level, so the dedupe is shared process-wide rather than per-route.
 
-import { singleFlight, timeout } from '@/lib/util/async';
+import { singleFlight, timeout } from '@/lib/async';
 import { translateBlock, type TranslateBlockOptions, type TranslationResult } from './orchestrate';
 
 /** Max wall time for a single translation job (10 minutes). */

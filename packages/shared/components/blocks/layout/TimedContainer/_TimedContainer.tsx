@@ -21,7 +21,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { z_olx_duration } from '@/lib/blocks/attributeSchemas';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 

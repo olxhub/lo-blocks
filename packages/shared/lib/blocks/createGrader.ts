@@ -37,12 +37,12 @@ import { grader } from '@/lib/grading/submitGrade';
 import type { GraderParams, SingleParam, ListParam, DictParam } from '@/lib/grading/model';
 import { graderAttributes, z_stateRef } from './attributeSchemas';
 import { registerDSLFunction } from '@/lib/stateLanguage/functions';
-import { correctness } from './correctness';
+import { correctness } from '../grading/correctness';
 import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
 
 // Default grader renderer, loaded lazily: _GraderShell renders children and pulls
-// the render layer (useKids → lib/render), which must stay out of the
+// the render layer (useKids → lib/player/client/render), which must stay out of the
 // eager blueprint graph — graders load in node and server routes.
 // See docs/blueprint-graph-performance.md #2.
 const NOOP_LOADER: ComponentLoader = () =>

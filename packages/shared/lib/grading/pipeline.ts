@@ -10,7 +10,7 @@
 // inside a selector. Sharing preparation is the point: any check added here
 // (e.g. input-type compatibility) applies to both modes by construction.
 //
-import { correctness, normalizeCorrectness } from '../blocks/correctness';
+import { correctness, normalizeCorrectness } from './correctness';
 import { isZodCompatible, describeZodType } from '../blocks/zodCompat';
 import { valueSelector } from '../state/blockValues';
 import { resolveTarget } from '../state/fieldReads';

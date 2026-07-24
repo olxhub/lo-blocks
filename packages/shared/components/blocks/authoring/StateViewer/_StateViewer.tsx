@@ -6,7 +6,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useComponentState } from '@/lib/state';
 import { decodeState } from '@/lib/state/stateDisplay';
 import { scopedStateKeyForBlock, stateKeyForGlobalRef, parseAnyStateRef } from '@/lib/types/id-grammar';
-import { useOlxJson } from '@/lib/blocks/useOlxJson';
+import { useOlxJson } from '@/lib/player/client/useOlxJson';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 export default function StateViewer(props: RuntimeProps) {

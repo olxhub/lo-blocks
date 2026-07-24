@@ -3,9 +3,9 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 
 function MainContent({ props, main }) {
   const { kids } = useKids({ ...props, kids: main });

@@ -5,8 +5,8 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
-import { useGraderAnswer } from '@/lib/blocks/useGraderAnswer';
-import { assertNamedObject } from '@/lib/util/kids';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { assertNamedObject } from '@/lib/types/kids';
 
 export default function TabularMCQ(props: RuntimeProps) {
   const { fields, kids } = props;

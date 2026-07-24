@@ -9,9 +9,9 @@ import {
   BUILTIN_VARIABLE_NAMES,
   BUILTIN_FUNCTION_NAMES,
   type Tolerance,
-} from '@/lib/util/calc/schemas';
+} from '@/lib/grading/calc/schemas';
 import { requireCalc } from './calcLoader';
-import type { SamplesSpec, CalcASTNode } from '@/lib/util/calc/types';
+import type { SamplesSpec, CalcASTNode } from '@/lib/grading/calc/types';
 
 
 /** Names that are built-in and don't need to appear in a samples spec.

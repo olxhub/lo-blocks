@@ -2,7 +2,7 @@
 // packages/shared/lib/graph/parseIdMap.test.ts
 import { parseIdMap } from '@/lib/graph/parseIdMap';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
-import { FileStorageProvider } from '@/lib/lofs/providers/file';
+import { FileStorageProvider } from '@/lib/storage/lofs/providers/file';
 import { asContentNamespace } from '@/lib/types/id-grammar';
 
 describe('parseIdMap', () => {

@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 // Stable fallback for the level-2 selection read: the subscription compares by

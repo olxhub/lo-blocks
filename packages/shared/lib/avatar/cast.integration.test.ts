@@ -12,14 +12,14 @@
 
 import { describe, test, expect, afterEach, beforeAll } from 'vitest';
 import { parseOLX } from '@/lib/content/parseOLX';
-import { InMemoryStorageProvider } from '@/lib/lofs/providers/memory';
+import { InMemoryStorageProvider } from '@/lib/storage/lofs/providers/memory';
 import { toMemoryRef } from '@/lib/types/storage';
 import { TEST_NS, testKey, mockRuntime } from '@/lib/test-utils';
 import { asDefinitionKey } from '@/lib/types/id-grammar';
 
-import { render, makeRootNode } from '@/lib/render';
+import { render, makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { preloadBlockComponents } from '@/lib/blocks/componentLoader';
+import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
 import { store } from '@/lib/state/store';
 import { dispatchOlxJsonSync } from '@/lib/state/olxjson';
 import { render as rtlRender, cleanup } from '@testing-library/react';

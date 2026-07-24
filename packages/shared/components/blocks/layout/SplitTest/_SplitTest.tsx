@@ -4,7 +4,7 @@ import type { RuntimeProps, StateRef } from '@/lib/types';
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { scopedStateKeyForBlock, stateKeyForGlobalRef } from '@/lib/types/id-grammar';
-import { useKids, useKidsJson } from '@/lib/render';
+import { useKids, useKidsJson } from '@/lib/player/client/render';
 
 function SplitTestChild({ props, node }) {
   const { kids } = useKids({ ...props, kids: [node] });

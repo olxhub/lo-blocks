@@ -5,9 +5,9 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
-import { assertKidArray } from '@/lib/util/kids';
+import { assertKidArray } from '@/lib/types/kids';
 
 // Each entry renders independently - avoids Promise.all suspense issues
 function DynamicListEntry({ props, template, index, id }) {

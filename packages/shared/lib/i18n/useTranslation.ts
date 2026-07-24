@@ -27,7 +27,7 @@ import {
   dispatchOlxJsonError,
 } from '@/lib/state/olxjson';
 import type { OlxJson, UserLocale, ContentVariant } from '@/lib/types';
-import type { LogEventFn } from '@/lib/render';
+import type { LogEventFn } from '@/lib/player/client/render';
 
 export interface TranslationState {
   /** True when showing content in a different language than the user requested */

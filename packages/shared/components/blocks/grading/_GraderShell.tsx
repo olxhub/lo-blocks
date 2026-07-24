@@ -7,7 +7,7 @@
 // individual parts, each part needs its own visible status.
 //
 'use client';
-import { useKids, Block } from '@/lib/render';
+import { useKids, Block } from '@/lib/player/client/render';
 import type { RuntimeProps } from '@/lib/types';
 
 export default function GraderShell(props: RuntimeProps) {

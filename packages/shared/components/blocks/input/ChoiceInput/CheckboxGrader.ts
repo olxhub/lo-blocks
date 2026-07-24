@@ -14,7 +14,7 @@ import { graderInputStateKeys } from '@/lib/grading/topology';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { resolveTarget } from '@/lib/state';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/grading/correctness';
 
 export const fields = state.fields(state.graderFields());
 

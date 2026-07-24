@@ -9,7 +9,7 @@ import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { parseXmlFragment } from '@/lib/content/xmlParser';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
-import { advanceFrom } from '@/lib/advance';
+import { advanceFrom } from '@/lib/player/advance';
 import {
   selectReferences, createContext, extractStructuredRefs, mergeReferences, EMPTY_REFS,
   parse as parseExpr, evaluate,
@@ -38,7 +38,7 @@ export const fields = state.fields([
 /* ----------------------------------------------------------------
  * Advance / canAdvance — blueprint functions for the advance system.
  *
- * These are pure functions called by lib/advance.ts tree walker.
+ * These are pure functions called by lib/player/advance.ts tree walker.
  * They read state via fieldSelector/selectReferences and write
  * via updateField — no React hooks.
  * -------------------------------------------------------------- */

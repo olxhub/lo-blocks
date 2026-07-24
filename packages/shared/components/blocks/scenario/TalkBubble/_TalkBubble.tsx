@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import * as cast from '@/lib/avatar/cast';
 
 export default function TalkBubble(props) {

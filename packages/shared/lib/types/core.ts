@@ -20,7 +20,7 @@ import type { Store } from 'redux';
 import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
-import type { Correctness } from '../blocks/correctness';
+import type { Correctness } from '../grading/correctness';
 
 /**
  * ════════════
@@ -260,7 +260,7 @@ export type SafeRelativePath = OlxRelativePath & { __safe: true };
  */
 export type RepoRelativePath = SafeRelativePath & { __contentFile: true };
 /*
- * Produced by toRepoRelativePath() (see lib/lofs/repoPath.ts — server-only, as
+ * Produced by toRepoRelativePath() (see lib/storage/lofs/repoPath.ts — server-only, as
  * it uses Node `path`) — the conversion the content API routes run on an
  * untrusted ?path= before handing it to a provider. It IS a SafeRelativePath
  * (so it flows into any provider method unchanged), plus the content-file stamp
@@ -817,7 +817,7 @@ export const BlockBlueprintSchema = z.object({
   fields: ReduxFieldsReturn.optional(),
   /**
    * Advance the block's internal state by one step (e.g. next dialogue line,
-   * next sequence item).  Called by the advance tree walker (lib/advance.ts).
+   * next sequence item).  Called by the advance tree walker (lib/player/advance.ts).
    *
    * Return value:
    *   true  — still active (advanced, or waiting on a condition)
@@ -995,7 +995,7 @@ export interface LoBlock {
   /** Eager component. Set when the blueprint declared one, or after this
    *  block's componentLoader resolves. Absent on lazy blocks pre-load and
    *  on headless blocks (actions/graders with no view). Render code goes
-   *  through resolveBlockComponent() (lib/blocks/lazyBlockComponent), never
+   *  through resolveBlockComponent() (lib/blocks/loader/lazyBlockComponent), never
    *  reads this directly — the resolver owns the lazy/headless semantics. */
   component?: React.ComponentType<any>;
   /** Lazy component loader — see ComponentLoader. Declared in the blueprint

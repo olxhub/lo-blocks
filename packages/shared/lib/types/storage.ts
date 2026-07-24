@@ -14,7 +14,7 @@ import {
   makeAddress, addressPath, scheme, withVersion,
   toLofsRef, toLofsOrigin, toLofsContentPath, toLofsVersion, toLofsCanonical,
 } from './address';
-import { FileType } from '../lofs/fileTypes';
+import { FileType } from '../storage/lofs/fileTypes';
 
 /**
  * Provider-specific metadata for change detection.

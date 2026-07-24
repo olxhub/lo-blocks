@@ -4,8 +4,8 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { useFieldState, settings } from '@/lib/state';
-import { useRenderedBlocksMultiple } from '@/lib/blocks/useRenderedBlock';
-import { advanceFrom } from '@/lib/advance';
+import { useRenderedBlocksMultiple } from '@/lib/player/client/useRenderedBlock';
+import { advanceFrom } from '@/lib/player/advance';
 import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/ChatComponent';
 import type { ChatDisplayEntry } from '@/lib/types';
 import { DisplayError } from '@/lib/util/debug';

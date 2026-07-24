@@ -18,9 +18,9 @@ import React, { useContext } from 'react';
 import * as state from '@/lib/state';
 import { value as valueFieldCommon } from '@/lib/state/commonFields';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
-import { useGraderAnswer } from '@/lib/blocks';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { DisplayError } from '@/lib/util/debug';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { ChoiceGroupContext } from './_ChoiceGroup';
 
 export default function ChoiceItem(props: RuntimeProps) {

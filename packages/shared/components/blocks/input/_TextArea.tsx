@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useInputField, useFieldSelector } from '@/lib/state';
-import { useInputReadOnly } from '@/lib/blocks';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 
 // OLX attributes → React DOM props (rename where conventions differ)

@@ -4,10 +4,10 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import Split from 'react-split';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
 import { DisplayError } from '@/lib/util/debug';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 
 function PaneContent({ props, paneKids }) {
   const { kids } = useKids({ ...props, kids: paneKids });

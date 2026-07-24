@@ -16,7 +16,7 @@
 // it throws a clear error on the one path that can't await (a DSL
 // expression calling formulaMatch before anything loaded the engine).
 
-import type * as CalcModule from '@/lib/util/calc/index.js';
+import type * as CalcModule from '@/lib/grading/calc/index.js';
 
 let calc: typeof CalcModule | null = null;
 let loading: Promise<typeof CalcModule> | null = null;
@@ -26,7 +26,7 @@ export async function ensureCalcLoaded(): Promise<void> {
   if (!calc) {
     // await import (documented exception): the whole point of this module —
     // keep mathjs out of the eager import graph of grader blueprints.
-    loading ??= import('@/lib/util/calc/index.js');
+    loading ??= import('@/lib/grading/calc/index.js');
     calc = await loading;
   }
 }

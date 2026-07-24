@@ -20,7 +20,7 @@
 import { z } from 'zod';
 import { createGrader } from '@/lib/blocks';
 import { ratioMatch, validateRatioInputs, validateNumericalAttributes, ensureCalcLoaded } from '@/lib/grading';
-import { ToleranceSchema } from '@/lib/util/calc/schemas';
+import { ToleranceSchema } from '@/lib/grading/calc/schemas';
 
 // Re-export for convenience
 export { ratioMatch } from '@/lib/grading';

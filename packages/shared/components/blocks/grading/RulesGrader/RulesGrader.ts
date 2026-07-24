@@ -16,11 +16,11 @@
 import { z } from 'zod';
 import { core, grader, isMatch, getBlockByOLXId } from '@/lib/blocks';
 import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
-import { correctness } from '@/lib/blocks/correctness';
+import { correctness } from '@/lib/grading/correctness';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 import type { JSONValue, OlxJson, RuntimeProps } from '@/lib/types';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 
 /**
  * Grade by evaluating child Match rules top-to-bottom, returning first match.

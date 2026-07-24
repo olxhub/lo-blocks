@@ -4,9 +4,9 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useCallback, useMemo } from 'react';
 import { useFieldSelector, updateField } from '@/lib/state';
-import { useGraderAnswer } from '@/lib/blocks';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { DisplayError } from '@/lib/util/debug';
-import { assertNamedObject } from '@/lib/util/kids';
+import { assertNamedObject } from '@/lib/types/kids';
 
 /**
  * Parse comma-separated options string into options array.

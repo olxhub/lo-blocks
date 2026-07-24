@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import ExpandIcon from '@/components/common/ExpandIcon';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 

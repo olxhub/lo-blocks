@@ -4,13 +4,14 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useRef } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
-import { useInputReadOnly, useGraderAnswer } from '@/lib/blocks';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
-import { useOlxJsonMultiple } from '@/lib/blocks/useOlxJson';
+import { useOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
 import { buildArrangementWithPositions } from '@/lib/util/shuffle';
-import { isKidArray } from '@/lib/util/kids';
+import { isKidArray } from '@/lib/types/kids';
 
 // Component to render a single sortable item's content
 function SortableItemContent({ props, kid, itemIdPrefix }) {

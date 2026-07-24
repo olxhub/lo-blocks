@@ -2,7 +2,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
-import { assertString } from '@/lib/util/kids';
+import { assertString } from '@/lib/types/kids';
 
 // TextBlock uses parsers.text() which returns string kids
 function _TextBlock(props: RuntimeProps) {

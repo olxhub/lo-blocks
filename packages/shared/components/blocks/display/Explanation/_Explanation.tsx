@@ -4,7 +4,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { computeVisibility } from '@/lib/blocks';
 import { useGradingState } from '@/lib/grading';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 
 /**
  * Explanation displays its children conditionally based on grader state.

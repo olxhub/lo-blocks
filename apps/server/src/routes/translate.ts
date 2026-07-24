@@ -13,7 +13,7 @@
 
 import path from 'path';
 import type { Context } from 'hono';
-import { unionProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/lofs/contentSources';
+import { unionProvider, writableSourceProvider, ReadOnlySourceError } from '@/lib/storage/lofs/contentSources';
 import { source as lofsSource } from '@/lib/types/address';
 import {
   syncContentFromStorage,

@@ -22,7 +22,7 @@ import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import RenderOLX from '@/components/common/RenderOLX';
 import Spinner from '@/components/common/Spinner';
 import { DisplayError } from '@/lib/util/debug';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 
 // HACK HACK HACK
 // We want debounce at the field level.

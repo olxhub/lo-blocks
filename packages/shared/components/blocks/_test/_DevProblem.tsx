@@ -3,7 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useKids } from '@/lib/render';
+import { useKids } from '@/lib/player/client/render';
 
 export default function DevProblem(props: RuntimeProps) {
   const { kids } = useKids(props);

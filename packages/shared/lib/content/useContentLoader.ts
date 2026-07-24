@@ -5,7 +5,7 @@ import { dispatchOlxJson } from '@/lib/state/olxjson';
 import { adoptFieldState } from '@/lib/state/store';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { useLocaleAttributes } from '@/lib/i18n/useLocaleAttributes';
-import { useBaselineProps } from '@/lib/blocks/baselineRuntime';
+import { useBaselineProps } from '@/lib/player/client/baselineRuntime';
 import { fetchOlxJson } from '@/lib/content/fetchOlxJson';
 
 /**

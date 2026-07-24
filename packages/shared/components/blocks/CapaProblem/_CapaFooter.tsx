@@ -11,7 +11,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
-import { Block } from '@/lib/render';
+import { Block } from '@/lib/player/client/render';
 import {
   getButtonLabel,
   shouldShowAnswer,
@@ -19,7 +19,7 @@ import {
   getAttemptsDisplay,
   parseMaxAttempts,
   type ProblemState,
-} from '@/lib/blocks/problemModes';
+} from '@/lib/grading/problemModes';
 
 /**
  * Build ProblemState from component props.

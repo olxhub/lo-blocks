@@ -13,7 +13,7 @@
 // in a single history entry.
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { McpStorageProvider } from '@/lib/lofs';
+import { McpStorageProvider } from '@/lib/storage/lofs';
 import { useSources } from '@/lib/state/sources';
 import { toOlxRelativePath, VersionConflictError } from '@/lib/types/storage';
 import { toLofsOrigin, makeAddress, toLofsContentPath } from '@/lib/types/address';
