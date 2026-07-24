@@ -1,1 +1,1 @@
-<TextSelection id="preview" mode="immediate"><![CDATA[{{CONTENT}}]]></TextSelection>
+<SimpleTextSelection id="preview" mode="immediate"><![CDATA[{{CONTENT}}]]></SimpleTextSelection>

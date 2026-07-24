@@ -1,17 +1,18 @@
-# TextSelection
+# SimpleTextSelection
 
 Interactive text-highlighting exercise where learners select words or phrases
 marked in a passage.
 
-`<TextSelection>` is the terse one-tag spelling. It parses the passage and
-expands to a [`TextSelectionGrader`](./TextSelectionGrader.md) wrapping a
-[`TextSelectionInput`](./TextSelectionInput.md) inside a problem, reusing the
-standard problem chrome (header, Check/Show-Answer footer, grading). Author the
+`<SimpleTextSelection>` is the terse one-tag spelling (the SimpleSortable /
+SimpleMatching pattern). It parses the passage and expands to a CapaProblem
+wrapping a [`TextSelectionGrader`](./TextSelectionGrader.md) →
+[`TextSelectionInput`](./TextSelectionInput.md) pair, so it gets the standard
+problem chrome (header, Check / Show-Answer footer, grading) for free. Author the
 pair by hand when you need finer control (see the two block docs).
 
 ## Overview
 
-TextSelection presents a passage where learners click or drag to highlight
+SimpleTextSelection presents a passage where learners click or drag to highlight
 words. Three interaction modes map onto standard problem semantics:
 
 - **immediate** (default) → `grade="immediate"`: correctness derives live, no button.
@@ -23,22 +24,24 @@ words. Three interaction modes map onto standard problem semantics:
 Inline content:
 
 ```olx:code
-<TextSelection id="concepts" mode="immediate">
+<SimpleTextSelection id="concepts" mode="immediate">
 Highlight all the nouns:
 ---
-The [cat] sat on the [mat] near the [window].
-</TextSelection>
+{The} [cat] sat on {the} [mat] near {the} [window].
+</SimpleTextSelection>
 ```
 
 Or load the passage from an external `.textSelectionpeg` file:
 
 ```olx:code
-<TextSelection id="concepts" mode="graded" src="cooperative_learning.textSelectionpeg" />
+<SimpleTextSelection id="concepts" mode="graded" src="cooperative_learning.textSelectionpeg" />
 ```
 
 ## Content Format
 
-The passage uses a small markup syntax (the `.textSelectionpeg` grammar):
+The passage uses a small markup syntax (the `.textSelectionpeg` grammar). The
+grammar reference lives with the block that owns it,
+[`TextSelectionInput`](./TextSelectionInput.md#passage-grammar); the essentials:
 
 ```
 Prompt text goes here
@@ -79,7 +82,8 @@ all: Excellent! You identified all three researchers.
 
 Conditions: `all` (all required, no errors), `>N` / `<N` / `=N` on `found`,
 and compound forms like `>1,errors<1`. Fields are `found`, `errors`,
-`incorrect`. A bare `:` is the fallback rule.
+`incorrect`. A bare `:` is the fallback rule. Full semantics live in the
+[`TextSelectionGrader`](./TextSelectionGrader.md#scoring-rules) doc.
 
 ### Targeted Feedback
 
@@ -95,20 +99,15 @@ coal: Not quite — coal is a fossil fuel.
 
 ## Scoring model
 
-Subtractive partial credit:
+Subtractive partial credit (see [`TextSelectionGrader`](./TextSelectionGrader.md)
+for the full derivation):
 
 ```
 score = clamp((requiredFound − wrongSelected) / totalRequired, 0, 1)
 ```
 
-- `requiredFound` — required segments with **every** word selected.
-- `wrongSelected` — each selected plain word (counts once each) plus each
-  `<<trigger>>` segment touched (counts once). Optional segments never count.
-- **Correct** when all required are found and nothing wrong is selected;
-  **partially correct** for any score in between; **incorrect** at zero.
-
 Because wrong picks subtract, selecting the whole passage no longer earns full
-credit (the previous prototype's bug).
+credit.
 
 ## Attributes
 
@@ -118,7 +117,17 @@ credit (the previous prototype's bug).
 | `mode` | No | `immediate` | One of `immediate`, `graded`, `selfcheck` |
 | `src` | No | – | Path to an external `.textSelectionpeg` passage file |
 
-Passage content is provided inline **or** via `src` (not both).
+Any other problem attribute (`title`, `maxAttempts`, `showanswer`, …) passes
+through to the generated CapaProblem. Passage content is provided inline **or**
+via `src` (not both).
+
+## Generated Structure
+
+SimpleTextSelection expands into:
+
+- `{id}_problem` — CapaProblem container (owns the footer and Show Answer)
+- `{id}_grader` — TextSelectionGrader for scoring
+- `{id}_input` — TextSelectionInput with the passage and selection UI
 
 ## Visual Feedback
 

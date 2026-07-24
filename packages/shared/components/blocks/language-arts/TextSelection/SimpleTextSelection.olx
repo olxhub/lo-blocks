@@ -1,0 +1,8 @@
+<!-- The terse one-tag spelling, immediate mode. The articles are marked
+     {optional}: selecting them neither helps nor hurts, so learners aren't
+     penalized for a reasonable reading of "the nouns". -->
+<SimpleTextSelection id="basic_nouns" mode="immediate">
+Highlight all the nouns in this sentence:
+---
+{The} [cat] sat on {the} [mat] near {the} [window].
+</SimpleTextSelection>

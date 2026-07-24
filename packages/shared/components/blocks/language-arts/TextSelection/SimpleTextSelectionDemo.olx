@@ -1,26 +1,27 @@
-<Vertical id="TextSelectionDemo" title="TextSelection Block Demo">
+<Vertical id="SimpleTextSelectionDemo" title="TextSelection Block Demo">
 
   <Markdown>
 # TextSelection Block Demo
 
 The TextSelection family lets learners interactively highlight words or phrases
-marked in a passage. The terse TextSelection tag expands to a TextSelectionGrader
-wrapping a TextSelectionInput inside a problem; you can also author that pair by
-hand for full control.
+marked in a passage. The terse SimpleTextSelection tag expands to a CapaProblem
+wrapping a TextSelectionGrader and a TextSelectionInput; you can also author that
+pair by hand for full control.
   </Markdown>
 
   <!-- 1. Thin tag, immediate mode -->
   <Markdown>
 ## 1. Immediate Mode (thin tag)
 
-Click words to highlight them; correctness updates live.
+Click words to highlight them; correctness updates live. The articles are marked
+`{optional}`, so highlighting them neither helps nor hurts.
   </Markdown>
 
-  <TextSelection id="demo_immediate" mode="immediate">
+  <SimpleTextSelection id="demo_immediate" mode="immediate">
 Highlight all the nouns:
 ---
 {The} [student] went to {the} [park] with {their} [friends].
-  </TextSelection>
+  </SimpleTextSelection>
 
   <!-- 2. Composed by hand, submit mode -->
   <Markdown>
@@ -53,12 +54,12 @@ all: Perfect! You found both positive reinforcement examples! (2/2)
 Make your selections, then reveal the answer to compare.
   </Markdown>
 
-  <TextSelection id="demo_self_check" mode="selfcheck">
+  <SimpleTextSelection id="demo_self_check" mode="selfcheck">
 Compare your highlighting with ours:
 ---
 [Reinforcement] increases behavior while [punishment] decreases it.
 {Positive and negative} refer to [adding or removing], not good or bad.
-  </TextSelection>
+  </SimpleTextSelection>
 
   <!-- 4. Targeted feedback -->
   <Markdown>
@@ -67,7 +68,7 @@ Compare your highlighting with ours:
 Per-term notes appear as the learner selects specific labeled segments.
   </Markdown>
 
-  <TextSelection id="demo_advanced" mode="immediate">
+  <SimpleTextSelection id="demo_advanced" mode="immediate">
 Identify the behavioral techniques:
 ---
 They used [positive reinforcement|pos_reinf] by giving rewards. They tried
@@ -83,7 +84,7 @@ pos_reinf: That's right! Adding something pleasant.
 neg_punish: Correct! Removing something the child wants.
 accident: Tricky one - the yelling reinforced bad behavior!
 yelling: Careful - what effect did the yelling actually have?
-  </TextSelection>
+  </SimpleTextSelection>
 
   <Markdown>
 ## Summary

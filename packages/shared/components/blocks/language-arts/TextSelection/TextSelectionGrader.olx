@@ -1,0 +1,18 @@
+<!-- Composed SUBMIT-mode grading, authored the long way: a TextSelectionGrader
+     wrapping a TextSelectionInput inside a CapaProblem. Make selections, then
+     Check. The bare <SimpleTextSelection mode="graded"> tag expands to exactly
+     this. Shared with TextSelectionInput's docs via the TextSelectionInputGraded
+     symlink. -->
+<CapaProblem id="graded_verbs" grade="submit" title="Find the verbs">
+  <TextSelectionGrader>
+    <TextSelectionInput>
+Find the verbs in this paragraph:
+---
+The dog [runs] quickly. It [barks] at the mailman and [chases] the car.
+---
+all: Perfect! You found all three verbs.
+&gt;1: Good progress! There are more verbs to find.
+: Look for action words - what is the dog doing?
+    </TextSelectionInput>
+  </TextSelectionGrader>
+</CapaProblem>

@@ -1,0 +1,10 @@
+<!-- TextSelectionInput ALONE - no grader, no problem chrome. The learner
+     highlights words freely and the selection is recorded, but nothing is
+     scored. Use the input bare like this for annotation / close-reading
+     activities, or as the collection half of a hand-composed problem. -->
+<TextSelectionInput id="free_selection">
+Highlight any words you find interesting or want to come back to:
+---
+The [mitochondria] is the [powerhouse] of the [cell], converting nutrients into
+usable [energy] through cellular [respiration].
+</TextSelectionInput>
