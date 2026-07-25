@@ -497,6 +497,7 @@ function collectEventTypes(
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
+    ...CONTENT_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
     ...SOURCES_EVENT_TYPES,
