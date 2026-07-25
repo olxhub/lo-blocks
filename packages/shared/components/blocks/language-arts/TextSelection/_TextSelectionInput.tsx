@@ -17,7 +17,8 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
-import { useGraderAnswer, useInputReadOnly } from '@/lib/blocks';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import {
   tokenize, expectedSelections, targetedFeedbackItems,

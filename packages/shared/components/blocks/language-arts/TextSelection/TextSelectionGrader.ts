@@ -17,7 +17,7 @@ import { graderInputStateKeys } from '@/lib/grading/topology';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
 import { resolveTarget } from '@/lib/state';
-import { correctness, type Correctness } from '@/lib/blocks/correctness';
+import { correctness, type Correctness } from '@/lib/grading/correctness';
 import {
   computeStats, scoreFromStats, messageForStats, displayAnswerFromExpected,
   type ExpectedSelections,
