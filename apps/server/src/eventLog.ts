@@ -76,10 +76,49 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   return conn;
 }
 
-/** Append a single event to the gzip stream. */
+/** Append a single event to the gzip stream. Fire-and-forget: the bytes
+ *  sit in zlib's internal buffer until a later flush (a full write, or a
+ *  durable append) pushes them to the file. Use for server-generated log
+ *  entries (e.g. fetch_blob_response) that nothing acks. */
 export function appendEvent(conn: ConnectionLog, event: any) {
   conn.log.eventCount++;
   conn.stream.write(JSON.stringify(event) + '\n');
+}
+
+/** Append a single event AND flush it through zlib to the underlying file,
+ *  resolving only once the compressed bytes are on disk.
+ *
+ *  This is the Plane-1 ack trigger (pubsub-state-sync-design §3a/§7). The
+ *  server must not tell the client "durably captured" until the event is
+ *  actually in the events/ log — not merely folded into in-memory
+ *  ServerState. The bug being fixed is exactly the window where an event
+ *  lives only in a JS variable + the network buffer: acking before the
+ *  disk write reintroduces it.
+ *
+ *  Z_SYNC_FLUSH ends a deflate block, so every byte written so far is
+ *  independently decompressible — a reader (or a crash-truncated file)
+ *  recovers all acked events even though the gzip trailer isn't written
+ *  until saveConnectionLog(). The flush callback fires after the flushed
+ *  bytes have reached the file stream, so ack-after-resolve is strictly
+ *  ordered log-write-then-ack. */
+export function appendEventDurable(conn: ConnectionLog, event: any): Promise<void> {
+  if (conn.streamError) return Promise.reject(conn.streamError);
+  conn.log.eventCount++;
+  return new Promise((resolve, reject) => {
+    // Flush from INSIDE the write callback: zlib processes write/flush
+    // requests off an async queue, and flushing before this write is
+    // consumed can emit only the previously-buffered bytes — leaving this
+    // very event unflushed (and thus not yet durable) until the next write.
+    // The write callback fires once the chunk is consumed, so the following
+    // Z_SYNC_FLUSH is guaranteed to push THIS event's bytes to the file.
+    conn.stream.write(JSON.stringify(event) + '\n', (writeErr) => {
+      if (writeErr) return reject(writeErr);
+      conn.stream.flush(zlib.constants.Z_SYNC_FLUSH, () => {
+        if (conn.streamError) reject(conn.streamError);
+        else resolve();
+      });
+    });
+  });
 }
 
 /** Flush and close the gzip stream. Call on disconnect / shutdown.
