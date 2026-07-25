@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useUser } from '@/lib/state';
 import { getConfigBool } from '@/lib/config';
 import type { Locale } from '@/lib/types';
-import { useConnectionStatus, SaveIndicator, OfflineNotice } from './ConnectionStatus';
+import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice } from './ConnectionStatus';
 import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
 
 interface StatusBarProps {
@@ -24,7 +24,7 @@ interface StatusBarProps {
 }
 
 export default function StatusBar({ availableLocales, bestEffortLocales }: StatusBarProps = {}) {
-  const { saveStatus, persists, offline } = useConnectionStatus();
+  const { saveStatus, persists, offline, fatal } = useConnectionStatus();
   const user = useUser();
 
   const translanguaging = getConfigBool('translanguaging');
@@ -41,6 +41,22 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [persists, saveStatus]);
+
+  // Fatal delivery failure (e.g. the server doesn't speak the save protocol —
+  // a misdeploy): the client holds its queue but nothing reaches the server.
+  // Strongest signal, checked ahead of the transient offline case — banner +
+  // dim. Delivery stays best-effort (lo_event keeps the durable queue); the UX
+  // just refuses to look saved. See pubsub-state-sync-design §3a (requireAck).
+  if (fatal) {
+    return (
+      <div className="sticky top-0 z-50 print:hidden">
+        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
+          <FatalNotice message={fatal.message} />
+        </div>
+        <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
+      </div>
+    );
+  }
 
   // Persistence dropped: red banner + dim the page to discourage working while
   // changes can't be saved. (offline implies persistence is configured.)
