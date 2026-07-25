@@ -305,6 +305,72 @@ describe('grading dispatches per-field events', () => {
     });
   });
 
+  it('TextSelectionGrader scores a composed selection end-to-end (submit)', async () => {
+    // Full path for the split TextSelection: the input stores selected word
+    // indices, the grader reads them plus the answer key (via the input's
+    // getExpectedSelections local) and applies subtractive partial credit.
+    const TS_OLX = `<CapaProblem id="TSGrade" title="Nouns" grade="submit">
+      <TextSelectionGrader>
+        <TextSelectionInput>
+Highlight the nouns:
+---
+The [cat] sat on the [mat].
+        </TextSelectionInput>
+      </TextSelectionGrader>
+    </CapaProblem>`;
+    const { reduxStore, container, getByText } = await mountProblem(TS_OLX);
+    const scopedKey = (suffix: string) => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      return Object.keys(comp).find(k => k.includes('TSGrade') && k.endsWith(suffix));
+    };
+    const graderCorrect = () => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_grader_0');
+      return key ? comp[key]?.correct : undefined;
+    };
+    const selectionCount = () => {
+      const comp = reduxStore.getState().application_state?.component ?? {};
+      const key = scopedKey('_input_0');
+      const sel = key ? comp[key]?.selections : undefined;
+      return Array.isArray(sel) ? sel.length : 0;
+    };
+    // Click a word and wait for the selection to fold into the store (lo_event
+    // dispatch is queued) before the caller submits.
+    const selectWord = async (word: string, expectedCount: number) => {
+      const span = Array.from(container.querySelectorAll('.text-content span'))
+        .find(s => s.textContent?.trim() === word);
+      expect(span, `word span "${word}"`).toBeTruthy();
+      fireEvent.click(span!);
+      await waitFor(() => expect(selectionCount()).toBe(expectedCount));
+    };
+
+    // One of two required found, nothing wrong → score 0.5 → partial.
+    await selectWord('cat', 1);
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => expect(graderCorrect()).toBe('partiallyCorrect'));
+
+    // Add the other required word → exactly the key → correct.
+    await selectWord('mat', 2);
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => expect(graderCorrect()).toBe('correct'));
+
+    // Two ADJACENT plain words ("sat on") are one contiguous mistake, not two:
+    // both required still found (2), wrongSelected 1 → (2−1)/2 = 0.5 → partial.
+    // (The old per-word rule charged 2 here and dropped straight to incorrect.)
+    await selectWord('sat', 3);
+    await selectWord('on', 4);
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => expect(graderCorrect()).toBe('partiallyCorrect'));
+
+    // Add "The", a plain word separated from the "sat on" run by the unselected
+    // "the": now two contiguous runs → wrongSelected 2 → (2−2)/2 = 0 → incorrect.
+    // Penalties erase the credit — the bug the split fixed (the old block ignored
+    // wrong picks and scored a select-everything answer as perfect).
+    await selectWord('The', 5);
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => expect(graderCorrect()).toBe('incorrect'));
+  });
+
   it('immediate mode derives correctness from live input values', async () => {
     const { reduxStore, container, queryByText } = await mountProblem(IMMEDIATE_OLX);
 

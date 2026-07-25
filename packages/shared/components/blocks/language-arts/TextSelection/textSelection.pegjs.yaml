@@ -1,0 +1,5 @@
+# Metadata for the .textSelectionpeg content type (read by
+# generate-parser-registry.ts). `name` is the label shown in Studio's
+# new-file dialog and the block a .textSelectionpeg file instantiates.
+name: SimpleTextSelection
+creatable: true

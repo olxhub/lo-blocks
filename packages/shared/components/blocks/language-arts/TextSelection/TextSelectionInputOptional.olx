@@ -1,0 +1,9 @@
+<CapaProblem id="optional_articles" grade="immediate" title="Nouns (articles optional)">
+  <TextSelectionGrader>
+    <TextSelectionInput>
+Highlight all the nouns - including the article is fine, but not required:
+---
+{The} [cat] sat on {the} [mat] near {the} [window].
+    </TextSelectionInput>
+  </TextSelectionGrader>
+</CapaProblem>

@@ -8,12 +8,21 @@ import yaml from 'js-yaml';
 import { GRAMMAR_DIRS } from '../lib/grammarDirs';
 import { windowsToPosix } from '../lib/util/posixPath';
 
-const outputFile = 'packages/shared/generated/parserRegistry.ts';
+export const PARSER_REGISTRY_OUTPUT = 'packages/shared/generated/parserRegistry.ts';
 
-async function generateParserRegistry() {
+interface ParserEntry { extension: string; grammarName: string; importPath: string; grammarDir: string; template: string | null; metadata: Record<string, unknown> | null }
+
+// Build the registry file contents AND the discovered entries (for the writer's
+// log). Split out from the writer so the staleness test can render the expected
+// content in-process and diff it against the on-disk file.
+async function buildParserRegistry(): Promise<{ content: string; entries: ParserEntry[] }> {
+  // Sort so the generated file is byte-for-byte deterministic: glob returns
+  // filesystem order, which varies across machines/CI and between the build
+  // script and the in-process staleness render. Sorted paths also make the
+  // "first found wins" dedupe below stable (the alphabetically-first path wins).
   const parserFiles = (await Promise.all(
     GRAMMAR_DIRS.map(dir => glob(`${dir}/**/_*Parser.js`))
-  )).flat();
+  )).flat().sort();
 
   // Use a Map to dedupe by extension (first found wins)
   const entriesMap = new Map();
@@ -186,11 +195,27 @@ export function getPreviewPath(ext: string): string | undefined {
 }
 `;
 
-  await fs.mkdir(path.dirname(outputFile), { recursive: true });
-  await fs.writeFile(outputFile, content);
+  // Report what was discovered alongside the content, so the writer can log it.
+  return { content, entries };
+}
+
+/**
+ * The parser-registry file contents (without writing them). The staleness test
+ * diffs this against the on-disk file: a stale parserRegistry.ts otherwise
+ * surfaces only as a cryptic "cannot find module" tsc error, which reads like a
+ * pre-existing bug when it is really just a missing `npm run build`.
+ */
+export async function generateParserRegistryContent(): Promise<string> {
+  return (await buildParserRegistry()).content;
+}
+
+async function generateParserRegistry() {
+  const { content, entries } = await buildParserRegistry();
+  await fs.mkdir(path.dirname(PARSER_REGISTRY_OUTPUT), { recursive: true });
+  await fs.writeFile(PARSER_REGISTRY_OUTPUT, content);
   const withTemplates = entries.filter(e => e.template !== null);
   const withMetadata = entries.filter(e => e.metadata !== null);
-  console.log(`✅ Generated ${outputFile} with ${entries.length} parsers, ${withTemplates.length} templates, ${withMetadata.length} metadata files:`);
+  console.log(`✅ Generated ${PARSER_REGISTRY_OUTPUT} with ${entries.length} parsers, ${withTemplates.length} templates, ${withMetadata.length} metadata files:`);
   entries.forEach(e => {
     const flags = [
       e.template !== null ? 'template' : null,
@@ -200,7 +225,10 @@ export function getPreviewPath(ext: string): string | undefined {
   });
 }
 
-generateParserRegistry().catch(err => {
-  console.error('❌ Parser registry generation failed:', err);
-  process.exit(1);
-});
+// Run only when invoked as a script, not when imported by the staleness test.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  generateParserRegistry().catch(err => {
+    console.error('❌ Parser registry generation failed:', err);
+    process.exit(1);
+  });
+}

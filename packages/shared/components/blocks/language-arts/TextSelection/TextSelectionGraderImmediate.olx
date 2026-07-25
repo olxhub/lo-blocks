@@ -1,0 +1,9 @@
+<CapaProblem id="immediate_nouns" grade="immediate" title="Highlight the nouns">
+  <TextSelectionGrader>
+    <TextSelectionInput>
+Highlight the nouns as you read - the score updates live:
+---
+{The} [scientist] recorded {the} [temperature] of {the} [solution].
+    </TextSelectionInput>
+  </TextSelectionGrader>
+</CapaProblem>

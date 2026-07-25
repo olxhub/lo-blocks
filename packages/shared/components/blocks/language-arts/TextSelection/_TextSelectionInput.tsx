@@ -1,0 +1,248 @@
+// packages/shared/components/blocks/language-arts/TextSelection/_TextSelectionInput.tsx
+//
+// Renderer for TextSelectionInput. Draws the passage word-by-word and lets the
+// learner build a selection by clicking single words or dragging across a span.
+// The selection — an array of word indices — is the input's value; grading,
+// scoring, feedback text, and the Check/Show-Answer controls all live
+// elsewhere (TextSelectionGrader + the standard problem footer).
+//
+// What this component still owns, and why:
+//   - the selection interaction (click toggles a word; drag toggles a span)
+//   - per-term targeted feedback, a pure function of selection × parse
+//   - the answer overlay on Show Answer, driven by the grader's showAnswer
+//     signal (useGraderAnswer) — no hand-rolled reveal state
+//
+'use client';
+import type { RuntimeProps } from '@/lib/types';
+
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useFieldState } from '@/lib/state';
+import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
+import { DisplayError } from '@/lib/util/debug';
+import {
+  projectParse, targetedFeedbackItems,
+  type ParsedDocument, type Token, type WordToken,
+} from './textSelectionModel';
+
+// Stable empty fallback: the subscription compares by reference, so the
+// unanswered case must not mint a new array per store dispatch.
+const EMPTY_SELECTIONS: number[] = [];
+
+// Toggle every word in `browserSelection` against the committed selection —
+// the pure core of drag-to-select, shared by the live preview and the commit.
+function toggleSpan(committed: Set<number>, browserSelection: Set<number>): Set<number> {
+  if (browserSelection.size === 0) return committed;
+  const next = new Set(committed);
+  for (const idx of browserSelection) {
+    if (next.has(idx)) next.delete(idx); else next.add(idx);
+  }
+  return next;
+}
+
+export default function TextSelectionInput(props: RuntimeProps) {
+  const parsed = (props.kids as { parsed?: ParsedDocument })?.parsed;
+
+  // One projection of the parse — render tokens AND the grader's segment facts
+  // (types, word indices, labels, feedback map) — from a single tokenization,
+  // shared with the grader through the model's memo. The component classifies
+  // nothing itself; it renders tokens and asks the model which segments a
+  // selection has fully selected.
+  const projection = useMemo(
+    () => (parsed?.segments ? projectParse(parsed) : null),
+    [parsed],
+  );
+  const tokens: Token[] = projection?.tokens ?? [];
+  const expected = projection?.expected ?? null;
+
+  // Stored selection, held as a Set for membership tests, written back as an array.
+  const [selectedArray, setSelectedArray] = useFieldState(props, props.fields.selections, EMPTY_SELECTIONS);
+  const selected = useMemo(() => new Set<number>(selectedArray || []), [selectedArray]);
+  const setSelected = (next: Set<number>) => setSelectedArray(Array.from(next));
+
+  const { showAnswer } = useGraderAnswer(props);
+  const readOnly = useInputReadOnly(props);
+  // Once the answer is revealed the passage is a reference, not an input.
+  const locked = readOnly || showAnswer;
+
+  // Drag bookkeeping. A ref (not state) so mid-drag mousemoves don't thrash the
+  // store; a forceUpdate paints the live preview.
+  const wordRefs = useRef(new Map<number, HTMLElement>());
+  const isSelecting = useRef(false);
+  const liveBrowserSelection = useRef(new Set<number>());
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  // The document-level mouseup that finalizes the current gesture, held so it can
+  // be removed on the next mousedown or on unmount (F1: releasing outside the
+  // passage must still commit).
+  const finalizeGesture = useRef<(() => void) | null>(null);
+
+  // Which words the browser's native selection currently covers.
+  const readBrowserSelection = (): Set<number> => {
+    const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+    if (!sel || sel.rangeCount === 0) return new Set();
+    const range = sel.getRangeAt(0);
+    const hit = new Set<number>();
+    wordRefs.current.forEach((el, index) => {
+      if (!el || index < 0) return;
+      const wordRange = document.createRange();
+      wordRange.selectNodeContents(el);
+      const intersects =
+        range.compareBoundaryPoints(Range.START_TO_END, wordRange) >= 0 &&
+        range.compareBoundaryPoints(Range.END_TO_START, wordRange) <= 0;
+      if (intersects) hit.add(index);
+    });
+    return hit;
+  };
+
+  const handleWordClick = (wordIndex: number) => {
+    if (locked || wordIndex < 0) return;
+    // A drag ends in mouseup; a bare click (no range) toggles the one word.
+    const sel = window.getSelection();
+    if (sel && sel.toString().length > 0) return;
+    setSelected(toggleSpan(selected, new Set([wordIndex])));
+  };
+
+  const handleMouseDown = () => {
+    if (locked) return;
+    isSelecting.current = true;
+    liveBrowserSelection.current = new Set();
+    window.getSelection()?.removeAllRanges();
+
+    // Finalize on the DOCUMENT's mouseup, not the passage's: a drag that starts
+    // in the passage and releases outside it still commits, and isSelecting never
+    // strands. `selected` here is the gesture's start state — the correct base
+    // for the toggle, even if the live preview re-rendered mid-drag.
+    if (finalizeGesture.current) document.removeEventListener('mouseup', finalizeGesture.current);
+    const commit = () => {
+      if (!isSelecting.current) return;
+      isSelecting.current = false;
+      document.removeEventListener('mouseup', commit);
+      finalizeGesture.current = null;
+      const sel = window.getSelection();
+      if (!sel || sel.toString().length === 0) {
+        forceUpdate(); // a bare click (handleWordClick commits it); drop the preview
+        return;
+      }
+      setSelected(toggleSpan(selected, readBrowserSelection()));
+      // Clear the native highlight so only our styling shows.
+      setTimeout(() => window.getSelection()?.removeAllRanges(), 10);
+    };
+    finalizeGesture.current = commit;
+    document.addEventListener('mouseup', commit);
+  };
+
+  // Paint a live preview while dragging.
+  useEffect(() => {
+    if (locked) return;
+    const onChange = () => {
+      if (!isSelecting.current) return;
+      liveBrowserSelection.current = readBrowserSelection();
+      forceUpdate();
+    };
+    document.addEventListener('selectionchange', onChange);
+    return () => document.removeEventListener('selectionchange', onChange);
+  }, [locked]);
+
+  // Never leave a gesture's document mouseup registered past unmount.
+  useEffect(() => () => {
+    if (finalizeGesture.current) {
+      document.removeEventListener('mouseup', finalizeGesture.current);
+      finalizeGesture.current = null;
+    }
+  }, []);
+
+  if (!parsed || parsed.error) {
+    return (
+      <DisplayError
+        props={props}
+        title="TextSelection Parsing Error"
+        message="Unable to parse TextSelection content"
+        technical={parsed?.prompt}
+      />
+    );
+  }
+
+  // The selection actually shown: committed, plus the in-flight drag preview.
+  const effectiveSelection =
+    isSelecting.current && liveBrowserSelection.current.size > 0
+      ? toggleSpan(selected, liveBrowserSelection.current)
+      : selected;
+
+  const wordStyle = (word: WordToken): React.CSSProperties => {
+    const isSelected = effectiveSelection.has(word.index);
+    let backgroundColor = '';
+    let borderColor = '';
+
+    // Semantic theme tokens (defined in styles/tokens/semantic.css) rather than
+    // literal hexes, so the highlights track light/dark like the rest of the UI:
+    // required→success, optional→warning, decoy→error, a bare pick→muted.
+    if (showAnswer) {
+      // Reveal: show the key by segment type, overlaying the learner's picks.
+      if (word.isRequired) backgroundColor = 'var(--lo-success-subtle)';
+      else if (word.isOptional) backgroundColor = 'var(--lo-warning-subtle)';
+      else if (word.isFeedbackTrigger) backgroundColor = 'var(--lo-error-subtle)';
+      if (isSelected) borderColor = 'var(--lo-border-strong)';
+    } else if (isSelected) {
+      backgroundColor = 'var(--lo-bg-muted)';
+      borderColor = 'var(--lo-border-strong)';
+    }
+
+    return {
+      backgroundColor,
+      outline: borderColor ? `2px solid ${borderColor}` : '',
+      outlineOffset: '-2px',
+      borderRadius: '3px',
+      padding: '2px 4px',
+      margin: '0 -2px',
+      cursor: locked ? 'default' : 'pointer',
+    };
+  };
+
+  // Targeted feedback for each FULLY selected labeled segment. The model owns
+  // the "selected ⇔ every word" rule, so these notes track the score exactly —
+  // a half-selected phrase shows nothing rather than a premature "Correct!".
+  const feedbackItems = expected ? targetedFeedbackItems(effectiveSelection, expected) : [];
+
+  return (
+    <div className="text-highlight-container p-4 border rounded-lg">
+      <style>{`
+        .text-highlight-container .text-content ::selection { background-color: transparent; }
+        .text-highlight-container .text-content ::-moz-selection { background-color: transparent; }
+      `}</style>
+
+      {parsed.prompt && <div className="prompt mb-4 font-semibold text-lg">{parsed.prompt}</div>}
+
+      <div
+        className="text-content mb-4 text-base leading-relaxed"
+        onMouseDown={handleMouseDown}
+        style={{ WebkitUserSelect: 'text', MozUserSelect: 'text', userSelect: 'text' }}
+      >
+        {tokens.map((token, idx) =>
+          token.isSpace ? (
+            <span key={idx}>{token.text}</span>
+          ) : (
+            <span
+              key={idx}
+              ref={(el) => {
+                if (el) wordRefs.current.set(token.index, el);
+                else wordRefs.current.delete(token.index);
+              }}
+              onClick={() => handleWordClick(token.index)}
+              style={wordStyle(token)}
+            >
+              {token.text}
+            </span>
+          ),
+        )}
+      </div>
+
+      {feedbackItems.length > 0 && (
+        <div className="targeted-feedback mt-2 text-sm">
+          {feedbackItems.map(({ id, label, text }) => (
+            <div key={id} className="mb-1 text-secondary"><strong>{label}:</strong> {text}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
