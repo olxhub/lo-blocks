@@ -17,8 +17,19 @@
 //   - a simulated shutdown flushes/finalizes the log so an in-flight event
 //     survives teardown.
 //
-// The full "kill-the-tab" browser e2e (headless browser + linked client)
-// is a separate follow-up; this validates the server half of the contract.
+// This validates the SERVER half of the contract. Two behaviors are
+// deliberately NOT tested here and must be added in a separate testing PR —
+// and done RIGHT (a real declarative/browser e2e; NOT WS polyfills, mocks, or
+// stubbed harnesses, which we do not want in the suite):
+//
+//   TODO(plane1-e2e): kill-the-tab tripwire. Real browser: type, close the tab
+//     mid-send (network throttled to widen the window), reopen, assert the
+//     events/ log contains every keystroke. This is the forensics' explicit
+//     regression test (design doc §7) — the only thing that reproduces the
+//     original data-loss bug end to end.
+//   TODO(plane1-requireAck): misdeploy assertion (client-side, with lo_event's
+//     tests). A `requireAck` client pointed at an ack-less server must fail
+//     loud (lo_fatal / ACK_REQUIRED) and HOLD its queue — never send un-seq'd.
 
 import { test, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';
