@@ -16,6 +16,15 @@ import { globSync } from 'glob';
 import path from 'path';
 import { generateAllRegistryContents } from './generateBlockRegistry';
 
+// The raw failures below (content differs, parser outdated, etc.) are
+// unactionable on their own — a developer seeing them has no idea the cause
+// is a missing build step. This message spells out the one-line fix so the
+// failure explains itself.
+const BUILD_HINT =
+  'This failure just means you forgot to run `npm run build`. This is often\n' +
+  'necessary when e.g. switching branches. It rebuilds the block registry,\n' +
+  'registers changed documentation, regenerates grammar parsers, etc.';
+
 describe('Generated files should be up-to-date', () => {
 
   it('block and CSS registries match source files', () => {
@@ -35,6 +44,7 @@ describe('Generated files should be up-to-date', () => {
     if (stale.length > 0) {
       expect.fail(
         `Stale registries:\n  ${stale.join('\n  ')}\n\n` +
+        `${BUILD_HINT}\n\n` +
         `Run: npm run build:gen-block-registry`
       );
     }
@@ -66,6 +76,7 @@ describe('Generated files should be up-to-date', () => {
     if (stale.length > 0) {
       expect.fail(
         `Stale grammar parsers:\n  ${stale.join('\n  ')}\n\n` +
+        `${BUILD_HINT}\n\n` +
         `Run: npm run build:grammars`
       );
     }
