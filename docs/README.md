@@ -38,7 +38,9 @@ We will walk through the lifespan of a typical block. The most confusing parts t
                  ↓
    OLX →      OlxJson     Static content (**instance** of a LoBlock)
                  ↓
-             OlxDomNode    Dynamic content (close to 1:1 to static content, but not always, with components like <DynamicList> and other forms of reuse / rewriting)
+            [LinkedJson]   In progress: with pointers to parents, children, related blocks (input/grading hierarchies), etc.
+                 ↓
+   State →  OlxDomNode    Dynamic content (close to 1:1 to static content, but not always, with components like <DynamicList> and other forms of reuse / rewriting allowing many:many)
                  ↓
           Rendered Block   React component (close to 1:1 to dynamic content, but not always; react shadow DOM is a tree, OLX shadow DOM is a DAG)
 ```
@@ -343,7 +345,7 @@ interface CreateGraderConfig {
 }
 ```
 
-The result of a grader is logged via the `UPDATE_CORRECT` event and stored in Redux under the `correct` field. Possible values are defined in `blocks.CORRECTNESS`.
+The result of a grader is logged via the `UPDATE_CORRECT` event and stored in Redux under the `correct` field. Possible values are defined in the `correctness` constants (`packages/shared/lib/grading/correctness.ts`).
 
 In most cases, graders are inferred from `match` and `validateInputs`. However, it's possible to specify one explicitly. A grader function will receive:
 
@@ -352,7 +354,7 @@ In most cases, graders are inferred from `match` and `validateInputs`. However, 
 
 Which one is based on the zod signature `inputSchema`. In contrast to a match function, they also receive `options`, consisting of: `{ props, attributes, inputApi | inputApis /* Bound locals from input or inputs, based on zod signature*/ }
 
-Correctness states are defined in `packages/shared/lib/blocks/correctness.ts` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
+Correctness states are defined in `packages/shared/lib/grading/correctness.ts` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
 
 When actions execute, they inherit the `idPrefix` from the triggering component. This ensures that graders in scoped contexts (like a problem inside a MasteryBank) update the correct scoped state rather than global state. See "ID Prefixes for Scoped State" below.
 
@@ -887,16 +889,116 @@ Types generally live in `/lib/types/` rather than locally.
 * The system uses `vite` (dev middleware inside the Hono app server). We used `next.js` until 2026-07; the dynamic development requirements (e.g. ability to dynamically edit and reload blocks) made that kind of framework a poor fit.
 * Data streams into the [Learning Observer](https://github.com/ArgLab/writing_observer), which allows for rather rich, real-time dashboard.
 
-Redux
------
+# State, Events, and Synchronization
 
-All state is stored in redux. We have helpers to make redux state
-management easy, but critically, components can access and modify each
-others' state. Dispatching events changing state is the major way
-components interact with each other.
+This section is the mental model — the theory to hold before diving into state
+code. The mechanics live in `packages/shared/lib/state/` (and `.../state/sync/`
+for the server engine).
 
-Eventually, we'd also like to allow reducers to live serverside, in
-_Learning Observer_, for social features like chat.
+## First principle: state is a fold over an event stream
+
+Nothing mutates state directly. Every change is an **event** — a single line of
+JSON (`{ ...payload, event: <verb>, ts }`). State is what you get by **folding
+the event stream through reducers**. This is event-sourcing, and everything else
+rests on it.
+
+Because we never mutate directly:
+
+* **Reconstructable.** Replay the events and you have the exact state — a
+  student's full work, reproducible. The redux store and the server's KVS blobs
+  are *caches* of this fold, not the source of truth.
+* **Replayable.** Event stream + reducers = time-travel: draftback-style
+  playback, debugging, and replay tests (see Test Philosophy).
+* **Analyzable.** The same stream flows to the
+  [Learning Observer](https://github.com/ArgLab/writing_observer) for real-time
+  dashboards. An event is an analytics record and a state mutation at once.
+
+The ground truth is the **event stream**. Everything else is derived.
+
+## Two protocols, matched to frequency
+
+Where we're headed, ~95% of traffic rides one of two protocols, chosen by how
+often the data changes:
+
+| Protocol | For | Frequency | Shape |
+|---|---|---|---|
+| **MCP** | large / low-frequency: an OLX file, documentation, a snapshot | about as often as you run `npm run build` | request/response, cacheable, URI-addressed resources |
+| **lo_event** | high-frequency: keystrokes, state deltas, interaction | every few hundred ms | durable, acked, streaming events |
+
+"You have new documentation" happens roughly when someone rebuilds; "you have a
+new keystroke" happens constantly. Same conceptual need — *tell interested
+parties something changed* — but the engineering at those two frequencies is
+completely different, so they are different protocols. **Both share one pub/sub
+bus** for *subscription*: who wants to hear about changes to which keys.
+
+## Client and server: redux ↔ redux-with-CRDTs
+
+The same event stream is folded in two places:
+
+* **Client — redux.** Fast, optimistic, local. A block reads and writes redux
+  and the UX updates now; components interact by dispatching events that change
+  each other's state (see the block sections above).
+* **Server — a redux-equivalent.** The *same* stream folded through the
+  *same-shaped* reducers, but authoritatively and across users — slower, and
+  CRDT-aware where multiple writers must converge (collaborative editing,
+  groupwork, shared fields). The north star: **the server acts like redux.**
+
+Minor note: The client and server reducer is usually, but not always,
+identical. Examples where they diverge include things like chat (where
+we want a client-side checkmark for send, and a server-side one for
+received), or anything where privacy/security is an issue (e.g. server
+aggregating text from student writing for a word cloud). But as a
+rule, they are the same 99% of the time.
+
+`lo_event` is the substrate under both: transport, the durable client queue,
+acks, and subscriptions. It is a **sync-aware transport with a redux front-end,
+not a distributed state engine** — that the server folds with the same reducer
+code is a property of lo-blocks, not something lo_event knows. (Today the client
+is fully redux; authoritative server-side folding and bidirectional sync are
+being built.)
+
+State is addressed by URI-like keys — `state://<ns>/<id>/<field>` — and a
+**subscription lives on the connection**: the server sends changes for key K to
+the connections subscribed to K. No separate correlation tables.
+
+## Invariants
+
+A new developer can violate any of these and the system will *seem* to work
+while silently losing or corrupting student data. Hold them:
+
+1. **The event stream is the truth; never mutate state except by folding an
+   event.** Every materialization (redux, KVS) is a pure reducer fold, so it
+   stays reconstructable. Poking a value straight into a store introduces state
+   no replay can reproduce.
+2. **Durable before ack.** An acknowledgment means "durably captured" — only
+   then may the producer forget it. Never ack an event you might still lose.
+   (The bug this fixes: a student's final keystrokes, lost when a tab closes
+   mid-send.)
+3. **Reducers are idempotent and order-tolerant.** Delivery is *at-least-once*;
+   events can duplicate or reorder. Fields carry absolute (last-write-wins)
+   values or CRDT merges, so re-applying an event is a no-op. This is *why*
+   deduplication is unnecessary — don't write a reducer that breaks it (ship the
+   computed total, not `x += 1`).
+4. **No echo; correctness is optimistic-local + snapshot-on-subscribe.** A client
+   applies its own events locally and is never echoed them back; a client that
+   missed a change during a disconnect is corrected by the snapshot it gets when
+   it (re)subscribes. Acks carry **no state**. The bus need not be reliable for
+   *correctness* — only durable for the saved work.
+5. **State resolves before render or write.** A block must not render or write
+   before its state has resolved (client), and no event folds into a
+   not-yet-resident bucket (server). Use the loading hooks; honor `ready`.
+6. **Events are NDJSON, sparse, analytics-shaped.** One self-contained JSON line
+   per event — never a JSON array of events (unparsable at volume). Heavy or
+   static context ships **once** (via `lock_fields`) and is denormalized back in
+   server-side, so per-event lines stay small. Event vocabulary follows analytics
+   standards (xAPI / Caliper-ish verbs), not the client's redux action shape.
+7. **Keep the two protocols distinct.** Content (MCP / OLX) and interaction
+   (lo_event / state) are separate systems that merely share a bus. Don't route
+   bulk content through the event stream, or keystrokes through MCP.
+
+For the wire protocol — the three "planes" (client events, control/subscribe,
+server events), the ack semantics, and the migration plan — see the state-sync
+design doc; the server engine lives in `packages/shared/lib/state/sync/`.
 
 # Developing in this repo
 
