@@ -2,7 +2,7 @@
 // apps/server/integration/plane1-ack.test.ts
 //
 // Plane-1 (client→server) ack protocol — the reliability fix
-// (pubsub-state-sync-design §3a "Wire contract" and §7 "reliability bug").
+// (see docs/README.md, section "State, Events, and Synchronization").
 //
 // Boots the REAL server in-process (so the actual server.ts hello send and
 // the actual pipeline.ts durable-append+ack path are exercised) and drives
@@ -25,7 +25,7 @@
 //   TODO(plane1-e2e): kill-the-tab tripwire. Real browser: type, close the tab
 //     mid-send (network throttled to widen the window), reopen, assert the
 //     events/ log contains every keystroke. This is the forensics' explicit
-//     regression test (design doc §7) — the only thing that reproduces the
+//     regression test — the only thing that reproduces the
 //     original data-loss bug end to end.
 //   TODO(plane1-requireAck): misdeploy assertion (client-side, with lo_event's
 //     tests). A `requireAck` client pointed at an ack-less server must fail
@@ -137,9 +137,9 @@ test('first frame is a hello advertising ack (and not subscribe)', async () => {
 
   // The capability handshake must be the FIRST frame on the connection.
   expect(frames[0].status).toBe('hello');
+  // Plane 2 is not built — must NOT be advertised. toEqual is exact, so this
+  // already asserts `subscribe` is absent.
   expect(frames[0].capabilities).toEqual({ ack: true });
-  // Plane 2 is not built — must NOT be advertised.
-  expect(frames[0].capabilities.subscribe).toBeUndefined();
 
   ws.close();
 }, 20000);

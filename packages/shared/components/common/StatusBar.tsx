@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useUser } from '@/lib/state';
 import { getConfigBool } from '@/lib/config';
 import type { Locale } from '@/lib/types';
-import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice } from './ConnectionStatus';
+import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice, fatalMessage } from './ConnectionStatus';
 import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
 
 interface StatusBarProps {
@@ -46,12 +46,17 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
   // a misdeploy): the client holds its queue but nothing reaches the server.
   // Strongest signal, checked ahead of the transient offline case — banner +
   // dim. Delivery stays best-effort (lo_event keeps the durable queue); the UX
-  // just refuses to look saved. See pubsub-state-sync-design §3a (requireAck).
+  // just refuses to look saved. See docs/README.md, section "State, Events, and
+  // Synchronization" (the requireAck/ack contract).
+  //
+  // Render user-facing copy (fatalMessage), NOT lo_event's raw fatal.message —
+  // that developer diagnostic is already console.error'd inside lo_event and
+  // must not reach a student.
   if (fatal) {
     return (
       <div className="sticky top-0 z-50 print:hidden">
         <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
-          <FatalNotice message={fatal.message} />
+          <FatalNotice message={fatalMessage(fatal.code)} />
         </div>
         <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
       </div>

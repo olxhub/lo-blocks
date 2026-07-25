@@ -25,6 +25,16 @@ export interface Fatal { code: string; message: string }
 // Single source of truth for the offline wording.
 export const OFFLINE_MESSAGE = 'Offline — changes may not be saved';
 
+// User-facing copy for fatal delivery failures, keyed by fatal.code. lo_event's
+// raw fatal.message is a developer diagnostic ("refusing to run legacy…") and
+// must never reach a student — it is already console.error'd inside lo_event.
+// This map is the single source of truth for what the banner shows instead.
+export const FATAL_MESSAGES: Record<string, string> = {
+  ACK_REQUIRED: 'Saving is unavailable right now — the server isn’t accepting saves. Your work is held and will sync once the connection is restored.',
+};
+export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
+export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
   connected: boolean | null;
