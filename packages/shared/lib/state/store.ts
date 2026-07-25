@@ -605,7 +605,12 @@ function configureStore({
     // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.
     // getWebsocketUrl() must only be called when actually needed — it throws on
     // unknown ports.
-    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl())] : []),
+    //
+    // requireAck: lo-blocks REQUIRES the Plane-1 durable-ack protocol — a server
+    // that doesn't advertise it (no `hello.capabilities.ack`) is a misdeploy, so
+    // fail loud (lo_fatal → the StatusBar banner) rather than silently running
+    // legacy and losing the tail of a session. See pubsub-state-sync-design §3a.
+    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl(), { requireAck: true })] : []),
   ];
 
   lo_event.init(
