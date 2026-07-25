@@ -23,7 +23,7 @@
 import type { WebSocket } from 'ws';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
-import { appendEvent } from './eventLog.js';
+import { appendEvent, appendEventDurable } from './eventLog.js';
 import type { KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { ServerState } from '@/lib/state/sync/materialization';
@@ -36,7 +36,7 @@ import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { routeEvent, type SyncSession } from '@/lib/state/sync/router';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
-function safeSend(ws: WebSocket, data: object) {
+export function safeSend(ws: WebSocket, data: object) {
   try {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(data));
   } catch { /* client gone — not actionable */ }
@@ -130,13 +130,32 @@ function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
 // Stage 1: Decode and log
 // =============================================================================
 
-/** Log each event to the connection log and save to disk. */
+/** Log each event to the connection log, flush it to disk, and — once it
+ *  is durably captured — ack it (Plane 1).
+ *
+ *  The ack is CUMULATIVE ("I durably have everything ≤ seq"). Events arrive
+ *  and are appended in per-connection arrival order and this loop awaits the
+ *  durable append before pulling the next, so acking each event's own `seq`
+ *  as it lands is already monotonic and cumulative — no separate high-water
+ *  tracking needed. The ack rides the events/-log append here, at the head of
+ *  the pipeline; the debounced KVS materialization (FieldPersister) stays on
+ *  top, downstream, unchanged.
+ *
+ *  Legacy / ack-less clients (lo_event 0.0.7) never tag `seq`; we simply
+ *  don't ack them, and their receiveMessage ignores any frame it doesn't
+ *  recognize — so behavior is byte-identical to before. */
 async function* decodeAndLog(
   events: AsyncIterable<PipelineEvent>,
   context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    appendEvent(context.conn, event);
+    // Await durability BEFORE acking: the whole point of Plane 1 is that
+    // "ack" means "on disk", not "received into a variable" (§7).
+    await appendEventDurable(context.conn, event);
+
+    if (typeof event.seq === 'number') {
+      safeSend(context.ws, { status: 'ack', seq: event.seq });
+    }
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';
