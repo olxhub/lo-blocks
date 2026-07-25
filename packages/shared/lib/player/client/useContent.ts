@@ -28,7 +28,7 @@ import { toMemoryRef } from '@/lib/storage/lofs';
 import { toLofsRef } from '@/lib/types/address';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import {
-  contentKeyOf, deriveContentView, useContentEntry,
+  contentKeyOf, sourceSignature, shouldRequestParse, deriveContentView, useContentEntry,
   logContentParsing, logContentParsed, logContentFailed,
   type ContentView,
 } from '@/lib/state/content';
@@ -102,7 +102,7 @@ async function parseDeclaredSource(
  * fallback). No local content/readiness state.
  */
 export function useContent(params: UseContentParams): ContentView {
-  const { ns, id, inline, files, provider, provenance, blockSource, runtime, debounceMs = 0, onError } = params;
+  const { ns, id, inline, files, provenance, blockSource, runtime, debounceMs = 0, onError } = params;
 
   const sourceKind: ContentLedgerSourceKind =
     (inline != null && inline !== '') ? 'inline'
@@ -111,18 +111,33 @@ export function useContent(params: UseContentParams): ContentView {
 
   const key = contentKeyOf(blockSource, ns, id);
 
+  // Stable signature of the source CONTENT (not object identity). The request
+  // effect depends on this string, so a re-render with fresh `files`/`provider`
+  // objects does NOT re-fire it — only a real content change does.
+  const signature = sourceSignature({ sourceKind, ns, id, inline, files, provenance });
+
+  const entry = useContentEntry(key);
+
   // Monotonic supersede counter — the reducer rejects results older than the
   // entry's requestKey, so a slow parse that lost the race is dropped.
   const requestKeyRef = useRef(0);
+  // Read the latest entry inside the effect without making it a dep (which
+  // would re-fire on every dispatch). The signature deps gate re-parsing.
+  const entryRef = useRef(entry);
+  entryRef.current = entry;
 
-  // Re-parse when the declared source changes. Replay (sideEffectFree) skips
-  // parsing entirely: it renders from whatever the event stream already folded.
+  // Re-parse only when the source signature changes. Replay (sideEffectFree)
+  // skips parsing: it renders from whatever the event stream already folded.
   useEffect(() => {
     if (runtime.sideEffectFree) return;
     if (sourceKind === 'preloaded') return; // nothing to parse; blocks preloaded
+    // Idempotent: identical content already fully parsed → do nothing (no
+    // requestKey bump, no `parsing` dispatch). This is the guard that, together
+    // with the stable-signature deps, breaks the parse→re-render→re-parse loop.
+    if (!shouldRequestParse(entryRef.current, signature)) return;
 
     const rk = ++requestKeyRef.current;
-    logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, provenance });
+    logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, signature, provenance });
 
     let cancelled = false;
     const run = async () => {
@@ -130,7 +145,7 @@ export function useContent(params: UseContentParams): ContentView {
         const { root, blocks, warnings } = await parseDeclaredSource(params);
         if (cancelled) return;
         logContentParsed({ runtime }, {
-          key, requestKey: rk, sourceKind, blockSource,
+          key, requestKey: rk, sourceKind, blockSource, signature,
           root, warnings, blocks, provenance, retrievedAt: Date.now(),
         });
       } catch (err: any) {
@@ -147,11 +162,10 @@ export function useContent(params: UseContentParams): ContentView {
       void run();
     }
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-    // params is reconstructed each render but only these inputs affect a parse.
+    // Only the signature (source content) and a few primitives affect a parse;
+    // params/runtime/provider are captured fresh each render on purpose.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, inline, files, provider, provenance, ns, blockSource, sourceKind, debounceMs, runtime.sideEffectFree]);
-
-  const entry = useContentEntry(key);
+  }, [signature, key, blockSource, sourceKind, debounceMs, runtime.sideEffectFree]);
   // Preloaded content (and the pre-first-parse window) falls back to the
   // requested id — its blocks are already in Redux.
   const fallbackRoot = sourceKind === 'preloaded' ? id : null;

@@ -16,6 +16,7 @@ import { updateResponseReducer } from './store';
 import {
   CONTENT_PARSING, CONTENT_PARSED, CONTENT_FAILED,
   contentKeyOf, deriveContentView, isLocalBlockSource,
+  sourceSignature, shouldRequestParse,
 } from './content';
 import { OLXJSON_ERROR, LOAD_OLXJSON } from './olxjson';
 import type { ContentLedgerEntry } from '../types';
@@ -112,6 +113,36 @@ test('a late block-level error cannot clobber ready content', () => {
   expect(s.olxjson.content['demo/root'].loadingState.status).toBe('ready');
   s = ev(s, OLXJSON_ERROR, { source: 'content', id: 'demo/root', error: { message: 'late 404' } });
   expect(s.olxjson.content['demo/root'].loadingState.status).toBe('ready'); // unchanged
+});
+
+// ── Idempotent request (the catalog "stuck on parsing" fix) ──────────────────
+
+test('sourceSignature is stable for identical content, distinct for different', () => {
+  const a = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<Catalog/>' });
+  const b = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<Catalog/>' });
+  const c = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<Other/>' });
+  expect(a).toBe(b);      // same content → same signature (no re-parse on re-render)
+  expect(a).not.toBe(c);  // changed content → new signature (re-parse)
+});
+
+test('sourceSignature is order-insensitive for files', () => {
+  const a = sourceSignature({ sourceKind: 'files', ns: 'demo', id: 'x', files: { 'a.olx': '1', 'b.olx': '2' } });
+  const b = sourceSignature({ sourceKind: 'files', ns: 'demo', id: 'x', files: { 'b.olx': '2', 'a.olx': '1' } });
+  expect(a).toBe(b);
+});
+
+test('shouldRequestParse: skip only when already ready for the SAME signature', () => {
+  const sig = 'sig-1';
+  const ready = { status: 'ready', requestKey: 1, sourceKind: 'inline', blockSource: 'content', signature: sig } as ContentLedgerEntry;
+  // Already parsed this exact content → do not re-parse (breaks the loop).
+  expect(shouldRequestParse(ready, sig)).toBe(false);
+  // Content changed → re-parse.
+  expect(shouldRequestParse(ready, 'sig-2')).toBe(true);
+  // Absent, in-flight, or errored entries always parse (a lost parse is not
+  // mistaken for a completed one).
+  expect(shouldRequestParse(undefined, sig)).toBe(true);
+  expect(shouldRequestParse({ ...ready, status: 'parsing' }, sig)).toBe(true);
+  expect(shouldRequestParse({ ...ready, status: 'error' }, sig)).toBe(true);
 });
 
 // ── Declared-source gate ─────────────────────────────────────────────────────

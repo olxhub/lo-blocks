@@ -1724,6 +1724,10 @@ export interface ContentLedgerEntry {
   /** Supersede guard. Monotonic per request; the reducer rejects a
    *  PARSED/FAILED whose requestKey is older than the entry's. */
   requestKey: number;
+  /** Stable signature of the SOURCE CONTENT that produced this entry (inline
+   *  text / file contents / ids). Lets the request stay idempotent: identical
+   *  already-parsed content is never re-parsed. */
+  signature?: string;
   /** Declared source kind — drives whether blocks under this request's
    *  block-source may be server-fetched (inline/files → never). */
   sourceKind: ContentLedgerSourceKind;
