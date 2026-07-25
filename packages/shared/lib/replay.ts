@@ -102,6 +102,7 @@ export const initialReplayState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  content: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,

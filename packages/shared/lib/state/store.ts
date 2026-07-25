@@ -50,6 +50,12 @@ import {
   CLEAR_OLXJSON,
 } from './olxjson';
 import {
+  contentReducer,
+  initialContentState,
+  CONTENT_EVENT_TYPES,
+  CONTENT_PARSED,
+} from './content';
+import {
   catalogReducer,
   CATALOG_EVENT_TYPES,
   initialCatalogState,
@@ -138,6 +144,7 @@ const initialState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  content: initialContentState,
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,
@@ -183,6 +190,21 @@ export const updateResponseReducer = (state = initialState, action) => {
     return {
       ...state,
       olxjson: olxjsonReducer(state.olxjson, { ...action, type: eventType }),
+    };
+  }
+
+  // Content ledger (source-level parse lifecycle). CONTENT_PARSED is special:
+  // it lands BOTH slices in one fold — the ledger (root/warnings/status) here,
+  // and the parsed blocks in the OlxJson slice — so "the ledger reports a root"
+  // and "that root's blocks are in Redux" can never disagree (the async race).
+  if (CONTENT_EVENT_TYPES.includes(eventType)) {
+    const scoped = { ...action, type: eventType };
+    return {
+      ...state,
+      content: contentReducer(state.content, scoped),
+      ...(eventType === CONTENT_PARSED
+        ? { olxjson: olxjsonReducer(state.olxjson, scoped) }
+        : {}),
     };
   }
 
