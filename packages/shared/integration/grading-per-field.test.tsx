@@ -354,11 +354,19 @@ The [cat] sat on the [mat].
     fireEvent.click(getByText(/Check/));
     await waitFor(() => expect(graderCorrect()).toBe('correct'));
 
-    // Plain-word penalties erase the credit: both required found (2) but two
-    // wrong picks → (2−2)/2 = 0 → incorrect. This is the bug the split fixed;
-    // the old block ignored wrong picks and scored this a perfect answer.
+    // Two ADJACENT plain words ("sat on") are one contiguous mistake, not two:
+    // both required still found (2), wrongSelected 1 → (2−1)/2 = 0.5 → partial.
+    // (The old per-word rule charged 2 here and dropped straight to incorrect.)
     await selectWord('sat', 3);
     await selectWord('on', 4);
+    fireEvent.click(getByText(/Check/));
+    await waitFor(() => expect(graderCorrect()).toBe('partiallyCorrect'));
+
+    // Add "The", a plain word separated from the "sat on" run by the unselected
+    // "the": now two contiguous runs → wrongSelected 2 → (2−2)/2 = 0 → incorrect.
+    // Penalties erase the credit — the bug the split fixed (the old block ignored
+    // wrong picks and scored a select-everything answer as perfect).
+    await selectWord('The', 5);
     fireEvent.click(getByText(/Check/));
     await waitFor(() => expect(graderCorrect()).toBe('incorrect'));
   });

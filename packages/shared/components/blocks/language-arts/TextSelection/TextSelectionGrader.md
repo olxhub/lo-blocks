@@ -36,9 +36,12 @@ The grader tallies a stored selection against the answer key into three numbers:
 - **requiredFound** — required segments where *every* word is selected. A
   two-word required phrase needs both words.
 - **totalRequired** — the number of required segments in the passage.
-- **wrongSelected** — the penalty pool: each selected **plain-text** word counts
-  once, and each **feedback-trigger** (`<<...>>`) segment with any word selected
-  counts once. **Optional** (`{...}`) segments never count, either way.
+- **wrongSelected** — the penalty pool, counted per *contiguous mistake*: each
+  unbroken run of selected **plain-text** words counts once (a careless five-word
+  drag is one error, not five), and each **feedback-trigger** (`<<...>>`) segment
+  with any word selected counts once. Weighing both error kinds the same way
+  keeps an incidental drag from outweighing a deliberately planted decoy.
+  **Optional** (`{...}`) segments never count, either way.
 
 Score is subtractive partial credit:
 

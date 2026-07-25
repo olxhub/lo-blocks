@@ -7,11 +7,13 @@
 //   - TextSelectionInput.ts     exposes `getExpectedSelections` as a local
 //   - TextSelectionGrader.ts    scores a stored selection against the key
 //
-// ONE tokenization lives here. The passage is tokenized exactly once (by the
-// input, at render, and by the grader, through the input's local) so a stored
-// selection — an array of word indices — means the same thing everywhere.
-// The grader never re-tokenizes: it consumes segment-level facts projected by
-// `expectedSelections`.
+// ONE tokenization lives here, and it runs exactly once per parse. `projectParse`
+// tokenizes the passage a single time and derives BOTH the render tokens and the
+// grader's segment facts from that one pass, memoized on the parsed Document (a
+// stable content object). The renderer, the input's `getExpectedSelections`
+// local, and the grader all read that shared projection, so a stored selection —
+// an array of word indices — means the same thing everywhere and no consumer
+// re-tokenizes.
 //
 // The grammar (textSelection.pegjs) marks four kinds of segment in the passage:
 //   [required]        words the learner must select
@@ -115,16 +117,13 @@ export interface ExpectedSelections {
   targetedFeedback: Record<string, string>;
 }
 
-/**
- * Project the parsed passage into the segment-level facts the grader consumes.
- * Pure over the parse — callable from selectors, node, and analytics, none of
- * which have a rendered DOM.
- */
-export function expectedSelections(parsed: ParsedDocument): ExpectedSelections {
+// Build the grader's segment-level facts from ALREADY-tokenized words (no second
+// tokenization). Empty (whitespace-only) segments contribute no words and drop out.
+function projectExpected(tokens: Token[], parsed: ParsedDocument): ExpectedSelections {
   const byIndex = new Map<number, SegmentProjection>();
   const projections: SegmentProjection[] = [];
 
-  for (const token of tokenize(parsed.segments)) {
+  for (const token of tokens) {
     if (token.isSpace) continue;
     let projection = byIndex.get(token.segmentIndex);
     if (!projection) {
@@ -141,6 +140,40 @@ export function expectedSelections(parsed: ParsedDocument): ExpectedSelections {
     scoring: parsed.scoring ?? [],
     targetedFeedback: parsed.targetedFeedback ?? {},
   };
+}
+
+// The per-parse projection: the render tokens and the grader's answer-key facts,
+// both derived from a SINGLE tokenization of the passage.
+export interface ParseProjection {
+  tokens: Token[];
+  expected: ExpectedSelections;
+}
+
+// Memoized on the parsed Document itself. The parser mints one Document per
+// passage and hands the same object to every consumer, so keying here collapses
+// the renderer's, the local's, and the grader's tokenizations into one. A WeakMap
+// drops each entry as soon as its Document is unreferenced. (This is the
+// selectGradingState per-snapshot memo, applied to a content object.)
+const projectionByParse = new WeakMap<ParsedDocument, ParseProjection>();
+
+/**
+ * Tokenize a passage exactly once and project it into render tokens + grader
+ * facts. Idempotent per Document: the first call computes, the rest hit the memo.
+ * Pure over the parse — callable from selectors, node, and analytics, none of
+ * which have a rendered DOM.
+ */
+export function projectParse(parsed: ParsedDocument): ParseProjection {
+  let projection = projectionByParse.get(parsed);
+  if (projection) return projection;
+  const tokens = tokenize(parsed.segments);
+  projection = { tokens, expected: projectExpected(tokens, parsed) };
+  projectionByParse.set(parsed, projection);
+  return projection;
+}
+
+/** The grader's segment-level facts for a parsed passage (the memoized projection). */
+export function expectedSelections(parsed: ParsedDocument): ExpectedSelections {
+  return projectParse(parsed).expected;
 }
 
 /** The required phrases, in passage order — the answer to reveal on Show Answer. */
@@ -174,7 +207,7 @@ export function isSegmentSelected(wordIndices: number[], selected: Set<number>):
 export interface SelectionStats {
   requiredFound: number;   // required segments with EVERY word selected
   totalRequired: number;   // required segments in the passage
-  wrongSelected: number;   // selected plain words + selected trigger segments
+  wrongSelected: number;   // contiguous runs of selected plain words + touched decoys
   complete: boolean;       // all required found AND nothing wrong selected
 }
 
@@ -183,13 +216,23 @@ export interface SelectionStats {
  *
  * A required segment counts as "found" only when all of its words are selected
  * (a two-word phrase needs both). Optional segments are ignored entirely.
- * `wrongSelected` is the penalty pool: every selected plain-text word counts
- * once, and every trigger segment with any word selected counts once.
+ * `wrongSelected` is the penalty pool at a CONTIGUOUS-MISTAKE granularity: each
+ * unbroken run of selected plain-text words counts once (a careless five-word
+ * drag is one mistake, not five), and each decoy (`<<...>>`) segment touched at
+ * all counts once. The two error kinds are thus weighed the same way — one slip,
+ * one penalty — so an incidental drag can no longer outweigh a planted trap.
  */
 export function computeStats(selected: Set<number>, expected: ExpectedSelections): SelectionStats {
   let requiredFound = 0;
   let totalRequired = 0;
   let wrongSelected = 0;
+
+  // Plain-word penalties are counted by contiguous run, so we collect the selected
+  // plain-text indices first and tally runs afterwards. Segments arrive in passage
+  // order with ascending indices, so the collected list is already sorted; a run
+  // breaks wherever the index isn't one past its predecessor (a required/optional
+  // word, a decoy, or an unselected gap sitting between two plain runs).
+  const selectedPlainIndices: number[] = [];
 
   for (const segment of expected.segments) {
     if (segment.wordIndices.length === 0) continue;
@@ -199,8 +242,7 @@ export function computeStats(selected: Set<number>, expected: ExpectedSelections
         if (isSegmentSelected(segment.wordIndices, selected)) requiredFound += 1;
         break;
       case 'text':
-        // Each selected plain word is its own error.
-        wrongSelected += segment.wordIndices.filter(i => selected.has(i)).length;
+        for (const i of segment.wordIndices) if (selected.has(i)) selectedPlainIndices.push(i);
         break;
       case 'feedback_trigger':
         // A decoy touched at all is one error.
@@ -211,12 +253,17 @@ export function computeStats(selected: Set<number>, expected: ExpectedSelections
     }
   }
 
+  for (let k = 0; k < selectedPlainIndices.length; k++) {
+    // Start of a new contiguous run ⇒ one more plain-text mistake.
+    if (k === 0 || selectedPlainIndices[k] !== selectedPlainIndices[k - 1] + 1) wrongSelected += 1;
+  }
+
   const complete = totalRequired > 0 && requiredFound === totalRequired && wrongSelected === 0;
   return { requiredFound, totalRequired, wrongSelected, complete };
 }
 
 /**
- * Subtractive partial credit (the owner's ruling):
+ * Subtractive partial credit:
  *   score = clamp((requiredFound − wrongSelected) / totalRequired, 0, 1)
  *
  * The subtraction is what stops "select every word" from earning full credit —

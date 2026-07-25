@@ -2,7 +2,7 @@
 //
 // Input half of the TextSelection family. Owns the passage grammar, the
 // selection UI, and the stored selection. The matching grader is
-// TextSelectionGrader; a bare <TextSelection> tag generates the pair.
+// TextSelectionGrader; a bare <SimpleTextSelection> tag generates the pair.
 //
 // The value is the selection itself — an array of selected word indices — so
 // no composite value getter is needed (the field IS the value). The passage's
@@ -19,8 +19,9 @@ import * as parser from './_textSelectionParser';
 import { expectedSelections, type ParsedDocument } from './textSelectionModel';
 import type { RuntimeProps } from '@/lib/types';
 
-// `selections` (not `value`) keeps the field name stable across the split so
-// learner state authored against the old single-block TextSelection carries.
+// The field is named `selections` (not `value`) because that names what the
+// value IS — the array of selected word indices. `value` would also collide with
+// the selector namespace below, where the `value` getter reads this very field.
 export const fields = state.fields(['selections']);
 
 // Getters run inside useSelector subscriptions; a fresh [] per call would

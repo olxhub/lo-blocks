@@ -21,7 +21,7 @@ import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import {
-  tokenize, expectedSelections, targetedFeedbackItems,
+  projectParse, targetedFeedbackItems,
   type ParsedDocument, type Token, type WordToken,
 } from './textSelectionModel';
 
@@ -43,17 +43,17 @@ function toggleSpan(committed: Set<number>, browserSelection: Set<number>): Set<
 export default function TextSelectionInput(props: RuntimeProps) {
   const parsed = (props.kids as { parsed?: ParsedDocument })?.parsed;
 
-  const tokens: Token[] = useMemo(
-    () => (parsed?.segments ? tokenize(parsed.segments) : []),
+  // One projection of the parse — render tokens AND the grader's segment facts
+  // (types, word indices, labels, feedback map) — from a single tokenization,
+  // shared with the grader through the model's memo. The component classifies
+  // nothing itself; it renders tokens and asks the model which segments a
+  // selection has fully selected.
+  const projection = useMemo(
+    () => (parsed?.segments ? projectParse(parsed) : null),
     [parsed],
   );
-  // Segment-level facts (types, word indices, labels, feedback map) the model
-  // projects from the parse. The component classifies nothing itself; it renders
-  // tokens and asks the model which segments a selection has fully selected.
-  const expected = useMemo(
-    () => (parsed?.segments ? expectedSelections(parsed) : null),
-    [parsed],
-  );
+  const tokens: Token[] = projection?.tokens ?? [];
+  const expected = projection?.expected ?? null;
 
   // Stored selection, held as a Set for membership tests, written back as an array.
   const [selectedArray, setSelectedArray] = useFieldState(props, props.fields.selections, EMPTY_SELECTIONS);
@@ -71,6 +71,10 @@ export default function TextSelectionInput(props: RuntimeProps) {
   const isSelecting = useRef(false);
   const liveBrowserSelection = useRef(new Set<number>());
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  // The document-level mouseup that finalizes the current gesture, held so it can
+  // be removed on the next mousedown or on unmount (F1: releasing outside the
+  // passage must still commit).
+  const finalizeGesture = useRef<(() => void) | null>(null);
 
   // Which words the browser's native selection currently covers.
   const readBrowserSelection = (): Set<number> => {
@@ -103,16 +107,28 @@ export default function TextSelectionInput(props: RuntimeProps) {
     isSelecting.current = true;
     liveBrowserSelection.current = new Set();
     window.getSelection()?.removeAllRanges();
-  };
 
-  const handleMouseUp = () => {
-    if (!isSelecting.current) return;
-    isSelecting.current = false;
-    const sel = window.getSelection();
-    if (!sel || sel.toString().length === 0) return; // a click, not a drag
-    setSelected(toggleSpan(selected, readBrowserSelection()));
-    // Clear the native highlight so only our styling shows.
-    setTimeout(() => window.getSelection()?.removeAllRanges(), 10);
+    // Finalize on the DOCUMENT's mouseup, not the passage's: a drag that starts
+    // in the passage and releases outside it still commits, and isSelecting never
+    // strands. `selected` here is the gesture's start state — the correct base
+    // for the toggle, even if the live preview re-rendered mid-drag.
+    if (finalizeGesture.current) document.removeEventListener('mouseup', finalizeGesture.current);
+    const commit = () => {
+      if (!isSelecting.current) return;
+      isSelecting.current = false;
+      document.removeEventListener('mouseup', commit);
+      finalizeGesture.current = null;
+      const sel = window.getSelection();
+      if (!sel || sel.toString().length === 0) {
+        forceUpdate(); // a bare click (handleWordClick commits it); drop the preview
+        return;
+      }
+      setSelected(toggleSpan(selected, readBrowserSelection()));
+      // Clear the native highlight so only our styling shows.
+      setTimeout(() => window.getSelection()?.removeAllRanges(), 10);
+    };
+    finalizeGesture.current = commit;
+    document.addEventListener('mouseup', commit);
   };
 
   // Paint a live preview while dragging.
@@ -124,12 +140,16 @@ export default function TextSelectionInput(props: RuntimeProps) {
       forceUpdate();
     };
     document.addEventListener('selectionchange', onChange);
-    const refs = wordRefs.current;
-    return () => {
-      document.removeEventListener('selectionchange', onChange);
-      refs.clear();
-    };
+    return () => document.removeEventListener('selectionchange', onChange);
   }, [locked]);
+
+  // Never leave a gesture's document mouseup registered past unmount.
+  useEffect(() => () => {
+    if (finalizeGesture.current) {
+      document.removeEventListener('mouseup', finalizeGesture.current);
+      finalizeGesture.current = null;
+    }
+  }, []);
 
   if (!parsed || parsed.error) {
     return (
@@ -153,15 +173,18 @@ export default function TextSelectionInput(props: RuntimeProps) {
     let backgroundColor = '';
     let borderColor = '';
 
+    // Semantic theme tokens (defined in styles/tokens/semantic.css) rather than
+    // literal hexes, so the highlights track light/dark like the rest of the UI:
+    // required→success, optional→warning, decoy→error, a bare pick→muted.
     if (showAnswer) {
       // Reveal: show the key by segment type, overlaying the learner's picks.
-      if (word.isRequired) backgroundColor = '#c3f0c3';
-      else if (word.isOptional) backgroundColor = '#fff3cd';
-      else if (word.isFeedbackTrigger) backgroundColor = '#ffcdd2';
-      if (isSelected) borderColor = '#9e9e9e';
+      if (word.isRequired) backgroundColor = 'var(--lo-success-subtle)';
+      else if (word.isOptional) backgroundColor = 'var(--lo-warning-subtle)';
+      else if (word.isFeedbackTrigger) backgroundColor = 'var(--lo-error-subtle)';
+      if (isSelected) borderColor = 'var(--lo-border-strong)';
     } else if (isSelected) {
-      backgroundColor = '#e3e3e3';
-      borderColor = '#9e9e9e';
+      backgroundColor = 'var(--lo-bg-muted)';
+      borderColor = 'var(--lo-border-strong)';
     }
 
     return {
@@ -192,7 +215,6 @@ export default function TextSelectionInput(props: RuntimeProps) {
       <div
         className="text-content mb-4 text-base leading-relaxed"
         onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
         style={{ WebkitUserSelect: 'text', MozUserSelect: 'text', userSelect: 'text' }}
       >
         {tokens.map((token, idx) =>
