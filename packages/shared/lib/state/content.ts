@@ -106,6 +106,20 @@ export const CONTENT_EVENT_TYPES = [
   CONTENT_PARSING, CONTENT_PARSED, CONTENT_FAILED, CONTENT_RENDER_FAILED,
 ];
 
+/**
+ * How long a live-edited source must settle before we re-parse it (ms).
+ *
+ * DEBOUNCE THE PARSE, NOT THE TYPING. Keystrokes are their own events on their
+ * own path and stay per-keystroke — that granularity is the product. What waits
+ * here is the parse-and-publish cycle: re-reading the whole source, and writing
+ * the result durably. At 0 that ran once per keystroke, so typing a sentence
+ * published a stack of permanent records of half-typed documents.
+ *
+ * Only a RE-parse waits (see useContent) — the first parse is immediate, since
+ * delaying it would only slow the first paint.
+ */
+export const DEFAULT_PARSE_DEBOUNCE_MS = 500;
+
 // =============================================================================
 // Content key — stable per-request identity
 // =============================================================================

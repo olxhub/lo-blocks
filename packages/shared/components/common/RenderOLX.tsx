@@ -122,7 +122,8 @@ interface RenderOLXProps {
   source?: string;
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
-  /** Debounce (ms) for re-parsing live-edited inline content. Default 0. */
+  /** Debounce (ms) for RE-parsing live-edited inline content. The first parse
+   *  is never debounced. Defaults to DEFAULT_PARSE_DEBOUNCE_MS. */
   debounceMs?: number;
   /** Initial idPrefix for scoping the rendered block's state key.
    *  Defaults to '' (root level). Set this when rendering a block that
@@ -155,7 +156,7 @@ export default function RenderOLX({
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
   eventContext,
-  debounceMs = 0,
+  debounceMs,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
 }: RenderOLXProps) {

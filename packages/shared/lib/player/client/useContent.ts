@@ -29,12 +29,12 @@ import { toLofsRef } from '@/lib/types/address';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import {
   contentKeyOf, sourceSignature, shouldRequestParse, deriveContentView, useContentEntry,
-  logContentParsing, logContentParsed, logContentFailed,
+  logContentParsing, logContentParsed, logContentFailed, DEFAULT_PARSE_DEBOUNCE_MS,
   type ContentView,
 } from '@/lib/state/content';
 import type {
   ContentNamespace, DefinitionKey, IdMap, OLXLoadingError,
-  ContentLedgerSourceKind, StateKey,
+  ContentLedgerSourceKind, StateKey, RequestSeq,
 } from '@/lib/types';
 import type { StorageProvider } from '@/lib/types/storage';
 import type { LogEventFn } from '@/lib/player/client/render';
@@ -58,7 +58,8 @@ export interface UseContentParams {
   blockSource: string;
   /** Runtime bits needed to emit events / honor replay. */
   runtime: { logEvent: LogEventFn; sideEffectFree?: boolean };
-  /** Debounce for re-parsing during live editing (ms). 0 = parse immediately. */
+  /** Debounce for RE-parsing during live editing (ms). The first parse of a
+   *  source is never debounced. Defaults to DEFAULT_PARSE_DEBOUNCE_MS. */
   debounceMs?: number;
   /** Fatal parse error callback (canonical AppError). */
   onError?: (error: AppError) => void;
@@ -102,7 +103,7 @@ async function parseDeclaredSource(
  * fallback). No local content/readiness state.
  */
 export function useContent(params: UseContentParams): ContentView {
-  const { ns, id, inline, files, provenance, blockSource, runtime, debounceMs = 0, onError } = params;
+  const { ns, id, inline, files, provenance, blockSource, runtime, debounceMs = DEFAULT_PARSE_DEBOUNCE_MS, onError } = params;
 
   const sourceKind: ContentLedgerSourceKind =
     (inline != null && inline !== '') ? 'inline'
@@ -136,11 +137,14 @@ export function useContent(params: UseContentParams): ContentView {
     // with the stable-signature deps, breaks the parse→re-render→re-parse loop.
     if (!shouldRequestParse(entryRef.current, signature)) return;
 
-    const rk = ++requestKeyRef.current;
-    logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, signature, provenance });
-
     let cancelled = false;
     const run = async () => {
+      // The requestKey and the PARSING event are allocated HERE, after the
+      // debounce has elapsed — not at schedule time. A superseded keystroke
+      // never reaches this point, so it costs no event and no request key.
+      const rk = (requestKeyRef.current + 1) as RequestSeq;
+      requestKeyRef.current = rk;
+      logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, signature, provenance });
       try {
         const { root, blocks, warnings } = await parseDeclaredSource(params);
         if (cancelled) return;
@@ -155,8 +159,18 @@ export function useContent(params: UseContentParams): ContentView {
       }
     };
 
+    // Debounce the PARSE, not the typing. Keystrokes are their own events on
+    // their own path; what settles here is the comparatively expensive
+    // parse-and-publish cycle, whose result is written to Redux on completion
+    // so the render stays correct.
+    //
+    // Only a RE-parse waits. The first parse of a source runs immediately —
+    // there is nothing on screen yet, so delaying it would just be a slower
+    // first paint, and "settling" is meaningless before there is anything to
+    // settle from.
     let timer: ReturnType<typeof setTimeout> | undefined;
-    if (debounceMs > 0) {
+    const isReparse = entryRef.current?.data != null;
+    if (debounceMs > 0 && isReparse) {
       timer = setTimeout(run, debounceMs);
     } else {
       void run();
