@@ -1702,6 +1702,60 @@ export interface OlxJsonState {
  *    → RenderOLX just renders `id`, the ledger only records readiness. */
 export type ContentLedgerSourceKind = 'inline' | 'files' | 'preloaded';
 
+/** ==========================================================================
+ *  THE TWO NAMES — keep these apart, always.
+ *
+ *  Content has two fundamentally different kinds of name, and conflating them
+ *  is how content systems rot. The grammar for both already lives in
+ *  types/address.ts — use it rather than inventing a parallel one:
+ *
+ *  (a) A REQUEST name — what you ASK for.  → `LofsRef`
+ *      `git@github.com:olxhub/lo-blocks.git`, `...git#pmitros/fixup`,
+ *      `...git#592727e` are all valid asks. May be ambiguous, may be mutable,
+ *      may resolve to something different tomorrow.
+ *
+ *  (b) A CANONICAL name — what you GOT.    → `LofsCanonical`
+ *      Version resolved to something immutable. Identifies exact bytes.
+ *      `LofsContentHash` is the strongest form: the content-addressed leaf.
+ *
+ *  A canonical name USUALLY works as a request name — but NOT always, and that
+ *  asymmetry is why these stay separate types. Read a file off the filesystem
+ *  and it may then change or be deleted: the canonical version no longer
+ *  resolves, while the reference to the bytes you read is still perfectly
+ *  meaningful. LOFS makes that trade deliberately, stamping canonicity with
+ *  mtime/size instead of paying to hash every read — a cheap canonical name,
+ *  not a request name. So treat every (b) → (a) conversion as fallible.
+ *
+ *  THE QUESTION THIS EXISTS TO ANSWER: *does the read name still point to the
+ *  same canonical?* That single comparison is what tells us whether Redux needs
+ *  to refresh, whether we would be overwriting without a lease, and whether a
+ *  cached parse is still valid. Reads therefore ALWAYS return the canonical —
+ *  a read that hands back only data, with no canonical name for what it
+ *  handed back, has thrown away the only thing that makes the question
+ *  answerable.
+ *  ========================================================================== */
+
+/** (a) A REQUEST name for a render: "the content this component asked for",
+ *  built by `contentKeyOf(blockSource, ns, id)`. A Redux map key, not a LOFS
+ *  address — it names an ASK, and is deliberately stable across keystrokes
+ *  (the inline text changes; the request does not). Never an identity for
+ *  bytes: that is `LofsCanonical`. */
+export type ContentRequestKey = string & { readonly __brand: 'ContentRequestKey' };
+
+/** The OlxJson slice's address space for parsed blocks. Draft (inline/files)
+ *  content lives in its OWN space — see `blockSourceFor` in state/content.ts —
+ *  which is what makes "may this be fetched?" answerable from the name alone,
+ *  with no lookup and no stateful flag. Git's working tree vs. object store. */
+export type BlockSource = string & { readonly __brand: 'BlockSource' };
+
+/** INTERIM. A per-request monotonic attempt counter, used only to reject a
+ *  parse result that lost a race. Branded so it can never be confused with a
+ *  timestamp, a seq from the event queue, or an index — and so the day it is
+ *  deleted, the compiler finds every site. It exists because parsed builds are
+ *  not yet stored under their content name; when they are, "which result wins"
+ *  stops being a comparison and becomes an address. */
+export type RequestSeq = number & { readonly __brand: 'RequestSeq' };
+
 /** The last successfully-parsed build for a content request. Structurally
  *  separable from the ledger bookkeeping below (open-decision #1: data tree vs
  *  ledger tree) — this is the only rendering-affecting derived state, and it is
@@ -1713,6 +1767,13 @@ export interface ContentLedgerData {
   root: DefinitionKey | null;
   /** Non-fatal parse warnings (content still renders). */
   warnings: OLXLoadingError[];
+  /** (b) CANONICAL name of the source THIS build was parsed from. Lives on the
+   *  data, not on the entry, because the entry's `signature` tracks the newest
+   *  ATTEMPT: mid-re-parse it names bytes that are not on screen yet, while
+   *  `data` still holds the previous build. Anything describing what is
+   *  actually rendered (the ErrorBoundary reset key, staleness display) must
+   *  read it from here. */
+  canonical?: LofsCanonical;
 }
 
 /** One content request's ledger entry. */
@@ -1721,20 +1782,22 @@ export interface ContentLedgerEntry {
    *  `ready` = `data` is current; `error` = the latest parse failed (but
    *  `data`, if present, is still the last-valid render). */
   status: 'parsing' | 'ready' | 'error';
-  /** Supersede guard. Monotonic per request; the reducer rejects a
-   *  PARSED/FAILED whose requestKey is older than the entry's. */
-  requestKey: number;
-  /** Stable signature of the SOURCE CONTENT that produced this entry (inline
-   *  text / file contents / ids). Lets the request stay idempotent: identical
-   *  already-parsed content is never re-parsed. */
-  signature?: string;
+  /** INTERIM (content-addressing deletes this). Supersede guard: monotonic per
+   *  request, and the reducer rejects a PARSED/FAILED older than the entry's.
+   *  Scaffolding for an ordering that `canonical` gives structurally — once
+   *  builds are stored under their content name, a late parse cannot clobber,
+   *  because it writes to its own address. See RequestSeq. */
+  requestKey: RequestSeq;
+  /** (b) CANONICAL name of the source bytes this entry was parsed from. This
+   *  is what answers "does the read name still point to the same canonical?" —
+   *  so it drives idempotency (identical content is never re-parsed) and the
+   *  render-reset seam. EQUALITY-COMPARED ONLY: never resolve or fetch by it. */
+  signature?: LofsCanonical;
   /** Declared source kind — drives whether blocks under this request's
    *  block-source may be server-fetched (inline/files → never). */
   sourceKind: ContentLedgerSourceKind;
-  /** The OlxJson block-slice namespace this request's blocks land in. Used by
-   *  the declared-source gate (isLocalBlockSource) to keep inline content from
-   *  ever being fetched from the server. */
-  blockSource: string;
+  /** Address space the parsed blocks land in — drafts get their own. */
+  blockSource: BlockSource;
   /** Last successfully-parsed build (the last-valid render). */
   data?: ContentLedgerData;
   /** Latest fatal parse error (no tree to render). Present only in `error`. */
@@ -1742,14 +1805,19 @@ export interface ContentLedgerEntry {
   /** A render-time exception logged by RenderOLX's ErrorBoundary as a normal
    *  event (replaces the old synthetic OLX error-node + sync dispatch). */
   renderError?: { id: string; title?: string; message: string; technical?: string };
-  /** Which file@version produced `data` (staleness / provenance). */
-  provenance?: string;
-  /** Freshness timestamp (CRDT-useful later). */
+  /** (a) The REQUEST name the source was asked for — the ref, which may have
+   *  named a mutable version. Kept alongside `signature` (b) precisely because
+   *  the pair is what makes staleness checkable: same ref, different canonical
+   *  = the world moved under us. */
+  provenance?: LofsRef;
+  /** Freshness timestamp (CRDT-useful later). Epoch ms. */
   retrievedAt?: number;
 }
 
 /** The content ledger slice — one entry per content request, keyed by a stable
- *  ContentKey (`${blockSource}\0${ns}\0${id}`). No entry = nobody requested it,
+ *  ContentKey (`contentKeyOf()` — the parts JSON-encoded as an array, so the
+ *  encoding is collision-safe whatever the parts contain). No entry = nobody
+ *  requested it,
  *  a valid state that never means "go fetch". */
 export interface ContentLedgerState {
   [key: string]: ContentLedgerEntry;

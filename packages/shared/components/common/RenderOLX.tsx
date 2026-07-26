@@ -111,8 +111,11 @@ interface RenderOLXProps {
   /** Called with a canonical AppError when parsing or rendering fails. For
    *  render errors, `technical` carries React's component stack (which block). */
   onError?: (error: import('@/lib/types/errors').AppError) => void;
-  /** Called after content is ready with the root ID. */
-  onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
+  /** Called after content is ready with the root ID. Parsed blocks are NOT
+   *  passed back: they land in Redux (the OlxJson slice) as part of the same
+   *  fold, so a caller that wants them selects them rather than catching them
+   *  in flight. */
+  onParsed?: (result: { root: string | null }) => void;
   /** Custom block registry (defaults to BLOCK_REGISTRY) */
   blockRegistry?: Record<string, any>;
   /** Source name for Redux state namespacing (e.g., 'content', 'inline', 'studio'). Defaults to 'content'. */
@@ -195,7 +198,7 @@ export default function RenderOLX({
   // Notify parent when content becomes ready.
   useEffect(() => {
     if (onParsed && view.ready) {
-      onParsed({ idMap: {}, root: view.root });
+      onParsed({ root: view.root });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.ready, view.root]);
@@ -284,8 +287,12 @@ export default function RenderOLX({
   // below, never by blanking the screen.
   return (
     <ErrorBoundary
-      // Reset when content identity changes OR on re-parse.
-      resetKey={[renderIdToQuery, view.root]}
+      // Reset when a genuinely DIFFERENT build is on screen. `view.root` cannot
+      // carry this: editing a block's contents fixes the error while leaving the
+      // root id identical, which latched the boundary on a stale failure forever.
+      // `view.revision` is the canonical name of the bytes being rendered, so it
+      // changes exactly when the content did.
+      resetKey={[renderIdToQuery, view.revision ?? view.root]}
       handler={(err, info) => {
         // Record the render-time exception as an ordinary, replayable event
         // (no synthetic OLX node, no synchronous dispatch). RenderOLX still

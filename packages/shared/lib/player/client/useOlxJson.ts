@@ -104,12 +104,11 @@ export function ensureBlock(
 
   const state = props.runtime.store.getState();
 
-  // Declared-source gate (content-ledger): if this block-source is a LOCAL
-  // (inline/files) content request, its blocks are produced by local parsing
-  // and must NEVER be server-fetched. An absent block is genuinely missing,
-  // not "go fetch" — this is what kills the inline-content 404. The fetch
-  // decision is made by the DECLARED source, never guessed from an absent read.
-  if (isLocalBlockSource(state, source)) return;
+  // Declared-source gate (INTERIM — see lib/state/content.ts). Inline/files
+  // content is parsed locally and must never be server-fetched: an absent block
+  // is genuinely missing, not "go fetch". Scoped to this namespace so one
+  // inline render can't suppress fetching for unrelated content.
+  if (isLocalBlockSource(state, source, props.runtime.ns)) return;
 
   const blockState = selectBlockState(state, [source], definitionKey);
   if (blockState) return; // Already known (loading, ready, or error)
