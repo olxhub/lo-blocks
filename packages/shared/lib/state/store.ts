@@ -681,7 +681,7 @@ function configureStore({
       // browser-wide total order of enqueue. Per-event identity is already
       // redundant by design (lo_event util.ts): metadata.browserTag (browser
       // GUID, persisted), metadata.sessionTag (page-load GUID),
-      // metadata.sessionIndex (counter within a page load), timestamps, and
+      // metadata.sessionSeq (counter within a page load), timestamps, and
       // this queue `seq`. Order by timestamp, then sequence, then GUID.
       queueType: lo_event.QueueType.AUTODETECT
     }

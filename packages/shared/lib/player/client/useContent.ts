@@ -81,7 +81,12 @@ async function parseDeclaredSource(
   let mergedIdMap: IdMap = {};
   let lastRoot: DefinitionKey | null = null;
   let allErrors: OLXLoadingError[] = [];
-  for (const [filename, content] of Object.entries(files ?? {})) {
+  // SORTED, to match sourceSignature(), which sorts filenames. Parsing in
+  // insertion order while naming the source order-insensitively means two
+  // inputs share a signature but produce different builds — later files set
+  // `lastRoot` and overwrite duplicate ids — so the cached build can be for a
+  // different tree than the one the name claims.
+  for (const [filename, content] of Object.entries(files ?? {}).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
     if (!isOLXFile(filename)) continue;
     const result = await parseOLX(
       content,
@@ -142,7 +147,14 @@ export function useContent(params: UseContentParams): ContentView {
       // The requestKey and the PARSING event are allocated HERE, after the
       // debounce has elapsed — not at schedule time. A superseded keystroke
       // never reaches this point, so it costs no event and no request key.
-      const rk = (requestKeyRef.current + 1) as RequestSeq;
+      // Seed from the LEDGER, not just this component's counter. The ref is
+      // per-hook-instance and restarts at 0 on remount, while the entry
+      // survives in Redux with the higher key from before. A remounted preview
+      // would then emit request 1 against a ledger holding 5, CONTENT_PARSING
+      // would keep 5, and the result would be rejected as stale — leaving the
+      // preview stuck on an old build until the local counter caught up.
+      // (Scaffolding either way: content addressing removes request keys.)
+      const rk = (Math.max(requestKeyRef.current, entryRef.current?.requestKey ?? 0) + 1) as RequestSeq;
       requestKeyRef.current = rk;
       logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, signature, provenance });
       try {

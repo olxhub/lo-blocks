@@ -38,7 +38,18 @@ import { routeEvent, type SyncSession } from '@/lib/state/sync/router';
 /** Send a message to the client, ignoring errors if the socket is already closing. */
 export function safeSend(ws: WebSocket, data: object) {
   try {
-    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(data));
+    // Stamp every server-originated frame with the time it went out.
+    // Client-originated events carry lo_event's full metadata; server frames
+    // (ack, hello, auth, save_blob_ack, ...) carried nothing at all, which
+    // makes a captured session unreadable in exactly the moments you care
+    // about — you can see an event was sent but not when it was acknowledged,
+    // so latency and ordering across the two directions are unrecoverable.
+    // Server-side timestamps only: the server's clock is the trustworthy one
+    // here, and none of the client's identity applies to a frame it did not
+    // create.
+    const now = Date.now();
+    const stamped = { ts: now, iso_ts: new Date(now).toISOString(), ...data };
+    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(stamped));
   } catch { /* client gone — not actionable */ }
 }
 
