@@ -32,6 +32,13 @@ export async function handleShutdown(c: Context): Promise<Response> {
     return accessDenied;
   }
 
-  setTimeout(() => process.exit(0), 100);
+  // Raise the signal rather than exiting: SIGTERM is already wired to the
+  // graceful shutdown in index.ts, which closes sockets and waits for every
+  // event log to finish flushing. Calling process.exit() here was a SECOND,
+  // independent termination path that skipped all of it and truncated the tail
+  // of every open session's log. Termination logic is the kind of thing that
+  // grows (a shutdown log, notifying an APM); it should grow in one place.
+  // The delay is just so this response gets out the door first.
+  setTimeout(() => process.kill(process.pid, 'SIGTERM'), 100);
   return c.json({ message: 'Shutting down server...' });
 }
