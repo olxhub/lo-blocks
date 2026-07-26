@@ -89,9 +89,9 @@ export function useBlock(
       block: (
         <DisplayError
           id={`block-error-${stateKey}`}
-          title="useBlock"
+          title={`Couldn't load content for "${stateKey}"`}
           message={olxResult.error}
-          data={{ stateKey }}
+          data={{ stateKey, source }}
         />
       ),
       ...blockData('error', olxResult.error)
@@ -99,14 +99,17 @@ export function useBlock(
   }
 
   if (!reduxOlxJson) {
-    const msg = `Block "${stateKey}" not found in Redux`;
+    const msg =
+      `Block "${stateKey}" isn't in the "${source}" content store, and no ` +
+      `fetch has resolved it. Inline/parsed content should already be in Redux ` +
+      `by the time it renders — if you see this, its dispatch hasn't landed yet.`;
     return {
       block: (
         <DisplayError
           id={`block-missing-${stateKey}`}
-          title="useBlock"
+          title={`Content missing for "${stateKey}"`}
           message={msg}
-          data={{ stateKey, definitionKey: defRef }}
+          data={{ stateKey, definitionKey: defRef, source }}
         />
       ),
       ...blockData('error', msg)
