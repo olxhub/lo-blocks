@@ -36,7 +36,7 @@ We will walk through the lifespan of a typical block. The most confusing parts t
                  ↓
               LoBlock      Compiled / validated / cleaned up by the system)
                  ↓
-   OLX →      OlxJson     Static content (**instance** of a LoBlock)
+     OLX →    OlxJson     Static content (**instance** of a LoBlock)
                  ↓
             [LinkedJson]   In progress: with pointers to parents, children, related blocks (input/grading hierarchies), etc.
                  ↓
@@ -439,6 +439,13 @@ creates an instance of that block. The OLX is the archival format-of-record for 
 ```
 
 This is `OlxJson` in `types/core.ts`.
+
+Very important note: Compiling OLX into OlxJson is very much like the relationship between source code and compiled code. Things get moved around. Compiling hello.cpp and hellolib.cpp does not result in hello.a and hello.so; a compiled object file might pull in from many source files, and a source file might appear in many output artifacts. The same is true here:
+
+* OLX is structured in git repositories, for human ease-of-authoring. One can declare anything, anywhere.
+* OlxJson is structured by namespaces
+
+We have some defaults (if we don't declare a namespace, it's derived from the repository name), but that's all they are: defaults.
 
 ## Instantiating Blocks -- Part 2: Dynamic DOM
 
@@ -1014,9 +1021,9 @@ while silently losing or corrupting student data. Hold them:
    (lo_event / state) are separate systems that merely share a bus. Don't route
    bulk content through the event stream, or keystrokes through MCP.
 
-For the wire protocol — the three "planes" (client events, control/subscribe,
-server events), the ack semantics, and the migration plan — see the state-sync
-design doc; the server engine lives in `packages/shared/lib/state/sync/`.
+The wire protocol — the three "planes" (client events, control/subscribe,
+server events), the ack semantics, and the migration plan — lives in the team's
+architecture docs; the server engine lives in `packages/shared/lib/state/sync/`.
 
 # Developing in this repo
 
