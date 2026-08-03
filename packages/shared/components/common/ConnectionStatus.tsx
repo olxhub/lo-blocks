@@ -13,7 +13,7 @@
 //
 'use client';
 import { WifiOff, AlertTriangle } from 'lucide-react';
-import { useConnected, useSaved, useFatal } from '@/lib/state';
+import { useConnected, useSaved } from '@/lib/state';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
 
@@ -51,7 +51,26 @@ export interface ConnectionStatus {
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
-  const fatal = useFatal() as Fatal | null;
+  // HACK(lo_event-not-acking): always null, so the banner below is currently
+  // unreachable.
+  //
+  // lo_event no longer negotiates capabilities, and that is DELIBERATE, not a
+  // regression: negotiation existed mainly to guard a legacy confirm-on-send
+  // fallback, and a fallback that silently downgrades durability is worse than
+  // none. Requiring the ack protocol unconditionally is the simpler contract.
+  //
+  // What that leaves is narrower: nothing reports a server that ACCEPTS events
+  // and never acks them. The outbox retains everything (correct) and grows
+  // without bound (unbounded), while the UI shows an ordinary connected state.
+  // The right trigger is a SYMPTOM, not a handshake — "connected, outbox
+  // non-empty, nothing acked in N seconds" — which needs no capability frame
+  // and no legacy path, and also catches a wedged pipeline or a quarantined
+  // event type, which negotiation never could.
+  //
+  // The presentation (FatalNotice, FATAL_MESSAGES, the StatusBar banner + page
+  // dim) is kept deliberately: the requirement did not go away, only the
+  // signal. See the matching note in lib/state/store.ts.
+  const fatal: Fatal | null = null;
   return {
     connected,
     saveStatus,

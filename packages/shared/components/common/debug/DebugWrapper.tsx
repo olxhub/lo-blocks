@@ -20,7 +20,7 @@ import { Provider, useStore } from 'react-redux';
 import { legacy_createStore as createStore } from 'redux';
 import * as lo_event from 'lo_event';
 
-import { useFieldState, ReduxStoreLoader } from '@/lib/state';
+import { useFieldState } from '@/lib/state';
 import { settings } from '@/lib/state/settings';
 import { DebugSettingsContext } from '@/lib/state/debugSettings';
 import { replayToEvent, filterByContext, type LoggedEvent } from '@/lib/replay';
@@ -108,7 +108,6 @@ function DebugWrapperInner({
 
   return (
     <DebugSettingsContext.Provider value={debugSettings}>
-      <ReduxStoreLoader />
       <ReplayModeIndicator />
       <ReplayProvider replayMode={replayMode} replayEventIndex={replayEventIndex}>
         {children}
@@ -124,8 +123,8 @@ function DebugWrapperInner({
 /**
  * Debug infrastructure wrapper. Must be rendered inside a Redux <Provider>.
  *
- * When PMSS `debug-panel` is false, renders only <ReduxStoreLoader /> and
- * children — no debug components, no replay overhead.
+ * When PMSS `debug-panel` is false, renders only children — no debug
+ * components, no replay overhead.
  *
  * @param store - The Redux store instance (needed for debugProps)
  */
@@ -136,12 +135,7 @@ export default function DebugWrapper({
   store: any;
 }) {
   if (resolveConfig({}, 'debug-panel') !== 'true') {
-    return (
-      <>
-        <ReduxStoreLoader />
-        {children}
-      </>
-    );
+    return <>{children}</>;
   }
 
   return (

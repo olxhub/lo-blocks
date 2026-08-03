@@ -27,9 +27,16 @@
 //     events/ log contains every keystroke. This is the forensics' explicit
 //     regression test — the only thing that reproduces the
 //     original data-loss bug end to end.
-//   TODO(plane1-requireAck): misdeploy assertion (client-side, with lo_event's
-//     tests). A `requireAck` client pointed at an ack-less server must fail
-//     loud (lo_fatal / ACK_REQUIRED) and HOLD its queue — never send unacked.
+//   TODO(lo_event-not-acking): no-ack assertion (client-side, with lo_event's
+//     tests). A client pointed at a server that accepts events and never acks
+//     them must HOLD its queue (that part works) and say so out loud (that part
+//     does not exist).
+//     NOT written as a capability/misdeploy check: lo_event deliberately
+//     dropped `hello` negotiation and the legacy confirm-on-send path, so
+//     "server doesn't advertise ack" is no longer a distinguishable state. The
+//     assertion belongs on the SYMPTOM — connected, outbox non-empty, nothing
+//     acked in N seconds — which also covers a wedged pipeline or a quarantined
+//     event type, neither of which a handshake would have caught.
 
 import { test, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';

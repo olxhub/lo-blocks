@@ -645,12 +645,56 @@ function configureStore({
     // getWebsocketUrl() must only be called when actually needed — it throws on
     // unknown ports.
     //
-    // requireAck: lo-blocks REQUIRES the Plane-1 durable-ack protocol — a server
-    // that doesn't advertise it (no `hello.capabilities.ack`) is a misdeploy, so
-    // fail loud (lo_fatal → the StatusBar banner) rather than silently running
-    // legacy and losing the tail of a session. See docs/README.md, section
-    // "State, Events, and Synchronization".
-    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl(), { requireAck: true })] : []),
+    // autoack: false — lo-blocks REQUIRES the Plane-1 durable-ack protocol.
+    // Events are retained in the outbox until the SERVER acks them, never
+    // confirmed on send. See docs/README.md, "State, Events, and
+    // Synchronization". This is lo_event's default; it is stated explicitly
+    // because silently flipping to confirm-on-send loses the tail of a session.
+    //
+    // The ack protocol's tab-close recovery REQUIRES a durable outbox: held
+    // unacked events must survive the JS context dying so the next load can
+    // resend them. AUTODETECT uses IndexedDB in the browser (durable across
+    // reload) and falls back to in-memory in node/SSR/tests where IndexedDB is
+    // unavailable. With an in-memory queue the tab-close recovery is void.
+    //
+    // DELIBERATE: the IndexedDB queue is SHARED ACROSS TABS (fixed DB name),
+    // and that is not a bug to fix. A per-tab database would give each tab a
+    // tidy log and forfeit the entire point — recovery across a reload or a
+    // closed tab, which is not tab-scoped. Accepted consequences: tabs
+    // re-send each other's backlog (harmless — delivery is at-least-once and
+    // reducers are idempotent), and one tab's events can land on another's
+    // connection, which will matter for attribution once `lock_fields`
+    // attachment lands server-side. The shared `seq` is a FEATURE: it is a
+    // browser-wide total order of enqueue. Per-event identity is already
+    // redundant by design (lo_event util.ts): metadata.browserTag (browser
+    // GUID, persisted), metadata.sessionTag (page-load GUID),
+    // metadata.sessionSeq (counter within a page load), timestamps, and
+    // this queue `seq`. Order by timestamp, then sequence, then GUID.
+    //
+    // There is no longer any capability negotiation, and that is deliberate:
+    // it existed to guard a legacy confirm-on-send fallback, and a fallback
+    // that silently downgrades durability is worse than none. The ack protocol
+    // is simply required. The open gap is a server that accepts events and
+    // never acks: the outbox correctly retains them and grows unbounded, with
+    // no signal. See TODO(lo_event-not-acking) in
+    // components/common/ConnectionStatus.tsx for the symptom-based trigger.
+    // fetchState: lo-blocks HAS server-side state, so the logger requests a
+    // snapshot itself once per connection, behind the flush barrier (the
+    // request must arrive after this connection's backlog, or the snapshot
+    // predates the user's own last keystrokes), and retries if unanswered.
+    //
+    // Stated explicitly rather than inherited: lo_event derives it as
+    // `fetchState = !autoack`, which conflates two independent questions —
+    // "do I retain until acked" and "does this app have state to load". A pure
+    // logger deployment (no state to fetch) sets this false, and must not have
+    // to give up durable acks to say so.
+    ...(useWebsocket
+      ? [websocketLogger(eventServerUrl || getWebsocketUrl(), {
+          autoack: false,
+          fetchState: true,
+          queueType: lo_event.QueueType.AUTODETECT,
+        })]
+      : []),
   ];
 
   lo_event.init(
@@ -662,28 +706,6 @@ function configureStore({
       debugDest: debugEvents ? [debug.LOG_OUTPUT.CONSOLE] : [],
       useDisabler: false,
       sendBrowserInfo: !isTest,
-      // The ack protocol's tab-close recovery REQUIRES a durable queue: held
-      // unacked events must survive the JS context dying so rewind() can
-      // resend them on the next load. AUTODETECT uses IndexedDB in the browser
-      // (durable across reload) and falls back to in-memory in node/SSR/tests
-      // where IndexedDB is unavailable. With an in-memory queue the tab-close
-      // fix is void — the tail of a session is lost when the tab dies before
-      // the ack.
-      //
-      // DELIBERATE: the IndexedDB queue is SHARED ACROSS TABS (fixed DB name),
-      // and that is not a bug to fix. A per-tab database would give each tab a
-      // tidy log and forfeit the entire point — recovery across a reload or a
-      // closed tab, which is not tab-scoped. Accepted consequences: tabs
-      // re-send each other's backlog (harmless — delivery is at-least-once and
-      // reducers are idempotent), and one tab's events can land on another's
-      // connection, which will matter for attribution once `lock_fields`
-      // attachment lands server-side. The shared `seq` is a FEATURE: it is a
-      // browser-wide total order of enqueue. Per-event identity is already
-      // redundant by design (lo_event util.ts): metadata.browserTag (browser
-      // GUID, persisted), metadata.sessionTag (page-load GUID),
-      // metadata.sessionSeq (counter within a page load), timestamps, and
-      // this queue `seq`. Order by timestamp, then sequence, then GUID.
-      queueType: lo_event.QueueType.AUTODETECT
     }
   );
   lo_event.lockFields([{ activity: 'lo-blocks' }]);

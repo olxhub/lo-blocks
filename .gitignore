@@ -113,3 +113,6 @@ config/content-sources.local.yaml
 config/*.pat
 /apps/client/test-results/
 .#*
+
+# Agent/session working directory — local tooling state, never shared.
+.claude/

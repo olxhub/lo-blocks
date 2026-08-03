@@ -42,12 +42,15 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
     return () => window.removeEventListener('beforeunload', handler);
   }, [persists, saveStatus]);
 
-  // Fatal delivery failure (e.g. the server doesn't speak the save protocol —
-  // a misdeploy): the client holds its queue but nothing reaches the server.
-  // Strongest signal, checked ahead of the transient offline case — banner +
-  // dim. Delivery stays best-effort (lo_event keeps the durable queue); the UX
-  // just refuses to look saved. See docs/README.md, section "State, Events, and
-  // Synchronization" (the requireAck/ack contract).
+  // Fatal delivery failure: the client holds its queue but nothing reaches the
+  // server. Strongest signal, checked ahead of the transient offline case —
+  // banner + dim. Delivery stays best-effort (lo_event keeps the durable
+  // queue); the UX just refuses to look saved. See docs/README.md, section
+  // "State, Events, and Synchronization" for the ack contract.
+  //
+  // Currently unreachable: nothing produces a fatal yet. See
+  // HACK(lo_event-not-acking) in ConnectionStatus.tsx for why, and for the
+  // symptom-based trigger that should feed it.
   //
   // Render user-facing copy (fatalMessage), NOT lo_event's raw fatal.message —
   // that developer diagnostic is already console.error'd inside lo_event and
