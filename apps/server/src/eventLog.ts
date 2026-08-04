@@ -85,25 +85,39 @@ export function appendEvent(conn: ConnectionLog, event: any) {
   conn.stream.write(JSON.stringify(event) + '\n');
 }
 
-/** Append a single event AND flush it through zlib to the underlying file,
- *  resolving only once the compressed bytes are on disk.
+/** Append a single event AND flush it through zlib toward the underlying
+ *  file, resolving once the event's bytes have been pushed to the file stream.
  *
- *  This is the Plane-1 ack trigger (pubsub-state-sync-design §3a/§7). The
- *  server must not tell the client "durably captured" until the event is
- *  actually in the events/ log — not merely folded into in-memory
- *  ServerState. The bug being fixed is exactly the window where an event
- *  lives only in a JS variable + the network buffer: acking before the
- *  disk write reintroduces it.
+ *  This is the Plane-1 ack trigger (see docs/README.md, section "State, Events,
+ *  and Synchronization"). The server must not tell the client "durably
+ *  captured" until the event is in the events/ log — not merely folded into
+ *  in-memory ServerState. The bug being fixed is exactly the window where an
+ *  event lives only in a JS variable + the network buffer: acking before the
+ *  log write reintroduces it.
  *
- *  Z_SYNC_FLUSH ends a deflate block, so every byte written so far is
- *  independently decompressible — a reader (or a crash-truncated file)
- *  recovers all acked events even though the gzip trailer isn't written
- *  until saveConnectionLog(). The flush callback fires after the flushed
- *  bytes have reached the file stream, so ack-after-resolve is strictly
- *  ordered log-write-then-ack. */
+ *  What the flush does and does NOT guarantee:
+ *  Z_SYNC_FLUSH ends a deflate block and pushes this event's bytes from zlib
+ *  into the piped fs.WriteStream. That guarantees survival of a tab close and
+ *  of an in-process server crash after the WriteStream drains — the bug this
+ *  fixes. It does NOT fsync, so it does not guarantee survival of a machine
+ *  crash / power loss (that needs fdatasync). So "ack" means "captured to the
+ *  events/ log", not "fsynced" and not "processed".
+ *
+ *  Ending the deflate block also makes every byte written so far independently
+ *  decompressible — a reader (or a crash-truncated file) recovers all acked
+ *  events even though the gzip trailer isn't written until saveConnectionLog().
+ *
+ *  TODO(plane1-durability, separate PR): batch the flush. Today every event is
+ *  flushed individually — one Z_SYNC_FLUSH plus an event-loop round-trip per
+ *  event, a real compression/perf cost at keystroke volume — and the ack can
+ *  precede the fd write. The rework: drain the pending queue → append all →
+ *  ONE durable sync → ack the highest seq (protocol-identical, since the ack is
+ *  cumulative), on a ~500ms boundary; optionally fsync on that boundary behind
+ *  a plain `const FSYNC = false` module toggle for machine-crash durability.
+ *  This is server-crash hardening, NOT the tab-close fix (that's the persistent
+ *  client queue — see queueType in packages/shared/lib/state/store.ts). */
 export function appendEventDurable(conn: ConnectionLog, event: any): Promise<void> {
   if (conn.streamError) return Promise.reject(conn.streamError);
-  conn.log.eventCount++;
   return new Promise((resolve, reject) => {
     // Flush from INSIDE the write callback: zlib processes write/flush
     // requests off an async queue, and flushing before this write is
@@ -114,8 +128,11 @@ export function appendEventDurable(conn: ConnectionLog, event: any): Promise<voi
     conn.stream.write(JSON.stringify(event) + '\n', (writeErr) => {
       if (writeErr) return reject(writeErr);
       conn.stream.flush(zlib.constants.Z_SYNC_FLUSH, () => {
-        if (conn.streamError) reject(conn.streamError);
-        else resolve();
+        if (conn.streamError) return reject(conn.streamError);
+        // Count only after the write resolves: incrementing before the write
+        // could reject would drift the count on a mid-session stream error.
+        conn.log.eventCount++;
+        resolve();
       });
     });
   });

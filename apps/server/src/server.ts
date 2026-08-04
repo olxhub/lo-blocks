@@ -315,13 +315,14 @@ export async function startServer(
       `${req.socket.remoteAddress} → ${conn.path}`
     );
 
-    // Capability handshake FIRST (pubsub-state-sync-design §3a/§5): the very
-    // first frame on the connection advertises what the server speaks. We
-    // advertise only `ack` (Plane 1) — NOT `subscribe`, since Plane 2 isn't
-    // built. Ack-less/older clients ignore an unrecognized `hello` frame, so
-    // omitting it (or the whole hello) degrades byte-identically to legacy.
+    // Capability handshake FIRST (see docs/README.md, section "State, Events,
+    // and Synchronization"): the very first frame on the connection advertises
+    // what the server speaks. We advertise only `ack` (Plane 1) — NOT
+    // `subscribe`, since Plane 2 isn't built. Ack-less/older clients ignore an
+    // unrecognized `hello` frame, so omitting it (or the whole hello) degrades
+    // byte-identically to legacy.
     safeSend(ws, { status: 'hello', capabilities: { ack: true } });
-    ws.send(JSON.stringify({ status: 'auth', ...user }));
+    safeSend(ws, { status: 'auth', ...user });
 
     runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);

@@ -605,7 +605,13 @@ function configureStore({
     // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.
     // getWebsocketUrl() must only be called when actually needed — it throws on
     // unknown ports.
-    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl())] : []),
+    //
+    // requireAck: lo-blocks REQUIRES the Plane-1 durable-ack protocol — a server
+    // that doesn't advertise it (no `hello.capabilities.ack`) is a misdeploy, so
+    // fail loud (lo_fatal → the StatusBar banner) rather than silently running
+    // legacy and losing the tail of a session. See docs/README.md, section
+    // "State, Events, and Synchronization".
+    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl(), { requireAck: true })] : []),
   ];
 
   lo_event.init(
@@ -617,7 +623,14 @@ function configureStore({
       debugDest: debugEvents ? [debug.LOG_OUTPUT.CONSOLE] : [],
       useDisabler: false,
       sendBrowserInfo: !isTest,
-      queueType: lo_event.QueueType.IN_MEMORY
+      // The ack protocol's tab-close recovery REQUIRES a durable queue: held
+      // unacked events must survive the JS context dying so rewind() can
+      // resend them on the next load. AUTODETECT uses IndexedDB in the browser
+      // (durable across reload) and falls back to in-memory in node/SSR/tests
+      // where IndexedDB is unavailable. With an in-memory queue the tab-close
+      // fix is void — the tail of a session is lost when the tab dies before
+      // the ack.
+      queueType: lo_event.QueueType.AUTODETECT
     }
   );
   lo_event.lockFields([{ activity: 'lo-blocks' }]);

@@ -12,13 +12,28 @@
 //   true  → connected → show save status
 //
 'use client';
-import { WifiOff } from 'lucide-react';
-import { useConnected, useSaved } from '@/lib/state';
+import { WifiOff, AlertTriangle } from 'lucide-react';
+import { useConnected, useSaved, useFatal } from '@/lib/state';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
 
+/** A sticky, fatal delivery-layer failure surfaced by lo_event — e.g. the
+ *  server does not speak the ack/save protocol (a misdeploy). Null when
+ *  healthy. UX fails hard on this; the delivery queue keeps trying regardless. */
+export interface Fatal { code: string; message: string }
+
 // Single source of truth for the offline wording.
 export const OFFLINE_MESSAGE = 'Offline — changes may not be saved';
+
+// User-facing copy for fatal delivery failures, keyed by fatal.code. lo_event's
+// raw fatal.message is a developer diagnostic ("refusing to run legacy…") and
+// must never reach a student — it is already console.error'd inside lo_event.
+// This map is the single source of truth for what the banner shows instead.
+export const FATAL_MESSAGES: Record<string, string> = {
+  ACK_REQUIRED: 'Saving is unavailable right now — the server isn’t accepting saves. Your work is held and will sync once the connection is restored.',
+};
+export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
+export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
 
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
@@ -28,15 +43,19 @@ export interface ConnectionStatus {
   persists: boolean;
   /** True when persistence is active but the connection has dropped. */
   offline: boolean;
+  /** Sticky fatal delivery failure (e.g. server lacks the save protocol), or null. */
+  fatal: Fatal | null;
 }
 
 /** Single subscription to connection + save state, with the null/false/true rules applied. */
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
+  const fatal = useFatal() as Fatal | null;
   return {
     connected,
     saveStatus,
+    fatal,
     persists: connected !== null,
     offline: connected === false,
   };
@@ -75,6 +94,21 @@ export function OfflineNotice({ className = '' }: { className?: string }) {
     <span className={`flex items-center gap-2 ${className}`}>
       <WifiOff className="w-4 h-4" />
       {OFFLINE_MESSAGE}
+    </span>
+  );
+}
+
+/**
+ * Fatal delivery failure (e.g. the server does not support the save protocol —
+ * a misdeploy). StatusBar renders this as a full-width banner + page dim: the
+ * UX fails hard so no one keeps working under the illusion of saving, while
+ * lo_event's durable queue keeps holding events (delivery stays best-effort).
+ */
+export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
+  return (
+    <span className={`flex items-center gap-2 ${className}`}>
+      <AlertTriangle className="w-4 h-4" />
+      {message}
     </span>
   );
 }

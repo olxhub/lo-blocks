@@ -150,7 +150,8 @@ async function* decodeAndLog(
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
     // Await durability BEFORE acking: the whole point of Plane 1 is that
-    // "ack" means "on disk", not "received into a variable" (§7).
+    // "ack" means "on disk", not "received into a variable" (see docs/README.md,
+    // section "State, Events, and Synchronization").
     await appendEventDurable(context.conn, event);
 
     if (typeof event.seq === 'number') {
