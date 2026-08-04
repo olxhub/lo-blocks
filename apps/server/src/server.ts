@@ -335,6 +335,12 @@ export async function startServer(
       // hot reload.)
       try { ws.close(1011, 'pipeline failed'); } catch { /* already gone */ }
     }).finally(() => {
+      // ORDER IS LOAD-BEARING: deregister only AFTER the log has been saved.
+      // Graceful shutdown (index.ts) closes every socket and then polls
+      // activeConnections until it is empty, treating "empty" as "all event
+      // logs are flushed to disk". Deleting before the save resolves would
+      // make that poll finish early and let process.exit() cut off the gzip
+      // drain — silently truncating the tail of every open session's log.
       saveConnectionLog(conn)
         .catch((err) => console.error(`[${conn.id}] Error saving event log:`, err))
         .finally(() => activeConnections.delete(ws));

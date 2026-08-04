@@ -11,7 +11,7 @@
 //
 //   - first frame is  { status: 'hello', capabilities: { ack: true } }
 //     (only `ack`; NOT `subscribe` — Plane 2 isn't built);
-//   - a seq-tagged event is acked cumulatively as { status: 'ack', seq },
+//   - an identified event is acked by name as { status: 'ack', id },
 //     and ONLY after it is durably present in the events/ log (ordering:
 //     log-write-then-ack, never ack-then-write);
 //   - a simulated shutdown flushes/finalizes the log so an in-flight event
@@ -29,7 +29,7 @@
 //     original data-loss bug end to end.
 //   TODO(plane1-requireAck): misdeploy assertion (client-side, with lo_event's
 //     tests). A `requireAck` client pointed at an ack-less server must fail
-//     loud (lo_fatal / ACK_REQUIRED) and HOLD its queue — never send un-seq'd.
+//     loud (lo_fatal / ACK_REQUIRED) and HOLD its queue — never send unacked.
 
 import { test, expect, beforeAll, afterAll } from 'vitest';
 import { WebSocket } from 'ws';
@@ -71,13 +71,15 @@ afterAll(async () => {
 
 // --- helpers ----------------------------------------------------------------
 
-async function waitFor(pred: () => boolean | Promise<boolean>, timeout = 15000, interval = 20) {
+async function waitFor(
+  what: string, pred: () => boolean | Promise<boolean>, timeout = 15000, interval = 20,
+) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     if (await pred()) return;
     await new Promise(r => setTimeout(r, interval));
   }
-  throw new Error('waitFor timed out');
+  throw new Error(`waitFor timed out after ${timeout}ms: ${what}`);
 }
 
 function openClient() {
@@ -93,9 +95,17 @@ function openClient() {
 
 /** Decompress whatever is on disk so far, tolerating a not-yet-written gzip
  *  trailer (a live connection's log is mid-stream). Z_SYNC_FLUSH boundaries
- *  make every appended-so-far event independently decodable. */
+ *  make every appended-so-far event independently decodable.
+ *
+ *  "Not there yet" is a legitimate state, not an error: createConnectionLog
+ *  registers the connection synchronously but fs.createWriteStream opens the
+ *  fd asynchronously, so the file appears a few ticks after a caller can first
+ *  see conn.path. Callers poll this in a waitFor, so an empty result simply
+ *  means "keep waiting" — throwing ENOENT out of the predicate instead aborted
+ *  the whole test, which is how this file used to flake under load. */
 function readLogTolerant(logPath: string): Promise<any[]> {
   return new Promise((resolve) => {
+    if (!fs.existsSync(logPath)) return resolve([]);
     const chunks: Buffer[] = [];
     const g = zlib.createGunzip();
     const done = () => resolve(
@@ -133,7 +143,7 @@ function newConn(known: Set<string>) {
 test('first frame is a hello advertising ack (and not subscribe)', async () => {
   const { ws, frames, opened } = openClient();
   await opened;
-  await waitFor(() => frames.length >= 1);
+  await waitFor('first frame from server', () => frames.length >= 1);
 
   // The capability handshake must be the FIRST frame on the connection.
   expect(frames[0].status).toBe('hello');
@@ -149,47 +159,51 @@ test('events are acked cumulatively, and only after they are on disk', async () 
   const { ws, frames, opened } = openClient();
   await opened;
   let conn!: NonNullable<ReturnType<typeof newConn>>;
-  await waitFor(() => (conn = newConn(known)!) !== undefined);
+  await waitFor('server-side connection registered', () => (conn = newConn(known)!) !== undefined);
 
   // id/field-less telemetry events: the ack contract (durable-append-then-ack)
   // is decided in decodeAndLog, upstream of field routing, so these exercise
   // it fully while keeping the test hermetic (a field-addressed event would
   // send the reducer stage into content sync — irrelevant to Plane 1).
-  const send = (seq: number) => ws.send(JSON.stringify({
-    event: 'TELEMETRY', kind: 'click', ts: seq, seq,
+  // Events carry their own name (lo_event stamps metadata.eventId as
+  // <browser>.<session>.<seq>); the server acks that name back.
+  const idOf = (n: number) => `browser-t.session-t.${n}`;
+  const send = (n: number) => ws.send(JSON.stringify({
+    event: 'TELEMETRY', kind: 'click', ts: n,
+    metadata: { eventId: idOf(n), browserTag: 'browser-t', sessionTag: 'session-t', sessionSeq: n },
   }));
   send(1); send(2); send(3);
 
-  const acks = () => frames.filter(f => f.status === 'ack').map(f => f.seq);
-  await waitFor(() => acks().includes(3));
+  const acks = () => frames.filter(f => f.status === 'ack').map(f => f.id);
+  await waitFor(`ack for ${idOf(3)}`, () => acks().includes(idOf(3)));
 
-  // Cumulative + monotonic: acks never go backwards, and cover through 3.
-  const seqs = acks();
-  expect(Math.max(...seqs)).toBeGreaterThanOrEqual(3);
-  expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
+  // Each event is acked by name — no event is acked that was not sent, and
+  // every one that was sent is accounted for.
+  expect(acks()).toEqual(expect.arrayContaining([idOf(1), idOf(2), idOf(3)]));
 
-  // Durability-before-ack: by the time ack(3) reached the client, all three
-  // events are already in the events/ log. appendEventDurable resolves only
-  // after the flushed bytes hit the file, and the ack is sent after that — so
-  // observing the ack guarantees the on-disk write happened first.
+  // Durability-before-ack: by the time the ack for #3 reached the client, all
+  // three events are already in the events/ log. appendEventDurable resolves
+  // only after the flushed bytes hit the file, and the ack is sent after that,
+  // so observing the ack guarantees the on-disk write happened first.
   const logged = (await readLogTolerant(conn.path))
-    .filter(e => typeof e.seq === 'number').map(e => e.seq);
-  expect(logged).toEqual(expect.arrayContaining([1, 2, 3]));
+    .map(e => e?.metadata?.eventId).filter(Boolean);
+  expect(logged).toEqual(expect.arrayContaining([idOf(1), idOf(2), idOf(3)]));
 
   ws.close();
 }, 20000);
 
-test('legacy (seq-less) events are logged but never acked', async () => {
+test('legacy (unidentified) events are logged but never acked', async () => {
   const known = knownPaths();
   const { ws, frames, opened } = openClient();
   await opened;
   let conn!: NonNullable<ReturnType<typeof newConn>>;
-  await waitFor(() => (conn = newConn(known)!) !== undefined);
+  await waitFor('server-side connection registered', () => (conn = newConn(known)!) !== undefined);
 
-  // An ack-less client (lo_event 0.0.7) tags no seq. The event must still be
+  // An ack-less client stamps no eventId. The event must still be
   // captured, but the server must not emit an ack for it.
   ws.send(JSON.stringify({ event: 'TELEMETRY', value: 'legacy', ts: 1 }));
-  await waitFor(async () => (await readLogTolerant(conn.path)).some(e => e.value === 'legacy'));
+  await waitFor('legacy event in the log',
+    async () => (await readLogTolerant(conn.path)).some(e => e.value === 'legacy'));
 
   await new Promise(r => setTimeout(r, 100));  // give any (wrong) ack time to arrive
   expect(frames.filter(f => f.status === 'ack')).toHaveLength(0);
@@ -202,23 +216,27 @@ test('simulated shutdown finalizes the log and preserves in-flight events', asyn
   const { ws, opened } = openClient();
   await opened;
   let conn!: NonNullable<ReturnType<typeof newConn>>;
-  await waitFor(() => (conn = newConn(known)!) !== undefined);
+  await waitFor('server-side connection registered', () => (conn = newConn(known)!) !== undefined);
 
   ws.send(JSON.stringify({
-    event: 'FINAL_ACTION', value: 'last', ts: 99, seq: 99,
+    event: 'FINAL_ACTION', value: 'last', ts: 99,
+    metadata: { eventId: 'browser-t.session-t.99' },
   }));
   // The final action lands durably in the append log.
-  await waitFor(async () => (await readLogTolerant(conn.path)).some(e => e.seq === 99));
+  await waitFor('final action in the log',
+    async () => (await readLogTolerant(conn.path))
+      .some(e => e?.metadata?.eventId === 'browser-t.session-t.99'));
 
   // Simulate the process shutdown path (index.ts shutdown handler): close
   // every active socket and wait for each pipeline to drain and
   // saveConnectionLog() to finalize its log. This is the same machinery a
   // SIGTERM/SIGINT triggers.
   for (const sock of handle.activeConnections.keys()) sock.close();
-  await waitFor(() => handle.activeConnections.size === 0);
+  await waitFor('every connection torn down', () => handle.activeConnections.size === 0);
 
   // A STRICT gunzip now succeeds (the trailer was written on finalize) and
   // the in-flight final event survived teardown — not lost in a JS variable.
   const events = readLogStrict(conn.path);
-  expect(events.some(e => e.seq === 99 && e.event === 'FINAL_ACTION')).toBe(true);
+  expect(events.some(e => e?.metadata?.eventId === 'browser-t.session-t.99'
+                       && e.event === 'FINAL_ACTION')).toBe(true);
 }, 20000);

@@ -38,6 +38,9 @@ function fakeConn(): ConnectionLog {
   return {
     id: 'test-conn', user: USER, path: '/dev/null', stream,
     fileStream: null as any,
+    // There is no file behind this fake, so "the bytes reached the file" is
+    // vacuously true; appendEventDurable awaits this after each flush.
+    fileWritten: Promise.resolve(),
     log: { description: 'test', started: '', user: USER, eventCount: 0 } as any,
   };
 }

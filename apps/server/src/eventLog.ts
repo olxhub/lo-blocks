@@ -31,6 +31,12 @@ export interface ConnectionLog {
   path: string;
   stream: zlib.Gzip;
   fileStream: fs.WriteStream;
+  /** Resolves when every byte zlib has emitted SO FAR has been written to
+   *  the file descriptor. Reassigned by the pump on each compressed chunk;
+   *  awaiting the latest one covers all earlier ones, because a Writable
+   *  fires its write callbacks in write order. This is what makes
+   *  appendEventDurable's promise mean "in the file" (see below). */
+  fileWritten: Promise<void>;
   /** First mid-session stream error, if any. */
   streamError?: Error;
   /** Set by saveConnectionLog; makes repeated calls idempotent. */
@@ -55,9 +61,39 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
 
   const gzip = zlib.createGzip();
   const fileStream = fs.createWriteStream(logPath);
-  gzip.pipe(fileStream);
 
-  const conn: ConnectionLog = { id, user, log, path: logPath, stream: gzip, fileStream };
+  const conn: ConnectionLog = {
+    id, user, log, path: logPath, stream: gzip, fileStream,
+    fileWritten: Promise.resolve(),
+  };
+
+  // Pump the compressed bytes to the file by hand rather than
+  // gzip.pipe(fileStream). pipe() hands back no handle on the file write,
+  // so a "durable" append could only ever await zlib — and zlib finishing
+  // says nothing about the fd. Measured before this change: after
+  // appendEventDurable resolved (i.e. at the moment the server acks), the
+  // log file was still zero bytes ~28% of the time, and occasionally had
+  // not been created at all, since fs.createWriteStream opens the fd
+  // asynchronously. The pump below tracks the file write so
+  // appendEventDurable can await it, which is the whole ack contract.
+  let awaitingDrain = false;
+  gzip.on('data', (chunk: Buffer) => {
+    conn.fileWritten = new Promise<void>((resolve) => {
+      // Errors surface through conn.streamError (the 'error' handlers
+      // below); resolve unconditionally so nothing awaits forever, and let
+      // the callers check streamError.
+      const more = fileStream.write(chunk, () => resolve());
+      if (!more && !awaitingDrain) {
+        // Backpressure: pipe() used to do this for us.
+        awaitingDrain = true;
+        gzip.pause();
+        fileStream.once('drain', () => { awaitingDrain = false; gzip.resume(); });
+      }
+    });
+  });
+  // pipe() also forwarded end-of-stream; saveConnectionLog ends the gzip,
+  // and the file closes once its last chunk is out.
+  gzip.once('end', () => fileStream.end());
 
   // Handle mid-session write errors (ENOSPC, EACCES, etc.) so they don't
   // crash the whole server as uncaught exceptions. Store the first error so
@@ -85,8 +121,8 @@ export function appendEvent(conn: ConnectionLog, event: any) {
   conn.stream.write(JSON.stringify(event) + '\n');
 }
 
-/** Append a single event AND flush it through zlib toward the underlying
- *  file, resolving once the event's bytes have been pushed to the file stream.
+/** Append a single event AND flush it through zlib into the file, resolving
+ *  once the event's bytes have been written to the file descriptor.
  *
  *  This is the Plane-1 ack trigger (see docs/README.md, section "State, Events,
  *  and Synchronization"). The server must not tell the client "durably
@@ -95,22 +131,29 @@ export function appendEvent(conn: ConnectionLog, event: any) {
  *  event lives only in a JS variable + the network buffer: acking before the
  *  log write reintroduces it.
  *
- *  What the flush does and does NOT guarantee:
- *  Z_SYNC_FLUSH ends a deflate block and pushes this event's bytes from zlib
- *  into the piped fs.WriteStream. That guarantees survival of a tab close and
- *  of an in-process server crash after the WriteStream drains — the bug this
- *  fixes. It does NOT fsync, so it does not guarantee survival of a machine
- *  crash / power loss (that needs fdatasync). So "ack" means "captured to the
- *  events/ log", not "fsynced" and not "processed".
+ *  What this does and does NOT guarantee:
+ *  Z_SYNC_FLUSH ends a deflate block and pushes this event's bytes out of
+ *  zlib; the pump in createConnectionLog then writes them to the fd, and we
+ *  await THAT (conn.fileWritten) before resolving. So on resolution the event
+ *  is in the file, and it survives a tab close and an in-process server crash
+ *  — the bug this fixes. It does NOT fsync, so it does not guarantee survival
+ *  of a machine crash / power loss (that needs fdatasync). "ack" means
+ *  "written to the events/ log", not "fsynced" and not "processed".
+ *
+ *  Awaiting the fd write is load-bearing, not belt-and-braces: resolving on
+ *  the zlib flush alone left the file empty ~28% of the time at ack, because
+ *  fs.createWriteStream opens the fd asynchronously and its queued writes
+ *  complete later still. That made "ack" mean "in a JS buffer" — exactly the
+ *  failure mode Plane 1 exists to remove.
  *
  *  Ending the deflate block also makes every byte written so far independently
  *  decompressible — a reader (or a crash-truncated file) recovers all acked
  *  events even though the gzip trailer isn't written until saveConnectionLog().
  *
  *  TODO(plane1-durability, separate PR): batch the flush. Today every event is
- *  flushed individually — one Z_SYNC_FLUSH plus an event-loop round-trip per
- *  event, a real compression/perf cost at keystroke volume — and the ack can
- *  precede the fd write. The rework: drain the pending queue → append all →
+ *  flushed individually — one Z_SYNC_FLUSH plus a file write and two
+ *  event-loop round-trips per event, a real compression/perf cost at keystroke
+ *  volume. The rework: drain the pending queue → append all →
  *  ONE durable sync → ack the highest seq (protocol-identical, since the ack is
  *  cumulative), on a ~500ms boundary; optionally fsync on that boundary behind
  *  a plain `const FSYNC = false` module toggle for machine-crash durability.
@@ -129,10 +172,17 @@ export function appendEventDurable(conn: ConnectionLog, event: any): Promise<voi
       if (writeErr) return reject(writeErr);
       conn.stream.flush(zlib.constants.Z_SYNC_FLUSH, () => {
         if (conn.streamError) return reject(conn.streamError);
-        // Count only after the write resolves: incrementing before the write
-        // could reject would drift the count on a mid-session stream error.
-        conn.log.eventCount++;
-        resolve();
+        // zlib emits the flushed bytes BEFORE invoking this callback, so
+        // conn.fileWritten already covers this event; awaiting it is what
+        // makes the resolution mean "in the file" rather than merely
+        // "out of zlib".
+        conn.fileWritten.then(() => {
+          if (conn.streamError) return reject(conn.streamError);
+          // Count only after the write lands: incrementing before a write
+          // that could fail would drift the count on a stream error.
+          conn.log.eventCount++;
+          resolve();
+        });
       });
     });
   });

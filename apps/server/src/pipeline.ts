@@ -133,17 +133,23 @@ function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
 /** Log each event to the connection log, flush it to disk, and — once it
  *  is durably captured — ack it (Plane 1).
  *
- *  The ack is CUMULATIVE ("I durably have everything ≤ seq"). Events arrive
- *  and are appended in per-connection arrival order and this loop awaits the
- *  durable append before pulling the next, so acking each event's own `seq`
- *  as it lands is already monotonic and cumulative — no separate high-water
- *  tracking needed. The ack rides the events/-log append here, at the head of
- *  the pipeline; the debounced KVS materialization (FieldPersister) stays on
- *  top, downstream, unchanged.
+ *  The ack names the EVENT, not a position in a stream: "I durably have
+ *  <browser>.<session>.<seq>". That name is minted by the client at event
+ *  creation (lo_event's metadata.eventId) and travels with the event, so the
+ *  server echoes it rather than inventing a transport sequence.
  *
- *  Legacy / ack-less clients (lo_event 0.0.7) never tag `seq`; we simply
- *  don't ack them, and their receiveMessage ignores any frame it doesn't
- *  recognize — so behavior is byte-identical to before. */
+ *  Why identity rather than a cumulative "everything ≤ N": the client's queue
+ *  is shared across tabs while each tab holds its own socket, so a position in
+ *  one connection's stream says nothing about what another tab may delete. An
+ *  identity ack is a fact any holder of that record can act on. It also lets a
+ *  future hello say "I already have <session> through <seq>" and skip a
+ *  resend, which a per-connection counter cannot express.
+ *
+ *  The ack rides the events/-log append here, at the head of the pipeline; the
+ *  debounced KVS materialization (FieldPersister) stays downstream, unchanged.
+ *
+ *  Events with no id (legacy or non-lo_event producers) are logged and simply
+ *  not acked; their receiveMessage ignores frames it doesn't recognize. */
 async function* decodeAndLog(
   events: AsyncIterable<PipelineEvent>,
   context: PipelineContext
@@ -154,8 +160,9 @@ async function* decodeAndLog(
     // section "State, Events, and Synchronization").
     await appendEventDurable(context.conn, event);
 
-    if (typeof event.seq === 'number') {
-      safeSend(context.ws, { status: 'ack', seq: event.seq });
+    const eventId = event?.metadata?.eventId;
+    if (typeof eventId === 'string') {
+      safeSend(context.ws, { status: 'ack', id: eventId });
     }
 
     const eventType = event.event || event.type || 'unknown';
