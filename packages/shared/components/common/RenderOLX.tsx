@@ -2,67 +2,41 @@
 //
 // Generic component for rendering OLX content from various sources.
 //
-// Abstracts the OLX parsing and rendering pipeline. Supports STACKING -
-// multiple content sources combine with higher-priority sources overriding.
+// Renders PURELY from Redux via the content ledger (lib/state/content.ts +
+// useContent). There is NO local React state for content or readiness — the
+// ledger is the single source of truth, so the async event queue can never race
+// a locally-held "I'm ready" flag (the bug the durable IndexedDB queue exposed).
 //
-// Priority order (highest to lowest):
-//   1. inline - Direct OLX string (e.g., user's current edits)
-//   2. files - Virtual filesystem with multiple files
-//   3. provider/providers - Storage providers for resolution
-//   4. baseIdMap - Pre-parsed content (lowest priority)
+// Declared-source model. Content is declared with WHERE it comes from, and the
+// fetch decision is made at that point, not guessed at read time:
+//   1. inline  - raw OLX string (user's edits)          → parsed locally
+//   2. files   - virtual filesystem                     → parsed locally
+//   3. provider/providers/resolveProvider               → resolve src="" refs
+//   4. baseIdMap - pre-parsed content (preloaded)        → Redux overlay
+// inline/files content is NEVER server-fetched.
 //
 // Usage:
 //   <RenderOLX id="demo" inline="<Markdown>Hello</Markdown>" />
-//   <RenderOLX id="page" inline={edits} baseIdMap={systemContent} />
-//
-// =============================================================================
-// ARCHITECTURE TODO
-// =============================================================================
-//
-// Current implementation parses inline/files content directly. The intended
-// design is to unify with syncContentFromStorage for proper change detection:
-//
-// 1. Each provider implements loadXmlFilesWithStats() returning:
-//    { added, changed, unchanged, deleted } with content hashes in _metadata
-//
-// 2. StackedStorageProvider.loadXmlFilesWithStats() merges results from all
-//    providers, with higher-priority providers' files shadowing lower ones
-//
-// 3. RenderOLX calls syncContentFromStorage(stackedProvider) which:
-//    - Scans all providers for OLX/XML files
-//    - Parses only added/changed files (using hashes for change detection)
-//    - Maintains incremental idMap updates
-//    - Returns merged idMap ready for rendering
-//
-// 4. For live editing, InMemoryStorageProvider tracks writes and reports
-//    changes on subsequent loadXmlFilesWithStats() calls (similar to immer)
-//
-// This unifies the content loading pipeline and enables efficient incremental
-// updates for the editor, documentation examples, and production rendering.
-//
-// =============================================================================
+//   <RenderOLX id="page" baseIdMap={systemContent} />
 //
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useTransition } from 'react';
-import { parseOLX } from '@/lib/content/parseOLX';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { makeRootNode } from '@/lib/player/client/render';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { toAppError, type AppError } from '@/lib/types/errors';
+import { toAppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
-import { InMemoryStorageProvider, StackedStorageProvider, toMemoryRef } from '@/lib/storage/lofs';
-import { isOLXFile } from '@/lib/util/fileTypes';
-import { dispatchOlxJson, dispatchOlxJsonSync } from '@/lib/state/olxjson';
-import { renderErrorOlxJson, renderErrorKey } from '@/lib/player/client/useOlxJson';
+import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage/lofs';
+import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { logContentRenderFailed, contentKeyOf } from '@/lib/state/content';
+import { useContent } from '@/lib/player/client/useContent';
 import { useBlock } from '@/lib/player/client/useRenderedBlock';
 import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/player/advance';
 import { useBaselineRuntime } from '@/lib/player/client/baselineRuntime';
-import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, OLXLoadingError } from '@/lib/types';
-import { toLofsRef } from '@/lib/types/address';
-
-
+import { safeStringify } from '@/lib/util';
+import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode } from '@/lib/types';
 
 /**
  * Build the provider stack for src="" resolution during parsing.
@@ -101,151 +75,6 @@ function useBuildProviderStack(
 }
 
 /**
- * Parse inline and/or files content.
- * Returns parsed result with idMap and root, or null if nothing to parse.
- */
-function useParseContent(
-  ns: ContentNamespace,
-  inline?: string,
-  files?: Record<string, string>,
-  effectiveProvider?: any,
-  provenance?: string,
-  source?: string,
-  logEvent?: any,
-  sideEffectFree?: boolean,
-  onError?: (error: AppError) => void
-) {
-  const [parsed, setParsed] = useState<any>(null);
-  const [fatalError, setFatalError] = useState<string | null>(null);     // content can't render
-  const [warnings, setWarnings] = useState<OLXLoadingError[]>([]);       // content renders, but has issues
-  const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    // Nothing to parse - render from baseIdMap only
-    if (!inline && !files) {
-      startTransition(() => {
-        setParsed(null);
-        setFatalError(null);
-      });
-      return;
-    }
-
-    if (!effectiveProvider) {
-      setFatalError('RenderOLX: No provider for content resolution');
-      return;
-    }
-
-    let cancelled = false;
-
-    async function doParse() {
-      try {
-        // Parse inline content
-        if (inline) {
-          const result = await parseOLX(
-            inline,
-            [toLofsRef(provenance || 'inline://')],
-            effectiveProvider,
-            ns
-          );
-          if (!cancelled) {
-            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
-            if (!sideEffectFree) {
-              if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
-              if (!source) throw new Error('useParseContent: source is required for dispatching');
-              dispatchOlxJson({ runtime: { logEvent } }, source, result.idMap);
-            }
-            // startTransition prevents Suspense - shows old content while rendering new
-            startTransition(() => {
-              setParsed(result);
-              setFatalError(null);
-              setWarnings(result.errors || []);
-            });
-          }
-          return;
-        }
-
-        // Parse all OLX/XML files from files prop
-        if (files) {
-          let mergedIdMap = {};
-          let lastRoot: string | null = null;
-          let allErrors: OLXLoadingError[] = [];
-
-          for (const [filename, content] of Object.entries(files)) {
-            if (!isOLXFile(filename)) {
-              continue;
-            }
-
-            const result = await parseOLX(
-              content,
-              [provenance ? toLofsRef(provenance) : toMemoryRef(filename)],
-              effectiveProvider,
-              ns
-            );
-
-            mergedIdMap = { ...mergedIdMap, ...result.idMap };
-            lastRoot = result.root;
-            if (result.errors?.length) {
-              allErrors = [...allErrors, ...result.errors];
-            }
-          }
-
-          if (!cancelled) {
-            // Dispatch to Redux for reactive block access (skip during replay - viewing historical state)
-            if (!sideEffectFree) {
-              if (!logEvent) throw new Error('useParseContent: logEvent is required for dispatching');
-              if (!source) throw new Error('useParseContent: source is required for dispatching');
-              dispatchOlxJson({ runtime: { logEvent } }, source, mergedIdMap);
-            }
-            startTransition(() => {
-              setParsed({
-                root: lastRoot,
-                idMap: mergedIdMap,
-                ids: Object.keys(mergedIdMap)
-              });
-              setFatalError(null);
-              setWarnings(allErrors);
-            });
-          }
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setFatalError(err.message || String(err));
-          onError?.(toAppError(err));
-        }
-      }
-    }
-
-    doParse();
-    return () => { cancelled = true; };
-  }, [inline, files, effectiveProvider, provenance, onError, startTransition, source, sideEffectFree, logEvent, ns]);
-
-  return { parsed, fatalError, warnings, isPending };
-}
-
-/**
- * Merge parsed content idMap with baseIdMap.
- * Parsed content overrides base (higher priority).
- */
-function mergeContentIntoProps(baselineProps: any, parsed: any, baseIdMap?: Record<string, any>) {
-  const mergedIdMap = baseIdMap ? { ...baseIdMap, ...parsed?.idMap } : parsed?.idMap;
-  return { ...baselineProps, parsed, mergedIdMap };
-}
-
-/**
- * Update props with a new locale.
- */
-function updatePropsLocale(props: any, locale: any) {
-  return { ...props, locale };
-}
-
-/**
- * Update props with a new logEvent function.
- */
-function updatePropsLogEvent(props: any, logEvent: any) {
-  return { ...props, logEvent };
-}
-
-/**
  * Props for RenderOLX component.
  *
  * Content sources are stacked in priority order (highest to lowest):
@@ -271,7 +100,9 @@ interface RenderOLXProps {
   provider?: any;
   /** Array of storage providers (use when you have multiple) - spread into the stack after `provider` */
   providers?: any[];
-  /** Pre-parsed idMap to use as base content (lowest priority, overridden by parsed content) */
+  /** Pre-parsed idMap to use as base content (preloaded). Folded into the
+   *  OlxJson slice as a Redux overlay so it renders through the normal
+   *  pipeline — no private content path. */
   baseIdMap?: Record<string, any>;
   /** Storage provider for resolving references - added at end of stack (lowest priority for resolution) */
   resolveProvider?: any;
@@ -279,8 +110,8 @@ interface RenderOLXProps {
   provenance?: string;
   /** Called with a canonical AppError when parsing or rendering fails. For
    *  render errors, `technical` carries React's component stack (which block). */
-  onError?: (error: AppError) => void;
-  /** Called after parsing completes with the merged idMap and root ID */
+  onError?: (error: import('@/lib/types/errors').AppError) => void;
+  /** Called after content is ready with the root ID. */
   onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
   /** Custom block registry (defaults to BLOCK_REGISTRY) */
   blockRegistry?: Record<string, any>;
@@ -288,6 +119,8 @@ interface RenderOLXProps {
   source?: string;
   /** Event context root (e.g., 'preview', 'studio'). Sets the root nodeInfo ID for event context hierarchy. */
   eventContext?: string;
+  /** Debounce (ms) for re-parsing live-edited inline content. Default 0. */
+  debounceMs?: number;
   /** Initial idPrefix for scoping the rendered block's state key.
    *  Defaults to '' (root level). Set this when rendering a block that
    *  should share state with a scoped instance inside another tree
@@ -299,13 +132,7 @@ interface RenderOLXProps {
    *  is built lazily as child components render. External consumers reading this
    *  ref in the same render cycle may see an incomplete tree. In practice this
    *  works because consumers (StatePanel) re-render from Redux state changes,
-   *  by which time the tree is populated. But this assumption may break in:
-   *  - First render (no Redux state yet → StatePanel returns null anyway)
-   *  - Replay mode (state exists without rendering → tree may be stale)
-   *  - Concurrent React features (siblings may render out of order)
-   *
-   *  If these become real problems, consider switching to a useEffect callback
-   *  or React context that fires after the full subtree has committed.
+   *  by which time the tree is populated.
    */
   nodeInfoRef?: React.MutableRefObject<OlxDomNode | null>;
 }
@@ -325,6 +152,7 @@ export default function RenderOLX({
   blockRegistry = BLOCK_REGISTRY,
   source = 'content',
   eventContext,
+  debounceMs = 0,
   nodeInfoRef,
   idPrefix: initialIdPrefix,
 }: RenderOLXProps) {
@@ -339,55 +167,57 @@ export default function RenderOLX({
   // Build provider stack for src="" resolution
   const effectiveProvider = useBuildProviderStack(inline, files, provider, providers, resolveProvider);
 
-  // Parse inline/files content
-  const { parsed, fatalError, warnings, isPending } = useParseContent(
+  // Fold baseIdMap into the OlxJson slice as a Redux overlay (idempotent merge),
+  // so preloaded content renders through the normal pipeline with no private
+  // content path. Skipped during replay (content already in the event stream).
+  useEffect(() => {
+    if (baseIdMap && !runtimeContext.sideEffectFree) {
+      dispatchOlxJson({ runtime: { logEvent: runtimeContext.logEvent } }, source, baseIdMap);
+    }
+  }, [baseIdMap, source, runtimeContext.logEvent, runtimeContext.sideEffectFree]);
+
+  // Declare the content request + read its render view — purely from Redux.
+  const view = useContent({
     ns,
+    id,
     inline,
     files,
-    effectiveProvider,
+    provider: effectiveProvider,
     provenance,
-    source,
-    runtimeContext.logEvent,
-    runtimeContext.sideEffectFree,
-    onError
-  );
+    blockSource: source,
+    runtime: { logEvent: runtimeContext.logEvent, sideEffectFree: runtimeContext.sideEffectFree },
+    debounceMs,
+    onError,
+  });
 
-  // Merge parsed content into runtime context. (Block readiness — lazy
-  // engines + component chunks — is gated inside useBlock below.)
-  const renderProps = mergeContentIntoProps(runtimeContext, parsed, baseIdMap);
+  const renderIdToQuery = (view.root ?? id) as StateKey;
 
-  // Notify parent when content is parsed
+  // Notify parent when content becomes ready.
   useEffect(() => {
-    if (onParsed && renderProps.mergedIdMap) {
-      onParsed({ idMap: renderProps.mergedIdMap, root: parsed?.root || null });
+    if (onParsed && view.ready) {
+      onParsed({ idMap: {}, root: view.root });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [renderProps.mergedIdMap, parsed?.root]);
+  }, [view.ready, view.root]);
 
   // Build runtime context for rendering
   const runtime: LoBlockRuntimeContext = {
-    blockRegistry: renderProps.blockRegistry,
-    store: renderProps.store,
-    logEvent: renderProps.logEvent,
-    sideEffectFree: renderProps.sideEffectFree,
+    blockRegistry: runtimeContext.blockRegistry,
+    store: runtimeContext.store,
+    logEvent: runtimeContext.logEvent,
+    sideEffectFree: runtimeContext.sideEffectFree,
     olxJsonSources: [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
-    locale: renderProps.locale,
+    locale: runtimeContext.locale,
     cast: {},
   };
 
-  // Stabilize root nodeInfo across renders so renderedKids accumulates
-  // (render.tsx reuses existing entries via `if (!childNodeInfo)` check).
-  // Previously makeRootNode was called fresh every render, causing the
-  // entire nodeInfo tree to be rebuilt from scratch each time.
+  // Stabilize root nodeInfo across renders so renderedKids accumulates.
   const stableRootRef = useRef<OlxDomNode | null>(null);
   if (!stableRootRef.current) {
-    // Root node uses a minimal sentinel loBlock (not a full LoBlock),
-    // so we need the double assertion. This is consistent with makeRootNode's design.
     stableRootRef.current = makeRootNode(runtime, eventContext) as unknown as OlxDomNode;
   }
-  // Keep runtime current (locale, logEvent, etc. can change between renders)
   stableRootRef.current.runtime = runtime;
 
   // Register root for global spacebar advance
@@ -403,50 +233,40 @@ export default function RenderOLX({
     nodeInfoRef.current = stableRootRef.current;
   }
 
-  // Build props for useBlock
   const blockProps = {
     nodeInfo: stableRootRef.current,
     runtime,
   };
 
-  // Determine which ID to render - use parsed root if available, else requested id
-  const renderIdToQuery = parsed?.root || id;
-
-  // Wait for parsing to complete when inline/files content is provided
-  const parsingPending = (inline || files) && !parsed;
-
   const localeReady = !!runtime.locale?.code;
 
-  // useBlock must be called unconditionally (Rules of Hooks) - pass null
-  // when locale or content isn't ready yet, which useBlock handles gracefully
-  const { block, ready } = useBlock(
+  // useBlock must be called unconditionally (Rules of Hooks). Pass null until
+  // locale AND content are ready — then the block is guaranteed to be in Redux
+  // (atomic land: root and blocks arrive in the same CONTENT_PARSED fold).
+  const { block } = useBlock(
     blockProps,
-    (!localeReady || parsingPending) ? null : renderIdToQuery,
+    (!localeReady || !view.ready) ? null : renderIdToQuery,
     source
   );
 
-  // Wait for locale to be available before rendering children
-  // (setReduxLocale is de facto synchronous, but adding a guard ensures
-  // we never render with undefined locale, which would break all selectors.value logic)
+  // Wait for locale before rendering children (selectors need locale.code).
   if (!localeReady) {
     return <Spinner>Loading language settings...</Spinner>;
   }
 
-  // Fatal parse error (e.g. malformed XML — no tree to render). Route through
-  // the same DisplayError surface as every other error rather than a bespoke
-  // div, so display stays uniform.
-  if (fatalError) {
+  // Fatal parse error (malformed XML — no tree to render, no last-valid build).
+  if (view.fatal) {
     return (
       <DisplayError
         title="Error rendering OLX"
-        message={fatalError}
+        message={view.error ?? 'Content failed to load'}
         id={`${renderIdToQuery}_fatal_error`}
       />
     );
   }
 
-  // No content source provided
-  if (!inline && !files && !baseIdMap && !ready) {
+  // Nothing renderable yet: no declared source with a root, and no preloaded id.
+  if (!view.ready && !inline && !files && !baseIdMap) {
     return (
       <div className="text-error">
         RenderOLX: No content source provided
@@ -454,58 +274,58 @@ export default function RenderOLX({
     );
   }
 
-  // Parsing in progress - show loading state
-  if (parsingPending) {
+  // First parse still in flight (no last-valid build to show yet).
+  if (!view.ready) {
     return <Spinner>Parsing...</Spinner>;
   }
 
-  // useBlock handles spinner/error display - just wrap in ErrorBoundary
+  // Ready: render the block. `view.updating` (a newer parse in flight or a
+  // mid-typing parse error while keeping the last-valid render) surfaces gently
+  // below, never by blanking the screen.
   return (
     <ErrorBoundary
-      // Reset when content identity changes OR on re-parse. On preview pages
-      // `parsed` stays null, so renderIdToQuery is what changes when navigating
-      // between blocks; without it the boundary stays stuck on a stale fallback.
-      // (Array compared shallowly by ErrorBoundary, so a fresh literal is fine.)
-      resetKey={[renderIdToQuery, parsed]}
+      // Reset when content identity changes OR on re-parse.
+      resetKey={[renderIdToQuery, view.root]}
       handler={(err, info) => {
-        // Canonical AppError carrying the JS stack (err.stack) and React's
-        // component stack (info.componentStack — which block actually threw).
+        // Record the render-time exception as an ordinary, replayable event
+        // (no synthetic OLX node, no synchronous dispatch). RenderOLX still
+        // shows DisplayError via fallbackRender below.
         const error = toAppError(err, { technical: info.componentStack || undefined });
-        // Record it as a derived-key ErrorNode in olxjson: keyed, in the event
-        // log/replay, NOT persisted (so it reconstructs away once the bug is
-        // fixed). This dispatch IS the keyed event — no manual logEvent needed.
-        //
-        // No try/catch (fail fast): toAppError is total and renderErrorKey
-        // normalizes scoped keys so it won't throw; if dispatch or a caller's
-        // onError throws, that's a real bug we want surfaced, not swallowed.
-        if (runtime.store) {
-          const node = renderErrorOlxJson(String(renderIdToQuery), error);
-          dispatchOlxJsonSync(runtime.store, source, {
-            [node.id]: { [runtime.locale?.code ?? 'base']: node },
-          });
-        }
+        logContentRenderFailed(
+          { runtime: { logEvent: runtime.logEvent } },
+          {
+            key: contentKeyOf(source, ns, id),
+            id: String(renderIdToQuery),
+            title: error.title,
+            message: error.message,
+            technical: error.technical != null ? safeStringify(error.technical) : undefined,
+          },
+        );
         onError?.(error);
       }}
       fallbackRender={(err, info) => (
         <DisplayError
           {...toAppError(err, { technical: info?.componentStack || undefined })}
-          // Same derived key as the dispatched node, so the on-screen id and the
-          // event-log node agree.
-          id={String(renderErrorKey(String(renderIdToQuery)))}
+          id={`${String(renderIdToQuery)}_render_error`}
         />
       )}
     >
-      {warnings.length > 0 && (
+      {view.warnings.length > 0 && (
         <div className="text-warning p-3 border border-warning rounded bg-warning-subtle mb-2 text-sm">
           <div className="font-semibold mb-1">
-            {warnings.length} content {warnings.length === 1 ? 'warning' : 'warnings'}
+            {view.warnings.length} content {view.warnings.length === 1 ? 'warning' : 'warnings'}
           </div>
-          {warnings.map((err, i) => (
+          {view.warnings.map((err, i) => (
             <details key={i} className="mb-1">
               <summary>{err.title}</summary>
               <pre className="whitespace-pre-wrap mt-1 text-xs">{err.message}</pre>
             </details>
           ))}
+        </div>
+      )}
+      {view.updating && view.error && (
+        <div className="text-warning text-xs mb-1 opacity-80" title={view.error}>
+          Content has an error; showing last valid version.
         </div>
       )}
       {block}

@@ -1657,7 +1657,7 @@ export type ContentTier = 'supported' | 'bestEffort';
 // The dynamic slices (component, system, etc.) are open records — their
 // internal structure is defined per-block by FieldInfo, not by a global type.
 
-import type { AppError } from './errors';
+import type { AppError, OLXLoadingError } from './errors';
 
 // ---------------------------------------------------------------------------
 // Loading status — shared across slices that do async fetches.
@@ -1697,6 +1697,81 @@ export interface OlxJsonSourceState {
  *  state.application_state.olxjson['docs']['myBlock']['en-Latn-US'] → OlxJson */
 export interface OlxJsonState {
   [source: string]: OlxJsonSourceState;
+}
+
+// ---------------------------------------------------------------------------
+// Content ledger — source-level parse lifecycle (see lib/state/content.ts).
+// ---------------------------------------------------------------------------
+//
+// The OlxJson slice above is BLOCK-level: individual blocks keyed by
+// DefinitionKey. It has no notion of "this whole content request is
+// loading/ready/failed", no root, no request identity — which is exactly why
+// RenderOLX used to invent local React state and race the async block dispatch.
+//
+// The content ledger fills that gap. One entry per content REQUEST (a source
+// parse), carrying the source-level lifecycle plus the small amount of derived
+// data RenderOLX renders from (root + warnings). The block data itself still
+// lives in the OlxJson slice — a CONTENT_PARSED event lands BOTH slices in one
+// reducer fold, so "root is known" always implies "blocks are in Redux".
+
+/** How a content request declares WHERE its content comes from. The fetch
+ *  decision is made here, at request time, not guessed at read time.
+ *  - `inline` / `files`: the text is in hand → parsed locally, NEVER fetched.
+ *  - `preloaded`: blocks already in the OlxJson slice (server fetch / baseIdMap)
+ *    → RenderOLX just renders `id`, the ledger only records readiness. */
+export type ContentLedgerSourceKind = 'inline' | 'files' | 'preloaded';
+
+/** The last successfully-parsed build for a content request. Structurally
+ *  separable from the ledger bookkeeping below (open-decision #1: data tree vs
+ *  ledger tree) — this is the only rendering-affecting derived state, and it is
+ *  replaced ONLY on a successful parse, never cleared by a failed/in-flight
+ *  re-parse. That is what lets live editing keep showing the last valid render
+ *  while a newer parse is loading or errored. */
+export interface ContentLedgerData {
+  /** Parsed root DefinitionKey to render (may be null for empty content). */
+  root: DefinitionKey | null;
+  /** Non-fatal parse warnings (content still renders). */
+  warnings: OLXLoadingError[];
+}
+
+/** One content request's ledger entry. */
+export interface ContentLedgerEntry {
+  /** Source-level lifecycle. `parsing` = a newer build is in flight;
+   *  `ready` = `data` is current; `error` = the latest parse failed (but
+   *  `data`, if present, is still the last-valid render). */
+  status: 'parsing' | 'ready' | 'error';
+  /** Supersede guard. Monotonic per request; the reducer rejects a
+   *  PARSED/FAILED whose requestKey is older than the entry's. */
+  requestKey: number;
+  /** Stable signature of the SOURCE CONTENT that produced this entry (inline
+   *  text / file contents / ids). Lets the request stay idempotent: identical
+   *  already-parsed content is never re-parsed. */
+  signature?: string;
+  /** Declared source kind — drives whether blocks under this request's
+   *  block-source may be server-fetched (inline/files → never). */
+  sourceKind: ContentLedgerSourceKind;
+  /** The OlxJson block-slice namespace this request's blocks land in. Used by
+   *  the declared-source gate (isLocalBlockSource) to keep inline content from
+   *  ever being fetched from the server. */
+  blockSource: string;
+  /** Last successfully-parsed build (the last-valid render). */
+  data?: ContentLedgerData;
+  /** Latest fatal parse error (no tree to render). Present only in `error`. */
+  error?: { message: string };
+  /** A render-time exception logged by RenderOLX's ErrorBoundary as a normal
+   *  event (replaces the old synthetic OLX error-node + sync dispatch). */
+  renderError?: { id: string; title?: string; message: string; technical?: string };
+  /** Which file@version produced `data` (staleness / provenance). */
+  provenance?: string;
+  /** Freshness timestamp (CRDT-useful later). */
+  retrievedAt?: number;
+}
+
+/** The content ledger slice — one entry per content request, keyed by a stable
+ *  ContentKey (`${blockSource}\0${ns}\0${id}`). No entry = nobody requested it,
+ *  a valid state that never means "go fetch". */
+export interface ContentLedgerState {
+  [key: string]: ContentLedgerEntry;
 }
 
 // ---------------------------------------------------------------------------
@@ -1976,6 +2051,10 @@ export interface AppState {
   storage: Record<string, any>;
   /** Parsed OLX content by source namespace. */
   olxjson: OlxJsonState;
+  /** Content ledger — source-level parse lifecycle, one entry per content
+   *  request (see lib/state/content.ts). Layers over `olxjson` (which stays
+   *  the block store); a CONTENT_PARSED event lands both slices atomically. */
+  content: ContentLedgerState;
   /** Repository catalog. Interim — will converge with OlxJson. */
   catalog: CatalogState;
   /** Block documentation (get_blocks results). Interim — converges with

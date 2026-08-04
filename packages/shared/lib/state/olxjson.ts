@@ -37,6 +37,11 @@ export const OLXJSON_TRANSLATING = 'OLXJSON_TRANSLATING';
 export const OLXJSON_ERROR = 'OLXJSON_ERROR';
 export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
 
+// The content ledger's CONTENT_PARSED event lands parsed blocks in this slice
+// too (the atomic-land fold — see store.ts and lib/state/content.ts). Kept as a
+// string literal rather than importing from content.ts to avoid a cycle.
+const CONTENT_PARSED = 'CONTENT_PARSED';
+
 // =============================================================================
 // Source-level read
 // =============================================================================
@@ -209,6 +214,50 @@ export const initialOlxJsonState: OlxJsonState = {};
 // Reducer
 // =============================================================================
 
+/**
+ * Merge a nested block idMap into one content source, preserving existing
+ * variants and clearing variantStatus for variants that just arrived. Shared by
+ * LOAD_OLXJSON and the content ledger's CONTENT_PARSED (atomic-land) fold.
+ */
+function mergeBlocksIntoSource(
+  state: OlxJsonState,
+  source: string,
+  blocks: IdMap,
+): OlxJsonState {
+  if (!source || !blocks) return state;
+
+  const entries: OlxJsonSourceState = {};
+  for (const [id, variantMap] of Object.entries(blocks)) {
+    // Merge with existing variants so a partial update (e.g., a new
+    // translation) doesn't discard variants already in Redux.
+    const existingEntry = state[source]?.[id];
+    const existing = existingEntry?.olxJson;
+    // Clear variantStatus for variants that just arrived (they're ready now)
+    const oldVS = existingEntry?.variantStatus;
+    let newVS: Record<string, VariantStatusEntry> | undefined;
+    if (oldVS) {
+      newVS = { ...oldVS };
+      for (const key of Object.keys(variantMap as object)) {
+        delete newVS[key];
+      }
+      if (Object.keys(newVS).length === 0) newVS = undefined;
+    }
+    entries[id] = {
+      olxJson: { ...existing, ...variantMap as VariantMap },
+      loadingState: { status: 'ready' },
+      ...(newVS && { variantStatus: newVS }),
+    };
+  }
+
+  return {
+    ...state,
+    [source]: {
+      ...state[source],
+      ...entries,
+    },
+  };
+}
+
 export function olxjsonReducer(
   state: OlxJsonState = initialOlxJsonState,
   action: any
@@ -216,40 +265,17 @@ export function olxjsonReducer(
   switch (action.type) {
     case LOAD_OLXJSON: {
       // Bulk load parsed content: { source: 'system', blocks: { [id]: { [lang]: OlxJson } } }
-      // blocks is now the nested structure with language variants
       const { source, blocks } = action;
-      if (!source || !blocks) return state;
+      return mergeBlocksIntoSource(state, source, blocks);
+    }
 
-      const entries: OlxJsonSourceState = {};
-      for (const [id, variantMap] of Object.entries(blocks)) {
-        // Merge with existing variants so a partial update (e.g., a new
-        // translation) doesn't discard variants already in Redux.
-        const existingEntry = state[source]?.[id];
-        const existing = existingEntry?.olxJson;
-        // Clear variantStatus for variants that just arrived (they're ready now)
-        const oldVS = existingEntry?.variantStatus;
-        let newVS: Record<string, VariantStatusEntry> | undefined;
-        if (oldVS) {
-          newVS = { ...oldVS };
-          for (const key of Object.keys(variantMap as object)) {
-            delete newVS[key];
-          }
-          if (Object.keys(newVS).length === 0) newVS = undefined;
-        }
-        entries[id] = {
-          olxJson: { ...existing, ...variantMap as VariantMap },
-          loadingState: { status: 'ready' },
-          ...(newVS && { variantStatus: newVS }),
-        };
-      }
-
-      return {
-        ...state,
-        [source]: {
-          ...state[source],
-          ...entries,
-        },
-      };
+    case CONTENT_PARSED: {
+      // The content ledger's atomic land: the SAME event that sets the ledger's
+      // root/status also drops the parsed blocks here, under `blockSource`. This
+      // is the whole cure for the race — root and blocks land together.
+      const { blockSource, blocks } = action;
+      if (!blockSource || !blocks) return state;
+      return mergeBlocksIntoSource(state, blockSource, blocks);
     }
 
     case OLXJSON_LOADING: {
@@ -318,7 +344,15 @@ export function olxjsonReducer(
         };
       }
 
-      // Block-level error (initial fetch failed)
+      // Block-level error (initial fetch failed).
+      //
+      // NO-CLOBBER: never overwrite a block that is already 'ready' with an
+      // error. A late/stale failure (e.g. a 404 that lost the race to good
+      // content landing) must not knock good content back to an error state.
+      // Only an absent or still-loading block transitions to error.
+      if (existing?.loadingState.status === 'ready' && existing.olxJson) {
+        return state;
+      }
       return {
         ...state,
         [source]: {

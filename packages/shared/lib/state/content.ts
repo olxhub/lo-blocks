@@ -1,0 +1,362 @@
+// packages/shared/lib/state/content.ts
+//
+// Content ledger — the source-level parse lifecycle for OLX content.
+//
+// WHY THIS EXISTS
+// ---------------
+// The OlxJson slice (lib/state/olxjson.ts) is BLOCK-level: it stores individual
+// blocks keyed by DefinitionKey, with no notion of "this whole content request
+// is loading / ready / failed", no root id, no request identity. That gap is
+// exactly why RenderOLX used to keep local React state (`parsed`, `fatalError`,
+// `warnings`, `parsingPending`) and flip a synchronous "I'm ready" flag that
+// raced the ASYNC block dispatch into Redux — the bug the durable IndexedDB
+// queue exposed.
+//
+// The ledger closes that gap. One entry per content REQUEST, holding:
+//   - the source-level lifecycle (parsing / ready / error),
+//   - a supersede key (stale results are rejected by the reducer),
+//   - the declared source kind (inline / files / preloaded — the fetch decision
+//     is made HERE, at request time, never guessed at read time),
+//   - the small amount of derived data RenderOLX renders from (root + warnings),
+//     kept as the LAST-VALID build so live editing never flashes.
+//
+// ATOMIC LAND
+// -----------
+// The block DATA still lives in the OlxJson slice. A single CONTENT_PARSED event
+// lands BOTH slices in one reducer fold (see store.ts routing + the CONTENT_PARSED
+// case in olxjson.ts). So the moment the ledger reports a root, that root's
+// blocks are guaranteed to already be in Redux. "Ready" (ledger) and "content in
+// Redux" (blocks) can no longer disagree — the race is structurally impossible.
+//
+'use client';
+
+import { useSelector } from 'react-redux';
+import type {
+  ContentLedgerEntry, ContentLedgerState, ContentLedgerSourceKind,
+  DefinitionKey, IdMap, OLXLoadingError, RootState,
+} from '../types';
+import type { LogEventFn } from '../player/client/render';
+
+// =============================================================================
+// Event types
+// =============================================================================
+
+export const CONTENT_PARSING = 'CONTENT_PARSING';
+export const CONTENT_PARSED = 'CONTENT_PARSED';
+export const CONTENT_FAILED = 'CONTENT_FAILED';
+export const CONTENT_RENDER_FAILED = 'CONTENT_RENDER_FAILED';
+
+export const CONTENT_EVENT_TYPES = [
+  CONTENT_PARSING, CONTENT_PARSED, CONTENT_FAILED, CONTENT_RENDER_FAILED,
+];
+
+// =============================================================================
+// Content key — stable per-request identity
+// =============================================================================
+
+/**
+ * Build the ledger key for a content request. Stable across keystrokes (the
+ * inline text changes, but blockSource + ns + id do not) so the last-valid
+ * `data` snapshot survives live editing. The parts are JSON-encoded into an
+ * array literal, so the encoding is collision-safe regardless of the parts'
+ * contents. The key is opaque — only ever a Record key, never parsed back apart.
+ */
+export function contentKeyOf(blockSource: string, ns: string, id: string): string {
+  return JSON.stringify([blockSource, ns, id]);
+}
+
+/**
+ * Stable signature of the SOURCE CONTENT for a request — a plain string derived
+ * from the values that determine the parse RESULT (inline text, file contents,
+ * ids), NOT from object identity. Two renders with the same content produce the
+ * same signature, so the request `useEffect` re-parses only on a real content
+ * change — never on a fresh `files`/`provider` object from a re-render. This is
+ * what stops the dispatch → re-render → re-fire loop.
+ */
+export function sourceSignature(input: {
+  sourceKind: ContentLedgerSourceKind;
+  ns: string;
+  id: string;
+  inline?: string;
+  files?: Record<string, string>;
+  provenance?: string;
+}): string {
+  const { sourceKind, ns, id, inline, files, provenance } = input;
+  if (sourceKind === 'inline') {
+    return JSON.stringify(['inline', ns, provenance ?? '', inline ?? '']);
+  }
+  if (sourceKind === 'files') {
+    const sorted = Object.keys(files ?? {}).sort().map(k => [k, files![k]]);
+    return JSON.stringify(['files', ns, provenance ?? '', sorted]);
+  }
+  return JSON.stringify(['preloaded', ns, id]);
+}
+
+/**
+ * Idempotency guard: should the request effect kick a fresh parse for this
+ * signature? No only when the entry is already `ready` for the SAME signature —
+ * i.e. we have already fully parsed exactly this content. A `parsing`/`error`
+ * entry (or a different/absent signature) still parses, so a lost or superseded
+ * in-flight parse is never mistaken for a completed one.
+ */
+export function shouldRequestParse(entry: ContentLedgerEntry | undefined, signature: string): boolean {
+  return !(entry && entry.status === 'ready' && entry.signature === signature);
+}
+
+// =============================================================================
+// Dispatch helpers (all through the normal logEvent path — replayable)
+// =============================================================================
+
+type LogProps = { runtime: { logEvent: LogEventFn } };
+
+export function logContentParsing(
+  props: LogProps,
+  payload: { key: string; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string; provenance?: string },
+): void {
+  props.runtime.logEvent(CONTENT_PARSING, payload);
+}
+
+export function logContentParsed(
+  props: LogProps,
+  payload: {
+    key: string; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string;
+    root: DefinitionKey | null; warnings: OLXLoadingError[]; blocks: IdMap;
+    provenance?: string; retrievedAt: number;
+  },
+): void {
+  props.runtime.logEvent(CONTENT_PARSED, payload);
+}
+
+export function logContentFailed(
+  props: LogProps,
+  payload: { key: string; requestKey: number; error: string },
+): void {
+  props.runtime.logEvent(CONTENT_FAILED, { ...payload, error: { message: payload.error } });
+}
+
+export function logContentRenderFailed(
+  props: LogProps,
+  payload: { key: string; id: string; title?: string; message: string; technical?: string },
+): void {
+  props.runtime.logEvent(CONTENT_RENDER_FAILED, payload);
+}
+
+// =============================================================================
+// Reducer
+// =============================================================================
+
+export const initialContentState: ContentLedgerState = {};
+
+/** True when `incoming` is an older attempt than what the entry already holds. */
+function superseded(entry: ContentLedgerEntry | undefined, incomingRequestKey: number): boolean {
+  return !!entry && incomingRequestKey < entry.requestKey;
+}
+
+export function contentReducer(
+  state: ContentLedgerState = initialContentState,
+  action: any,
+): ContentLedgerState {
+  switch (action.type) {
+    case CONTENT_PARSING: {
+      const { key, requestKey, sourceKind, blockSource, signature, provenance } = action;
+      if (!key) return state;
+      const entry = state[key];
+      // A newer build is in flight. Keep `data` (last valid) so we keep
+      // rendering it; clear transient error/renderError for the fresh attempt.
+      return {
+        ...state,
+        [key]: {
+          ...entry,
+          status: 'parsing',
+          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
+          sourceKind,
+          blockSource,
+          signature,
+          provenance,
+          error: undefined,
+          renderError: undefined,
+        },
+      };
+    }
+
+    case CONTENT_PARSED: {
+      const { key, requestKey, sourceKind, blockSource, signature, root, warnings, provenance, retrievedAt } = action;
+      if (!key) return state;
+      const entry = state[key];
+      if (superseded(entry, requestKey)) return state; // stale result — reject
+      // Swap in the new build. `data` is replaced ONLY here (success), so it is
+      // always the last-valid render. Blocks land in the OlxJson slice via the
+      // CONTENT_PARSED case in olxjson.ts, folded from the SAME event.
+      return {
+        ...state,
+        [key]: {
+          status: 'ready',
+          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
+          sourceKind,
+          blockSource,
+          signature,
+          data: { root: root ?? null, warnings: warnings ?? [] },
+          provenance,
+          retrievedAt,
+        },
+      };
+    }
+
+    case CONTENT_FAILED: {
+      const { key, requestKey, error } = action;
+      if (!key) return state;
+      const entry = state[key];
+      if (superseded(entry, requestKey)) return state; // stale failure — reject
+      // Keep `data` (last valid) so a mid-typing parse error does not blank the
+      // screen. RenderOLX surfaces the error gently when `data` is present.
+      return {
+        ...state,
+        [key]: {
+          ...entry,
+          status: 'error',
+          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
+          sourceKind: entry?.sourceKind ?? 'inline',
+          blockSource: entry?.blockSource ?? '',
+          error: { message: error?.message || String(error) },
+        },
+      };
+    }
+
+    case CONTENT_RENDER_FAILED: {
+      const { key, id, title, message, technical } = action;
+      if (!key) return state;
+      const entry = state[key];
+      // Record the render-time exception as ordinary, replayable state (no
+      // synthetic OLX node, no synchronous dispatch). Not persisted-derived: it
+      // reconstructs away once the underlying block bug is fixed.
+      return {
+        ...state,
+        [key]: {
+          ...(entry ?? { status: 'ready', requestKey: 0, sourceKind: 'inline', blockSource: '' }),
+          renderError: { id, title, message, technical },
+        },
+      };
+    }
+
+    default:
+      return state;
+  }
+}
+
+// =============================================================================
+// Selectors
+// =============================================================================
+
+export function selectContentEntry(state: RootState, key: string): ContentLedgerEntry | undefined {
+  return state.application_state?.content?.[key];
+}
+
+/**
+ * The declared-source gate: is `blockSource` a LOCAL (inline/files) content
+ * source? If so, blocks under it are produced by local parsing and must NEVER
+ * be server-fetched — an absent block is genuinely missing, not "go fetch".
+ * This is what kills the inline-content 404: the fetch decision is made by the
+ * declared source, not guessed from an absent Redux read.
+ */
+export function isLocalBlockSource(state: RootState, blockSource: string): boolean {
+  const content = state.application_state?.content;
+  if (!content) return false;
+  for (const entry of Object.values(content)) {
+    if (entry.blockSource === blockSource &&
+        (entry.sourceKind === 'inline' || entry.sourceKind === 'files')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// =============================================================================
+// Rendering view — pure derivation from a ledger entry
+// =============================================================================
+
+export interface ContentView {
+  /** Root to render (a parsed DefinitionKey, or the requested StateKey fallback
+   *  for preloaded content). null = nothing renderable. */
+  root: string | null;
+  /** Something renderable is available (last-valid build or preloaded id). */
+  ready: boolean;
+  /** A newer build is in flight (parsing) or the latest parse errored — show a
+   *  gentle "updating"/error marker, but keep rendering `root`. */
+  updating: boolean;
+  /** Non-fatal parse warnings for the current render. */
+  warnings: OLXLoadingError[];
+  /** Error message, or null. When `fatal`, there is nothing to render. */
+  error: string | null;
+  /** True when the error is fatal (no last-valid build) — RenderOLX shows
+   *  DisplayError instead of content. */
+  fatal: boolean;
+  /** Render-time exception recorded by the ErrorBoundary, if any. */
+  renderError?: ContentLedgerEntry['renderError'];
+}
+
+/**
+ * Derive the render view from a ledger entry.
+ *
+ * `fallbackRoot` is the id to render when there is no parse (preloaded content:
+ * blocks are already in Redux, the ledger only tracks readiness) — or before
+ * the first parse lands.
+ *
+ * The last-valid policy lives HERE, as one pure function, instead of being
+ * scattered across component state: while a re-parse is in flight or has just
+ * failed, we keep returning the previous `data` (last-valid build) so the
+ * screen never blanks or flashes.
+ */
+export function deriveContentView(
+  entry: ContentLedgerEntry | undefined,
+  fallbackRoot: string | null,
+): ContentView {
+  if (!entry) {
+    // Nobody has parsed for this key. Preloaded content renders its fallback
+    // root immediately; otherwise we are still waiting for the first parse.
+    if (fallbackRoot != null) {
+      return { root: fallbackRoot, ready: true, updating: false, warnings: [], error: null, fatal: false };
+    }
+    return { root: null, ready: false, updating: true, warnings: [], error: null, fatal: false };
+  }
+
+  const data = entry.data;
+  const warnings = data?.warnings ?? [];
+  const renderError = entry.renderError;
+
+  if (entry.status === 'ready') {
+    // The parse succeeded — ready even if it produced an empty root (RenderOLX
+    // then falls back to the requested id, matching pre-ledger behavior).
+    const root = data?.root ?? fallbackRoot;
+    return { root, ready: true, updating: false, warnings, error: null, fatal: false, renderError };
+  }
+
+  if (entry.status === 'parsing') {
+    if (data) {
+      // Keep showing the last-valid build while the new one parses.
+      return { root: data.root, ready: data.root != null, updating: true, warnings, error: null, fatal: false, renderError };
+    }
+    const root = fallbackRoot;
+    return { root, ready: root != null, updating: true, warnings, error: null, fatal: false, renderError };
+  }
+
+  // status === 'error'
+  const message = entry.error?.message ?? 'Content failed to load';
+  if (data) {
+    // Mid-typing parse error: keep the last-valid render, surface error gently.
+    return { root: data.root, ready: data.root != null, updating: true, warnings, error: message, fatal: false, renderError };
+  }
+  const root = fallbackRoot;
+  if (root != null) {
+    return { root, ready: true, updating: false, warnings, error: message, fatal: false, renderError };
+  }
+  return { root: null, ready: false, updating: false, warnings, error: message, fatal: true, renderError };
+}
+
+// =============================================================================
+// Hooks
+// =============================================================================
+
+/** Read a ledger entry reactively. */
+export function useContentEntry(key: string): ContentLedgerEntry | undefined {
+  return useSelector((state: RootState) => selectContentEntry(state, key));
+}
