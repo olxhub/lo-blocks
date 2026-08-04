@@ -48,7 +48,11 @@ export function safeSend(ws: WebSocket, data: object) {
     // here, and none of the client's identity applies to a frame it did not
     // create.
     const now = Date.now();
-    const stamped = { ts: now, iso_ts: new Date(now).toISOString(), ...data };
+    // Stamp LAST: these are server-originated frames, so the server's clock is
+    // authoritative for them. Spreading `data` last would let a frame's own
+    // `ts` silently override the send time — no frame carries one today, which
+    // is exactly why the wrong order would go unnoticed until one did.
+    const stamped = { ...data, ts: now, iso_ts: new Date(now).toISOString() };
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(stamped));
   } catch { /* client gone — not actionable */ }
 }
