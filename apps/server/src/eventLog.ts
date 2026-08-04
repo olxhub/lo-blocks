@@ -76,19 +76,34 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   // not been created at all, since fs.createWriteStream opens the fd
   // asynchronously. The pump below tracks the file write so
   // appendEventDurable can await it, which is the whole ack contract.
-  let awaitingDrain = false;
+  //
+  // Deliberately NO backpressure pause here. Pausing gzip stops 'data' from
+  // firing, so flushed bytes stay in gzip's readable buffer while
+  // `conn.fileWritten` still points at some EARLIER chunk's write. That
+  // promise resolves, appendEventDurable resolves, and the server acks an
+  // event whose bytes were never handed to fileStream.write() at all — a
+  // false ack, which is the exact class of bug this pump was written to fix.
+  // (Reachable with a large event, e.g. CONTENT_PARSED, or a burst before the
+  // fd finishes opening.)
+  //
+  // Letting the writable buffer instead is CORRECT because write callbacks fire
+  // in order: awaiting the last chunk's callback therefore also means every
+  // earlier chunk landed. That is the whole guarantee, and it does not depend
+  // on how many writes are outstanding.
+  //
+  // It is not, however, a memory BOUND. appendEvent (non-durable) is
+  // fire-and-forget, and pipeline.ts logs fetch_blob_response through it with a
+  // whole state blob attached, so more than one event's compressed output can
+  // be in the writable at once. Bounded in practice by how fast that path can
+  // produce, which is a per-connection request, not a stream. If that ever
+  // stops being true, the fix is to give appendEvent backpressure of its own —
+  // NOT to pause gzip, which is what broke the ack contract here.
   gzip.on('data', (chunk: Buffer) => {
     conn.fileWritten = new Promise<void>((resolve) => {
       // Errors surface through conn.streamError (the 'error' handlers
       // below); resolve unconditionally so nothing awaits forever, and let
       // the callers check streamError.
-      const more = fileStream.write(chunk, () => resolve());
-      if (!more && !awaitingDrain) {
-        // Backpressure: pipe() used to do this for us.
-        awaitingDrain = true;
-        gzip.pause();
-        fileStream.once('drain', () => { awaitingDrain = false; gzip.resume(); });
-      }
+      fileStream.write(chunk, () => resolve());
     });
   });
   // pipe() also forwarded end-of-stream; saveConnectionLog ends the gzip,
@@ -117,8 +132,13 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
  *  durable append) pushes them to the file. Use for server-generated log
  *  entries (e.g. fetch_blob_response) that nothing acks. */
 export function appendEvent(conn: ConnectionLog, event: any) {
-  conn.log.eventCount++;
   conn.stream.write(JSON.stringify(event) + '\n');
+  // Counted AFTER the write is issued, matching appendEventDurable — the two
+  // feed one counter that saveConnectionLog and the disconnect line report as
+  // a single number, so they must mean the same thing. (Durable waits for the
+  // bytes to land; this path cannot, being fire-and-forget. Both now count
+  // "handed to the stream without throwing" at the earliest.)
+  conn.log.eventCount++;
 }
 
 /** Append a single event AND flush it through zlib into the file, resolving
@@ -153,10 +173,18 @@ export function appendEvent(conn: ConnectionLog, event: any) {
  *  TODO(plane1-durability, separate PR): batch the flush. Today every event is
  *  flushed individually — one Z_SYNC_FLUSH plus a file write and two
  *  event-loop round-trips per event, a real compression/perf cost at keystroke
- *  volume. The rework: drain the pending queue → append all →
- *  ONE durable sync → ack the highest seq (protocol-identical, since the ack is
- *  cumulative), on a ~500ms boundary; optionally fsync on that boundary behind
- *  a plain `const FSYNC = false` module toggle for machine-crash durability.
+ *  volume. The rework: drain the pending queue → append all → ONE durable sync
+ *  → then ack EVERY event in the batch, by name, on a ~500ms boundary;
+ *  optionally fsync on that boundary behind a plain `const FSYNC = false`
+ *  module toggle for machine-crash durability.
+ *
+ *  Acking only the newest event of the batch would NOT be equivalent. Acks name
+ *  the event, not a position in a stream (see pipeline.ts) — there is no "and
+ *  everything before it" to infer, precisely because the client outbox is
+ *  shared across tabs, so a per-connection position means nothing to it. A
+ *  batch that acks one name leaves the rest retained in the client outbox
+ *  forever, which is an unbounded queue rather than a lost event: quieter than
+ *  data loss, and harder to notice.
  *  This is server-crash hardening, NOT the tab-close fix (that's the persistent
  *  client queue — see queueType in packages/shared/lib/state/store.ts). */
 export function appendEventDurable(conn: ConnectionLog, event: any): Promise<void> {

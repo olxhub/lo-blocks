@@ -1761,10 +1761,15 @@ export type ContentLedgerSourceKind = 'inline' | 'files' | 'preloaded';
  *  bytes: that is `LofsCanonical`. */
 export type ContentRequestKey = string & { readonly __brand: 'ContentRequestKey' };
 
-/** The OlxJson slice's address space for parsed blocks. Draft (inline/files)
- *  content lives in its OWN space — see `blockSourceFor` in state/content.ts —
- *  which is what makes "may this be fetched?" answerable from the name alone,
- *  with no lookup and no stateful flag. Git's working tree vs. object store. */
+/** The OlxJson slice's address space for parsed blocks.
+ *
+ *  Answering "may this be fetched?" from the NAME alone — no lookup, no
+ *  stateful flag — is the destination (git's working tree vs. object store),
+ *  but it is NOT what happens today: a per-source address space was tried in
+ *  this branch and reverted, because it duplicated shadowing that
+ *  StackedStorageProvider already does one layer down. Today the question is
+ *  answered by scanning the ledger (isLocalBlockSource, marked INTERIM), and it
+ *  becomes structural when source resolution moves to the worktree model. */
 export type BlockSource = string & { readonly __brand: 'BlockSource' };
 
 /** INTERIM. A per-request monotonic attempt counter, used only to reject a
@@ -1817,6 +1822,20 @@ export interface ContentLedgerEntry {
   sourceKind: ContentLedgerSourceKind;
   /** Address space the parsed blocks land in — drafts get their own. */
   blockSource: BlockSource;
+  /** Namespace this request was made under. Stored as a field, redundantly
+   *  with the ledger key, so that scans can filter by it WITHOUT parsing the
+   *  key — the key is opaque by contract (see contentKeyOf), and a scan that
+   *  reaches into it makes that contract a lie and silently treats an
+   *  unparsable key as a match.
+   *
+   *  OPTIONAL because the failure paths can mint an entry for a request that
+   *  never announced itself: a parse that failed before CONTENT_PARSING landed,
+   *  or a render error against preloaded content. Those carry no namespace to
+   *  record. Absent must therefore read as "unknown", never as "matches" —
+   *  isLocalBlockSource compares `entry.ns !== ns` and skips, so an unknown
+   *  namespace under-matches and the content stays fetchable, which is the safe
+   *  direction. */
+  ns?: ContentNamespace;
   /** Last successfully-parsed build (the last-valid render). */
   data?: ContentLedgerData;
   /** Latest fatal parse error (no tree to render). Present only in `error`. */

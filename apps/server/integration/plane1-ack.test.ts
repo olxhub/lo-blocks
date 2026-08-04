@@ -4,13 +4,11 @@
 // Plane-1 (client→server) ack protocol — the reliability fix
 // (see docs/README.md, section "State, Events, and Synchronization").
 //
-// Boots the REAL server in-process (so the actual server.ts hello send and
-// the actual pipeline.ts durable-append+ack path are exercised) and drives
+// Boots the REAL server in-process (so the actual pipeline.ts
+// durable-append+ack path is exercised) and drives
 // it with a raw `ws` client that speaks exactly what lo_event's
 // websocketLogger parses:
 //
-//   - first frame is  { status: 'hello', capabilities: { ack: true } }
-//     (only `ack`; NOT `subscribe` — Plane 2 isn't built);
 //   - an identified event is acked by name as { status: 'ack', id },
 //     and ONLY after it is durably present in the events/ log (ordering:
 //     log-write-then-ack, never ack-then-write);
@@ -110,20 +108,17 @@ function openClient() {
  *  see conn.path. Callers poll this in a waitFor, so an empty result simply
  *  means "keep waiting" — throwing ENOENT out of the predicate instead aborted
  *  the whole test, which is how this file used to flake under load. */
-function readLogTolerant(logPath: string): Promise<any[]> {
-  return new Promise((resolve) => {
-    if (!fs.existsSync(logPath)) return resolve([]);
-    const chunks: Buffer[] = [];
-    const g = zlib.createGunzip();
-    const done = () => resolve(
-      Buffer.concat(chunks).toString().trim().split('\n')
-        .filter(Boolean).map(l => JSON.parse(l)),
-    );
-    g.on('data', d => chunks.push(d as Buffer));
-    g.on('error', done);   // truncated trailer on a live stream — use what we have
-    g.on('end', done);
-    g.end(fs.readFileSync(logPath));
-  });
+function readLogTolerant(logPath: string): any[] {
+  if (!fs.existsSync(logPath)) return [];
+  // Z_SYNC_FLUSH as the finish flush accepts a stream whose trailer isn't
+  // written yet, which is every live connection's log.
+  return zlib.gunzipSync(fs.readFileSync(logPath), { finishFlush: zlib.constants.Z_SYNC_FLUSH })
+    .toString().trim().split('\n').filter(Boolean)
+    // A mid-stream read can end on a partial line (e.g. "{"). Skipping it is
+    // the same "not there yet, keep polling" case as a missing file — throwing
+    // out of a waitFor predicate aborts the whole test, which is the flake this
+    // helper exists to prevent.
+    .flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
 }
 
 /** STRICT decompress — requires a finalized gzip (trailer present). Used
@@ -147,21 +142,25 @@ function newConn(known: Set<string>) {
 
 // --- tests ------------------------------------------------------------------
 
-test('first frame is a hello advertising ack (and not subscribe)', async () => {
+// SKIPPED with the frame it covers — see the commented-out `hello` send in
+// server.ts. Kept (and skipped rather than commented out, so it keeps
+// type-checking against openClient/waitFor and cannot silently rot) because if
+// a hello-shaped frame returns — Plane 2 announcing `subscribe`, or a resume
+// hint — this is the assertion it needs: the handshake is the FIRST frame, and
+// it advertises exactly what the server actually speaks, never a capability
+// that isn't built.
+test.skip('first frame is a hello advertising ack (and not subscribe)', async () => {
   const { ws, frames, opened } = openClient();
   await opened;
   await waitFor('first frame from server', () => frames.length >= 1);
 
-  // The capability handshake must be the FIRST frame on the connection.
   expect(frames[0].status).toBe('hello');
-  // Plane 2 is not built — must NOT be advertised. toEqual is exact, so this
-  // already asserts `subscribe` is absent.
   expect(frames[0].capabilities).toEqual({ ack: true });
 
   ws.close();
 }, 20000);
 
-test('events are acked cumulatively, and only after they are on disk', async () => {
+test('events are acked by name, and only after they are on disk', async () => {
   const known = knownPaths();
   const { ws, frames, opened } = openClient();
   await opened;
@@ -192,7 +191,7 @@ test('events are acked cumulatively, and only after they are on disk', async () 
   // three events are already in the events/ log. appendEventDurable resolves
   // only after the flushed bytes hit the file, and the ack is sent after that,
   // so observing the ack guarantees the on-disk write happened first.
-  const logged = (await readLogTolerant(conn.path))
+  const logged = readLogTolerant(conn.path)
     .map(e => e?.metadata?.eventId).filter(Boolean);
   expect(logged).toEqual(expect.arrayContaining([idOf(1), idOf(2), idOf(3)]));
 
@@ -210,7 +209,7 @@ test('legacy (unidentified) events are logged but never acked', async () => {
   // captured, but the server must not emit an ack for it.
   ws.send(JSON.stringify({ event: 'TELEMETRY', value: 'legacy', ts: 1 }));
   await waitFor('legacy event in the log',
-    async () => (await readLogTolerant(conn.path)).some(e => e.value === 'legacy'));
+    () => readLogTolerant(conn.path).some(e => e.value === 'legacy'));
 
   await new Promise(r => setTimeout(r, 100));  // give any (wrong) ack time to arrive
   expect(frames.filter(f => f.status === 'ack')).toHaveLength(0);
@@ -231,7 +230,7 @@ test('simulated shutdown finalizes the log and preserves in-flight events', asyn
   }));
   // The final action lands durably in the append log.
   await waitFor('final action in the log',
-    async () => (await readLogTolerant(conn.path))
+    () => readLogTolerant(conn.path)
       .some(e => e?.metadata?.eventId === 'browser-t.session-t.99'));
 
   // Simulate the process shutdown path (index.ts shutdown handler): close

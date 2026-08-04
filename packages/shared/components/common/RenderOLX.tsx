@@ -29,14 +29,14 @@ import { toAppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage/lofs';
 import { dispatchOlxJson } from '@/lib/state/olxjson';
-import { logContentRenderFailed, contentKeyOf } from '@/lib/state/content';
+import { logContentRenderFailed, contentKeyOf, CONTENT_LOAD_FAILED } from '@/lib/state/content';
 import { useContent } from '@/lib/player/client/useContent';
 import { useBlock } from '@/lib/player/client/useRenderedBlock';
 import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/player/advance';
 import { useBaselineRuntime } from '@/lib/player/client/baselineRuntime';
 import { safeStringify } from '@/lib/util';
-import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode } from '@/lib/types';
+import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, StorageProvider } from '@/lib/types';
 
 /**
  * Build the provider stack for src="" resolution during parsing.
@@ -45,12 +45,12 @@ import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDo
 function useBuildProviderStack(
   inline?: string,
   files?: Record<string, string>,
-  provider?: any,
-  providers?: any[],
-  resolveProvider?: any
+  provider?: StorageProvider,
+  providers?: StorageProvider[],
+  resolveProvider?: StorageProvider
 ) {
   return useMemo(() => {
-    const stack: any[] = [];
+    const stack: StorageProvider[] = [];
 
     if (inline) {
       stack.push(new InMemoryStorageProvider({ '_inline.olx': inline }));
@@ -97,15 +97,15 @@ interface RenderOLXProps {
   /** Virtual filesystem: { 'filename.olx': '<OLX>...</OLX>' } - all .olx/.xml files are parsed */
   files?: Record<string, string>;
   /** Single storage provider for resolving src="" references during parsing */
-  provider?: any;
+  provider?: StorageProvider;
   /** Array of storage providers (use when you have multiple) - spread into the stack after `provider` */
-  providers?: any[];
+  providers?: StorageProvider[];
   /** Pre-parsed idMap to use as base content (preloaded). Folded into the
    *  OlxJson slice as a Redux overlay so it renders through the normal
    *  pipeline — no private content path. */
   baseIdMap?: Record<string, any>;
   /** Storage provider for resolving references - added at end of stack (lowest priority for resolution) */
-  resolveProvider?: any;
+  resolveProvider?: StorageProvider;
   /** Source identifier for debugging/tracking (e.g., 'file:content://path/to.olx') */
   provenance?: string;
   /** Called with a canonical AppError when parsing or rendering fails. For
@@ -263,7 +263,7 @@ export default function RenderOLX({
     return (
       <DisplayError
         title="Error rendering OLX"
-        message={view.error ?? 'Content failed to load'}
+        message={view.error ?? CONTENT_LOAD_FAILED}
         id={`${renderIdToQuery}_fatal_error`}
       />
     );

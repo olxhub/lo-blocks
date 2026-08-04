@@ -315,13 +315,26 @@ export async function startServer(
       `${req.socket.remoteAddress} → ${conn.path}`
     );
 
-    // Capability handshake FIRST (see docs/README.md, section "State, Events,
-    // and Synchronization"): the very first frame on the connection advertises
-    // what the server speaks. We advertise only `ack` (Plane 1) — NOT
-    // `subscribe`, since Plane 2 isn't built. Ack-less/older clients ignore an
-    // unrecognized `hello` frame, so omitting it (or the whole hello) degrades
-    // byte-identically to legacy.
-    safeSend(ws, { status: 'hello', capabilities: { ack: true } });
+    // DISABLED, deliberately — kept as a breadcrumb, not as dead weight.
+    //
+    // This advertised what the server speaks, as the first frame on every
+    // connection. Nothing reads it any more: lo_event dropped capability
+    // negotiation on purpose, because it existed mainly to guard a legacy
+    // confirm-on-send fallback, and a fallback that silently downgrades
+    // durability is worse than none. The ack protocol is simply required.
+    //
+    // It stays commented rather than deleted because the SHAPE is probably
+    // right for what comes next, even though this instance of it is not. Two
+    // known future needs: Plane 2 (subscribe) has to announce itself somehow,
+    // and a resuming client wants to hear "I already have <session> through
+    // <seq>" so it can skip a resend. Whether that is a hello frame, a reply
+    // to an explicit request, or something else is genuinely open.
+    //
+    // What it must NOT come back as: a negotiation that selects between a
+    // durable path and a lossy one. See docs/README.md, "State, Events, and
+    // Synchronization".
+    //
+    // safeSend(ws, { status: 'hello', capabilities: { ack: true } });
     safeSend(ws, { status: 'auth', ...user });
 
     runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {

@@ -37,6 +37,14 @@ export const OLXJSON_TRANSLATING = 'OLXJSON_TRANSLATING';
 export const OLXJSON_ERROR = 'OLXJSON_ERROR';
 export const CLEAR_OLXJSON = 'CLEAR_OLXJSON';
 
+/** Every event this slice folds. Exported (like CATALOG/DOCS/SOURCES/CONTENT
+ *  _EVENT_TYPES) so consumers spread the list instead of re-typing it: a
+ *  hand-copied subset is how OLXJSON_TRANSLATING went missing from replay's
+ *  context-independent set. */
+export const OLXJSON_EVENT_TYPES = [
+  LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON,
+];
+
 // The content ledger's CONTENT_PARSED event lands parsed blocks in this slice
 // too (the atomic-land fold — see store.ts and lib/state/content.ts). Kept as a
 // string literal rather than importing from content.ts to avoid a cycle.

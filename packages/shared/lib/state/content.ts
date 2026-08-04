@@ -84,7 +84,7 @@
 import { useSelector } from 'react-redux';
 import type {
   ContentLedgerEntry, ContentLedgerState, ContentLedgerSourceKind,
-  ContentRequestKey, BlockSource, RequestSeq,
+  ContentRequestKey, BlockSource, RequestSeq, ContentNamespace,
   DefinitionKey, IdMap, OLXLoadingError, RootState,
 } from '../types';
 import type { LofsCanonical, LofsContentPath, LofsRef, LofsVersion } from '../types/address';
@@ -119,6 +119,12 @@ export const CONTENT_EVENT_TYPES = [
  * delaying it would only slow the first paint.
  */
 export const DEFAULT_PARSE_DEBOUNCE_MS = 500;
+
+/** Shown when a parse failed and left no message of its own. Exported because
+ *  RenderOLX needs the same words: ContentView.error is typed nullable (it is
+ *  null in the non-error states), so the fatal branch there still needs a
+ *  default even though deriveContentView always supplies one. */
+export const CONTENT_LOAD_FAILED = 'Content failed to load';
 
 // =============================================================================
 // Content key — stable per-request identity
@@ -163,16 +169,13 @@ export function contentKeyOf(blockSource: string, ns: string, id: string): Conte
  * Do not grow this into a second shadowing mechanism — that was tried, and one
  * shadowing mechanism at the wrong layer is worse than none.
  */
-export function isLocalBlockSource(state: RootState, blockSource: string, ns?: string): boolean {
+export function isLocalBlockSource(state: RootState, blockSource: string, ns?: ContentNamespace): boolean {
   const content = state.application_state?.content;
   if (!content) return false;
-  for (const [key, entry] of Object.entries(content)) {
+  for (const entry of Object.values(content)) {
     if (entry.blockSource !== blockSource) continue;
     if (entry.sourceKind !== 'inline' && entry.sourceKind !== 'files') continue;
-    // The ledger key encodes [blockSource, ns, id]; compare ns when we know it.
-    if (ns != null) {
-      try { if (JSON.parse(key)[1] !== ns) continue; } catch { /* opaque key */ }
-    }
+    if (ns != null && entry.ns !== ns) continue;
     return true;
   }
   return false;
@@ -204,24 +207,6 @@ function digest(text: string): LofsVersion {
 }
 
 /**
- * (b) The CANONICAL name of the source a request will parse — "what we got",
- * as a resolved LOFS ref: `<origin>://<path>#<content-version>`.
- *
- * Derived from the values that determine the parse RESULT (inline text, file
- * contents, ids) and NOT from object identity, so two renders of identical
- * content produce the same name and the request effect re-fires only on a real
- * content change — never on a fresh `files`/`provider` object from a re-render.
- * That is what breaks the dispatch → re-render → re-fire loop.
- *
- * Answers the question the ledger exists to ask: *does the read name still
- * point to the same canonical?* Equality here means "nothing moved".
- *
- * Bulk source is digested into the `#version`; the identifying parts stay
- * legible, because a canonical name you can read in an event log is worth far
- * more than the bytes it saves. Multiple files hash their per-file canonicals
- * into one name — git's tree object, in miniature.
- */
-/**
  * Escape a value for use as the PATH component of a canonical name.
  *
  * "#" is LOFS's version delimiter, so paths forbid it — while the values we
@@ -243,6 +228,24 @@ function pathPart(value: string): LofsContentPath {
   return toLofsContentPath(value.replace(/%/g, '%25').replace(/#/g, '%23'));
 }
 
+/**
+ * (b) The CANONICAL name of the source a request will parse — "what we got",
+ * as a resolved LOFS ref: `<origin>://<path>#<content-version>`.
+ *
+ * Derived from the values that determine the parse RESULT (inline text, file
+ * contents, ids) and NOT from object identity, so two renders of identical
+ * content produce the same name and the request effect re-fires only on a real
+ * content change — never on a fresh `files`/`provider` object from a re-render.
+ * That is what breaks the dispatch → re-render → re-fire loop.
+ *
+ * Answers the question the ledger exists to ask: *does the read name still
+ * point to the same canonical?* Equality here means "nothing moved".
+ *
+ * Bulk source is digested into the `#version`; the identifying parts stay
+ * legible, because a canonical name you can read in an event log is worth far
+ * more than the bytes it saves. Multiple files hash their per-file canonicals
+ * into one name — git's tree object, in miniature.
+ */
 export function sourceSignature(input: {
   sourceKind: ContentLedgerSourceKind;
   ns: string;
@@ -288,7 +291,7 @@ type LogProps = { runtime: { logEvent: LogEventFn } };
 
 export function logContentParsing(
   props: LogProps,
-  payload: { key: string; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string; provenance?: string },
+  payload: { key: string; ns: ContentNamespace; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string; provenance?: string },
 ): void {
   props.runtime.logEvent(CONTENT_PARSING, payload);
 }
@@ -313,7 +316,7 @@ export function logContentParsing(
 export function logContentParsed(
   props: LogProps,
   payload: {
-    key: string; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string;
+    key: string; ns: ContentNamespace; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string;
     root: DefinitionKey | null; warnings: OLXLoadingError[]; blocks: IdMap;
     provenance?: string; retrievedAt: number;
   },
@@ -371,90 +374,92 @@ export function isSupersededContentEvent(
   return superseded(state?.[action.key], action.requestKey);
 }
 
+/** Write one ledger entry, ratcheting requestKey forward.
+ *
+ *  Every case does the same three things around its own payload: ignore an
+ *  event with no key, look up the existing entry, and never let requestKey go
+ *  backwards. Ratcheting matters because the entry is the supersede reference
+ *  for the NEXT event — losing it would let an already-rejected build win a
+ *  later comparison. */
+function upsert(
+  state: ContentLedgerState,
+  key: string | undefined,
+  write: (entry: ContentLedgerEntry | undefined) => ContentLedgerEntry,
+): ContentLedgerState {
+  if (!key) return state;
+  return { ...state, [key]: write(state[key]) };
+}
+
+const ratchet = (entry: ContentLedgerEntry | undefined, requestKey: number): RequestSeq =>
+  Math.max(entry?.requestKey ?? 0, requestKey) as RequestSeq;
+
 export function contentReducer(
   state: ContentLedgerState = initialContentState,
   action: any,
 ): ContentLedgerState {
   switch (action.type) {
     case CONTENT_PARSING: {
-      const { key, requestKey, sourceKind, blockSource, signature, provenance } = action;
-      if (!key) return state;
-      const entry = state[key];
+      const { key, ns, requestKey, sourceKind, blockSource, signature, provenance } = action;
       // A newer build is in flight. Keep `data` (last valid) so we keep
       // rendering it; clear transient error/renderError for the fresh attempt.
-      return {
-        ...state,
-        [key]: {
-          ...entry,
-          status: 'parsing',
-          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
-          sourceKind,
-          blockSource,
-          signature,
-          provenance,
-          error: undefined,
-          renderError: undefined,
-        },
-      };
+      return upsert(state, key, entry => ({
+        ...entry,
+        status: 'parsing',
+        requestKey: ratchet(entry, requestKey),
+        sourceKind, blockSource, ns, signature, provenance,
+        error: undefined,
+        renderError: undefined,
+      }));
     }
 
     case CONTENT_PARSED: {
-      const { key, requestKey, sourceKind, blockSource, signature, root, warnings, provenance, retrievedAt } = action;
-      if (!key) return state;
-      const entry = state[key];
-      if (superseded(entry, requestKey)) return state; // stale result — reject
+      const { key, ns, requestKey, sourceKind, blockSource, signature, root, warnings, provenance, retrievedAt } = action;
+      // No supersede check here: the decision is made ONCE at store routing, by
+      // isSupersededContentEvent, so that this slice and olxjson.ts cannot
+      // disagree. Re-asking it here would be a second copy of a rule that is
+      // slated for deletion — see the note on isSupersededContentEvent.
       // Swap in the new build. `data` is replaced ONLY here (success), so it is
       // always the last-valid render. Blocks land in the OlxJson slice via the
       // CONTENT_PARSED case in olxjson.ts, folded from the SAME event.
-      return {
-        ...state,
-        [key]: {
-          status: 'ready',
-          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
-          sourceKind,
-          blockSource,
-          signature,
-          data: { root: root ?? null, warnings: warnings ?? [], canonical: signature },
-          provenance,
-          retrievedAt,
-        },
-      };
+      return upsert(state, key, entry => ({
+        status: 'ready',
+        requestKey: ratchet(entry, requestKey),
+        sourceKind, blockSource, ns, signature,
+        data: { root: root ?? null, warnings: warnings ?? [], canonical: signature },
+        provenance,
+        retrievedAt,
+      }));
     }
 
     case CONTENT_FAILED: {
       const { key, requestKey, error } = action;
-      if (!key) return state;
-      const entry = state[key];
-      if (superseded(entry, requestKey)) return state; // stale failure — reject
+      // Superseding is decided once at store routing — see CONTENT_PARSED above.
       // Keep `data` (last valid) so a mid-typing parse error does not blank the
       // screen. RenderOLX surfaces the error gently when `data` is present.
-      return {
-        ...state,
-        [key]: {
-          ...entry,
-          status: 'error',
-          requestKey: Math.max(entry?.requestKey ?? 0, requestKey),
-          sourceKind: entry?.sourceKind ?? 'inline',
-          blockSource: entry?.blockSource ?? '',
-          error: { message: error?.message || String(error) },
-        },
-      };
+      return upsert(state, key, entry => ({
+        ...entry,
+        status: 'error',
+        requestKey: ratchet(entry, requestKey),
+        sourceKind: entry?.sourceKind ?? 'inline',
+        blockSource: entry?.blockSource ?? ('' as BlockSource),
+        error: { message: error?.message || String(error) },
+      }));
     }
 
     case CONTENT_RENDER_FAILED: {
       const { key, id, title, message, technical } = action;
-      if (!key) return state;
-      const entry = state[key];
       // Record the render-time exception as ordinary, replayable state (no
       // synthetic OLX node, no synchronous dispatch). Not persisted-derived: it
       // reconstructs away once the underlying block bug is fixed.
-      return {
-        ...state,
-        [key]: {
-          ...(entry ?? { status: 'ready', requestKey: 0, sourceKind: 'inline', blockSource: '' }),
-          renderError: { id, title, message, technical },
-        },
-      };
+      return upsert(state, key, entry => ({
+        ...(entry ?? {
+          status: 'ready',
+          requestKey: 0 as RequestSeq,
+          sourceKind: 'inline',
+          blockSource: '' as BlockSource,
+        }),
+        renderError: { id, title, message, technical },
+      }));
     }
 
     default:
@@ -525,46 +530,49 @@ export function deriveContentView(
   entry: ContentLedgerEntry | undefined,
   fallbackRoot: string | null,
 ): ContentView {
+  const data = entry?.data;
+  // Every branch below differs only in root/ready/updating/error/fatal; the
+  // rest is constant, so state it once rather than in each literal.
+  const view = (over: Partial<ContentView>): ContentView => ({
+    root: null, ready: false, updating: false, error: null, fatal: false,
+    warnings: data?.warnings ?? [], renderError: entry?.renderError, ...over,
+  });
+
+  // Nobody has parsed for this key. Preloaded content renders its fallback root
+  // immediately; otherwise we are still waiting for the first parse.
   if (!entry) {
-    // Nobody has parsed for this key. Preloaded content renders its fallback
-    // root immediately; otherwise we are still waiting for the first parse.
-    if (fallbackRoot != null) {
-      return { root: fallbackRoot, ready: true, updating: false, warnings: [], error: null, fatal: false };
-    }
-    return { root: null, ready: false, updating: true, warnings: [], error: null, fatal: false };
+    return fallbackRoot != null
+      ? view({ root: fallbackRoot, ready: true })
+      : view({ updating: true });
   }
 
-  const data = entry.data;
-  const warnings = data?.warnings ?? [];
-  const renderError = entry.renderError;
-
+  // The parse succeeded — ready even if it produced an empty root (RenderOLX
+  // then falls back to the requested id, matching pre-ledger behavior).
   if (entry.status === 'ready') {
-    // The parse succeeded — ready even if it produced an empty root (RenderOLX
-    // then falls back to the requested id, matching pre-ledger behavior).
-    const root = data?.root ?? fallbackRoot;
-    return { root, ready: true, updating: false, warnings, error: null, fatal: false, renderError, revision: data?.canonical };
+    return view({ root: data?.root ?? fallbackRoot, ready: true, revision: data?.canonical });
   }
 
-  if (entry.status === 'parsing') {
-    if (data) {
-      // Keep showing the last-valid build while the new one parses.
-      return { root: data.root, ready: data.root != null, updating: true, warnings, error: null, fatal: false, renderError, revision: data.canonical };
-    }
-    const root = fallbackRoot;
-    return { root, ready: root != null, updating: true, warnings, error: null, fatal: false, renderError };
-  }
+  // Both remaining states keep the LAST-VALID build on screen when there is
+  // one, which is what stops live editing from flashing. `updating` stays true
+  // so callers can show progress over it. Only the error text differs.
+  const message = entry.status === 'error'
+    ? (entry.error?.message ?? CONTENT_LOAD_FAILED)
+    : null;
 
-  // status === 'error'
-  const message = entry.error?.message ?? 'Content failed to load';
   if (data) {
-    // Mid-typing parse error: keep the last-valid render, surface error gently.
-    return { root: data.root, ready: data.root != null, updating: true, warnings, error: message, fatal: false, renderError, revision: data.canonical };
+    return view({
+      root: data.root, ready: data.root != null, updating: true,
+      error: message, revision: data.canonical,
+    });
   }
-  const root = fallbackRoot;
-  if (root != null) {
-    return { root, ready: true, updating: false, warnings, error: message, fatal: false, renderError };
+
+  // No last-valid build to fall back on.
+  if (entry.status === 'parsing') {
+    return view({ root: fallbackRoot, ready: fallbackRoot != null, updating: true });
   }
-  return { root: null, ready: false, updating: false, warnings, error: message, fatal: true, renderError };
+  return fallbackRoot != null
+    ? view({ root: fallbackRoot, ready: true, error: message })
+    : view({ error: message, fatal: true });
 }
 
 // =============================================================================

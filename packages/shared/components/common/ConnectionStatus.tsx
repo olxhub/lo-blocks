@@ -12,28 +12,47 @@
 //   true  → connected → show save status
 //
 'use client';
-import { WifiOff, AlertTriangle } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
 import { useConnected, useSaved } from '@/lib/state';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
 
-/** A sticky, fatal delivery-layer failure surfaced by lo_event — e.g. the
- *  server does not speak the ack/save protocol (a misdeploy). Null when
- *  healthy. UX fails hard on this; the delivery queue keeps trying regardless. */
-export interface Fatal { code: string; message: string }
-
 // Single source of truth for the offline wording.
 export const OFFLINE_MESSAGE = 'Offline — changes may not be saved';
 
-// User-facing copy for fatal delivery failures, keyed by fatal.code. lo_event's
-// raw fatal.message is a developer diagnostic ("refusing to run legacy…") and
-// must never reach a student — it is already console.error'd inside lo_event.
-// This map is the single source of truth for what the banner shows instead.
-export const FATAL_MESSAGES: Record<string, string> = {
-  ACK_REQUIRED: 'Saving is unavailable right now — the server isn’t accepting saves. Your work is held and will sync once the connection is restored.',
-};
-export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
-export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+// ---------------------------------------------------------------------------
+// FATAL DELIVERY FAILURE — disabled, deliberately. Breadcrumb, not dead weight.
+// ---------------------------------------------------------------------------
+//
+// A sticky, non-recoverable delivery failure, distinct from "offline": the
+// client holds its queue but nothing will ever reach the server, so the UX
+// fails hard rather than letting anyone keep working under the illusion of
+// saving. Rendered as a full-width banner plus a page dim (see StatusBar).
+//
+// Its only trigger used to be ACK_REQUIRED — the server's `hello` did not
+// advertise `capabilities.ack`. That trigger is gone on purpose: capability
+// negotiation existed mainly to guard a legacy confirm-on-send fallback, and a
+// fallback that silently downgrades durability is worse than none.
+//
+// The REQUIREMENT did not go away, only the signal, which is why this is
+// commented rather than deleted. What should feed it is a SYMPTOM, not a
+// handshake: connected, outbox non-empty, nothing acked in N seconds. That
+// needs no capability frame and no legacy path, and it catches strictly more —
+// a wedged pipeline or a quarantined event type present identically, and a
+// server advertising `capabilities.ack` would have looked healthy through both.
+//
+// Two things to preserve when it comes back: the tier distinction (a recoverable
+// per-connection fault must NOT surface here, or people learn to ignore the
+// banner), and showing FATAL_MESSAGES copy rather than a raw diagnostic string,
+// which is a developer message that must never reach a student.
+//
+// export interface Fatal { code: string; message: string }
+//
+// export const FATAL_MESSAGES: Record<string, string> = {
+//   ACK_REQUIRED: 'Saving is unavailable right now — the server isn’t accepting saves. Your work is held and will sync once the connection is restored.',
+// };
+// export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
+// export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
 
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
@@ -43,38 +62,19 @@ export interface ConnectionStatus {
   persists: boolean;
   /** True when persistence is active but the connection has dropped. */
   offline: boolean;
-  /** Sticky fatal delivery failure (e.g. server lacks the save protocol), or null. */
-  fatal: Fatal | null;
+  // /** Sticky fatal delivery failure, or null. See the FATAL block above. */
+  // fatal: Fatal | null;
 }
 
 /** Single subscription to connection + save state, with the null/false/true rules applied. */
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
-  // HACK(lo_event-not-acking): always null, so the banner below is currently
-  // unreachable.
-  //
-  // lo_event no longer negotiates capabilities, and that is DELIBERATE, not a
-  // regression: negotiation existed mainly to guard a legacy confirm-on-send
-  // fallback, and a fallback that silently downgrades durability is worse than
-  // none. Requiring the ack protocol unconditionally is the simpler contract.
-  //
-  // What that leaves is narrower: nothing reports a server that ACCEPTS events
-  // and never acks them. The outbox retains everything (correct) and grows
-  // without bound (unbounded), while the UI shows an ordinary connected state.
-  // The right trigger is a SYMPTOM, not a handshake — "connected, outbox
-  // non-empty, nothing acked in N seconds" — which needs no capability frame
-  // and no legacy path, and also catches a wedged pipeline or a quarantined
-  // event type, which negotiation never could.
-  //
-  // The presentation (FatalNotice, FATAL_MESSAGES, the StatusBar banner + page
-  // dim) is kept deliberately: the requirement did not go away, only the
-  // signal. See the matching note in lib/state/store.ts.
-  const fatal: Fatal | null = null;
+  // TODO(lo_event-not-acking): no fatal signal exists yet — see the FATAL block
+  // above for what should produce one, and StatusBar for the disabled banner.
   return {
     connected,
     saveStatus,
-    fatal,
     persists: connected !== null,
     offline: connected === false,
   };
@@ -117,17 +117,16 @@ export function OfflineNotice({ className = '' }: { className?: string }) {
   );
 }
 
-/**
- * Fatal delivery failure (e.g. the server does not support the save protocol —
- * a misdeploy). StatusBar renders this as a full-width banner + page dim: the
- * UX fails hard so no one keeps working under the illusion of saving, while
- * lo_event's durable queue keeps holding events (delivery stays best-effort).
- */
-export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
-  return (
-    <span className={`flex items-center gap-2 ${className}`}>
-      <AlertTriangle className="w-4 h-4" />
-      {message}
-    </span>
-  );
-}
+// Disabled with the rest of the fatal machinery — see the FATAL block above.
+// Restore alongside a trigger, not before: an unreachable banner with
+// user-facing copy that cannot be exercised is exactly what survives three
+// refactors because nobody can tell whether it is load-bearing.
+//
+// export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
+//   return (
+//     <span className={`flex items-center gap-2 ${className}`}>
+//       <AlertTriangle className="w-4 h-4" />
+//       {message}
+//     </span>
+//   );
+// }

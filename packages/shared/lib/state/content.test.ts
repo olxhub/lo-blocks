@@ -158,11 +158,13 @@ test('the fetch gate: inline/files are local, preloaded is fetchable', () => {
 });
 
 test('the gate is scoped to a namespace, so one inline render does not mute others', () => {
-  // KEY is [content, demo, demo/root]. An inline render in `demo` must not stop
-  // a DIFFERENT namespace from fetching real content through the same source.
+  // An inline render in `demo` must not stop a DIFFERENT namespace from
+  // fetching real content through the same source. The namespace is read from
+  // the entry's own `ns` field, never parsed back out of the key.
   const state = {
     application_state: { content: { [KEY]: {
       status: 'ready', requestKey: 1, sourceKind: 'inline', blockSource: 'content',
+      ns: 'demo',
     } } },
   } as any;
   expect(isLocalBlockSource(state, 'content', 'demo')).toBe(true);

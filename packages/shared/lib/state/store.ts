@@ -48,6 +48,7 @@ import {
   OLXJSON_TRANSLATING,
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
+  OLXJSON_EVENT_TYPES,
 } from './olxjson';
 import {
   contentReducer,
@@ -151,9 +152,6 @@ const initialState: AppState = {
   sources: initialSourcesState,
 };
 
-
-// Event types for olxjson state
-const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];
 
 // Server-provided field state riding a content fetch (fields-design 2b).
 export const ADOPT_FIELD_STATE = 'ADOPT_FIELD_STATE';

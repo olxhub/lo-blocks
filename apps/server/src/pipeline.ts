@@ -47,12 +47,16 @@ export function safeSend(ws: WebSocket, data: object) {
     // Server-side timestamps only: the server's clock is the trustworthy one
     // here, and none of the client's identity applies to a frame it did not
     // create.
-    const now = Date.now();
     // Stamp LAST: these are server-originated frames, so the server's clock is
     // authoritative for them. Spreading `data` last would let a frame's own
-    // `ts` silently override the send time — no frame carries one today, which
-    // is exactly why the wrong order would go unnoticed until one did.
-    const stamped = { ...data, ts: now, iso_ts: new Date(now).toISOString() };
+    // timestamp silently override the send time — no frame carries one today,
+    // which is exactly why the wrong order would go unnoticed until one did.
+    //
+    // ONE encoding, matching lo_event's client convention (iso_ts always; a
+    // numeric ts only under verboseEvents). Acks are the highest-volume
+    // server->client frame and are not written to the server log, so a second
+    // encoding of the same instant is wire cost buying no log legibility.
+    const stamped = { ...data, iso_ts: new Date().toISOString() };
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(stamped));
   } catch { /* client gone — not actionable */ }
 }

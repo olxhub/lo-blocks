@@ -156,12 +156,12 @@ export function useContent(params: UseContentParams): ContentView {
       // (Scaffolding either way: content addressing removes request keys.)
       const rk = (Math.max(requestKeyRef.current, entryRef.current?.requestKey ?? 0) + 1) as RequestSeq;
       requestKeyRef.current = rk;
-      logContentParsing({ runtime }, { key, requestKey: rk, sourceKind, blockSource, signature, provenance });
+      logContentParsing({ runtime }, { key, ns, requestKey: rk, sourceKind, blockSource, signature, provenance });
       try {
         const { root, blocks, warnings } = await parseDeclaredSource(params);
         if (cancelled) return;
         logContentParsed({ runtime }, {
-          key, requestKey: rk, sourceKind, blockSource, signature,
+          key, ns, requestKey: rk, sourceKind, blockSource, signature,
           root, warnings, blocks, provenance, retrievedAt: Date.now(),
         });
       } catch (err: any) {
