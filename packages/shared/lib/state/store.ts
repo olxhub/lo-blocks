@@ -54,6 +54,7 @@ import {
   initialContentState,
   CONTENT_EVENT_TYPES,
   CONTENT_PARSED,
+  isSupersededContentEvent,
 } from './content';
 import {
   catalogReducer,
@@ -199,6 +200,17 @@ export const updateResponseReducer = (state = initialState, action) => {
   // and "that root's blocks are in Redux" can never disagree (the async race).
   if (CONTENT_EVENT_TYPES.includes(eventType)) {
     const scoped = { ...action, type: eventType };
+    // INTERIM (see "WHERE THIS IS GOING" in lib/state/content.ts). Supersede is
+    // decided ONCE, here, for the pair — a stale result folds into NEITHER
+    // slice. Letting each reducer decide for itself meant a late parse could be
+    // rejected by the ledger and merged into the blocks anyway, so the ledger
+    // advertised the new build while the blocks held the old one.
+    //
+    // This is a guard where the destination is a structure: once builds are
+    // stored under their content hash, a stale parse writes to its own address
+    // and cannot clobber anything, so there is nothing left to reject. Delete
+    // this — and RequestSeq with it — when that lands; do not grow it.
+    if (isSupersededContentEvent(state.content, scoped)) return state;
     return {
       ...state,
       content: contentReducer(state.content, scoped),
@@ -561,7 +573,11 @@ function configureStore({
   // static, fetched in client), so syncing it is redundant — and shipping the
   // bundled course as one giant action corrupts the receiving tab. lo_event
   // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
-  const CONTENT_EVENTS = new Set<string>([...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES]);
+  // Content-ledger events are excluded for the same reason: CONTENT_PARSED
+  // carries a whole parsed source, and each tab parses its own content anyway.
+  const CONTENT_EVENTS = new Set<string>([
+    ...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES, ...CONTENT_EVENT_TYPES,
+  ]);
   const syncFilter = (action: any): boolean => {
     // Server-fanned events must not re-broadcast: sibling tabs have their
     // own sockets and receive the fan-out directly — a BroadcastChannel
@@ -653,6 +669,20 @@ function configureStore({
       // where IndexedDB is unavailable. With an in-memory queue the tab-close
       // fix is void — the tail of a session is lost when the tab dies before
       // the ack.
+      //
+      // DELIBERATE: the IndexedDB queue is SHARED ACROSS TABS (fixed DB name),
+      // and that is not a bug to fix. A per-tab database would give each tab a
+      // tidy log and forfeit the entire point — recovery across a reload or a
+      // closed tab, which is not tab-scoped. Accepted consequences: tabs
+      // re-send each other's backlog (harmless — delivery is at-least-once and
+      // reducers are idempotent), and one tab's events can land on another's
+      // connection, which will matter for attribution once `lock_fields`
+      // attachment lands server-side. The shared `seq` is a FEATURE: it is a
+      // browser-wide total order of enqueue. Per-event identity is already
+      // redundant by design (lo_event util.ts): metadata.browserTag (browser
+      // GUID, persisted), metadata.sessionTag (page-load GUID),
+      // metadata.sessionIndex (counter within a page load), timestamps, and
+      // this queue `seq`. Order by timestamp, then sequence, then GUID.
       queueType: lo_event.QueueType.AUTODETECT
     }
   );

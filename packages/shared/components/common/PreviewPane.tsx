@@ -39,7 +39,7 @@ export interface PreviewPaneProps {
   /** Called with a canonical AppError when parsing/rendering fails */
   onError?: (error: AppError) => void;
   /** Called after parsing completes with merged idMap (OLX only) */
-  onParsed?: (result: { idMap: Record<string, any>; root: string | null }) => void;
+  onParsed?: (result: { root: string | null }) => void;
   /** Ref to expose the root OlxDomNode for external tree inspection (OLX only) */
   nodeInfoRef?: React.MutableRefObject<OlxDomNode | null>;
 }

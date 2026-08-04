@@ -147,7 +147,7 @@ test('shouldRequestParse: skip only when already ready for the SAME signature', 
 
 // ── Declared-source gate ─────────────────────────────────────────────────────
 
-test('isLocalBlockSource is true for inline/files, false for preloaded', () => {
+test('the fetch gate: inline/files are local, preloaded is fetchable', () => {
   const mk = (sourceKind: ContentLedgerEntry['sourceKind']) => ({
     application_state: { content: { [KEY]: { status: 'ready', requestKey: 1, sourceKind, blockSource: 'content' } } },
   }) as any;
@@ -155,4 +155,83 @@ test('isLocalBlockSource is true for inline/files, false for preloaded', () => {
   expect(isLocalBlockSource(mk('files'), 'content')).toBe(true);
   expect(isLocalBlockSource(mk('preloaded'), 'content')).toBe(false);
   expect(isLocalBlockSource(mk('inline'), 'other')).toBe(false); // different block-source
+});
+
+test('the gate is scoped to a namespace, so one inline render does not mute others', () => {
+  // KEY is [content, demo, demo/root]. An inline render in `demo` must not stop
+  // a DIFFERENT namespace from fetching real content through the same source.
+  const state = {
+    application_state: { content: { [KEY]: {
+      status: 'ready', requestKey: 1, sourceKind: 'inline', blockSource: 'content',
+    } } },
+  } as any;
+  expect(isLocalBlockSource(state, 'content', 'demo')).toBe(true);
+  expect(isLocalBlockSource(state, 'content', 'other-ns')).toBe(false);
+});
+
+// ── Render revision (the ErrorBoundary reset seam) ───────────────────────────
+
+test('view.revision names the LANDED build, not the in-flight attempt', () => {
+  const sigA = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<A/>' });
+  const sigB = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<B/>' });
+
+  let s = ev(base(), CONTENT_PARSED, {
+    key: KEY, requestKey: 1, sourceKind: 'inline', blockSource: 'content',
+    signature: sigA, root: 'demo/root', warnings: [], blocks, retrievedAt: 1,
+  });
+  expect(deriveContentView(s.content[KEY], null).revision).toBe(sigA);
+
+  // A newer parse starts. The entry's signature advances to the ATTEMPT, but
+  // what's on screen is still build A — so the revision must not move yet, or
+  // the boundary would reset against content that hasn't rendered.
+  s = ev(s, CONTENT_PARSING, {
+    key: KEY, requestKey: 2, sourceKind: 'inline', blockSource: 'content', signature: sigB,
+  });
+  expect(s.content[KEY].signature).toBe(sigB);
+  expect(deriveContentView(s.content[KEY], null).revision).toBe(sigA);
+});
+
+test('editing content changes the revision even when the root id does not', () => {
+  // The stuck-ErrorBoundary bug: a block that throws is fixed by editing its
+  // CONTENTS, which leaves the root id identical. Keyed on root, the boundary
+  // stays latched on the old failure forever; keyed on revision it resets.
+  const sigA = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<Broken/>' });
+  const sigB = sourceSignature({ sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<Fixed/>' });
+  const parsed = (rk: number, sig: string) => ({
+    key: KEY, requestKey: rk, sourceKind: 'inline', blockSource: 'content',
+    signature: sig, root: 'demo/root', warnings: [], blocks, retrievedAt: rk,
+  });
+
+  let s = ev(base(), CONTENT_PARSED, parsed(1, sigA));
+  const before = deriveContentView(s.content[KEY], null);
+  s = ev(s, CONTENT_PARSED, parsed(2, sigB));
+  const after = deriveContentView(s.content[KEY], null);
+
+  expect(after.root).toBe(before.root);           // same root — no reset signal
+  expect(after.revision).not.toBe(before.revision); // but a new build — resets
+});
+
+test('signatures survive values that legally contain "#"', () => {
+  // "#" is LOFS's version delimiter, so a path may not contain one — but the
+  // values that go there routinely do: scoped StateKeys (list:#3:answer) and
+  // canonical provenance (source://path#version). These threw during render.
+  const scoped = () => sourceSignature({ sourceKind: 'preloaded', ns: 'demo', id: 'myList:#0:answer' });
+  const canonical = () => sourceSignature({
+    sourceKind: 'inline', ns: 'demo', id: 'x', inline: '<A/>',
+    provenance: 'git+https:github.com/o/r.git@main://content/a.olx#3f41866',
+  });
+  expect(scoped).not.toThrow();
+  expect(canonical).not.toThrow();
+  // Still discriminating: different scoped ids are different names.
+  expect(sourceSignature({ sourceKind: 'preloaded', ns: 'demo', id: 'l:#0:a' }))
+    .not.toBe(sourceSignature({ sourceKind: 'preloaded', ns: 'demo', id: 'l:#1:a' }));
+});
+
+test('path escaping is injective — "#" and a literal "%23" stay distinct', () => {
+  // Escaping only "#" collapsed `a#b` and `a%23b` onto one name. Two inputs
+  // sharing a canonical name is the failure this whole naming scheme exists to
+  // prevent: equal names make shouldRequestParse skip a required re-parse.
+  const hash = sourceSignature({ sourceKind: 'preloaded', ns: 'demo', id: 'a#b' });
+  const literal = sourceSignature({ sourceKind: 'preloaded', ns: 'demo', id: 'a%23b' });
+  expect(hash).not.toBe(literal);
 });
