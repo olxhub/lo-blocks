@@ -31,7 +31,7 @@ import {
   resolveUserWithSession, createSessionToken, buildSetCookie
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
-import { runPipeline } from './pipeline.js';
+import { runPipeline, safeSend } from './pipeline.js';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
@@ -315,6 +315,12 @@ export async function startServer(
       `${req.socket.remoteAddress} → ${conn.path}`
     );
 
+    // Capability handshake FIRST (pubsub-state-sync-design §3a/§5): the very
+    // first frame on the connection advertises what the server speaks. We
+    // advertise only `ack` (Plane 1) — NOT `subscribe`, since Plane 2 isn't
+    // built. Ack-less/older clients ignore an unrecognized `hello` frame, so
+    // omitting it (or the whole hello) degrades byte-identically to legacy.
+    safeSend(ws, { status: 'hello', capabilities: { ack: true } });
     ws.send(JSON.stringify({ status: 'auth', ...user }));
 
     runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {
