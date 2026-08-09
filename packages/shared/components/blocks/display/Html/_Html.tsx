@@ -3,24 +3,19 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useMemo } from 'react';
 import DOMPurify from 'dompurify';
-import { isKidArray } from '@/lib/types/kids';
+import { useText } from '@/lib/player/client/useText';
+import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 
-export default function Html({ kids }: RuntimeProps) {
+export default function Html(props: RuntimeProps) {
+  const { text, ...status } = useText(props);
   const sanitized = useMemo(() => {
-    let content = kids;
-    if (isKidArray(kids) && kids.length > 0) {
-      content = kids.map((kid) => {
-        if (kid.type === 'text') {
-          return kid.text;
-        }
-        return '';
-      }).join('');
-    }
+    // Avoid an empty wrapper for indentation-only CDATA/text.
+    if (!text.trim()) return '';
+    return DOMPurify.sanitize(text);
+  }, [text]);
 
-    if (typeof content !== 'string' || !content.trim()) return '';
-    return DOMPurify.sanitize(content);
-  }, [kids]);
-
+  const statusView = renderBlockStatus(props, status);
+  if (statusView) return statusView;
   if (!sanitized) return null;
 
   return <div dangerouslySetInnerHTML={{ __html: sanitized }} />;

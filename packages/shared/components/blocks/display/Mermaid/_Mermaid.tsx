@@ -2,15 +2,16 @@
 import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useId, useRef } from 'react';
 import mermaid from 'mermaid';
-import { useFieldState, useTextContent } from '@/lib/state/redux';
+import { useFieldState } from '@/lib/state/redux';
+import { useText } from '@/lib/player/client/useText';
+import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
-import Spinner from '@/components/common/Spinner';
 import { fields } from './Mermaid';
 
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
 export default function Mermaid(props: RuntimeProps) {
-  const { text, loading } = useTextContent(props);
+  const { text, ...status } = useText(props);
   const containerRef = useRef<HTMLDivElement>(null);
   // mermaid.render() needs a unique DOM ID for its internal temp element.
   // We can't use props.id — OLX is a DAG, so multiple <Use ref="..."/>
@@ -20,7 +21,7 @@ export default function Mermaid(props: RuntimeProps) {
   const [error, setError] = useFieldState(props, fields.error, null);
 
   useEffect(() => {
-    if (loading || !text || !text.trim() || !containerRef.current) return;
+    if (status.loading || !text || !text.trim() || !containerRef.current) return;
     let cancelled = false;
     const container = containerRef.current;
 
@@ -41,11 +42,10 @@ export default function Mermaid(props: RuntimeProps) {
     })();
 
     return () => { cancelled = true; };
-  }, [text, rendererId, loading]);
+  }, [text, rendererId, status.loading, setError]);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  const statusView = renderBlockStatus(props, status);
+  if (statusView) return statusView;
 
   if (!text || !text.trim()) {
     return <DisplayError props={props} title="Mermaid" message="Empty diagram" />;

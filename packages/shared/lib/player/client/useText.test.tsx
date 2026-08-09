@@ -77,6 +77,18 @@ describe('useText', () => {
     expect(result.current.text).toBe('Resolved: 7');
   });
 
+  it('preserves the conspicuous CapaProblem text-kids workaround', () => {
+    const { result } = renderHook(() => useText(props({
+      kids: [
+        { type: 'text', text: 'First ' },
+        { type: 'block', id: 'ignored' },
+        { type: 'text', text: 'second' },
+      ],
+    })));
+
+    expect(result.current.text).toBe('First second');
+  });
+
   it('honors a blueprint compatibility default', () => {
     const { result } = renderHook(() => useText(props({
       loBlock: { textContent: { source: 'kids', defaultTemplate: 'state' } },

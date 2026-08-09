@@ -12,25 +12,29 @@ import {
   useReferences,
 } from '@/lib/stateLanguage';
 import type { ContextData, Interpolation, References } from '@/lib/stateLanguage';
-import type { RuntimeProps } from '@/lib/types';
+import type { BlockDataResult, RuntimeProps } from '@/lib/types';
 
 export type TextTemplateMode = 'none' | 'state';
 
-export type UseTextResult = {
+export type UseTextResult = BlockDataResult & {
   text: string;
-  loading: boolean;
-  error: string | null;
-  ready: boolean;
 };
+
+function HACK_capaProblemTextKidsWorkaround(kids: unknown[]): string {
+  // CapaProblem can bypass the normal text-parser contract and pass Markdown
+  // an array of KidEntry text nodes instead of the string parsers.text()
+  // promises. Remove this when CapaProblem consistently runs child parsers.
+  return kids
+    .map(kid => {
+      if (typeof kid !== 'object' || kid === null || !('type' in kid) || !('text' in kid)) return '';
+      return kid.type === 'text' && typeof kid.text === 'string' ? kid.text : '';
+    })
+    .join('');
+}
 
 function textFromKids(kids: unknown): string {
   if (typeof kids === 'string') return kids;
-  // One legacy CapaProblem path still presents parsed text as text entries.
-  if (Array.isArray(kids)) {
-    return kids
-      .map(kid => kid?.type === 'text' && typeof kid.text === 'string' ? kid.text : '')
-      .join('');
-  }
+  if (Array.isArray(kids)) return HACK_capaProblemTextKidsWorkaround(kids);
   return '';
 }
 
@@ -79,6 +83,7 @@ export function useText(props: RuntimeProps): UseTextResult {
   const source = props.loBlock?.textContent?.source === 'value'
     ? valueSource
     : { text: fallback, loading: false, error: null, ready: true };
+  const status = source.error ? 'error' : source.loading ? 'loading' : 'ready';
   const mode: TextTemplateMode = props.template
     ?? props.loBlock?.textContent?.defaultTemplate
     ?? 'none';
@@ -103,5 +108,5 @@ export function useText(props: RuntimeProps): UseTextResult {
     return renderStateTemplate(source.text, interpolations, resolved);
   }, [mode, source.text, interpolations, resolved]);
 
-  return { ...source, text };
+  return { ...source, status, text };
 }

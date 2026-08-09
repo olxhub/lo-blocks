@@ -3,9 +3,9 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
-import { useTextContent } from '@/lib/state/redux';
+import { useText } from '@/lib/player/client/useText';
+import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
-import Spinner from '@/components/common/Spinner';
 
 /**
  * Translate a declarative mark spec into a Plot mark.
@@ -73,7 +73,7 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
 
 export default function ObservablePlot(props: RuntimeProps) {
   const { format, width, height } = props;
-  const { text, loading } = useTextContent(props);
+  const { text, ...status } = useText(props);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const effectiveFormat = format || 'yaml';
@@ -110,9 +110,8 @@ export default function ObservablePlot(props: RuntimeProps) {
     containerRef.current.replaceChildren(plotNode);
   }, [plotNode]);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  const statusView = renderBlockStatus(props, status);
+  if (statusView) return statusView;
 
   if (!text || !text.trim()) {
     return <DisplayError props={props} title="ObservablePlot" message="Empty plot spec" />;

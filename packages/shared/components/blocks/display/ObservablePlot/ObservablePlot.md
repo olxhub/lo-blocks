@@ -26,6 +26,7 @@ y:
 - `src` (optional): Path to an external spec file
 - `width` (optional): Plot width in pixels
 - `height` (optional): Plot height in pixels
+- `template` (optional): `state` treats `{{...}}` as reactive state-language expressions; omitted text is literal
 
 ## YAML Format
 
@@ -69,6 +70,34 @@ return Plot.plot({
 });
 ]]></ObservablePlot>
 ```
+
+## Data from block state
+
+Set `template="state"` to make a spec respond to block state. Any
+state-language expression is allowed, and `|| 0` supplies a useful value
+before the field has been written. Change the input to update the chart:
+
+```olx:playground
+<Vertical id="plot_state_demo">
+  <NumberInput id="plot_demo_value" min="0" placeholder="Seconds studied" />
+  <ObservablePlot id="plot_demo_chart" template="state">
+marks:
+  - type: barY
+    data:
+      - {phase: "Study", seconds: {{@plot_demo_value.value || 0}}}
+    x: phase
+    y: seconds
+  - type: ruleY
+    data: [0]
+y:
+  label: "Seconds studied"
+  </ObservablePlot>
+</Vertical>
+```
+
+Values are substituted before the spec is parsed. Objects and arrays are
+inserted as JSON, which is valid YAML, so an expression returning a list can
+supply a whole mark's `data`.
 
 ## External Files
 

@@ -6,6 +6,8 @@ import React, { useMemo } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/player/client/render';
 import { useOlxJson } from '@/lib/player/client/useOlxJson';
+import { useText } from '@/lib/player/client/useText';
+import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 
 type NavItem = Record<string, any> & { id: string };
 
@@ -16,9 +18,9 @@ function TemplateContent({ props, node }) {
 }
 
 function Navigator(props: RuntimeProps) {
+  const { text, ...textStatus } = useText(props);
   const {
     fields,
-    kids,
     title = "Navigator",
     preview,
     detail,
@@ -31,6 +33,11 @@ function Navigator(props: RuntimeProps) {
 
   const [selectedItem, setSelectedItem] = useFieldState(props, fields.selectedItem, null);
   const [searchQuery, setSearchQuery] = useFieldState(props, fields.searchQuery, '');
+
+  // Direct React callers historically could provide already-structured items.
+  // Parsed OLX is text; preserve the structured escape hatch while routing the
+  // declarative string form through the common text API.
+  const kids = typeof props.kids === 'string' ? text : props.kids;
 
   // Parse YAML data from text content
   const items: NavItem[] = useMemo(() => {
@@ -113,6 +120,10 @@ function Navigator(props: RuntimeProps) {
   const handleCloseDetail = () => {
     setSelectedItem(null);
   };
+
+  // All hooks run above the source status branches.
+  const statusView = renderBlockStatus(props, textStatus);
+  if (statusView) return statusView;
 
   // Render preview or detail using pre-fetched blocks
   const renderTemplate = (blockId, item, additionalProps = {}) => {
