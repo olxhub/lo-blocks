@@ -810,6 +810,15 @@ export const BlockBlueprintSchema = z.object({
   /** Get display answers per slot for multi-input graders. */
   getDisplayAnswers: z.function().optional(),
   parser: z.function().optional(),
+  /**
+   * Declarative policy for blocks whose children are source text. Components
+   * consume that source through useText(), without knowing whether it came
+   * from kids, src=, target=, or the block's own value field.
+   */
+  textContent: z.object({
+    source: z.enum(['kids', 'value']).default('kids'),
+    defaultTemplate: z.enum(['none', 'state']).default('none'),
+  }).optional(),
   /** Return child block refs for server-side preloading (collectBlockWithKids).
    *  Refs may be bare (DefinitionRef) — the caller qualifies with the parent's namespace. */
   staticKids: z.function().args(z.any()).returns(z.array(z.string())).optional(),
@@ -1020,6 +1029,7 @@ export interface LoBlock {
   _isBlock: true;
   action?: BlockAction;
   parser?: Function;
+  textContent?: { source: 'kids' | 'value'; defaultTemplate: 'none' | 'state' };
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */

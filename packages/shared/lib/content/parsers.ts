@@ -476,6 +476,11 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 //   ...parsers.text.stripIndent()  - strip common leading indentation (for Markdown)
 //   ...parsers.text({ postprocess: fn })  - custom function
 type TextPostprocess = 'trim' | 'raw' | 'stripIndent' | ((text: string) => string);
+type TextTemplateMode = 'none' | 'state';
+type TextOptions = {
+  postprocess?: TextPostprocess;
+  defaultTemplate?: TextTemplateMode;
+};
 
 const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, source, parseDeps, postprocess = 'trim' }: {
   rawParsed: any; attributes: any; provider: any; source: LofsCanonical; parseDeps: LofsCanonical[];
@@ -583,14 +588,39 @@ const textWithTargetParserMixin = {
   requiresUniqueId: false,
 };
 
-export const text = Object.assign(textFactory, {
-  raw: () => textFactory({ postprocess: 'raw' }),
-  stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
+const textTemplateAttributes = z.object({
+  template: z.enum(['none', 'state']).optional().describe(
+    'Treat this block\'s source text as a template in the selected language'
+  ),
+}).strict();
+
+function textBlueprint({ postprocess, defaultTemplate = 'none' }: TextOptions = {}) {
+  return {
+    ...textFactory({ postprocess }),
+    parserMixin: { attributes: textTemplateAttributes },
+    textContent: { source: 'kids' as const, defaultTemplate },
+  };
+}
+
+function textWithTargetBlueprint({ postprocess, defaultTemplate = 'none' }: TextOptions = {}) {
+  return {
+    ...textFactory({ postprocess }),
+    parserMixin: {
+      ...textWithTargetParserMixin,
+      attributes: textTemplateAttributes.extend(textWithTargetParserMixin.attributes.shape),
+    },
+    textContent: { source: 'value' as const, defaultTemplate },
+  };
+}
+
+export const text = Object.assign((options: TextOptions = {}) => textBlueprint(options), {
+  raw: (options: Omit<TextOptions, 'postprocess'> = {}) => textBlueprint({ ...options, postprocess: 'raw' }),
+  stripIndent: (options: Omit<TextOptions, 'postprocess'> = {}) => textBlueprint({ ...options, postprocess: 'stripIndent' }),
   withTarget: Object.assign(
-    () => ({ ...textFactory(), parserMixin: textWithTargetParserMixin }),
+    (options: TextOptions = {}) => textWithTargetBlueprint(options),
     {
-      raw: () => ({ ...textFactory({ postprocess: 'raw' }), parserMixin: textWithTargetParserMixin }),
-      stripIndent: () => ({ ...textFactory({ postprocess: 'stripIndent' }), parserMixin: textWithTargetParserMixin }),
+      raw: (options: Omit<TextOptions, 'postprocess'> = {}) => textWithTargetBlueprint({ ...options, postprocess: 'raw' }),
+      stripIndent: (options: Omit<TextOptions, 'postprocess'> = {}) => textWithTargetBlueprint({ ...options, postprocess: 'stripIndent' }),
     }
   ),
 });
