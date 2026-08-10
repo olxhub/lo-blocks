@@ -4,12 +4,12 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  useTextContent: vi.fn(),
+  useValue: vi.fn(),
   useReferences: vi.fn(),
 }));
 
-vi.mock('@/lib/state/redux', () => ({
-  useTextContent: mocks.useTextContent,
+vi.mock('@/lib/state/fieldHooks', () => ({
+  useValue: mocks.useValue,
 }));
 
 vi.mock('@/lib/stateLanguage', async importOriginal => ({
@@ -36,8 +36,9 @@ function props(overrides: Record<string, unknown> = {}) {
 
 describe('useText', () => {
   beforeEach(() => {
-    mocks.useTextContent.mockImplementation((_props, { fallback }) => ({
-      text: fallback,
+    mocks.useValue.mockImplementation((_props, { fallback }) => ({
+      value: fallback,
+      status: 'ready',
       loading: false,
       error: null,
       ready: true,
@@ -62,8 +63,9 @@ describe('useText', () => {
   });
 
   it('uses a resolved value only when the parser declares a value source', () => {
-    mocks.useTextContent.mockReturnValue({
-      text: 'Resolved: {{@score.value}}',
+    mocks.useValue.mockReturnValue({
+      value: 'Resolved: {{@score.value}}',
+      status: 'ready',
       loading: false,
       error: null,
       ready: true,

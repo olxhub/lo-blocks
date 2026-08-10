@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTextContent } from '@/lib/state/redux';
+import { useValue } from '@/lib/state/fieldHooks';
 import {
   EMPTY_REFS,
   createContext,
@@ -13,6 +13,7 @@ import {
 } from '@/lib/stateLanguage';
 import type { ContextData, Interpolation, References } from '@/lib/stateLanguage';
 import type { BlockDataResult, RuntimeProps } from '@/lib/types';
+import { parseAnyStateRef } from '@/lib/types/id-grammar';
 
 export type TextTemplateMode = 'none' | 'state';
 
@@ -36,6 +37,18 @@ function textFromKids(kids: unknown): string {
   if (typeof kids === 'string') return kids;
   if (Array.isArray(kids)) return HACK_capaProblemTextKidsWorkaround(kids);
   return '';
+}
+
+function textFromValue(
+  result: BlockDataResult & { value: unknown },
+  fallback: string,
+): UseTextResult {
+  const text = typeof result.value === 'string'
+    ? result.value
+    : result.value == null
+      ? fallback
+      : String(result.value);
+  return { ...result, text };
 }
 
 function renderStateTemplate(
@@ -77,13 +90,26 @@ function renderStateTemplate(
  */
 export function useText(props: RuntimeProps): UseTextResult {
   const fallback = textFromKids(props.kids);
-  // Called unconditionally so the hook order remains stable. Plain text
-  // parsers use authored kids; withTarget parsers select the resolved value.
-  const valueSource = useTextContent(props, { fallback });
-  const source = props.loBlock?.textContent?.source === 'value'
-    ? valueSource
-    : { text: fallback, loading: false, error: null, ready: true };
-  const status = source.error ? 'error' : source.loading ? 'loading' : 'ready';
+  const target = typeof props.target === 'string'
+    ? parseAnyStateRef(props.target)
+    : undefined;
+
+  // This hook must remain unconditional: Studio can change the source policy
+  // between renders, and React hooks must keep the same order.
+  const valueResult = useValue(props, { target, fallback });
+
+  let source: UseTextResult;
+  if (props.loBlock?.textContent?.source === 'value') {
+    source = textFromValue(valueResult, fallback);
+  } else {
+    source = {
+      text: fallback,
+      status: 'ready',
+      loading: false,
+      error: null,
+      ready: true,
+    };
+  }
   const mode: TextTemplateMode = props.template
     ?? props.loBlock?.textContent?.defaultTemplate
     ?? 'none';
@@ -108,5 +134,5 @@ export function useText(props: RuntimeProps): UseTextResult {
     return renderStateTemplate(source.text, interpolations, resolved);
   }, [mode, source.text, interpolations, resolved]);
 
-  return { ...source, status, text };
+  return { ...source, text };
 }

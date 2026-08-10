@@ -540,7 +540,7 @@ textFactory.childMode = 'text';
 // All four routes converge on the same value selector below, which reads
 // `commonFields.value` from Redux and falls back to the block's parsed
 // `kids` (which was populated at parse time from either `src=` or the
-// block's child text). The render-time hook is `useTextContent`.
+// block's child text). The render-time hook is `useText`.
 //
 // - With no `target=`, `useValue` defaults to "this block", so the read
 //   goes through *this* block's selectors.value → Redux value → kids.
