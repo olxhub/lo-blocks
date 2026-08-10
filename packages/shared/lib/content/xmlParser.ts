@@ -11,6 +11,33 @@
 import { XMLParser } from 'fast-xml-parser';
 import { transformTagName } from '@/lib/content/xmlTransforms';
 
+/** The preserve-order node shape emitted by fast-xml-parser. */
+export type RawXmlAttributes = Record<string, string>;
+export type RawXmlNode = {
+  ':@'?: RawXmlAttributes;
+  '#text'?: string;
+  '#comment'?: RawXmlNode[];
+  [key: string]: unknown;
+  [key: symbol]: unknown;
+};
+
+const NON_ELEMENT_KEYS = new Set([':@', '#text', '#comment']);
+
+/** Return the sole element tag on a preserve-order node, if it is an element. */
+export function elementTag(node: RawXmlNode): string | undefined {
+  return Object.keys(node).find(key => !NON_ELEMENT_KEYS.has(key));
+}
+
+/** Return an element's preserve-order children, asserting the parser contract. */
+export function elementKids(node: RawXmlNode, tag: string): RawXmlNode[] {
+  const kids = node[tag];
+  if (kids === undefined) return [];
+  if (!Array.isArray(kids)) {
+    throw new Error(`Malformed preserve-order XML children for <${tag}>`);
+  }
+  return kids as RawXmlNode[];
+}
+
 export const xmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '',
@@ -45,9 +72,9 @@ export const xmlParser = new XMLParser({
 });
 
 /** True if a parsed FXP node represents an XML element (not text/comment). */
-export function isElementNode(node: any): boolean {
+export function isElementNode(node: unknown): node is RawXmlNode {
   return typeof node === 'object' && node !== null &&
-    Object.keys(node).some(k => k !== '#text' && k !== '#comment' && k !== ':@');
+    elementTag(node as RawXmlNode) !== undefined;
 }
 
 /**
@@ -60,7 +87,7 @@ export function isElementNode(node: any): boolean {
  * Used by Chat.ts postprocess to parse inline EmbedBlock OLX and by
  * LiquidTemplate without duplicating the parser config.
  */
-export function parseXmlFragment(xml: string): any[] {
+export function parseXmlFragment(xml: string): RawXmlNode[] {
   const tree = xmlParser.parse(xml);
   const nodes = Array.isArray(tree) ? tree : [tree];
   return nodes.filter(isElementNode);

@@ -50,8 +50,8 @@ function findTargetingGrader(props: RuntimeProps): StateKey | null {
     const targetAttr = graderNodeInfo.olxJson.attributes.target;
     if (!targetAttr) continue;
 
-    // target may be a StateRef[] (Zod-validated authored targets) or a raw
-    // comma-separated string (CapaProblem auto-wired targets set after Zod).
+    // Zod-validated targets are StateRef[]. Retain string handling for legacy
+    // or parser-generated entries that did not pass through the block schema.
     const targetStrings: string[] = Array.isArray(targetAttr)
       ? targetAttr.map(String)
       : typeof targetAttr === 'string'

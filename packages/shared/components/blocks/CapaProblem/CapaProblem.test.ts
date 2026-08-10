@@ -59,10 +59,35 @@ it('auto-wires grader target from nested inputs', async () => {
   expect(input).toBeDefined();
   expect(input.tag).toBe('NumberInput');
 
-  // Auto-wired target should be a bare ref string (comma-separated), not qualified.
-  // The post-parse grader validation in parseOLX qualifies these for idMap lookup —
-  // if we stored DefinitionKeys here, they'd get double-qualified to CONTENT/CONTENT/...
-  expect(grader.attributes.target).toBe('CapaProblemDemo_input_0');
+  // Auto-wired targets go through the ordinary grader schema, so they have
+  // the same validated StateRef[] shape as authored targets.
+  expect(grader.attributes.target).toEqual(['CapaProblemDemo_input_0']);
+});
+
+it('preserves an authored target when a grader also contains an input', async () => {
+  const xml = `<CapaProblem id="q">
+    <NumericalGrader id="grader" answer="1" target="authored_input">
+      <NumberInput id="nested_input" />
+    </NumericalGrader>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  expect(getOlxJson(idMap, 'grader')?.attributes.target).toEqual(['authored_input']);
+  expect(getOlxJson(idMap, 'nested_input')?.tag).toBe('NumberInput');
+});
+
+it('validates an authored target instead of replacing it', async () => {
+  const xml = `<CapaProblem id="q">
+    <NumericalGrader id="grader" answer="1" target="not a ref">
+      <NumberInput id="nested_input" />
+    </NumericalGrader>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toHaveLength(1);
+  expect(errors[0].message).toContain('target: Invalid input');
+  expect(getOlxJson(idMap, 'grader')?.tag).toBe('ErrorNode');
 });
 
 it('accepts and preserves the submitLabel button override', async () => {
@@ -91,6 +116,7 @@ it('runs text parsers for blocks nested through HTML', async () => {
       Lead
       <Markdown id="nested_md">Nested **Markdown**</Markdown>
       <em>Tail</em>
+      <div><strong><Markdown id="deep_md">Deep **Markdown**</Markdown></strong></div>
       <Explanation id="explanation" showWhen="always">
         <Markdown id="owned_md">Parser-owned **Markdown**</Markdown>
         <TextArea id="owned_input">Initial answer</TextArea>
@@ -103,6 +129,7 @@ it('runs text parsers for blocks nested through HTML', async () => {
   expect(errors).toEqual([]);
   expect(getOlxJson(idMap, 'direct_md')?.kids).toBe('Direct **Markdown**');
   expect(getOlxJson(idMap, 'nested_md')?.kids).toBe('Nested **Markdown**');
+  expect(getOlxJson(idMap, 'deep_md')?.kids).toBe('Deep **Markdown**');
   expect(getOlxJson(idMap, 'owned_md')?.kids).toBe('Parser-owned **Markdown**');
   expect(getOlxJson(idMap, 'owned_input')?.kids).toBe('Initial answer');
 
@@ -124,9 +151,114 @@ it('runs text parsers for blocks nested through HTML', async () => {
           attributes: {},
           kids: [{ type: 'text', text: 'Tail' }],
         },
+        {
+          type: 'html',
+          tag: 'div',
+          attributes: {},
+          kids: [{
+            type: 'html',
+            tag: 'strong',
+            attributes: {},
+            kids: [{ type: 'block', id: testKey('deep_md') }],
+          }],
+        },
         { type: 'block', id: testKey('explanation') },
       ],
     },
     { type: 'text', text: expect.stringContaining('After') },
   ]);
+});
+
+it('auto-wires a localized grader in the grader language variant', async () => {
+  const xml = `<CapaProblem id="q" lang="en" grade="immediate">
+    <section>
+      <!--
+      ---
+      lang: fr
+      description: Grader metadata reaches the child parser
+      ---
+      -->
+      <NumericalGrader id="localized_grader" answer="8">
+        <NumberInput id="localized_input" />
+      </NumericalGrader>
+    </section>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  const grader = idMap[testKey('localized_grader')]?.fr;
+  expect(grader).toMatchObject({
+    lang: 'fr',
+    description: 'Grader metadata reaches the child parser',
+    attributes: {
+      target: ['localized_input'],
+      gradeMode: 'immediate',
+    },
+  });
+  expect(idMap[testKey('localized_grader')]?.en).toBeUndefined();
+  expect(idMap[testKey('localized_input')]?.fr).toBeDefined();
+  expect(idMap[testKey('q')]?.en?.tag).toBe('CapaProblem');
+});
+
+it('keeps outer grading mode off a nested problem and its leaf graders', async () => {
+  const xml = `<CapaProblem id="outer" grade="immediate">
+    <NumericalGrader id="outer_grader" answer="1">
+      <NumberInput id="outer_input" />
+    </NumericalGrader>
+    <CapaProblem id="inner" grade="submit">
+      <NumberInput id="inner_sibling_input" />
+      <NumericalGrader id="inner_grader" answer="2">
+        <NumberInput id="inner_input" />
+      </NumericalGrader>
+    </CapaProblem>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  expect(getOlxJson(idMap, 'outer_grader')?.attributes).toMatchObject({
+    gradeMode: 'immediate',
+    target: ['outer_input'],
+  });
+  // The inner problem is a metagrader boundary, not an execution leaf. Its
+  // own authored grade= governs its children without a last-write-wins stamp.
+  expect(getOlxJson(idMap, 'inner')?.attributes.gradeMode).toBeUndefined();
+  expect(getOlxJson(idMap, 'inner')?.attributes.target).toBeUndefined();
+  expect(getOlxJson(idMap, 'inner_grader')?.attributes).toMatchObject({
+    gradeMode: 'submit',
+    target: ['inner_input'],
+  });
+});
+
+it('stamps executable graders, but not nested metagraders', async () => {
+  const xml = `<CapaProblem id="outer" grade="immediate">
+    <RulesGrader id="rules">
+      <StringGrader id="nested_grader" answer="yes"><LineInput /></StringGrader>
+    </RulesGrader>
+    <MarkupProblem id="markup"><![CDATA[
+Question
+===
+>>Answer yes.<<
+= yes
+    ]]></MarkupProblem>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  expect(getOlxJson(idMap, 'rules')?.attributes.gradeMode).toBe('immediate');
+  expect(getOlxJson(idMap, 'nested_grader')?.attributes.gradeMode).toBeUndefined();
+  expect(getOlxJson(idMap, 'markup')?.tag).toBe('MarkupProblem');
+  expect(getOlxJson(idMap, 'markup')?.attributes.gradeMode).toBeUndefined();
+});
+
+it('rejects OLX variant language on raw HTML inside CapaProblem', async () => {
+  const xml = `<CapaProblem id="q">
+    <section lang="fr"><Markdown>Bonjour</Markdown></section>
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toHaveLength(1);
+  expect(errors[0].message).toContain(
+    'lang= on raw HTML <section> is not yet supported; its semantics relative to OLX language variants are undefined'
+  );
+  expect(getOlxJson(idMap, 'q')?.tag).toBe('ErrorNode');
 });
