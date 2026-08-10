@@ -151,15 +151,29 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
     if (result) kidsParsed.push(result as KidEntry);
   }
 
-  // Call parseNode on immediate block children to trigger their parsers
-  for (const n of rawKids) {
-    const childTag = Object.keys(n).find(k => ![':@', '#text', '#comment'].includes(k));
-    if (childTag && isPascalCase(childTag)) {
-      const kids = n[childTag];
+  // Trigger the parser for each top-level block in the mixed-content tree.
+  // Lowercase HTML is transparent for this purpose: Capa owns that HTML
+  // structure, but a block beneath it must still own parsing its own kids.
+  // Stop at block boundaries because block parsers recurse into their own
+  // descendants; continuing here would parse those descendants twice.
+  async function parseBlockFrontier(nodes) {
+    for (let index = 0; index < nodes.length; index++) {
+      const node = nodes[index];
+      const childTag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
+      if (!childTag) continue;
+
+      if (isPascalCase(childTag)) {
+        await parseNode(node, nodes, index);
+        continue;
+      }
+
+      const kids = node[childTag];
       const kidsArray = Array.isArray(kids) ? kids : (kids ? [kids] : []);
-      await parseNode(n, kidsArray, 0);
+      await parseBlockFrontier(kidsArray);
     }
   }
+
+  await parseBlockFrontier(rawKids);
 
   // Auto-wire grader targets
   for (const g of graders) {
@@ -217,4 +231,3 @@ const CapaProblem = dev({
 });
 
 export default CapaProblem;
-

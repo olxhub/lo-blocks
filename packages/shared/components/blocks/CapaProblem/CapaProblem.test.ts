@@ -82,3 +82,51 @@ it('accepts and preserves the submitLabel button override', async () => {
   expect(errors).toEqual([]);
   expect(getOlxJson(idMap, 'q')?.attributes.submitLabel).toBe('Verify');
 });
+
+it('runs text parsers for blocks nested through HTML', async () => {
+  const xml = `<CapaProblem id="q">
+    Before
+    <Markdown id="direct_md">Direct **Markdown**</Markdown>
+    <section class="prompt">
+      Lead
+      <Markdown id="nested_md">Nested **Markdown**</Markdown>
+      <em>Tail</em>
+      <Explanation id="explanation" showWhen="always">
+        <Markdown id="owned_md">Parser-owned **Markdown**</Markdown>
+        <TextArea id="owned_input">Initial answer</TextArea>
+      </Explanation>
+    </section>
+    After
+  </CapaProblem>`;
+  const { idMap, errors } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+
+  expect(errors).toEqual([]);
+  expect(getOlxJson(idMap, 'direct_md')?.kids).toBe('Direct **Markdown**');
+  expect(getOlxJson(idMap, 'nested_md')?.kids).toBe('Nested **Markdown**');
+  expect(getOlxJson(idMap, 'owned_md')?.kids).toBe('Parser-owned **Markdown**');
+  expect(getOlxJson(idMap, 'owned_input')?.kids).toBe('Initial answer');
+
+  // CapaProblem still owns the mixed-content structure used for rendering.
+  const problem = getOlxJson(idMap, 'q');
+  expect(problem?.kids).toEqual([
+    { type: 'text', text: expect.stringContaining('Before') },
+    { type: 'block', id: testKey('direct_md') },
+    {
+      type: 'html',
+      tag: 'section',
+      attributes: { class: 'prompt' },
+      kids: [
+        { type: 'text', text: expect.stringContaining('Lead') },
+        { type: 'block', id: testKey('nested_md') },
+        {
+          type: 'html',
+          tag: 'em',
+          attributes: {},
+          kids: [{ type: 'text', text: 'Tail' }],
+        },
+        { type: 'block', id: testKey('explanation') },
+      ],
+    },
+    { type: 'text', text: expect.stringContaining('After') },
+  ]);
+});

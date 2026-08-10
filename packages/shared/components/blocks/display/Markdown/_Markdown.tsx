@@ -2,7 +2,6 @@
 import React, { useMemo } from 'react';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import type { RuntimeProps } from '@/lib/types';
-import { isKidArray } from '@/lib/types/kids';
 import { useTextContent } from '@/lib/state/redux';
 import Spinner from '@/components/common/Spinner';
 import {
@@ -15,19 +14,7 @@ import {
 } from '@/lib/stateLanguage';
 
 export default function Markdown(props: RuntimeProps) {
-  let { text: content, loading } = useTextContent(props);
-
-  /*** HACK HACK HACK ***/
-  // This works around a bug where CapaProblem doesn't use block parsers correctly
-  if (!content && isKidArray(props.kids) && props.kids.length > 0) {
-    content = props.kids.map((kid) => {
-      if (kid.type === 'text') {
-        return kid.text;
-      }
-      return '';
-    }).join('');
-  }
-  /*** end of hack ***/
+  const { text: content, loading } = useTextContent(props);
 
   // Extract all {{...}} interpolations and their references
   const { interpolations, refs } = useMemo(() => {
