@@ -15,7 +15,8 @@
 'use client';
 
 import React from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash-es';
 import { useOlxJson, useOlxJsonMultiple, getOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
 import { useBlocksReadyForSources } from '@/lib/player/client/useBlocksReady';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -201,14 +202,14 @@ export { selectKidsJson, getKidsJson } from '../../blocks/staticDynamicDom';
  * the kids list — e.g. for counting, navigation, tab bars. Blocks that
  * just render all children should use useKids() instead.
  */
-// todo: selectKidsJson allocates a new array when when= conditions exist,
-// so we need shallowEqual to avoid re-renders on unrelated dispatches.
+// todo: selectKidsJson allocates new arrays when when= conditions exist,
+// so we need structural equality to avoid re-renders on unrelated dispatches.
 // The old useKidsJson used useReferences (scoped subscription) + useMemo
 // which avoided even running the filter. Revisit when we rearchitect the
 // selector/use/get split — we need a pattern for hooks that post-process
 // selector results (filter, map, derive) without losing subscription scoping.
 export function useKidsJson(props: RuntimeProps): any[] {
-  return useSelector((reduxState: any) => selectKidsJson(props, reduxState), shallowEqual);
+  return useSelector((reduxState: any) => selectKidsJson(props, reduxState), isEqual);
 }
 
 // ─── Public hooks ───────────────────────────────────────────────────────────

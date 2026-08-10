@@ -29,6 +29,7 @@ import type { RuntimeProps } from '@/lib/types';
 // reference values from the same snapshot (getKidsJson is the only boundary
 // that calls getState()).
 function getWhen(kid: any, props: RuntimeProps, reduxState: any) {
+  if (kid.type === 'html') return undefined;
   if (kid.type === 'block') {
     const definitionKey = qualifyDefinitionRef(kid.id, props.runtime.ns);
     const sources = props.runtime.olxJsonSources ?? ['content'];
@@ -45,11 +46,21 @@ function getWhen(kid: any, props: RuntimeProps, reduxState: any) {
 function collectWhens(kids: any[], props: RuntimeProps, reduxState: any) {
   const map: Record<string, any> = {};
   for (const kid of kids) {
+    if (kid.type === 'html') Object.assign(map, collectWhens(kid.kids ?? [], props, reduxState));
     const when = getWhen(kid, props, reduxState);
     if (!when) continue;
     map[kid.id] = when;
   }
   return map;
+}
+
+function filterKids(kids: any[], whenMap: Record<string, any>, ctx: ReturnType<typeof createContext>): any[] {
+  return kids.flatMap(kid => {
+    const when = kid.type === 'html' ? undefined : whenMap[kid.id];
+    if (when && !Boolean(evaluate(when.ast, ctx))) return [];
+    if (kid.type !== 'html') return [kid];
+    return [{ ...kid, kids: filterKids(kid.kids ?? [], whenMap, ctx) }];
+  });
 }
 
 /**
@@ -71,11 +82,7 @@ export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
 
   const resolved = selectReferences(reduxState, props, allRefs);
   const ctx = createContext(resolved);
-  return rawKids.filter(kid => {
-    const when = whenMap[kid.id];
-    if (!when) return true;
-    return Boolean(evaluate(when.ast, ctx));
-  });
+  return filterKids(rawKids, whenMap, ctx);
 }
 
 /** One-shot imperative form: grabs current state and calls selectKidsJson. */
