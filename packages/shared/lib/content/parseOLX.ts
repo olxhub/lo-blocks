@@ -20,7 +20,8 @@ import yaml from 'js-yaml';
 
 import { XMLValidator } from 'fast-xml-parser';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
-import { xmlParser, isElementNode, XML_META } from './xmlParser';
+import { elementTag, xmlParser, isElementNode, XML_META } from './xmlParser';
+import type { RawXmlNode } from './xmlParser';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OlxJson, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
@@ -465,8 +466,8 @@ export async function parseOLX(
     systemAssignedIds.add(node[':@']);
   }
 
-  async function parseNode(node, siblings: any[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
-    const tag = Object.keys(node).find(k => ![':@', '#text', '#comment'].includes(k));
+  async function parseNode(node: RawXmlNode, siblings: RawXmlNode[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
+    const tag = elementTag(node);
     if (!tag) return null;
 
     const attributes = node[':@'] ?? {};
@@ -477,7 +478,7 @@ export async function parseOLX(
     // nodes (e.g. blocks.wrapText creates fake `{ Markdown: [...] }`
     // envelopes that never went through the XML parser). See
     // OlxJson._sourceOffset for the interim-storage rationale.
-    const sourceOffset: number | undefined = node?.[XML_META]?.startIndex;
+    const sourceOffset = (node[XML_META] as { startIndex?: number } | undefined)?.startIndex;
 
     // Extract metadata from preceding sibling comment
     const metadata = extractSiblingMetadata(siblings, nodeIndex, source, parseDeps, errors);
@@ -667,8 +668,8 @@ export async function parseOLX(
       assignSystemId,
       // HACK HACK HACK — for CapaProblem only. Do not hang anything else
       // off of this. CapaProblem's legacy ID-assignment walk needs to know
-      // whether a child tag is a grader or an input to pick a role-based ID
-      // prefix. That's all it gets: two descriptor-level booleans, not the
+      // whether a child tag is a grader/input, and whether it executes grading.
+      // That's all it gets: three descriptor-level booleans, not the
       // block. There is deliberately NO general parse-time block-lookup
       // facility — a blueprint importing the registry is an import cycle,
       // and the CapaProblem redesign (see the TODO in CapaProblem.ts)
@@ -678,6 +679,7 @@ export async function parseOLX(
       HACK_getBlockRolesForCapaProblem: (blockTag: string) => ({
         isGrader: BLOCK_REGISTRY[blockTag]?.isGrader ?? false,
         isInput: BLOCK_REGISTRY[blockTag]?.isInput ?? false,
+        executesGrading: BLOCK_REGISTRY[blockTag]?.grading !== undefined,
       }),
       metadata,  // Pass metadata to parser so it can include in entry
       storeEntry: (refId: DefinitionRef, entryOrUpdater) => {
@@ -903,8 +905,8 @@ export async function parseOLX(
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
 
     // Find input IDs: explicit target attribute, or child blocks with isInput.
-    // Target values are either Zod-validated StateRef[] (from z_stateRefList) or
-    // bare ref strings (from CapaProblem auto-wiring). Resolve via the canonical
+    // Target values normally arrive as Zod-validated StateRef[]. Retain string
+    // handling for parser-generated or legacy entries. Resolve via the canonical
     // stateKeyForGlobalRef path — handles already-qualified refs correctly and
     // extracts DefinitionKeys from scoped refs (e.g., "list:#0:answer" → ["list", "answer"]).
     let inputIds: string[] = [];

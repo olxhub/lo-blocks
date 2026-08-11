@@ -28,8 +28,19 @@ import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
+import { elementKids, elementTag } from './xmlParser';
+import type { RawXmlAttributes, RawXmlNode } from './xmlParser';
 
 // === Setup ===
+
+/** Raw HTML does not establish an OLX content-variant language boundary. */
+export function rejectHtmlLang(tag: string, attributes: RawXmlAttributes): void {
+  if (attributes.lang !== undefined) {
+    throw new Error(
+      `lang= on raw HTML <${tag}> is not yet supported; its semantics relative to OLX language variants are undefined`
+    );
+  }
+}
 
 // HACK: Fallback for going back from parsed XML -> text
 // This is not guaranteed to be identical to the source,
@@ -374,7 +385,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
 
       if (child['#comment'] !== undefined) continue;
 
-      const tag = Object.keys(child).find(k => !['#text', '#comment', ':@'].includes(k));
+      const tag = elementTag(child as RawXmlNode);
       if (!tag) continue;
 
       const isBlock = tag[0] === tag[0].toUpperCase();
@@ -395,8 +406,8 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
         }
       } else if (allowHTML) {
         const attributes = child[':@'] ?? {};
-        const htmlKids = child[tag];
-        const htmlKidsArray = Array.isArray(htmlKids) ? htmlKids : (htmlKids ? [htmlKids] : []);
+        rejectHtmlLang(tag, attributes);
+        const htmlKidsArray = elementKids(child as RawXmlNode, tag);
         const childResults = await blocksParser({ rawKids: htmlKidsArray, parseNode });
 
         results.push({

@@ -1216,7 +1216,7 @@ export type KidEntry =
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
-  | { type: 'html'; tag: string; attributes: Record<string, JSONValue>; kids: KidEntry[]; parentContext?: ParentContext }
+  | { type: 'html'; tag: string; id?: string; attributes: Record<string, JSONValue>; kids: KidEntry[]; parentContext?: ParentContext }
   | { type: 'custom'; subtype: string; data: Record<string, JSONValue>; parentContext?: ParentContext };
 
 /**

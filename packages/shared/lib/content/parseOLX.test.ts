@@ -32,6 +32,17 @@ test('returns first element id when multiple roots', async () => {
   expect(root).toBe(testKey('one'));
 });
 
+test('rejects OLX variant language on raw HTML in mixed block content', async () => {
+  const xml = '<Explanation id="ex"><section lang="fr">Bonjour</section></Explanation>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+
+  expect(errors).toHaveLength(1);
+  expect(errors[0].message).toContain(
+    'lang= on raw HTML <section> is not yet supported; its semantics relative to OLX language variants are undefined'
+  );
+  expect(getOlxJson(idMap, 'ex')?.tag).toBe('ErrorNode');
+});
+
 test('CRITICAL: _sourceOffset is the byte offset of `<` from fast-xml-parser captureMetaData', async () => {
   // Regression guard: captureMetaData is undocumented in most search results
   // and could plausibly be removed or renamed in a fast-xml-parser minor

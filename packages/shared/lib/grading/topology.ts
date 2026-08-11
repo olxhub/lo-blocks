@@ -55,6 +55,8 @@ export function graderInputStateKeys(state: unknown, props: RuntimeProps, grader
 
   const target = entry.attributes.target;
   if (target) {
+    // Arrays are the normal Zod-validated shape. String handling remains for
+    // legacy or parser-generated entries outside the normal block pipeline.
     const refs = Array.isArray(target)
       ? target.map(String)
       : String(target).split(',').map(t => t.trim()).filter(Boolean);
