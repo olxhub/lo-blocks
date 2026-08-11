@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const NavigatorDefaultDetail = dev({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'NavigatorDefaultDetail',
   description: 'Default detail component for Navigator',
   requiresUniqueId: false,

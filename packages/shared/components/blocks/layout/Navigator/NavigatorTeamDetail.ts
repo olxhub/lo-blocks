@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const NavigatorTeamDetail = dev({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'NavigatorTeamDetail',
   description: 'Team member detail component for Navigator',
   requiresUniqueId: false,

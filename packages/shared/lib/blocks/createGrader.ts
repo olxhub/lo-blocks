@@ -290,7 +290,11 @@ interface CreateGraderConfig {
    *  BlockBlueprintSchema.ensureReady. Applied to the Match block too. */
   ensureReady?: () => Promise<void>;
   /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
-  parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
+  parser?: {
+    parser: (ctx: any) => Promise<any>;
+    staticKids?: (entry: any) => any[];
+    childMode?: parsers.ChildMode;
+  };
   /**
    * Explicit allow-list of attribute/field names that the blueprint layer
    * is intentionally redefining over the graderMixin defaults. See
@@ -382,9 +386,15 @@ export function createGrader({
     ...(allowOverrides ?? []),
   ]));
 
+  // `parser:` is a child-parsing contract. Parser helpers may also carry
+  // block-renderer conveniences, which do not belong on a generated grader.
+  const { parser: parseKids, staticKids, childMode } = parser ?? parsers.blocks.allowHTML();
+
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
-    ...(parser ?? parsers.blocks.allowHTML()),
+    parser: parseKids,
+    staticKids,
+    childMode,
     ...grader(customAsyncGraderFn
       ? { asyncGrader: customAsyncGraderFn, infer, slots, inputType }
       : { grader: syncGraderFn!, infer, slots, inputType }),

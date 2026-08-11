@@ -3,7 +3,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useId, useRef } from 'react';
 import mermaid from 'mermaid';
 import { useFieldState } from '@/lib/state/redux';
-import { useText } from '@/lib/player/client/useText';
+import { useTextWithTemplate } from '@/lib/player/client/useText';
 import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
 import { fields } from './Mermaid';
@@ -11,7 +11,7 @@ import { fields } from './Mermaid';
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
 export default function Mermaid(props: RuntimeProps) {
-  const { text, ...status } = useText(props);
+  const { text, ...status } = useTextWithTemplate(props);
   const containerRef = useRef<HTMLDivElement>(null);
   // mermaid.render() needs a unique DOM ID for its internal temp element.
   // We can't use props.id — OLX is a DAG, so multiple <Use ref="..."/>

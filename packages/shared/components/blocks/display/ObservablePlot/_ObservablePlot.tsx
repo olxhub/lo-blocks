@@ -3,7 +3,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
 import YAML from 'yaml';
-import { useText } from '@/lib/player/client/useText';
+import { useTextWithTemplate } from '@/lib/player/client/useText';
 import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
 
@@ -73,7 +73,7 @@ function evaluateJsSpec(code: string, plotLib: typeof Plot) {
 
 export default function ObservablePlot(props: RuntimeProps) {
   const { format, width, height } = props;
-  const { text, ...status } = useText(props);
+  const { text, ...status } = useTextWithTemplate(props);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const effectiveFormat = format || 'yaml';

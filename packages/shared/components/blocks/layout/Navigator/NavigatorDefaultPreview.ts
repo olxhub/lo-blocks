@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const NavigatorDefaultPreview = dev({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'NavigatorDefaultPreview',
   description: 'Default preview component for Navigator',
   requiresUniqueId: false,

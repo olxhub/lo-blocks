@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { TextTemplateMode } from '@/lib/blocks/attributeSchemas';
 import { useValue } from '@/lib/state/fieldHooks';
 import {
   EMPTY_REFS,
@@ -15,28 +16,20 @@ import type { ContextData, Interpolation, References } from '@/lib/stateLanguage
 import type { BlockDataResult, RuntimeProps } from '@/lib/types';
 import { parseAnyStateRef } from '@/lib/types/id-grammar';
 
-export type TextTemplateMode = 'none' | 'state';
-
-export type UseTextResult = BlockDataResult & {
-  text: string;
-};
-
-function HACK_capaProblemTextKidsWorkaround(kids: unknown[]): string {
-  // CapaProblem can bypass the normal text-parser contract and pass Markdown
-  // an array of KidEntry text nodes instead of the string parsers.text()
-  // promises. Remove this when CapaProblem consistently runs child parsers.
-  return kids
-    .map(kid => {
-      if (typeof kid !== 'object' || kid === null || !('type' in kid) || !('text' in kid)) return '';
-      return kid.type === 'text' && typeof kid.text === 'string' ? kid.text : '';
-    })
-    .join('');
-}
+export type UseTextResult = BlockDataResult & { text: string };
 
 function textFromKids(kids: unknown): string {
-  if (typeof kids === 'string') return kids;
-  if (Array.isArray(kids)) return HACK_capaProblemTextKidsWorkaround(kids);
-  return '';
+  return typeof kids === 'string' ? kids : '';
+}
+
+function readyText(text: string): UseTextResult {
+  return {
+    text,
+    status: 'ready',
+    loading: false,
+    error: null,
+    ready: true,
+  };
 }
 
 function textFromValue(
@@ -48,10 +41,13 @@ function textFromValue(
     : result.value == null
       ? fallback
       : String(result.value);
-  return { ...result, text };
+
+  // useValue guarantees a usable fallback on load failure. Treat successful
+  // fallback resolution as ready, preserving the existing text-block contract.
+  return result.status === 'error' ? readyText(text) : { ...result, text };
 }
 
-function renderStateTemplate(
+function interpolateStateTemplate(
   text: string,
   interpolations: Interpolation[],
   context: ContextData,
@@ -71,7 +67,7 @@ function renderStateTemplate(
           : String(evaluated);
       }
     } catch (error) {
-      console.warn('[useText] Failed to evaluate:', expression, error);
+      console.warn('[useInterpolation] Failed to evaluate:', expression, error);
       value = `{{${expression}}}`;
     }
     result = result.slice(0, start) + value + result.slice(end);
@@ -80,59 +76,59 @@ function renderStateTemplate(
   return result;
 }
 
-/**
- * Return a block's source text without exposing where it came from.
- *
- * The parser/blueprint declares the source policy and default template
- * language. This hook owns the runtime portion: target/value resolution,
- * subscriptions, and template evaluation. Its internal hooks are called in a
- * fixed order even when Studio changes `template` between renders.
- */
+/** Resolve parsed text, including an optional reactive `target=` source. */
 export function useText(props: RuntimeProps): UseTextResult {
   const fallback = textFromKids(props.kids);
-  const target = typeof props.target === 'string'
+  const readsValue = props.loBlock?.textContent?.source === 'value';
+  const target = readsValue && typeof props.target === 'string'
     ? parseAnyStateRef(props.target)
     : undefined;
 
-  // This hook must remain unconditional: Studio can change the source policy
-  // between renders, and React hooks must keep the same order.
-  const valueResult = useValue(props, { target, fallback });
+  // Keep hook order stable while avoiding a Redux subscription for kids-only
+  // blocks. stateKey:null makes useValue return the fallback directly.
+  const valueResult = useValue(props, {
+    stateKey: readsValue ? undefined : null,
+    target,
+    fallback,
+  });
 
-  let source: UseTextResult;
-  if (props.loBlock?.textContent?.source === 'value') {
-    source = textFromValue(valueResult, fallback);
-  } else {
-    source = {
-      text: fallback,
-      status: 'ready',
-      loading: false,
-      error: null,
-      ready: true,
-    };
-  }
-  const mode: TextTemplateMode = props.template
-    ?? props.loBlock?.textContent?.defaultTemplate
-    ?? 'none';
+  return readsValue ? textFromValue(valueResult, fallback) : readyText(fallback);
+}
 
+/** Evaluate already-resolved text using the block's selected template mode. */
+export function useInterpolation(
+  props: RuntimeProps,
+  text: string,
+  mode: TextTemplateMode = props.template
+    ?? props.loBlock?.textContent?.defaultTemplateMode
+    ?? 'none',
+): string {
   const { interpolations, refs } = useMemo<{
     interpolations: Interpolation[];
     refs: References;
   }>(() => {
     if (mode !== 'state') return { interpolations: [], refs: EMPTY_REFS };
     return {
-      interpolations: extractInterpolations(source.text),
-      refs: extractInterpolationRefs(source.text),
+      interpolations: extractInterpolations(text),
+      refs: extractInterpolationRefs(text),
     };
-  }, [mode, source.text]);
+  }, [mode, text]);
 
-  // Unconditional for hook-order stability. EMPTY_REFS is the no-template
-  // fast path and subscribes to no referenced block fields.
+  // EMPTY_REFS is the literal fast path and subscribes to no block fields.
+  // TODO(template-loading): useReferences does not expose dependency loading
+  // or errors. Resolve that once the platform-wide dependency API settles;
+  // Markdown already has this limitation today.
   const resolved = useReferences(props, refs);
 
-  const text = useMemo(() => {
-    if (mode !== 'state' || interpolations.length === 0) return source.text;
-    return renderStateTemplate(source.text, interpolations, resolved);
-  }, [mode, source.text, interpolations, resolved]);
+  return useMemo(() => {
+    if (mode !== 'state' || interpolations.length === 0) return text;
+    return interpolateStateTemplate(text, interpolations, resolved);
+  }, [mode, text, interpolations, resolved]);
+}
 
+/** The common text-renderer lifecycle: resolve the source, then interpolate. */
+export function useTextWithTemplate(props: RuntimeProps): UseTextResult {
+  const source = useText(props);
+  const text = useInterpolation(props, source.text);
   return { ...source, text };
 }

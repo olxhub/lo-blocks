@@ -3,7 +3,7 @@ import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const ObservablePlot = core({
-  ...parsers.text.withTarget.stripIndent(),
+  ...parsers.textWithTemplate(parsers.text.withTarget.stripIndent()),
   name: 'ObservablePlot',
   description: 'Render Observable Plot visualizations from YAML or JavaScript specs.',
   attributes: z.object({

@@ -5,12 +5,12 @@ import type { RuntimeProps } from '@/lib/types';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
-import { useText } from '@/lib/player/client/useText';
+import { useTextWithTemplate } from '@/lib/player/client/useText';
 import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
 
 export default function InlineMath( props: RuntimeProps ) {
-  const { text, ...status } = useText(props);
+  const { text, ...status } = useTextWithTemplate(props);
   const latex = text.trim();
   const statusView = renderBlockStatus(props, status);
 

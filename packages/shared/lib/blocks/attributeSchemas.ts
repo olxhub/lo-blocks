@@ -403,12 +403,13 @@ export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
 };
 
-/**
- * Template attribute - for blocks whose text can be evaluated at runtime.
- * Omission preserves the block's parser-declared compatibility default.
- */
+/** Runtime template languages supported by opt-in text-rendering blocks. */
+export const textTemplateModes = ['none', 'state'] as const;
+export type TextTemplateMode = typeof textTemplateModes[number];
+
+/** Include only when a block evaluates its source text at runtime. */
 export const templateAttribute = {
-  template: z.enum(['none', 'state']).optional().describe(
+  template: z.enum(textTemplateModes).optional().describe(
     'Treat this block\'s source text as a template in the selected language'
   ),
 };

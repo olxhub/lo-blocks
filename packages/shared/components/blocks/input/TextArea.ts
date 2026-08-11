@@ -5,7 +5,6 @@ import * as state from '@/lib/state';
 import { docField } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
 import { placeholder, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
-import { selectBlock } from '@/lib/state/olxjson';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export const fields = state.fields([docField('value'), { name: 'readonly', schema: z_olx_boolean }]);
@@ -31,10 +30,9 @@ const TextArea = core({
         return value;
       }
 
-      // No Redux state yet — fall back to parsed children text
-      const sources = props.runtime.olxJsonSources ?? ['content'];
-      const locale = props.runtime.locale.code;
-      return (selectBlock(reduxState, sources, props.id, locale)!.kids as string).trim();
+      // Target props carry the localized parser result, so the initial value
+      // has the same source as the renderer without another store lookup.
+      return typeof props.kids === 'string' ? props.kids.trim() : '';
     },
   },
 });

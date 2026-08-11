@@ -29,13 +29,5 @@ export function renderBlockStatus(
   }
 
   if (statuses.some(item => item.loading)) return <Spinner />;
-  if (statuses.every(item => item.ready)) return null;
-
-  return (
-    <DisplayError
-      props={props}
-      title={props.loBlock?.name ?? 'Block'}
-      message="Block data is unavailable"
-    />
-  );
+  return null;
 }

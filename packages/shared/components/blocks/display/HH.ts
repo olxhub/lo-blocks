@@ -20,7 +20,7 @@ function stripDecoration(text: string): string {
 }
 
 const HH = test({
-  ...parsers.text({ postprocess: stripDecoration }),
+  ...parsers.textWithTemplate(parsers.text({ postprocess: stripDecoration })),
   name: 'HH',
   description: 'Visual section divider — horizontal rule with optional heading',
   // Non-conventional: HH reuses Markdown's renderer rather than its own sibling file.

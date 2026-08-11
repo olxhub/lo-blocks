@@ -817,7 +817,7 @@ export const BlockBlueprintSchema = z.object({
    */
   textContent: z.object({
     source: z.enum(['kids', 'value']).default('kids'),
-    defaultTemplate: z.enum(['none', 'state']).default('none'),
+    defaultTemplateMode: z.enum(['none', 'state']).optional(),
   }).optional(),
   /** Return child block refs for server-side preloading (collectBlockWithKids).
    *  Refs may be bare (DefinitionRef) — the caller qualifies with the parent's namespace. */
@@ -1029,7 +1029,7 @@ export interface LoBlock {
   _isBlock: true;
   action?: BlockAction;
   parser?: Function;
-  textContent?: { source: 'kids' | 'value'; defaultTemplate: 'none' | 'state' };
+  textContent?: { source: 'kids' | 'value'; defaultTemplateMode?: 'none' | 'state' };
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */

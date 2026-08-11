@@ -5,7 +5,7 @@ import * as parsers from '@/lib/content/parsers';
 import { z_stateRefList } from '@/lib/blocks/attributeSchemas';
 
 const ShowAnswerButton = core({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'ShowAnswerButton',
   description: 'Button that reveals the correct answer for a grader. Use target attribute to specify grader IDs.',
   category: 'action',
