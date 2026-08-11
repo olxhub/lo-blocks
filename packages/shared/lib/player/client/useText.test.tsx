@@ -225,18 +225,43 @@ describe('useInterpolation', () => {
 });
 
 describe('useTextWithTemplate', () => {
-  it('composes source resolution and interpolation', () => {
-    mocks.useValue.mockReturnValue({
-      value: 'Resolved: {{@score.value}}',
-      status: 'ready', loading: false, error: null, ready: true,
-    });
+  beforeEach(() => {
+    mocks.useValue.mockReset();
+    mocks.useReferences.mockReset();
     mocks.useReferences.mockReturnValue(context);
+  });
+
+  it('evaluates authored inline/src text before using it as the value fallback', () => {
+    mocks.useValue.mockImplementation((_props, { fallback }) => ({
+      value: fallback,
+      status: 'ready', loading: false, error: null, ready: true,
+    }));
 
     const { result } = renderHook(() => useTextWithTemplate(props({
       template: 'state',
       loBlock: { textContent: { source: 'value', defaultTemplateMode: 'none' } },
     })));
 
-    expect(result.current).toMatchObject({ text: 'Resolved: 7', status: 'ready' });
+    expect(result.current).toMatchObject({ text: 'Score: 7', status: 'ready' });
+  });
+
+  it.each([
+    ['targeted', { target: 'studentText' }],
+    ['dynamically written', {}],
+  ])('does not evaluate %s value text', (_name, sourceProps) => {
+    mocks.useValue.mockReturnValue({
+      value: 'Resolved: {{@score.value}}',
+      status: 'ready', loading: false, error: null, ready: true,
+    });
+
+    const { result } = renderHook(() => useTextWithTemplate(props({
+      ...sourceProps,
+      template: 'state',
+      loBlock: { textContent: { source: 'value', defaultTemplateMode: 'none' } },
+    })));
+
+    expect(result.current).toMatchObject({
+      text: 'Resolved: {{@score.value}}', status: 'ready',
+    });
   });
 });

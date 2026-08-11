@@ -78,8 +78,10 @@ function interpolateStateTemplate(
 }
 
 /** Resolve parsed text, including an optional reactive `target=` source. */
-export function useText(props: RuntimeProps): UseTextResult {
-  const fallback = textFromKids(props.kids);
+export function useText(
+  props: RuntimeProps,
+  fallback: string = textFromKids(props.kids),
+): UseTextResult {
   const readsValue = props.loBlock?.textContent?.source === 'value';
   const target = readsValue && typeof props.target === 'string'
     ? parseAnyStateRef(props.target)
@@ -127,9 +129,16 @@ export function useInterpolation(
   }, [mode, text, interpolations, resolved]);
 }
 
-/** The common text-renderer lifecycle: resolve the source, then interpolate. */
+/**
+ * Evaluate the author-provided template, then let a runtime value override it.
+ *
+ * This ordering is intentional: kids (including parse-time `src=` content)
+ * may contain templates; `target=` and writable block values are data and are
+ * never scanned for expressions. Runtime templates are deliberately
+ * unsupported for now. If needed, add an explicit mode such as
+ * `template="state:withValue"` rather than broadening `template="state"`.
+ */
 export function useTextWithTemplate(props: RuntimeProps): UseTextResult {
-  const source = useText(props);
-  const text = useInterpolation(props, source.text);
-  return { ...source, text };
+  const authoredText = useInterpolation(props, textFromKids(props.kids));
+  return useText(props, authoredText);
 }

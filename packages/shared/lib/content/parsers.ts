@@ -581,6 +581,18 @@ export const text = Object.assign((options: TextOptions = {}) => parsedText(opti
  *   ...parsers.textWithTemplate(parsers.text.stripIndent())
  *   ...parsers.textWithTemplate(parsers.text.withTarget(), { defaultMode: 'state' })
  * Renderer: `const { text, ...status } = useTextWithTemplate(props)`
+ *
+ * Templates apply only to parsed inline/src text. Reactive `target=` and
+ * writable values remain data. A future deliberately dynamic escape hatch
+ * should be explicit (for example, `state:withValue`).
+ *
+ * TODO(template-compile): Compile authored templates into static segments and
+ * expression ASTs here at parse time, including their state references. The
+ * built player can then skip template hooks/scans for literal text (the large
+ * majority of blocks), validate expressions while authoring, and request the
+ * referenced state from the server statically. Keep an explicit dynamic mode
+ * such as `state:withValue` possible, but do not make value text executable by
+ * default.
  */
 export function textWithTemplate<T extends {
   textContent: { source: 'kids' | 'value' };

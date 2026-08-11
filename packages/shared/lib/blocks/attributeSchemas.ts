@@ -407,10 +407,10 @@ export const src = {
 export const textTemplateModes = ['none', 'state'] as const;
 export type TextTemplateMode = typeof textTemplateModes[number];
 
-/** Include only when a block evaluates its source text at runtime. */
+/** Include only when a block supports templates in authored text. */
 export const templateAttribute = {
   template: z.enum(textTemplateModes).optional().describe(
-    'Treat this block\'s source text as a template in the selected language'
+    'Treat this block\'s authored inline or src text as a template in the selected language'
   ),
 };
 
