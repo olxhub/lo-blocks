@@ -26,7 +26,7 @@ y:
 - `src` (optional): Path to an external spec file
 - `width` (optional): Plot width in pixels
 - `height` (optional): Plot height in pixels
-- `template` (optional): `state` treats `{{...}}` as reactive state-language expressions; omitted text is literal
+- `template` (optional): For YAML specs, `state` treats authored `{{...}}` slots as reactive state-language expressions; omitted text is literal
 
 ## YAML Format
 
@@ -55,6 +55,9 @@ marks:
 
 For full access to the Plot API, use `format="js"`. The code is a function body with `Plot` available. Return a DOM node:
 
+JavaScript specs cannot use `template="state"`: interpolated state would become
+executable code. Use the YAML format for reactive data.
+
 ```olx:code
 <ObservablePlot format="js"><![CDATA[
 const data = [
@@ -73,9 +76,10 @@ return Plot.plot({
 
 ## Data from block state
 
-Set `template="state"` to make a spec respond to block state. Any
-state-language expression is allowed, and `|| 0` supplies a useful value
-before the field has been written. Change the input to update the chart:
+Set `template="state"` to make a YAML spec respond to block state. Use an
+expression whose textual result is valid YAML at its insertion point; `|| 0`
+supplies a useful numeric value before the field has been written. Change the
+input to update the chart:
 
 ```olx:playground
 <Vertical id="plot_state_demo">
@@ -95,9 +99,10 @@ y:
 </Vertical>
 ```
 
-Values are substituted before the spec is parsed. Objects and arrays are
-inserted as JSON, which is valid YAML, so an expression returning a list can
-supply a whole mark's `data`.
+Values are substituted as text before the spec is parsed. Objects and arrays
+are inserted as JSON, which is valid YAML, so an expression returning a list
+can supply a whole mark's `data`. Strings are not escaped for their YAML
+context; do not insert arbitrary learner-written strings into a spec.
 
 ## External Files
 

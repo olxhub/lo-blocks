@@ -103,7 +103,11 @@ export function useText(
   // observable value until something is written. It cannot see this hook's
   // evaluated author fallback. Substitute that fallback only for an own-value
   // read which yielded the exact parsed source. Explicit targets are runtime
-  // data even when their text happens to equal our fallback.
+  // data even when their text happens to equal our fallback. An own-value
+  // write byte-identical to the parsed source is currently indistinguishable
+  // from "unwritten" and receives the same authored-template rendering. No
+  // runtime string is scanned, but parse-time compiled templates should
+  // eventually remove this provenance ambiguity.
   const resolvedValue = !hasTarget && valueResult.value === parsedText
     ? { ...valueResult, value: fallback }
     : valueResult;

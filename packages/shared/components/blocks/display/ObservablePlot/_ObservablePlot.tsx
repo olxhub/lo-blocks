@@ -65,6 +65,11 @@ function parseYamlSpec(text: string) {
  * Security: This runs in the browser's main context (same as any
  * React component). For untrusted content, wrap in an iframe —
  * but courseware authors are trusted content creators.
+ *
+ * TODO(observable-js-source): The legacy targetable-text contract also lets
+ * target= or an own-value write replace authored JS. Make JS specs
+ * structurally author-only (inline/src) or sandbox them before treating this
+ * path as safe for content influenced by learners or external generators.
  */
 function evaluateJsSpec(code: string, plotLib: typeof Plot) {
   const fn = new Function('Plot', code);

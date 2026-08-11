@@ -4,10 +4,12 @@ import ShowAnswerButton from '@/components/blocks/action/ShowAnswerButton/ShowAn
 import CodeInput from '@/components/blocks/authoring/CodeInput/CodeInput';
 import BlockMath from '@/components/blocks/display/DisplayMath/BlockMath';
 import Markdown from '@/components/blocks/display/Markdown/Markdown';
+import ObservablePlot from '@/components/blocks/display/ObservablePlot/ObservablePlot';
 import CustomGrader from '@/components/blocks/grading/CustomGrader';
 import NumberInput from '@/components/blocks/input/NumberInput';
 import TextArea from '@/components/blocks/input/TextArea';
 import Navigator from '@/components/blocks/layout/Navigator/Navigator';
+import { createGrader } from '@/lib/blocks/createGrader';
 import * as parsers from './parsers';
 
 describe('text parser capabilities', () => {
@@ -64,5 +66,27 @@ describe('text parser capabilities', () => {
     });
 
     expect(stored.kids).toBe('[HELLO\n]');
+  });
+
+  it('rejects state interpolation in executable ObservablePlot JavaScript', () => {
+    expect(ObservablePlot.validateAttributes?.({ format: 'js', template: 'state' }))
+      .toEqual([
+        'template="state" is not supported with format="js": interpolated state ' +
+        'would become executable JavaScript. Use YAML or author the JavaScript spec directly.',
+      ]);
+    expect(ObservablePlot.validateAttributes?.({ format: 'yaml', template: 'state' }))
+      .toBeUndefined();
+  });
+
+  it('fails fast when createGrader receives renderer parser capabilities', () => {
+    expect(() => createGrader({
+      base: 'UnsupportedParserCapabilityTest',
+      description: 'test-only grader',
+      grader: () => ({ correct: true, message: '' }),
+      createMatch: false,
+      parser: parsers.text.withTarget(),
+    })).toThrow(
+      /createGrader\(UnsupportedParserCapabilityTest\).*unsupported helper capabilities: parserMixin/,
+    );
   });
 });

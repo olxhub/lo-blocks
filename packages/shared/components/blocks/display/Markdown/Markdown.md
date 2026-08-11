@@ -17,7 +17,18 @@ Research consistently shows that **retrieval practice** is more effective than p
 ```
 
 ## Properties
+
 - `src` (optional): Path to an external markdown file
+- `target` (optional): Read Markdown text reactively from another block's value
+- `template` (optional): `none` disables state templates in authored text; Markdown defaults to `state` for compatibility
+
+## State templates
+
+Markdown evaluates `{{...}}` state-language expressions found in author-provided
+inline or `src=` content. Text supplied through `target=` or written into the
+Markdown block's value is rendered as Markdown data and is not evaluated as a
+template. Dynamically supplied templates are intentionally unsupported; a
+future explicit mode such as `state:withValue` may add that capability.
 
 ## External Files
 

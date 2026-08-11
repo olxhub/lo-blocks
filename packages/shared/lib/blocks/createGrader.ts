@@ -386,9 +386,21 @@ export function createGrader({
     ...(allowOverrides ?? []),
   ]));
 
-  // `parser:` is a child-parsing contract. Parser helpers may also carry
-  // block-renderer conveniences, which do not belong on a generated grader.
-  const { parser: parseKids, staticKids, childMode } = parser ?? parsers.blocks.allowHTML();
+  // `parser:` is a child-parsing contract. textContent is knowingly ignored:
+  // text helpers include it for renderers, while CustomGrader only needs their
+  // child parser. Any other helper capability is a caller error, not something
+  // to silently strip from the generated grader.
+  const parserConfig = parser ?? parsers.blocks.allowHTML();
+  const supportedParserKeys = new Set(['parser', 'staticKids', 'childMode', 'textContent']);
+  const unsupportedParserKeys = Object.keys(parserConfig)
+    .filter(key => !supportedParserKeys.has(key));
+  if (unsupportedParserKeys.length > 0) {
+    throw new Error(
+      `createGrader(${base}): parser accepts only child-parsing behavior; ` +
+      `unsupported helper capabilities: ${unsupportedParserKeys.join(', ')}`,
+    );
+  }
+  const { parser: parseKids, staticKids, childMode } = parserConfig;
 
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({

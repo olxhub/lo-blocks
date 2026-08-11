@@ -12,6 +12,12 @@ const ObservablePlot = core({
     width: z.coerce.number().optional().describe('Plot width in pixels'),
     height: z.coerce.number().optional().describe('Plot height in pixels'),
   }).strict(),
+  validateAttributes: attrs => attrs.format === 'js' && attrs.template === 'state'
+    ? [
+        'template="state" is not supported with format="js": interpolated state ' +
+        'would become executable JavaScript. Use YAML or author the JavaScript spec directly.',
+      ]
+    : undefined,
 });
 
 export default ObservablePlot;
