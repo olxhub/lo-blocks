@@ -82,8 +82,10 @@ export function useText(
   props: RuntimeProps,
   fallback: string = textFromKids(props.kids),
 ): UseTextResult {
+  const parsedText = textFromKids(props.kids);
   const readsValue = props.loBlock?.textContent?.source === 'value';
-  const target = readsValue && typeof props.target === 'string'
+  const hasTarget = readsValue && typeof props.target === 'string';
+  const target = hasTarget
     ? parseAnyStateRef(props.target)
     : undefined;
 
@@ -95,7 +97,18 @@ export function useText(
     fallback,
   });
 
-  return readsValue ? textFromValue(valueResult, fallback) : readyText(fallback);
+  if (!readsValue) return readyText(fallback);
+
+  // The targetable-text value selector exposes parsed kids as the block's
+  // observable value until something is written. It cannot see this hook's
+  // evaluated author fallback. Substitute that fallback only for an own-value
+  // read which yielded the exact parsed source. Explicit targets are runtime
+  // data even when their text happens to equal our fallback.
+  const resolvedValue = !hasTarget && valueResult.value === parsedText
+    ? { ...valueResult, value: fallback }
+    : valueResult;
+
+  return textFromValue(resolvedValue, fallback);
 }
 
 /** Evaluate already-resolved text using the block's selected template mode. */

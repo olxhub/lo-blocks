@@ -232,8 +232,10 @@ describe('useTextWithTemplate', () => {
   });
 
   it('evaluates authored inline/src text before using it as the value fallback', () => {
-    mocks.useValue.mockImplementation((_props, { fallback }) => ({
-      value: fallback,
+    // The real targetable-text selector returns its raw parsed kids rather
+    // than useValue's fallback until its own value field has been written.
+    mocks.useValue.mockImplementation(input => ({
+      value: input.kids,
       status: 'ready', loading: false, error: null, ready: true,
     }));
 
