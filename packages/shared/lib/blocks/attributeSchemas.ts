@@ -404,6 +404,16 @@ export const src = {
 };
 
 /**
+ * Template attribute - for blocks whose text can be evaluated at runtime.
+ * Omission preserves the block's parser-declared compatibility default.
+ */
+export const templateAttribute = {
+  template: z.enum(['none', 'state']).optional().describe(
+    'Treat this block\'s source text as a template in the selected language'
+  ),
+};
+
+/**
  * Licensed content attribution — author(s), hyperlink(s), and license.
  * Usage: baseAttributes.extend({ ...licensed, myAttr: z.string() })
  */

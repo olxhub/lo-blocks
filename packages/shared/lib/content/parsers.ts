@@ -26,7 +26,7 @@ import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, State
 import type { LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
-import { z_stateRef } from '@/lib/blocks/attributeSchemas';
+import { templateAttribute, z_stateRef } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { elementKids, elementTag } from './xmlParser';
 import type { RawXmlAttributes, RawXmlNode } from './xmlParser';
@@ -588,11 +588,7 @@ const textWithTargetParserMixin = {
   requiresUniqueId: false,
 };
 
-const textTemplateAttributes = z.object({
-  template: z.enum(['none', 'state']).optional().describe(
-    'Treat this block\'s source text as a template in the selected language'
-  ),
-}).strict();
+const textTemplateAttributes = z.object(templateAttribute).strict();
 
 function textBlueprint({ postprocess, defaultTemplate = 'none' }: TextOptions = {}) {
   return {
