@@ -42,9 +42,10 @@ function textFromValue(
       ? fallback
       : String(result.value);
 
-  // useValue guarantees a usable fallback on load failure. Treat successful
-  // fallback resolution as ready, preserving the existing text-block contract.
-  return result.status === 'error' ? readyText(text) : { ...result, text };
+  // A real inline fallback recovers a failed target. Without one, preserve
+  // the error so the renderer reports the source failure instead of "empty".
+  if (result.status === 'error' && fallback.trim()) return readyText(fallback);
+  return { ...result, text };
 }
 
 function interpolateStateTemplate(

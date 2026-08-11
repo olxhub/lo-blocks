@@ -118,6 +118,25 @@ describe('useText', () => {
     });
   });
 
+  it('preserves a target error when there is no usable fallback', () => {
+    mocks.useValue.mockReturnValue({
+      value: '',
+      status: 'error',
+      loading: false,
+      error: 'Target not found',
+      ready: false,
+    });
+
+    const { result } = renderHook(() => useText(props({
+      kids: '  ',
+      loBlock: { textContent: { source: 'value' } },
+    })));
+
+    expect(result.current).toMatchObject({
+      text: '', status: 'error', error: 'Target not found', ready: false,
+    });
+  });
+
   it('preserves an intentionally empty resolved value', () => {
     mocks.useValue.mockReturnValue({
       value: '', status: 'ready', loading: false, error: null, ready: true,

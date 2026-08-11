@@ -80,7 +80,7 @@ export default function ObservablePlot(props: RuntimeProps) {
 
   // All Plot operations are synchronous — compute during render
   const { plotNode, error } = useMemo(() => {
-    if (!text || !text.trim()) return { plotNode: null, error: null };
+    if (status.loading || !text || !text.trim()) return { plotNode: null, error: null };
 
     try {
       let node;
@@ -102,7 +102,7 @@ export default function ObservablePlot(props: RuntimeProps) {
     } catch (e) {
       return { plotNode: null, error: e instanceof Error ? e.message : String(e) };
     }
-  }, [text, effectiveFormat, width, height]);
+  }, [status.loading, text, effectiveFormat, width, height]);
 
   // Mount the Plot-generated DOM node
   useEffect(() => {
