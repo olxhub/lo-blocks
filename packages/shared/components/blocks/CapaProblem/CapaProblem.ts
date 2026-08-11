@@ -32,26 +32,48 @@ import { isPascalCase } from '@/lib/util';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
 import { gradingSelectors, problemGradeMode } from '@/lib/grading';
-import type { KidEntry, DefinitionKey, DefinitionRef } from '@/lib/types';
+import type { KidEntry, DefinitionRef } from '@/lib/types';
 import { rejectHtmlLang } from '@/lib/content/parsers';
 import { elementKids, elementTag } from '@/lib/content/xmlParser';
 import type { RawXmlNode } from '@/lib/content/xmlParser';
 
-// Grader-input mapping for auto-wiring targets.
+// A grader discovered while compiling Capa's mixed-content tree.
 // `inputs` stores bare DefinitionRefs (not qualified DefinitionKeys) because
 // auto-wired target attributes are an authored-ref channel — they go through
 // the same Zod/parse pipeline as hand-written target="foo,bar" attributes.
-type GraderMapping = {
+type DiscoveredGrader = {
   node: RawXmlNode;
   inputs: DefinitionRef[];
-  boundary: boolean;
   executesGrading: boolean;
+  // Direct in the grading topology; HTML and non-grader wrappers are transparent.
+  isDirectChildGrader: boolean;
 };
 
 // Typed child-role suffixes for joinDefinitionRef.
 // Validated once at import time so typos are caught early.
 const GRADER = parseLeafId('grader');
-const INPUT  = parseLeafId('input');
+const INPUT = parseLeafId('input');
+
+// Mutate generated grader attributes onto raw nodes so schemas validate them
+// in the grader's own language variant. The raw tree is intentionally no
+// longer pristine: post-parse updates through Capa's language context cannot
+// safely address a differently-localized child variant.
+function stampGeneratedGraderAttributes(
+  discoveredGraders: DiscoveredGrader[],
+  gradeMode: ReturnType<typeof problemGradeMode>,
+): void {
+  for (const grader of discoveredGraders) {
+    const graderAttributes = grader.node[':@'] ??= {};
+    if (grader.executesGrading && graderAttributes.target === undefined && grader.inputs.length > 0) {
+      graderAttributes.target = grader.inputs.join(',');
+    }
+    // Metagraders derive aggregate state and do not accept execution-only
+    // attributes. Their parsers govern the executable graders they generate.
+    if (grader.isDirectChildGrader && grader.executesGrading) {
+      graderAttributes.gradeMode = gradeMode;
+    }
+  }
+}
 
 // CapaProblem acts as a "metagrader" - it aggregates correctness from child
 // graders. Aggregate grading state is DERIVED, never stored: Correctness/
@@ -70,16 +92,25 @@ export const fields = state.fields([state.commonFields.showAnswer]);
 // docs/architecture/container-id-scoping.md
 async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, HACK_getBlockRolesForCapaProblem }) {
   const tagParsed = rawParsed[tag];
-  const rawKids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
+  const rawKids = (Array.isArray(tagParsed) ? tagParsed : [tagParsed]) as RawXmlNode[];
   let inputIndex = 0;
   let graderIndex = 0;
   let nodeIndex = 0;
-  const graders: GraderMapping[] = [];
+  const discoveredGraders: DiscoveredGrader[] = [];
   // Parent ref for building child IDs via joinDefinitionRef.
   const parentRef = asDefinitionRef(splitNs(id).path);
 
-  // Recursively assign IDs to all descendants and build kids structure (mutates nodes)
-  function assignIdsAndBuildStructure(node: RawXmlNode, currentGrader: GraderMapping | null = null): KidEntry | null {
+  function compileKids(nodes: RawXmlNode[], enclosingGrader: DiscoveredGrader | null): KidEntry[] {
+    const kids: KidEntry[] = [];
+    for (const node of nodes) {
+      const kid = compileKid(node, enclosingGrader);
+      if (kid) kids.push(kid);
+    }
+    return kids;
+  }
+
+  // Recursively assign IDs, discover grader relationships, and build kids.
+  function compileKid(node: RawXmlNode, enclosingGrader: DiscoveredGrader | null): KidEntry | null {
     if (node['#text'] !== undefined) {
       const text = node['#text'];
       if (text.trim() === '') return null;
@@ -99,15 +130,15 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
       // Role flags only — see the HACK note at the parser-context call site
       // in parseOLX.ts. The redesign TODO at the top of this file is what
       // eventually removes this.
-      const blockType = HACK_getBlockRolesForCapaProblem(childTag);
+      const blockGradingRole = HACK_getBlockRolesForCapaProblem(childTag);
 
       // Derive a branded DefinitionRef: auto-assigned via joinDefinitionRef,
       // or validated from an authored id attribute.
       let blockRef: DefinitionRef;
       if (!childAttrs.id) {
-        if (blockType.isGrader) {
+        if (blockGradingRole.isGrader) {
           blockRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        } else if (blockType.isInput) {
+        } else if (blockGradingRole.isInput) {
           blockRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
         } else {
           blockRef = joinDefinitionRef(parentRef, parseLeafId(childTag.toLowerCase()), nodeIndex++);
@@ -118,22 +149,24 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
       }
       const blockId = qualifyDefinitionRef(blockRef, ns);
 
-      let mapping = currentGrader;
-      if (blockType.isGrader) {
-        mapping = {
+      let graderForChildren = enclosingGrader;
+      if (blockGradingRole.isGrader) {
+        graderForChildren = {
           node,
           inputs: [],
-          boundary: currentGrader === null,
-          executesGrading: blockType.executesGrading,
+          executesGrading: blockGradingRole.executesGrading,
+          isDirectChildGrader: enclosingGrader === null,
         };
-        graders.push(mapping);
+        discoveredGraders.push(graderForChildren);
       }
-      if (blockType.isInput && currentGrader) {
-        currentGrader.inputs.push(blockRef);
+      if (blockGradingRole.isInput && enclosingGrader) {
+        enclosingGrader.inputs.push(blockRef);
       }
 
+      // The child block parser owns its kids, but Capa still discovers their
+      // IDs and grading relationships before any child parser runs.
       for (const kid of elementKids(node, childTag)) {
-        assignIdsAndBuildStructure(kid, mapping);
+        compileKid(kid, graderForChildren);
       }
 
       return { type: 'block', id: blockId };
@@ -141,37 +174,19 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
 
     // HTML tag
     rejectHtmlLang(childTag, childAttrs);
-    const childKids: KidEntry[] = [];
-    for (const n of elementKids(node, childTag)) {
-      const result = assignIdsAndBuildStructure(n, currentGrader);
-      if (result) childKids.push(result);
-    }
-    return { type: 'html', tag: childTag, attributes: childAttrs, id: childAttrs.id, kids: childKids };
+    return {
+      type: 'html',
+      tag: childTag,
+      attributes: childAttrs,
+      id: childAttrs.id,
+      kids: compileKids(elementKids(node, childTag), enclosingGrader),
+    };
   }
 
-  // Assign IDs to all descendants and build kids structure
-  const kidsParsed: KidEntry[] = [];
-  for (const n of rawKids) {
-    const result = assignIdsAndBuildStructure(n as RawXmlNode, null);
-    if (result) kidsParsed.push(result);
-  }
-
-  // Mutate generated grader attributes onto raw nodes so schemas validate them
-  // in the grader's own language variant. The raw tree is intentionally no
-  // longer pristine: post-parse updates through Capa's language context cannot
-  // safely address a differently-localized child variant.
-  const gradeMode = problemGradeMode(attributes);
-  for (const grader of graders) {
-    const graderAttributes = grader.node[':@'] ??= {};
-    if (grader.executesGrading && graderAttributes.target === undefined && grader.inputs.length > 0) {
-      graderAttributes.target = grader.inputs.join(',');
-    }
-    // Metagraders derive aggregate state and do not accept execution-only
-    // attributes. Their parsers govern the executable graders they generate.
-    if (grader.boundary && grader.executesGrading) {
-      graderAttributes.gradeMode = gradeMode;
-    }
-  }
+  // Discover the complete subtree before invoking any child parser: generated
+  // IDs and grader attributes must already be present when schemas run.
+  const kids = compileKids(rawKids, null);
+  stampGeneratedGraderAttributes(discoveredGraders, problemGradeMode(attributes));
 
   // Trigger the parser for each top-level block in the mixed-content tree.
   // Lowercase HTML is transparent for this purpose: Capa owns that HTML
@@ -193,10 +208,9 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
     }
   }
 
-  await parseBlockFrontier(rawKids as RawXmlNode[]);
+  await parseBlockFrontier(rawKids);
 
-  const entry = { id, tag, attributes, source, parseDeps, kids: kidsParsed };
-  storeEntry(id, entry);
+  storeEntry(id, { id, tag, attributes, source, parseDeps, kids });
   return id;
 }
 
