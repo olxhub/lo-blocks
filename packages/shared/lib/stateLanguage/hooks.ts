@@ -121,6 +121,19 @@ export function useReferences(props: any, refs: References): ContextData {
     return selectReferences(state, props, refs);
   }, contextDataEqual);
 
+  useEnsureReferences(props, refs);
+
+  return contextData;
+}
+
+/**
+ * Load blocks needed by an event-time state read without subscribing to them.
+ *
+ * Use this when a callback will read a fresh snapshot via getReferences(): it
+ * preserves lazy block loading without re-rendering the caller whenever a
+ * referenced field changes.
+ */
+export function useEnsureReferences(props: any, refs: References): void {
   // Referencing a block's state implies needing the block: trigger content
   // loads for referenced blocks that aren't in Redux yet (same contract as
   // useValue's target= path — ensureBlock dedups and no-ops when known, and
@@ -144,8 +157,6 @@ export function useReferences(props: any, refs: References): ContextData {
     // ensureBlock deduplicates; props omitted for the same reason as useValue.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refKeys]);
-
-  return contextData;
 }
 
 /**

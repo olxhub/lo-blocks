@@ -6,6 +6,7 @@
 // - parse, tryParse, parseResult
 // - extractReferences, extractStructuredRefs, mergeReferences
 // - evaluate, createContext
+// - interpolateStateTemplate
 //
 // React integration layer (requires Redux):
 // - useReferences, selectReferences, getReferences
@@ -35,6 +36,10 @@ export { evaluate, createContext, wordcount } from './evaluate';
 export { formatDuration } from '@/lib/util/duration';
 export type { ContextData } from './evaluate';
 
+// Text interpolation
+export { interpolateStateTemplate } from './interpolate';
+export type { InterpolationErrorHandler } from './interpolate';
+
 // Function registry
 export {
   dslFunctions,
@@ -48,4 +53,10 @@ export {
 export { ACTIVE_METHODS, RESERVED_KEYWORDS, assertNotReserved } from './keywords';
 
 // React hooks (require Redux)
-export { useReferences, selectReferences, getReferences, useDSLExpression } from './hooks';
+export {
+  useReferences,
+  useEnsureReferences,
+  selectReferences,
+  getReferences,
+  useDSLExpression,
+} from './hooks';

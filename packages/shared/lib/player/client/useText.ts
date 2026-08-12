@@ -5,14 +5,12 @@ import type { TextTemplateMode } from '@/lib/blocks/attributeSchemas';
 import { useValue } from '@/lib/state/fieldHooks';
 import {
   EMPTY_REFS,
-  createContext,
-  evaluate,
   extractInterpolationRefs,
   extractInterpolations,
-  parse,
+  interpolateStateTemplate,
   useReferences,
 } from '@/lib/stateLanguage';
-import type { ContextData, Interpolation, References } from '@/lib/stateLanguage';
+import type { Interpolation, References } from '@/lib/stateLanguage';
 import type { BlockDataResult, RuntimeProps } from '@/lib/types';
 import { parseAnyStateRef } from '@/lib/types/id-grammar';
 
@@ -48,33 +46,8 @@ function textFromValue(
   return { ...result, text };
 }
 
-function interpolateStateTemplate(
-  text: string,
-  interpolations: Interpolation[],
-  context: ContextData,
-): string {
-  let result = text;
-  const evalContext = createContext(context);
-
-  // Work backwards so replacements do not invalidate earlier offsets.
-  for (let i = interpolations.length - 1; i >= 0; i--) {
-    const { expression, start, end } = interpolations[i];
-    let value = '';
-    try {
-      const evaluated = evaluate(parse(expression), evalContext);
-      if (evaluated !== null && evaluated !== undefined) {
-        value = typeof evaluated === 'object'
-          ? JSON.stringify(evaluated)
-          : String(evaluated);
-      }
-    } catch (error) {
-      console.warn('[useInterpolation] Failed to evaluate:', expression, error);
-      value = `{{${expression}}}`;
-    }
-    result = result.slice(0, start) + value + result.slice(end);
-  }
-
-  return result;
+function reportInterpolationError(expression: string, error: unknown): void {
+  console.warn('[useInterpolation] Failed to evaluate:', expression, error);
 }
 
 /** Resolve parsed text, including an optional reactive `target=` source. */
@@ -142,7 +115,7 @@ export function useInterpolation(
 
   return useMemo(() => {
     if (mode !== 'state' || interpolations.length === 0) return text;
-    return interpolateStateTemplate(text, interpolations, resolved);
+    return interpolateStateTemplate(text, interpolations, resolved, reportInterpolationError);
   }, [mode, text, interpolations, resolved]);
 }
 

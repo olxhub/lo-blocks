@@ -20,12 +20,17 @@ import { callLLM } from '@/lib/llm/reduxClient';
 import { ensureServerTools, llmToolsFor } from '@/lib/mcp/browserTools';
 import { advanceFrom } from '@/lib/player/advance';
 import {
-  extractInterpolations, extractInterpolationRefs, useReferences, createContext,
-  parse, evaluate,
+  extractInterpolations, extractInterpolationRefs, getReferences,
+  interpolateStateTemplate,
+  useEnsureReferences,
 } from '@/lib/stateLanguage';
 import type { RuntimeProps, ChatMessage } from '@/lib/types';
 import type { ApiMessage, LlmTool } from '@/lib/llm/types';
 import type { ConversationEntry, LlmCommand } from './_chatTypes';
+
+function reportPromptInterpolationError(expression: string, error: unknown): void {
+  console.warn('[Chat] Failed to evaluate prompt interpolation:', expression, error);
+}
 
 /** One runtime turn in the log field: which interlude it belongs to + the message. */
 export interface InterludeLogItem {
@@ -64,13 +69,15 @@ export function useLlmInterlude(
   const active = current?.type === 'LlmCommand' ? current : null;
   const activeIndex = active ? windowedIndex : -1;
 
-  // Live prompt context: {{...}} interpolations, re-resolved every render.
+  // Parse the authored prompt once. State is read only when a message is sent;
+  // subscribing here would re-render the whole Chat whenever a referenced
+  // timer or input changes, even while nobody is talking to the assistant.
   const promptText = active?.prompt ?? '';
   const { interpolations, refs } = useMemo(() => ({
     interpolations: extractInterpolations(promptText),
     refs: extractInterpolationRefs(promptText),
   }), [promptText]);
-  const resolved = useReferences(props, refs);
+  useEnsureReferences(props, refs);
 
   const [busy, setBusy] = useState(false);
 
@@ -105,25 +112,14 @@ export function useLlmInterlude(
         message: { type: 'Line', speaker: 'You', text: displayText, ...(attachments ? { attachments } : {}) },
       });
 
-      // System prompt: the authored prompt with interpolations evaluated
-      // against live state (the _Markdown pattern), plus persona and the
-      // scripted conversation so far as context.
-      const evalContext = createContext(resolved);
-      let promptResolved = promptText;
-      for (let i = interpolations.length - 1; i >= 0; i--) {
-        const { expression, start, end } = interpolations[i];
-        let value = '';
-        try {
-          const evaluated = evaluate(parse(expression), evalContext);
-          if (evaluated !== null && evaluated !== undefined) {
-            value = typeof evaluated === 'object' ? JSON.stringify(evaluated) : String(evaluated);
-          }
-        } catch (e) {
-          console.warn('[Chat] Failed to evaluate prompt interpolation:', expression, e);
-          value = `{{${expression}}}`;
-        }
-        promptResolved = promptResolved.slice(0, start) + value + promptResolved.slice(end);
-      }
+      // Resolve the authored state template at send time, then add the
+      // persona and scripted conversation as context.
+      const promptResolved = interpolateStateTemplate(
+        promptText,
+        interpolations,
+        getReferences(props.runtime.store, props, refs),
+        reportPromptInterpolationError,
+      );
 
       const scriptSoFar = allEntries.slice(0, windowedIndex)
         .filter((e): e is Extract<ConversationEntry, { type: 'Line' }> => e.type === 'Line')
@@ -221,7 +217,7 @@ export function useLlmInterlude(
     } finally {
       setBusy(false);
     }
-  }, [active, activeIndex, busy, ended, props, promptText, interpolations, resolved, interludeItems, allEntries, windowedIndex]);
+  }, [active, activeIndex, busy, ended, props, promptText, interpolations, refs, interludeItems, allEntries, windowedIndex]);
 
   return { logItems, active, activeIndex, turnsUsed, maxTurns, busy, ended, sendMessage };
 }
