@@ -98,6 +98,7 @@ export const RESERVED_KEYWORDS = new Set([
   'wordcount',
   'isFilled',
   'text2markdown',
+  'formatDuration',
   'stringMatch',
   'numericalMatch',
 ]);

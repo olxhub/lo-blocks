@@ -77,7 +77,7 @@ export const DEMO_RENDER_SHARDS: Record<string, string[]> = {
   assessment: ['CapaProblem', 'MarkupProblem', 'input', 'grading'],
   display: ['display', 'reference', 'utility', 'authoring', '_test', 'media'],
   layout: ['layout', 'navigation', 'action'],
-  scenario: ['scenario', 'language-arts', 'specialized'],
+  scenario: ['scenario', 'language-arts', 'analytics', 'specialized'],
 };
 
 // ─── jsdom shims (side effects on import) ────────────────────────────────────

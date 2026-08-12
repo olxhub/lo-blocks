@@ -12,6 +12,7 @@
 //
 
 import { wordcount, text2markdown, isFilled } from './evaluate';
+import { formatDuration } from '@/lib/util/duration';
 
 /**
  * Registry of functions available in DSL expressions.
@@ -25,6 +26,7 @@ export const dslFunctions: Record<string, Function> = {
   wordcount,
   text2markdown,
   isFilled,
+  formatDuration,
 };
 
 /**

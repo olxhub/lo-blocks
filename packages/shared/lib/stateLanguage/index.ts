@@ -32,6 +32,7 @@ export type { Reference, References, Interpolation } from './references';
 
 // Evaluation
 export { evaluate, createContext, wordcount } from './evaluate';
+export { formatDuration } from '@/lib/util/duration';
 export type { ContextData } from './evaluate';
 
 // Function registry
