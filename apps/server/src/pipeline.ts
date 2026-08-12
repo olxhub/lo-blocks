@@ -116,6 +116,17 @@ export interface PipelineContext {
 function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   // Bridge the callback-based ws API into an async generator.
   // Events are queued; the generator pulls them one at a time.
+  //
+  // The queue is UNBOUNDED, and stage 1 now costs a disk round-trip per event
+  // (appendEventDurable), so a client flushing a large outbox backlog — the
+  // very case the durable client queue creates on reconnect — accumulates
+  // that backlog in server heap while the drain loop chews through it one
+  // flush at a time. Bounded today only by what one connection can send.
+  // The fix rides the batching rework (TODO(plane1-durability) in
+  // eventLog.ts): draining the pending queue into ONE flush per boundary
+  // collapses the disk round-trips that let the queue grow. If a hard bound
+  // is ever needed sooner, pause the ws socket at a high-water mark — NOT
+  // the gzip stream (see the pump comment in eventLog.ts).
   const queue: PipelineEvent[] = [];
   let done = false;
   let resolve: (() => void) | null = null;

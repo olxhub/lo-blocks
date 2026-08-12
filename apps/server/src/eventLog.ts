@@ -100,10 +100,18 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   // NOT to pause gzip, which is what broke the ack contract here.
   gzip.on('data', (chunk: Buffer) => {
     conn.fileWritten = new Promise<void>((resolve) => {
-      // Errors surface through conn.streamError (the 'error' handlers
-      // below); resolve unconditionally so nothing awaits forever, and let
-      // the callers check streamError.
-      fileStream.write(chunk, () => resolve());
+      // Capture the write error HERE, before resolving — not only via the
+      // 'error' handlers below. appendEventDurable checks conn.streamError
+      // after awaiting this promise, and the 'error' event reaches that check
+      // first only because Node currently emits it on process.nextTick (which
+      // drains before promise microtasks). That is internal scheduling, not a
+      // contract; setting streamError in the callback makes "no false ack on
+      // write failure" hold locally, whatever the emit ordering. Still resolve
+      // unconditionally so nothing awaits forever — callers check streamError.
+      fileStream.write(chunk, (err) => {
+        if (err && !conn.streamError) conn.streamError = err;
+        resolve();
+      });
     });
   });
   // pipe() also forwarded end-of-stream; saveConnectionLog ends the gzip,
