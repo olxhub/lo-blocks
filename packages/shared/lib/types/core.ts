@@ -21,6 +21,7 @@ import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
 import type { Correctness } from '../grading/correctness';
+import type { ConfigContext } from '../config';
 
 /**
  * ════════════
@@ -927,10 +928,11 @@ export const BlockBlueprintSchema = z.object({
    * - StringGrader with regexp=true: answer must be a valid regex
    *
    * @param attrs - The parsed attributes (after Zod transforms)
+   * @param context - PMSS facts for the content being validated
    * @returns Array of error messages, or empty/undefined if valid
    */
   validateAttributes: z.function()
-    .args(z.record(z.string(), z.any()))
+    .args(z.record(z.string(), z.any()), z.custom<ConfigContext>())
     .returns(z.array(z.string()).optional())
     .optional(),
   /**
@@ -1092,7 +1094,10 @@ export interface LoBlock {
    * Semantic validation for attributes beyond what Zod schema can express.
    * Returns array of error messages or undefined if valid.
    */
-  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
+  validateAttributes?: (
+    attrs: Record<string, any>,
+    context: ConfigContext,
+  ) => string[] | undefined;
   /**
    * Structural validation for children, called after children are parsed.
    * Receives the raw kids value and a function to look up a block's tag by ID.

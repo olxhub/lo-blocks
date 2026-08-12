@@ -25,7 +25,7 @@ import { settings } from '@/lib/state/settings';
 import { DebugSettingsContext } from '@/lib/state/debugSettings';
 import { replayToEvent, filterByContext, type LoggedEvent } from '@/lib/replay';
 import type { AppState } from '@/lib/types';
-import { getConfigBool } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import type { BaselineProps } from '@/lib/types';
 
 import GlobalDebugPanel from './GlobalDebugPanel';
@@ -135,7 +135,7 @@ export default function DebugWrapper({
   children: React.ReactNode;
   store: any;
 }) {
-  if (!getConfigBool('debug-panel')) {
+  if (resolveConfig({}, 'debug-panel') !== 'true') {
     return (
       <>
         <ReduxStoreLoader />

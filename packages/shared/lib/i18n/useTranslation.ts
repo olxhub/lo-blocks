@@ -19,7 +19,7 @@
 import { useSelector } from 'react-redux';
 import { useRef } from 'react';
 import { scoreBCP47Match } from '@/lib/i18n/getBestVariant';
-import { getConfigBool } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import {
   selectBlockState,
   dispatchOlxJson,
@@ -74,7 +74,7 @@ function needsTranslation(
   contentLang: ContentVariant | undefined,
   translatable?: boolean,
 ): boolean {
-  if (!getConfigBool('translanguaging')) return false;
+  if (resolveConfig({}, 'translanguaging') !== 'true') return false;
   if (translatable === false) return false;
   if (!contentLang || contentLang === '*') return false;
   return scoreBCP47Match(userLocale, contentLang) < 1;

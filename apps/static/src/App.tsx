@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 
 import { store, extendSettings, useLoaded } from '@/lib/state';
 import { chatFields } from '@/lib/state/chatFields';
-import { initConfig, getConfigBool } from '@/lib/config';
+import { initConfig, resolveConfig } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
 import Spinner from '@/components/common/Spinner';
@@ -27,17 +27,20 @@ declare const __STATIC_CLASSES__: string[];
 declare const __STATIC_CONTENT_NOTICE__: string;
 
 const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-initConfig(__SYSTEM_PMSS__, ['static', env, ...__STATIC_CLASSES__]);
+initConfig(__SYSTEM_PMSS__, {
+  types: ['static'],
+  classes: ['static', env, ...__STATIC_CLASSES__],
+});
 
 const eventServerUrl = __STATIC_EVENT_SERVER_URL__ || undefined;
 
-const useWebsocket = !!eventServerUrl || getConfigBool('websocket');
+const useWebsocket = !!eventServerUrl || resolveConfig({}, 'websocket') === 'true';
 
 const reduxStore = store.init({
   extraFields: extendSettings([]).extend(chatFields),
   blockRegistry: BLOCK_REGISTRY,
   websocket: useWebsocket,
-  tabSync: getConfigBool('tab-sync'),
+  tabSync: resolveConfig({}, 'tab-sync') === 'true',
   eventServerUrl,
 });
 

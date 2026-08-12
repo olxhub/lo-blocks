@@ -47,6 +47,8 @@ test('app server boots and serves SPA + API endpoints', async () => {
     // involvement — so it signals "server up" distinctly from the SPA path.
     const config = await waitForServer(`http://localhost:${port}/api/config`);
     expect(config.status).toBe(200);
+    expect((await config.json()).pmss)
+      .toContain('client { allow-unsafe-content: false; }');
 
     // '/' serves the catalog SPA through the Vite dev middleware.
     const home = await fetch(`http://localhost:${port}/`);

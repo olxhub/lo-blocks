@@ -40,6 +40,7 @@ import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from '../grading/correctness';
 import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
+import type { ConfigContext } from '@/lib/config';
 
 // Default grader renderer, loaded lazily: _GraderShell renders children and pulls
 // the render layer (useKids → lib/player/client/render), which must stay out of the
@@ -244,7 +245,10 @@ interface CreateGraderConfig {
    * - regexp pattern must be valid
    * - tolerance must be a valid number or percentage
    */
-  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
+  validateAttributes?: (
+    attrs: Record<string, any>,
+    context: ConfigContext,
+  ) => string[] | undefined;
   /**
    * Validate student input at runtime. Called before match function.
    * Returns array of error messages (→ INVALID) or empty/undefined (→ proceed to match).

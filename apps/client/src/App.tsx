@@ -8,7 +8,7 @@ import { store, extendSettings } from '@/lib/state';
 import { editorFields } from '@/lib/state/editorFields';
 import { chatFields } from '@/lib/state/chatFields';
 import { editorMirrorFields } from '@/components/blocks/authoring/Studio/locals';
-import { getConfigBool } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import StoreShell from '@/components/common/StoreShell';
 import type { Route } from './router';
@@ -23,8 +23,8 @@ const reduxStore = store.init({
   // drops their events (Studio's working-tree buffers; chat transcripts).
   extraFields: extendSettings(editorFields).extend(chatFields, editorMirrorFields),
   blockRegistry: BLOCK_REGISTRY,
-  websocket: getConfigBool('websocket'),
-  tabSync: getConfigBool('tab-sync'),
+  websocket: resolveConfig({}, 'websocket') === 'true',
+  tabSync: resolveConfig({}, 'tab-sync') === 'true',
 });
 
 export default function App({ route }: { route: Route }) {

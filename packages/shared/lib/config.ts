@@ -2,7 +2,7 @@
 //
 // Application configuration via PMSS (Preference Management Style Sheets).
 //
-// Call initConfig(pmssSource, classes) before using getConfig/getConfigBool.
+// Call initConfig(pmssSource, context) before resolving configuration.
 // Each app initializes from the appropriate source:
 //   - Server: reads config/system.pmss directly
 //   - Client: fetches from /api/config at startup
@@ -11,71 +11,106 @@
 // Settings resolve via CSS-like specificity rules:
 // .client selectors override * defaults, etc.
 //
-// Usage:
-//   import { initConfig, getConfig, getConfigBool } from '@/lib/config';
-//   initConfig(pmssString, ['client']);
-//   const useWs = getConfigBool('websocket');  // true for client, false for static
-//
-// Future layers: course overrides.pmss, env rulesets, runtime resolution.
-// See configuration.md for the full design.
+// Public resolution APIs:
+//   resolveConfig(context, key)  — scripts, builds, servers, analytics
+//   blockConfig(props, key)      — generic dynamic OLX runtime
+//   useBlockConfig(props, key)   — React runtime (reactive adapter)
 
 import { PMSSParserAdapter, resolve } from 'pmss';
 import type { SelectorMatchContext } from 'pmss';
 import { detectCredentialClasses } from '@/lib/llm/provider';
+import { source } from '@/lib/types/address';
+import type { ContentNamespace, LofsRef, RuntimeProps } from '@/lib/types';
 
 type Rules = ReturnType<typeof PMSSParserAdapter.parse>;
+export type ConfigContext = SelectorMatchContext;
 
 let rules: Rules | null = null;
-let defaultContext: SelectorMatchContext = { classes: [] };
+let baseContext: ConfigContext = {};
 
 /**
  * Initialize the config system with a PMSS source string and class context.
  *
- * Must be called before getConfig/getConfigBool. Can be called again to
+ * Must be called before resolving configuration. Can be called again to
  * reinitialize (e.g. in tests).
  *
  * @param pmssSource - Raw PMSS text (e.g. contents of system.pmss)
- * @param classes - Class context for resolution (e.g. ['client'], ['static', 'production'])
- * @param attributes - Optional key-value attributes for [key=value] selector matching
+ * @param context - Facts shared by every resolution in this runtime/process
  */
-export function initConfig(pmssSource: string, classes: string[], attributes?: Record<string, string>) {
+export function initConfig(pmssSource: string, context: ConfigContext = {}) {
   rules = PMSSParserAdapter.parse(pmssSource);
-  defaultContext = { classes, attributes };
+  baseContext = context;
 }
 
 /**
- * Resolve a PMSS config value as a string.
+ * Combine runtime/process facts with facts known at the call site.
  *
- * @param key - The config property name (e.g. 'websocket')
- * @param context - Optional override context; defaults to classes from initConfig
- * @returns The resolved value, or null if no matching rule
+ * Classes and types accumulate. Call-site attributes override base attributes;
+ * this lets request/content facts refine a process-wide context without callers
+ * having to reconstruct it.
  */
-export function getConfig(key: string, context?: SelectorMatchContext): string | null {
+function mergeContexts(base: ConfigContext, local: ConfigContext): ConfigContext {
+  if (
+    local.id === undefined &&
+    !local.types?.length &&
+    !local.classes?.length &&
+    (!local.attributes || !Object.keys(local.attributes).length)
+  ) {
+    return base;
+  }
+
+  return {
+    types: local.types?.length ? [...(base.types ?? []), ...local.types] : base.types,
+    classes: local.classes?.length ? [...(base.classes ?? []), ...local.classes] : base.classes,
+    attributes: local.attributes
+      ? (base.attributes ? { ...base.attributes, ...local.attributes } : local.attributes)
+      : base.attributes,
+    id: local.id ?? base.id,
+  };
+}
+
+/**
+ * Fundamental configuration lookup for non-block callers. An empty context is
+ * valid and means the caller has no facts beyond those supplied to initConfig.
+ */
+export function resolveConfig(context: ConfigContext, key: string): string | null {
   if (!rules) throw new Error('Config not initialized. Call initConfig() first.');
-  return resolve(rules, key, context ?? defaultContext);
+  return resolve(rules, key, mergeContexts(baseContext, context));
 }
 
 /**
- * Resolve a PMSS config value as a boolean.
- *
- * Returns true only if the resolved value is exactly "true".
- *
- * @param key - The config property name
- * @param context - Optional override context
+ * PMSS facts already present wherever parsed OLX runs. Namespace is logical
+ * content identity; origin is physical/source provenance. Keep them distinct.
  */
-export function getConfigBool(key: string, context?: SelectorMatchContext): boolean {
-  return getConfig(key, context) === 'true';
+export function contentConfigContext(
+  namespace: ContentNamespace,
+  provenance?: LofsRef,
+): ConfigContext {
+  // Always overwrite any manifest-supplied origin. The empty value is the
+  // fail-closed provenance for runtime-constructed content with no source.
+  return {
+    attributes: {
+      namespace: String(namespace),
+      origin: provenance ? String(source(provenance)) : '',
+    },
+  };
+}
+
+/** Resolve configuration for a block in the generic dynamic OLX runtime. */
+export function blockConfig(props: RuntimeProps, key: string): string | null {
+  return resolveConfig(
+    contentConfigContext(props.runtime.ns, props.nodeInfo.olxJson?.source),
+    key,
+  );
 }
 
 /**
- * Return the default classes set by initConfig().
- *
- * Used by resolveLLMConfig to build per-request context from the startup
- * classes (which include credential-availability classes) without
- * re-detecting credentials on every request.
+ * React adapter for block configuration. Configuration is immutable after app
+ * startup today, so this delegates directly; it becomes a subscribing hook if
+ * user/collaboration context moves into reactive state.
  */
-export function getDefaultClasses(): string[] {
-  return defaultContext.classes ?? [];
+export function useBlockConfig(props: RuntimeProps, key: string): string | null {
+  return blockConfig(props, key);
 }
 
 // --- Server-side config loading ----------------------------------------------
@@ -112,20 +147,32 @@ export function loadServerConfig(
   const classes = ['server', env, ...credClasses, ...pmssClasses];
   const pmssSource = [common, server, local].filter(Boolean).join('\n');
 
-  initConfig(pmssSource, classes);
+  initConfig(pmssSource, { types: ['server'], classes });
   return classes;
 }
 
-// --- React hooks -------------------------------------------------------------
-// Thin wrappers today. When config moves into Redux, these become selectors
-// that trigger re-renders on config changes (e.g. toggling debug-panel).
+/**
+ * Initialize configuration for a content-build process.
+ *
+ * Content parsing needs deployment policy (notably allow-unsafe-content)
+ * before validating OLX. Build tools deliberately read system.pmss plus the
+ * deploy-local override, but not server.pmss: server-only provider/storage
+ * settings are irrelevant and may contain private deployment details.
+ */
+export function loadContentBuildConfig(
+  readFileSync: (path: string, encoding: 'utf-8') => string,
+  profile: 'build' | 'static' = 'build',
+): string[] {
+  const common = readFileSync('config/system.pmss', 'utf-8');
+  let local = '';
+  try {
+    local = readFileSync('config/local.pmss', 'utf-8');
+  } catch {
+    // No local.pmss — conservative system defaults apply.
+  }
 
-/** React hook: resolve a PMSS config value as a string. */
-export function useConfig(key: string, context?: SelectorMatchContext): string | null {
-  return getConfig(key, context);
-}
-
-/** React hook: resolve a PMSS config value as a boolean. */
-export function useConfigBool(key: string, context?: SelectorMatchContext): boolean {
-  return getConfigBool(key, context);
+  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+  const classes = [profile, env];
+  initConfig([common, local].filter(Boolean).join('\n'), { types: [profile], classes });
+  return classes;
 }

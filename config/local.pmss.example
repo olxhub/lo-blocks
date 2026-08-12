@@ -1,7 +1,8 @@
 /* config/local.pmss.example
  *
  * Deploy-specific overrides. Copy to local.pmss and edit.
- * This file is gitignored — safe for secrets and local tweaks.
+ * This file is gitignored, but static builds embed it in the browser bundle.
+ * Use it for deployment tweaks, never secrets.
  *
  * Examples:
  */
@@ -14,3 +15,11 @@
 
 /* Force stub mode for local development */
 /* .server { llm-provider: stub; } */
+
+/* Server-backed deployment, all origins: used while parsing and projected
+ * to every client. */
+/* .server { allow-unsafe-content: true; } */
+
+/* Standalone content compilation and static deployments are separate profiles. */
+/* .build { allow-unsafe-content: true; } */
+/* .static { allow-unsafe-content: true; } */

@@ -16,6 +16,7 @@ import path from 'path';
 import YAML from 'yaml';
 import type { Context } from 'hono';
 import { loadContentSourcesConfig } from '@/lib/storage/lofs/contentSources';
+import { resolveConfig } from '@/lib/config';
 
 const SYSTEM_PMSS_PATH = 'config/system.pmss';
 
@@ -63,7 +64,10 @@ function scanManifests(dir: string, map: Map<string, NamespaceContext>): void {
           rawAttrs && typeof rawAttrs === 'object' && !Array.isArray(rawAttrs)
             ? Object.fromEntries(
                 Object.entries(rawAttrs)
-                  .filter((e): e is [string, string] => typeof e[1] === 'string')
+                  // Block resolution supplies these platform facts; a manifest
+                  // cannot claim them through the page-wide base context.
+                  .filter((e): e is [string, string] =>
+                    e[0] !== 'origin' && e[0] !== 'namespace' && typeof e[1] === 'string')
               )
             : {};
         map.set(manifest.namespace, {
@@ -104,7 +108,14 @@ function getPmss(): string {
 // --- Handler ----------------------------------------------------------------
 
 export async function handleConfig(c: Context): Promise<Response> {
-  const pmss = getPmss();
+  // The server does not serve local.pmss. Forward its base unsafe-content
+  // decision, not the deploy-local stylesheet or its other settings. A type
+  // selector has lower specificity than [origin=], so provenance rules in
+  // system.pmss win regardless of source order or CSS tie-breaking semantics.
+  // TODO(config-projection): project origin-specific local policy without
+  // exposing unrelated private deployment settings.
+  const allowUnsafe = resolveConfig({}, 'allow-unsafe-content') === 'true';
+  const pmss = `${getPmss()}\nclient { allow-unsafe-content: ${allowUnsafe}; }`;
   const ns = c.req.query('ns');
 
   let ctx: NamespaceContext | null = null;

@@ -30,6 +30,7 @@ import { getGrader, getEventContext } from '@/lib/blocks/dynamicDom';
 import { qualifyDefinitionRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
+import { contentConfigContext } from '@/lib/config';
 
 /**
  * Assigns unique React keys to an array of children.
@@ -219,7 +220,12 @@ export function render({ node, nodeInfo, runtime }: {
 
   // Semantic validation beyond what Zod can express (e.g., valid number, valid regex)
   if (blockType.validateAttributes) {
-    const semanticErrors = blockType.validateAttributes(parsedAttributes);
+    const semanticErrors = blockType.validateAttributes(
+      parsedAttributes,
+      // Unknown source receives the empty origin and cannot match a trusted
+      // origin rule (runtime-constructed nodes fail closed).
+      contentConfigContext(runtime.ns, node.source),
+    );
     if (semanticErrors && semanticErrors.length > 0) {
       return (
         <DisplayError

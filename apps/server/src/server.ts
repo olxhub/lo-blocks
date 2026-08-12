@@ -41,7 +41,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
-import { getConfig } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
 import { handleActivities } from './routes/activities.js';
@@ -298,7 +298,7 @@ export async function startServer(
   // Which store serves state on fetch_blob (config/server.pmss). Read per
   // connection so a config change applies to new sessions without restart.
   const readCanonical = (): 'blob' | 'fields' => {
-    const v = getConfig('state-canonical');
+    const v = resolveConfig({}, 'state-canonical');
     if (v !== 'blob' && v !== 'fields') {
       throw new Error(`state-canonical must be blob or fields, got: ${v}`);
     }
