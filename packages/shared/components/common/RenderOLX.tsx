@@ -28,7 +28,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { toAppError } from '@/lib/types/errors';
 import Spinner from '@/components/common/Spinner';
 import { InMemoryStorageProvider, StackedStorageProvider } from '@/lib/storage/lofs';
-import { dispatchOlxJson } from '@/lib/state/olxjson';
+import { dispatchOlxJson, selectBlockState } from '@/lib/state/olxjson';
 import { logContentRenderFailed, contentKeyOf, CONTENT_LOAD_FAILED } from '@/lib/state/content';
 import { useContent } from '@/lib/player/client/useContent';
 import { useBlock } from '@/lib/player/client/useRenderedBlock';
@@ -36,7 +36,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { registerAdvanceRoot, unregisterAdvanceRoot } from '@/lib/player/advance';
 import { useBaselineRuntime } from '@/lib/player/client/baselineRuntime';
 import { safeStringify } from '@/lib/util';
-import type { ContentNamespace, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, StorageProvider } from '@/lib/types';
+import type { ContentNamespace, DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxDomNode, StorageProvider } from '@/lib/types';
 
 /**
  * Build the provider stack for src="" resolution during parsing.
@@ -174,11 +174,24 @@ export default function RenderOLX({
   // Fold baseIdMap into the OlxJson slice as a Redux overlay (idempotent merge),
   // so preloaded content renders through the normal pipeline with no private
   // content path. Skipped during replay (content already in the event stream).
+  //
+  // Skipped, too, when every block is ALREADY in the slice. Each current
+  // caller (useContentLoader, StaticContentProvider) dispatched exactly this
+  // map before handing it down, so an unconditional dispatch here duplicated
+  // every LOAD_OLXJSON — a full page (or, for the static app, whole-course)
+  // payload re-emitted into the durable outbox/wire/log on every mount.
+  // The dispatch below is the FALLBACK for a caller that hands us preloaded
+  // blocks it never dispatched, keeping the overlay contract; the check reads
+  // the store imperatively because it must not re-run on unrelated dispatches.
   useEffect(() => {
-    if (baseIdMap && !runtimeContext.sideEffectFree) {
+    if (!baseIdMap || runtimeContext.sideEffectFree) return;
+    const state = runtimeContext.store.getState();
+    const missing = Object.keys(baseIdMap)
+      .some(blockId => !selectBlockState(state, [source], blockId as DefinitionKey));
+    if (missing) {
       dispatchOlxJson({ runtime: { logEvent: runtimeContext.logEvent } }, source, baseIdMap);
     }
-  }, [baseIdMap, source, runtimeContext.logEvent, runtimeContext.sideEffectFree]);
+  }, [baseIdMap, source, runtimeContext.store, runtimeContext.logEvent, runtimeContext.sideEffectFree]);
 
   // Declare the content request + read its render view — purely from Redux.
   const view = useContent({
@@ -213,6 +226,10 @@ export default function RenderOLX({
     olxJsonSources: [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
+    // Local source text (inline/files) is parsed HERE; blocks this tree
+    // cannot find were not produced by that parse and must not be
+    // server-fetched (the declared-source gate — see LoBlockRuntimeContext).
+    localContent: !!(inline || (files && Object.keys(files).length > 0)),
     locale: runtimeContext.locale,
     cast: {},
   };
