@@ -68,8 +68,12 @@ function getState(props: RuntimeProps, reduxState: any) {
     } catch { /* invalid history — ignore */ }
   }
 
-  // Read current index from Redux
-  const index = state.fieldSelector(reduxState, props, fields.value, { fallback: clipStart });
+  // Read current index from Redux. The fallback is the *opening* position,
+  // not clipStart: an `[open=immediately]` interlude parks the cursor on
+  // itself so the floor is open on first paint (see chatUtils.openingIndex).
+  const index = state.fieldSelector(reduxState, props, fields.value, {
+    fallback: chatUtils.openingIndex(allEntries, clipStart, clipEnd),
+  });
   const windowedIndex = Math.max(clipStart, Math.min(index, clipEnd));
 
   // Instructor mode: ignore wait conditions (requires both the per-block
@@ -417,6 +421,11 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
     const embedWarnings = parseEmbedOptions(parsed.body);
     if (embedWarnings.length > 0) {
       parsed.headerWarnings = [...(parsed.headerWarnings || []), ...embedWarnings];
+    }
+
+    const openWarnings = chatUtils.validateInterludeOpen(parsed.body);
+    if (openWarnings.length > 0) {
+      parsed.headerWarnings = [...(parsed.headerWarnings || []), ...openWarnings];
     }
 
     // Process inline OLX embed blocks → block refs

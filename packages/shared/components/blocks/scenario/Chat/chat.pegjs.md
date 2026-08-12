@@ -394,6 +394,7 @@ point them at whatever blocks hold the context the agent should know.
 | `tools` | Comma-separated toolset names the agent may use (e.g. `content-read`, `docs`); omit for a plain conversation |
 | `upload` | `true` enables file attachments on the input (content is shown to the agent, 📎 marker in the transcript) |
 | `exit` | `none` removes the agent's end tool — for open-ended assistants where an accidental (durable) exit would close the chat forever |
+| `open` | `immediately` opens the chat parked on this interlude — input live, preceding dialogue lines already shown, no Continue click first |
 | `profile` | Reserved for server-side LLM profile selection |
 
 **Ending the conversation.** The agent always has an `end_conversation` tool,
@@ -418,6 +419,23 @@ The agent has **no script privileges**: it cannot run set commands, and it
 affects other blocks only through its declared toolsets. Runtime turns are
 stored in the Chat block's `messages` log field (actor-stamped, append-only)
 — the script stays static content.
+
+`open=immediately` supports an always-on assistant without changing the
+pacing of narrative chats. When the first interlude in a clip is reachable
+through dialogue lines alone, the chat starts parked on that interlude: the
+preceding dialogue is visible and the message input is ready. Commands,
+waits, pauses, section headers, and embeds stop the scan because advancing
+past them may have effects.
+
+```
+Piotr: What are you working on?
+
+>>> llm Piotr [exit=none open=immediately]
+  You are a concise writing coach.
+```
+
+This changes only the cursor's fallback. It does not dispatch an advance or
+replace a stored cursor, so replay and returning learners keep their state.
 
 **In courseware**, compose the chat with the blocks it references:
 

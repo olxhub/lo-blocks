@@ -131,6 +131,64 @@ function throwUnknownRef(conversation: ConversationBody, value: string): never {
   );
 }
 
+const OPEN_IMMEDIATELY = 'immediately';
+
+/**
+ * Warn about misspelled open= values and flags that cannot affect the initial
+ * cursor position.
+ */
+export function validateInterludeOpen(entries: ConversationEntry[]): string[] {
+  const warnings: string[] = [];
+  let prefixIsLinesOnly = true;
+  for (const entry of entries) {
+    if (entry.type !== 'LlmCommand') {
+      if (entry.type !== 'Line') prefixIsLinesOnly = false;
+      continue;
+    }
+
+    const open = entry.metadata.open;
+    if (open === undefined) {
+      prefixIsLinesOnly = false;
+      continue;
+    }
+
+    if (open !== OPEN_IMMEDIATELY) {
+      warnings.push(
+        `Unknown value "${open}" for open= on >>> llm ${entry.participant}. ` +
+        `Valid values: ${OPEN_IMMEDIATELY}`
+      );
+    } else if (!prefixIsLinesOnly) {
+      warnings.push(
+        `open=${OPEN_IMMEDIATELY} on >>> llm ${entry.participant} has no effect: ` +
+        `only dialogue lines may precede it (commands, waits and embeds have ` +
+        `effects that a Continue click performs). Ignore this if clip= starts the chat on it.`
+      );
+    }
+    prefixIsLinesOnly = false;
+  }
+  return warnings;
+}
+
+/**
+ * Initial cursor position for a clip. An opted-in interlude may consume only
+ * preceding dialogue; other entries need advance() to perform their effects.
+ */
+export function openingIndex(
+  entries: ConversationEntry[],
+  clipStart: number,
+  clipEnd: number,
+): number {
+  for (let i = clipStart; i <= clipEnd; i++) {
+    const entry = entries[i];
+    if (!entry) break;
+    if (entry.type === 'LlmCommand') {
+      return entry.metadata.open === OPEN_IMMEDIATELY ? i : clipStart;
+    }
+    if (entry.type !== 'Line') break;
+  }
+  return clipStart;
+}
+
 /* ─────────────────────────────────────────────────────────────────────
  * Clip resolution
  * ───────────────────────────────────────────────────────────────────── */

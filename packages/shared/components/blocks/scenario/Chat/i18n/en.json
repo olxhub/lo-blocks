@@ -1,0 +1,8 @@
+{
+  "conversationEnded": "Conversation ended — press Continue",
+  "messageParticipant": "Message {{name}}…",
+  "observationMode": "Observation mode",
+  "participantThinking": "{{name}} is thinking…",
+  "send": "Send",
+  "turnLimitReached": "Turn limit reached — press Continue"
+}

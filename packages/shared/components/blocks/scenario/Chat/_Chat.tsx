@@ -10,6 +10,7 @@ import { ChatComponent, InputFooter, AdvanceFooter } from '@/components/common/C
 import type { ChatDisplayEntry } from '@/lib/types';
 import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
 import { useWaitConditions, interludeExitAllowed } from './waitConditions';
@@ -24,6 +25,7 @@ import type { ClipResolution } from './chatUtils';
 
 export default function Chat(props: RuntimeProps) {
   const { id, fields, kids, clip, history } = props;
+  const { t } = useBlockTranslation(props);
 
   const parsed = (kids as unknown as PeggyKids<ParsedConversation>).parsed;
 
@@ -87,10 +89,19 @@ export default function Chat(props: RuntimeProps) {
    * `index` counts how many raw entries we've consumed
    * (including command entries that never appear in the UI)
    */
+  /* Opening position: the first entry of the clip, unless an
+   * `[open=immediately]` interlude is reachable from it through dialogue
+   * lines alone — an ambient assistant opens with its input live and its
+   * greeting already said (see chatUtils.openingIndex). */
+  const openIndex = useMemo(
+    () => chatUtils.openingIndex(allEntries, clipRange.start, clipRange.end),
+    [allEntries, clipRange.start, clipRange.end],
+  );
+
   const [index] = useFieldState(
     props,
     fields.value,
-    clipRange.start // start by showing the first block
+    openIndex // start by showing the first block
   );
 
   // Clamp index to within the clip
@@ -213,7 +224,12 @@ export default function Chat(props: RuntimeProps) {
 
   // Order matters: "parked on an interlude" wins over "finished".
   const footer = interludeClosed ? (
-    <InputFooter id={`${id}_footer`} disabled />
+    <InputFooter
+      id={`${id}_footer`}
+      disabled
+      placeholder={t('observationMode')}
+      sendLabel={t('send')}
+    />
   ) : interlude.active ? (
     // Open floor: talk to the LLM participant; Continue (when the exit
     // gate allows, and there is somewhere to go) resumes the script.
@@ -234,15 +250,22 @@ export default function Chat(props: RuntimeProps) {
         onSendMessage={(text, file) => { void interlude.sendMessage(text, file); }}
         allowFileUpload={interlude.active.metadata.upload === 'true'}
         disabled={interludeSendDisabled}
+        sendLabel={t('send')}
         placeholder={
-          interlude.ended ? 'Conversation ended — press Continue'
-            : interlude.busy ? `${interlude.active.participant} is thinking…`
-              : `Message ${interlude.active.participant}…`
+          interlude.ended ? t('conversationEnded')
+            : interludeMaxed ? t('turnLimitReached')
+              : interlude.busy ? t('participantThinking', { name: interlude.active.participant })
+                : t('messageParticipant', { name: interlude.active.participant })
         }
       />
     </>
   ) : conversationFinished ? (
-    <InputFooter id={`${id}_footer`} disabled />
+    <InputFooter
+      id={`${id}_footer`}
+      disabled
+      placeholder={t('observationMode')}
+      sendLabel={t('send')}
+    />
   ) : (
     <AdvanceFooter
       id={`${id}_footer`}

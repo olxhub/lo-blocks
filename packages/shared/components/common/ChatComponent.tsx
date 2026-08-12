@@ -38,6 +38,8 @@ export interface InputFooterProps {
   disabled?: boolean;
   placeholder?: string;
   allowFileUpload?: boolean;
+  /** Visible and accessible label; block callers pass a translated string. */
+  sendLabel?: string;
 }
 
 export interface AdvanceFooterProps {
@@ -189,11 +191,14 @@ export const InputFooter: React.FC<InputFooterProps> = ({
   disabled = false,
   placeholder = 'Type a message...',
   allowFileUpload = false,
+  sendLabel = 'Send',
 }) => {
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState<FileAttachment | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const canSend = Boolean(onSendMessage) && !disabled && Boolean(message.trim() || attachedFile);
 
   const handleSend = () => {
     if ((message.trim() || attachedFile) && !disabled && onSendMessage) {
@@ -276,18 +281,24 @@ export const InputFooter: React.FC<InputFooterProps> = ({
         <input
           type="text"
           className={`flex-1 border rounded-full py-2 px-4 focus:outline-none ${t.inputField} ${t.inputPlaceholder} ${disabled ? 'opacity-50' : 'focus:ring-2 focus:ring-accent'}`}
-          placeholder={disabled ? 'Observation mode' : placeholder}
+          placeholder={placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
         />
         <button
-          className={`ms-2 rounded-full p-2 ${disabled ? t.buttonDisabled + ' cursor-not-allowed' : t.button + ' focus:outline-none focus:ring-2 focus:ring-accent'}`}
+          type="button"
+          className={`ms-2 rounded-full ps-4 pe-3 py-2 flex items-center gap-1 text-sm font-medium ${
+            canSend
+              ? `${t.button} focus:outline-none focus:ring-2 focus:ring-accent`
+              : `${t.buttonDisabled} cursor-not-allowed`
+          }`}
           onClick={handleSend}
-          disabled={disabled}
+          disabled={!canSend}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <span>{sendLabel}</span>
+          <svg className="w-4 h-4" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
           </svg>
         </button>

@@ -2,7 +2,7 @@
 // packages/shared/components/blocks/scenario/Chat/chatUtils.test.ts
 
 import { describe, it, expect } from 'vitest';
-import { clip, section, byId, listSections, listIds } from './chatUtils';
+import { clip, section, byId, listSections, listIds, openingIndex, validateInterludeOpen } from './chatUtils';
 import { parse as parseChat } from './_chatParser';
 
 // Shared conversation used by most tests
@@ -336,5 +336,130 @@ describe('chatUtils', () => {
         expect(clip(specialConv, 'test-id-123')).toEqual({ start: 0, end: 0, valid: true, message: null });
       });
     });
+  });
+});
+
+/* ── Opening position (open=immediately) ───────────────────────────────── */
+/*
+ * The behaviour under test is the ambient-assistant one: a sidebar chat
+ * should open with its input live, while a narrative chat keeps its
+ * Continue pacing. openingIndex() is the whole mechanism — it decides the
+ * fallback value of the cursor field — so it carries the regression risk.
+ */
+
+describe('openingIndex', () => {
+  const opening = (src: string, start = 0, end?: number) => {
+    const parsed = parseChat(src);
+    return openingIndex(parsed.body, start, end ?? parsed.body.length - 1);
+  };
+
+  const AMBIENT = `~~~~
+Piotr: What are you missing that you need to compose?
+
+>>> llm Piotr [exit=none open=immediately]
+  You are Dr. Piotr.
+`;
+
+  it('parks on an opted-in interlude behind a greeting line', () => {
+    const parsed = parseChat(AMBIENT);
+    expect(parsed.body[1].type).toBe('LlmCommand');
+    expect(openingIndex(parsed.body, 0, parsed.body.length - 1)).toBe(1);
+  });
+
+  it('parks on an opted-in interlude that is itself the first entry', () => {
+    expect(opening(`~~~~\n>>> llm Piotr [open=immediately]\n  Hi.\n`)).toBe(0);
+  });
+
+  it('leaves a scripted chat on its first entry — Continue pacing is a feature', () => {
+    expect(opening(`~~~~
+Piotr: Hello there.
+
+>>> llm Piotr [exit=none]
+  You are Dr. Piotr.
+`)).toBe(0);
+  });
+
+  it('does not skip an entry whose effects require advance()', () => {
+    expect(opening(`~~~~
+Alex: Hello
+--- wait @essay.value ---
+
+>>> llm Piotr [open=immediately]
+  You are Dr. Piotr.
+`)).toBe(0);
+  });
+
+  it('ignores the flag on a later interlude', () => {
+    expect(opening(`~~~~
+Alex: Hello
+
+>>> llm Piotr [maxTurns=2]
+  First.
+
+Alex: Back to the script.
+
+>>> llm Piotr [open=immediately]
+  Second.
+`)).toBe(0);
+  });
+
+  it('is relative to the clip, not the body', () => {
+    const src = `~~~~
+Alex: Before the clip.
+--- wait @essay.value ---
+
+Piotr: Greeting.
+
+>>> llm Piotr [open=immediately]
+  You are Dr. Piotr.
+`;
+    const parsed = parseChat(src);
+    const llm = parsed.body.findIndex(e => e.type === 'LlmCommand');
+    expect(openingIndex(parsed.body, 0, parsed.body.length - 1)).toBe(0);
+    expect(openingIndex(parsed.body, llm - 1, parsed.body.length - 1)).toBe(llm);
+  });
+
+  it('does not run past the end of the clip', () => {
+    const parsed = parseChat(AMBIENT);
+    expect(openingIndex(parsed.body, 0, 0)).toBe(0);
+  });
+});
+
+describe('validateInterludeOpen', () => {
+  const warnings = (src: string) => validateInterludeOpen(parseChat(src).body);
+
+  it('says nothing about a well-placed flag', () => {
+    expect(warnings(`~~~~\nPiotr: Hi.\n\n>>> llm Piotr [open=immediately]\n  Prompt.\n`)).toEqual([]);
+  });
+
+  it('says nothing about an interlude that never asked to open', () => {
+    expect(warnings(`~~~~\nPiotr: Hi.\n\n>>> llm Piotr [exit=none]\n  Prompt.\n`)).toEqual([]);
+  });
+
+  it('flags a misspelled value', () => {
+    const [warning] = warnings(`~~~~\n>>> llm Piotr [open=true]\n  Prompt.\n`);
+    expect(warning).toContain('Unknown value "true"');
+  });
+
+  it('flags a flag that cannot take effect', () => {
+    const [warning] = warnings(`~~~~
+Alex: Hello
+--- wait @essay.value ---
+
+>>> llm Piotr [open=immediately]
+  Prompt.
+`);
+    expect(warning).toContain('has no effect');
+  });
+
+  it('flags a second interlude asking to open the chat', () => {
+    const [warning] = warnings(`~~~~
+>>> llm Piotr [maxTurns=1]
+  First.
+
+>>> llm Piotr [open=immediately]
+  Second.
+`);
+    expect(warning).toContain('has no effect');
   });
 });

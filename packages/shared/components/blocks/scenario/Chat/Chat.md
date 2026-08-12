@@ -207,6 +207,7 @@ The indented block is the agent's system prompt; `{{...}}` interpolations are st
 - `tools` — comma-separated toolset names from the browser tool plane (e.g. `content-read`, `docs`); omit for a plain conversation
 - `upload=true` — enable file attachments on the input (the agent sees the content)
 - `exit=none` — remove the agent's end tool (open-ended assistants; an exit marker is durable)
+- `open=immediately` — when this is the first interlude reachable from the start of the clip through dialogue lines alone, open parked here with those lines visible and the input live. Commands, waits, embeds, pauses, and section headers stop the scan because advancing past them may have effects.
 - `profile` — reserved for server-side LLM profile selection
 
 The agent always has an `end_conversation` tool, so prompts can delegate the ending: *"We have a target of 5 messages; hard stop at 10. When the student states the idea correctly, congratulate them and call end_conversation."* Calling it says goodbye, closes the input, and resumes the script automatically. The user's exit is the Continue button, allowed when `until` is satisfied, the agent ended the conversation, or `maxTurns` is exhausted (a hard stop never strands the user behind an unsatisfied `until`).
