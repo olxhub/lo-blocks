@@ -15,7 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import type { Context } from 'hono';
-import { loadContentSourcesConfig } from '@/lib/storage/lofs/contentSources';
+import { loadContentSourcesConfig, asDirSource } from '@/lib/storage/lofs/contentSources';
 import { resolveConfig } from '@/lib/config';
 
 const SYSTEM_PMSS_PATH = 'config/system.pmss';
@@ -42,7 +42,13 @@ async function getNsContextMap(): Promise<Map<string, NamespaceContext>> {
     // keep their manifest in git — namespace context (classes/attributes)
     // for those needs provider-based manifest reading, not an fs scan.
     const config = await loadContentSourcesConfig();
-    const dirs = Object.values(config.sources).filter((s): s is string => typeof s === 'string');
+    // asDirSource collapses both directory forms (`<dir>` and
+    // `{ dir, writable }`); a plain string filter would silently skip the
+    // object form, leaving those namespaces without classes/attributes.
+    const dirs = Object.values(config.sources)
+      .map(asDirSource)
+      .filter((d): d is NonNullable<ReturnType<typeof asDirSource>> => d !== null)
+      .map(d => d.dir);
     for (const dir of [...dirs, config.fallback]) {
       scanManifests(dir, nsContextMap);
     }

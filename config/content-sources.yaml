@@ -5,8 +5,11 @@
 # and docs/content-in-git.md. The default below serves everything in ./content,
 # reproducing pre-multi-repo behavior, so a fresh clone runs with no local config.
 #
-# A source is mounted at its key (the path prefix it appears under). Two forms:
-#   <mount>: <dir>                                  # a checkout on disk
+# A source is mounted at its key (the path prefix it appears under). Forms:
+#   <mount>: <dir>                                  # a checkout on disk (writable)
+#   <mount>:                                        # a checkout on disk, explicit
+#     dir: <dir>                                    # writability. Directories are
+#     writable: false                               # writable unless set false.
 #   <mount>:                                        # a git remote, in-memory
 #     repo: <url>
 #     branch: main            # optional, default main

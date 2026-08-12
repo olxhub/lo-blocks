@@ -10,14 +10,19 @@
 //   #
 //   # Directory — a checkout managed by dev-ops. Keep the mount equal to
 //   # the directory name the content previously lived at, so paths, URLs,
-//   # namespaces, and student state keys are unchanged.
+//   # namespaces, and student state keys are unchanged. Writable by default;
+//   # the long form ({ dir, writable: false }) mounts a checkout read-only
+//   # (e.g. a reference course you have on disk but don't author).
 //   #
 //   # Repo — served directly from a git remote (plain smart-HTTP protocol;
 //   # any forge or bare repo). In-memory, read-only, head checked at most
 //   # once per cooldown. By convention the mount is the repo basename,
 //   # which is also its namespace (see docs/content-in-git.md).
 //   sources:
-//     psychology: /srv/content/psych              # directory form
+//     psychology: /srv/content/psych              # directory form (writable)
+//     reference:                                  # directory form, read-only
+//       dir: /srv/content/reference
+//       writable: false
 //     edu.memphis.psych:                          # repo form
 //       repo: https://github.com/olxhub/edu.memphis.psych
 //       branch: main          # optional (default main)
@@ -51,6 +56,7 @@
 // This file is about WHERE content lives; namespaces are WHAT it is.
 
 import path from 'path';
+import { z } from 'zod';
 import { FileStorageProvider } from './providers/file';
 import { StackedStorageProvider } from './providers/stacked';
 import { registerAllowedContentDir } from './allowedDirs';
@@ -70,6 +76,17 @@ const LOCAL_CONFIG_PATH = 'config/content-sources.local.yaml';
 const DEFAULT_TOKEN_FILE = 'config/github.pat';
 const DEFAULT_TOKEN_ENV = 'LO_GITHUB_TOKEN';
 
+/** Directory-form source: a checkout on disk. The plain-string form
+ *  (`<mount>: <dir>`) is shorthand for `{ dir, writable: true }` — a local
+ *  checkout is editable unless the deployment says otherwise. */
+export interface DirSource {
+  dir: string;
+  /** May Studio write here? Default TRUE for directories (the opposite of a
+   *  repo source): a checkout on disk is normally the deployment's own working
+   *  copy. Set false to mount a reference checkout read-only. */
+  writable?: boolean;
+}
+
 /** Repo-form source: served directly from a git remote. */
 export interface RepoSource {
   repo: string;
@@ -77,8 +94,8 @@ export interface RepoSource {
   branch?: string;
   /** May Studio commit + push to this source? Default false: a git source is
    *  read-only unless the deployment opts in, since editing someone else's
-   *  course is the exception, not the rule. Local directories and the fallback
-   *  are always writable. (Declared, not access-probed: confirming push rights
+   *  course is the exception, not the rule. Local directories default the other
+   *  way (see DirSource). (Declared, not access-probed: confirming push rights
    *  needs a network round-trip per source; the deployment already knows its
    *  intent. A real access check can refine this later.) */
   writable?: boolean;
@@ -97,9 +114,72 @@ export interface RepoSource {
   //   changing it needs a restart. The token is never logged.
 }
 
+export type ContentSource = string | DirSource | RepoSource;
+
+const ContentSourceSchema: z.ZodType<ContentSource> = z.union([
+  z.string().min(1),
+  z.object({
+    dir: z.string().min(1),
+    writable: z.boolean().optional(),
+  }).strict(),
+  z.object({
+    repo: z.string().min(1),
+    branch: z.string().min(1).optional(),
+    writable: z.boolean().optional(),
+    cooldownSeconds: z.number().nonnegative().optional(),
+    tokenFile: z.string().min(1).optional(),
+    tokenEnv: z.string().min(1).optional(),
+  }).strict(),
+]);
+
+const ContentSourcesConfigSchema = z.object({
+  sources: z.record(ContentSourceSchema).default({}),
+  fallback: z.string().min(1).default('./content'),
+  fallbackWritable: z.boolean().default(false),
+}).strict();
+
+/** Validate and normalize a parsed content-sources YAML document. */
+export function parseContentSourcesConfig(
+  value: unknown,
+  sourceName = 'content-sources config',
+): ContentSourcesConfig {
+  const result = ContentSourcesConfigSchema.safeParse(value);
+  if (result.success) return result.data;
+
+  const problems = result.error.issues
+    .map(issue => {
+      const location = issue.path.join('.') || 'config';
+      const mount = issue.path[0] === 'sources' ? issue.path[1] : undefined;
+      if (typeof mount === 'string') {
+        return `${location}: source mount "${mount}" must be a directory path string, ` +
+          '{ dir: <path>, writable?: <boolean> }, or { repo: <url>, ... } ' +
+          `(${issue.message})`;
+      }
+      return `${location}: ${issue.message}`;
+    })
+    .join('; ');
+  throw new Error(`Invalid ${sourceName}: ${problems}`);
+}
+
+/**
+ * The directory a source names, plus its writability — or null if it is a repo
+ * source. The one place the three surface forms (`<dir>`, `{ dir, writable }`,
+ * `{ repo }`) collapse, so validation and provider construction agree on what
+ * counts as a directory.
+ */
+export function asDirSource(entry: string | DirSource): Required<DirSource>;
+export function asDirSource(entry: RepoSource): null;
+export function asDirSource(entry: ContentSource): Required<DirSource> | null;
+export function asDirSource(entry: ContentSource): Required<DirSource> | null {
+  if (typeof entry === 'string') return { dir: entry, writable: true };
+  return 'dir' in entry
+    ? { dir: entry.dir, writable: entry.writable ?? true }
+    : null;
+}
+
 export interface ContentSourcesConfig {
-  /** mount name → checkout directory (string) or git remote (RepoSource) */
-  sources: Record<string, string | RepoSource>;
+  /** mount name → checkout directory (string or DirSource) or git remote (RepoSource) */
+  sources: Record<string, ContentSource>;
   /** directory for unrouted paths */
   fallback: string;
   /** Whether the fallback (./content) is editable. Default false — a deploy
@@ -139,27 +219,17 @@ export async function loadContentSourcesConfig(): Promise<ContentSourcesConfig> 
   const YAML = (await import('yaml')).default;
 
   let raw: string | null = null;
+  let configPath = '';
   for (const p of [LOCAL_CONFIG_PATH, DEFAULT_CONFIG_PATH]) {
-    try { raw = await fs.readFile(p, 'utf-8'); break; } catch { /* try next */ }
+    try {
+      raw = await fs.readFile(p, 'utf-8');
+      configPath = p;
+      break;
+    } catch { /* try next */ }
   }
   if (raw === null) return defaultConfig();
 
-  const parsed = YAML.parse(raw) ?? {};
-  const sources: Record<string, string | RepoSource> = parsed.sources ?? {};
-  for (const [mount, entry] of Object.entries(sources)) {
-    const isDir = typeof entry === 'string' && entry;
-    const isRepo = entry && typeof entry === 'object' && typeof (entry as RepoSource).repo === 'string';
-    if (!isDir && !isRepo) {
-      throw new Error(
-        `content-sources: source "${mount}" must be a directory path or { repo: <url>, ... }`
-      );
-    }
-  }
-  return {
-    sources,
-    fallback: parsed.fallback || './content',
-    fallbackWritable: parsed.fallbackWritable === true,  // opt-in; default read-only
-  };
+  return parseContentSourcesConfig(YAML.parse(raw) ?? {}, configPath);
 }
 
 /**
@@ -263,20 +333,23 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
 
   const sources: ConfiguredSource[] = [];
   for (const [mount, entry] of Object.entries(config.sources)) {
-    if (typeof entry === 'string') {
+    if (typeof entry === 'string' || 'dir' in entry) {
+      const dirEntry = asDirSource(entry);
       // Directory form: a checkout on disk. defaultNs = the mount name, so a
       // collection that moved out of ./content/<mount> keeps its namespace even
       // with files at the checkout root and no manifest. See namespaceFor.
-      registerAllowedContentDir(path.resolve(entry));
+      // Directories resolve against the process cwd (the repo root).
+      registerAllowedContentDir(path.resolve(dirEntry.dir));
       sources.push({
         origin: toLofsOrigin(`file:content/${mount}`),
         label: mount,
-        writable: true,  // local disk — always editable
-        provider: new FileStorageProvider(entry, `content/${mount}`, { defaultNs: mount }),
+        writable: dirEntry.writable,  // local disk — editable unless declared otherwise
+        provider: new FileStorageProvider(dirEntry.dir, `content/${mount}`, { defaultNs: mount }),
       });
     } else {
       // Repo form: served from the git remote, in memory. Read-only unless the
-      // deployment opts in (entry.writable).
+      // deployment opts in (entry.writable). The configuration schema makes
+      // this branch exhaustive after the directory case.
       sources.push({
         origin: gitOrigin(entry.repo, entry.branch ?? 'main'),
         label: mount,
