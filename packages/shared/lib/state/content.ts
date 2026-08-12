@@ -71,8 +71,9 @@
 //     builds are not yet stored under a content name. Under content addressing
 //     a late parse writes to its own address and cannot clobber, so "which
 //     result wins" stops being a comparison and becomes a pointer move.
-//   * `isLocalBlockSource` — an approximation standing in for resolution
-//     through the provider stack (see its own comment).
+//   * the declared-source gate (`localContent` on the runtime context) — an
+//     approximation standing in for resolution through the provider stack
+//     (see the "Declared-source gate" section below).
 //   * `digest()` — a weak content name, fine while compared for EQUALITY only.
 //     Must become a real hash before anything is STORED or SERVED under it.
 //
@@ -145,41 +146,28 @@ export function contentKeyOf(blockSource: string, ns: string, id: string): Conte
 // Declared-source gate (INTERIM)
 // =============================================================================
 
-/**
- * INTERIM. May this block-source be server-fetched, or is it LOCAL content
- * produced by local parsing (where an absent block is genuinely missing, not
- * "go fetch")? This is what stops inline content 404ing.
- *
- * WHY THIS IS A SCAN, AND WHY IT STAYS ONE FOR NOW. Given a block there is no
- * back-pointer to the request that produced it (no reverse index), so this can
- * only answer an approximation. It is scoped to (blockSource, ns) rather than
- * the whole block-source, which bounds the damage: previously ONE inline render
- * turned off fetch-on-missing for an entire block-source for the rest of the
- * session, silently breaking real content that needed fetching.
- *
- * THE DESTINATION IS NOT A BETTER GATE. Shadowing already exists one layer
- * down, in StackedStorageProvider — inline/files content is stacked in front of
- * the fetchable providers, which is precisely a working tree in front of a bare
- * tree. The 404 happens because ensureBlock fetches by DefinitionKey straight
- * from the server, going AROUND that stack. The fix is to resolve absent blocks
- * THROUGH the provider stack (git-style two level: a bare tree, with a working
- * tree shadowing it, eventually living in redux/the CRDT shared between client
- * and server), at which point this predicate has nothing left to decide.
- *
- * Do not grow this into a second shadowing mechanism — that was tried, and one
- * shadowing mechanism at the wrong layer is worse than none.
- */
-export function isLocalBlockSource(state: RootState, blockSource: string, ns?: ContentNamespace): boolean {
-  const content = state.application_state?.content;
-  if (!content) return false;
-  for (const entry of Object.values(content)) {
-    if (entry.blockSource !== blockSource) continue;
-    if (entry.sourceKind !== 'inline' && entry.sourceKind !== 'files') continue;
-    if (ns != null && entry.ns !== ns) continue;
-    return true;
-  }
-  return false;
-}
+// INTERIM. May a block be server-fetched, or is it LOCAL content produced by
+// local parsing (where an absent block is genuinely missing, not "go fetch")?
+// This gate is what stops inline content 404ing. It lives on the runtime
+// context (`LoBlockRuntimeContext.localContent`, set by RenderOLX from its own
+// declared source and inherited down the render tree; checked in ensureBlock).
+// It is NOT a ledger scan: a scan keyed on (blockSource, ns) latched on
+// forever — ledger entries are never removed — so one Studio preview in a
+// namespace suppressed fetching for every consumer of that namespace for the
+// rest of the session. The tree scope makes the suppression exactly as wide
+// as the local parse it protects.
+//
+// THE DESTINATION IS NOT A BETTER GATE. Shadowing already exists one layer
+// down, in StackedStorageProvider — inline/files content is stacked in front of
+// the fetchable providers, which is precisely a working tree in front of a bare
+// tree. The 404 happens because ensureBlock fetches by DefinitionKey straight
+// from the server, going AROUND that stack. The fix is to resolve absent blocks
+// THROUGH the provider stack (git-style two level: a bare tree, with a working
+// tree shadowing it, eventually living in redux/the CRDT shared between client
+// and server), at which point this flag has nothing left to decide.
+//
+// Do not grow this into a second shadowing mechanism — that was tried, and one
+// shadowing mechanism at the wrong layer is worse than none.
 
 /**
  * Content digest — a weak content name for a source string.

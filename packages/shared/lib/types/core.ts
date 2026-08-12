@@ -1311,6 +1311,15 @@ export interface LoBlockRuntimeContext {
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
+  /** INTERIM (see the declared-source gate note in lib/state/content.ts).
+   *  True when this render tree's root declared LOCAL source text
+   *  (inline/files): its blocks were parsed locally, so an absent block is
+   *  genuinely missing — never "go fetch". Scoped to the tree: set by
+   *  RenderOLX on the runtime it hands down, inherited by child runtimes,
+   *  invisible to sibling trees. Replaced the ledger scan that latched
+   *  fetch-suppression onto a whole (blockSource, ns) for the session.
+   *  Absent/false fails open (fetch allowed) — the pre-gate default. */
+  localContent?: boolean;
 }
 
 /**
@@ -1768,8 +1777,9 @@ export type ContentRequestKey = string & { readonly __brand: 'ContentRequestKey'
  *  but it is NOT what happens today: a per-source address space was tried in
  *  this branch and reverted, because it duplicated shadowing that
  *  StackedStorageProvider already does one layer down. Today the question is
- *  answered by scanning the ledger (isLocalBlockSource, marked INTERIM), and it
- *  becomes structural when source resolution moves to the worktree model. */
+ *  answered by a render-tree flag (LoBlockRuntimeContext.localContent, marked
+ *  INTERIM), and it becomes structural when source resolution moves to the
+ *  worktree model. */
 export type BlockSource = string & { readonly __brand: 'BlockSource' };
 
 /** INTERIM. A per-request monotonic attempt counter, used only to reject a
@@ -1831,10 +1841,9 @@ export interface ContentLedgerEntry {
    *  OPTIONAL because the failure paths can mint an entry for a request that
    *  never announced itself: a parse that failed before CONTENT_PARSING landed,
    *  or a render error against preloaded content. Those carry no namespace to
-   *  record. Absent must therefore read as "unknown", never as "matches" —
-   *  isLocalBlockSource compares `entry.ns !== ns` and skips, so an unknown
-   *  namespace under-matches and the content stays fetchable, which is the safe
-   *  direction. */
+   *  record. Absent must therefore read as "unknown", never as "matches" — any
+   *  scan filtering on ns must skip an entry whose ns is absent (under-match),
+   *  which is the safe direction. */
   ns?: ContentNamespace;
   /** Last successfully-parsed build (the last-valid render). */
   data?: ContentLedgerData;

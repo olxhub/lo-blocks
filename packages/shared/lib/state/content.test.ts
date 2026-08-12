@@ -15,7 +15,7 @@ import { test, expect } from 'vitest';
 import { updateResponseReducer } from './store';
 import {
   CONTENT_PARSING, CONTENT_PARSED, CONTENT_FAILED,
-  contentKeyOf, deriveContentView, isLocalBlockSource,
+  contentKeyOf, deriveContentView,
   sourceSignature, shouldRequestParse,
 } from './content';
 import { OLXJSON_ERROR, LOAD_OLXJSON } from './olxjson';
@@ -143,32 +143,6 @@ test('shouldRequestParse: skip only when already ready for the SAME signature', 
   expect(shouldRequestParse(undefined, sig)).toBe(true);
   expect(shouldRequestParse({ ...ready, status: 'parsing' }, sig)).toBe(true);
   expect(shouldRequestParse({ ...ready, status: 'error' }, sig)).toBe(true);
-});
-
-// ── Declared-source gate ─────────────────────────────────────────────────────
-
-test('the fetch gate: inline/files are local, preloaded is fetchable', () => {
-  const mk = (sourceKind: ContentLedgerEntry['sourceKind']) => ({
-    application_state: { content: { [KEY]: { status: 'ready', requestKey: 1, sourceKind, blockSource: 'content' } } },
-  }) as any;
-  expect(isLocalBlockSource(mk('inline'), 'content')).toBe(true);
-  expect(isLocalBlockSource(mk('files'), 'content')).toBe(true);
-  expect(isLocalBlockSource(mk('preloaded'), 'content')).toBe(false);
-  expect(isLocalBlockSource(mk('inline'), 'other')).toBe(false); // different block-source
-});
-
-test('the gate is scoped to a namespace, so one inline render does not mute others', () => {
-  // An inline render in `demo` must not stop a DIFFERENT namespace from
-  // fetching real content through the same source. The namespace is read from
-  // the entry's own `ns` field, never parsed back out of the key.
-  const state = {
-    application_state: { content: { [KEY]: {
-      status: 'ready', requestKey: 1, sourceKind: 'inline', blockSource: 'content',
-      ns: 'demo',
-    } } },
-  } as any;
-  expect(isLocalBlockSource(state, 'content', 'demo')).toBe(true);
-  expect(isLocalBlockSource(state, 'content', 'other-ns')).toBe(false);
 });
 
 // ── Render revision (the ErrorBoundary reset seam) ───────────────────────────

@@ -188,12 +188,21 @@ export function useContent(params: UseContentParams): ContentView {
       void run();
     }
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-    // Only the signature (source content) and a few primitives affect a parse;
-    // params/runtime/provider are captured fresh each render on purpose.
+    // Only the signature (source content) and a few primitives re-fire the
+    // effect. params/runtime/provider are captured at effect-FIRE time, not
+    // per render: `run` closes over the render in which the effect last fired,
+    // so renders during a debounce window do not refresh them. Anything that
+    // should trigger a re-capture must feed the signature.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, key, blockSource, sourceKind, debounceMs, runtime.sideEffectFree]);
   // Preloaded content (and the pre-first-parse window) falls back to the
   // requested id — its blocks are already in Redux.
   const fallbackRoot = sourceKind === 'preloaded' ? id : null;
-  return deriveContentView(entry, fallbackRoot);
+  // A request that WAS inline/files and is now preloaded must not keep
+  // rendering the old locally-parsed build: the effect above returns early for
+  // preloaded (nothing to parse), so the stale entry would win in
+  // deriveContentView forever. Ignore an entry whose declared kind disagrees
+  // with the current request and render the preloaded fallback instead.
+  const staleKind = sourceKind === 'preloaded' && entry && entry.sourceKind !== 'preloaded';
+  return deriveContentView(staleKind ? undefined : entry, fallbackRoot);
 }

@@ -25,7 +25,6 @@ import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
 import { blockData } from '@/lib/state/redux';
-import { isLocalBlockSource } from '@/lib/state/content';
 import type { LofsCanonical } from '@/lib/types/address';
 
 /**
@@ -102,13 +101,16 @@ export function ensureBlock(
   const dedupKey = `${source}:${locale}:${definitionKey}`;
   if (ensuredIds.has(dedupKey)) return;
 
-  const state = props.runtime.store.getState();
-
   // Declared-source gate (INTERIM — see lib/state/content.ts). Inline/files
   // content is parsed locally and must never be server-fetched: an absent block
-  // is genuinely missing, not "go fetch". Scoped to this namespace so one
-  // inline render can't suppress fetching for unrelated content.
-  if (isLocalBlockSource(state, source, props.runtime.ns)) return;
+  // is genuinely missing, not "go fetch". Scoped to the RENDER TREE via the
+  // runtime context (RenderOLX sets it from its own declared source), so one
+  // inline render can't suppress fetching for unrelated content — the previous
+  // ledger scan latched onto (blockSource, ns) for the whole session, breaking
+  // sibling trees that legitimately needed a fetch.
+  if (props.runtime.localContent) return;
+
+  const state = props.runtime.store.getState();
 
   const blockState = selectBlockState(state, [source], definitionKey);
   if (blockState) return; // Already known (loading, ready, or error)
