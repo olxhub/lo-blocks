@@ -104,6 +104,7 @@ import { createGrader } from '@/lib/blocks';
 import { z_stateRefList, src } from '@/lib/blocks/attributeSchemas';
 import { correctness, normalizeCorrectness } from '@/lib/grading/correctness';
 import * as parsers from '@/lib/content/parsers';
+import { resolveConfig } from '@/lib/config';
 
 /**
  * Security error message explaining why CustomGrader is disabled server-side.
@@ -283,6 +284,12 @@ const CustomGrader = createGrader({
     // Optional: load code from external file
     ...src,
   },
+  validateAttributes: (_attrs, context) => resolveConfig(context, 'allow-unsafe-content') === 'true'
+    ? undefined
+    : [
+        'CustomGrader executes unsandboxed JavaScript and is disabled. ' +
+        'Enable allow-unsafe-content only where executable content cannot cross a trust boundary.',
+      ],
   // Children are code, not inputs - require explicit target
   infer: false,
   // No CodeMatch block - code grading isn't a simple predicate

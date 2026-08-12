@@ -231,8 +231,10 @@ The file path is resolved relative to the OLX file location. This keeps your OLX
 
 CustomGrader executes JavaScript code using `new Function()`. This has security implications:
 
+- **Disabled by default**: Enable `allow-unsafe-content` only where executable content cannot cross a trust boundary
 - **Browser-only**: CustomGrader is disabled in Node.js environments and will throw an exception
-- **Author trust**: Code runs with browser privileges; malicious code could access cookies, make requests, etc.
+- **Viewer authority**: Code runs in each viewer's page; it can read client-visible data and make authenticated requests to exposed APIs
+- **Social content**: A user running their own code is not a new authority boundary; one user's code executing for another user is
 - **Not sandboxed**: Future versions may add sandboxing via Web Workers or SES
 
 For maximum security in multi-tenant deployments, consider using declarative graders where possible.

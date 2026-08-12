@@ -62,14 +62,15 @@ function parseYamlSpec(text: string) {
  * The author's code is a function body with `Plot` available.
  * It should return a Plot node (the result of Plot.plot()).
  *
- * Security: This runs in the browser's main context (same as any
- * React component). For untrusted content, wrap in an iframe —
- * but courseware authors are trusted content creators.
+ * Security: This is not sandboxed. It runs in each viewer's browser and can
+ * read client-visible data or call exposed APIs with that viewer's authority.
+ * Parse-time and render-time validation require allow-unsafe-content for this
+ * block's configuration context.
  *
- * TODO(observable-js-source): The legacy targetable-text contract also lets
- * target= or an own-value write replace authored JS. Make JS specs
- * structurally author-only (inline/src) or sandbox them before treating this
- * path as safe for content influenced by learners or external generators.
+ * TODO(unsafe-value-provenance): target= and own-value writes can intentionally
+ * supply JS at runtime. That is acceptable when a user executes their own code,
+ * but not when code crosses a social/collaborative trust boundary. Make the
+ * unsafe-content policy provenance/authority-aware before enabling it there.
  */
 function evaluateJsSpec(code: string, plotLib: typeof Plot) {
   const fn = new Function('Plot', code);

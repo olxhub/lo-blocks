@@ -22,7 +22,7 @@ y:
 
 ## Properties
 
-- `format` (optional): `yaml` (default) or `js`
+- `format` (optional): `yaml` (default) or unsandboxed `js` when the deployment enables `allow-unsafe-content`
 - `src` (optional): Path to an external spec file
 - `width` (optional): Plot width in pixels
 - `height` (optional): Plot height in pixels
@@ -53,7 +53,13 @@ marks:
 
 ## JavaScript Format
 
-For full access to the Plot API, use `format="js"`. The code is a function body with `Plot` available. Return a DOM node:
+For full access to the Plot API, a deployment may enable `allow-unsafe-content`
+and use `format="js"`. The code is an unsandboxed function body running in each
+viewer's page, with `Plot` available. Learner-authored JavaScript can be
+reasonable in a private authoring environment: the learner already controls
+their own browser. Do not enable a flow where one user's content, including
+OLX supplied through `OlxSlot` or JavaScript supplied through `target=`, can
+execute for another user. Return a DOM node:
 
 JavaScript specs cannot use `template="state"`: interpolated state would become
 executable code. Use the YAML format for reactive data.
