@@ -3,10 +3,15 @@
  * System-wide configuration defaults and deployment rules.
  * Course-level overrides.pmss layers on top via PMSS specificity.
  *
- * Classes come from three sources, combined into one context:
- *   - App profile: static, web, client   (from build system)
- *   - Deployment:  development, production (from env)
- *   - Content:     whatever manifest.yaml classes: declares
+ * Resolution context includes:
+ *   - Runtime type/profile: client, server, static, or build
+ *   - Deployment classes: development, production, credential availability
+ *   - Content facts: runtime-resolved namespace/source origin plus
+ *     author-controlled manifest.yaml classes and attributes
+ *
+ * Security policy must use platform-owned facts such as origin. Manifest
+ * classes and attributes are preferences selected by the content author, not
+ * evidence that the source is trusted.
  */
 
 /* Conservative defaults — no server features */
@@ -17,6 +22,11 @@
     translanguaging: true;
     debug-panel: true;   /* on by default; ctrl-` toggles it. Rarely disabled. */
     copyright: "";
+    /* Arbitrary JavaScript embedded in OLX (currently CustomGrader and
+     * ObservablePlot format="js") runs with the viewer's browser authority.
+     * Enable only where executable content cannot cross a trust boundary —
+     * notably, one user's social/shared content must not execute for another. */
+    allow-unsafe-content: false;
     /* Off since 2026-07-07: server fan-out (fields-design step 2a)
      * subsumes tab-sync — sibling tabs receive each other's events over
      * their own sockets. Running both double-applies events (RGA splices

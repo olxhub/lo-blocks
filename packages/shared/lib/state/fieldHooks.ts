@@ -10,7 +10,7 @@
 import { useRef, useEffect, useCallback, useMemo } from 'react';
 import { useSelector, useStore, shallowEqual } from 'react-redux';
 
-import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef, parseAnyStateRef } from '../types/id-grammar';
+import { scopedStateKeyForBlock, leafDefinitionKeyFromStateKey, stateKeyForGlobalRef } from '../types/id-grammar';
 import { scopes } from '../state/scopes';
 import { FieldInfo, FieldSelector, StateRef, StateKey, RuntimeProps, BaselineProps, BlockDataResult, CurrentUser } from '../types';
 import { asObservableValue } from '../types/fieldValues';
@@ -262,51 +262,6 @@ export function useValue(
   }, [resolvedKey, result.status, source, sideEffectFree]);
 
   return result;
-}
-
-/**
- * React hook for text-display blocks that can receive their source text
- * from any of four places. Pairs with `parsers.text.withTarget()`. Used
- * by blocks like Mermaid, Markdown, and ObservablePlot, whose source
- * text might come from:
- *
- *   - child text          → parsed at parse time into `kids`
- *   - `src=` attribute    → loaded at parse time into `kids`
- *   - own value field     → settable via `<Set target="me" value="..."/>`
- *   - `target=` attribute → reactive read from another block's value
- *
- * All four routes converge on `useValue`, which routes through the
- * appropriate block's value selector. The `withTarget` parserMixin
- * supplies a `selectors.value` that reads `commonFields.value` with a
- * fallback to `kids`, so the static-text and settable-value cases both
- * work without special handling here.
- *
- * - No `target=` → `useValue`'s natural default of "this block" kicks
- *   in: reads through *this* block's selectValue (Redux value → kids).
- * - `target="other"` → reads through the *target* block's selectValue.
- *   If the target also uses this mixin (or any block with a compatible
- *   value field — TextArea, etc.), it just works.
- *
- * 95% of callers can just destructure `{ text }` and let the loading
- * branch render a spinner.
- */
-export function useTextContent(
-  props: RuntimeProps,
-  { fallback = '' }: { fallback?: string } = {}
-): { text: string; loading: boolean; error: string | null; ready: boolean } {
-  const target = typeof props.target === 'string'
-    ? parseAnyStateRef(props.target)
-    : undefined;
-  const result = useValue(props, { target, fallback });
-
-  const text =
-    typeof result.value === 'string'
-      ? result.value
-      : result.value == null
-        ? fallback
-        : String(result.value);
-
-  return { text, loading: result.loading, error: result.error, ready: result.ready };
 }
 
 /**

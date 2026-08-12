@@ -403,6 +403,17 @@ export const src = {
   src: z.string().optional().describe('Path to external file containing content'),
 };
 
+/** Runtime template languages supported by opt-in text-rendering blocks. */
+export const textTemplateModes = ['none', 'state'] as const;
+export type TextTemplateMode = typeof textTemplateModes[number];
+
+/** Include only when a block supports templates in authored text. */
+export const templateAttribute = {
+  template: z.enum(textTemplateModes).optional().describe(
+    'Treat this block\'s authored inline or src text as a template in the selected language'
+  ),
+};
+
 /**
  * Licensed content attribution — author(s), hyperlink(s), and license.
  * Usage: baseAttributes.extend({ ...licensed, myAttr: z.string() })

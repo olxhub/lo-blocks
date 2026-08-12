@@ -10,7 +10,7 @@
 //   const config = resolveLLMConfig('interactive', { authorized: true });
 //   const config = resolveLLMConfigWithFallback('translation');
 
-import { getConfig, getDefaultClasses } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import type { SelectorMatchContext } from 'pmss';
 import {
   envModelFallback,
@@ -32,9 +32,9 @@ export type LLMResolvedConfig = {
  * Uses the profile name as a PMSS attribute selector:
  *   `.server[profile="interactive"]` matches when profile='interactive'.
  *
- * The default classes (from initConfig) include credential-availability
+ * The base context initialized by the server includes credential-availability
  * classes, so PMSS rules like `.llm_available_bedrock { llm-provider: bedrock; }`
- * activate automatically.
+ * activate automatically. Call-site classes refine that base context.
  *
  * If PMSS llm-model is empty, falls back to the env var for the selected
  * provider (e.g. AWS_BEDROCK_MODEL for bedrock, OPENAI_MODEL for openai).
@@ -52,17 +52,16 @@ export function resolveLLMConfig(
   const authClass = authorized === undefined ? [] :
     authorized ? ['authorized'] : ['guest'];
 
-  const baseClasses = getDefaultClasses();
   const context: SelectorMatchContext = {
-    classes: [...baseClasses, ...authClass, ...classes],
+    classes: [...authClass, ...classes],
     attributes: { profile },
   };
 
-  const provider = getConfig('llm-provider', context) ?? 'stub';
-  const pmssModel = getConfig('llm-model', context) ?? '';
-  const maxTokens = parseInt(getConfig('llm-max-tokens', context) ?? '4096', 10);
-  const rpm = parseInt(getConfig('llm-rpm', context) ?? '20', 10);
-  const tokenBudget = parseInt(getConfig('llm-token-budget', context) ?? '100000', 10);
+  const provider = resolveConfig(context, 'llm-provider') ?? 'stub';
+  const pmssModel = resolveConfig(context, 'llm-model') ?? '';
+  const maxTokens = parseInt(resolveConfig(context, 'llm-max-tokens') ?? '4096', 10);
+  const rpm = parseInt(resolveConfig(context, 'llm-rpm') ?? '20', 10);
+  const tokenBudget = parseInt(resolveConfig(context, 'llm-token-budget') ?? '100000', 10);
 
   // Fall back to env var model when PMSS doesn't specify one
   const model = pmssModel || envModelFallback(provider);

@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const NavigatorReadingDetail = dev({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'NavigatorReadingDetail',
   description: 'Reading detail component that renders referenced blocks',
   requiresUniqueId: false,

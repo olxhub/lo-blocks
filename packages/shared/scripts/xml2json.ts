@@ -34,6 +34,7 @@ import { FileStorageProvider } from '../lib/storage/lofs/providers/file';
 import { registerAllowedContentDir } from '../lib/storage/lofs/allowedDirs';
 import { parseContentNamespace } from '../lib/types/id-grammar';
 import type { ContentNamespace } from '../lib/types/id-grammar';
+import { loadContentBuildConfig } from '../lib/config';
 
 // Optional: Include graph validation to catch component registration issues
 // This can be safely removed if graph parsing is not needed or changes significantly
@@ -62,6 +63,10 @@ const activitiesFile = getArgOptional('--activities') || (staticDir ? path.join(
 const manifestSource = path.resolve(getArg('--manifest', path.join(contentDir, 'static.config.json')));
 const manifestOutFile = getArgOptional('--manifest-out') || (staticDir ? path.join(staticDir, 'manifest.json') : null);
 const isStaticMode = !!staticDir;
+
+// Attribute validation can depend on deployment policy plus source context.
+// Initialize the policy before parsing; parseOLX supplies each file's origin.
+loadContentBuildConfig(fs.readFileSync, isStaticMode ? 'static' : 'build');
 
 function formatErrorForConsole(error: any): string {
   let output = `❌ ${error.type.toUpperCase()}: ${error.message}`;

@@ -420,6 +420,7 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
 
     action: effectiveConfig.action,
     parser: effectiveConfig.parser,
+    textContent: parsed.textContent,
     staticKids: effectiveConfig.staticKids as LoBlock['staticKids'],
     reducers: effectiveConfig.reducers ?? [],
     advance: effectiveConfig.advance as LoBlock['advance'],

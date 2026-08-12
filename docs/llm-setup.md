@@ -265,6 +265,6 @@ Three server contexts initialize PMSS independently (all via
 | `packages/shared/lib/llm/profiles.ts` | PMSS resolution (`resolveLLMConfig`, `resolveLLMConfigWithFallback`) |
 | `packages/shared/lib/llm/proxy.ts` | Provider dispatch (`dispatchLLMProxy`) |
 | `packages/shared/lib/llm/serverCall.ts` | Simple server-side LLM call (`callLLM`) |
-| `packages/shared/lib/config.ts` | PMSS init and resolution (`loadServerConfig`, `getConfig`) |
+| `packages/shared/lib/config.ts` | PMSS init and contextual resolution (`loadServerConfig`, `resolveConfig`) |
 | `config/server.pmss` | Default LLM rules |
 | `config/local.pmss` | Deploy overrides (gitignored) |

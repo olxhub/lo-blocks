@@ -21,6 +21,7 @@ import type { LofsRef, LofsCanonical, LofsOrigin, ForgeLink } from './address';
 import type { RawFieldValue } from './fieldValues';
 import type { ContentVariant, LocaleContext } from './i18n';
 import type { Correctness } from '../grading/correctness';
+import type { ConfigContext } from '../config';
 
 /**
  * ════════════
@@ -810,6 +811,15 @@ export const BlockBlueprintSchema = z.object({
   /** Get display answers per slot for multi-input graders. */
   getDisplayAnswers: z.function().optional(),
   parser: z.function().optional(),
+  /**
+   * Declarative policy for blocks whose children are source text. Components
+   * consume that source through useText(), without knowing whether it came
+   * from kids, src=, target=, or the block's own value field.
+   */
+  textContent: z.object({
+    source: z.enum(['kids', 'value']).default('kids'),
+    defaultTemplateMode: z.enum(['none', 'state']).optional(),
+  }).optional(),
   /** Return child block refs for server-side preloading (collectBlockWithKids).
    *  Refs may be bare (DefinitionRef) — the caller qualifies with the parent's namespace. */
   staticKids: z.function().args(z.any()).returns(z.array(z.string())).optional(),
@@ -918,10 +928,11 @@ export const BlockBlueprintSchema = z.object({
    * - StringGrader with regexp=true: answer must be a valid regex
    *
    * @param attrs - The parsed attributes (after Zod transforms)
+   * @param context - PMSS facts for the content being validated
    * @returns Array of error messages, or empty/undefined if valid
    */
   validateAttributes: z.function()
-    .args(z.record(z.string(), z.any()))
+    .args(z.record(z.string(), z.any()), z.custom<ConfigContext>())
     .returns(z.array(z.string()).optional())
     .optional(),
   /**
@@ -1020,6 +1031,7 @@ export interface LoBlock {
   _isBlock: true;
   action?: BlockAction;
   parser?: Function;
+  textContent?: { source: 'kids' | 'value'; defaultTemplateMode?: 'none' | 'state' };
   staticKids?: (entry: OlxJson) => DefinitionRef[];
   reducers: Function[];
   /** Advance one step. See BlockBlueprintSchema.advance for semantics. */
@@ -1082,7 +1094,10 @@ export interface LoBlock {
    * Semantic validation for attributes beyond what Zod schema can express.
    * Returns array of error messages or undefined if valid.
    */
-  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
+  validateAttributes?: (
+    attrs: Record<string, any>,
+    context: ConfigContext,
+  ) => string[] | undefined;
   /**
    * Structural validation for children, called after children are parsed.
    * Receives the raw kids value and a function to look up a block's tag by ID.

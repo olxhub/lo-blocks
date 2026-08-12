@@ -26,7 +26,8 @@ import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, State
 import type { LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
-import { z_stateRef } from '@/lib/blocks/attributeSchemas';
+import { templateAttribute, z_stateRef } from '@/lib/blocks/attributeSchemas';
+import type { TextTemplateMode } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { elementKids, elementTag } from './xmlParser';
 import type { RawXmlAttributes, RawXmlNode } from './xmlParser';
@@ -476,6 +477,9 @@ function extractString(extracted: ReturnType<typeof extractTextFromXmlNodes>): s
 //   ...parsers.text.stripIndent()  - strip common leading indentation (for Markdown)
 //   ...parsers.text({ postprocess: fn })  - custom function
 type TextPostprocess = 'trim' | 'raw' | 'stripIndent' | ((text: string) => string);
+type TextOptions = {
+  postprocess?: TextPostprocess;
+};
 
 const textFactory = childParser(async function textParser({ rawParsed, attributes, provider, source, parseDeps, postprocess = 'trim' }: {
   rawParsed: any; attributes: any; provider: any; source: LofsCanonical; parseDeps: LofsCanonical[];
@@ -519,38 +523,9 @@ const textFactory = childParser(async function textParser({ rawParsed, attribute
 textFactory.staticKids = () => [];
 textFactory.childMode = 'text';
 
-// === withTarget variant ===
-//
-// `parsers.text.withTarget()` (and its `.raw` / `.stripIndent` siblings)
-// bundle the same text parser together with a `parserMixin` that turns
-// the block into a coherent text-source consumer. This lets display
-// blocks like Mermaid, Markdown, ObservablePlot, etc. accept their
-// source text from any of four places:
-//
-//   1. child text                 <Mermaid>graph TD; A --> B</Mermaid>
-//   2. src= (parse-time load)     <Mermaid src="diagram.mmd"/>
-//   3. target= (reactive read)    <Mermaid target="codeEditor"/>
-//   4. own value field (settable) <Set target="myMermaid" value="..."/>
-//
-// All four routes converge on the same value selector below, which reads
-// `commonFields.value` from Redux and falls back to the block's parsed
-// `kids` (which was populated at parse time from either `src=` or the
-// block's child text). The render-time hook is `useTextContent`.
-//
-// - With no `target=`, `useValue` defaults to "this block", so the read
-//   goes through *this* block's selectors.value → Redux value → kids.
-// - With `target="other"`, the read goes through the *target* block's
-//   selectors.value. If the target also uses this mixin (or any block with a
-//   compatible value field — TextArea, etc.), it just works.
-//
-// `target=` is tagged via `z_stateRef`, so `getRefAttributes` /
-// `ensureReferencedBlocks` automatically preload the referenced block.
-//
-// `requiresUniqueId: false` is baked in because text-display blocks
-// typically don't need unique IDs — they render content, not state.
-// Blueprint-level `requiresUniqueId: true` still wins via the factory's
-// later-layer-overrides rule for scalar keys.
-const textWithTargetParserMixin = {
+// Adds `target=` and a writable value field to a text block. Inline/src text
+// remains the fallback. Usage: `...parsers.text.withTarget.stripIndent()`.
+const targetableTextMixin = {
   attributes: z.object({
     src: z.string().optional().describe('Path to external file containing content'),
     target: z_stateRef.optional().describe(
@@ -558,20 +533,9 @@ const textWithTargetParserMixin = {
     ),
   }).strict(),
   fields: state.fields([state.commonFields.value]),
-  // Read commonFields.value, falling back to the block's parsed text
-  // (kids). The fallback is what makes the static
-  //   <Mermaid>graph TD; A --> B</Mermaid>
-  // form render before anyone has written to the value field, and what
-  // makes a `<Ref target="myMermaid">` see the diagram's current text.
-  // Every level-3 reader — `<Ref>`, valueSelector consumers, actions like
-  // CopyFieldAction via getField — sees this same observable value; the
-  // days of actions bypassing the getter and copying "" are over.
   selectors: {
     value: (reduxState: any, props: RuntimeProps, id: StateKey) => {
       const kids = typeof props.kids === 'string' ? props.kids : '';
-      // Level 2: this IS the value getter, so it reads its own backing store
-      // (a level-3 read would re-enter itself). Decoded, with kids as the
-      // pre-write fallback.
       return state.decodedFieldSelector(
         reduxState,
         props,
@@ -583,17 +547,67 @@ const textWithTargetParserMixin = {
   requiresUniqueId: false,
 };
 
-export const text = Object.assign(textFactory, {
-  raw: () => textFactory({ postprocess: 'raw' }),
-  stripIndent: () => textFactory({ postprocess: 'stripIndent' }),
+function parsedText({ postprocess }: TextOptions = {}) {
+  return {
+    ...textFactory({ postprocess }),
+    textContent: { source: 'kids' as const },
+  };
+}
+
+function targetableText({ postprocess }: TextOptions = {}) {
+  return {
+    ...textFactory({ postprocess }),
+    parserMixin: targetableTextMixin,
+    textContent: { source: 'value' as const },
+  };
+}
+
+export const text = Object.assign((options: TextOptions = {}) => parsedText(options), {
+  raw: () => parsedText({ postprocess: 'raw' }),
+  stripIndent: () => parsedText({ postprocess: 'stripIndent' }),
   withTarget: Object.assign(
-    () => ({ ...textFactory(), parserMixin: textWithTargetParserMixin }),
+    (options: TextOptions = {}) => targetableText(options),
     {
-      raw: () => ({ ...textFactory({ postprocess: 'raw' }), parserMixin: textWithTargetParserMixin }),
-      stripIndent: () => ({ ...textFactory({ postprocess: 'stripIndent' }), parserMixin: textWithTargetParserMixin }),
+      raw: () => targetableText({ postprocess: 'raw' }),
+      stripIndent: () => targetableText({ postprocess: 'stripIndent' }),
     }
   ),
 });
+
+/**
+ * Add runtime templates to a structural text parser.
+ *
+ * Usage:
+ *   ...parsers.textWithTemplate(parsers.text.stripIndent())
+ *   ...parsers.textWithTemplate(parsers.text.withTarget(), { defaultMode: 'state' })
+ * Renderer: `const { text, ...status } = useTextWithTemplate(props)`
+ *
+ * Templates apply only to parsed inline/src text. Reactive `target=` and
+ * writable values remain data. A future deliberately dynamic escape hatch
+ * should be explicit (for example, `state:withValue`).
+ *
+ * TODO(template-compile): Compile authored templates into static segments and
+ * expression ASTs here at parse time, including their state references. The
+ * built player can then skip template hooks/scans for literal text (the large
+ * majority of blocks), validate expressions while authoring, and request the
+ * referenced state from the server statically. Keep an explicit dynamic mode
+ * such as `state:withValue` possible, but do not make value text executable by
+ * default.
+ */
+export function textWithTemplate<T extends {
+  textContent: { source: 'kids' | 'value' };
+  parserMixin?: { attributes?: z.AnyZodObject; [key: string]: unknown };
+}>(parser: T, { defaultMode = 'none' }: { defaultMode?: TextTemplateMode } = {}) {
+  const attributes = parser.parserMixin?.attributes
+    ? parser.parserMixin.attributes.extend(templateAttribute)
+    : z.object(templateAttribute).strict();
+
+  return {
+    ...parser,
+    parserMixin: { ...parser.parserMixin, attributes },
+    textContent: { ...parser.textContent, defaultTemplateMode: defaultMode },
+  };
+}
 
 // Text content → attribute parser.
 //

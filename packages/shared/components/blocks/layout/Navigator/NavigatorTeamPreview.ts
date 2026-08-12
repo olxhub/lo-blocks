@@ -4,7 +4,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const NavigatorTeamPreview = dev({
-  ...parsers.text(),
+  ...parsers.ignore(),
   name: 'NavigatorTeamPreview',
   description: 'Team member preview component for Navigator',
   requiresUniqueId: false,

@@ -22,10 +22,11 @@ y:
 
 ## Properties
 
-- `format` (optional): `yaml` (default) or `js`
+- `format` (optional): `yaml` (default) or unsandboxed `js` when the deployment enables `allow-unsafe-content`
 - `src` (optional): Path to an external spec file
 - `width` (optional): Plot width in pixels
 - `height` (optional): Plot height in pixels
+- `template` (optional): For YAML specs, `state` treats authored `{{...}}` slots as reactive state-language expressions; omitted text is literal
 
 ## YAML Format
 
@@ -52,7 +53,16 @@ marks:
 
 ## JavaScript Format
 
-For full access to the Plot API, use `format="js"`. The code is a function body with `Plot` available. Return a DOM node:
+For full access to the Plot API, a deployment may enable `allow-unsafe-content`
+and use `format="js"`. The code is an unsandboxed function body running in each
+viewer's page, with `Plot` available. Learner-authored JavaScript can be
+reasonable in a private authoring environment: the learner already controls
+their own browser. Do not enable a flow where one user's content, including
+OLX supplied through `OlxSlot` or JavaScript supplied through `target=`, can
+execute for another user. Return a DOM node:
+
+JavaScript specs cannot use `template="state"`: interpolated state would become
+executable code. Use the YAML format for reactive data.
 
 ```olx:code
 <ObservablePlot format="js"><![CDATA[
@@ -69,6 +79,36 @@ return Plot.plot({
 });
 ]]></ObservablePlot>
 ```
+
+## Data from block state
+
+Set `template="state"` to make a YAML spec respond to block state. Use an
+expression whose textual result is valid YAML at its insertion point; `|| 0`
+supplies a useful numeric value before the field has been written. Change the
+input to update the chart:
+
+```olx:playground
+<Vertical id="plot_state_demo">
+  <NumberInput id="plot_demo_value" min="0" placeholder="Seconds studied" />
+  <ObservablePlot id="plot_demo_chart" template="state">
+marks:
+  - type: barY
+    data:
+      - {phase: "Study", seconds: {{@plot_demo_value.value || 0}}}
+    x: phase
+    y: seconds
+  - type: ruleY
+    data: [0]
+y:
+  label: "Seconds studied"
+  </ObservablePlot>
+</Vertical>
+```
+
+Values are substituted as text before the spec is parsed. Objects and arrays
+are inserted as JSON, which is valid YAML, so an expression returning a list
+can supply a whole mark's `data`. Strings are not escaped for their YAML
+context; do not insert arbitrary learner-written strings into a spec.
 
 ## External Files
 

@@ -36,6 +36,7 @@ import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
 import { toAppError } from '@/lib/types/errors';
+import { contentConfigContext } from '@/lib/config';
 
 const defaultParser = parsers.blocks().parser;
 
@@ -398,6 +399,7 @@ export async function parseOLX(
   const contentVersion = toLofsVersion(await hashContent(xml));
   const source: LofsCanonical = toLofsCanonical(withVersion(inputProvenance[0], contentVersion));
   const parseDeps: LofsCanonical[] = [];
+  const configContext = contentConfigContext(ns, source);
 
   // Validate XML first for better error messages
   const provenanceStr = String(source);
@@ -464,6 +466,27 @@ export async function parseOLX(
     if (!node[':@']) node[':@'] = {};
     node[':@'].id = id;
     systemAssignedIds.add(node[':@']);
+  }
+
+  function storeErrorNode({ id, error, rawParsed, lang, sourceOffset, metadata }: {
+    id: DefinitionKey;
+    error: OLXLoadingError;
+    rawParsed: RawXmlNode;
+    lang: string;
+    sourceOffset?: number;
+    metadata: OLXMetadata;
+  }) {
+    errors.push(error);
+    const entry = {
+      id, tag: 'ErrorNode', attributes: error, source, parseDeps,
+      rawParsed, kids: [], parseError: true, lang,
+      ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
+      ...metadata,
+    };
+    if (!idMap[id]) idMap[id] = {};
+    idMap[id][lang] = entry;
+    parsedIds.push(id);
+    return { type: 'block' as const, id };
   }
 
   async function parseNode(node: RawXmlNode, siblings: RawXmlNode[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
@@ -546,19 +569,11 @@ export async function parseOLX(
         location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, sourceOffset) },
         technical: { tag, id: idStr, attributes }
       };
-      errors.push(errorObj);
-      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
-      const entry = {
-        id, tag: 'ErrorNode', attributes: errorObj, source, parseDeps,
-        rawParsed: node, kids: [], parseError: true,
-        lang,
-        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
-        ...(metadata || {})
-      };
-      if (!idMap[id]) idMap[id] = {};
-      idMap[id][lang] = entry;
-      parsedIds.push(id);
-      return { type: 'block', id };
+      return storeErrorNode({
+        id, error: errorObj, rawParsed: node,
+        lang: resolveElementLanguage(attributes, currentLang, metadataLang),
+        sourceOffset, metadata,
+      });
     }
     const id: DefinitionKey = qualifyDefinitionRef(bareRef, ns);
 
@@ -589,24 +604,15 @@ export async function parseOLX(
           zodError: result.error
         }
       };
-      errors.push(errorObj);
-
       // Replace block with ErrorNode instead of rendering with raw attributes.
       // Raw attributes bypass Zod transforms (e.g. sanitization, type coercion),
       // which could cause runtime crashes or security issues downstream.
       // Matches the PEG error pattern in parsers.ts.
-      const lang = resolveElementLanguage(attributes, currentLang, metadataLang);
-      const entry = {
-        id, tag: 'ErrorNode', attributes: errorObj, source, parseDeps,
-        rawParsed: node, kids: [], parseError: true,
-        lang,
-        ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
-        ...(metadata || {})
-      };
-      if (!idMap[id]) idMap[id] = {};
-      idMap[id][lang] = entry;
-      parsedIds.push(id);
-      return { type: 'block', id };
+      return storeErrorNode({
+        id, error: errorObj, rawParsed: node,
+        lang: resolveElementLanguage(attributes, currentLang, metadataLang),
+        sourceOffset, metadata,
+      });
     } else {
       // Use transformed attributes (e.g., "true" -> true for booleans)
       parsedAttributes = result.data;
@@ -619,10 +625,10 @@ export async function parseOLX(
       // Semantic validation beyond what Zod schema can express
       // e.g., NumericalGrader answer must be a valid number, StringGrader regexp must be valid
       if (Component?.validateAttributes) {
-        const semanticErrors = Component.validateAttributes(parsedAttributes);
+        const semanticErrors = Component.validateAttributes(parsedAttributes, configContext);
         if (semanticErrors && semanticErrors.length > 0) {
           const errorList = semanticErrors.map(e => `  - ${e}`).join('\n');
-          errors.push({
+          const errorObj = {
             type: 'attribute_validation',
             title: `Invalid attribute on <${tag}> in ${source}`,
             message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
@@ -633,6 +639,10 @@ export async function parseOLX(
               attributes: parsedAttributes,
               semanticErrors
             }
+          } satisfies OLXLoadingError;
+          return storeErrorNode({
+            id, error: errorObj, rawParsed: node, lang: currentLang,
+            sourceOffset, metadata,
           });
         }
       }

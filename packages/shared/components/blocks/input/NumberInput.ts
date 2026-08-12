@@ -4,13 +4,13 @@ import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
-import { srcAttributes, placeholder } from '@/lib/blocks/attributeSchemas';
+import { placeholder } from '@/lib/blocks/attributeSchemas';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
 
 const NumberInput = core({
-  ...parsers.text(),
+  ...parsers.ignore(),
   ...input(),
   name: 'NumberInput',
   description: 'Numeric input field that parses and validates numerical values',
@@ -23,12 +23,12 @@ const NumberInput = core({
       return v === undefined ? undefined : parseFloat(v as string);
     },
   },
-  attributes: srcAttributes.extend({
+  attributes: z.object({
     ...placeholder,
     min: z.string().optional().describe('Minimum allowed value'),
     max: z.string().optional().describe('Maximum allowed value'),
     step: z.string().optional().describe('Step increment for value changes'),
-  }),
+  }).strict(),
 });
 
 export default NumberInput;

@@ -61,11 +61,10 @@ vi.mock('@/lib/mcp/client', () => ({
   listMcpTools: async () => [],
 }));
 
-// Rendering reads config (needsTranslation → getConfigBool), which fails
-// fast when uninitialized. Empty PMSS: every getConfig resolves to null,
-// so translanguaging etc. are off — same as the pre-2026-07 behavior when
-// the Next.js process (which never initialized config) rendered these.
-initConfig('', ['client', 'test']);
+// The sweep intentionally exercises unsafe block examples (CustomGrader) in
+// jsdom. Production defaults remain off; this explicit test-only policy keeps
+// the renderer coverage without weakening content validation.
+initConfig('* { allow-unsafe-content: true; }', { classes: ['client', 'test'] });
 
 export const BLOCKS_DIR = path.resolve('./packages/shared/components/blocks');
 

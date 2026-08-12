@@ -45,9 +45,13 @@ async function boot() {
     attributes = {};
   }
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-  initConfig(pmss, ['client', env, ...classes], attributes);
+  initConfig(pmss, {
+    types: ['client'],
+    classes: ['client', env, ...classes],
+    attributes,
+  });
 
-  // Dynamic import: App.tsx has module-level getConfigBool() calls that
+  // Dynamic import: App.tsx has module-level resolveConfig() calls that
   // require initConfig() to have completed first.
   const { default: App } = await import('./App');
   const route = resolveRoute(window.location.pathname);

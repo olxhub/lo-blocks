@@ -18,7 +18,7 @@ import { dev } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 
 const Html = dev({
-  ...parsers.text.raw(),
+  ...parsers.textWithTemplate(parsers.text.raw()),
   name: 'Html',
   description: 'Render raw HTML content (OLX 1.0 backwards compatibility ONLY — NOT for new content).',
   requiresUniqueId: false,

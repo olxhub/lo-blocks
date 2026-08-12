@@ -5,16 +5,15 @@ import type { RuntimeProps } from '@/lib/types';
 if (typeof window !== 'undefined') {
   import('katex/dist/katex.min.css');
 }
-import { useTextContent } from '@/lib/state/redux';
+import { useTextWithTemplate } from '@/lib/player/client/useText';
+import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
-import Spinner from '@/components/common/Spinner';
 
 export default function BlockMath( props: RuntimeProps ) {
-  const { text, loading } = useTextContent(props);
+  const { text, ...status } = useTextWithTemplate(props);
+  const statusView = renderBlockStatus(props, status);
 
-  if (loading) {
-    return <Spinner />;
-  }
+  if (statusView) return statusView;
 
   let html = '';
   try {

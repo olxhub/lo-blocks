@@ -8,7 +8,7 @@ export const fields = state.fields(['error']);
 // componentLoader, so the mermaid dependency tree loads only when a
 // diagram actually renders.
 const Mermaid = core({
-  ...parsers.text.withTarget.stripIndent(),
+  ...parsers.textWithTemplate(parsers.text.withTarget.stripIndent()),
   name: 'Mermaid',
   description: 'Render Mermaid diagrams (flowcharts, sequence diagrams, Gantt charts, etc.).',
   fields,

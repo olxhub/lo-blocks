@@ -11,7 +11,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useUser } from '@/lib/state';
-import { getConfigBool } from '@/lib/config';
+import { resolveConfig } from '@/lib/config';
 import type { Locale } from '@/lib/types';
 import { useConnectionStatus, SaveIndicator, OfflineNotice } from './ConnectionStatus';
 import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
@@ -27,7 +27,7 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
   const { saveStatus, persists, offline } = useConnectionStatus();
   const user = useUser();
 
-  const translanguaging = getConfigBool('translanguaging');
+  const translanguaging = resolveConfig({}, 'translanguaging') === 'true';
   const tiers = useVariantTiers(availableLocales, bestEffortLocales);
   const showLanguage = hasLanguageChoices(tiers, translanguaging);
 

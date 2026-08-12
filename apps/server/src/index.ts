@@ -5,7 +5,7 @@
 // Each step delegates to its own module; this file is the sequence.
 
 import fs from 'fs';
-import { loadServerConfig, getConfig } from '@/lib/config';
+import { loadServerConfig, resolveConfig } from '@/lib/config';
 import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
 import { FileKVStore } from '@/lib/storage/kvs/file';
 import { PostgresKVStore } from '@/lib/storage/kvs/pg';
@@ -70,8 +70,8 @@ function validateLLMProvider() {
 
 /** 3. Initialize storage backend (config-driven). */
 async function initStorage(): Promise<KVStore> {
-  const backend = process.env.KVS_BACKEND || getConfig('kvs-backend') || 'file';
-  const prefix  = process.env.KVS_PREFIX  || getConfig('kvs-prefix')  || '';
+  const backend = process.env.KVS_BACKEND || resolveConfig({}, 'kvs-backend') || 'file';
+  const prefix  = process.env.KVS_PREFIX  || resolveConfig({}, 'kvs-prefix')  || '';
   const isProd  = process.env.NODE_ENV === 'production';
 
   // In production, require an explicit prefix to prevent accidental

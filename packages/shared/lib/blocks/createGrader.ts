@@ -40,6 +40,7 @@ import { registerDSLFunction } from '@/lib/stateLanguage/functions';
 import { correctness } from '../grading/correctness';
 import * as state from '@/lib/state';
 import type { RuntimeProps, LocalsAPI, ComponentLoader } from '@/lib/types';
+import type { ConfigContext } from '@/lib/config';
 
 // Default grader renderer, loaded lazily: _GraderShell renders children and pulls
 // the render layer (useKids → lib/player/client/render), which must stay out of the
@@ -244,7 +245,10 @@ interface CreateGraderConfig {
    * - regexp pattern must be valid
    * - tolerance must be a valid number or percentage
    */
-  validateAttributes?: (attrs: Record<string, any>) => string[] | undefined;
+  validateAttributes?: (
+    attrs: Record<string, any>,
+    context: ConfigContext,
+  ) => string[] | undefined;
   /**
    * Validate student input at runtime. Called before match function.
    * Returns array of error messages (→ INVALID) or empty/undefined (→ proceed to match).
@@ -290,7 +294,11 @@ interface CreateGraderConfig {
    *  BlockBlueprintSchema.ensureReady. Applied to the Match block too. */
   ensureReady?: () => Promise<void>;
   /** Custom parser for children. Default: parsers.blocks.allowHTML(). Use parsers.text.raw() for code content. */
-  parser?: { parser: (ctx: any) => Promise<any>; staticKids?: (entry: any) => any[] };
+  parser?: {
+    parser: (ctx: any) => Promise<any>;
+    staticKids?: (entry: any) => any[];
+    childMode?: parsers.ChildMode;
+  };
   /**
    * Explicit allow-list of attribute/field names that the blueprint layer
    * is intentionally redefining over the graderMixin defaults. See
@@ -382,9 +390,27 @@ export function createGrader({
     ...(allowOverrides ?? []),
   ]));
 
+  // `parser:` is a child-parsing contract. textContent is knowingly ignored:
+  // text helpers include it for renderers, while CustomGrader only needs their
+  // child parser. Any other helper capability is a caller error, not something
+  // to silently strip from the generated grader.
+  const parserConfig = parser ?? parsers.blocks.allowHTML();
+  const supportedParserKeys = new Set(['parser', 'staticKids', 'childMode', 'textContent']);
+  const unsupportedParserKeys = Object.keys(parserConfig)
+    .filter(key => !supportedParserKeys.has(key));
+  if (unsupportedParserKeys.length > 0) {
+    throw new Error(
+      `createGrader(${base}): parser accepts only child-parsing behavior; ` +
+      `unsupported helper capabilities: ${unsupportedParserKeys.join(', ')}`,
+    );
+  }
+  const { parser: parseKids, staticKids, childMode } = parserConfig;
+
   // Create the full Grader block (connects to inputs, grades them)
   const graderBlock = core({
-    ...(parser ?? parsers.blocks.allowHTML()),
+    parser: parseKids,
+    staticKids,
+    childMode,
     ...grader(customAsyncGraderFn
       ? { asyncGrader: customAsyncGraderFn, infer, slots, inputType }
       : { grader: syncGraderFn!, infer, slots, inputType }),
