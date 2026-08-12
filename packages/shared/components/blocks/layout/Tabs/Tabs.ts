@@ -16,7 +16,7 @@ const Tabs = dev({
   selectors: {
     value: {
       select: (state, props, _stateKey) => {
-        const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: 0 });
+        const activeTab = fieldSelector(state, props, fields.activeTab, { fallback: null });
         return { activeTab };
       },
       // Fresh object per evaluation — subscribers gate on content.

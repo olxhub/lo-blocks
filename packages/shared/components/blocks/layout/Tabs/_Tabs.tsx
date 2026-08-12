@@ -1,87 +1,66 @@
-// packages/shared/components/blocks/layout/Tabs/_Tabs.tsx
 'use client';
-import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useFieldState } from '@/lib/state';
+import type { RuntimeProps } from '@/lib/types';
 import { useKids, useKidsJson } from '@/lib/player/client/render';
+import { useKidCursor } from '@/lib/player/client/useKidCursor';
 import { useOlxJsonMultiple } from '@/lib/player/client/useOlxJson';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
+/** Give the active child its own component/hook lifetime. */
+function TabPanel({ props, kid }: { props: RuntimeProps; kid: unknown }) {
+  const { kids } = useKids({ ...props, kids: [kid] });
+  return <>{kids}</>;
+}
+
 export default function Tabs(props: RuntimeProps) {
-  const { fields } = props;
   const { t } = useBlockTranslation(props);
-  const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
+  const kids = useKidsJson(props);
+  const cursor = useKidCursor(props, kids, props.fields.activeTab);
 
-  // Filtered kids (when= applied) — used for headers and content indexing
-  const filteredKids = useKidsJson(props);
+  // Headers need every visible child's metadata; panel rendering needs only
+  // cursor.kid. Inactive child components are never mounted.
+  const { olxJsons: blocks } = useOlxJsonMultiple(props, cursor.ids);
 
-  // Extract kid IDs for batch lookup (for tab labels)
-  const kidIds = filteredKids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
-
-  // Create a map for easy lookup by ID
-  const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
-
-  // Render all tab content upfront (useKids must be called unconditionally)
-  const { kids: renderedContent } = useKids(props);
-
-  if (filteredKids.length === 0) {
+  if (cursor.count === 0) {
     return <div className="p-4 text-dimmed">{t('noTabsDefined')}</div>;
-  }
-
-  // Ensure activeTab is within bounds
-  const numTabs = filteredKids.length;
-  const currentTab = activeTab >= 0 && activeTab < numTabs ? activeTab : 0;
-  if (currentTab !== activeTab) {
-    setActiveTab(currentTab);
   }
 
   return (
     <div className="tabs-component border rounded-lg bg-background overflow-hidden">
-      {/* Tab Headers */}
-      <div className="flex border-b bg-surface">
-        {filteredKids.map((kid, index) => {
-          const isActive = index === currentTab;
-
-          // Extract title from the child block's attributes (using pre-fetched blocks)
-          let tabLabel = t('defaultTabLabel', { number: index + 1 });
-          if (kid.type === 'block' && kid.id) {
-            const childBlock = kidBlockMap[kid.id];
-            if (childBlock) {
-              tabLabel = childBlock.attributes?.title || tabLabel;
-            }
-          }
+      <div className="flex border-b bg-surface" role="tablist">
+        {cursor.ids.map((id, index) => {
+          const active = index === cursor.index;
+          const title = blocks[index]?.attributes?.title;
+          const label = typeof title === 'string' && title !== ''
+            ? title
+            : t('defaultTabLabel', { number: index + 1 });
 
           return (
             <button
-              key={index}
-              onClick={() => setActiveTab(index)}
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => cursor.goto(index)}
               className={`
                 px-4 py-3 font-medium text-sm transition-all
-                ${isActive
+                ${active
                   ? 'bg-background text-accent border-b-2 border-accent'
                   : 'text-secondary hover:text-foreground hover:bg-muted'
                 }
               `}
             >
-              {tabLabel}
+              {label}
             </button>
           );
         })}
       </div>
 
-      {/* Tab Content - show only active tab */}
-      {/* TODO: display:none keeps all tabs mounted, so OnShow trigger="each_view"
-         only fires once (on first mount), not on each tab switch. Either unmount
-         inactive tabs (like Sequential does) or add a visibility callback so
-         OnShow can detect tab switches. */}
-      <div className="p-4">
-        {renderedContent.map((content, index) => (
-          <div key={index} style={{ display: index === currentTab ? 'block' : 'none' }}>
-            {content}
-          </div>
-        ))}
+      <div className="p-4" role="tabpanel">
+        {cursor.kid && (
+          <TabPanel key={cursor.id} props={props} kid={cursor.kid} />
+        )}
       </div>
     </div>
   );

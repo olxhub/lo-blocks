@@ -41,7 +41,15 @@ Core idea: Learners build understanding through experience and social interactio
 Each child block's `title` attribute becomes the tab header text.
 
 ## State
-- `activeTab`: Index of currently selected tab, persisted across sessions
+- `activeTab`: ID of the selected child, persisted across sessions. Tabs stores
+  identity rather than position, so hiding an earlier child with `when=` does
+  not move the learner to a different tab. Existing numeric state and authored
+  numeric actions remain accepted as zero-based positions and are upgraded to
+  IDs when read.
+
+Only the active panel is mounted. Switching tabs unmounts the previous panel,
+so child lifecycle behavior such as `OnShow trigger="each_view"` follows what
+the learner can actually see.
 
 ## Common Use Cases
 
