@@ -25,7 +25,7 @@ import { useEffect, useRef } from 'react';
 import { parseOLX } from '@/lib/content/parseOLX';
 import { isOLXFile } from '@/lib/util/fileTypes';
 import { toMemoryRef } from '@/lib/storage/lofs';
-import { toLofsRef } from '@/lib/types/address';
+import { toLofsRef, type LofsCanonical } from '@/lib/types/address';
 import { toAppError, type AppError } from '@/lib/types/errors';
 import {
   contentKeyOf, sourceSignature, shouldRequestParse, deriveContentView, useContentEntry,
@@ -65,16 +65,48 @@ export interface UseContentParams {
   onError?: (error: AppError) => void;
 }
 
-/** Parse the declared source into { root, blocks, warnings }. */
+/**
+ * External deps of a build: every file the parse actually READ through the
+ * provider (each block's `parseDeps`), minus the files the build was parsed
+ * FROM (each block's `source`).
+ *
+ * The subtraction is the whole point. An internal src= — one declared `files`
+ * entry referencing another — is already covered by sourceSignature(), which
+ * names every file in the map. Counting it as external would mark ordinary
+ * multi-file inline content as provider-resolved and buy a mount re-parse for
+ * nothing. What survives the subtraction is content the declared source cannot
+ * see: companion files served by the provider stack.
+ *
+ * parseOLX's own top-level parseDeps array is never returned, so the union has
+ * to be taken off the idMap, across every language variant of every block.
+ */
+function externalDepsOf(blocks: IdMap): LofsCanonical[] {
+  const deps = new Set<string>();
+  const sources = new Set<string>();
+  for (const variants of Object.values(blocks)) {
+    for (const node of Object.values(variants ?? {}) as any[]) {
+      if (node?.source) sources.add(String(node.source));
+      for (const dep of node?.parseDeps ?? []) deps.add(String(dep));
+    }
+  }
+  return [...deps].filter(d => !sources.has(d)) as LofsCanonical[];
+}
+
+/** Parse the declared source into { root, blocks, warnings, deps }. */
 async function parseDeclaredSource(
   params: UseContentParams,
-): Promise<{ root: DefinitionKey | null; blocks: IdMap; warnings: OLXLoadingError[] }> {
+): Promise<{ root: DefinitionKey | null; blocks: IdMap; warnings: OLXLoadingError[]; deps: LofsCanonical[] }> {
   const { inline, files, provider, provenance, ns } = params;
   if (!provider) throw new Error('RenderOLX: No provider for content resolution');
 
   if (inline != null && inline !== '') {
     const result = await parseOLX(inline, [toLofsRef(provenance || 'inline://')], provider, ns);
-    return { root: (result.root || null) as DefinitionKey | null, blocks: result.idMap, warnings: result.errors || [] };
+    return {
+      root: (result.root || null) as DefinitionKey | null,
+      blocks: result.idMap,
+      warnings: result.errors || [],
+      deps: externalDepsOf(result.idMap),
+    };
   }
 
   // files
@@ -98,7 +130,7 @@ async function parseDeclaredSource(
     lastRoot = (result.root || null) as DefinitionKey | null;
     if (result.errors?.length) allErrors = [...allErrors, ...result.errors];
   }
-  return { root: lastRoot, blocks: mergedIdMap, warnings: allErrors };
+  return { root: lastRoot, blocks: mergedIdMap, warnings: allErrors, deps: externalDepsOf(mergedIdMap) };
 }
 
 /**
@@ -131,6 +163,9 @@ export function useContent(params: UseContentParams): ContentView {
   // would re-fire on every dispatch). The signature deps gate re-parsing.
   const entryRef = useRef(entry);
   entryRef.current = entry;
+  // Has the request effect fired yet for THIS hook instance? Only the first
+  // fire may take the dep bypass below; see the comment there.
+  const firedRef = useRef(false);
 
   // Re-parse only when the source signature changes. Replay (sideEffectFree)
   // skips parsing: it renders from whatever the event stream already folded.
@@ -140,7 +175,32 @@ export function useContent(params: UseContentParams): ContentView {
     // Idempotent: identical content already fully parsed → do nothing (no
     // requestKey bump, no `parsing` dispatch). This is the guard that, together
     // with the stable-signature deps, breaks the parse→re-render→re-parse loop.
-    if (!shouldRequestParse(entryRef.current, signature)) return;
+    // INTERIM — mount-scoped re-parse for provider-resolved content.
+    //
+    // The signature names the DECLARED source only, so a build that read
+    // companion files through the provider stack (src= refs) has inputs the
+    // idempotency guard cannot see: edit one and nothing re-parses (see the
+    // KNOWN GAP note on sourceSignature). On main this was survivable because
+    // the ledger was component-local and every remount re-parsed; now the
+    // ledger outlives the component and a remount hits the guard, so stale is
+    // forever. So: on the FIRST fire of a hook instance only, re-parse anyway
+    // if the cached build recorded external deps — a fresh mount then picks up
+    // their current bytes, which is exactly main's recovery behaviour, confined
+    // to the builds that actually have companion files. The `firedRef` latch is
+    // what keeps it mount-scoped: without it, the re-parse's own CONTENT_PARSED
+    // re-fires nothing today, but any later effect fire would loop.
+    //
+    // The cost is honest: each such mount re-emits CONTENT_PARSED, blocks
+    // payload and all, into the durable event stream. The dep gate is what
+    // keeps that rare. The destination is comparing recorded dep VERSIONS
+    // against the provider's current ones — a real staleness check, live rather
+    // than mount-scoped — once the worktree lives in Redux.
+    const depBypass = !firedRef.current
+      && entryRef.current?.status === 'ready'
+      && entryRef.current?.signature === signature
+      && (entryRef.current?.data?.deps?.length ?? 0) > 0;
+    firedRef.current = true;
+    if (!depBypass && !shouldRequestParse(entryRef.current, signature)) return;
 
     let cancelled = false;
     const run = async () => {
@@ -158,11 +218,11 @@ export function useContent(params: UseContentParams): ContentView {
       requestKeyRef.current = rk;
       logContentParsing({ runtime }, { key, ns, requestKey: rk, sourceKind, blockSource, signature, provenance });
       try {
-        const { root, blocks, warnings } = await parseDeclaredSource(params);
+        const { root, blocks, warnings, deps } = await parseDeclaredSource(params);
         if (cancelled) return;
         logContentParsed({ runtime }, {
           key, ns, requestKey: rk, sourceKind, blockSource, signature,
-          root, warnings, blocks, provenance, retrievedAt: Date.now(),
+          root, warnings, blocks, deps, provenance, retrievedAt: Date.now(),
         });
       } catch (err: any) {
         if (cancelled) return;

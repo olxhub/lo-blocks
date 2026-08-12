@@ -1808,6 +1808,25 @@ export interface ContentLedgerData {
    *  actually rendered (the ErrorBoundary reset key, staleness display) must
    *  read it from here. */
   canonical?: LofsCanonical;
+  /** Canonical names of the EXTERNAL files this build read while parsing —
+   *  companion content pulled through the provider stack by src= refs, with
+   *  the build's own source files subtracted out (those are already named by
+   *  the entry's `signature`). Empty/absent means the declared source was the
+   *  whole input.
+   *
+   *  Lives on the data, not the entry, for the same reason `canonical` does:
+   *  it describes the build that is actually on screen, not the newest attempt
+   *  — mid-re-parse the entry's signature has moved on while these deps still
+   *  belong to the rendered tree.
+   *
+   *  It exists so that staleness for provider-resolved content becomes
+   *  CHECKABLE at all: see the KNOWN GAP note on sourceSignature() — the
+   *  signature covers declared inputs only, so without a record of what the
+   *  parse read there is nothing to compare against. Today only the presence
+   *  of deps is consulted (a fresh mount of a dep-bearing build re-parses);
+   *  comparing recorded dep versions to the provider's current ones is the
+   *  destination. */
+  deps?: LofsCanonical[];
 }
 
 /** One content request's ledger entry. */

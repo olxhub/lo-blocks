@@ -145,6 +145,27 @@ test('shouldRequestParse: skip only when already ready for the SAME signature', 
   expect(shouldRequestParse({ ...ready, status: 'error' }, sig)).toBe(true);
 });
 
+// ── External deps of a build ─────────────────────────────────────────────────
+
+test('CONTENT_PARSED records the build external deps on the data', () => {
+  // The signature names DECLARED inputs only, so what the parse read through
+  // the provider has to ride along on the build — it is the only record a
+  // staleness check could ever compare against.
+  const deps = ['memory:local/companion.md#abc'];
+  let s = ev(base(), CONTENT_PARSED, {
+    key: KEY, requestKey: 1, sourceKind: 'inline', blockSource: 'content',
+    signature: 'sig-1', root: 'demo/root', warnings: [], blocks, deps, retrievedAt: 1,
+  });
+  expect(s.content[KEY].data.deps).toEqual(deps);
+
+  // A build with no provider-resolved content says so (absent, not stale).
+  s = ev(s, CONTENT_PARSED, {
+    key: KEY, requestKey: 2, sourceKind: 'inline', blockSource: 'content',
+    signature: 'sig-2', root: 'demo/root', warnings: [], blocks, retrievedAt: 2,
+  });
+  expect(s.content[KEY].data.deps).toBeUndefined();
+});
+
 // ── Render revision (the ErrorBoundary reset seam) ───────────────────────────
 
 test('view.revision names the LANDED build, not the in-flight attempt', () => {

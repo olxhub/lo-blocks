@@ -233,6 +233,31 @@ function pathPart(value: string): LofsContentPath {
  * legible, because a canonical name you can read in an event log is worth far
  * more than the bytes it saves. Multiple files hash their per-file canonicals
  * into one name — git's tree object, in miniature.
+ *
+ * ALL files in a `files` map are named, including non-OLX ones. That is
+ * deliberate, not sloppiness: a .md or .json entry is a parse INPUT when OLX
+ * references it via src=, so leaving it out would skip a required re-parse.
+ * The cost of including one that is NOT referenced is a byte-identical
+ * re-parse — the cheap side of the trade.
+ *
+ * KNOWN GAP (TODO, needs the profile/epoch concept from the state-refactor
+ * docs): content resolved through the PROVIDER stack (src=/cast= refs read
+ * from `provider`/`resolveProvider` at parse time) is baked into the build but
+ * contributes nothing to this name. Editing a referenced companion file in
+ * Studio therefore does not re-parse the preview — and cannot be forced to by
+ * effect deps, because shouldRequestParse short-circuits on the unchanged
+ * signature. The fix is a provider content-version folded in here (the same
+ * "conditions the result was produced under" question as locale), not a
+ * looser idempotency guard.
+ *
+ * PARTIALLY MITIGATED: a build now RECORDS what it read through the provider
+ * on the ledger (`ContentLedgerData.deps`), and a fresh MOUNT of a
+ * dep-bearing build re-parses (see the dep bypass in useContent) — which
+ * restores the close-and-reopen-the-preview recovery that the
+ * component-local ledger used to give for free. Live invalidation — editing a
+ * companion file while the preview stays mounted — still needs the destination
+ * above: a provider content-version folded into this name, i.e. the worktree
+ * in Redux.
  */
 export function sourceSignature(input: {
   sourceKind: ContentLedgerSourceKind;
@@ -306,6 +331,8 @@ export function logContentParsed(
   payload: {
     key: string; ns: ContentNamespace; requestKey: number; sourceKind: ContentLedgerSourceKind; blockSource: string; signature: string;
     root: DefinitionKey | null; warnings: OLXLoadingError[]; blocks: IdMap;
+    /** External files this parse read through the provider (ContentLedgerData.deps). */
+    deps?: LofsCanonical[];
     provenance?: string; retrievedAt: number;
   },
 ): void {
@@ -401,7 +428,7 @@ export function contentReducer(
     }
 
     case CONTENT_PARSED: {
-      const { key, ns, requestKey, sourceKind, blockSource, signature, root, warnings, provenance, retrievedAt } = action;
+      const { key, ns, requestKey, sourceKind, blockSource, signature, root, warnings, deps, provenance, retrievedAt } = action;
       // No supersede check here: the decision is made ONCE at store routing, by
       // isSupersededContentEvent, so that this slice and olxjson.ts cannot
       // disagree. Re-asking it here would be a second copy of a rule that is
@@ -413,7 +440,7 @@ export function contentReducer(
         status: 'ready',
         requestKey: ratchet(entry, requestKey),
         sourceKind, blockSource, ns, signature,
-        data: { root: root ?? null, warnings: warnings ?? [], canonical: signature },
+        data: { root: root ?? null, warnings: warnings ?? [], canonical: signature, deps },
         provenance,
         retrievedAt,
       }));
