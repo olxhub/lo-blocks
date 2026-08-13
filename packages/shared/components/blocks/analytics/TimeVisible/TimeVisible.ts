@@ -1,5 +1,6 @@
-// TimeVisible - invisible stopwatch measuring how long its surroundings were
-// actually on-screen and actively worked in.
+// TimeVisible - temporary client-side stopwatch for the current writing
+// content. This is an internal stopgap until server-side analytics can record
+// attended time properly; it is not the platform's analytics architecture.
 //
 // Usage:
 //   <Tab title="Drafting">
@@ -25,7 +26,8 @@ export const fields = state.fields([commonFields.value]);
 const TimeVisible = dev({
   ...parsers.ignore(),
   name: 'TimeVisible',
-  description: 'Invisible timer accumulating seconds during which it is on-screen and the learner is active',
+  description: 'Temporary writing-content timer for approximate attended time',
+  internal: true,
   fields,
   // Not an input — it is never graded. Other blocks read the running total
   // through the plain `value` field: {{@time_drafting.value}}, target=, etc.

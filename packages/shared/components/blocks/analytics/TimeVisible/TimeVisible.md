@@ -1,7 +1,12 @@
 # TimeVisible
 
-An invisible stopwatch. Drop it next to an activity and it records how long
-the learner actually spent there.
+> **Internal stopgap:** This is a one-off client-side timer added so the current
+> writing content can collect approximate attended-time data before proper
+> server-side analytics land. It is not a general-purpose analytics API and
+> new content should not depend on it without revisiting that architecture.
+
+Drop it next to an activity and it approximates how long the learner actively
+had that part of the page open.
 
 ```olx:playground
 <Vertical id="tv_demo">
@@ -62,10 +67,10 @@ Writes are batched: the internal tick is one second, but Redux is only
 written every five seconds (and immediately on unmount or when the tab is
 hidden), so a long session produces a manageable number of events.
 
-## Measuring phases of a writing process
+## Current writing-content use
 
-The intended use is one timer per phase, so a report can show where the
-time went:
+The immediate use is one timer per writing phase, so a report can show where
+the time went:
 
 ```xml
 <Tabs id="wpj3_tabs">
@@ -82,6 +87,8 @@ time went:
 
 ## Caveats
 
+- Timing and persistence happen entirely in the browser. The resulting value
+  is learner-controlled state, not authoritative analytics data.
 - Idleness is inferred from input events on `document`, so a learner
   reading a long passage without touching anything is counted as idle after
   `idleTimeout`. Set a longer timeout for reading-heavy activities.
