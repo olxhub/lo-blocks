@@ -42,6 +42,14 @@ describe('parseContentSourcesConfig', () => {
     });
   });
 
+  it('treats an empty YAML sources section as no configured sources', () => {
+    expect(parseContentSourcesConfig({ sources: null })).toEqual({
+      sources: {},
+      fallback: './content',
+      fallbackWritable: false,
+    });
+  });
+
   it('names the source mount and all three supported forms in validation errors', () => {
     expect(() => parseContentSourcesConfig({
       sources: {
@@ -56,6 +64,7 @@ describe('parseContentSourcesConfig', () => {
   it.each([
     ['non-boolean writability', { sources: { course: { dir: '/srv/course', writable: 'yes' } } }],
     ['ambiguous source form', { sources: { course: { dir: '/srv/course', repo: 'https://example.com/x' } } }],
+    ['non-object sources', { sources: [] }],
     ['unknown top-level setting', { sources: {}, typo: true }],
   ])('rejects %s', (_name, config) => {
     expect(() => parseContentSourcesConfig(config, 'test.yaml')).toThrow(/^Invalid test\.yaml:/);

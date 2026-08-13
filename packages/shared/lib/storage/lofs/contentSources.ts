@@ -133,7 +133,12 @@ const ContentSourceSchema: z.ZodType<ContentSource> = z.union([
 ]);
 
 const ContentSourcesConfigSchema = z.object({
-  sources: z.record(ContentSourceSchema).default({}),
+  // YAML parses a key with only commented-out children (`sources:`) as null.
+  // At this collection boundary, that is the same configuration as `sources: {}`.
+  sources: z.preprocess(
+    value => value === null ? {} : value,
+    z.record(ContentSourceSchema).default({}),
+  ),
   fallback: z.string().min(1).default('./content'),
   fallbackWritable: z.boolean().default(false),
 }).strict();
