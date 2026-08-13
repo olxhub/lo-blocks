@@ -38,6 +38,9 @@ function fakeConn(): ConnectionLog {
   return {
     id: 'test-conn', user: USER, path: '/dev/null', stream,
     fileStream: null as any,
+    // There is no file behind this fake, so "the bytes reached the file" is
+    // vacuously true; appendEventDurable awaits this after each flush.
+    fileWritten: Promise.resolve(),
     log: { description: 'test', started: '', user: USER, eventCount: 0 } as any,
   };
 }
@@ -520,6 +523,37 @@ test('registry.read: live state when connected, stored state when not', async ()
   expect(registry.size()).toBe(0);
   const cold = await registry.read(userInstance(USER.safe_user_id));
   expect(cold!.component['pipe-block'].value).toBe('v1');
+});
+
+test('a failed durable append withholds the ack and tears the pipeline down', async () => {
+  // The ack contract, from the failure side: decodeAndLog awaits
+  // appendEventDurable BEFORE sending { status: 'ack' }, so an append that
+  // cannot reach the log must produce NO ack. A future refactor that catches
+  // the rejection and keeps acking would make the server claim durability for
+  // an event that was never written — the exact bug Plane 1 exists to remove.
+  // The rejection is also required to propagate: the connection's log is
+  // broken, so the pipeline stops (and its `finally` releases state) rather
+  // than running on silently.
+  const kvs = new MemoryKVStore();
+  const ws = new FakeWs();
+  const conn = fakeConn();
+  // A prior write error on this connection — appendEventDurable rejects
+  // immediately on it, standing in for a mid-session ENOSPC. (The pump's own
+  // capture of that error is covered in eventLog.test.ts.)
+  conn.streamError = new Error('ENOSPC: no space left on device');
+  const registry = new UserStateRegistry(kvs);
+  const ctx: PipelineContext = {
+    ws: ws as any, user: USER, conn, kvs, canonical: 'fields',
+    stateRegistry: registry, subscriptions: new SubscriptionRegistry(),
+  };
+  const run = runPipeline(ctx);
+  ws.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, metadata: { eventId: 'browser-t.session-t.1' } })));
+
+  await expect(run).rejects.toThrow(/ENOSPC/);
+  expect(ws.sent.filter(m => m.status === 'ack')).toHaveLength(0);
+  // Teardown still ran: no phantom live entry left behind.
+  expect(registry.size()).toBe(0);
 });
 
 test('fetch seed + events: assembled state accumulates across sessions', async () => {

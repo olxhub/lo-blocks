@@ -48,7 +48,15 @@ import {
   OLXJSON_TRANSLATING,
   OLXJSON_ERROR,
   CLEAR_OLXJSON,
+  OLXJSON_EVENT_TYPES,
 } from './olxjson';
+import {
+  contentReducer,
+  initialContentState,
+  CONTENT_EVENT_TYPES,
+  CONTENT_PARSED,
+  isSupersededContentEvent,
+} from './content';
 import {
   catalogReducer,
   CATALOG_EVENT_TYPES,
@@ -138,14 +146,12 @@ const initialState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  content: initialContentState,
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,
 };
 
-
-// Event types for olxjson state
-const OLXJSON_EVENT_TYPES = [LOAD_OLXJSON, OLXJSON_LOADING, OLXJSON_TRANSLATING, OLXJSON_ERROR, CLEAR_OLXJSON];
 
 // Server-provided field state riding a content fetch (fields-design 2b).
 export const ADOPT_FIELD_STATE = 'ADOPT_FIELD_STATE';
@@ -183,6 +189,32 @@ export const updateResponseReducer = (state = initialState, action) => {
     return {
       ...state,
       olxjson: olxjsonReducer(state.olxjson, { ...action, type: eventType }),
+    };
+  }
+
+  // Content ledger (source-level parse lifecycle). CONTENT_PARSED is special:
+  // it lands BOTH slices in one fold — the ledger (root/warnings/status) here,
+  // and the parsed blocks in the OlxJson slice — so "the ledger reports a root"
+  // and "that root's blocks are in Redux" can never disagree (the async race).
+  if (CONTENT_EVENT_TYPES.includes(eventType)) {
+    const scoped = { ...action, type: eventType };
+    // INTERIM (see "WHERE THIS IS GOING" in lib/state/content.ts). Supersede is
+    // decided ONCE, here, for the pair — a stale result folds into NEITHER
+    // slice. Letting each reducer decide for itself meant a late parse could be
+    // rejected by the ledger and merged into the blocks anyway, so the ledger
+    // advertised the new build while the blocks held the old one.
+    //
+    // This is a guard where the destination is a structure: once builds are
+    // stored under their content hash, a stale parse writes to its own address
+    // and cannot clobber anything, so there is nothing left to reject. Delete
+    // this — and RequestSeq with it — when that lands; do not grow it.
+    if (isSupersededContentEvent(state.content, scoped)) return state;
+    return {
+      ...state,
+      content: contentReducer(state.content, scoped),
+      ...(eventType === CONTENT_PARSED
+        ? { olxjson: olxjsonReducer(state.olxjson, scoped) }
+        : {}),
     };
   }
 
@@ -475,6 +507,7 @@ function collectEventTypes(
     ...componentEventTypes,
     ...extraEventTypes,
     ...OLXJSON_EVENT_TYPES,
+    ...CONTENT_EVENT_TYPES,
     ...CATALOG_EVENT_TYPES,
     ...DOCS_EVENT_TYPES,
     ...SOURCES_EVENT_TYPES,
@@ -538,7 +571,11 @@ function configureStore({
   // static, fetched in client), so syncing it is redundant — and shipping the
   // bundled course as one giant action corrupts the receiving tab. lo_event
   // already withholds its own lifecycle actions (SET_STATE, LOCKFIELDS).
-  const CONTENT_EVENTS = new Set<string>([...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES]);
+  // Content-ledger events are excluded for the same reason: CONTENT_PARSED
+  // carries a whole parsed source, and each tab parses its own content anyway.
+  const CONTENT_EVENTS = new Set<string>([
+    ...OLXJSON_EVENT_TYPES, ...CATALOG_EVENT_TYPES, ...CONTENT_EVENT_TYPES,
+  ]);
   const syncFilter = (action: any): boolean => {
     // Server-fanned events must not re-broadcast: sibling tabs have their
     // own sockets and receive the fan-out directly — a BroadcastChannel
@@ -605,7 +642,57 @@ function configureStore({
     // Explicit URL (e.g. from static.config.json) bypasses port-map resolution.
     // getWebsocketUrl() must only be called when actually needed — it throws on
     // unknown ports.
-    ...(useWebsocket ? [websocketLogger(eventServerUrl || getWebsocketUrl())] : []),
+    //
+    // autoack: false — lo-blocks REQUIRES the Plane-1 durable-ack protocol.
+    // Events are retained in the outbox until the SERVER acks them, never
+    // confirmed on send. See docs/README.md, "State, Events, and
+    // Synchronization". This is lo_event's default; it is stated explicitly
+    // because silently flipping to confirm-on-send loses the tail of a session.
+    //
+    // The ack protocol's tab-close recovery REQUIRES a durable outbox: held
+    // unacked events must survive the JS context dying so the next load can
+    // resend them. AUTODETECT uses IndexedDB in the browser (durable across
+    // reload) and falls back to in-memory in node/SSR/tests where IndexedDB is
+    // unavailable. With an in-memory queue the tab-close recovery is void.
+    //
+    // DELIBERATE: the IndexedDB queue is SHARED ACROSS TABS (fixed DB name),
+    // and that is not a bug to fix. A per-tab database would give each tab a
+    // tidy log and forfeit the entire point — recovery across a reload or a
+    // closed tab, which is not tab-scoped. Accepted consequences: tabs
+    // re-send each other's backlog (harmless — delivery is at-least-once and
+    // reducers are idempotent), and one tab's events can land on another's
+    // connection, which will matter for attribution once `lock_fields`
+    // attachment lands server-side. The shared `seq` is a FEATURE: it is a
+    // browser-wide total order of enqueue. Per-event identity is already
+    // redundant by design (lo_event util.ts): metadata.browserTag (browser
+    // GUID, persisted), metadata.sessionTag (page-load GUID),
+    // metadata.sessionSeq (counter within a page load), timestamps, and
+    // this queue `seq`. Order by timestamp, then sequence, then GUID.
+    //
+    // There is no longer any capability negotiation, and that is deliberate:
+    // it existed to guard a legacy confirm-on-send fallback, and a fallback
+    // that silently downgrades durability is worse than none. The ack protocol
+    // is simply required. A server that accepts events and never acks is
+    // handled: the outbox correctly retains them, and the symptom-based fatal
+    // banner (connected, outbox non-empty, nothing acked in N seconds) says so
+    // out loud — see the FATAL block in components/common/ConnectionStatus.tsx.
+    // fetchState: lo-blocks HAS server-side state, so the logger requests a
+    // snapshot itself once per connection, behind the flush barrier (the
+    // request must arrive after this connection's backlog, or the snapshot
+    // predates the user's own last keystrokes), and retries if unanswered.
+    //
+    // Stated explicitly rather than inherited: lo_event derives it as
+    // `fetchState = !autoack`, which conflates two independent questions —
+    // "do I retain until acked" and "does this app have state to load". A pure
+    // logger deployment (no state to fetch) sets this false, and must not have
+    // to give up durable acks to say so.
+    ...(useWebsocket
+      ? [websocketLogger(eventServerUrl || getWebsocketUrl(), {
+          autoack: false,
+          fetchState: true,
+          queueType: lo_event.QueueType.AUTODETECT,
+        })]
+      : []),
   ];
 
   lo_event.init(
@@ -617,7 +704,6 @@ function configureStore({
       debugDest: debugEvents ? [debug.LOG_OUTPUT.CONSOLE] : [],
       useDisabler: false,
       sendBrowserInfo: !isTest,
-      queueType: lo_event.QueueType.IN_MEMORY
     }
   );
   lo_event.lockFields([{ activity: 'lo-blocks' }]);

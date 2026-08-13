@@ -20,7 +20,22 @@ export async function fetchOlxJson(
   options?: RequestInit
 ): Promise<{ ok: boolean; idMap: IdMap; fieldState?: Record<string, any>; error?: string }> {
   const res = await globalThis.fetch(`/api/olxjson?id=${encodeURIComponent(id)}`, options);
-  if (!res.ok) return { ok: false, idMap: {}, error: `HTTP ${res.status}` };
+  if (!res.ok) {
+    // Surface the server's own explanation (e.g. "No content found for ID: …")
+    // and the id we asked for. A bare "HTTP 404" tells the reader nothing about
+    // WHICH block failed or WHY — and for content that should have been supplied
+    // locally (inline/parsed), the fetch itself is the surprise worth naming.
+    let detail = '';
+    try {
+      const body: any = await res.json();
+      if (body?.error) detail = `: ${body.error}`;
+    } catch { /* non-JSON body — the status alone will have to do */ }
+    return {
+      ok: false,
+      idMap: {},
+      error: `Content fetch for "${id}" failed — HTTP ${res.status}${detail}`,
+    };
+  }
   return res.json();
 }
 

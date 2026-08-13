@@ -31,7 +31,7 @@ import {
   resolveUserWithSession, createSessionToken, buildSetCookie
 } from './session.js';
 import { createConnectionLog, saveConnectionLog, type ConnectionLog } from './eventLog.js';
-import { runPipeline } from './pipeline.js';
+import { runPipeline, safeSend } from './pipeline.js';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
@@ -315,7 +315,27 @@ export async function startServer(
       `${req.socket.remoteAddress} → ${conn.path}`
     );
 
-    ws.send(JSON.stringify({ status: 'auth', ...user }));
+    // DISABLED, deliberately — kept as a breadcrumb, not as dead weight.
+    //
+    // This advertised what the server speaks, as the first frame on every
+    // connection. Nothing reads it any more: lo_event dropped capability
+    // negotiation on purpose, because it existed mainly to guard a legacy
+    // confirm-on-send fallback, and a fallback that silently downgrades
+    // durability is worse than none. The ack protocol is simply required.
+    //
+    // It stays commented rather than deleted because the SHAPE is probably
+    // right for what comes next, even though this instance of it is not. Two
+    // known future needs: Plane 2 (subscribe) has to announce itself somehow,
+    // and a resuming client wants to hear "I already have <session> through
+    // <seq>" so it can skip a resend. Whether that is a hello frame, a reply
+    // to an explicit request, or something else is genuinely open.
+    //
+    // What it must NOT come back as: a negotiation that selects between a
+    // durable path and a lossy one. See docs/README.md, "State, Events, and
+    // Synchronization".
+    //
+    // safeSend(ws, { status: 'hello', capabilities: { ack: true } });
+    safeSend(ws, { status: 'auth', ...user });
 
     runPipeline({ ws, user, conn, kvs, canonical, stateRegistry, subscriptions, fieldLevels, grouping, aggregations }).then(() => {
       console.log(`[${conn.id}] Client disconnected - ${conn.log.eventCount} events`);
@@ -328,6 +348,12 @@ export async function startServer(
       // hot reload.)
       try { ws.close(1011, 'pipeline failed'); } catch { /* already gone */ }
     }).finally(() => {
+      // ORDER IS LOAD-BEARING: deregister only AFTER the log has been saved.
+      // Graceful shutdown (index.ts) closes every socket and then polls
+      // activeConnections until it is empty, treating "empty" as "all event
+      // logs are flushed to disk". Deleting before the save resolves would
+      // make that poll finish early and let process.exit() cut off the gzip
+      // drain — silently truncating the tail of every open session's log.
       saveConnectionLog(conn)
         .catch((err) => console.error(`[${conn.id}] Error saving event log:`, err))
         .finally(() => activeConnections.delete(ws));

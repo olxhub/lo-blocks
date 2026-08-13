@@ -23,7 +23,6 @@ export * from './redux';
 export * from './store';
 export * from './olxjson';
 export * from './urlFields';
-export { ReduxStoreLoader } from './ReduxStoreLoader';
 export { useLoaded, useSaved, useConnected } from 'lo_event/hooks';
 
 // ---------------------------------------------------------------------------

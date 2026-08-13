@@ -154,7 +154,10 @@ async function main() {
   console.log('\nReady. Press Ctrl+C to stop.\n');
 
   // --- Graceful shutdown ---------------------------------------------------
+  let shuttingDown = false;
   async function shutdown() {
+    if (shuttingDown) return;   // a second Ctrl+C, or the admin route racing one
+    shuttingDown = true;
     console.log('\nShutting down...');
     shutdownMcp();
 

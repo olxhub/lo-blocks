@@ -23,7 +23,7 @@
 import type { WebSocket } from 'ws';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
-import { appendEvent } from './eventLog.js';
+import { appendEvent, appendEventDurable } from './eventLog.js';
 import type { KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { ServerState } from '@/lib/state/sync/materialization';
@@ -36,9 +36,28 @@ import type { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { routeEvent, type SyncSession } from '@/lib/state/sync/router';
 
 /** Send a message to the client, ignoring errors if the socket is already closing. */
-function safeSend(ws: WebSocket, data: object) {
+export function safeSend(ws: WebSocket, data: object) {
   try {
-    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(data));
+    // Stamp every server-originated frame with the time it went out.
+    // Client-originated events carry lo_event's full metadata; server frames
+    // (ack, hello, auth, save_blob_ack, ...) carried nothing at all, which
+    // makes a captured session unreadable in exactly the moments you care
+    // about — you can see an event was sent but not when it was acknowledged,
+    // so latency and ordering across the two directions are unrecoverable.
+    // Server-side timestamps only: the server's clock is the trustworthy one
+    // here, and none of the client's identity applies to a frame it did not
+    // create.
+    // Stamp LAST: these are server-originated frames, so the server's clock is
+    // authoritative for them. Spreading `data` last would let a frame's own
+    // timestamp silently override the send time — no frame carries one today,
+    // which is exactly why the wrong order would go unnoticed until one did.
+    //
+    // ONE encoding, matching lo_event's client convention (iso_ts always; a
+    // numeric ts only under verboseEvents). Acks are the highest-volume
+    // server->client frame and are not written to the server log, so a second
+    // encoding of the same instant is wire cost buying no log legibility.
+    const stamped = { ...data, iso_ts: new Date().toISOString() };
+    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(stamped));
   } catch { /* client gone — not actionable */ }
 }
 
@@ -97,6 +116,17 @@ export interface PipelineContext {
 function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
   // Bridge the callback-based ws API into an async generator.
   // Events are queued; the generator pulls them one at a time.
+  //
+  // The queue is UNBOUNDED, and stage 1 now costs a disk round-trip per event
+  // (appendEventDurable), so a client flushing a large outbox backlog — the
+  // very case the durable client queue creates on reconnect — accumulates
+  // that backlog in server heap while the drain loop chews through it one
+  // flush at a time. Bounded today only by what one connection can send.
+  // The fix rides the batching rework (TODO(plane1-durability) in
+  // eventLog.ts): draining the pending queue into ONE flush per boundary
+  // collapses the disk round-trips that let the queue grow. If a hard bound
+  // is ever needed sooner, pause the ws socket at a high-water mark — NOT
+  // the gzip stream (see the pump comment in eventLog.ts).
   const queue: PipelineEvent[] = [];
   let done = false;
   let resolve: (() => void) | null = null;
@@ -130,13 +160,55 @@ function messagesFrom(ws: WebSocket): AsyncGenerator<PipelineEvent> {
 // Stage 1: Decode and log
 // =============================================================================
 
-/** Log each event to the connection log and save to disk. */
+/** Log each event to the connection log, flush it to disk, and — once it
+ *  is durably captured — ack it (Plane 1).
+ *
+ *  The ack names the EVENT, not a position in a stream: "I durably have
+ *  <browser>.<session>.<seq>". That name is minted by the client at event
+ *  creation (lo_event's metadata.eventId) and travels with the event, so the
+ *  server echoes it rather than inventing a transport sequence.
+ *
+ *  Why identity rather than a cumulative "everything ≤ N": the client's queue
+ *  is shared across tabs while each tab holds its own socket, so a position in
+ *  one connection's stream says nothing about what another tab may delete. An
+ *  identity ack is a fact any holder of that record can act on. It also lets a
+ *  future hello say "I already have <session> through <seq>" and skip a
+ *  resend, which a per-connection counter cannot express.
+ *
+ *  The ack rides the events/-log append here, at the head of the pipeline; the
+ *  debounced KVS materialization (FieldPersister) stays downstream, unchanged.
+ *
+ *  Events with no id (legacy or non-lo_event producers) are logged and simply
+ *  not acked; their receiveMessage ignores frames it doesn't recognize. */
 async function* decodeAndLog(
   events: AsyncIterable<PipelineEvent>,
   context: PipelineContext
 ): AsyncGenerator<PipelineEvent> {
   for await (const event of events) {
-    appendEvent(context.conn, event);
+    // Await durability BEFORE acking: the whole point of Plane 1 is that
+    // "ack" means "on disk", not "received into a variable" (see docs/README.md,
+    // section "State, Events, and Synchronization").
+    //
+    // TODO(fatal-isolation): a rejection here — or a throw in ANY later stage —
+    // currently tears down the whole session (server.ts closes the socket),
+    // which conflates two different failures. The intended split:
+    //   * The LOG failing is the one fatality that must stop acks: with no
+    //     durable capture there is nothing to promise. Tear down, and let the
+    //     client's not-acking banner surface it (ConnectionStatus.tsx).
+    //   * A DOWNSTREAM stage failing (a reducer bug, a malformed event wedging
+    //     routing) must NOT stop capture: keep appending and acking — the
+    //     events are durably held for replay once the bug is fixed — and stop
+    //     feeding the broken stages instead of killing the connection.
+    // Today both fail identically because the drain loop pulls through every
+    // stage in one chain. The split likely lands with the projection-cursor
+    // work (state-persistence-take-stock §7.4), which makes "captured but not
+    // yet projected" a first-class, recoverable state rather than an outage.
+    await appendEventDurable(context.conn, event);
+
+    const eventId = event?.metadata?.eventId;
+    if (typeof eventId === 'string') {
+      safeSend(context.ws, { status: 'ack', id: eventId });
+    }
 
     const eventType = event.event || event.type || 'unknown';
     const id = event.id ? ` id=${event.id}` : '';

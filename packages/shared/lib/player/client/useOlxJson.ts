@@ -20,13 +20,10 @@ import {
   dispatchOlxJsonError
 } from '@/lib/state/olxjson';
 import { adoptFieldState } from '@/lib/state/store';
-import { qualifyDefinitionRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey, leafDefinitionKeyFromStateKey, asStateKey } from '@/lib/types/id-grammar';
+import { qualifyDefinitionRef, allDefinitionKeysFromStateKey, stateKeyForGlobalRef, parseAnyStateRef, splitNs, joinNs, asDefinitionKey, parseDefinitionKey } from '@/lib/types/id-grammar';
 import { getRefAttributes } from '@/lib/blocks/attributeSchemas';
 import { extractLocalizedVariant } from '@/lib/i18n/getBestVariant';
 import type { OlxJson, DefinitionKey, DefinitionRef, StateKey, IdMap, BaselineProps, RuntimeProps, BlockDataResult } from '@/lib/types';
-import type { AppError } from '@/lib/types/errors';
-import { safeStringify } from '@/lib/util';
-import type { LogEventFn } from '@/lib/player/client/render';
 import { blockData } from '@/lib/state/redux';
 import type { LofsCanonical } from '@/lib/types/address';
 
@@ -104,7 +101,17 @@ export function ensureBlock(
   const dedupKey = `${source}:${locale}:${definitionKey}`;
   if (ensuredIds.has(dedupKey)) return;
 
+  // Declared-source gate (INTERIM — see lib/state/content.ts). Inline/files
+  // content is parsed locally and must never be server-fetched: an absent block
+  // is genuinely missing, not "go fetch". Scoped to the RENDER TREE via the
+  // runtime context (RenderOLX sets it from its own declared source), so one
+  // inline render can't suppress fetching for unrelated content — the previous
+  // ledger scan latched onto (blockSource, ns) for the whole session, breaking
+  // sibling trees that legitimately needed a fetch.
+  if (props.runtime.localContent) return;
+
   const state = props.runtime.store.getState();
+
   const blockState = selectBlockState(state, [source], definitionKey);
   if (blockState) return; // Already known (loading, ready, or error)
 
@@ -332,49 +339,10 @@ function errorOlxJson(id: string, message: string): OlxJson {
   };
 }
 
-/**
- * Derived DefinitionKey for a block's RENDER error. Uses a distinct
- * `_renderError_` prefix (load errors use `_error_`) so the two never clobber
- * each other under one key — and so the dispatched node and the on-screen
- * DisplayError can share exactly one key. Reduces a scoped StateKey
- * (e.g. "CONTENT/list:#0:answer") to its leaf definition first, because
- * sentinelKey → parseDefinitionKey throws on a scope marker.
- */
-export function renderErrorKey(id: string): DefinitionKey {
-  return sentinelKey(leafDefinitionKeyFromStateKey(asStateKey(id)), '_renderError_');
-}
-
-/**
- * Construct an ErrorNode OlxJson carrying a full AppError, at the
- * `_renderError_` derived DefinitionKey for `id` ({@link renderErrorKey}). Used
- * by the render-error path: a render failure of block `id` becomes an ErrorNode
- * here (AppError as attributes), dispatched into olxjson — keyed + in the event
- * log, and NOT persisted (so it reconstructs away when the underlying bug is
- * fixed).
- *
- * This node is serialized (save_blob JSON, BroadcastChannel structured clone),
- * so its attributes MUST be JSON-safe. `AppError.technical` is `any`, so we
- * coerce it to a string — a non-JSON value (Error, React element, function,
- * circular) would otherwise throw DataCloneError on tab-sync. Rich/non-JSON
- * error detail belongs in the boundary's live DisplayError, never in the node.
- */
-export function renderErrorOlxJson(id: string, error: AppError): OlxJson {
-  // Only include defined, JSON-safe string fields (no `undefined` keys).
-  const attributes: Record<string, string> = { message: error.message };
-  if (error.title) attributes.title = error.title;
-  if (error.stack) attributes.stack = error.stack;
-  if (error.technical != null) {
-    attributes.technical = safeStringify(error.technical);
-  }
-  return {
-    id: renderErrorKey(id),
-    tag: 'ErrorNode' as any,
-    attributes,
-    kids: [],
-    source: SYNTHETIC_SOURCE,
-    parseDeps: [],
-  };
-}
+// Render-time exceptions no longer become synthetic OLX error-nodes injected
+// into the content index. RenderOLX's ErrorBoundary logs a CONTENT_RENDER_FAILED
+// event into the content ledger (lib/state/content.ts) and shows DisplayError
+// directly — one representation, on the normal event path, no sync dispatch.
 
 // =============================================================================
 // Selector trio pattern for multiple OlxJson blocks

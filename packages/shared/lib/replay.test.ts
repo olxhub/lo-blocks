@@ -236,6 +236,26 @@ describe('replay', () => {
       const preview = filterByContext(events, 'preview');
       expect(preview.map(e => e.event)).toEqual(['A', 'C']);
     });
+
+    it('keeps content-ledger events, which carry no context', () => {
+      // CONTENT_PARSED reconstructs BOTH the ledger entry and the parsed
+      // blocks, and useContent logs it with no context. Filtering it out makes
+      // a preview replay render a spinner instead of the historical content —
+      // the same class of miss as forgetting to register CONTENT_EVENT_TYPES
+      // with the store, which is why the set is spread from that same list.
+      const events: LoggedEvent[] = [
+        { event: 'CONTENT_PARSING' },
+        { event: 'CONTENT_PARSED' },
+        { event: 'CONTENT_FAILED' },
+        { event: 'CONTENT_RENDER_FAILED' },
+        { event: 'UNRELATED' },
+      ];
+
+      const preview = filterByContext(events, 'preview');
+      expect(preview.map(e => e.event)).toEqual([
+        'CONTENT_PARSING', 'CONTENT_PARSED', 'CONTENT_FAILED', 'CONTENT_RENDER_FAILED',
+      ]);
+    });
   });
 });
 

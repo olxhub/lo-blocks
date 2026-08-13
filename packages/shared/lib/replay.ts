@@ -26,7 +26,8 @@
 
 import { updateResponseReducer } from './state/store';
 import { expandAndOrderEvents } from './state/encode';
-import { initialOlxJsonState } from './state/olxjson';
+import { initialOlxJsonState, OLXJSON_EVENT_TYPES } from './state/olxjson';
+import { CONTENT_EVENT_TYPES } from './state/content';
 import { initialCatalogState } from './state/catalog';
 import { initialDocsState } from './state/docs';
 import { initialSourcesState } from './state/sources';
@@ -51,13 +52,23 @@ export interface LoggedEvent {
 // Event types that must be included regardless of context (essential for state reconstruction).
 // Without these, replayed state is incomplete: LOAD_OLXJSON provides content,
 // SET_LOCALE determines which language variant to render.
-const CONTEXT_INDEPENDENT_EVENTS = new Set([
-  'LOAD_OLXJSON',
-  'OLXJSON_LOADING',
-  'OLXJSON_ERROR',
-  'CLEAR_OLXJSON',
+const CONTEXT_INDEPENDENT_EVENTS = new Set<string>([
+  // Spread the slices' own lists rather than re-typing them: a hand-copied
+  // subset is exactly how OLXJSON_TRANSLATING went missing here, and how the
+  // content-ledger events were missed when they were added.
+  ...OLXJSON_EVENT_TYPES,
+  // The content ledger reconstructs BOTH the ledger entry and the parsed
+  // blocks from CONTENT_PARSED, and useContent logs it with no context. Drop
+  // these and a preview replay renders a spinner where the historical
+  // inline/files content should be.
+  ...CONTENT_EVENT_TYPES,
   'SET_LOCALE',
   'fetch_blob_response',
+  // NOT here, and not yet examined: CATALOG_/DOCS_/SOURCES_EVENT_TYPES. They
+  // are equally context-less and equally global, so their absence is probably
+  // the same oversight rather than a decision — but each needs its own answer
+  // about what a preview replay should show, so they are left alone rather
+  // than swept in.
 ]);
 
 /**
@@ -102,6 +113,7 @@ export const initialReplayState: AppState = {
   system: {},
   storage: {},
   olxjson: initialOlxJsonState,
+  content: {},
   catalog: initialCatalogState,
   docs: initialDocsState,
   sources: initialSourcesState,
