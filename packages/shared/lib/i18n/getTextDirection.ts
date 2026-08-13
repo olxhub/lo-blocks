@@ -48,8 +48,42 @@ export function getBrowserLocale(): string {
     return 'en';  // Node.js environment
   }
 
-  const browserLang = navigator.language || 'en';
+  const browserLang = typeof navigator.language === 'string' ? navigator.language : '';
 
   // Extract primary language code (first part before hyphen)
-  return browserLang.split('-')[0].toLowerCase();
+  const primary = browserLang.split('-')[0].toLowerCase();
+
+  // Only adopt it if it is actually a language subtag. `navigator.language` is
+  // not guaranteed to be one: an automation driver launched with no locale
+  // configured reports the STRING "undefined", which normalizes to the
+  // perfectly truthy "undefined" and gets stored as the user's locale. Nothing
+  // downstream can tell that apart from a real choice, so the language control
+  // renders "undefined (undefined)" and the bad code persists in the user's
+  // settings until it is overwritten by hand. Reject it here, where the
+  // untrusted value enters, rather than teaching each reader to doubt it.
+  return isValidLocaleCode(primary) ? primary : 'en';
+}
+
+/**
+ * Is this a well-formed BCP 47 locale code?
+ *
+ * Deliberately checks WELL-FORMEDNESS, not membership of a known list:
+ * translanguaging lets a learner type any code they like, and the point of
+ * that feature is to accept languages this codebase has never heard of.
+ * `Intl.getCanonicalLocales` is exactly that test — it throws on a malformed
+ * tag and accepts every structurally valid one.
+ */
+export function isValidLocaleCode(code: unknown): code is string {
+  if (typeof code !== 'string' || !code.trim()) return false;
+  // No Intl (a minimal Node build): fall back to the shape of a language tag —
+  // 2–8 letters, then optional -subtag groups.
+  if (typeof Intl === 'undefined' || !Intl.getCanonicalLocales) {
+    return /^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$/.test(code.trim());
+  }
+  try {
+    Intl.getCanonicalLocales(code.trim());
+    return true;
+  } catch {
+    return false;
+  }
 }

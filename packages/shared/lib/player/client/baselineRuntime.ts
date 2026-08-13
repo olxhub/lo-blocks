@@ -16,7 +16,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { useDebugSettings } from '@/lib/state/debugSettings';
 import { settings } from '@/lib/state/settings';
 import { useSetting } from '@/lib/state/settingsAccess';
-import { getTextDirection, getBrowserLocale } from '@/lib/i18n/getTextDirection';
+import { getTextDirection, getBrowserLocale, isValidLocaleCode } from '@/lib/i18n/getTextDirection';
 import { asContentNamespace } from '@/lib/types/id-grammar';
 import type { BaselineProps, IdPrefix, LoBlockRuntimeContext, UserLocale } from '@/lib/types';
 
@@ -79,15 +79,24 @@ export function useBaselineRuntime(): LoBlockRuntimeContext {
   const baselineProps: BaselineProps = { runtime: runtimeForSettings };
   const [reduxLocale, setReduxLocale] = useSetting(baselineProps, settings.locale);
 
+  // A STORED locale is re-validated, not trusted. Two ways a malformed code
+  // gets in: it was written before getBrowserLocale started rejecting garbage,
+  // or the learner typed it into the translanguaging box, which takes free
+  // text. Either way the old code only ran when there was NO stored locale, so
+  // a bad one was permanent — the language control read "undefined
+  // (undefined)" on every future visit with no way back short of editing the
+  // store by hand. Treating invalid-as-absent lets the next load repair it.
+  const localeUsable = Boolean(reduxLocale && isValidLocaleCode((reduxLocale as any).code));
+
   useEffect(() => {
-    if (!reduxLocale) {
+    if (!localeUsable) {
       const code = getBrowserLocale();
       const dir = getTextDirection(code);
       setReduxLocale({ code, dir });
     }
-  }, [reduxLocale, setReduxLocale]);
+  }, [localeUsable, setReduxLocale]);
 
-  const locale = reduxLocale || { code: '' as UserLocale, dir: 'ltr' as const };
+  const locale = localeUsable ? reduxLocale : { code: '' as UserLocale, dir: 'ltr' as const };
 
   return {
     ...DEFAULT_RUNTIME,
