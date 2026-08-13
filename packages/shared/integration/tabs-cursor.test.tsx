@@ -4,6 +4,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { preloadBlockComponents } from '@/lib/blocks/loader/componentLoader';
+import { testKey } from '@/lib/test-utils';
 import { mountOLXString } from './demoRenderHarness';
 
 const OLX = `<Tabs id="cursor_tabs">
@@ -24,6 +25,16 @@ const CONDITIONAL_OLX = `<Vertical id="conditional_tabs_test">
   </Tabs>
 </Vertical>`;
 
+const ACTION_OLX = `<Vertical id="action_tabs_test">
+  <ActionButton id="select_beta" label="Select Beta">
+    <SetFieldAction target="action_cursor_tabs" field="activeTab" value="tab_beta" />
+  </ActionButton>
+  <Tabs id="action_cursor_tabs">
+    <Markdown id="tab_alpha" title="Alpha">Alpha panel body</Markdown>
+    <Markdown id="tab_beta" title="Beta">Beta panel body</Markdown>
+  </Tabs>
+</Vertical>`;
+
 function tabsState(store: any) {
   const components = store.getState().application_state?.component ?? {};
   const key = Object.keys(components).find(id => id.endsWith('cursor_tabs'));
@@ -40,7 +51,7 @@ describe('Tabs active-child cursor', () => {
   it('persists the initially visible child on first access', async () => {
     const { reduxStore } = await mountOLXString(OLX, { sourceName: 'tabs-cursor-untouched' });
 
-    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe('CONTENT/tab_alpha'));
+    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe(testKey('tab_alpha')));
   });
 
   it('mounts only the active panel and persists its definition identity', async () => {
@@ -56,7 +67,18 @@ describe('Tabs active-child cursor', () => {
     await waitFor(() => expect(queryByText(/Beta panel body/)).toBeTruthy());
     expect(queryByText(/Alpha panel body/)).toBeNull();
     expect(container.querySelector('[style*="display: none"]')).toBeNull();
-    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe('CONTENT/tab_beta'));
+    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe(testKey('tab_beta')));
+  });
+
+  it('stores a canonical child key when an action sets a bare ref', async () => {
+    const { getByText, reduxStore } = await mountOLXString(
+      ACTION_OLX,
+      { sourceName: 'action-tabs-cursor' },
+    );
+
+    fireEvent.click(getByText('Select Beta'));
+
+    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe(testKey('tab_beta')));
   });
 
   it('keeps the active identity when when= removes an earlier child', async () => {
