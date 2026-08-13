@@ -154,6 +154,34 @@ wordcount(@essay.value)
 wordcount(@essay.value) >= 100
 ```
 
+### formatDuration
+
+Humanize a number of seconds into words. It is the formatting companion to
+the duration syntax authors write in attributes (`idleTimeout="90 seconds"`),
+and is also used by `TimedContainer`'s pre-start duration and TimeVisible's
+debug readout. (Spelled out
+rather than `duration()`, which is already an attribute name on
+`TimedContainer` and `Flash`.)
+
+```
+formatDuration(@time_drafting.value)    # "12 minutes"
+formatDuration(@time_planning.value)    # "45 seconds"
+formatDuration(3600)                    # "1 hour"
+```
+
+Most useful inside `{{ }}` interpolation in prose:
+
+```
+You spent {{formatDuration(@wpj3_time_drafting.value)}} drafting.
+```
+
+At most two units appear ("1 hour 30 minutes", never a trailing seconds
+count). Values at or below zero — including a timer nobody started — read as
+`"0 seconds"`, so a report table needs no `|| 0` guard.
+
+The formatter currently emits English. Locale-aware duration wording remains
+future work; do not use it as a localization boundary.
+
 ### Math functions
 
 Standard Math methods are available:
@@ -268,7 +296,7 @@ attribute names. The full list is maintained in `keywords.ts`.
 
 **Enums:** `correctness`, `completion`
 
-**Functions:** `wordcount`, `isFilled`, `text2markdown`, `stringMatch`, `numericalMatch`, `Math`, `Object`
+**Functions:** `wordcount`, `isFilled`, `text2markdown`, `formatDuration`, `stringMatch`, `numericalMatch`, `Math`, `Object`
 
 **Active array/string methods:** `length`, `every`, `some`, `filter`, `map`, `find`, `includes`, `join`
 

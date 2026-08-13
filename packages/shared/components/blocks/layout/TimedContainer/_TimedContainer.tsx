@@ -23,6 +23,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { useFieldState } from '@/lib/state';
 import { useKids } from '@/lib/player/client/render';
 import { z_olx_duration } from '@/lib/blocks/attributeSchemas';
+import { formatDuration } from '@/lib/util/duration';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 
 // ─── Rough clock ────────────────────────────────────────────────────────────
@@ -87,38 +88,6 @@ function formatThreshold(seconds) {
     return mins === 1 ? '1 minute' : `${mins} minutes`;
   }
   return `${seconds} seconds`;
-}
-
-/** Exact duration for the pre-start display (no rounding). */
-function formatDuration(seconds) {
-  if (seconds >= DAY) {
-    const days = Math.floor(seconds / DAY);
-    const rem = seconds % DAY;
-    const parts = [days === 1 ? '1 day' : `${days} days`];
-    if (rem >= HOUR) {
-      const hours = Math.round(rem / HOUR);
-      parts.push(hours === 1 ? '1 hour' : `${hours} hours`);
-    }
-    return parts.join(' ');
-  }
-  if (seconds >= HOUR) {
-    const hours = Math.floor(seconds / HOUR);
-    const rem = seconds % HOUR;
-    const parts = [hours === 1 ? '1 hour' : `${hours} hours`];
-    if (rem >= MINUTE) {
-      const mins = Math.round(rem / MINUTE);
-      parts.push(mins === 1 ? '1 minute' : `${mins} minutes`);
-    }
-    return parts.join(' ');
-  }
-  if (seconds >= MINUTE) {
-    const mins = Math.floor(seconds / MINUTE);
-    const rem = seconds % MINUTE;
-    const parts = [mins === 1 ? '1 minute' : `${mins} minutes`];
-    if (rem > 0) parts.push(rem === 1 ? '1 second' : `${rem} seconds`);
-    return parts.join(' ');
-  }
-  return seconds === 1 ? '1 second' : `${seconds} seconds`;
 }
 
 // Color shifts from neutral to red as time runs out.

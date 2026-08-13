@@ -1,0 +1,15 @@
+<Vertical id="TimeVisibleDemo" title="TimeVisible">
+  <Markdown id="tv_intro">
+## Time on task
+
+The timer below is running right now. It counts only while this panel is
+on screen, this browser tab is foregrounded, and you have typed or moved
+the mouse in the last 10 seconds.
+  </Markdown>
+  <TimeVisible id="tv_timer" idleTimeout="10 seconds" debug="true">
+    <TextArea id="tv_draft" rows="4" placeholder="Type here and watch the clock move..." />
+  </TimeVisible>
+  <Markdown id="tv_readout">
+You have spent **{{@tv_timer.value}} seconds** working on this.
+  </Markdown>
+</Vertical>

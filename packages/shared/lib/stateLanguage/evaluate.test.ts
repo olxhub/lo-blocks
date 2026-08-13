@@ -172,6 +172,16 @@ describe('evaluate', () => {
       expect(evaluate(parse('wordcount(@essay.value)'), ctx)).toBe(9);
     });
 
+    it('evaluates formatDuration on a timer field', () => {
+      const ctx = createContext({
+        componentState: { time_drafting: { value: 3665 }, time_planning: { value: 0 } }
+      });
+      expect(evaluate(parse('formatDuration(@time_drafting.value)'), ctx)).toBe('1 hour 1 minute');
+      // An untouched timer needs no `|| 0` guard in report prose.
+      expect(evaluate(parse('formatDuration(@time_planning.value)'), ctx)).toBe('0 seconds');
+      expect(evaluate(parse('formatDuration(@nosuchblock.value)'), ctx)).toBe('0 seconds');
+    });
+
     it('evaluates Math functions', () => {
       const ctx = createContext({
         componentState: { score: { value: 0.756 } }
