@@ -15,7 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import type { Context } from 'hono';
-import { loadContentSourcesConfig, asDirSource } from '@/lib/storage/lofs/contentSources';
+import { loadContentSourcesConfig, asDirSource, type ContentSource } from '@/lib/storage/lofs/contentSources';
 import { resolveConfig } from '@/lib/config';
 
 const SYSTEM_PMSS_PATH = 'config/system.pmss';
@@ -31,6 +31,16 @@ interface NamespaceContext {
 // Cache invalidation: server restart. Manifests don't change at runtime.
 let nsContextMap: Map<string, NamespaceContext> | null = null;
 
+// Extract local directories from a set of content sources.
+// E.g. ["/one", { dir: "/two", writable: false }, { repo: "https://example.com/three.git" }]
+// becomes ["/one", "/two"].
+function localContentDirectories(sources: Record<string, ContentSource>): string[] {
+  return Object.values(sources).flatMap(source => {
+    const directory = asDirSource(source);
+    return directory ? [directory.dir] : [];
+  });
+}
+
 async function getNsContextMap(): Promise<Map<string, NamespaceContext>> {
   if (nsContextMap) return nsContextMap;
   nsContextMap = new Map();
@@ -42,13 +52,7 @@ async function getNsContextMap(): Promise<Map<string, NamespaceContext>> {
     // keep their manifest in git — namespace context (classes/attributes)
     // for those needs provider-based manifest reading, not an fs scan.
     const config = await loadContentSourcesConfig();
-    // asDirSource collapses both directory forms (`<dir>` and
-    // `{ dir, writable }`); a plain string filter would silently skip the
-    // object form, leaving those namespaces without classes/attributes.
-    const dirs = Object.values(config.sources)
-      .map(asDirSource)
-      .filter((d): d is NonNullable<ReturnType<typeof asDirSource>> => d !== null)
-      .map(d => d.dir);
+    const dirs = localContentDirectories(config.sources);
     for (const dir of [...dirs, config.fallback]) {
       scanManifests(dir, nsContextMap);
     }
