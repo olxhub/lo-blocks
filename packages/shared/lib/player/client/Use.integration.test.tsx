@@ -1,4 +1,4 @@
-// packages/shared/lib/player/client/useStateRef.integration.test.tsx
+// packages/shared/lib/player/client/Use.integration.test.tsx
 // @vitest-environment jsdom
 
 import React from 'react';

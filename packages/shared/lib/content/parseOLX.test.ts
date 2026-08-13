@@ -99,6 +99,15 @@ test.each(['alias', ''])('<Use> rejects id="%s" because ref owns its state ident
   );
 });
 
+test('<Use> cannot be a document root', async () => {
+  await expect(parseOLX(
+    '<Use ref="answer"/>',
+    PROV,
+    undefined,
+    TEST_NS,
+  )).rejects.toThrow(/<Use> cannot be the document root/);
+});
+
 test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.trim is not a function" errors)', async () => {
   // This test ensures fast-xml-parser doesn't convert numeric text to JavaScript numbers
   // If this test fails after upgrading fast-xml-parser, you need to update the parser configuration

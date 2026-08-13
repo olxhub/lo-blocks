@@ -480,8 +480,11 @@ uses the leaf (`answer`) to find the block definition and the complete ref to
 select its state. Attributes on `<Use>` override those on the referenced block,
 so `<Use ref="foo" clip="[8,12]"/>` renders `foo` with a different clip. `<Use>`
 does not accept `id=`: it reuses the state identity named by `ref`, rather than
-creating an alias or a new instance. The `<UseDynamic target="id">` is its own
-block, and renders a subnode.
+creating an alias or a new instance. `<Use>` cannot be a document root. Scoped
+`<Use>` is for rendered composition. Static topology, including inferred
+grading, rejects it rather than discarding its state identity; wire those
+relationships explicitly. `<UseDynamic target="id">` is its own block, and
+renders a subnode.
 
 We can traverse the DAG in two ways:
 

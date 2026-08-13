@@ -25,7 +25,18 @@ import type { RawXmlNode } from './xmlParser';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OlxJson, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
-import { qualifyDefinitionRef, parseDefinitionRef, parseStateRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import {
+  allDefinitionKeysFromStateKey,
+  asDefinitionRef,
+  leafDefinitionKeyFromStateKey,
+  makeSystemDefinitionRef,
+  parseAnyDefinitionRef,
+  parseAnyStateRef,
+  parseDefinitionRef,
+  parseStateRef,
+  qualifyDefinitionRef,
+  stateKeyForGlobalRef,
+} from '@/lib/types/id-grammar';
 import type { LofsRef, LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -883,6 +894,13 @@ export async function parseOLX(
   const rootNode = Array.isArray(parsedTree)
     ? parsedTree.find(isElementNode)
     : parsedTree;
+
+  if (rootNode && elementTag(rootNode) === 'Use') {
+    throw new Error(
+      `<Use> cannot be the document root in ${source}. ` +
+      'A document root defines what to launch; <Use> only reuses a block inside another block.'
+    );
+  }
 
   let fileMetadata: OLXMetadata = OLXMetadataSchema.parse({});
 
