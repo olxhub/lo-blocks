@@ -52,8 +52,14 @@ export function inferKids(
     if (!Array.isArray(kidList)) return;
     for (const kid of kidList) {
       if (!kid || typeof kid !== 'object') continue;
-      const k = kid as { type?: string; id?: string; kids?: unknown };
+      const k = kid as { type?: string; id?: string; stateKey?: StateKey; kids?: unknown };
       if (k.type === 'block' && k.id) {
+        if (k.stateKey && k.stateKey !== k.id) {
+          throw new Error(
+            `Static DOM inference cannot traverse <Use> of scoped state "${k.stateKey}". ` +
+            'Declare the inferred block directly or wire it explicitly instead.'
+          );
+        }
         // Kid ids may be bare DefinitionRefs (generated content, e.g.
         // MarkupProblem's expansion) or qualified DefinitionKeys
         // (capaParser) — qualify uniformly.
