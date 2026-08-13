@@ -132,6 +132,13 @@ export function createLLMHandler(kvs: KVStore) {
     body.max_completion_tokens = body.max_completion_tokens || llmConfig.maxTokens;
     delete body.profile;
 
+    // Which launchable activity this call belongs to. Budgets are charged per
+    // user PER ACTIVITY, so a student who exhausts Handout 1's allowance can
+    // still work on Handout 2. Deleted before dispatch — it is ours, not the
+    // provider's, and the openai/azure paths forward the body untransformed.
+    const activity = typeof body.activity === 'string' ? body.activity : undefined;
+    delete body.activity;
+
     // --- Rate limiting (pre-call) --------------------------------------------
     const rateCheck = await checkRateLimit(kvs, safeUserId, llmConfig.rpm);
     if (!rateCheck.ok) {
@@ -141,7 +148,7 @@ export function createLLMHandler(kvs: KVStore) {
       );
     }
 
-    const budgetCheck = await checkTokenBudget(kvs, safeUserId, llmConfig.tokenBudget);
+    const budgetCheck = await checkTokenBudget(kvs, safeUserId, llmConfig.tokenBudget, activity);
     if (!budgetCheck.ok) {
       return c.json({ error: 'LLM token budget exhausted.' }, 429);
     }
@@ -156,13 +163,13 @@ export function createLLMHandler(kvs: KVStore) {
     if (result.kind === 'json') {
       const totalTokens = result.data?.usage?.total_tokens ?? 0;
       if (totalTokens > 0) {
-        await recordTokenUsage(kvs, safeUserId, totalTokens);
+        await recordTokenUsage(kvs, safeUserId, totalTokens, activity);
       }
     }
 
     const onUsage = (tokens: number) => {
       // Fire-and-forget — the response has already been sent/is streaming.
-      recordTokenUsage(kvs, safeUserId, tokens).catch((err) => {
+      recordTokenUsage(kvs, safeUserId, tokens, activity).catch((err) => {
         console.error('[LLM] Failed to record token usage:', err);
       });
     };

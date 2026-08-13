@@ -1305,6 +1305,16 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
+  /**
+   * The launchable activity being rendered — the root RenderOLX was given.
+   *
+   * Quotas are charged per user PER ACTIVITY, so an LLM call has to say which
+   * activity it belongs to. Nothing else in scope identifies one: `ns` is the
+   * whole course, and a block id only names a screen. Optional because a block
+   * can be rendered outside any activity (docs, playground); such a call falls
+   * back to the shared per-user budget.
+   */
+  activityId?: string;
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
 }

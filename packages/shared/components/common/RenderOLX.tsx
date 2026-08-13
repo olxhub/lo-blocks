@@ -373,6 +373,8 @@ export default function RenderOLX({
     olxJsonSources: [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
+    // The root this render was asked for: what the student launched.
+    activityId: typeof id === 'string' ? id : undefined,
     locale: renderProps.locale,
     cast: {},
   };

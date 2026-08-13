@@ -1,7 +1,8 @@
 // packages/shared/lib/async/quota.ts
 //
 // Per-user quota: request-rate (RPM) and token budget, backed by a key-value
-// store. The store-backed members of the async-call wrapper family.
+// store. RPM is per user; the token budget is per user PER ACTIVITY, so one
+// activity cannot spend another's allowance. The store-backed members of the async-call wrapper family.
 //
 // Unlike the in-process wrappers here (retry/throttle/...), these manage call
 // admission ACROSS processes via a shared store, so they take the store as a
@@ -83,8 +84,9 @@ export async function checkTokenBudget(
   store: KvLike,
   userId: SafeUserId,
   tokenBudget: number,
+  activity?: string,
 ): Promise<{ ok: boolean; remaining: number }> {
-  const key = kvsKey.rateTokens(userId);
+  const key = kvsKey.rateTokens(userId, activity);
 
   const raw = await store.get(key);
   const record: TokenRecord = raw ? JSON.parse(raw) : { total: 0 };
@@ -104,8 +106,9 @@ export async function recordTokenUsage(
   store: KvLike,
   userId: SafeUserId,
   tokens: number,
+  activity?: string,
 ): Promise<void> {
-  const key = kvsKey.rateTokens(userId);
+  const key = kvsKey.rateTokens(userId, activity);
 
   const raw = await store.get(key);
   const record: TokenRecord = raw ? JSON.parse(raw) : { total: 0 };

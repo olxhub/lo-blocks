@@ -44,6 +44,43 @@ function findToolByName(tools: LlmTool[], name: string): LlmTool | undefined {
   return tools?.find(t => t.function.name === name);
 }
 
+/**
+ * Turn a non-2xx response into a message that says what actually happened.
+ *
+ * The server explains every refusal in a JSON `error` field — "LLM token
+ * budget exhausted.", "Rate limit exceeded. Try again later.", "Invalid JSON
+ * in request body" — and a passthrough carries the provider's own
+ * `{error: {message}}` instead. None of it used to reach the screen: a 429 has
+ * no `choices`, so it fell through to the generic "No response from LLM" and
+ * read as a broken integration rather than a quota someone can clear.
+ *
+ * Body is read as text first, then parsed. Response.json() consumes the
+ * stream, so a parse failure would otherwise leave nothing to fall back on.
+ */
+async function describeHttpError(res: Response): Promise<string> {
+  let raw = '';
+  try { raw = await res.text(); } catch { /* body already consumed or empty */ }
+
+  let detail = '';
+  try {
+    const body = JSON.parse(raw);
+    const err = body?.error;
+    detail = typeof err === 'string' ? err : (err?.message ?? '');
+    if (!detail && typeof body?.message === 'string') detail = body.message;
+    if (detail && body?.details) detail += ` (${JSON.stringify(body.details).slice(0, 200)})`;
+  } catch {
+    detail = raw.trim().slice(0, 200);
+  }
+
+  // 429 carries Retry-After; a wait the user can act on beats a bare code.
+  const retry = res.headers.get('retry-after');
+  const suffix = retry ? ` Try again in ${retry}s.` : '';
+
+  return detail
+    ? `LLM error (${res.status}): ${detail}${suffix}`
+    : `LLM error: HTTP ${res.status}${res.statusText ? ' ' + res.statusText : ''}.${suffix}`;
+}
+
 // Core LLM call logic, standalone async function.
 //
 // TODO: Do we want to replace this with a standard library?
@@ -54,6 +91,26 @@ export interface CallLLMParams {
   prompt?: string;
   tools?: LlmTool[];
   statusCallback?: (status: string) => void;
+  /**
+   * OpenAI-shaped `response_format`, forwarded to the provider untouched.
+   *
+   * Support is NOT uniform. The openai and azure paths in proxy.ts serialize
+   * the request body straight through, so a `json_schema` format reaches the
+   * provider and is enforced. The bedrock path builds its own Anthropic body
+   * and drops anything it does not map, and the stub provider always answers
+   * with prose. Callers must treat structured output as best-effort and keep a
+   * text fallback — see callLLMJson.
+   */
+  responseFormat?: Record<string, unknown>;
+  /**
+   * The launchable activity this call belongs to, for quota accounting.
+   *
+   * Budgets are charged per user PER ACTIVITY, and only the caller knows which
+   * one it is in — the server sees a bare completions request. Omitted calls
+   * fall back to the shared per-user budget, so a caller that does not pass it
+   * still works and still counts.
+   */
+  activityId?: string;
 }
 
 export interface CallLLMResult {
@@ -67,6 +124,8 @@ export async function callLLM(params: CallLLMParams): Promise<CallLLMResult> {
     prompt,
     tools = [],
     statusCallback = () => null,
+    responseFormat,
+    activityId,
   } = params;
 
   // Validation: exactly one of prompt or history must be provided
@@ -90,8 +149,21 @@ export async function callLLM(params: CallLLMParams): Promise<CallLLMResult> {
           // OpenAI wire format requires type on every tool — providers that
           // pass the body through untransformed (azure/openai) 400 without it.
           tools: tools ? tools.map(({ callback, ...rest }) => ({ type: 'function', ...rest })) : [],
+          ...(responseFormat && { response_format: responseFormat }),
+          ...(activityId && { activity: activityId }),
         }),
       });
+      // Check the status before reading the body as a completion. A refusal
+      // (429 budget/rate limit, 400 bad request, provider error) carries no
+      // `choices`, so parsing it as one loses the reason it was refused.
+      if (!res.ok) {
+        statusCallback(LLM_STATUS.ERROR);
+        return {
+          messages: [...displayMessagesAccum, { type: 'SystemMessage', text: await describeHttpError(res) }],
+          error: true,
+        };
+      }
+
       const json = ((await res.json()) as ChatCompletionResponse).choices?.[0];
       const content = json?.message?.content;
       const toolCalls = json?.message?.tool_calls;
@@ -305,7 +377,7 @@ export function useChat(params: UseChatParams = {}) {
 }
 
 // Simple wrapper that returns just the text content
-export async function callLLMSimple(prompt: string): Promise<string> {
+export async function callLLMSimple(prompt: string, activityId?: string): Promise<string> {
   const { messages, error } = await callLLM({
     prompt,
     statusCallback: () => {}, // No status needed for simple calls
@@ -321,4 +393,74 @@ export async function callLLMSimple(prompt: string): Promise<string> {
   return messages.find(
     (m): m is ChatLineMessage => m.type === 'Line' && m.speaker === 'LLM'
   )?.text || 'No response';
+}
+
+/**
+ * Parse a JSON object out of model output, tolerating a code fence or
+ * surrounding prose. Returns null rather than throwing: a provider that
+ * ignored `response_format` answers with ordinary text, and that is a
+ * fallback case, not an error.
+ */
+function parseJsonObject(text: string): Record<string, unknown> | null {
+  let body = (text ?? '').trim();
+  if (!body) return null;
+  if (body.startsWith('```')) {
+    body = body.replace(/^```[a-zA-Z]*\s*/, '').replace(/\s*```$/, '');
+  }
+  const attempts = [body];
+  const braced = body.match(/\{[\s\S]*\}/);
+  if (braced) attempts.push(braced[0]);
+  for (const candidate of attempts) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null;
+}
+
+/**
+ * Constrain the model to a JSON Schema and return the parsed object.
+ *
+ * Returns `{data: null, text}` — it does not throw — when the answer cannot be
+ * read as an object, because provider support is uneven (see
+ * CallLLMParams.responseFormat). The caller is expected to fall back to `text`,
+ * so a deployment on bedrock or the stub provider degrades to ordinary prose
+ * feedback instead of failing.
+ *
+ * `strict: true` is what makes a schema's required properties non-optional at
+ * generation time, which is the whole point of using one: a checklist the model
+ * must fill cannot be quietly skipped the way a checklist in prose can.
+ */
+export async function callLLMJson(
+  prompt: string,
+  schema: Record<string, unknown>,
+  schemaName: string = 'result',
+  activityId?: string,
+): Promise<{ data: Record<string, unknown> | null; text: string }> {
+  const { messages, error } = await callLLM({
+    prompt,
+    activityId,
+    statusCallback: () => {},
+    responseFormat: {
+      type: 'json_schema',
+      json_schema: { name: schemaName, strict: true, schema },
+    },
+  });
+
+  if (error) {
+    const first = messages[0];
+    const detail = first && 'text' in first ? first.text : undefined;
+    throw new Error(detail || 'LLM call failed');
+  }
+
+  const text = messages.find(
+    (m): m is ChatLineMessage => m.type === 'Line' && m.speaker === 'LLM'
+  )?.text || '';
+
+  return { data: parseJsonObject(text), text };
 }

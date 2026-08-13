@@ -18,7 +18,12 @@
     llm-model: "";
     llm-max-tokens: 4096;
     llm-rpm: 20;
-    llm-token-budget: 100000;
+    /* Per user PER LAUNCHABLE ACTIVITY (lib/types/identity.ts:rateTokens), not
+     * one pool across the whole course: a student who spends this on Handout 1
+     * can still work on Handout 2. Raised 100k -> 200k on 2026-08-13, when
+     * per-check notes and displayed evidence roughly doubled the tokens a
+     * single formative-feedback call spends. */
+    llm-token-budget: 200000;
     kvs-backend: file;
     kvs-prefix: dev-local;
     /* Which store serves state on fetch_blob: blob (client-saved, canonical
@@ -34,15 +39,30 @@
 .llm_available_azure  { llm-provider: azure; }
 .llm_available_bedrock { llm-provider: bedrock; }
 
-/* Tighter limits for unauthenticated (guest) users */
+/* Guest limits — currently identical to the * defaults above */
 .server.guest {
-    llm-rpm: 5;
-    llm-token-budget: 10000;
+    llm-rpm: 20;
+    llm-token-budget: 200000;
 }
 
 /* Per-profile overrides */
 .server[profile="interactive"] {
-    llm-max-tokens: 4096;
+    /* 16384, not 4096: on a reasoning model this budget covers reasoning AND
+       output, and the two are not separately capped. A long formative-feedback
+       prompt (the behaviour-modification handouts run ~4.2k prompt tokens with
+       a 11-slot schema) can spend the whole 4096 on reasoning_tokens and return
+       finish_reason "length" with content "" — the student sees an empty
+       feedback panel, and a retry only helps if the next attempt happens to
+       think less. Measured on gpt-5-mini via Azure. */
+    llm-max-tokens: 16384;
+
+    /* VERIFIED live in the running server, not just configured: POST
+       /api/llm/chat/completions with no max_completion_tokens (so routes/llm.ts
+       injects this value) asking for the integers 1..3000 returned 8202
+       completion tokens with finish_reason "stop" and a complete output. Under
+       the 4096 default that request truncates with finish_reason "length".
+       Re-run that probe after any restart that might predate a change here —
+       PMSS is read at startup, so an edit alone proves nothing. */
 }
 
 .server[profile="translation"] {

@@ -125,8 +125,29 @@ export const kvsKey = {
     return asKVSKey(`rate:${safeUserId}:rpm`);
   },
 
-  /** Rate limit token budget: `rate:{safeUserId}:tokens` */
-  rateTokens(safeUserId: SafeUserId): KVSKey {
-    return asKVSKey(`rate:${safeUserId}:tokens`);
+  /**
+   * Rate limit token budget: `rate:{safeUserId}:tokens`, or
+   * `rate:{safeUserId}:tokens_{activity}` when scoped to a launchable activity.
+   *
+   * Budgets are charged per user PER LAUNCHABLE ACTIVITY: a student who spends
+   * their allowance on Handout 1 must still be able to work on Handout 2, and
+   * one shared pool made every activity compete with every other.
+   *
+   * The activity rides in the SAME segment, after an underscore, rather than as
+   * a further `:` segment. FileKVStore maps `:` to directories, so
+   * `…:tokens:{activity}` needs `tokens` to be a directory — and every user who
+   * has ever made a call already has `tokens` as a FILE. Writing one would fail
+   * with EEXIST and usage would silently stop being recorded. A flat key sits
+   * beside the legacy file instead of colliding with it.
+   *
+   * Percent-encoded because activity ids carry `/` and `#`.
+   *
+   * Omitting the activity keeps the original key, so a call from outside any
+   * activity (docs, playground) still counts, against a shared pool.
+   */
+  rateTokens(safeUserId: SafeUserId, activity?: string): KVSKey {
+    return asKVSKey(activity
+      ? `rate:${safeUserId}:tokens_${encodeURIComponent(activity)}`
+      : `rate:${safeUserId}:tokens`);
   },
 } as const;
