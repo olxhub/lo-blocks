@@ -74,8 +74,16 @@ export default function PreviewPage({ id }: { id: StateKey }) {
   // After loading=false and error=null, idMap should always be populated.
   // If not, it's a bug in useContentLoader (e.g. unhandled replay/locale edge case).
 
+  // h-screen, not min-h-screen: StatusBar is `sticky top-0`, so it only
+  // behaves if the thing that scrolls is the content pane below it. Under
+  // min-h-screen the pane grew to its full content height, nothing scrolled
+  // inside it, the *document* scrolled instead, and the bar floated over the
+  // content it was supposed to sit above — visibly clipping the top of tall
+  // blocks such as a chart's title. Clamping the shell to the viewport gives
+  // the bar its own row and lets `overflow-auto` clip cleanly beneath it.
+  // Matches apps/web's PreviewPage.
   return (
-    <div {...localeAttrs} className="flex flex-col min-h-screen">
+    <div {...localeAttrs} className="flex flex-col h-screen">
       <StatusBar />
       <div className="p-6 flex-1 overflow-auto">
         <div className="space-y-4">
@@ -92,10 +100,16 @@ export default function PreviewPage({ id }: { id: StateKey }) {
             {JSON.stringify({ idMap }, null, 2)}
           </pre>
         )}
+
+        {/* Inside the scroller, not a sibling of it. The shell is h-screen so
+            that the content pane is the thing that scrolls and StatusBar keeps
+            its own row — see the comment on the wrapper. A footer left outside
+            that pane would be pinned to the bottom of every screen, turning an
+            end-of-document attribution notice into permanent chrome. */}
+        <footer className="mt-6 border-t border-gray-200 px-6 py-4 -mx-6 -mb-6 text-xs leading-relaxed space-y-2">
+          <Notice />
+        </footer>
       </div>
-      <footer className="border-t border-gray-200 px-6 py-4 text-xs leading-relaxed space-y-2">
-        <Notice />
-      </footer>
     </div>
   );
 }
