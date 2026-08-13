@@ -24,9 +24,9 @@ function shuffledIndices(length: number): number[] {
 /**
  * Order modes for problem selection.
  *
- * TODO: Replace ad-hoc navigation with useKidCursor hook (see Sequential's spec).
- * MasteryBank adds shuffle mode, attempt scoping, and cycle detection on top of
- * basic cursor navigation. A shared hook would benefit both Sequential and MasteryBank.
+ * TODO: Migrate the basic active-child selection to the shipped useKidCursor
+ * hook. MasteryBank has not migrated yet because shuffle mode, attempt scoping,
+ * and cycle detection still need to be layered onto the shared cursor.
  *
  * Each mode provides:
  *   - initial(itemCount): Returns initial state
