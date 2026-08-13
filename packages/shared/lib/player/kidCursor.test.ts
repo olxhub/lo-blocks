@@ -59,13 +59,6 @@ describe('resolveKidCursor', () => {
     });
   });
 
-  it('reads and heals legacy positions, including numeric strings', () => {
-    expect(canonicalKidCursorValue('2', NS)).toBe(2);
-    expect(resolveKidCursor(2, IDS)).toEqual({ index: 2, id: IDS[2], healed: true });
-    expect(resolveKidCursor(99, IDS).index).toBe(2);
-    expect(resolveKidCursor(-1, IDS).index).toBe(0);
-  });
-
   it('uses the first child for unset state without inventing an empty result', () => {
     expect(resolveKidCursor(null, IDS)).toEqual({
       index: 0,
@@ -76,7 +69,10 @@ describe('resolveKidCursor', () => {
   });
 
   it('fails fast on malformed stored state', () => {
-    expect(() => canonicalKidCursorValue({}, NS)).toThrow(/child id or integer/);
+    expect(() => canonicalKidCursorValue(2, NS)).toThrow(/child id, got number/);
+    expect(() => canonicalKidCursorValue({}, NS)).toThrow(/child id, got object/);
+    expect(() => canonicalKidCursorValue('2', NS)).toThrow(/valid DefinitionRef/);
+    expect(() => canonicalKidCursorValue('', NS)).toThrow(/cannot be empty/);
     expect(() => canonicalKidCursorValue('not a ref!', NS)).toThrow(/valid DefinitionRef/);
   });
 });

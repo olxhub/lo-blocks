@@ -42,7 +42,7 @@ export default function Tabs(props: RuntimeProps) {
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => cursor.goto(index)}
+              onClick={() => cursor.goto(id)}
               className={`
                 px-4 py-3 font-medium text-sm transition-all
                 ${active

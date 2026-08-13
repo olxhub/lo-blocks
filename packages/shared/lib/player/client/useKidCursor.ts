@@ -17,7 +17,7 @@ export interface KidCursor<Kid> {
   ids: DefinitionKey[];
   next: (amount?: number) => void;
   previous: (amount?: number) => void;
-  goto: (target: number | DefinitionRef) => void;
+  goto: (target: DefinitionRef) => void;
 }
 
 /** Shared active-child state for one-at-a-time containers. */
@@ -39,8 +39,8 @@ export function useKidCursor<Kid>(
     if (resolution.index >= 0) lastIndex.current = resolution.index;
   }, [resolution.index]);
 
-  // Upgrade numeric state and heal a missing identity after render. Unset state
-  // already means the first child, so opening untouched content emits no event.
+  // Heal a missing identity after render. Unset state already means the first
+  // child, so opening untouched content emits no event.
   const shouldHeal = resolution.healed && stored !== null;
   useEffect(() => {
     if (shouldHeal && resolution.id) setStored(resolution.id);
@@ -52,13 +52,9 @@ export function useKidCursor<Kid>(
     setStored(ids[index]);
   }, [ids, setStored]);
 
-  const goto = useCallback((target: number | DefinitionRef) => {
-    if (typeof target === 'number') {
-      gotoIndex(target);
-      return;
-    }
+  const goto = useCallback((target: DefinitionRef) => {
     const id = canonicalKidCursorValue(target, props.runtime.ns);
-    const index = typeof id === 'string' ? ids.indexOf(id) : -1;
+    const index = id ? ids.indexOf(id) : -1;
     if (index < 0) {
       throw new Error(`Kid cursor "${props.id}" has no child "${target}".`);
     }

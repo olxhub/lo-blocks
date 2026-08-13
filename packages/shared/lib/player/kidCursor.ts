@@ -51,23 +51,14 @@ export function kidCursorIds(
   return ids;
 }
 
-/** Legacy Tabs state and authored actions may still contain a zero-based index. */
-function positionalKidCursorValue(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isInteger(value)) return value;
-  if (typeof value === 'string' && /^-?\d+$/.test(value.trim())) return Number(value);
-  return null;
-}
-
-/** Canonicalize a persisted cursor value while preserving legacy positions. */
+/** Canonicalize a persisted child identity. */
 export function canonicalKidCursorValue(
   value: unknown,
   ns: ContentNamespace,
-): DefinitionKey | number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const position = positionalKidCursorValue(value);
-  if (position !== null) return position;
+): DefinitionKey | null {
+  if (value === null || value === undefined) return null;
   if (typeof value === 'string') return canonicalKidId(value, ns);
-  throw new Error(`Kid cursor value must be a child id or integer, got ${typeof value}`);
+  throw new Error(`Kid cursor value must be a child id, got ${typeof value}`);
 }
 
 /**
@@ -76,7 +67,7 @@ export function canonicalKidCursorValue(
  * persists the returned id when `healed` is true.
  */
 export function resolveKidCursor(
-  stored: DefinitionKey | number | null,
+  stored: DefinitionKey | null,
   ids: readonly DefinitionKey[],
   hintIndex = 0,
 ): KidCursorResolution {
@@ -88,7 +79,6 @@ export function resolveKidCursor(
     return { index, id, healed: id !== stored };
   };
 
-  if (typeof stored === 'number') return at(clamp(stored));
   if (stored) {
     const exact = ids.indexOf(stored);
     if (exact >= 0) return at(exact);

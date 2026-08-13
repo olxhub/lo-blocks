@@ -43,9 +43,7 @@ Each child block's `title` attribute becomes the tab header text.
 ## State
 - `activeTab`: ID of the selected child, persisted across sessions. Tabs stores
   identity rather than position, so hiding an earlier child with `when=` does
-  not move the learner to a different tab. Existing numeric state and authored
-  numeric actions remain accepted as zero-based positions and are upgraded to
-  IDs when read.
+  not move the learner to a different tab.
 
 Only the active panel is mounted. Switching tabs unmounts the previous panel,
 so child lifecycle behavior such as `OnShow trigger="each_view"` follows what
