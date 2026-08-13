@@ -21,6 +21,7 @@
 'use client';
 import React, { createContext } from 'react';
 import { useKids } from '@/lib/player/client/render';
+import { useSubmitLocked } from '@/lib/player/submitLock';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export interface ChoiceGroupInfo {
@@ -31,6 +32,10 @@ export interface ChoiceGroupInfo {
    *  multi-select. Decided by which input provides this context — no more
    *  two-pass ancestor sniffing to tell the two apart. */
   isCheckbox: boolean;
+  /** The surrounding activity has been submitted, so the choices are frozen.
+   *  Read once HERE rather than once per item: a question with six options
+   *  would otherwise open six identical subscriptions to one boolean. */
+  locked: boolean;
 }
 
 // null when a Key/Distractor is rendered outside any choice input; the item
@@ -39,6 +44,7 @@ export const ChoiceGroupContext = createContext<ChoiceGroupInfo | null>(null);
 
 export default function ChoiceGroup(props: RuntimeProps) {
   const { kids } = useKids(props);
+  const locked = useSubmitLocked(props);
 
   const group: ChoiceGroupInfo = {
     // nodeInfo.stateKey is this input's own scoped StateKey (assigned by
@@ -47,6 +53,7 @@ export default function ChoiceGroup(props: RuntimeProps) {
     // isCheckbox is decided HERE, from this input's own block name — the one
     // place that unambiguously knows which input this is.
     isCheckbox: props.loBlock.name === 'CheckboxInput',
+    locked,
   };
 
   return (

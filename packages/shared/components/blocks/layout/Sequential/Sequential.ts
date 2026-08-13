@@ -3,12 +3,19 @@
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import * as state from '@/lib/state';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { advanceChildren, canAdvanceChildren } from '@/lib/player/advance';
 import { selectKidsJson } from '@/lib/blocks/staticDynamicDom';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([
-  { name: 'index', scope: 'component' }  // Current sequence index
+  { name: 'index', scope: 'component' },  // Current sequence index
+  // Handed in: set once, by a SetFieldAction on the activity's submit button,
+  // and read by everything inside it — inputs go read-only, ActionButtons grey
+  // out. Lives here because the launchable Sequential IS the unit a student
+  // submits, so "frozen" cannot fall out of step with "what is in the handout".
+  // See lib/player/submitLock.ts.
+  { name: 'submitted', scope: 'component', schema: z_olx_boolean }
 ]);
 
 /* ----------------------------------------------------------------

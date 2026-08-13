@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { correctness } from '../grading/correctness';
 import { inferRelatedNodes } from '../blocks/dynamicDom';
 import { selectGradingState } from '@/lib/grading';
+import { useSubmitLocked } from './submitLock';
 
 /**
  * Hook: should this input be read-only?
@@ -34,6 +35,13 @@ export function useInputReadOnly(props): boolean {
   const anyPending = useSelector((state: any) =>
     graderIds.some(id =>
       selectGradingState(state, props, id).correct === correctness.submitted));
+
+  // Handed-in work is frozen. This one OUTRANKS an explicit readOnly prop
+  // rather than deferring to it: a container passing readOnly={false} is saying
+  // "I am not the thing gating this input", not "let students edit a submitted
+  // handout".
+  const submitted = useSubmitLocked(props);
+  if (submitted) return true;
 
   if (explicit) return Boolean(props.readOnly);
   return anyPending;

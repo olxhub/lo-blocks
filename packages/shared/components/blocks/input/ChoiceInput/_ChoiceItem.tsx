@@ -34,6 +34,8 @@ export default function ChoiceItem(props: RuntimeProps) {
   // to DisplayError.
   const parentStateKey = group?.parentStateKey ?? scopedStateKeyForBlock(props);
   const isCheckbox = group?.isCheckbox ?? false;
+  // Frozen because the activity was handed in (see lib/player/submitLock.ts).
+  const locked = group?.locked ?? false;
 
   // The parent input's value field, read/written under the parent's StateKey.
   const valueField = group
@@ -59,6 +61,7 @@ export default function ChoiceItem(props: RuntimeProps) {
     : selected === itemValue;
 
   const handleChange = () => {
+    if (locked) return;
     if (isCheckbox) {
       // Toggle: add or remove from the array.
       const currentSelection: any[] = Array.isArray(selected) ? selected : [];
@@ -83,6 +86,7 @@ export default function ChoiceItem(props: RuntimeProps) {
   const labelClasses = [
     'lo-choice-item',
     checked && 'lo-choice-item--selected',
+    locked && 'lo-choice-item--locked',
     isCheckbox ? 'lo-choice-item--checkbox' : 'lo-choice-item--radio',
     showCorrectHighlight && 'lo-choiceinput-show-answer',
   ].filter(Boolean).join(' ');
@@ -96,6 +100,7 @@ export default function ChoiceItem(props: RuntimeProps) {
         name={parentStateKey}
         checked={checked}
         onChange={handleChange}
+        disabled={locked}
         className="lo-choice-item__input"
       />
       <span className="lo-choice-item__indicator" aria-hidden="true" />
