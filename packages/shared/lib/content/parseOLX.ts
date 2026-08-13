@@ -25,7 +25,7 @@ import type { RawXmlNode } from './xmlParser';
 
 import * as parsers from '@/lib/content/parsers';
 import { LofsDependencies, IdMap, OlxJson, OLXLoadingError, DefinitionRef, DefinitionKey, JSONValue, ContentNamespace } from '@/lib/types';
-import { qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey } from '@/lib/types/id-grammar';
+import { qualifyDefinitionRef, parseDefinitionRef, parseStateRef, asDefinitionRef, makeSystemDefinitionRef, stateKeyForGlobalRef, parseAnyDefinitionRef, parseAnyStateRef, allDefinitionKeysFromStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import type { LofsRef, LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { variantMapKeys } from '@/lib/types/i18n';
@@ -535,9 +535,21 @@ export async function parseOLX(
         );
       }
 
+      if (attributes.id !== undefined) {
+        throw new Error(
+          `<Use ref="${attributes.ref}"> in ${source} must not have an id attribute. ` +
+          `<Use> reuses the state identity named by ref; remove id="${attributes.id}".`
+        );
+      }
+
       const { ref, ...overrides } = attributes;
-      const qualifiedRef = qualifyDefinitionRef(parseDefinitionRef(ref), ns);
-      return { type: 'block', id: qualifiedRef, overrides };
+      const stateKey = stateKeyForGlobalRef(parseStateRef(ref), ns);
+      return {
+        type: 'block',
+        id: leafDefinitionKeyFromStateKey(stateKey),
+        stateKey,
+        overrides,
+      };
     }
 
     if (attributes.ref) {

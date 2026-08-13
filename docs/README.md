@@ -442,15 +442,21 @@ This is `OlxJson` in `types/core.ts`.
 
 Finally, OLX is dynamically rendered into a JSX DOM with an OLX shadow DOM. The dynamic hierarchy can be -- and often is -- quite different from the static hierarchy.
 
-For example, a `MasteryBank` will pull in kids from a bank of items. A DynamicList can render an item multiple times. Etc. Sadly, this means that static IDs and dynamic IDs might not be the same. If we put the above node into a dynamic list:
+For example, a `MasteryBank` will pull in kids from a bank of items. A
+DynamicList can render a child definition multiple times. Etc. Sadly, this
+means that static IDs and dynamic IDs might not be the same:
 
 ```
 <DynamicList id="list">
-  <Use ref="helloblock" />
+  <TextArea id="answer" />
 </DynamicList>
 ```
 
-If the `helloblock` was something with state, and we pulled up redux developer tools, we would see `list:#0:helloblock`, `list:#1:helloblock`, etc. as IDs for the specific child nodes. The `:` separates scope segments, and `#` prefixes numeric indices to distinguish them from named blocks.
+In Redux developer tools, we would see `list:#0:answer`, `list:#1:answer`,
+etc. as IDs for the specific child nodes. The `:` separates scope segments,
+and `#` prefixes numeric indices to distinguish them from named blocks. This
+is distinct from `<Use>`, which selects an already-named state instance rather
+than creating another instance in its surrounding scope.
 
 This is `OlxDomNode` in `types/core.ts`.
 
@@ -466,7 +472,16 @@ The content is structured as a DAG, not a tree (I structured Open edX the same w
 * ...
 * Grade yourself on a rubric: [Problem] + [Rubric]
 
-There are many ways to have this work. The <Use ref="id"> tag is handled during parsing and creates a DAG (it does not take its own ID, since it is not itself added to the DAG). Attributes on <Use> override those on the referenced block, so `<Use ref="foo" clip="[8,12]"/>` will render the block "foo" with a different clip. The <UseDynamic target="id"> is its own block, and renders a subnode.
+There are many ways to have this work. The `<Use ref="stateRef">` tag is
+handled during parsing and creates a DAG (it is not itself added to the DAG).
+Its `ref` names an existing runtime state instance: `answer` names the global
+instance, while `responses:#3:answer` names a scoped instance. The renderer
+uses the leaf (`answer`) to find the block definition and the complete ref to
+select its state. Attributes on `<Use>` override those on the referenced block,
+so `<Use ref="foo" clip="[8,12]"/>` renders `foo` with a different clip. `<Use>`
+does not accept `id=`: it reuses the state identity named by `ref`, rather than
+creating an alias or a new instance. The `<UseDynamic target="id">` is its own
+block, and renders a subnode.
 
 We can traverse the DAG in two ways:
 

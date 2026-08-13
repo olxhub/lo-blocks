@@ -27,7 +27,14 @@ import type { DefinitionKey, IdPrefix, StateKey, LoBlockRuntimeContext, OlxJson 
 import { baseAttributes } from '@/lib/blocks/attributeSchemas';
 import { resolveBlockComponent } from '@/lib/blocks/loader/lazyBlockComponent';
 import { getGrader, getEventContext } from '@/lib/blocks/dynamicDom';
-import { qualifyDefinitionRef, scopedStateKeyForBlock, SCOPE_SEPARATOR } from '@/lib/types/id-grammar';
+import {
+  leafDefinitionKeyFromStateKey,
+  qualifyDefinitionRef,
+  scopedStateKeyForBlock,
+  scopePrefixOfStateKey,
+  splitNs,
+  SCOPE_SEPARATOR,
+} from '@/lib/types/id-grammar';
 import { selectBlock } from '@/lib/state/olxjson';
 import type { Store } from 'redux';
 import { contentConfigContext } from '@/lib/config';
@@ -98,7 +105,7 @@ export const makeRootNode = (runtime: LoBlockRuntimeContext, contextId?: string)
  * Main render function - synchronously renders a node to React elements.
  *
  * Node types accepted:
- *   - { type: 'block', id, overrides? } - reference to block in idMap
+ *   - { type: 'block', id, stateKey?, overrides? } - reference to block in idMap
  *   - { tag, id, attributes, kids } - inline OLX node
  *   - Array of kids - rendered via renderCompiledKids
  *
@@ -159,7 +166,9 @@ export function render({ node, nodeInfo, runtime }: {
       );
     }
     const locale = runtime.locale.code;
-    const definitionKey = qualifyDefinitionRef(node.id, runtime.ns);
+    const definitionKey = node.stateKey
+      ? leafDefinitionKeyFromStateKey(node.stateKey)
+      : qualifyDefinitionRef(node.id, runtime.ns);
     const sources = actualOlxJsonSources ?? ['content'];
     const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
@@ -175,7 +184,17 @@ export function render({ node, nodeInfo, runtime }: {
     const entryWithOverrides = node.overrides
       ? { ...entry, attributes: { ...entry.attributes, ...node.overrides } }
       : entry;
-    return render({ node: entryWithOverrides, nodeInfo, runtime });
+    if (!node.stateKey) {
+      return render({ node: entryWithOverrides, nodeInfo, runtime });
+    }
+
+    const { ns } = splitNs(node.stateKey);
+    const idPrefix = scopePrefixOfStateKey(node.stateKey) ?? ('' as IdPrefix);
+    return render({
+      node: entryWithOverrides,
+      nodeInfo,
+      runtime: { ...runtime, ns, idPrefix },
+    });
   }
 
   // Handle structured OLX-style node

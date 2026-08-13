@@ -69,7 +69,34 @@ test('parses <Use> with attribute overrides', async () => {
   const { idMap, root } = await parseOLX(xml, PROV, undefined, TEST_NS);
   const lesson = getOlxJson(idMap, root);
   const useKid = lesson.kids[1];
-  expect(useKid).toEqual({ type: 'block', id: testKey('C'), overrides: { clip: '[3,4]' } });
+  expect(useKid).toEqual({
+    type: 'block',
+    id: testKey('C'),
+    stateKey: testKey('C'),
+    overrides: { clip: '[3,4]' },
+  });
+});
+
+test.each([
+  ['bare', 'answer', 'CONTENT/answer', 'CONTENT/answer'],
+  ['scoped', 'list:#3:answer', 'CONTENT/answer', 'CONTENT/list:#3:answer'],
+  ['namespace-qualified', 'calculus/list:#3:answer', 'calculus/answer', 'calculus/list:#3:answer'],
+])('parses %s <Use ref> as a state reference', async (_label, ref, id, stateKey) => {
+  const xml = `<Vertical id="root"><Use ref="${ref}"/></Vertical>`;
+  const { idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  const useKid = getOlxJson(idMap, 'root')?.kids[0];
+
+  expect(useKid).toEqual({ type: 'block', id, stateKey, overrides: {} });
+});
+
+test.each(['alias', ''])('<Use> rejects id="%s" because ref owns its state identity', async (id) => {
+  const xml = `<Vertical id="root"><Use id="${id}" ref="answer"/></Vertical>`;
+  const { errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+
+  expect(errors).toHaveLength(1);
+  expect(errors[0].message).toContain(
+    `<Use> reuses the state identity named by ref; remove id="${id}".`
+  );
 });
 
 test('CRITICAL: Parser must preserve numeric text as strings (prevents "text.trim is not a function" errors)', async () => {

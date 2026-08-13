@@ -1218,6 +1218,10 @@ export type ParseError = string | null | {
  * 'wait', 'arrow').  `data` carries the payload — the parent block knows
  * its own subtypes and narrows accordingly.  The kids system treats custom
  * entries as opaque.
+ *
+ * A block entry normally has only `id`, the definition to render in the
+ * surrounding scope. `<Use>` additionally stores `stateKey`: the existing
+ * runtime state instance selected by its authored StateRef.
  */
 
 /** Opaque context from the parent block's parser about how to present a child.
@@ -1227,7 +1231,7 @@ export type ParseError = string | null | {
 export type ParentContext = Record<string, JSONValue>;
 
 export type KidEntry =
-  | { type: 'block'; id: DefinitionRef; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
+  | { type: 'block'; id: DefinitionRef; stateKey?: StateKey; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }
