@@ -45,7 +45,36 @@ export type SlotSpec = {
   pts?: number;
 };
 
-export const DEFAULT_VERDICTS = ['met', 'absent', 'unclear'];
+/**
+ * What a judgement may answer when the author adds nothing.
+ *
+ * Two words, because a verdict answers one question. `unclear` is NOT here: it
+ * is an escape hatch, and handing one to every check silently costs points —
+ * 24 scored slots deliberately do without it. An item that wants it says so.
+ */
+export const DEFAULT_VERDICTS = ['met', 'absent'];
+
+/**
+ * Verdicts an author may ADD to a judgement, written as the third segment:
+ *
+ *   key:Label                    met / absent
+ *   key:Label:unclear            met / absent / unclear
+ *   key:Label:wrong_kind         met / absent / wrong_kind
+ *   key:Label:unclear/duplicate  met / absent / unclear / duplicate
+ *
+ * So `met` and `absent` are never authored, and the extras are drawn from a
+ * closed set rather than invented per item. Everything here is a way of NOT
+ * being satisfied, except `unclear`, which is a way of declining to say.
+ *
+ * A third segment whose tokens are not all in this set is read as a legacy
+ * FULL list instead — that is how the identity vocabularies (`PR/NR/PP/NP`,
+ * `first/second/...`) still parse while they wait to move out of `verdict`.
+ * The two forms are unambiguous because `met` and `absent` are never extras.
+ */
+export const EXTRA_VERDICTS = [
+  'unclear',
+  'wrong_kind', 'incomplete', 'duplicate', 'mismatch', 'generic', 'tick_values',
+];
 
 /**
  * Satisfaction, by name.
@@ -469,6 +498,21 @@ export function satisfiedMap(
  * commas (the verdict list is a separate attribute) but not colons, since the
  * colon separates the fields.
  */
+/**
+ * The third segment of a slot, as an option list.
+ *
+ * Absent → the default judgement. All-extras → the judgement plus those extras.
+ * Anything else → a legacy full list, taken verbatim.
+ */
+export function resolveOptions(segment: string | undefined, defaults: string[]): string[] {
+  const tokens = (segment ?? '').split('/').map(o => o.trim()).filter(Boolean);
+  if (!tokens.length) return defaults;
+  if (tokens.every(t => EXTRA_VERDICTS.includes(t))) {
+    return [...DEFAULT_VERDICTS, ...tokens];
+  }
+  return tokens;
+}
+
 export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS): SlotSpec[] {
   return (spec ?? '')
     .split('|')
@@ -488,9 +532,7 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS):
       const slot: SlotSpec = {
         key,
         label: label || key,
-        options: opts
-          ? opts.split('/').map(o => o.trim()).filter(Boolean)
-          : defaults,
+        options: resolveOptions(opts, defaults),
         gates,
       };
       if (pts !== undefined) slot.pts = pts;

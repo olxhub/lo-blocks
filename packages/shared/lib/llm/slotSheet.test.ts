@@ -19,6 +19,7 @@ import {
   slotSheetGuidance,
   DEFAULT_VERDICTS,
   displayVerdict,
+  resolveOptions,
   isSatisfied,
   parseCounts,
   parseCover,
@@ -760,5 +761,47 @@ describe('isSatisfied', () => {
         expect(isSatisfied(slot, v), `${opts.join('/')} → ${v}`).toBe(v === opts[0]);
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The extras form: authors add to a judgement, they do not restate it.
+// ---------------------------------------------------------------------------
+describe('resolveOptions', () => {
+  it('gives a bare slot the default judgement, without unclear', () => {
+    // `unclear` is an escape hatch; handing one to every check costs points on
+    // the 24 scored slots that deliberately do without it.
+    expect(resolveOptions(undefined, DEFAULT_VERDICTS)).toEqual(['met', 'absent']);
+    expect(DEFAULT_VERDICTS).not.toContain('unclear');
+  });
+
+  it('adds declared extras to the judgement', () => {
+    expect(resolveOptions('unclear', DEFAULT_VERDICTS)).toEqual(['met', 'absent', 'unclear']);
+    expect(resolveOptions('wrong_kind', DEFAULT_VERDICTS)).toEqual(['met', 'absent', 'wrong_kind']);
+    expect(resolveOptions('unclear/duplicate', DEFAULT_VERDICTS))
+      .toEqual(['met', 'absent', 'unclear', 'duplicate']);
+  });
+
+  it('reads a non-extras list as a legacy full list', () => {
+    // How the identity vocabularies keep parsing until they move out of
+    // `verdict`. Unambiguous because met/absent are never extras.
+    expect(resolveOptions('PR/NR/PP/NP/none', DEFAULT_VERDICTS))
+      .toEqual(['PR', 'NR', 'PP', 'NP', 'none']);
+    expect(resolveOptions('met/absent/unclear', DEFAULT_VERDICTS))
+      .toEqual(['met', 'absent', 'unclear']);
+    expect(resolveOptions('first/second/neither/absent', DEFAULT_VERDICTS))
+      .toEqual(['first', 'second', 'neither', 'absent']);
+  });
+
+  it('resolves the two forms of the same slot identically', () => {
+    // The migration's whole claim: shortening an explicit list cannot move a
+    // score, because both spellings produce the same options.
+    const long = parseSlots('a:Label:met/absent/unclear@2');
+    const short = parseSlots('a:Label:unclear@2');
+    expect(short).toEqual(long);
+
+    const longPlain = parseSlots('b:Label:met/absent@1');
+    const shortPlain = parseSlots('b:Label@1');
+    expect(shortPlain).toEqual(longPlain);
   });
 });
