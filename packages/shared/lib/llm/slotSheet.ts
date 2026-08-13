@@ -48,6 +48,91 @@ export type SlotSpec = {
 export const DEFAULT_VERDICTS = ['met', 'absent', 'unclear'];
 
 /**
+ * Satisfaction, by name.
+ *
+ * A verdict answers one question — is the required content present? — so there
+ * is one word for yes. Identification ("which of these is it?") and measurement
+ * ("how many?") are not verdicts and travel in their own fields; see
+ * `refers_to` and `count` below.
+ */
+export const MET = 'met';
+
+/**
+ * The `checks` payload a filled sheet carries, per check.
+ *
+ * `refers_to` and `count` are separate fields rather than verdict values
+ * because they are not judgements. Asking a check to answer "PR" or "3" through
+ * `verdict` forced the satisfied-first convention to encode an answer key —
+ * which is why the same question appeared four times with its options permuted.
+ * Both are optional and read only by the primitive that needs them.
+ */
+export type CheckPayload = {
+  verdict?: string;
+  /** Which item of a cover group's list this check addresses. */
+  refers_to?: string;
+  /** How many, for a count group's key. */
+  count?: number | string;
+  evidence?: string;
+  note?: string;
+};
+
+/**
+ * What a verdict token READS AS to the student.
+ *
+ * The checklist line prints the verdict verbatim, and `showChecks` defaults to
+ * true, so whatever a token is spelled becomes student-facing prose. That has
+ * been leaking internals: a student who named something that is not an
+ * antecedent has been reading
+ *
+ *   · **First antecedent is a genuine trigger** — not_antecedent
+ *
+ * Owning the phrasing here rather than in the token is also what makes a shared
+ * vocabulary possible at all. Once several items express the same failure, the
+ * token can be one canonical name while each item keeps a sentence a student can
+ * act on — otherwise the only way to say it well is to invent a per-item token,
+ * which is the sprawl this table exists to end.
+ *
+ * Unknown tokens pass through verbatim. That is deliberate: identity values
+ * (`PR`, `first`) are content rather than judgements and read correctly as
+ * themselves, and a sheet published before a token was named must still render.
+ */
+export const VERDICT_DISPLAY: Record<string, string> = {
+  // The judgement vocabulary. Mapped to itself for now: these already read as
+  // ordinary words, and rewording them changes student-facing text on every
+  // item at once. That is a decision to take deliberately, not a side effect of
+  // wiring up the table — and when it is taken, it is an edit to this one map.
+  met: 'met',
+  absent: 'absent',
+  unclear: 'unclear',
+  yes: 'yes',
+  no: 'no',
+
+  // Canonical failure reasons.
+  wrong_kind: 'not the kind of thing asked for',
+  incomplete: 'named, but not described',
+  duplicate: 'repeats an earlier answer',
+  mismatch: 'does not match what it should',
+  generic: "still the example's wording",
+  tick_values: "these are the axis's values, not a label",
+
+  // Item-local reasons the content migration retires into the canonical set
+  // above. Kept because sheets already published carry them, and because an
+  // unmigrated item should read well in the meantime.
+  not_antecedent: 'not an antecedent',
+  not_active: 'not something done during the behavior',
+  not_consequence: 'not a consequence',
+  not_reason: 'not a reason',
+  not_described: 'named, but not described',
+};
+
+/** A verdict as the student should read it. Unknown tokens pass through. */
+export function displayVerdict(token: unknown): string {
+  const t = String(token ?? '').trim();
+  if (!t) return '';
+  return VERDICT_DISPLAY[t] ?? t;
+}
+
+/**
  * A set of checks that between them must COVER a set of labels.
  *
  * Some rubrics ask whether two answers correspond to two named things without
@@ -194,11 +279,15 @@ export function parseCounts(spec?: string): CountGroup[] {
 /** Member verdicts implied by a count: the first N are met, the rest absent. */
 export function countedVerdicts(
   counts: CountGroup[],
-  checks: Record<string, { verdict?: string } | undefined>,
+  checks: Record<string, CheckPayload | undefined>,
 ): Record<string, { verdict: string }> {
   const out: Record<string, { verdict: string }> = {};
   for (const g of counts) {
-    const raw = (checks[g.key]?.verdict ?? '').trim();
+    // `count` where the item has been migrated, `verdict` where it has not.
+    // Read per check rather than per sheet so the two can coexist while the
+    // content moves over item by item.
+    const src = checks[g.key]?.count ?? checks[g.key]?.verdict ?? '';
+    const raw = String(src).trim();
     const n = Number.parseInt(raw, 10);
     const got = Number.isFinite(n) ? n : 0;
     g.slots.forEach((k, i) => { out[k] = { verdict: i < got ? 'met' : 'absent' }; });
@@ -306,7 +395,7 @@ export function parseEquals(spec?: string): EqualsRule[] {
 /** The verdict a computed check gets, for display and for the published sheet. */
 export function computedVerdict(
   rule: EqualsRule,
-  checks: Record<string, { verdict?: string } | undefined>,
+  checks: Record<string, CheckPayload | undefined>,
 ): string {
   const l = (checks[rule.left]?.verdict ?? '').trim();
   const r = (checks[rule.right]?.verdict ?? '').trim();
@@ -338,7 +427,7 @@ export function parseCover(spec?: string): CoverGroup[] {
 /** Satisfaction for every check, with cover groups overriding the first-verdict rule. */
 export function satisfiedMap(
   slots: SlotSpec[],
-  checks: Record<string, { verdict?: string } | undefined>,
+  checks: Record<string, CheckPayload | undefined>,
   cover: CoverGroup[] = [],
   equals: EqualsRule[] = [],
   counts: CountGroup[] = [],
@@ -360,7 +449,9 @@ export function satisfiedMap(
   for (const g of cover) {
     const claimed = new Set<string>();
     for (const k of g.keys) {
-      const v = (checks[k]?.verdict ?? '').trim();
+      // Which item of the list this check addresses. `refers_to` once the item
+      // is migrated; `verdict` while it still spells the reference as a verdict.
+      const v = String(checks[k]?.refers_to ?? checks[k]?.verdict ?? '').trim();
       const ok = g.labels.includes(v) && !claimed.has(v);
       if (ok) claimed.add(v);
       out[k] = ok;
@@ -466,7 +557,7 @@ export function publishedSheet(args: {
 
 export function scoreSlotSheet(
   slots: SlotSpec[],
-  checks: Record<string, { verdict?: string } | undefined>,
+  checks: Record<string, CheckPayload | undefined>,
   explicitMax?: number,
   cover: CoverGroup[] = [],
   equals: EqualsRule[] = [],
@@ -491,9 +582,23 @@ export function scoreSlotSheet(
   };
 }
 
-/** Is this slot satisfied? Only the first verdict in its own list counts. */
+/**
+ * Is this slot satisfied?
+ *
+ * By NAME where the slot uses the judgement vocabulary, and by POSITION
+ * otherwise. The two rules agree on every slot in the current content — no
+ * vocabulary in the handouts carries `met` anywhere but first — so this is a
+ * behaviour-preserving change that stops satisfaction depending on the order an
+ * author happened to write the options in.
+ *
+ * The positional branch is what still reads the identity vocabularies
+ * (`PR/NR/PP/NP`, `first/second/...`), and it goes away with them.
+ */
 export function isSatisfied(slot: SlotSpec, verdict: string | undefined): boolean {
-  return !!verdict && verdict === slot.options[0];
+  const v = (verdict ?? '').trim();
+  if (!v) return false;
+  if (slot.options.includes(MET)) return v === MET;
+  return v === slot.options[0];
 }
 
 /**
@@ -505,7 +610,7 @@ export function isSatisfied(slot: SlotSpec, verdict: string | undefined): boolea
  */
 export function failedGate(
   slots: SlotSpec[],
-  checks: Record<string, { verdict?: string } | undefined>,
+  checks: Record<string, CheckPayload | undefined>,
   cover: CoverGroup[] = [],
   equals: EqualsRule[] = [],
   onlyif: OnlyIfRule[] = [],
@@ -805,7 +910,7 @@ export function composeSlotFeedback(
     // An unsatisfied check that was not charged would otherwise read as a lost
     // point the score does not show, so it says so.
     const moot = !sat[slot.key] && !charged[slot.key] ? ' (not counted separately)' : '';
-    const line = `- ${mark} **${slot.label}** — ${verdict || 'not reported'}${moot}`;
+    const line = `- ${mark} **${slot.label}** — ${displayVerdict(verdict) || 'not reported'}${moot}`;
     // What the verdict was decided ON, then what to do about it. Both belong to
     // this check, so both sit under it rather than in a paragraph the student
     // has to map back onto the ticks.

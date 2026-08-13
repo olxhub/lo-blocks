@@ -18,6 +18,11 @@ import {
   checklistGuidance,
   slotSheetGuidance,
   DEFAULT_VERDICTS,
+  displayVerdict,
+  isSatisfied,
+  parseCounts,
+  parseCover,
+  satisfiedMap,
   type SlotSpec,
 } from './slotSheet';
 
@@ -627,5 +632,133 @@ describe('per-check notes when the checklist is shown', () => {
     const schema: any = buildSlotSchema(slots, [], [], [], true);
     expect(schema.properties.checks.properties.a.properties.note.description)
       .toMatch(/AT MOST TWO SHORT SENTENCES/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Verdict display — the student-facing half of a shared vocabulary.
+// ---------------------------------------------------------------------------
+describe('displayVerdict', () => {
+  it('turns internal tokens into something a student can read', () => {
+    // The shipped leak: snake_case reaching the checklist line verbatim.
+    expect(displayVerdict('not_antecedent')).toBe('not an antecedent');
+    expect(displayVerdict('tick_values')).toBe("these are the axis's values, not a label");
+    expect(displayVerdict('wrong_kind')).toBe('not the kind of thing asked for');
+  });
+
+  it('passes unknown tokens through verbatim', () => {
+    // Identity values are CONTENT, not judgements — "PR" is the answer, and
+    // reads correctly as itself. A sheet published before a token was named
+    // must render too, rather than showing a blank where a verdict was.
+    expect(displayVerdict('PR')).toBe('PR');
+    expect(displayVerdict('first')).toBe('first');
+    expect(displayVerdict('some_future_token')).toBe('some_future_token');
+  });
+
+  it('treats an unanswered check as empty, not as the word', () => {
+    // composeSlotFeedback falls back to "not reported" on empty; returning
+    // "undefined"/"null" here would print those words to a student.
+    expect(displayVerdict(undefined)).toBe('');
+    expect(displayVerdict(null)).toBe('');
+    expect(displayVerdict('   ')).toBe('');
+  });
+
+  it('renders the checklist line through the map', () => {
+    const slots = parseSlots('a:First antecedent is a genuine trigger:met/absent/not_antecedent');
+    const out = composeSlotFeedback(
+      slots,
+      { feedback: '', checks: { a: { verdict: 'not_antecedent' } } } as any,
+      { showChecks: true },
+    );
+    expect(out).toContain('not an antecedent');
+    expect(out).not.toContain('not_antecedent');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Identification and measurement leave `verdict`.
+//
+// `refers_to` and `count` are read in preference to `verdict` where a check
+// supplies them, so an item can move to the new shape on its own while its
+// neighbours still use the old one. Both paths are pinned: the fallback IS the
+// unmigrated content, and breaking it would break every item at once.
+// ---------------------------------------------------------------------------
+describe('refers_to and count', () => {
+  const coverSlots = parseSlots('a:Box one:first/second/neither|b:Box two:first/second/neither');
+  const cover = parseCover('a,b:first,second');
+
+  it('covers from refers_to when the check supplies it', () => {
+    const sat = satisfiedMap(coverSlots, {
+      a: { verdict: 'met', refers_to: 'first' },
+      b: { verdict: 'met', refers_to: 'second' },
+    }, cover);
+    expect(sat.a).toBe(true);
+    expect(sat.b).toBe(true);
+  });
+
+  it('still refuses to let two checks claim the same item', () => {
+    // The no-double-counting rule is the whole point of cover; it must survive
+    // the move to a different field.
+    const sat = satisfiedMap(coverSlots, {
+      a: { verdict: 'met', refers_to: 'first' },
+      b: { verdict: 'met', refers_to: 'first' },
+    }, cover);
+    expect(sat.a).toBe(true);
+    expect(sat.b).toBe(false);
+  });
+
+  it('falls back to verdict for a check that has not migrated', () => {
+    const sat = satisfiedMap(coverSlots, {
+      a: { verdict: 'first' },
+      b: { verdict: 'second' },
+    }, cover);
+    expect(sat.a).toBe(true);
+    expect(sat.b).toBe(true);
+  });
+
+  it('counts from count, and still from a numeric verdict', () => {
+    const slots = parseSlots('n:How many:3/2/1/0|r1:First@1|r2:Second@1|r3:Third@1');
+    const counts = parseCounts('n:r1,r2,r3');
+
+    const fromCount = satisfiedMap(slots, { n: { count: 2 } }, [], [], counts);
+    expect([fromCount.r1, fromCount.r2, fromCount.r3]).toEqual([true, true, false]);
+
+    const fromVerdict = satisfiedMap(slots, { n: { verdict: '2' } }, [], [], counts);
+    expect([fromVerdict.r1, fromVerdict.r2, fromVerdict.r3]).toEqual([true, true, false]);
+  });
+});
+
+describe('isSatisfied', () => {
+  it('reads `met` by name wherever it sits in the list', () => {
+    // The order an author wrote the options in stops deciding satisfaction.
+    const byName = { key: 'k', label: 'L', options: ['absent', 'met'], gates: false };
+    expect(isSatisfied(byName as any, 'met')).toBe(true);
+    expect(isSatisfied(byName as any, 'absent')).toBe(false);
+  });
+
+  it('still reads a non-judgement vocabulary positionally', () => {
+    // Identity slots have no `met`; they keep the old rule until they are
+    // migrated out of `verdict` entirely.
+    const positional = { key: 'k', label: 'L', options: ['PR', 'NR', 'PP'], gates: false };
+    expect(isSatisfied(positional as any, 'PR')).toBe(true);
+    expect(isSatisfied(positional as any, 'NR')).toBe(false);
+  });
+
+  it('agrees with the positional rule on every current vocabulary', () => {
+    // The migration's safety argument, as a test: no vocabulary in the
+    // handouts carries `met` anywhere but first, so switching to by-name
+    // cannot move a score on today's content.
+    for (const opts of [
+      ['met', 'absent', 'unclear'], ['met', 'absent'],
+      ['met', 'absent', 'not_antecedent'], ['met', 'absent', 'not_active'],
+      ['met', 'absent', 'not_consequence', 'duplicate'],
+      ['met', 'absent', 'mismatch', 'not_described'],
+      ['met', 'absent', 'tick_values', 'generic'], ['met', 'absent', 'incomplete'],
+    ]) {
+      const slot = { key: 'k', label: 'L', options: opts, gates: false } as any;
+      for (const v of opts) {
+        expect(isSatisfied(slot, v), `${opts.join('/')} → ${v}`).toBe(v === opts[0]);
+      }
+    }
   });
 });
