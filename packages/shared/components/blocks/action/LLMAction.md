@@ -24,6 +24,48 @@ Executes LLM prompts when triggered by ActionButton. References student inputs u
 
 ## Properties
 - `target` (required): ID of component to update with LLM response
+- `slots` (optional): a checklist the model must complete before writing its feedback. Turns the call into structured output — see below.
+- `verdicts` (optional): the verdict values available to every slot. Default `met,absent,unclear`. The **first** value is the satisfied one.
+
+## Forcing a checklist with `slots`
+
+A prompt can ask the model to work through a list of checks, but nothing makes it
+finish one — it can answer three of eight and write fluent feedback about the
+three. Adding `slots` makes each check a **required property of a strict JSON
+schema**, so an incomplete answer is not well-formed at all.
+
+Each entry is `key:Label`, separated by `|`. Append `:opt1/opt2` to give one slot
+its own verdict values:
+
+```olx:code
+<LLMAction target="fb"
+           verdicts="met,absent,unclear"
+           slots="claim:States a claim|evidence:Cites evidence|warrant:Links them:met/absent/weak">
+  Check each part of the argument, then give feedback.
+  Student response: <Ref target="answer" />
+</LLMAction>
+```
+
+The student sees the model's prose followed by the checklist itself, so which
+parts were found is visible rather than inferred. A satisfied slot is ticked;
+anything else gets a neutral dot, because a slot can be informational (a
+`kind:.../PR/NR` slot reports a category, not a pass or fail) and marking those
+as failures would misreport them.
+
+Two things worth knowing:
+
+- **Ordering is load-bearing.** The checks are generated before the prose, so the
+  feedback is conditioned on the verdicts rather than rationalised after it.
+  Put the "what is this actually?" slot before the "is it the right one?" slot.
+- **Provider support is uneven.** The openai and azure paths forward
+  `response_format` to the provider; the bedrock path builds its own request body
+  and drops it, and the stub provider returns prose. When the schema is not
+  honoured the block falls back to showing the unstructured text, so it degrades
+  instead of breaking — but the checklist is not guaranteed on those providers.
+
+For a worked example see `content/psychology/bmod_handout1.olx` (question 6),
+whose eight slots are ported from the item-by-item scorer in
+`~/code/molly_scoring`.
 
 ## Content
 
