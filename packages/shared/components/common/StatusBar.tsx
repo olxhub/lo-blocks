@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useUser } from '@/lib/state';
 import { resolveConfig } from '@/lib/config';
 import type { Locale } from '@/lib/types';
-import { useConnectionStatus, SaveIndicator, OfflineNotice } from './ConnectionStatus';
+import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice, fatalMessage } from './ConnectionStatus';
 import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
 
 interface StatusBarProps {
@@ -24,7 +24,7 @@ interface StatusBarProps {
 }
 
 export default function StatusBar({ availableLocales, bestEffortLocales }: StatusBarProps = {}) {
-  const { saveStatus, persists, offline } = useConnectionStatus();
+  const { saveStatus, persists, offline, fatal } = useConnectionStatus();
   const user = useUser();
 
   const translanguaging = resolveConfig({}, 'translanguaging') === 'true';
@@ -42,26 +42,25 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
     return () => window.removeEventListener('beforeunload', handler);
   }, [persists, saveStatus]);
 
-  // Fatal delivery failure — DISABLED, deliberately. See the FATAL block in
-  // ConnectionStatus.tsx for what should trigger this and why nothing does yet.
+  // Fatal delivery failure (see the FATAL block in ConnectionStatus.tsx for the
+  // symptom that triggers it).
   //
-  // Kept as a breadcrumb because the ORDERING is the part worth not
-  // rediscovering: fatal is checked BEFORE offline. "Offline" implies the work
-  // is held and will sync when the connection returns, which is a promise a
-  // fatal state cannot keep — so showing the transient message for a permanent
-  // failure actively misleads. The page dim is also deliberate: it discourages
-  // continuing to work, rather than merely reporting.
-  //
-  // if (fatal) {
-  //   return (
-  //     <div className="sticky top-0 z-50 print:hidden">
-  //       <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
-  //         <FatalNotice message={fatalMessage(fatal.code)} />
-  //       </div>
-  //       <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
-  //     </div>
-  //   );
-  // }
+  // The ORDERING is the part worth not rediscovering: fatal is checked BEFORE
+  // offline. "Offline" implies the work is held and will sync when the
+  // connection returns, which is a promise a fatal state cannot keep — so
+  // showing the transient message for a permanent failure actively misleads.
+  // The page dim is also deliberate: it discourages continuing to work, rather
+  // than merely reporting.
+  if (fatal) {
+    return (
+      <div className="sticky top-0 z-50 print:hidden">
+        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
+          <FatalNotice message={fatalMessage(fatal.code)} />
+        </div>
+        <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
+      </div>
+    );
+  }
 
   // Persistence dropped: red banner + dim the page to discourage working while
   // changes can't be saved. (offline implies persistence is configured.)

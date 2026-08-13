@@ -672,10 +672,10 @@ function configureStore({
     // There is no longer any capability negotiation, and that is deliberate:
     // it existed to guard a legacy confirm-on-send fallback, and a fallback
     // that silently downgrades durability is worse than none. The ack protocol
-    // is simply required. The open gap is a server that accepts events and
-    // never acks: the outbox correctly retains them and grows unbounded, with
-    // no signal. See TODO(lo_event-not-acking) in
-    // components/common/ConnectionStatus.tsx for the symptom-based trigger.
+    // is simply required. A server that accepts events and never acks is
+    // handled: the outbox correctly retains them, and the symptom-based fatal
+    // banner (connected, outbox non-empty, nothing acked in N seconds) says so
+    // out loud — see the FATAL block in components/common/ConnectionStatus.tsx.
     // fetchState: lo-blocks HAS server-side state, so the logger requests a
     // snapshot itself once per connection, behind the flush barrier (the
     // request must arrive after this connection's backlog, or the snapshot

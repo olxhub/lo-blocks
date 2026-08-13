@@ -12,7 +12,9 @@
 //   true  → connected → show save status
 //
 'use client';
-import { WifiOff } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, WifiOff } from 'lucide-react';
+import * as lo_event from 'lo_event';
 import { useConnected, useSaved } from '@/lib/state';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
@@ -21,38 +23,128 @@ export type SaveStatus = 'saved' | 'modified' | 'error';
 export const OFFLINE_MESSAGE = 'Offline — changes may not be saved';
 
 // ---------------------------------------------------------------------------
-// FATAL DELIVERY FAILURE — disabled, deliberately. Breadcrumb, not dead weight.
+// FATAL DELIVERY FAILURE — live, driven by a symptom.
 // ---------------------------------------------------------------------------
 //
-// A sticky, non-recoverable delivery failure, distinct from "offline": the
-// client holds its queue but nothing will ever reach the server, so the UX
-// fails hard rather than letting anyone keep working under the illusion of
-// saving. Rendered as a full-width banner plus a page dim (see StatusBar).
+// A delivery failure distinct from "offline": the client holds its queue but
+// nothing is reaching the server, so the UX fails hard rather than letting
+// anyone keep working under the illusion of saving. Rendered as a full-width
+// banner plus a page dim (see StatusBar).
 //
-// Its only trigger used to be ACK_REQUIRED — the server's `hello` did not
-// advertise `capabilities.ack`. That trigger is gone on purpose: capability
-// negotiation existed mainly to guard a legacy confirm-on-send fallback, and a
-// fallback that silently downgrades durability is worse than none.
+// The trigger is a SYMPTOM, not a handshake: connected, outbox non-empty,
+// nothing acked for NOT_ACKING_WINDOW_MS. There used to be an ACK_REQUIRED
+// trigger reading `capabilities.ack` off the server's `hello`; capability
+// negotiation is gone (it existed to guard a legacy confirm-on-send fallback,
+// and a fallback that silently downgrades durability is worse than none). The
+// symptom needs no capability frame and catches strictly more — a wedged
+// pipeline or a quarantined event type present identically, and a server
+// advertising `capabilities.ack` would have looked healthy through both.
 //
-// The REQUIREMENT did not go away, only the signal, which is why this is
-// commented rather than deleted. What should feed it is a SYMPTOM, not a
-// handshake: connected, outbox non-empty, nothing acked in N seconds. That
-// needs no capability frame and no legacy path, and it catches strictly more —
-// a wedged pipeline or a quarantined event type present identically, and a
-// server advertising `capabilities.ack` would have looked healthy through both.
-//
-// Two things to preserve when it comes back: the tier distinction (a recoverable
+// Two things this must keep doing: honour the tier distinction (a recoverable
 // per-connection fault must NOT surface here, or people learn to ignore the
-// banner), and showing FATAL_MESSAGES copy rather than a raw diagnostic string,
-// which is a developer message that must never reach a student.
+// banner — hence a disconnect or an emptied outbox resets the window, so
+// reconnect churn and in-flight bursts never trip it), and show FATAL_MESSAGES
+// copy rather than a raw diagnostic string, which is a developer message that
+// must never reach a student.
+
+export interface Fatal { code: string; message: string }
+
+export const FATAL_MESSAGES: Record<string, string> = {
+  NOT_ACKING: 'Saving isn’t working right now — the server isn’t confirming your work. Your work is held on this device; keep this page open and try again later.',
+};
+export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
+export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+
+// --- symptom detector -------------------------------------------------------
 //
-// export interface Fatal { code: string; message: string }
-//
-// export const FATAL_MESSAGES: Record<string, string> = {
-//   ACK_REQUIRED: 'Saving is unavailable right now — the server isn’t accepting saves. Your work is held and will sync once the connection is restored.',
-// };
-// export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
-// export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+// How often we sample the outbox depth. Cheap (one IndexedDB count per logger),
+// so the interval is chosen for responsiveness, not cost.
+export const POLL_MS = 5_000;
+// How long the outbox must stay non-empty with no observed decrease, measured
+// in CONNECTED time, before we call it fatal. Long enough to sit out a slow
+// batch or a retry, short enough that a student notices before doing much work.
+export const NOT_ACKING_WINDOW_MS = 30_000;
+
+/** Detector state, threaded through pure steps so the decision is testable. */
+export interface NotAckingState {
+  /** First connected sample of the current stuck run, or null if not stuck. */
+  stuckSince: number | null;
+  /** Outbox depth at the previous connected sample, or null. */
+  lastCount: number | null;
+  fatal: Fatal | null;
+}
+
+export interface NotAckingSample {
+  /** Monotonic-ish ms timestamp of the sample. */
+  t: number;
+  connected: boolean | null;
+  /** Unacked events across all loggers; ignored when not connected. */
+  count: number;
+}
+
+export const initialNotAckingState: NotAckingState = { stuckSince: null, lastCount: null, fatal: null };
+
+/**
+ * One sample → next state. The decision core, deliberately pure.
+ *
+ * A decrease in the count means an ack landed, so the pipeline is alive: window
+ * resets and any existing fatal clears. That is what "sticky" meant in the
+ * older breadcrumb — no flicker while the outbox sits stuck — not
+ * unrecoverable-by-design; a server that genuinely starts acking again stops
+ * being fatal. A disconnect only resets the window (offline has its own,
+ * truthful message and takes precedence in StatusBar); the fatal itself is
+ * cleared only by evidence of progress.
+ */
+export function stepNotAcking(state: NotAckingState, sample: NotAckingSample): NotAckingState {
+  if (sample.connected !== true) {
+    return { ...state, stuckSince: null, lastCount: null };
+  }
+  const acked = state.lastCount !== null && sample.count < state.lastCount;
+  if (sample.count === 0 || acked) {
+    return { stuckSince: null, lastCount: sample.count, fatal: null };
+  }
+  const stuckSince = state.stuckSince ?? sample.t;
+  const fatal = sample.t - stuckSince >= NOT_ACKING_WINDOW_MS
+    ? (state.fatal ?? { code: 'NOT_ACKING', message: fatalMessage('NOT_ACKING') })
+    : state.fatal;
+  return { stuckSince, lastCount: sample.count, fatal };
+}
+
+/** Fold a sample sequence — the shape tests use. */
+export function foldNotAcking(samples: NotAckingSample[]): NotAckingState {
+  return samples.reduce(stepNotAcking, initialNotAckingState);
+}
+
+/** Polls the outbox while connected and reports the symptom-based fatal. */
+function useNotAckingFatal(connected: boolean | null): Fatal | null {
+  const stateRef = useRef<NotAckingState>(initialNotAckingState);
+  const [fatal, setFatal] = useState<Fatal | null>(null);
+
+  useEffect(() => {
+    if (connected !== true) {
+      // Not connected: fold the disconnect in so the window restarts on return.
+      stateRef.current = stepNotAcking(stateRef.current, { t: Date.now(), connected, count: 0 });
+      return;
+    }
+    let cancelled = false;
+    const sample = async () => {
+      let count: number;
+      try {
+        count = await lo_event.unackedCount();
+      } catch {
+        return; // No queue to inspect yet — say nothing rather than guess.
+      }
+      if (cancelled) return;
+      stateRef.current = stepNotAcking(stateRef.current, { t: Date.now(), connected: true, count });
+      setFatal(stateRef.current.fatal);
+    };
+    void sample();
+    const timer = setInterval(() => void sample(), POLL_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [connected]);
+
+  return fatal;
+}
 
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
@@ -62,21 +154,21 @@ export interface ConnectionStatus {
   persists: boolean;
   /** True when persistence is active but the connection has dropped. */
   offline: boolean;
-  // /** Sticky fatal delivery failure, or null. See the FATAL block above. */
-  // fatal: Fatal | null;
+  /** Fatal delivery failure, or null. See the FATAL block above. */
+  fatal: Fatal | null;
 }
 
 /** Single subscription to connection + save state, with the null/false/true rules applied. */
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
-  // TODO(lo_event-not-acking): no fatal signal exists yet — see the FATAL block
-  // above for what should produce one, and StatusBar for the disabled banner.
+  const fatal = useNotAckingFatal(connected);
   return {
     connected,
     saveStatus,
     persists: connected !== null,
     offline: connected === false,
+    fatal,
   };
 }
 
@@ -117,16 +209,16 @@ export function OfflineNotice({ className = '' }: { className?: string }) {
   );
 }
 
-// Disabled with the rest of the fatal machinery — see the FATAL block above.
-// Restore alongside a trigger, not before: an unreachable banner with
-// user-facing copy that cannot be exercised is exactly what survives three
-// refactors because nobody can tell whether it is load-bearing.
-//
-// export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
-//   return (
-//     <span className={`flex items-center gap-2 ${className}`}>
-//       <AlertTriangle className="w-4 h-4" />
-//       {message}
-//     </span>
-//   );
-// }
+/**
+ * Inline fatal notice: AlertTriangle + FATAL_MESSAGES copy (never a raw
+ * diagnostic). Like OfflineNotice, it carries no background of its own — the
+ * caller supplies the container styling.
+ */
+export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
+  return (
+    <span className={`flex items-center gap-2 ${className}`}>
+      <AlertTriangle className="w-4 h-4" />
+      {message}
+    </span>
+  );
+}

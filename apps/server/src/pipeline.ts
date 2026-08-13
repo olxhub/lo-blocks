@@ -188,6 +188,21 @@ async function* decodeAndLog(
     // Await durability BEFORE acking: the whole point of Plane 1 is that
     // "ack" means "on disk", not "received into a variable" (see docs/README.md,
     // section "State, Events, and Synchronization").
+    //
+    // TODO(fatal-isolation): a rejection here — or a throw in ANY later stage —
+    // currently tears down the whole session (server.ts closes the socket),
+    // which conflates two different failures. The intended split:
+    //   * The LOG failing is the one fatality that must stop acks: with no
+    //     durable capture there is nothing to promise. Tear down, and let the
+    //     client's not-acking banner surface it (ConnectionStatus.tsx).
+    //   * A DOWNSTREAM stage failing (a reducer bug, a malformed event wedging
+    //     routing) must NOT stop capture: keep appending and acking — the
+    //     events are durably held for replay once the bug is fixed — and stop
+    //     feeding the broken stages instead of killing the connection.
+    // Today both fail identically because the drain loop pulls through every
+    // stage in one chain. The split likely lands with the projection-cursor
+    // work (state-persistence-take-stock §7.4), which makes "captured but not
+    // yet projected" a first-class, recoverable state rather than an outage.
     await appendEventDurable(context.conn, event);
 
     const eventId = event?.metadata?.eventId;

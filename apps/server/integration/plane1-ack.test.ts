@@ -27,8 +27,10 @@
 //     original data-loss bug end to end.
 //   TODO(lo_event-not-acking): no-ack assertion (client-side, with lo_event's
 //     tests). A client pointed at a server that accepts events and never acks
-//     them must HOLD its queue (that part works) and say so out loud (that part
-//     does not exist).
+//     them must HOLD its queue and say so out loud. Both parts exist now — the
+//     hold in lo_event, the saying-so in the symptom-based fatal banner (see the
+//     FATAL block in components/common/ConnectionStatus.tsx) — but nothing
+//     asserts the pair end to end against a real never-acking server.
 //     NOT written as a capability/misdeploy check: lo_event deliberately
 //     dropped `hello` negotiation and the legacy confirm-on-send path, so
 //     "server doesn't advertise ack" is no longer a distinguishable state. The
