@@ -13,6 +13,7 @@ import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
 import { FieldPersister } from '@/lib/state/sync/persistence';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
+import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import { ALL, userInstance, setInstance, subscriptionKey } from '@/lib/state/sync/levels';
 import type { AuthUser } from './auth.js';
@@ -392,6 +393,71 @@ test('grouped-by: users partition by their own picker field', async () => {
   expect([...subs.subscribers(subscriptionKey(setInstance('topic_picker.activeIndex', '0'), 'demos/chat'))]).not.toContain(wsA);
   const switchPatch = wsA.sent.find(m => m.event_type === 'lo_server_state');
   expect(switchPatch.detail.sharedComponent['demos/chat'].value).toBe('dogs only');
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
+test('scoped instances route by their LEAF definition: level, partition, fan-out', async () => {
+  // The bug this pins: all three sync-engine consumers used to slice a
+  // state id at the first '#' (a pre-id-grammar "defId#anchor" dialect).
+  // Against a real colon-scoped key ("demos/list:#2:chat") that yields
+  // "demos/list:" — a miss everywhere: the shared declaration was lost
+  // (routed private), the grouping spec was lost (routed to `all`), and
+  // definition subscribers never heard the event.
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  const SCOPED = 'demos/list:#2:chat';
+
+  // The REAL level index (not the map stub): declarations live on the
+  // leaf DEFINITION, so the scoped instance must resolve through it.
+  const fieldLevels = makeFieldLevelIndex(
+    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
+    (tag: string) => (tag === 'SharedChat'
+      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
+  );
+  // Grouping is likewise keyed by definition.
+  const grouping = {
+    specOf: async (id: string) =>
+      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+    groupedBlocksFor: async (pickerKey: string, field: string) =>
+      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
+        ? ['demos/chat'] : [],
+  };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // Both pick Cats (0) — same partition.
+  for (const [ws, actor] of [[wsA, 'a'], [wsB, 'b']] as const) {
+    ws.emit('message', Buffer.from(JSON.stringify({
+      event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+      id: 'demos/topic_picker', activeIndex: 0, ts: 1, actor })));
+  }
+  await new Promise(r => setTimeout(r, 20));
+
+  // B's content fetch subscribed it by DEFINITION key — nobody fetches
+  // "demos/list:#2:chat", the list's content fetch names the definitions.
+  const cats = setInstance('topic_picker.activeIndex', '0');
+  subs.subscribe(wsB as any, [subscriptionKey(cats, 'demos/chat')]);
+
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'scoped cats' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // Shared (the declaration was found) AND in A's partition (the
+  // grouping spec was found), not `all` and not A's private instance.
+  expect((await registry.read(cats))!.component[SCOPED].value).toBe('scoped cats');
+  expect((await registry.read(ALL))?.component?.[SCOPED]).toBeUndefined();
+  expect((await registry.read(userInstance(USER.safe_user_id)))?.component?.[SCOPED]).toBeUndefined();
+  // ...and the definition subscriber heard the scoped instance's event.
+  expect(wsB.sent.find(m => m.status === 'browser_event')?.detail.value).toBe('scoped cats');
 
   wsA.emit('close'); wsB.emit('close');
   await Promise.all([runA, runB]);

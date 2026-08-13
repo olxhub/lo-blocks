@@ -878,11 +878,12 @@ export function stateKeyForGlobalRef(
  *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
  */
 export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
+  // A statePath always ends in a leaf id (the grammar has no
+  // container-own-key shape), so the prefix is everything before it —
+  // absent only when the leaf IS the whole path.
   const { path } = splitNs(key);
   const leaf = leafBlock(path);
-  // Only the plain trailing-leaf shape has a derivable prefix; a container's
-  // own key ("list:#0") has no leaf suffix to strip.
-  if (leaf === path || !path.endsWith(`${SCOPE_SEPARATOR}${leaf}`)) return undefined;
+  if (leaf === path) return undefined;
   return asIdPrefix(path.slice(0, path.length - leaf.length - SCOPE_SEPARATOR.length));
 }
 
@@ -926,4 +927,13 @@ export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
 export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
   const { ns, path } = splitNs(key);
   return blockSegments(path).map(id => asDefinitionKey(joinNs(ns, id)));
+}
+
+/** Non-throwing boundary parse: the branded StateKey when valid, else
+ * null. For callers handling id-shaped strings that may not be StateKeys
+ * (componentSetting tags, storage URIs, system ids) — the caller keeps
+ * the null case and decides what non-key means THERE; this module never
+ * returns an unbranded id-shaped string. */
+export function tryParseStateKey(s: string): StateKey | null {
+  return validateStateKey(s) === true ? asStateKey(s) : null;
 }

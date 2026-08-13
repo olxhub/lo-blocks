@@ -25,6 +25,9 @@ import type { GroupingIndex } from './partitions';
 import type { FieldLevelIndex, FieldLevelInfo } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
+import {
+  tryParseStateKey, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+} from '@/lib/types/id-grammar';
 import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
@@ -101,12 +104,17 @@ async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<Fie
 
 /** The instance a level-everyone block folds into for THIS sender:
  * their partition when grouped, else `all`. The partition NEVER comes
- * from the wire: grouped fields resolve from the SENDER's own state. */
-async function sharedInstanceFor(session: SyncSession, blockId: string): Promise<LevelInstance> {
+ * from the wire: grouped fields resolve from the SENDER's own state.
+ * Grouping is declared on DEFINITIONS, so a scoped instance
+ * (`ns/list:#2:notes`) resolves via its leaf definition. `stateId` is
+ * the event's runtime state id (usually a StateKey; parsed inside). */
+async function sharedInstanceFor(session: SyncSession, stateId: string): Promise<LevelInstance> {
+  const key = tryParseStateKey(stateId);
+  const defId = key ? leafDefinitionKeyFromStateKey(key) : stateId;
   const spec = session.grouping
-    ? await session.grouping.specOf(blockId) : undefined;
+    ? await session.grouping.specOf(defId) : undefined;
   if (!spec) return ALL;
-  const parsed = parsePartitionSpec(spec, blockId);
+  const parsed = parsePartitionSpec(spec, stateId);
   const own = session.holdings.get(userInstance(session.principal));
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
@@ -116,22 +124,30 @@ async function sharedInstanceFor(session: SyncSession, blockId: string): Promise
 
 /**
  * Who hears about an event at an instance: the connections subscribed to
- * (instance, blockId) — content fetch = subscription; writers
+ * (instance, stateId) — content fetch = subscription; writers
  * self-subscribe so a client that writes without fetching still hears
- * responses. Scoped state keys (`defId#anchor`) also reach BASE-id
- * subscribers (content fetches subscribe by definition id).
+ * responses. Scoped state keys (`ns/list:#2:grader`) also reach their
+ * DEFINITION subscribers, container and leaf (content fetches subscribe
+ * by DefinitionKey — whoever fetched the list hears its instances).
+ * (This used to slice at '#', a pre-id-grammar dialect nothing
+ * produces; scoped events reached only exact-key subscribers, i.e.
+ * usually nobody. Found by review 2026-07.)
  */
 function subscribersFor(
   session: SyncSession,
   instance: LevelInstance,
-  blockId: string,
+  stateId: string,
 ): Set<StateConnection> {
-  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, blockId)]);
-  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, blockId)));
-  const hash = blockId.indexOf('#');
-  if (hash > 0) {
-    const base = subscriptionKey(instance, blockId.slice(0, hash));
-    for (const sock of session.subscriptions.subscribers(base)) recipients.add(sock);
+  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, stateId)]);
+  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, stateId)));
+  // An id that isn't a StateKey has no definition chain — exact-key
+  // subscribers (above) are the only audience.
+  const key = tryParseStateKey(stateId);
+  for (const defId of key ? allDefinitionKeysFromStateKey(key) : []) {
+    if (defId === stateId) continue;
+    for (const sock of session.subscriptions.subscribers(subscriptionKey(instance, defId))) {
+      recipients.add(sock);
+    }
   }
   return recipients;
 }

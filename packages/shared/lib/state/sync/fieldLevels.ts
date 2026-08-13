@@ -13,6 +13,7 @@
 // Same TTL-cached content-scan shape as partitions.ts / aggregations.ts.
 
 import type { FieldInfo } from '../../types';
+import { tryParseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 
 /** What routing needs to know about a declared level>user field. */
 export interface FieldLevelInfo {
@@ -22,15 +23,19 @@ export interface FieldLevelInfo {
 
 export interface FieldLevelIndex {
   /** The field's declared level info, or undefined for level 'user'
-   * (the default — undeclared fields are private). */
-  levelOf(blockId: string, field: string): Promise<FieldLevelInfo | undefined>;
+   * (the default — undeclared fields are private). `stateId` is the
+   * event's runtime state id: usually a StateKey (possibly scoped), but
+   * settings tags and system ids pass through here too — hence string,
+   * parsed at the boundary inside. */
+  levelOf(stateId: string, field: string): Promise<FieldLevelInfo | undefined>;
 }
 
 /**
  * TTL-cached index from content + block registry: block id → tag →
  * blueprint fields; only level>user declarations are indexed (absence
- * means 'user'). Scoped state keys (`defId#anchor`) share their
- * definition's declaration.
+ * means 'user'). Scoped state keys (`ns/list:#2:grader`) share their
+ * LEAF definition's declaration — container segments only scope the
+ * instance; the field belongs to the leaf block.
  */
 export function makeFieldLevelIndex(
   loadIdMap: () => Promise<Record<string, Record<string, any>>>,
@@ -66,13 +71,20 @@ export function makeFieldLevelIndex(
   };
 
   return {
-    async levelOf(blockId, field) {
+    async levelOf(stateId, field) {
       if (!byKey || Date.now() - fetchedAt > ttlMs) {
         inflight ??= rebuild().finally(() => { inflight = null; });
         await inflight;
       }
-      const hash = blockId.indexOf('#');
-      const defId = hash > 0 ? blockId.slice(0, hash) : blockId;
+      // The LEAF definition's declaration governs a scoped instance
+      // (container segments only scope it); an id that isn't a StateKey
+      // is looked up as itself — the index is keyed by raw idMap ids.
+      // (This used to slice at '#', a pre-id-grammar dialect nothing
+      // produces: for a real "ns/list:#2:grader" key it derived
+      // "ns/list:" — a miss, silently routing scoped shared fields as
+      // private. Found by review 2026-07.)
+      const key = tryParseStateKey(stateId);
+      const defId = key ? leafDefinitionKeyFromStateKey(key) : stateId;
       return byKey!.get(`${defId}|${field}`);
     },
   };

@@ -17,6 +17,7 @@ import {
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   scopedStateKeyForBlock, stateKeyForGlobalRef,
   qualifyDefinitionRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+  tryParseStateKey,
   asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
@@ -677,6 +678,29 @@ describe("allDefinitionKeysFromStateKey", () => {
   it("deeply nested", () => {
     expect(allDefinitionKeysFromStateKey(parseStateKey("physics/a:#0:b:#1:c")).map(String))
       .toEqual(["physics/a", "physics/b", "physics/c"]);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// tryParseStateKey — the non-throwing boundary parse
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The sync engine handles id-shaped strings that are USUALLY StateKeys
+// but may be componentSetting tags, storage URIs, or system sentinels.
+// It parses at the boundary and keeps the null case — the grammar module
+// never returns an unbranded id-shaped string.
+
+describe("tryParseStateKey", () => {
+  it("valid keys parse to the branded key", () => {
+    expect(String(tryParseStateKey("CONTENT/list:#2:grader"))).toBe("CONTENT/list:#2:grader");
+    expect(String(tryParseStateKey("CONTENT/grader"))).toBe("CONTENT/grader");
+  });
+
+  it("non-keys return null, never throw", () => {
+    expect(tryParseStateKey("Tabs")).toBeNull();                  // setting tag
+    expect(tryParseStateKey("studio://course/f.olx")).toBeNull(); // storage URI
+    expect(tryParseStateKey("demos/notes#row3")).toBeNull();      // dead '#' dialect
+    expect(tryParseStateKey("")).toBeNull();
   });
 });
 
