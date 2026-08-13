@@ -7,10 +7,15 @@ import type { RuntimeProps } from '@/lib/types';
 
 const mocks = vi.hoisted(() => ({
   useFieldState: vi.fn(),
+  useKids: vi.fn(() => ({ kids: ['Measured child'] })),
 }));
 
 vi.mock('@/lib/state', () => ({
   useFieldState: mocks.useFieldState,
+}));
+
+vi.mock('@/lib/player/client/render', () => ({
+  useKids: mocks.useKids,
 }));
 
 import TimeVisible from './_TimeVisible';
@@ -46,7 +51,8 @@ describe('TimeVisible', () => {
     const setValue = vi.fn();
     mocks.useFieldState.mockReturnValue([10, setValue]);
     const view = render(<TimeVisible {...props} />);
-    makeVisible(view.container.querySelector('span')!);
+    expect(view.getByText('Measured child')).toBeTruthy();
+    makeVisible(view.container.querySelector('[data-time-visible-region]')!);
 
     act(() => vi.advanceTimersByTime(5000));
     expect(setValue).toHaveBeenLastCalledWith(15);
@@ -72,7 +78,7 @@ describe('TimeVisible', () => {
       runtime: { ...props.runtime, sideEffectFree: true },
     } as RuntimeProps;
     const replay = render(<TimeVisible {...replayProps} />);
-    makeVisible(replay.container.querySelector('span')!);
+    makeVisible(replay.container.querySelector('[data-time-visible-region]')!);
 
     act(() => vi.advanceTimersByTime(5000));
     replay.unmount();

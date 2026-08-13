@@ -6,12 +6,11 @@
 //
 //   1. The component is mounted.
 //   2. The browser tab is foregrounded (document.visibilityState).
-//   3. The block's own DOM node is laid out — i.e. it is not inside a
+//   3. The measured child's wrapper is laid out — i.e. it is not inside a
 //      hidden container. A parent may keep inactive content mounted while
 //      hiding it, so mount/unmount alone is NOT enough to stop the clock;
 //      `offsetParent === null` catches the hidden case. This measures
-//      an active panel, not viewport intersection: authors normally place one
-//      timer anywhere inside the activity being measured.
+//      layout presence, not viewport intersection.
 //   4. The learner did something (key, pointer, scroll, touch) within the
 //      last `idleTimeout` seconds. Time spent staring at a tab we cannot
 //      see the learner engaging with is not study time.
@@ -28,13 +27,14 @@ import type { RuntimeProps } from '@/lib/types';
 
 import React, { useEffect, useRef } from 'react';
 import { useFieldState } from '@/lib/state';
+import { useKids } from '@/lib/player/client/render';
 import { formatDuration } from '@/lib/util/duration';
 
 const TICK_MS = 1000;
 const FLUSH_SECONDS = 5;
 
-// Activity is page-wide: TimeVisible measures time in the currently displayed
-// activity, not interaction with the zero-size timer itself. All mounted
+// Activity is page-wide: TimeVisible measures time around the displayed child,
+// not interaction specifically inside it. All mounted
 // timers share these document listeners; only their cheap one-second visibility
 // check is per instance.
 const ACTIVITY_EVENTS = ['keydown', 'mousemove', 'mousedown', 'wheel', 'scroll', 'touchstart'];
@@ -64,9 +64,7 @@ function trackPageActivity(): () => void {
  *
  * `offsetParent === null` detects when an ancestor has removed this node's
  * container from layout, covering mounted-but-hidden content without relying
- * on a particular container implementation. It is also true for
- * `position: fixed` nodes; TimeVisible renders a plain inline span, so that
- * case cannot arise here.
+ * on a particular container implementation.
  */
 function isCountingContextVisible(el: HTMLElement | null): boolean {
   if (!el) return false;
@@ -76,10 +74,11 @@ function isCountingContextVisible(el: HTMLElement | null): boolean {
 
 export default function TimeVisible(props: RuntimeProps) {
   const { fields, idleTimeout = 60, debug } = props;
+  const { kids } = useKids(props);
 
   const [value, setValue] = useFieldState(props, fields.value, 0);
 
-  const anchorRef = useRef<HTMLSpanElement | null>(null);
+  const measuredRegionRef = useRef<HTMLDivElement | null>(null);
   // Latest committed total. We are the only writer of this field, so
   // mirroring it in a ref lets the interval add to it without re-subscribing.
   const committedRef = useRef<number>(value);
@@ -103,7 +102,7 @@ export default function TimeVisible(props: RuntimeProps) {
 
     const tick = () => {
       const idle = (Date.now() - lastActivityAt) / 1000 >= idleTimeout;
-      if (!idle && isCountingContextVisible(anchorRef.current)) {
+      if (!idle && isCountingContextVisible(measuredRegionRef.current)) {
         pendingRef.current += TICK_MS / 1000;
       }
       if (pendingRef.current >= FLUSH_SECONDS) flush();
@@ -124,15 +123,14 @@ export default function TimeVisible(props: RuntimeProps) {
     };
   }, [idleTimeout, setValue, sideEffectFree]);
 
-  // The anchor span is what rule 3 inspects — it must be a real, laid-out
-  // node that inherits its container's visibility.
-  if (debug) {
-    return (
-      <span ref={anchorRef} className="text-xs text-dimmed font-mono">
-        ⏱ {formatDuration(value)}
-      </span>
-    );
-  }
-
-  return <span ref={anchorRef} aria-hidden="true" />;
+  return (
+    <div ref={measuredRegionRef} data-time-visible-region="true">
+      {kids}
+      {debug && (
+        <span className="text-xs text-dimmed font-mono">
+          ⏱ {formatDuration(value)}
+        </span>
+      )}
+    </div>
+  );
 }

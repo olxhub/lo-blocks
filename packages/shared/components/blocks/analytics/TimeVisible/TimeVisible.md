@@ -5,13 +5,19 @@
 > server-side analytics land. It is not a general-purpose analytics API and
 > new content should not depend on it without revisiting that architecture.
 
-Drop it next to an activity and it approximates how long the learner actively
-had that part of the page open.
+Wrap one activity block and it approximates how long the learner actively had
+that part of the page open.
+
+The eventual analytics design still needs to decide whether to keep this
+explicit wrapper, add or replace it with a marker/tracking-pixel mode, record
+visits as well as duration, and interpret visibility as layout presence or
+actual viewport intersection.
 
 ```olx:playground
 <Vertical id="tv_demo">
-  <TextArea id="tv_demo_draft" rows="3" placeholder="Type something..." />
-  <TimeVisible id="tv_demo_timer" idleTimeout="10 seconds" debug="true" />
+  <TimeVisible id="tv_demo_timer" idleTimeout="10 seconds" debug="true">
+    <TextArea id="tv_demo_draft" rows="3" placeholder="Type something..." />
+  </TimeVisible>
 </Vertical>
 ```
 
@@ -21,10 +27,9 @@ A second is added only when **all** of these are true:
 
 1. The block is mounted.
 2. The browser tab is foregrounded (`document.visibilityState === 'visible'`).
-3. The block's own DOM node is laid out — it is not inside a hidden
-   container. This measures the active panel, not whether the timer's tiny
-   marker intersects the viewport. Place one timer anywhere inside the
-   activity being measured.
+3. The wrapper around the child is laid out — it is not inside a hidden
+   container. This measures the active panel, not whether the child intersects
+   the viewport.
 4. There was a keyboard, pointer, scroll, or touch event within the last
    `idleTimeout` (default 60 seconds).
 
@@ -75,12 +80,14 @@ the time went:
 ```xml
 <Tabs id="wpj3_tabs">
   <Vertical id="wpj3_brainstorming" title="Brainstorming">
-    <TextArea id="wpj3_brainstorm_text" rows="10" />
-    <TimeVisible id="wpj3_time_brainstorming" />
+    <TimeVisible id="wpj3_time_brainstorming">
+      <TextArea id="wpj3_brainstorm_text" rows="10" />
+    </TimeVisible>
   </Vertical>
   <Vertical id="wpj3_drafting" title="Drafting">
-    <TextArea id="wpj3_draft_text" rows="20" />
-    <TimeVisible id="wpj3_time_drafting" />
+    <TimeVisible id="wpj3_time_drafting">
+      <TextArea id="wpj3_draft_text" rows="20" />
+    </TimeVisible>
   </Vertical>
 </Tabs>
 ```
