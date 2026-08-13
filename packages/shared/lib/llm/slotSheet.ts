@@ -43,6 +43,16 @@ export type SlotSpec = {
    * and never shows them.
    */
   pts?: number;
+  /**
+   * This check is a COUNT, answered 0..countMax, not a judgement.
+   *
+   * "How many of your three reasons name a negative effect?" is a measurement.
+   * It was expressed as a verdict list — `3/2/1/0` — which made the largest
+   * number the "satisfied" one by position and left `0/1/2/3` reading as its
+   * opposite while meaning the same kind of thing. Neither list was a set of
+   * judgements, so neither belonged in `verdict`.
+   */
+  countMax?: number;
 };
 
 /**
@@ -504,7 +514,14 @@ export function satisfiedMap(
  * Absent → the default judgement. All-extras → the judgement plus those extras.
  * Anything else → a legacy full list, taken verbatim.
  */
+/** `count(3)` -> 3, for a segment that declares a measurement. */
+export function parseCountMax(segment: string | undefined): number | undefined {
+  const m = /^count\(\s*(\d+)\s*\)$/.exec((segment ?? '').trim());
+  return m ? Number(m[1]) : undefined;
+}
+
 export function resolveOptions(segment: string | undefined, defaults: string[]): string[] {
+  if (parseCountMax(segment) !== undefined) return [];   // not a verdict list
   const tokens = (segment ?? '').split('/').map(o => o.trim()).filter(Boolean);
   if (!tokens.length) return defaults;
   if (tokens.every(t => EXTRA_VERDICTS.includes(t))) {
@@ -536,9 +553,12 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS):
         gates,
       };
       if (pts !== undefined) slot.pts = pts;
+      const countMax = parseCountMax(opts);
+      if (countMax !== undefined) slot.countMax = countMax;
       return slot;
     })
-    .filter(slot => slot.key.length > 0 && slot.options.length > 0);
+    .filter(slot => slot.key.length > 0
+                 && (slot.options.length > 0 || slot.countMax !== undefined));
 }
 
 /**
@@ -695,7 +715,14 @@ export function buildSlotSchema(
     properties[slot.key] = {
       type: 'object',
       properties: {
-        verdict: { type: 'string', enum: slot.options },
+        ...(slot.countMax !== undefined
+          // A measurement, so an integer with the range it can take. Asking for
+          // it as one of "3"/"2"/"1"/"0" invited the model to treat the first
+          // listed as the good answer, which is what a verdict list means
+          // everywhere else in the sheet.
+          ? { count: { type: 'integer', minimum: 0, maximum: slot.countMax,
+                       description: 'How many. A number, not a judgement.' } }
+          : { verdict: { type: 'string', enum: slot.options } }),
         evidence: {
           type: 'string',
           description: perCheckNotes
@@ -723,7 +750,16 @@ export function buildSlotSchema(
           },
         } : {}),
       },
-      required: perCheckNotes ? ['verdict', 'evidence', 'note'] : ['verdict', 'evidence'],
+      // Every key in `properties`, or the provider rejects the whole request:
+      // strict structured output requires `required` to name all of them. A
+      // count slot answers `count` INSTEAD of `verdict`, so the two lists have
+      // to move together — listing `verdict` for a slot that does not offer it
+      // fails the schema, not the answer.
+      required: [
+        slot.countMax !== undefined ? 'count' : 'verdict',
+        'evidence',
+        ...(perCheckNotes ? ['note'] : []),
+      ],
       additionalProperties: false,
     };
   }
@@ -910,7 +946,7 @@ export function composeSlotFeedback(
 ): string {
   let checks = (data?.checks ?? {}) as Record<
     string,
-    { verdict?: string; evidence?: string; note?: string } | undefined
+    CheckPayload | undefined
   >;
 
   // Counted members are DERIVED from the count and deliberately left out of the
@@ -948,11 +984,18 @@ export function composeSlotFeedback(
     const verdict = rule
       ? computedVerdict(rule, checks)
       : (checks[slot.key]?.verdict ?? '').trim();
-    const mark = sat[slot.key] ? '✓' : '·';
+    // A count is reported, not judged: it gets no tick, because there is no
+    // sense in which "2 of 3" passed or failed on its own. What it feeds — the
+    // member checks it expands into — carries the ticks.
+    const isCount = slot.countMax !== undefined;
+    const mark = isCount ? '–' : (sat[slot.key] ? '✓' : '·');
     // An unsatisfied check that was not charged would otherwise read as a lost
     // point the score does not show, so it says so.
     const moot = !sat[slot.key] && !charged[slot.key] ? ' (not counted separately)' : '';
-    const line = `- ${mark} **${slot.label}** — ${displayVerdict(verdict) || 'not reported'}${moot}`;
+    const shown = isCount
+      ? (checks[slot.key]?.count ?? checks[slot.key]?.verdict ?? '')
+      : displayVerdict(verdict);
+    const line = `- ${mark} **${slot.label}** — ${String(shown) || 'not reported'}${moot}`;
     // What the verdict was decided ON, then what to do about it. Both belong to
     // this check, so both sit under it rather than in a paragraph the student
     // has to map back onto the ticks.

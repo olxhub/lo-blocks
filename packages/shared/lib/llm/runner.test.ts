@@ -253,8 +253,19 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
         error,
         feedback: fb?.value ?? '',
         slots: slots.map((s: any) => ({ key: s.key, pts: s.pts, gates: s.gates })),
+        // What the model answered for each slot. A check answers exactly one of
+        // these — a judgement fills `verdict`, a count fills `count`, a cover
+        // member fills `refers_to` — so reading only `verdict` reports null for
+        // every count in the sheet, and the per-slot rates this file exists to
+        // make countable go blind on them.
         verdicts: Object.fromEntries(
-          slots.map((s: any) => [s.key, verdicts[s.key]?.verdict ?? null]),
+          slots.map((s: any) => [
+            s.key,
+            verdicts[s.key]?.verdict
+              ?? verdicts[s.key]?.count
+              ?? verdicts[s.key]?.refers_to
+              ?? null,
+          ]),
         ),
         // The evidence is why a slot got its verdict, and a slot sheet exists to
         // make that inspectable. Dropping it meant a failing cell could only be

@@ -805,3 +805,71 @@ describe('resolveOptions', () => {
     expect(shortPlain).toEqual(longPlain);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Counts are measurements, not judgements.
+// ---------------------------------------------------------------------------
+describe('count slots', () => {
+  it('parses count(N) and carries no verdict list', () => {
+    const [slot] = parseSlots('n:How many reasons name a negative effect:count(3)');
+    expect(slot.countMax).toBe(3);
+    expect(slot.options).toEqual([]);
+  });
+
+  it('asks the model for an integer in range, not a verdict', () => {
+    const schema = buildSlotSchema(parseSlots('n:How many:count(3)'));
+    const prop: any = (schema as any).properties.checks.properties.n.properties;
+    expect(prop.count).toMatchObject({ type: 'integer', minimum: 0, maximum: 3 });
+    expect(prop.verdict).toBeUndefined();
+  });
+
+  it('drives its member checks from the number', () => {
+    const slots = parseSlots('n:How many:count(3)|r1:First@1|r2:Second@1|r3:Third@1');
+    const sat = satisfiedMap(slots, { n: { count: 2 } }, [], [], parseCounts('n:r1,r2,r3'));
+    expect([sat.r1, sat.r2, sat.r3]).toEqual([true, true, false]);
+  });
+
+  it('reports the number to the student instead of a tick', () => {
+    // "2 of 3" did not pass or fail on its own; the member checks carry that.
+    const slots = parseSlots('n:How many reasons:count(3)|r1:First@1');
+    const out = composeSlotFeedback(
+      slots,
+      { feedback: '', checks: { n: { count: 2 }, r1: { verdict: 'met' } } } as any,
+      { showChecks: true, counts: parseCounts('n:r1') },
+    );
+    expect(out).toContain('**How many reasons** — 2');
+    expect(out).not.toContain('✓ **How many reasons**');
+  });
+});
+
+describe('schema validity', () => {
+  // Strict structured output requires `required` to name EVERY key in
+  // `properties`. Get that wrong and the provider rejects the whole request
+  // with a 400 — every call for the item fails, the harness retries, and a
+  // ten-minute run becomes fifty. It cost exactly that when `count` was added
+  // to properties while `required` still said `verdict`, and no unit test
+  // noticed because both halves were individually correct.
+  const everyCheckRequiresAllItsProperties = (schema: any) => {
+    const checks = schema.properties.checks.properties;
+    for (const [key, spec] of Object.entries<any>(checks)) {
+      expect(new Set(spec.required), `slot '${key}'`)
+        .toEqual(new Set(Object.keys(spec.properties)));
+    }
+  };
+
+  it('holds for judgements, counts and per-check notes alike', () => {
+    const slots = parseSlots(
+      'a:Plain@1|b:With extras:unclear/duplicate@1|n:How many:count(3)|r1:Member@1');
+    for (const notes of [false, true]) {
+      everyCheckRequiresAllItsProperties(
+        buildSlotSchema(slots, [], [], parseCounts('n:r1'), notes));
+    }
+  });
+
+  it('asks a count for `count` and never for `verdict`', () => {
+    const schema: any = buildSlotSchema(parseSlots('n:How many:count(2)'));
+    const spec = schema.properties.checks.properties.n;
+    expect(spec.required).toContain('count');
+    expect(spec.required).not.toContain('verdict');
+  });
+});
