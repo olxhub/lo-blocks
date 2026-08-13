@@ -84,7 +84,7 @@ export interface PipelineContext {
   subscriptions: SubscriptionRegistry;
   /** Trusted field-level declarations (fieldLevels.ts). Absent = every
    * field routes as level 'user' (fail closed). */
-  fieldLevels?: import('@/lib/state/sync/fieldLevels').FieldLevelIndex;
+  fieldLevels?: import('@/lib/state/sync/fieldLevels').SharedFieldPolicyIndex;
   /** Grouping index from content (partitions.ts). Absent = no grouping
    * (tests that don't care omit it). */
   grouping?: GroupingIndex;

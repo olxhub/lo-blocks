@@ -22,11 +22,11 @@ import type { StateConnection } from './connection';
 import type { UserStateRegistry, UserStateEntry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import type { GroupingIndex } from './partitions';
-import type { FieldLevelIndex, FieldLevelInfo } from './fieldLevels';
+import type { SharedFieldPolicyIndex, SharedFieldPolicy } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
 import {
-  tryParseStateKey, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+  tryParseStateKey, leafDefinitionIdFor, allDefinitionKeysFromStateKey,
 } from '@/lib/types/id-grammar';
 import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
@@ -48,7 +48,7 @@ export interface SyncSession {
   /** Trusted level declarations from content + registry; absent = every
    * field is level 'user'. Routing NEVER trusts the wire's authority
    * stamp — see resolveLevel. */
-  fieldLevels?: FieldLevelIndex;
+  fieldLevels?: SharedFieldPolicyIndex;
   /** Partition index from content; absent = no grouping. */
   grouping?: GroupingIndex;
   /** Aggregation index from content; absent = no distant folds. */
@@ -89,9 +89,9 @@ export async function entryFor(session: SyncSession, instance: LevelInstance): P
  * to routing — a client stamping 'shared' on a private field must not
  * reach shared state. Undefined = level 'user' (fail closed: no index,
  * no declaration, or no field name on the event → private). */
-async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<FieldLevelInfo | undefined> {
+async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<SharedFieldPolicy | undefined> {
   const info = session.fieldLevels && event.id && event.field
-    ? await session.fieldLevels.levelOf(event.id, event.field)
+    ? await session.fieldLevels.sharedPolicyFor(event.id, event.field)
     : undefined;
   if (event.authority && !info) {
     // Forged stamp, stale client, or content/registry skew — routed as
@@ -109,8 +109,7 @@ async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<Fie
  * (`ns/list:#2:notes`) resolves via its leaf definition. `stateId` is
  * the event's runtime state id (usually a StateKey; parsed inside). */
 async function sharedInstanceFor(session: SyncSession, stateId: string): Promise<LevelInstance> {
-  const key = tryParseStateKey(stateId);
-  const defId = key ? leafDefinitionKeyFromStateKey(key) : stateId;
+  const defId = leafDefinitionIdFor(stateId);
   const spec = session.grouping
     ? await session.grouping.specOf(defId) : undefined;
   if (!spec) return ALL;

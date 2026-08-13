@@ -13,7 +13,7 @@ import { MemoryKVStore, type KVStore } from '@/lib/storage/kvs';
 import { FieldPersister } from '@/lib/state/sync/persistence';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
-import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
+import { makeSharedFieldPolicyIndex } from '@/lib/state/sync/fieldLevels';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import { ALL, userInstance, setInstance, subscriptionKey } from '@/lib/state/sync/levels';
 import type { AuthUser } from './auth.js';
@@ -78,7 +78,7 @@ const UPDATE = {
  * input. The wire's authority stamp is self-description the router
  * ignores; without a declaration here, every field routes level 'user'. */
 const levels = (map: Record<string, { level: 'everyone'; delivery: 'events' | 'folded' }>) => ({
-  levelOf: async (id: string, field: string) => map[`${id}|${field}`],
+  sharedPolicyFor: async (id: string, field: string) => map[`${id}|${field}`],
 });
 
 test('blob canonical: fetch_blob serves the stored blob', async () => {
@@ -413,7 +413,7 @@ test('scoped instances route by their LEAF definition: level, partition, fan-out
 
   // The REAL level index (not the map stub): declarations live on the
   // leaf DEFINITION, so the scoped instance must resolve through it.
-  const fieldLevels = makeFieldLevelIndex(
+  const fieldLevels = makeSharedFieldPolicyIndex(
     async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
     (tag: string) => (tag === 'SharedChat'
       ? { value: { name: 'value', level: 'everyone' } } as any : undefined),

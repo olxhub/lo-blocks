@@ -16,7 +16,7 @@ import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   scopedStateKeyForBlock, stateKeyForGlobalRef,
-  qualifyDefinitionRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
+  qualifyDefinitionRef, leafDefinitionKeyFromStateKey, leafDefinitionIdFor, allDefinitionKeysFromStateKey,
   tryParseStateKey,
   asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
@@ -661,6 +661,17 @@ describe("leafDefinitionKeyFromStateKey", () => {
   it("deeply nested", () => {
     expect(String(leafDefinitionKeyFromStateKey(parseStateKey("physics/outer:#0:inner:#1:leaf"))))
       .toBe("physics/leaf");
+  });
+});
+
+describe("leafDefinitionIdFor", () => {
+  it("scoped key → leaf definition id", () => {
+    expect(leafDefinitionIdFor("demos/list:#2:notes")).toBe("demos/notes");
+  });
+
+  it("non-key id → itself", () => {
+    expect(leafDefinitionIdFor("Tabs")).toBe("Tabs");
+    expect(leafDefinitionIdFor("demos/notes#row3")).toBe("demos/notes#row3");
   });
 });
 

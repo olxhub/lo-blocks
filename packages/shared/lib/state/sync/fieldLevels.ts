@@ -6,86 +6,88 @@
 // malicious or buggy client could stamp any event 'shared' and write
 // into everyone's state. Routing (router.ts) therefore derives the level
 // here — block tag from the content idMap, field declarations from the
-// blueprint — and treats undeclared fields as level 'user' (fail
-// closed: a forgotten declaration keeps data private, never the
-// reverse).
+// blueprint — and treats undeclared fields as level 'user' (fail closed:
+// a forgotten declaration keeps data private, never the reverse).
 //
 // Same TTL-cached content-scan shape as partitions.ts / aggregations.ts.
 
 import type { FieldInfo } from '../../types';
-import { tryParseStateKey, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
+import { leafDefinitionIdFor } from '@/lib/types/id-grammar';
 
-/** What routing needs to know about a declared level>user field. */
-export interface FieldLevelInfo {
+/** The routing policy for a field DECLARED shared. Absence from the
+ * index means level 'user' — that absence-is-private rule is the
+ * security policy (fail closed). */
+export interface SharedFieldPolicy {
   level: 'everyone';
   delivery: 'events' | 'folded';
 }
 
-export interface FieldLevelIndex {
-  /** The field's declared level info, or undefined for level 'user'
-   * (the default — undeclared fields are private). `stateId` is the
-   * event's runtime state id: usually a StateKey (possibly scoped), but
+export interface SharedFieldPolicyIndex {
+  /** The field's shared policy, or undefined for level 'user' (the
+   * default — undeclared fields are private). `stateId` is the event's
+   * runtime state id: usually a StateKey (possibly scoped), but
    * settings tags and system ids pass through here too — hence string,
-   * parsed at the boundary inside. */
-  levelOf(stateId: string, field: string): Promise<FieldLevelInfo | undefined>;
+   * normalized at the boundary inside. */
+  sharedPolicyFor(stateId: string, field: string): Promise<SharedFieldPolicy | undefined>;
 }
 
 /**
  * TTL-cached index from content + block registry: block id → tag →
  * blueprint fields; only level>user declarations are indexed (absence
- * means 'user'). Scoped state keys (`ns/list:#2:grader`) share their
- * LEAF definition's declaration — container segments only scope the
- * instance; the field belongs to the leaf block.
+ * means 'user').
  */
-export function makeFieldLevelIndex(
+export function makeSharedFieldPolicyIndex(
   loadIdMap: () => Promise<Record<string, Record<string, any>>>,
   fieldsForTag: (tag: string) => Record<string, FieldInfo> | undefined,
   ttlMs = 2000,
-): FieldLevelIndex {
-  let byKey: Map<string, FieldLevelInfo> | null = null;
+): SharedFieldPolicyIndex {
+  let sharedPoliciesByField: Map<string, SharedFieldPolicy> | null = null;
   let fetchedAt = 0;
   let inflight: Promise<void> | null = null;
 
+  /** Index every level>user field the definition's blueprint declares
+   * (absence means 'user'), keyed `<definitionId>|<field>`. */
+  const addSharedFieldsForDefinition = (
+    index: Map<string, SharedFieldPolicy>,
+    definitionId: string,
+    tag: string,
+  ): void => {
+    const fields = fieldsForTag(tag);
+    if (!fields) return;
+    for (const field of Object.values(fields)) {
+      if (!field.level || field.level === 'user') continue;
+      index.set(`${definitionId}|${field.name}`, {
+        level: field.level,
+        delivery: field.delivery ?? 'events',
+      });
+    }
+  };
+
   const rebuild = async () => {
     const idMap = await loadIdMap();
-    const next = new Map<string, FieldLevelInfo>();
+    const next = new Map<string, SharedFieldPolicy>();
     for (const [id, variants] of Object.entries(idMap)) {
       for (const variant of Object.values(variants ?? {})) {
         const tag = (variant as any)?.tag;
         if (!tag) continue;
-        const fields = fieldsForTag(tag);
-        if (fields) {
-          for (const field of Object.values(fields)) {
-            if (!field.level || field.level === 'user') continue;
-            next.set(`${id}|${field.name}`, {
-              level: field.level,
-              delivery: field.delivery ?? 'events',
-            });
-          }
-        }
+        addSharedFieldsForDefinition(next, id, tag);
         break; // declarations are per-blueprint; one variant is enough
       }
     }
-    byKey = next;
+    sharedPoliciesByField = next;
     fetchedAt = Date.now();
   };
 
   return {
-    async levelOf(stateId, field) {
-      if (!byKey || Date.now() - fetchedAt > ttlMs) {
+    async sharedPolicyFor(stateId, field) {
+      if (!sharedPoliciesByField || Date.now() - fetchedAt > ttlMs) {
         inflight ??= rebuild().finally(() => { inflight = null; });
         await inflight;
       }
-      // The LEAF definition's declaration governs a scoped instance
-      // (container segments only scope it); an id that isn't a StateKey
-      // is looked up as itself — the index is keyed by raw idMap ids.
-      // (This used to slice at '#', a pre-id-grammar dialect nothing
-      // produces: for a real "ns/list:#2:grader" key it derived
-      // "ns/list:" — a miss, silently routing scoped shared fields as
-      // private. Found by review 2026-07.)
-      const key = tryParseStateKey(stateId);
-      const defId = key ? leafDefinitionKeyFromStateKey(key) : stateId;
-      return byKey!.get(`${defId}|${field}`);
+      // A scoped instance inherits its leaf definition's declaration —
+      // container segments only scope the instance.
+      const definitionId = leafDefinitionIdFor(stateId);
+      return sharedPoliciesByField!.get(`${definitionId}|${field}`);
     },
   };
 }

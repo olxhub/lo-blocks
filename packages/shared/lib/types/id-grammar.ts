@@ -937,3 +937,23 @@ export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
 export function tryParseStateKey(s: string): StateKey | null {
   return validateStateKey(s) === true ? asStateKey(s) : null;
 }
+
+/**
+ * The lenient boundary form for ids arriving off the wire: a StateKey
+ * becomes its leaf DefinitionKey; anything else (componentSetting tags,
+ * storage URIs, system ids) is returned unchanged.
+ *
+ *   leafDefinitionIdFor("demos/list:#2:notes") → "demos/notes"
+ *   leafDefinitionIdFor("Tabs")                → "Tabs"
+ *
+ * Typed string → string deliberately: the input is untrusted wire data
+ * (not yet known to be a key), and the output is used to key raw idMap
+ * lookups, whose keys are plain content ids.
+ *
+ * Bug memory: replaces per-site '#'-slicing of a retired dialect; see the
+ * scoped-routing regression test in pipeline.test.ts.
+ */
+export function leafDefinitionIdFor(stateId: string): string {
+  const key = tryParseStateKey(stateId);
+  return key ? leafDefinitionKeyFromStateKey(key) : stateId;
+}
