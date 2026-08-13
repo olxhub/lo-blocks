@@ -37,10 +37,10 @@ describe('Tabs active-child cursor', () => {
 
   afterEach(cleanup);
 
-  it('does not persist cursor state before the learner navigates', async () => {
+  it('persists the initially visible child on first access', async () => {
     const { reduxStore } = await mountOLXString(OLX, { sourceName: 'tabs-cursor-untouched' });
 
-    expect(tabsState(reduxStore)).toEqual({});
+    await waitFor(() => expect(tabsState(reduxStore).activeTab).toBe('CONTENT/tab_alpha'));
   });
 
   it('mounts only the active panel and persists its definition identity', async () => {

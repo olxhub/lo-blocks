@@ -39,9 +39,10 @@ export function useKidCursor<Kid>(
     if (resolution.index >= 0) lastIndex.current = resolution.index;
   }, [resolution.index]);
 
-  // Heal a missing identity after render. Unset state already means the first
-  // child, so opening untouched content emits no event.
-  const shouldHeal = resolution.healed && stored !== null;
+  // Persist the effective identity on first access, and heal it if the active
+  // child later disappears. Consumers therefore observe the same active child
+  // the UI renders; null is only the pre-initialization field state.
+  const shouldHeal = resolution.healed;
   useEffect(() => {
     if (shouldHeal && resolution.id) setStored(resolution.id);
   }, [resolution.id, setStored, shouldHeal]);
