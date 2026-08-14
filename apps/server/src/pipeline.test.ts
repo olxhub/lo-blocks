@@ -463,6 +463,84 @@ test('scoped instances route by their LEAF definition: level, partition, fan-out
   await Promise.all([runA, runB]);
 });
 
+test('switching groups drops stale SCOPED self-subscriptions in the old partition', async () => {
+  // The bug this pins: a writer self-subscribes under its event's RAW state
+  // id, so writing a scoped grouped item subscribes `set:...|demos/list:#2:chat`.
+  // The group switch only knew the DEFINITION id ('demos/chat') and dropped
+  // keys by `endsWith('|demos/chat')` — the scoped key survived in the OLD
+  // partition and the switched user kept hearing its events. Cross-partition
+  // leak. The switch now matches by LEAF definition.
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  const SCOPED = 'demos/list:#2:chat';
+
+  const fieldLevels = makeSharedFieldPolicyIndex(
+    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
+    (tag: string) => (tag === 'SharedChat'
+      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
+  );
+  const grouping = {
+    specOf: async (id: string) =>
+      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+    groupedBlocksFor: async (pickerKey: string, field: string) =>
+      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
+        ? ['demos/chat'] : [],
+  };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // Both pick Cats (0), then A writes the scoped item — self-subscribing
+  // to `set:...:0|demos/list:#2:chat`.
+  for (const [ws, actor] of [[wsA, 'a'], [wsB, 'b']] as const) {
+    ws.emit('message', Buffer.from(JSON.stringify({
+      event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+      id: 'demos/topic_picker', activeIndex: 0, ts: 1, actor })));
+  }
+  await new Promise(r => setTimeout(r, 20));
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'scoped cats' })));
+  await new Promise(r => setTimeout(r, 20));
+  const cats = setInstance('topic_picker.activeIndex', '0');
+  expect([...subs.subscribers(subscriptionKey(cats, SCOPED))]).toContain(wsA);
+
+  // A switches to Dogs (1).
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 2, actor: 'a' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect([...subs.subscribers(subscriptionKey(cats, SCOPED))]).not.toContain(wsA);
+
+  // B (still in Cats) writes the same scoped item: A must hear NOTHING.
+  const beforeA = wsA.sent.length;
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'cats again', actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect(wsA.sent.slice(beforeA).filter(m => m.status === 'browser_event')).toEqual([]);
+
+  // ...and A still hears scoped events in its NEW partition, via the
+  // definition subscription the switch created.
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 3, actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  const beforeDogs = wsA.sent.length;
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'dogs scoped', actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect(wsA.sent.slice(beforeDogs)
+    .find(m => m.status === 'browser_event')?.detail.value).toBe('dogs scoped');
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
 test('aggregation: one user, one count — twelve rewrites do not stuff the vote', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

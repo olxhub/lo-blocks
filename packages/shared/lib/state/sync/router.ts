@@ -242,9 +242,24 @@ async function switchGroup(
   for (const field of Object.keys(oldScopes?.component?.[blockId] ?? {})) blanks[field] = '';
   const patch = { ...blanks, ...newBucket };
 
+  // Which of this socket's keys belong to `blockId`? A subscription key is
+  // `{instance}|{stateId}`, and only the stateId is '|'-free (instances can
+  // carry a JSON-stringified group member) — hence lastIndexOf, not split.
+  // We compare the state id's LEAF DEFINITION: grouping is declared on
+  // definitions, so every scoped copy (`demos/list:#2:chat`) belongs to the
+  // same partition as its definition (`demos/chat`) — scope segments only
+  // pick which copy. A bare DefinitionKey is a StateKey whose leaf is
+  // itself, so this also matches the plain definition subscription.
+  // Bug memory: matching keys by `endsWith('|' + blockId)` left a writer's
+  // stale SCOPED self-subscription alive in the OLD partition, so a switched
+  // user kept receiving that partition's scoped events (found by review
+  // 2026-08; regression test in apps/server/src/pipeline.test.ts).
+  const belongsToBlock = (key: string) =>
+    leafDefinitionIdFor(key.slice(key.lastIndexOf('|') + 1)) === blockId;
+
   const sockets = session.registry.socketsOf(userInstance(session.principal));
   for (const sock of sockets) {
-    session.subscriptions.resubscribe(sock, blockId, subscriptionKey(newInstance, blockId));
+    session.subscriptions.resubscribe(sock, belongsToBlock, subscriptionKey(newInstance, blockId));
   }
   if (Object.keys(patch).length > 0) {
     newEntry.broadcastStatePatch(blockId, patch, sockets);
