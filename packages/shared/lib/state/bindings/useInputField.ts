@@ -76,16 +76,20 @@ export function useInputField(
   // envelope for cursor position. setValue doesn't accept extras because
   // callers like CodeMirror pass unrelated second args (ViewUpdate) that
   // would get spread into the event payload and break serialization.
-  const fieldRef = useRef({ props, field, stateKey, tag });
-  fieldRef.current = { props, field, stateKey, tag };
+  const fieldRef = useRef({ props, field, stateKey, tag, fallback });
+  fieldRef.current = { props, field, stateKey, tag, fallback };
 
   const onChange = useCallback((event: any) => {
     const val = event.target.value;
     if (updateValidator && !updateValidator(val)) return;
 
-    const { props, field, stateKey, tag } = fieldRef.current;
+    // The same fallback the read above used. Without it the write would
+    // diff against "no value" while the learner has been looking at the
+    // fallback, and their first keystroke would read as having typed the
+    // whole default text (see updateField).
+    const { props, field, stateKey, tag, fallback } = fieldRef.current;
     updateField(props, field, val, {
-      stateKey, tag,
+      stateKey, tag, fallback,
       extras: {
         selection: {
           // The bucket holds ONE selection; stamping the owning field lets

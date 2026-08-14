@@ -44,6 +44,24 @@ const TEXT = '';
  */
 const FOLD_CLIENT = 0;
 
+/**
+ * Client ID for a document's STARTING text — a TextArea's OLX child text,
+ * or a value seeded before anyone edited it.
+ *
+ * Reserved, and shared by every client on purpose. A starting value is not
+ * something anybody typed, so attributing it to whoever happened to edit
+ * first is a lie with consequences: on a shared document, two learners
+ * opening the page together would each contribute the default text as
+ * their own insertion and the merge would faithfully keep both copies.
+ * Seeding under a fixed client at a fixed clock makes every client
+ * generate byte-identical operations for the same starting text, which
+ * the CRDT recognizes as one insertion it already has.
+ *
+ * The same ID as FOLD_CLIENT, and compatibly so: clocks 0..length-1 belong
+ * to the seed, and a folding document never mints an operation at all.
+ */
+const SEED_CLIENT = 0;
+
 /** Fixed so rebuilding is deterministic; nothing reads a field doc's guid. */
 const FOLD_GUID = 'lo-doc';
 
@@ -124,6 +142,16 @@ export function mergeDocUpdates(values: readonly unknown[]): JsonUpdate {
 }
 
 /**
+ * The operations that put `text` into a fresh document, identically on
+ * every client. See SEED_CLIENT.
+ */
+function seedUpdate(text: string): JsonUpdate {
+  const doc = new Doc({ clientID: SEED_CLIENT, guid: FOLD_GUID });
+  doc.getText(TEXT).insert(0, text);
+  return doc.encodeStateAsUpdate();
+}
+
+/**
  * The incremental update for one splice against a stored value, as the
  * given client.
  *
@@ -142,6 +170,11 @@ export function docSpliceUpdate(
   splice: { index: number; deleteCount: number; inserted: string },
   clientID: number,
 ): JsonUpdate {
+  if (clientID === SEED_CLIENT) {
+    throw new RangeError(
+      `client ${SEED_CLIENT} is reserved for document seeding and must not write`,
+    );
+  }
   const doc = new Doc({ clientID, guid: FOLD_GUID });
   const text = doc.getText(TEXT);
 
@@ -152,7 +185,7 @@ export function docSpliceUpdate(
   doc.on('update', (update: JsonUpdate) => { parts.push(update); });
 
   if (!isDocUpdate(raw) && typeof raw === 'string' && raw.length > 0) {
-    text.insert(0, raw);
+    doc.applyUpdate(seedUpdate(raw));
   }
   doc.transact(() => {
     if (splice.deleteCount > 0) text.delete(splice.index, splice.deleteCount);

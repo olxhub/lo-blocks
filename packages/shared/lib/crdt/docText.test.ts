@@ -345,3 +345,54 @@ describe('delivery is not something the fold depends on', () => {
     expect(peer.text).toBe('start and more');
   });
 });
+
+describe('a starting value nobody typed', () => {
+  // A TextArea's OLX child text, or a value seeded before anyone edited.
+  // The binding renders it, so the learner has been looking at it — but no
+  // operation exists for it until someone edits. Whoever edits first has
+  // to bring it into the document, and on a SHARED document that can be
+  // two people at once.
+  const DEFAULT = 'Write your answer here.';
+
+  it('is contributed identically no matter who edits first', () => {
+    const alice = new Peer(1);
+    const bob = new Peer(2);
+    alice.raw = DEFAULT;
+    bob.raw = DEFAULT;
+
+    const fromAlice = wire(alice.type(`${DEFAULT} A`));
+    const fromBob = wire(bob.type(`${DEFAULT} B`));
+
+    bob.receive(fromAlice);
+    alice.receive(fromBob);
+
+    // One copy of the default text, both learners' words, same for both.
+    expect(alice.text).toBe(bob.text);
+    expect(alice.text.match(/Write your answer here\./g)).toHaveLength(1);
+    expect(alice.text).toContain('A');
+    expect(alice.text).toContain('B');
+  });
+
+  it('is contributed identically even by three at once, in any order', () => {
+    const peers = [1, 2, 3].map(id => {
+      const peer = new Peer(id);
+      peer.raw = DEFAULT;
+      return peer;
+    });
+    const events = peers.map((peer, index) => wire(peer.type(`${DEFAULT}${index}`)));
+
+    for (const peer of peers) {
+      for (const event of [...events].reverse()) peer.receive(event);
+    }
+    expect(peers[1]!.text).toBe(peers[0]!.text);
+    expect(peers[2]!.text).toBe(peers[0]!.text);
+    expect(peers[0]!.text.match(/Write your answer here\./g)).toHaveLength(1);
+  });
+
+  it('refuses to let the seed client mint an edit', () => {
+    // Clocks 0..length-1 under that client belong to the starting text; a
+    // writer there would address the same characters as everyone's seed.
+    expect(() => docSpliceUpdate(undefined, computeSplice('', 'x'), 0))
+      .toThrow(/reserved/);
+  });
+});
