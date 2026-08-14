@@ -37,7 +37,7 @@ export default function SortableInput(props: RuntimeProps) {
   // Fetch block definitions to get attributes
   type BlockKid = Extract<import('@/lib/types').KidEntry, { type: 'block' }>;
   const blockKids = kidsValid ? kids.filter((k): k is BlockKid => k.type === 'block') : [];
-  const kidIds = blockKids.map((k) => k.id);
+  const kidIds = blockKids.map((k) => k.definitionKey);
   const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
   const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
 
@@ -61,7 +61,7 @@ export default function SortableInput(props: RuntimeProps) {
   // Initialize arrangement if empty
   let currentArrangement = arrangement;
   if (arrangement.length === 0 && blockKids.length > 0) {
-    const blockDefinitions = blockKids.map((kid) => kidBlockMap[kid.id]);
+    const blockDefinitions = blockKids.map((kid) => kidBlockMap[kid.definitionKey]);
 
     const result = buildArrangementWithPositions(blockDefinitions, {
       idSelector: (block) => block.id,
@@ -76,12 +76,12 @@ export default function SortableInput(props: RuntimeProps) {
     // Convert arranged blocks back to indices based on original kids array.
     // Key by the FETCHED block's id, not the bare kid ref: the stored/fetched
     // entries carry namespace-qualified ids (e.g. "greenheart/..._item_0")
-    // while kid.id is the bare authored ref. Keying by block.id (the exact id
+    // while kid.definitionKey is the canonical content key. Keying by block.id (the exact id
     // buildArrangementWithPositions reads via idSelector) guarantees the lookup
     // matches regardless of namespace qualification. (Same fix as
     // _MatchingInput.tsx; without it the arrangement collapses to undefined.)
     const kidIdToIndex = new Map(
-      blockKids.map((kid, i) => [kidBlockMap[kid.id].id, i])
+      blockKids.map((kid, i) => [kidBlockMap[kid.definitionKey].id, i])
     );
     const indicesArrangement = result.arrangement.map(
       (block) => kidIdToIndex.get(block.id)

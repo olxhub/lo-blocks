@@ -26,7 +26,7 @@ it('rejects scoped Use refs instead of discarding their runtime identity', () =>
   } as RuntimeProps;
   const kids = [{
     type: 'block',
-    id: input.id,
+    definitionKey: input.id,
     stateKey: asStateKey(`${TEST_NS}/bank:#0:answer`),
   }];
 

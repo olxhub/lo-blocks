@@ -59,13 +59,14 @@ export function assignReactKeys(children) {
       );
     }
     let key;
-    if ('id' in child && child.id != null) {
-      if (!idCounts[child.id]) {
-        idCounts[child.id] = 1;
-        key = child.id;
+    const identity = child.type === 'block' ? child.definitionKey : child.id;
+    if (identity != null) {
+      if (!idCounts[identity]) {
+        idCounts[identity] = 1;
+        key = identity;
       } else {
-        key = `${child.id}${SCOPE_SEPARATOR}${idCounts[child.id]}`;
-        idCounts[child.id]++;
+        key = `${identity}${SCOPE_SEPARATOR}${idCounts[identity]}`;
+        idCounts[identity]++;
       }
     } else {
       key = `__idx__${i}`;
@@ -105,7 +106,7 @@ export const makeRootNode = (runtime: LoBlockRuntimeContext, contextId?: string)
  * Main render function - synchronously renders a node to React elements.
  *
  * Node types accepted:
- *   - { type: 'block', id, stateKey?, overrides? } - reference to block in idMap
+ *   - { type: 'block', definitionKey, stateKey?, overrides? } - reference to block in idMap
  *   - { tag, id, attributes, kids } - inline OLX node
  *   - Array of kids - rendered via renderCompiledKids
  *
@@ -147,37 +148,37 @@ export function render({ node, nodeInfo, runtime }: {
     return renderCompiledKids({ kids: node, nodeInfo, runtime });
   }
 
-  // Handle { type: 'block', id, overrides }
+  // Handle { type: 'block', definitionKey, overrides }
   if (
     typeof node === 'object' &&
     node !== null &&
     node.type === 'block' &&
-    typeof node.id === 'string'
+    typeof node.definitionKey === 'string'
   ) {
     // Synchronous lookup in Redux store
     if (!actualStore) {
       return (
         <DisplayError
-          id={`missing-store-${node.id}`}
+          id={`missing-store-${node.definitionKey}`}
           title="render"
           message="Redux store not available"
-          technical={{ blockId: node.id, hint: 'Store is missing from runtime context' }}
+          technical={{ definitionKey: node.definitionKey, hint: 'Store is missing from runtime context' }}
         />
       );
     }
     const locale = runtime.locale.code;
     const definitionKey = node.stateKey
       ? leafDefinitionKeyFromStateKey(node.stateKey)
-      : qualifyDefinitionRef(node.id, runtime.ns);
+      : node.definitionKey;
     const sources = actualOlxJsonSources ?? ['content'];
     const entry = selectBlock(actualStore.getState(), sources, definitionKey, locale);
     if (!entry) {
       return (
         <DisplayError
-          id={`block-missing-${node.id}`}
+          id={`block-missing-${node.definitionKey}`}
           title="render"
-          message={`Block "${node.id}" not found in content`}
-          technical={{ blockId: node.id, definitionKey, locale, sources }}
+          message={`Block "${node.definitionKey}" not found in content`}
+          technical={{ definitionKey, locale, sources }}
         />
       );
     }
@@ -411,7 +412,7 @@ export function renderCompiledKids(props): React.ReactNode[] {
 
     // Handle different child types
     // Note: Inline OLX nodes have {tag, id, attributes} but no type property
-    // Block references have {type: 'block', id}
+    // Block references have {type: 'block', definitionKey}
 
     if (child.type === 'block') {
       return (

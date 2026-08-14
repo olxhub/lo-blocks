@@ -57,9 +57,9 @@ const defaultParser = parsers.blocks().parser;
 // render-side callers.
 export { parseXmlFragment } from './xmlParser';
 
-function isBlockKid(node: JSONValue): node is { type: 'block'; id: DefinitionKey } {
+function isBlockKid(node: JSONValue): node is { type: 'block'; definitionKey: DefinitionKey } {
   return typeof node === 'object' && node !== null && !Array.isArray(node) &&
-    node.type === 'block' && typeof node.id === 'string';
+    node.type === 'block' && typeof node.definitionKey === 'string';
 }
 
 /**
@@ -497,7 +497,7 @@ export async function parseOLX(
     if (!idMap[id]) idMap[id] = {};
     idMap[id][lang] = entry;
     parsedIds.push(id);
-    return { type: 'block' as const, id };
+    return { type: 'block' as const, definitionKey: id };
   }
 
   async function parseNode(node: RawXmlNode, siblings: RawXmlNode[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
@@ -557,7 +557,7 @@ export async function parseOLX(
       const stateKey = stateKeyForGlobalRef(parseStateRef(ref), ns);
       return {
         type: 'block',
-        id: leafDefinitionKeyFromStateKey(stateKey),
+        definitionKey: leafDefinitionKeyFromStateKey(stateKey),
         stateKey,
         overrides,
       };
@@ -863,7 +863,7 @@ export async function parseOLX(
         ...(metadata || {})
       };
       parsedIds.push(id);
-      return { type: 'block', id };
+      return { type: 'block', definitionKey: id };
     }
 
     // Structural validation: check children after they are parsed
@@ -885,7 +885,7 @@ export async function parseOLX(
     }
 
     parsedIds.push(id);
-    return { type: 'block', id };
+    return { type: 'block', definitionKey: id };
   }
 
   // Parsed OLX can include comment nodes or whitespace before the actual
@@ -913,8 +913,8 @@ export async function parseOLX(
     const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
 
     const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
-    if (parsedRoot?.id) {
-      rootId = parsedRoot.id;
+    if (parsedRoot?.definitionKey) {
+      rootId = parsedRoot.definitionKey;
     }
   }
 
@@ -962,7 +962,7 @@ export async function parseOLX(
     } else if (Array.isArray(entry.kids)) {
       inputIds = entry.kids
         .filter(isBlockKid)
-        .map(k => k.id)
+        .map(k => k.definitionKey)
         .filter(id => {
           const v = idMap[id];
           if (!v) return false;

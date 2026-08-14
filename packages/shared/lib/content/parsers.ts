@@ -22,7 +22,10 @@
 import { z } from 'zod';
 import yaml from 'js-yaml';
 import { XMLBuilder } from 'fast-xml-parser';
-import type { OLXLoadingError, DefinitionRef, DefinitionKey, RuntimeProps, StateKey } from '@/lib/types';
+import type {
+  BlockReference, ContentNamespace, DefinitionKey, DefinitionRef, OLXLoadingError, RuntimeProps, StateKey,
+} from '@/lib/types';
+import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
 import type { LofsCanonical } from '@/lib/types/address';
 import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address';
 import { isContentFile, CATEGORY, extensionsWithDots } from '@/lib/util/fileTypes';
@@ -302,9 +305,9 @@ export const xml = {
 // Options (on createBlocksParser):
 //   text: 'error' (default)    - throw on non-whitespace text or HTML tags
 //   text: 'passthrough'        - include HTML tags and text as mixed content (legacy allowHTML)
-//                                 Returns: [{ type: 'block', id }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
+//                                 Returns: [{ type: 'block', definitionKey }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
 //   text: 'wrap', wrapTag: tag - auto-wrap bare text segments in the given block (e.g. 'Markdown')
-//                                 Returns: [{ id }, { id }, ...] (text wrapped in synthetic blocks)
+//                                 Returns: [{ definitionKey }, { definitionKey }, ...] (text wrapped in synthetic blocks)
 // Options (on factory call, e.g. blocks({ requiredChildren: 2 })):
 //   requiredChildren: N - enforce exactly N block children at parse time.
 //                     Children cannot use when= (filtering would break the
@@ -319,17 +322,32 @@ export const xml = {
 // generated child fail to serve and render as "Block <id> not found in
 // content"; reuse these instead of re-deriving.
 
+/** Build a canonical block reference from a generated or authored definition ref. */
+export function blockReference(
+  definitionRef: DefinitionRef,
+  ns: ContentNamespace,
+  extras: Omit<BlockReference, 'type' | 'definitionKey'> = {},
+): BlockReference {
+  return {
+    type: 'block',
+    definitionKey: qualifyDefinitionRef(definitionRef, ns),
+    ...extras,
+  };
+}
+
 /**
- * Ids of the kid entries that carry one, in order.
+ * Definition keys of direct block kids, in order.
  *
- * Text/HTML/CDATA kids (no `id`) are skipped. Operates on any flat array of
+ * Text/HTML/CDATA kids (no block definition key) are skipped. Operates on any flat array of
  * parsed kid entries, so blocks whose kids are grouped under named slots can
  * spread the slots together first (see SideBarPanel/SplitPanel/Course).
  */
-export function kidIds(kids: readonly unknown[]): DefinitionRef[] {
+export function kidIds(kids: readonly unknown[]): DefinitionKey[] {
   return kids.flatMap((k) => {
-    const id = (k as { id?: unknown } | null | undefined)?.id;
-    return id ? [id as DefinitionRef] : [];
+    const kid = k as { type?: unknown; definitionKey?: unknown } | null | undefined;
+    return kid?.type === 'block' && typeof kid.definitionKey === 'string'
+      ? [kid.definitionKey as DefinitionKey]
+      : [];
   });
 }
 
@@ -339,7 +357,7 @@ export function kidIds(kids: readonly unknown[]): DefinitionRef[] {
  * blocks build when they `storeEntry` their children. Returns the direct child
  * ids; collectBlockWithKids recurses into each to gather the rest of the subtree.
  */
-export function directKidIds(entry: { kids?: unknown }): DefinitionRef[] {
+export function directKidIds(entry: { kids?: unknown }): DefinitionKey[] {
   return kidIds(Array.isArray(entry?.kids) ? entry.kids : []);
 }
 
@@ -368,7 +386,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
             // Auto-wrap text in a synthetic block (e.g. Markdown)
             const syntheticNode = { [wrapTag]: [{ '#text': text }] };
             const result = await parseNode(syntheticNode, null, -1);
-            if (result?.id) {
+            if (result?.definitionKey) {
               results.push(result);
             }
           } else {
@@ -402,8 +420,10 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
         }
 
         const result = await parseNode(child, rawKids, index);
-        if (result?.id) {
-          results.push(allowHTML ? { type: 'block', id: result.id } : result);
+        if (result?.definitionKey) {
+          // Keep the complete reference: a <Use> carries its stateKey and
+          // overrides, which mixed-content parsing must not discard.
+          results.push(result);
         }
       } else if (allowHTML) {
         const attributes = child[':@'] ?? {};

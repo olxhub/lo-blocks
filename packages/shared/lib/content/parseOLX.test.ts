@@ -1,10 +1,11 @@
 // @vitest-environment node
 // packages/shared/lib/content/parseOLX.test.ts
 import { parseOLX } from './parseOLX';
+import { kidIds } from './parsers';
 import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 import { TEST_NS, testKey } from '../test-utils';
-import { asDefinitionKey, qualifyDefinitionRef, parseDefinitionRef, joinNs } from '../types/id-grammar';
+import { asDefinitionKey, asStateKey, qualifyDefinitionRef, parseDefinitionRef, joinNs } from '../types/id-grammar';
 
 const PROV = [toMemoryRef('test.xml')];
 
@@ -71,7 +72,7 @@ test('parses <Use> with attribute overrides', async () => {
   const useKid = lesson.kids[1];
   expect(useKid).toEqual({
     type: 'block',
-    id: testKey('C'),
+    definitionKey: testKey('C'),
     stateKey: testKey('C'),
     overrides: { clip: '[3,4]' },
   });
@@ -86,7 +87,26 @@ test.each([
   const { idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
   const useKid = getOlxJson(idMap, 'root')?.kids[0];
 
-  expect(useKid).toEqual({ type: 'block', id, stateKey, overrides: {} });
+  expect(useKid).toEqual({ type: 'block', definitionKey: id, stateKey, overrides: {} });
+});
+
+test('preserves <Use> state identity and overrides in mixed-content blocks', async () => {
+  const xml = '<Explanation id="root"><Use ref="list:#3:answer" class="from-use"/></Explanation>';
+  const { idMap } = await parseOLX(xml, PROV, undefined, TEST_NS);
+
+  expect(getOlxJson(idMap, 'root')?.kids).toEqual([{
+    type: 'block',
+    definitionKey: testKey('answer'),
+    stateKey: asStateKey('CONTENT/list:#3:answer'),
+    overrides: { class: 'from-use' },
+  }]);
+});
+
+test('static kid collection ignores HTML DOM ids', () => {
+  expect(kidIds([
+    { type: 'html', tag: 'div', id: 'dom-anchor' },
+    { type: 'block', definitionKey: testKey('actual_child') },
+  ])).toEqual([testKey('actual_child')]);
 });
 
 test.each(['alias', ''])('<Use> rejects id="%s" because ref owns its state identity', async (id) => {

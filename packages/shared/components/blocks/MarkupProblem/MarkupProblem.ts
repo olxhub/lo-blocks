@@ -12,7 +12,7 @@
 //
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import { gradingSelectors, problemGradeMode } from '@/lib/grading';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
@@ -52,9 +52,6 @@ const EXPLANATION  = parseLeafId('explanation');
 const CONTENT      = parseLeafId('content');
 const SEP          = parseLeafId('sep');
 
-// Helper: create a block kid entry from a DefinitionRef.
-const blockRef = (id: DefinitionRef): KidEntry => ({ type: 'block', id });
-
 /**
  * Transform parsed CAPA AST into OLX component structure.
  * Returns graders, inputs, and content as direct children of MarkupProblem.
@@ -64,6 +61,8 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
   // Expressions (@ref syntax) also need bare IDs since the expression parser
   // doesn't understand namespace syntax.
   const parentRef = asDefinitionRef(splitNs(id).path);
+  const ns = splitNs(id).ns;
+  const blockRef = (definitionRef: DefinitionRef): KidEntry => blockReference(definitionRef, ns);
   // Every generated grader is a boundary grader of this problem — stamp the
   // problem's grading mode on each (same parse-time convention as capaParser;
   // grading derivation reads it via gradeModeOf, never the dynamic DOM).
@@ -156,7 +155,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
                 id: graderId,
                 tag: 'KeyGrader',
                 attributes: { id: graderId, target: inputId, gradeMode },
-                kids: [{ type: 'block', id: inputId }]
+                kids: [blockRef(inputId)]
               });
 
               questionKids.push(blockRef(graderId));
@@ -200,9 +199,9 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             id: choiceId,
             tag: opt.tag,
             attributes: { id: choiceId, value: opt.text },
-            kids: [{ type: 'block', id: choiceMdId }]
+            kids: [blockRef(choiceMdId)]
           });
-          return { type: 'block', id: choiceId };
+          return blockRef(choiceId);
         });
 
         // Store ChoiceInput
@@ -218,7 +217,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           id: graderId,
           tag: 'KeyGrader',
           attributes: { id: graderId, target: inputId, gradeMode },
-          kids: [{ type: 'block', id: inputId }]
+          kids: [blockRef(inputId)]
         });
 
         problemKids.push(blockRef(graderId));
@@ -260,9 +259,9 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             id: choiceId,
             tag: opt.tag,
             attributes: { id: choiceId, value: opt.text },
-            kids: [{ type: 'block', id: choiceMdId }]
+            kids: [blockRef(choiceMdId)]
           });
-          return { type: 'block', id: choiceId };
+          return blockRef(choiceId);
         });
 
         // CheckboxInput for multi-select (value is array)
@@ -288,7 +287,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           id: graderId,
           tag: 'CheckboxGrader',
           attributes: graderAttrs,
-          kids: [{ type: 'block', id: inputId }]
+          kids: [blockRef(inputId)]
         });
 
         problemKids.push(blockRef(graderId));
@@ -403,7 +402,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             target: inputId,
             gradeMode,
           },
-          kids: [{ type: 'block', id: inputId }]
+          kids: [blockRef(inputId)]
         });
 
         problemKids.push(blockRef(graderId));
@@ -428,7 +427,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           id: graderId,
           tag: 'KeyGrader',
           attributes: { id: graderId, target: inputId, gradeMode },
-          kids: [{ type: 'block', id: inputId }]
+          kids: [blockRef(inputId)]
         });
 
         problemKids.push(blockRef(graderId));
@@ -478,7 +477,7 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           id: explId,
           tag: 'Explanation',
           attributes: { id: explId },
-          kids: [{ type: 'block', id: explContentId }]
+          kids: [blockRef(explContentId)]
         });
         problemKids.push(blockRef(explId));
         break;

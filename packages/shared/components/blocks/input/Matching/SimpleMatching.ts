@@ -16,10 +16,10 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
-import type { DefinitionRef } from '@/lib/types';
+import type { BlockReference, DefinitionRef } from '@/lib/types';
 import * as matchingParser from './_matchingParser';
 
 // Typed child-role suffixes for joinDefinitionRef.
@@ -43,6 +43,8 @@ interface MatchingParsed {
 function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }: any) {
   const { title, pairs } = parsed as MatchingParsed;
   const parentRef = asDefinitionRef(splitNs(id).path);
+  const ns = splitNs(id).ns;
+  const blockRef = (definitionRef: DefinitionRef): BlockReference => blockReference(definitionRef, ns);
 
   // Generate IDs for all components
   const problemId = joinDefinitionRef(parentRef, PROBLEM);
@@ -57,7 +59,7 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
   }));
 
   // Store title/prompt block if present
-  let titleBlockRef: { type: 'block'; id: DefinitionRef } | null = null;
+  let titleBlockRef: BlockReference | null = null;
   if (title) {
     storeEntry(titleId, {
       id: titleId,
@@ -65,11 +67,11 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
       attributes: { id: titleId },
       kids: title
     });
-    titleBlockRef = { type: 'block', id: titleId };
+    titleBlockRef = blockRef(titleId);
   }
 
   // Store left and right item blocks
-  const inputKids: { type: 'block'; id: DefinitionRef }[] = [];
+  const inputKids: BlockReference[] = [];
   pairs.forEach((pair, i) => {
     // Store left item
     storeEntry(itemIds[i].left, {
@@ -78,7 +80,7 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
       attributes: { id: itemIds[i].left },
       kids: pair.left
     });
-    inputKids.push({ type: 'block', id: itemIds[i].left });
+    inputKids.push(blockRef(itemIds[i].left));
 
     // Store right item
     storeEntry(itemIds[i].right, {
@@ -87,7 +89,7 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
       attributes: { id: itemIds[i].right },
       kids: pair.right
     });
-    inputKids.push({ type: 'block', id: itemIds[i].right });
+    inputKids.push(blockRef(itemIds[i].right));
   });
 
   // Store MatchingInput
@@ -99,11 +101,11 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
   });
 
   // Build MatchingGrader kids
-  const graderKids: { type: 'block'; id: DefinitionRef }[] = [];
+  const graderKids: BlockReference[] = [];
   if (titleBlockRef) {
     graderKids.push(titleBlockRef);
   }
-  graderKids.push({ type: 'block', id: inputId });
+  graderKids.push(blockRef(inputId));
 
   // Store MatchingGrader
   storeEntry(graderId, {
@@ -126,12 +128,12 @@ function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }:
       ...attributes // Pass through any attributes from SimpleMatching tag
     },
     kids: [
-      { type: 'block', id: graderId }
+      blockRef(graderId)
     ]
   });
 
   // Return the main problem ID - this becomes the "SimpleMatching"
-  return [{ type: 'block', id: problemId }];
+  return [blockRef(problemId)];
 }
 
 export const fields = state.fields([]);

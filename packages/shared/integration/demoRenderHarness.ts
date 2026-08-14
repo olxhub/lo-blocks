@@ -185,7 +185,7 @@ export async function mountOLXString(
     ...(logEvent ? { logEvent, sideEffectFree: false } : {}),
   });
   const element = render({
-    node: { type: 'block', id: root! },
+    node: { type: 'block', definitionKey: root! },
     nodeInfo: makeRootNode(runtime),
     runtime,
   });
@@ -319,7 +319,7 @@ async function renderDemoFile(filePath: string): Promise<{ file: string; error: 
       locale: { code: localeCode, dir: getTextDirection(localeCode) },
     });
     const element = render({
-      node: { type: 'block', id: root },
+      node: { type: 'block', definitionKey: root },
       nodeInfo: makeRootNode(runtime),
       runtime,
     });

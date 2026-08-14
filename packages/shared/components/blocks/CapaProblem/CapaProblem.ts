@@ -169,7 +169,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
         compileKid(kid, graderForChildren);
       }
 
-      return { type: 'block', id: blockId };
+      return { type: 'block', definitionKey: blockId };
     }
 
     // HTML tag
@@ -217,7 +217,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
 function collectIds(nodes: KidEntry[] = []) {
   return nodes.flatMap(n => {
     if (!n) return [];
-    if (n.type === 'block' && n.id) return [n.id];
+    if (n.type === 'block') return [n.definitionKey];
     if (n.type === 'html') return collectIds(n.kids);
     return [];
   });

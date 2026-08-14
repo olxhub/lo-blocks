@@ -24,5 +24,5 @@ it('filters when= blocks nested beneath raw HTML', async () => {
 
   const kids = selectKidsJson(props, state);
   const section = kids.find(kid => kid.type === 'html');
-  expect(section.kids[0].kids).toEqual([{ type: 'block', id: testKey('shown') }]);
+  expect(section.kids[0].kids).toEqual([{ type: 'block', definitionKey: testKey('shown') }]);
 });

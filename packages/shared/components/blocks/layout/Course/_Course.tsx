@@ -27,10 +27,10 @@ function CourseContent({ props, selectedChild }) {
 // Compute the first selectable (and currently-visible) ID from sections
 function firstSelectableId(sections: any[], isVisible: (id: string) => boolean): string | null {
   for (const section of sections) {
-    if (section.type === 'block' && section.id && isVisible(section.id)) return section.id;
+    if (section.type === 'block' && section.definitionKey && isVisible(section.definitionKey)) return section.definitionKey;
     if (section.type === 'chapter') {
-      const child = (section.children || []).find((c: any) => c.id && isVisible(c.id));
-      if (child) return child.id;
+      const child = (section.children || []).find((c: any) => c.definitionKey && isVisible(c.definitionKey));
+      if (child) return child.definitionKey;
     }
   }
   return null;
@@ -42,7 +42,7 @@ function firstSelectableId(sections: any[], isVisible: (id: string) => boolean):
 function firstChapterId(sections: any[], isVisible: (id: string) => boolean): string | null {
   for (const section of sections) {
     if (section.type === 'chapter'
-        && (section.children || []).some((c: any) => c.id && isVisible(c.id))) {
+        && (section.children || []).some((c: any) => c.definitionKey && isVisible(c.definitionKey))) {
       return section.id;
     }
   }
@@ -64,15 +64,15 @@ function Course(props: RuntimeProps) {
     const ids: string[] = [];
     for (const section of sections) {
       if (section.type === 'chapter') {
-        for (const child of (section.children || [])) if (child.id) ids.push(child.id);
-      } else if (section.id) {
-        ids.push(section.id);
+        for (const child of (section.children || [])) if (child.definitionKey) ids.push(child.definitionKey);
+      } else if (section.definitionKey) {
+        ids.push(section.definitionKey);
       }
     }
-    return ids.map(id => ({ type: 'block', id }));
+    return ids.map(definitionKey => ({ type: 'block', definitionKey }));
   }, [sections]);
   const visibleIds = new Set<string>(
-    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.id)
+    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.definitionKey)
   );
   const isVisible = (id: string) => visibleIds.has(id);
 
@@ -93,8 +93,8 @@ function Course(props: RuntimeProps) {
   // Valid only if the selected child exists AND is currently visible (its
   // when= condition holds). A child hidden by when= falls back to empty state.
   const hasValidSelection = !!selectedChild && isVisible(selectedChild) && sections.some(section =>
-    (section.type === 'block' && section.id === selectedChild) ||
-    (section.type === 'chapter' && (section.children || []).some((child: any) => child.id === selectedChild))
+    (section.type === 'block' && section.definitionKey === selectedChild) ||
+    (section.type === 'chapter' && (section.children || []).some((child: any) => child.definitionKey === selectedChild))
   );
 
   return (
@@ -119,7 +119,7 @@ function Course(props: RuntimeProps) {
             if (section.type === 'chapter') {
               // Drop children filtered out by when=, and the whole chapter if
               // none remain visible.
-              const visibleChildren = (section.children || []).filter((child: any) => child.id && isVisible(child.id));
+              const visibleChildren = (section.children || []).filter((child: any) => child.definitionKey && isVisible(child.definitionKey));
               if (visibleChildren.length === 0) return null;
               return (
                 <div key={section.id}>
@@ -138,7 +138,7 @@ function Course(props: RuntimeProps) {
                   {expandedChapter === section.id && (
                     <div className="course-chapter-children">
                       {visibleChildren.map((child) => {
-                        const childId = child.id;
+                        const childId = child.definitionKey;
                         const childEntry = getBlockByOLXId(props, childId);
                         const title = childEntry?.attributes?.title || childEntry?.tag || childId;
                         return (
@@ -158,7 +158,7 @@ function Course(props: RuntimeProps) {
             }
 
             // Loose block at top level — hidden when its when= condition fails.
-            const blockId = section.id;
+            const blockId = section.definitionKey;
             if (!isVisible(blockId)) return null;
             const blockEntry = getBlockByOLXId(props, blockId);
             const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockId;

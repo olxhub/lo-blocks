@@ -16,12 +16,14 @@ export default function Tabs(props: RuntimeProps) {
   // Filtered kids (when= applied) — used for headers and content indexing
   const filteredKids = useKidsJson(props);
 
-  // Extract kid IDs for batch lookup (for tab labels)
-  const kidIds = filteredKids.filter(k => k?.type === 'block' && k?.id).map(k => k.id);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
+  // Extract definition keys for batch lookup (for tab labels)
+  const definitionKeys = filteredKids
+    .filter(k => k?.type === 'block' && k?.definitionKey)
+    .map(k => k.definitionKey);
+  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, definitionKeys);
 
   // Create a map for easy lookup by ID
-  const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
+  const kidBlockMap = Object.fromEntries(definitionKeys.map((definitionKey, i) => [definitionKey, kidBlocks[i]]));
 
   // Render all tab content upfront (useKids must be called unconditionally)
   const { kids: renderedContent } = useKids(props);
@@ -46,8 +48,8 @@ export default function Tabs(props: RuntimeProps) {
 
           // Extract title from the child block's attributes (using pre-fetched blocks)
           let tabLabel = t('defaultTabLabel', { number: index + 1 });
-          if (kid.type === 'block' && kid.id) {
-            const childBlock = kidBlockMap[kid.id];
+          if (kid.type === 'block' && kid.definitionKey) {
+            const childBlock = kidBlockMap[kid.definitionKey];
             if (childBlock) {
               tabLabel = childBlock.attributes?.title || tabLabel;
             }

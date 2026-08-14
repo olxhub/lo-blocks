@@ -22,7 +22,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
 import { src } from '@/lib/blocks/attributeSchemas';
 import { problemGradeMode } from '@/lib/grading';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
@@ -33,8 +33,6 @@ import * as parser from './_textSelectionParser';
 const PROBLEM = parseLeafId('problem');
 const GRADER  = parseLeafId('grader');
 const INPUT   = parseLeafId('input');
-
-const blockRef = (id: DefinitionRef): KidEntry => ({ type: 'block', id });
 
 // Map the authoring mode onto the problem attributes CapaProblem's renderer
 // reads. Returns the (grade, showanswer) the generated problem should carry.
@@ -55,6 +53,8 @@ function problemAttrsForMode(mode: string): { grade: 'immediate' | 'submit'; sho
  */
 function generateComposition({ parsed, storeEntry, id, attributes }) {
   const parentRef = asDefinitionRef(splitNs(id).path);
+  const ns = splitNs(id).ns;
+  const blockRef = (definitionRef: DefinitionRef): KidEntry => blockReference(definitionRef, ns);
   const problemId = joinDefinitionRef(parentRef, PROBLEM);
   const graderId  = joinDefinitionRef(parentRef, GRADER);
   const inputId   = joinDefinitionRef(parentRef, INPUT);

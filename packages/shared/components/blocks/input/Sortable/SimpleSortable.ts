@@ -1,9 +1,10 @@
 // packages/shared/components/blocks/input/Sortable/SimpleSortable.ts
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import type { BlockReference, DefinitionRef } from '@/lib/types';
 import * as sortParser from './_sortParser';
 
 // Typed child-role suffixes for joinDefinitionRef.
@@ -20,6 +21,8 @@ const ITEM    = parseLeafId('item');
 function generateSortableComponents({ parsed, storeEntry, id, tag, attributes }) {
   const { prompt, items } = parsed;
   const parentRef = asDefinitionRef(splitNs(id).path);
+  const ns = splitNs(id).ns;
+  const blockRef = (definitionRef: DefinitionRef): BlockReference => blockReference(definitionRef, ns);
 
   // Generate IDs for all components
   const problemId = joinDefinitionRef(parentRef, PROBLEM);
@@ -55,7 +58,7 @@ function generateSortableComponents({ parsed, storeEntry, id, tag, attributes })
     id: inputId,
     tag: 'SortableInput',
     attributes: { id: inputId },
-    kids: itemIds.map(itemId => ({ type: 'block', id: itemId }))
+    kids: itemIds.map(blockRef)
   });
 
   // Store SortableGrader
@@ -67,8 +70,8 @@ function generateSortableComponents({ parsed, storeEntry, id, tag, attributes })
       target: inputId
     },
     kids: [
-      { type: 'block', id: promptId },
-      { type: 'block', id: inputId }
+      blockRef(promptId),
+      blockRef(inputId)
     ]
   });
 
@@ -81,12 +84,12 @@ function generateSortableComponents({ parsed, storeEntry, id, tag, attributes })
       ...attributes // Pass through any attributes from SimpleSortable
     },
     kids: [
-      { type: 'block', id: graderId }
+      blockRef(graderId)
     ]
   });
 
   // Return the main problem ID - this becomes the "SimpleSortable"
-  return [{ type: 'block', id: problemId }];
+  return [blockRef(problemId)];
 }
 
 export const fields = state.fields([]);

@@ -166,7 +166,7 @@ async function liquidTemplateParser({
   const kids: any[] = [];
   for (let i = 0; i < xmlNodes.length; i++) {
     const result = await parseNode(xmlNodes[i], xmlNodes, i);
-    if (result?.id) {
+    if (result?.definitionKey) {
       kids.push(result);
     }
   }

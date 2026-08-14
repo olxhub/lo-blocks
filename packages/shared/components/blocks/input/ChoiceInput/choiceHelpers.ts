@@ -8,9 +8,7 @@
 // (rendered) DOM.
 //
 import { getBlockByOLXId } from '@/lib/blocks';
-import {
-  qualifyDefinitionRef, parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey,
-} from '@/lib/types/id-grammar';
+import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { isKidArray } from '@/lib/types/kids';
 import type { DefinitionKey, RuntimeProps, StateRef } from '@/lib/types';
 
@@ -25,7 +23,7 @@ function choiceKeysFromKids(props: RuntimeProps, kids: any): DefinitionKey[] {
   return kids.flatMap(k => {
     if (k.type === 'html') return choiceKeysFromKids(props, k.kids);
     if (k.type !== 'block') return [];
-    const defKey = qualifyDefinitionRef(k.id, props.runtime.ns);
+    const defKey = k.definitionKey;
     const inst = getBlockByOLXId(props, defKey);
     if (!inst) return [];
     if (isChoiceTag(inst.tag)) return [defKey];

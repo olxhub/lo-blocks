@@ -100,7 +100,7 @@ async function parseAndRender(olx: string, providerFiles?: Record<string, string
   });
 
   const element = render({
-    node: { type: 'block', id: renderId },
+    node: { type: 'block', definitionKey: renderId },
     nodeInfo: makeRootNode(runtime),
     runtime,
   });

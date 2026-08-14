@@ -137,14 +137,14 @@ it('runs text parsers for blocks nested through HTML', async () => {
   const problem = getOlxJson(idMap, 'q');
   expect(problem?.kids).toEqual([
     { type: 'text', text: expect.stringContaining('Before') },
-    { type: 'block', id: testKey('direct_md') },
+    { type: 'block', definitionKey: testKey('direct_md') },
     {
       type: 'html',
       tag: 'section',
       attributes: { class: 'prompt' },
       kids: [
         { type: 'text', text: expect.stringContaining('Lead') },
-        { type: 'block', id: testKey('nested_md') },
+        { type: 'block', definitionKey: testKey('nested_md') },
         {
           type: 'html',
           tag: 'em',
@@ -159,10 +159,10 @@ it('runs text parsers for blocks nested through HTML', async () => {
             type: 'html',
             tag: 'strong',
             attributes: {},
-            kids: [{ type: 'block', id: testKey('deep_md') }],
+            kids: [{ type: 'block', definitionKey: testKey('deep_md') }],
           }],
         },
-        { type: 'block', id: testKey('explanation') },
+        { type: 'block', definitionKey: testKey('explanation') },
       ],
     },
     { type: 'text', text: expect.stringContaining('After') },

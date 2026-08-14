@@ -351,16 +351,16 @@ async function processEmbedBlocks(
 
       const result = await parseNode(rootNodes[0], rootNodes, 0);
 
-      if (result?.id) {
+      if (result?.definitionKey) {
         body[i] = {
           type: 'EmbedCommand',
-          ref: result.id,
+          ref: result.definitionKey,
           metadata: entry.metadata || {},
           options: null,
           parsedOptions: {},
         };
       } else {
-        warnings.push(`EmbedBlock at position ${i}: parseNode returned no id`);
+        warnings.push(`EmbedBlock at position ${i}: parseNode returned no definition key`);
       }
     } catch (e: any) {
       warnings.push(`EmbedBlock at position ${i}: ${e?.message ?? String(e)}`);
@@ -462,7 +462,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           id: wrapperId,
           tag: 'CompactPopout',
           attributes: { id: wrapperId, label, mode: 'target', autoOpen: true, target, targetContent: entry.ref },
-          kids: [{ type: 'block', id: entry.ref }],
+          kids: [{ type: 'block', definitionKey: entry.ref }],
         });
         entry.ref = wrapperId;
         continue;
@@ -480,7 +480,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
         id: wrapperId,
         tag: 'CompactPopout',
         attributes: { id: wrapperId, label, mode: display, autoOpen: true },
-        kids: [{ type: 'block', id: entry.ref }],
+        kids: [{ type: 'block', definitionKey: entry.ref }],
       });
       entry.ref = wrapperId;
     }
