@@ -39,7 +39,7 @@
 //
 import { scopes } from '../../scopes';
 import {
-  docText, docSpliceUpdate, foldDocUpdate, isDocUpdate,
+  docText, docSpliceUpdate, foldDocUpdate, isDocUpdate, writerBase,
 } from '../../../crdt/docText';
 import { computeSplice } from '../../../crdt/computeSplice';
 import { getClientId } from '../../../crdt/actorId';
@@ -62,14 +62,23 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     scope: opts?.scope ?? scopes.component,
     read: opts?.read ?? docText,
     display: opts?.display ?? docText,
-    write: opts?.write ?? ((oldRaw: any, newValue: any): WriteResult[] => {
-      const splice = computeSplice(docText(oldRaw), String(newValue ?? ''));
+    write: opts?.write ?? ((oldRaw: any, newValue: any, context?: { key?: string }): WriteResult[] => {
+      // Build on this writer's own latest document combined with the
+      // store's, not on the store's alone. The store lags by a microtask
+      // (lo_event enqueues), and a keystroke diffed against text the
+      // learner has already moved past drops the edit silently and then
+      // collides with the next one — see `heads` in crdt/docText.ts.
+      const base = writerBase(oldRaw, context?.key);
+      const splice = computeSplice(docText(base), String(newValue ?? ''));
       if (splice.deleteCount === 0 && splice.inserted.length === 0) return [];
+      const remember = context?.key === undefined
+        ? undefined
+        : { key: context.key, from: oldRaw };
       return [{
         event: 'SPLICE_INPUT' as FieldEvent,
         payload: {
           field: name,
-          update: docSpliceUpdate(oldRaw, splice, getClientId()),
+          update: docSpliceUpdate(base, splice, getClientId(), remember),
         },
       }];
     }),

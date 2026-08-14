@@ -430,13 +430,24 @@ export interface FieldInfo {
    *
    *  Examples:
    *  - Plain field: (_, val) => [{ event: 'UPDATE_VALUE', payload: { value: val } }]
-   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { index, deleteCount, inserted } }]
+   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { update } }]
    *  - Set field: not a single write fn — needs add/remove/clear operations
    *    (will be exposed through useField API, not write)
    *
+   *  `key` identifies the FIELD INSTANCE being written (the same address
+   *  the event is dispatched to). A write that has to remember something
+   *  between calls needs it, because oldRaw is a snapshot the caller may
+   *  already have run ahead of and two instances of one field share
+   *  everything else. docField keeps its in-flight document under it (see
+   *  crdt/docText.ts); stateless writes ignore it.
+   *
    *  Returns an array of WriteResult — usually one event, but some operations
    *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
-  write?: (oldRaw: RawFieldValue<any>, newValue: any) => WriteResult[];
+  write?: (
+    oldRaw: RawFieldValue<any>,
+    newValue: any,
+    context?: { key?: string },
+  ) => WriteResult[];
 
   /** Field-level reducer. Receives the component's state object and returns a
    *  patch to merge back. The main reducer routes events to field.reduce based

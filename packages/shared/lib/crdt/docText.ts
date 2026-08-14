@@ -71,6 +71,49 @@ const docs = new WeakMap<object, Doc>();
 /** Stored value → its materialized text (toString walks every struct). */
 const texts = new WeakMap<object, string>();
 
+/**
+ * Field instance → the document this client's last write left behind.
+ *
+ * The write path reads the store, and the store lags the textarea: an
+ * event is enqueued (lo_event) and folded a microtask later, so two quick
+ * keystrokes can both diff against the same snapshot. That snapshot is
+ * text the learner has stopped looking at, and diffing against it goes
+ * wrong in two ways at once — an edit that returns the text to the
+ * snapshot (type a letter, delete it) produces NO operation, because
+ * against the stale base nothing changed; and the next keystroke then
+ * mints an operation at a clock the missing one already claimed, which
+ * the CRDT rejects. The document stops tracking the textarea, the next
+ * render snaps the value back, and the caret jumps backwards with it.
+ *
+ * So a writer builds each edit on its OWN latest document rather than on
+ * whatever the store has caught up to. Keyed by field instance and not by
+ * the stored value's identity, because the case that matters most is the
+ * first burst of typing into an empty field, where every write sees the
+ * same `undefined` and there is no object to key by.
+ *
+ * The store is never ignored, only combined with (see writerBase): edits
+ * from anywhere else — a peer, a reconnect, an adoption — arrive through
+ * it, and a writer that dropped them would keep re-sending a document
+ * that disagrees with everyone else's.
+ */
+const heads = new Map<string, { from: unknown; head: JsonUpdate; at: number }>();
+
+/**
+ * How long a writer's head stays usable while the store still shows no
+ * document at all.
+ *
+ * The window this covers is a microtask — an event is enqueued and folded
+ * before anything else the user can do. The bound exists only so a head
+ * cannot outlive that window and reappear in a later life of the same
+ * field: remount the block, navigate back, let the store reset to empty,
+ * and "the store has not folded my edit yet" and "this is a different
+ * document now" look identical from here. Seconds separate those two
+ * cases by orders of magnitude, so the exact value is not a tuning knob.
+ * Once the store holds a document, the head is combined with it rather
+ * than trusted alone, and this does not apply.
+ */
+const HEAD_TTL_MS = 2000;
+
 /** Is this raw field value a CRDT document? */
 export function isDocUpdate(raw: unknown): raw is JsonUpdate {
   return (
@@ -169,6 +212,11 @@ export function docSpliceUpdate(
   raw: unknown,
   splice: { index: number; deleteCount: number; inserted: string },
   clientID: number,
+  // Where to file the resulting document so the next write can build on
+  // it. `from` is the value the caller READ — the store's, which may be
+  // behind `raw` when `raw` is already a head. Recording the base instead
+  // would make the next write think the store had moved.
+  remember?: { key: string; from: unknown },
 ): JsonUpdate {
   if (clientID === SEED_CLIENT) {
     throw new RangeError(
@@ -192,5 +240,56 @@ export function docSpliceUpdate(
     if (splice.inserted.length > 0) text.insert(splice.index, splice.inserted);
   });
 
-  return parts.length === 1 ? parts[0]! : mergeUpdates(parts);
+  const update = parts.length === 1 ? parts[0]! : mergeUpdates(parts);
+  // Where this write left off, so the next one can pick up from here
+  // rather than from a store that has not folded it yet. Free: the
+  // throwaway document already holds the result.
+  if (remember !== undefined) {
+    heads.set(remember.key, {
+      from: remember.from,
+      head: doc.encodeStateAsUpdate(),
+      at: Date.now(),
+    });
+  }
+  return update;
+}
+
+/**
+ * The document a writer should build its next edit on: everything it has
+ * written, combined with everything the store has. See `heads`.
+ *
+ * Combining rather than choosing is what keeps this from being a cache
+ * with a staleness bug of its own. The store may hold edits this writer
+ * has never seen, the writer may hold edits the store has not folded yet,
+ * and after a keystroke or two it is routinely both. Combining is right in
+ * every one of those cases, and idempotent when there is nothing to add.
+ *
+ * The exception is a store value that is NOT a document — an empty field,
+ * or one blanked to '' because the learner switched to another group
+ * (sync/router.ts). That is not a stale view of the writer's document, it
+ * is a different document, and carrying the head across would put the old
+ * group's text back on screen. So a head survives a non-document store
+ * value only while the store has not moved at all since it was written,
+ * which is exactly the in-flight case it exists for.
+ */
+export function writerBase(raw: unknown, key?: string): unknown {
+  if (key === undefined) return raw;
+  const entry = heads.get(key);
+  if (entry === undefined || entry.head === raw) return raw;
+  if (!isDocUpdate(raw)) {
+    // Still in flight: the store has not moved since this head was written.
+    if (raw === entry.from && Date.now() - entry.at < HEAD_TTL_MS) return entry.head;
+    heads.delete(key);                            // a different document
+    return raw;
+  }
+  return foldDocUpdate(entry.head, raw);
+}
+
+/**
+ * Forget a writer's head — its next edit starts from the store alone.
+ * For tests and for a field being torn down; ordinary editing never
+ * needs it, since combining with the store is already correct.
+ */
+export function forgetWriterHead(key: string): void {
+  heads.delete(key);
 }

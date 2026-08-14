@@ -34,6 +34,28 @@ function assertWritableField(loBlock: LoBlock | undefined | null, fieldName: str
 }
 
 /**
+ * The address of one field instance — the same scope/id/tag resolution
+ * dispatchFieldEvent uses, as a string a write can key state by.
+ *
+ * Two textareas on a page are two documents; without the id in the key
+ * one would build its next edit on the other's text.
+ */
+function writeKey(
+  field: FieldInfo,
+  props: BaselineProps | null,
+  stateKey?: StateKey,
+  tag?: string,
+): string {
+  const scope = field.scope;
+  const instance = (scope === scopes.component || scope === scopes.storage)
+    ? String(stateKey ?? scopedStateKeyForBlock(props as RuntimeProps) ?? '')
+    : (scope === scopes.componentSetting
+      ? String(tag ?? (props as RuntimeProps)?.loBlock?.name ?? '')
+      : '');
+  return `${scope}|${instance}|${field.name}`;
+}
+
+/**
  * Dispatch a single event with infrastructure fields (scope, id, tag) resolved.
  *
  * Shared by updateField (which may produce multiple events via field.write)
@@ -184,7 +206,7 @@ export function updateField(
     // Field knows how to produce its own events (e.g., docField computes splices)
     const store = props?.runtime?.store ?? getReduxStoreInstance();
     const oldRaw = rawFieldSelector(store.getState(), props, field, { stateKey, tag, fallback });
-    const results = field.write(oldRaw, newValue);
+    const results = field.write(oldRaw, newValue, { key: writeKey(field, props, stateKey, tag) });
     // The extras envelope rides only the LAST event — it represents final
     // cursor position, not per-event state.
     for (let i = 0; i < results.length; i++) {
