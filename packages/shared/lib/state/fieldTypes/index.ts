@@ -3,7 +3,7 @@
 // Switch between classic (main-branch) and CRDT field implementations.
 //
 // Controlled by the LO_FIELD_STRATEGY environment variable:
-//   LO_FIELD_STRATEGY=crdt    → LWW/RGA conflict resolution, delta encoding
+//   LO_FIELD_STRATEGY=crdt    → CRDT conflict resolution, delta encoding
 //   LO_FIELD_STRATEGY=classic → bare values, spread-based reducer (default)
 //
 // This is the single source of truth for the field strategy. The hook

@@ -4,8 +4,9 @@
 // items that only grows. Built for message transcripts: chat is multi-producer
 // by design (a user, an LLM agent, eventually other users and a script
 // player), and a grow-only op-keyed log merges trivially — union by opId,
-// sort by (ts, actor, n). No positional pointers (RGA) needed because items
-// are only ever appended, never inserted mid-sequence.
+// sort by (ts, actor, n). No positional pointers (as the sequence CRDT in
+// text/ uses) are needed, because items are only ever appended, never
+// inserted mid-sequence.
 //
 // Storage format (raw Redux value — a LogDoc):
 //   { entries: { 'actor1:170...:1': { ts, actor, n, item }, ... },
@@ -20,7 +21,7 @@
 //
 // Relationship to other CRDTs in this directory:
 //   - lww.ts: register CRDT for single values (used by stateField)
-//   - rga.ts: sequence CRDT for collaborative text (used by docField)
+//   - text/: sequence CRDT for collaborative text, via docText.ts (used by docField)
 //   - set.ts: LWW-element set (used by setField)
 //   - log.ts: append-only ordered log (used by logField)
 //   All are plain JS objects, Redux-serializable.

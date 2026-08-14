@@ -1,11 +1,9 @@
 export {
-  rgaCreate, rgaInsert, rgaDelete, rgaSplice, rgaText,
-  rgaApplyRemoteOps, rgaApplyRemoteDeletes,
-  rgaCompact, rgaMinVersionVector, rgaVersionVector,
-} from './rga';
-export type { RgaDoc, Op, DeleteOp, OpId, VersionVector, SpliceParams } from './rga';
+  docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocUpdate,
+} from './docText';
+export type { JsonUpdate } from './text';
 export { computeSplice } from './computeSplice';
-export { getActorId } from './actorId';
+export { getActorId, getClientId } from './actorId';
 export { lwwWrite, lwwReduce, defaultDisplay } from './lww';
 export { setRead, setDisplay, setWrite, setReduce } from './set';
 export type { ElementMeta, SetDoc } from './set';

@@ -26,8 +26,8 @@ export function useStudioContent(fileId: LofsRef): [string, (v: string) => void]
 }
 
 /** Read a file's current content synchronously (no subscription).
- *  getDecodedField: content is a docField, so the raw redux value is an
- *  RgaDoc — the DECODED string is what save, the LLM tools, and dirty
+ *  getDecodedField: content is a docField, so the raw redux value is a
+ *  JsonUpdate — the DECODED string is what save, the LLM tools, and dirty
  *  checks need. */
 export function getStudioContent(fileId: LofsRef): string {
   return getDecodedField(null, editorFields.content, { fallback: '', stateKey: asStateKey(fileId) });

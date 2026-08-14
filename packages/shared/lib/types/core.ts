@@ -312,7 +312,7 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 // reduced and merged across peers.
 //
 // Fields belong to blocks, not to a global registry. Two blocks can have a
-// "value" field with different storage types (plain string vs RgaDoc).
+// "value" field with different storage types (plain string vs JsonUpdate).
 //
 // Design direction: each field type (plain, doc, set, counter, ...) will
 // carry its own reducer and merge function, enabling:
@@ -416,7 +416,7 @@ export interface FieldInfo {
   schema?: z.ZodType;
 
   /** Materialize raw Redux value → consumer-facing value. Default: identity.
-   *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
+   *  Examples: JsonUpdate → string, SetDoc → Set, CounterDoc → number.
    *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
   read?: (raw: RawFieldValue<any>) => any;
 
@@ -492,7 +492,7 @@ export interface FieldInfo {
   //   CRDT merge function for reconciling divergent state.
   //   Used when: syncing offline edits, collaborative editing, server-side replay.
   //   Plain (LWW): (local, remote) => remote.ts > local.ts ? remote : local
-  //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
+  //   Doc (sequence): (local, remote) => mergeDocUpdates([local, remote])
   //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
   // ---------------------------------------------------------------------------

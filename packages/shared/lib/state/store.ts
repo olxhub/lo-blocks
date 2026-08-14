@@ -578,9 +578,12 @@ function configureStore({
   ]);
   const syncFilter = (action: any): boolean => {
     // Server-fanned events must not re-broadcast: sibling tabs have their
-    // own sockets and receive the fan-out directly — a BroadcastChannel
-    // copy would double-apply (RGA splices duplicate text). This guard
-    // matters only if tab-sync is ever re-enabled alongside fan-out.
+    // own sockets and receive the fan-out directly, so a BroadcastChannel
+    // copy is redundant traffic and an echo loop waiting to happen. Every
+    // CRDT fold here is idempotent — document updates, log appends by
+    // opId, LWW registers — so a duplicate is survivable rather than
+    // corrupting, but it should still not be sent. This guard matters only
+    // if tab-sync is ever re-enabled alongside fan-out.
     if (action?.__fromServer) return false;
     if (action?.redux_type !== 'EMIT_EVENT' || typeof action.payload !== 'string') return true;
     try { return !CONTENT_EVENTS.has(JSON.parse(action.payload).event); }

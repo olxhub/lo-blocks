@@ -22,7 +22,7 @@
 //   3. Export a constructor that assembles FieldInfo from the CRDT primitives
 //   4. Add the export to crdt/index.ts
 //
-// See also: doc.ts (collaborative text via RGA CRDT)
+// See also: doc.ts (collaborative text via the sequence CRDT)
 //           set.ts (add/remove set via LWW-element CRDT)
 //
 // Behavior summary:

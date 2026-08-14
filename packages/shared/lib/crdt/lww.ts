@@ -24,7 +24,7 @@
 //   — see store.ts.)
 //
 // Relationship to other CRDTs in this directory:
-//   - rga.ts: sequence CRDT for collaborative text (used by docField)
+//   - text/: sequence CRDT for collaborative text, via docText.ts (used by docField)
 //   - lww.ts: register CRDT for simple values (used by stateField)
 //   Both are plain JS objects, Redux-serializable, no WASM or binary formats.
 //
@@ -81,7 +81,7 @@ export function lwwReduce(componentState: Record<string, any>, action: any, fiel
 /**
  * Default display: produce a human/LLM-readable string from a raw value.
  *
- * Used by stateField. docField overrides this with rgaText-based display.
+ * Used by stateField. docField overrides this with its document's text.
  */
 export function defaultDisplay(raw: any): string {
   if (raw === undefined || raw === null) return '';

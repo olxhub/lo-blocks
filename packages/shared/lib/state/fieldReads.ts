@@ -8,7 +8,7 @@
 //
 //   level | selector (state, …)  | non-hook getter | returns                       | example
 //   ------+----------------------+-----------------+-------------------------------+----------------------------
-//     1   | rawFieldSelector     | getRawField     | storage representation        | RgaDoc ops
+//     1   | rawFieldSelector     | getRawField     | storage representation        | JsonUpdate structs
 //     2   | decodedFieldSelector | getDecodedField | field.read applied            | "hello world"
 //     3   | fieldSelector        | getField        | OBSERVABLE: getter ?? decoded | "hello world" or kids-fallback
 //
@@ -70,7 +70,7 @@ export interface SelectorOptions<T> {
 
 /**
  * Level 1 — the raw backing store for a field: no field.read, no blueprint
- * getter. This is the storage representation (a docField's RgaDoc, a setField's
+ * getter. This is the storage representation (a docField's JsonUpdate, a setField's
  * SetDoc). Write-path diffing and selector implementations that own the store
  * read here.
  */
@@ -309,7 +309,7 @@ export const getField = <T>(
  * Decode a raw Redux value into its consumer-facing form via field.read.
  * No-op if the field has no read transform (stateFields store values bare).
  *
- * Example: docField stores an RgaDoc in Redux; decodeField produces a string.
+ * Example: docField stores a JsonUpdate in Redux; decodeField produces a string.
  *
  * Use this for non-hook callers that need materialized values from fieldSelector.
  * Hook callers get decoding automatically via useFieldSelector.

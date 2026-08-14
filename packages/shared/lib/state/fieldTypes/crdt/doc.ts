@@ -1,50 +1,54 @@
 // packages/shared/lib/state/fieldTypes/crdt/doc.ts
 //
-// Document field — collaborative text via RGA CRDT.
+// Document field — collaborative text, backed by the sequence CRDT in
+// lib/crdt/text (see its README) through lib/crdt/docText.ts.
 //
-// Stores an RgaDoc in Redux. Materializes to string for consumers.
-// Edits are dispatched as splice deltas (SPLICE_INPUT), not full text
-// replacement, enabling character-level collaborative editing.
-//
-// Currently used by TextArea. Any block that needs collaborative text
-// editing should use docField('value') instead of a plain state field.
+// A docField is a DOCUMENT, not a register. The distinction is the whole
+// point: a stateField's value is replaced by whoever wrote last, which
+// for prose means one editor's paragraph silently erasing another's. A
+// document records the EDITS, so two people typing in different places
+// keep both sets of words, and typing in the same place interleaves
+// deterministically rather than picking a winner.
 //
 // Behavior summary:
-//   - read:     RgaDoc -> string via rgaText() (handles plain string for pre-init)
-//   - write:    computes splice delta from old text -> new text via computeSplice()
-//   - reduce:   applies rgaSplice + compaction, auto-inits RgaDoc on first edit
+//   - stores:   a JsonUpdate (plain JSON — see crdt/docText.ts)
+//   - read:     the document's text
+//   - write:    diffs old text → new text, replays that splice on a
+//               throwaway document, and emits the resulting update
+//   - reduce:   applyUpdate — commutative, idempotent, order-independent
 //   - display:  same as read (both produce a string)
-//   - equality: referential (each rgaSplice produces a new object; no-ops don't)
-//   - events:   SPLICE_INPUT (insert/delete deltas)
+//   - equality: referential (every fold produces a new object)
+//   - events:   SPLICE_INPUT, carrying { field, update }
 //
-// The reduce function includes auto-init: on the first splice, if the stored
-// value is a plain string (or missing), it creates an RgaDoc and inserts the
-// text before applying the splice. This handles the transition from
-// "no user input yet" to "collaborative editing."
+// WHY THE EVENT CARRIES AN UPDATE rather than (index, deleteCount,
+// inserted): positions are only meaningful against the exact text the
+// writer was looking at. Two learners editing one document produce
+// positions in two different coordinate systems, and folding one
+// against the other's text lands the words in the wrong place — the
+// failure is silent and the documents never reconverge. An update names
+// the neighbouring CHARACTERS instead of counting from the start, so
+// every recipient reaches the same document no matter what order the
+// events arrive in, how often they are redelivered, or which of them
+// the recipient had already seen. That property is what lets the same
+// reducer run on the writer optimistically, on the server's
+// materialization, on every subscribed peer, and again during replay.
 //
-// After each splice, rgaCompact() runs immediately. In single-user mode,
-// all ops are local, so the version vector shows everything is seen and
-// tombstones can be garbage-collected right away.
+// The writer's throwaway document (docSpliceUpdate) is deliberate: the
+// write path must not fold, or the local fold would be a no-op here and
+// a real merge everywhere else.
 //
 import { scopes } from '../../scopes';
-import { rgaCreate, rgaInsert, rgaSplice, rgaText, rgaCompact, rgaVersionVector } from '../../../crdt/rga';
+import {
+  docText, docSpliceUpdate, foldDocUpdate, isDocUpdate,
+} from '../../../crdt/docText';
 import { computeSplice } from '../../../crdt/computeSplice';
-import { getActorId } from '../../../crdt/actorId';
+import { getClientId } from '../../../crdt/actorId';
 import type { FieldInfo, FieldName, FieldEvent, WriteResult } from '../../../types';
 
 /**
- * CRDT document field — stores an RgaDoc in Redux, materializes to string.
+ * CRDT document field — stores a JsonUpdate in Redux, materializes to string.
  */
 export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
-  // Single-writer only: the reducer folds POSITIONAL splices
-  // (rgaSplice(index, …)); the convergent remote-op path
-  // (rgaApplyRemoteOps) is not wired into any dispatch path, so
-  // concurrent multi-writer edits would silently diverge. Shared text
-  // wants a stateField (LWW) or logField until that lands.
-  if (opts?.level && opts.level !== 'user') {
-    throw new Error(`docField('${name}'): level '${opts.level}' unsupported — `
-      + `RGA docs are single-writer today; use stateField or logField for shared text`);
-  }
   return {
     // Caller opts pass through WHOLESALE (see classic/state.ts — allow-
     // lists silently drop options; this constructor also ignored
@@ -56,52 +60,28 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
     events: opts?.events ?? ['SPLICE_INPUT' as FieldEvent],
     event: opts?.event ?? 'SPLICE_INPUT',
     scope: opts?.scope ?? scopes.component,
-    read: opts?.read ?? ((raw: any): string => {
-      if (!raw) return '';
-      if (typeof raw === 'string') return raw;
-      if (raw.ops) return rgaText(raw);
-      return '';
-    }),
-    display: opts?.display ?? ((raw: any): string => {
-      if (!raw) return '';
-      if (typeof raw === 'string') return raw;
-      if (raw.ops) return rgaText(raw);
-      return '';
-    }),
+    read: opts?.read ?? docText,
+    display: opts?.display ?? docText,
     write: opts?.write ?? ((oldRaw: any, newValue: any): WriteResult[] => {
-      const newText = String(newValue ?? '');
-      const oldText = oldRaw?.ops ? rgaText(oldRaw) : (typeof oldRaw === 'string' ? oldRaw : '');
-      const splice = computeSplice(oldText, newText);
+      const splice = computeSplice(docText(oldRaw), String(newValue ?? ''));
       if (splice.deleteCount === 0 && splice.inserted.length === 0) return [];
-      const needsInit = !oldRaw || typeof oldRaw !== 'object' || !oldRaw.ops;
       return [{
         event: 'SPLICE_INPUT' as FieldEvent,
         payload: {
           field: name,
-          index: splice.index,
-          deleteCount: splice.deleteCount,
-          inserted: splice.inserted,
-          ...(needsInit ? { initText: oldText, actor: getActorId() } : {}),
-        }
+          update: docSpliceUpdate(oldRaw, splice, getClientId()),
+        },
       }];
     }),
     // Doc reduce owns ONLY the doc — sibling data (the cursor's `selection`
     // field) rides the event's extras envelope and is folded by store.ts.
     reduce: opts?.reduce ?? ((componentState: Record<string, any>, action: any, fieldName: string) => {
-      const { index, deleteCount, inserted, initText, actor } = action;
-      let doc = componentState[fieldName];
-
-      // Auto-init on first splice: create RgaDoc from existing value or initText
-      if (!doc || typeof doc !== 'object' || !doc.ops) {
-        const text = typeof doc === 'string' ? doc : (initText ?? '');
-        doc = rgaCreate(actor ?? 'default');
-        if (text) doc = rgaInsert(doc, 0, text);
-      }
-
-      doc = rgaSplice(doc, index, deleteCount, inserted);
-      doc = rgaCompact(doc, rgaVersionVector(doc));  // Single-user: all ops are seen
-
-      return { [fieldName]: doc };
+      // A malformed or absent update is not an edit. Folding it would
+      // replace the document with an empty one; ignoring it leaves the
+      // learner's text alone, which is the safe direction for a reducer
+      // that also runs on whatever arrives over the wire.
+      if (!isDocUpdate(action.update)) return {};
+      return { [fieldName]: foldDocUpdate(componentState[fieldName], action.update) };
     }),
     equality: opts?.equality ?? Object.is,
   };

@@ -13,7 +13,7 @@
 //   fields.myCustomField  // Preferred over fieldByName('myCustomField')
 //
 // NOTE: These are plain (LWW) fields. If a block needs a different storage
-// type for the same field name (e.g., TextArea stores 'value' as an RgaDoc),
+// type for the same field name (e.g., TextArea stores 'value' as a JsonUpdate),
 // it should use a field type constructor like docField('value') instead.
 //
 import { stateField } from './fieldTypes';

@@ -2,7 +2,7 @@
 //
 // Classic useDocField — thin wrapper around useFieldState.
 //
-// In classic mode, a "document" is just a string. No RGA, no splice
+// In classic mode, a "document" is just a string. No CRDT, no splice
 // deltas. useFieldState handles read/write generically.
 //
 

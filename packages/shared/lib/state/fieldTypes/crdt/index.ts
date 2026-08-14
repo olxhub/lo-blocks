@@ -1,10 +1,10 @@
 // packages/shared/lib/state/fieldTypes/crdt/index.ts
 //
-// CRDT field types — LWW/RGA conflict resolution, delta encoding, field-level reducers.
+// CRDT field types — conflict resolution by construction, delta encoding, field-level reducers.
 //
 // Available field types:
 //   stateField — LWW register. The default. See state.ts.
-//   docField   — RGA CRDT for collaborative text. See doc.ts.
+//   docField   — sequence CRDT for collaborative text. See doc.ts.
 //   orSetField — LWW-element set. See setConstructor.ts.
 //
 // NOTE: useSet is NOT re-exported here — it imports from redux.ts which
