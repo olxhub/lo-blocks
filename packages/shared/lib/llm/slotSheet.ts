@@ -53,6 +53,18 @@ export type SlotSpec = {
    * judgements, so neither belonged in `verdict`.
    */
   countMax?: number;
+  /**
+   * This check is a CLASSIFICATION: it picks one member of a named set,
+   * answered in `refers_to`, not a judgement.
+   *
+   * `PR`, `NR`, `PP`, `NP` are content — the categories an item asks about —
+   * not verdicts about content. Routing them through `verdict` forced the
+   * satisfied-first convention to double as an answer key, which is why the
+   * same question appeared four times with its options permuted. The categories
+   * are declared once in `choices=`; which one is expected is stated by an
+   * `expect` or `equals` rule, out loud, instead of by list order.
+   */
+  picks?: string;
 };
 
 /**
@@ -479,6 +491,7 @@ export function satisfiedMap(
   cover: CoverGroup[] = [],
   equals: EqualsRule[] = [],
   counts: CountGroup[] = [],
+  expect: ExpectRule[] = [],
 ): Record<string, boolean> {
   // Counted members first: they are derived from the count, so whatever the model
   // may have sent for them is replaced before anything reads it.
@@ -489,11 +502,20 @@ export function satisfiedMap(
   // been answered: an unanswered operand cannot establish a match, so the check
   // fails rather than passing by default.
   for (const r of equals) {
-    const l = (checks[r.left]?.verdict ?? '').trim();
-    const rt = (checks[r.right]?.verdict ?? '').trim();
+    // A classification answers `refers_to`; an unmigrated slot still spells it
+    // as the verdict. Same fallback `cover` uses, for the same reason.
+    const l = String(checks[r.left]?.refers_to ?? checks[r.left]?.verdict ?? '').trim();
+    const rt = String(checks[r.right]?.refers_to ?? checks[r.right]?.verdict ?? '').trim();
     const cannotTell = r.lenient.includes(l) || r.lenient.includes(rt);
     out[r.key] = cannotTell || (!!l && !!rt && l === rt);
   }
+  // Same shape as `equals`, one operand being an authored constant instead of a
+  // second check. Lenient members satisfy without establishing a match.
+  for (const r of expect) {
+    const got = String(checks[r.left]?.refers_to ?? checks[r.left]?.verdict ?? '').trim();
+    out[r.key] = r.lenient.includes(got) || (!!got && got === r.value);
+  }
+
   const byKeySpec = new Map(slots.map(s => [s.key, s]));
   for (const g of cover) {
     const claimed = new Set<string>();
@@ -531,6 +553,63 @@ export function satisfiedMap(
  * Absent → the default judgement. All-extras → the judgement plus those extras.
  * Anything else → a legacy full list, taken verbatim.
  */
+/**
+ * Named sets of categories an item asks about — authored content, declared once.
+ *
+ *   choices="operant_type:PR,NR,PP,NP,none|which_of_two:first,second"
+ *
+ * A set is referenced by `pick(name)` on as many slots as need it, so the four
+ * screens that ask about operant conditioning share one declaration instead of
+ * restating the categories (and, previously, restating them in four different
+ * orders).
+ */
+export function parseChoices(spec?: string): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const grp of (spec ?? '').split('|')) {
+    const [name, members] = grp.split(':').map(x => (x ?? '').trim());
+    const vals = (members ?? '').split(',').map(v => v.trim()).filter(Boolean);
+    if (name && vals.length) out[name] = vals;
+  }
+  return out;
+}
+
+/** `pick(operant_type)` -> "operant_type", for a segment that classifies. */
+export function parsePick(segment: string | undefined): string | undefined {
+  const m = /^pick\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)$/.exec((segment ?? '').trim());
+  return m ? m[1] : undefined;
+}
+
+/**
+ * A check COMPUTED by comparing one classification against an AUTHORED value.
+ *
+ *   expect="matches_screen:observed_type=PR:none"
+ *          key            :left        =value:lenient…
+ *
+ * The counterpart to `equals`, which compares two classifications. This one
+ * names the expected answer explicitly — the thing that used to be expressed by
+ * putting it first in a verdict list. `lenient` members satisfy the check
+ * without establishing a match, the same way they do for `equals`: a category
+ * nobody could determine is not a mismatch to charge.
+ */
+export type ExpectRule = { key: string; left: string; value: string; lenient: string[] };
+
+export function parseExpect(spec?: string): ExpectRule[] {
+  const out: ExpectRule[] = [];
+  for (const rule of (spec ?? '').split('|')) {
+    const parts = rule.split(':').map(x => x.trim());
+    if (parts.length < 2) continue;
+    const [key, lhs, len] = parts;
+    const eq = lhs.indexOf('=');
+    if (!key || eq < 0) continue;
+    const left = lhs.slice(0, eq).trim();
+    const value = lhs.slice(eq + 1).trim();
+    if (!left || !value) continue;
+    out.push({ key, left, value,
+               lenient: (len ?? '').split(',').map(v => v.trim()).filter(Boolean) });
+  }
+  return out;
+}
+
 /** `count(3)` -> 3, for a segment that declares a measurement. */
 export function parseCountMax(segment: string | undefined): number | undefined {
   const m = /^count\(\s*(\d+)\s*\)$/.exec((segment ?? '').trim());
@@ -538,7 +617,8 @@ export function parseCountMax(segment: string | undefined): number | undefined {
 }
 
 export function resolveOptions(segment: string | undefined, defaults: string[]): string[] {
-  if (parseCountMax(segment) !== undefined) return [];   // not a verdict list
+  if (parseCountMax(segment) !== undefined) return [];   // a measurement
+  if (parsePick(segment) !== undefined) return [];       // a classification
   const tokens = (segment ?? '').split('/').map(o => o.trim()).filter(Boolean);
   if (!tokens.length) return defaults;
   if (tokens.every(t => EXTRA_VERDICTS.includes(t))) {
@@ -572,10 +652,14 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS):
       if (pts !== undefined) slot.pts = pts;
       const countMax = parseCountMax(opts);
       if (countMax !== undefined) slot.countMax = countMax;
+      const picks = parsePick(opts);
+      if (picks !== undefined) slot.picks = picks;
       return slot;
     })
     .filter(slot => slot.key.length > 0
-                 && (slot.options.length > 0 || slot.countMax !== undefined));
+                 && (slot.options.length > 0
+                     || slot.countMax !== undefined
+                     || slot.picks !== undefined));
 }
 
 /**
@@ -616,16 +700,23 @@ export function publishedSheet(args: {
   equals?: EqualsRule[];
   onlyif?: OnlyIfRule[];
   counts?: CountGroup[];
+  choices?: Record<string, string[]>;
+  expect?: ExpectRule[];
 }): Record<string, unknown> {
   const { slots, verdicts, showChecks, max } = args;
   const cover = args.cover ?? [], equals = args.equals ?? [];
   const onlyif = args.onlyif ?? [], counts = args.counts ?? [];
+  // Carried so a stored sheet re-scores by the rules in force when it was
+  // written — the property that makes old sheets immune to a vocabulary change.
+  const choices = args.choices ?? {}, expect = args.expect ?? [];
   return {
     slots,
     ...(cover.length ? { cover } : {}),
     ...(equals.length ? { equals } : {}),
     ...(onlyif.length ? { onlyif } : {}),
     ...(counts.length ? { counts } : {}),
+    ...(Object.keys(choices).length ? { choices } : {}),
+    ...(expect.length ? { expect } : {}),
     showChecks,
     verdicts,
     ...(max !== undefined && max !== null && String(max) !== ''
@@ -642,11 +733,12 @@ export function scoreSlotSheet(
   equals: EqualsRule[] = [],
   onlyif: OnlyIfRule[] = [],
   counts: CountGroup[] = [],
+  expect: ExpectRule[] = [],
 ): { score: number; max: number; failed: string[] } | null {
   const scored = slots.filter(s => typeof s.pts === 'number');
   if (scored.length === 0 && explicitMax === undefined) return null;
   const max = explicitMax ?? scored.reduce((n, s) => n + (s.pts as number), 0);
-  const sat = satisfiedMap(slots, checks, cover, equals, counts);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
   const charged = chargedMap(slots, sat, onlyif);
 
   const gate = failedGate(slots, checks, cover, equals, onlyif, counts);
@@ -694,8 +786,9 @@ export function failedGate(
   equals: EqualsRule[] = [],
   onlyif: OnlyIfRule[] = [],
   counts: CountGroup[] = [],
+  expect: ExpectRule[] = [],
 ): SlotSpec | null {
-  const sat = satisfiedMap(slots, checks, cover, equals, counts);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
   const charged = chargedMap(slots, sat, onlyif);
   for (const slot of slots) {
     if (slot.gates && !sat[slot.key] && charged[slot.key]) return slot;
@@ -725,9 +818,12 @@ export function buildSlotSchema(
   perCheckNotes = false,
   // Cover groups, so a member can be asked WHICH item of the list it addresses.
   cover: CoverGroup[] = [],
+  // Named category sets, and the rules that compare a pick against a constant.
+  choices: Record<string, string[]> = {},
+  expect: ExpectRule[] = [],
 ): Record<string, unknown> {
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
-                            ...counts.flatMap(g => g.slots)]);
+                            ...counts.flatMap(g => g.slots), ...expect.map(r => r.key)]);
   // Which list each cover member has to choose from. The enum is the group's
   // own labels, so this generalises to any number of them — two, or twelve —
   // without the engine knowing how many. `none` is always available: "I named
@@ -735,6 +831,11 @@ export function buildSlotSchema(
   // adding a `neither` to the verdict list.
   const coverOf = new Map<string, string[]>();
   for (const g of cover) for (const k of g.keys) coverOf.set(k, [...g.labels, NONE]);
+  // A classification draws from its named set verbatim: `none`/`unclear` are
+  // members of the set when the author wants them, not additions made here.
+  for (const slot of slots) {
+    if (slot.picks && choices[slot.picks]) coverOf.set(slot.key, choices[slot.picks]);
+  }
   const properties: Record<string, unknown> = {};
   for (const slot of slots) {
     if (computed.has(slot.key)) continue;   // the grader derives this one
@@ -758,7 +859,9 @@ export function buildSlotSchema(
           // everywhere else in the sheet.
           ? { count: { type: 'integer', minimum: 0, maximum: slot.countMax,
                        description: 'How many. A number, not a judgement.' } }
-          : { verdict: { type: 'string', enum: slot.options } }),
+          : slot.picks !== undefined
+            ? {}                       // answers `refers_to` only; see coverOf
+            : { verdict: { type: 'string', enum: slot.options } }),
         evidence: {
           type: 'string',
           description: perCheckNotes
@@ -792,7 +895,9 @@ export function buildSlotSchema(
       // to move together — listing `verdict` for a slot that does not offer it
       // fails the schema, not the answer.
       required: [
-        slot.countMax !== undefined ? 'count' : 'verdict',
+        ...(slot.countMax !== undefined ? ['count']
+            : slot.picks !== undefined ? []          // its answer IS refers_to
+            : ['verdict']),
         ...(coverOf.has(slot.key) ? ['refers_to'] : []),
         'evidence',
         ...(perCheckNotes ? ['note'] : []),
@@ -979,6 +1084,7 @@ export function composeSlotFeedback(
     equals?: EqualsRule[];
     onlyif?: OnlyIfRule[];
     counts?: CountGroup[];
+    expect?: ExpectRule[];
   } = {},
 ): string {
   let checks = (data?.checks ?? {}) as Record<
@@ -1011,9 +1117,10 @@ export function composeSlotFeedback(
   const cover = opts.cover ?? [];
   const equals = opts.equals ?? [];
   const byKey = new Map(equals.map(r => [r.key, r]));
-  const sat = satisfiedMap(slots, checks, cover, equals, counts);
+  const expect = opts.expect ?? [];
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
   const charged = chargedMap(slots, sat, opts.onlyif ?? []);
-  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts);
+  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect);
   const shown = gate ? [gate] : slots;
 
   const lines = shown.map(slot => {
@@ -1024,14 +1131,21 @@ export function composeSlotFeedback(
     // A count is reported, not judged: it gets no tick, because there is no
     // sense in which "2 of 3" passed or failed on its own. What it feeds — the
     // member checks it expands into — carries the ticks.
+    // Neither a count nor a classification is judged on its own: "2 of 3" and
+    // "this is Negative Punishment" did not pass or fail. What judges them is
+    // the rule that reads them — a counts group, an `equals`, an `expect` — and
+    // that rule has its own line with its own tick.
     const isCount = slot.countMax !== undefined;
-    const mark = isCount ? '–' : (sat[slot.key] ? '✓' : '·');
+    const isPick = slot.picks !== undefined;
+    const mark = (isCount || isPick) ? '–' : (sat[slot.key] ? '✓' : '·');
     // An unsatisfied check that was not charged would otherwise read as a lost
     // point the score does not show, so it says so.
     const moot = !sat[slot.key] && !charged[slot.key] ? ' (not counted separately)' : '';
     const shown = isCount
       ? (checks[slot.key]?.count ?? checks[slot.key]?.verdict ?? '')
-      : displayVerdict(verdict);
+      : isPick
+        ? (checks[slot.key]?.refers_to ?? checks[slot.key]?.verdict ?? '')
+        : displayVerdict(verdict);
     const line = `- ${mark} **${slot.label}** — ${String(shown) || 'not reported'}${moot}`;
     // What the verdict was decided ON, then what to do about it. Both belong to
     // this check, so both sit under it rather than in a paragraph the student

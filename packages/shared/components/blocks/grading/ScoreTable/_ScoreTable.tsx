@@ -66,7 +66,8 @@ export function scoreOf(raw: unknown, declared: ReturnType<typeof declaredSheet>
     const p = JSON.parse(String(raw));
     if (!p || !Array.isArray(p.slots)) return null;
     const r = scoreSlotSheet(p.slots, p.verdicts ?? {}, p.max, p.cover ?? [],
-                             p.equals ?? [], p.onlyif ?? [], p.counts ?? []);
+                             p.equals ?? [], p.onlyif ?? [], p.counts ?? [],
+                             p.expect ?? []);
     return r ? r.score : null;
   } catch {
     return null;

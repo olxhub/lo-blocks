@@ -25,6 +25,10 @@ import {
   parseCounts,
   scoreSlotSheet,
   DEFAULT_VERDICTS,
+  type CheckPayload,
+  type ExpectRule,
+  parseExpect,
+  parseChoices,
   type SlotSpec,
   type CoverGroup,
 } from './slotSheet';
@@ -34,6 +38,8 @@ type Req = {
   slots: string;
   verdicts?: string;
   cover?: string;
+  choices?: string;
+  expect?: string;
   equals?: string;
   onlyif?: string;
   derived?: string;
@@ -69,6 +75,20 @@ function fail(slot: SlotSpec, cover: CoverGroup[]): string {
   return slot.options.find(o => o !== slot.options[0]) ?? 'absent';
 }
 
+/** The member an `expect` rule wants for this slot, or the set's first. */
+function pickPass(slot: SlotSpec, expect: ExpectRule[], choices: Record<string, string[]>): string {
+  const rule = expect.find(r => r.left === slot.key);
+  return rule ? rule.value : (choices[slot.picks!] ?? [''])[0];
+}
+
+/** Any OTHER member, so the rule reading this slot fails. */
+function pickFail(slot: SlotSpec, expect: ExpectRule[], choices: Record<string, string[]>): string {
+  const want = pickPass(slot, expect, choices);
+  const rule = expect.find(r => r.left === slot.key);
+  const lenient = new Set(rule?.lenient ?? []);
+  return (choices[slot.picks!] ?? []).find(v => v !== want && !lenient.has(v)) ?? want;
+}
+
 function probe(req: Req) {
   const defaults = req.verdicts
     ? req.verdicts.split(',').map(v => v.trim()).filter(Boolean)
@@ -79,18 +99,26 @@ function probe(req: Req) {
   const onlyif = parseOnlyIf(req.onlyif);
   const derived = parseDerived(req.derived);
   const counts = parseCounts(req.counts);
+  const choices = parseChoices(req.choices);
+  const expect = parseExpect(req.expect);
 
   const sheet = (failing: string[]) => {
     const claimed = new Map<CoverGroup, Set<string>>();
-    const checks: Record<string, { verdict: string }> = {};
+    const checks: Record<string, CheckPayload> = {};
     // Satisfying values are assigned first so cover labels are claimed in order;
     // a failing slot must not consume a label it is not meant to hold.
     for (const s of slots) {
-      if (!failing.includes(s.key)) checks[s.key] = { verdict: pass(s, cover, claimed) };
+      if (failing.includes(s.key)) continue;
+      checks[s.key] = s.picks
+        ? { refers_to: pickPass(s, expect, choices) }
+        : { verdict: pass(s, cover, claimed) };
     }
     for (const k of failing) {
       const s = slots.find(x => x.key === k);
-      if (s) checks[k] = { verdict: fail(s, cover) };
+      if (!s) continue;
+      checks[k] = s.picks
+        ? { refers_to: pickFail(s, expect, choices) }
+        : { verdict: fail(s, cover) };
     }
     return checks;
   };
@@ -155,7 +183,7 @@ describe('enforcement probe', () => {
   it('handles every primitive in the shared registry', () => {
     // If a primitive is added to primitives.json and not parsed here, the audit
     // silently stops seeing it — which is how `derived` went unnoticed once.
-    const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts'];
+    const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts', 'expect'];
     expect(PRIMITIVES.primitives.map(p => p.attr).sort()).toEqual([...handled].sort());
   });
 

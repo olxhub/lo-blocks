@@ -1,75 +1,82 @@
 {
-  "_comment": [
-    "The slot-sheet primitives, in one place, because adding one has to be taught to",
-    "FIVE consumers and every hand-maintained mirror of them has rotted at least once.",
-    "",
-    "Consumers, all of which read this file:",
-    "  1. lib/llm/slotSheet.ts       parsing and scoring",
-    "  2. blocks/action/LLMAction.ts wiring the attribute into a call",
-    "  3. lib/llm/probe.test.ts      reporting what a sheet enforces, for the audit",
-    "  4. molly_scoring/olx_prompts  generating the prompt body from the rubric",
-    "  5. molly_scoring/agreement.py the measurement harness's schema and scoring",
-    "",
-    "Consumer 5 was added after it drifted three separate ways at once while its",
-    "docstring called itself a mirror of buildSlotSchema(): it left every computed",
-    "key in the response schema (27 keys, 14 items) so the model was required to",
-    "answer what the prompt told it not to; it never stripped the `@pts` suffix, so",
-    "35 slots offered `\"no@2\"` as a legal verdict; and it never expanded `counts`.",
-    "A registry protects the files that read it, and that one did not read it.",
-    "",
-    "`excludes` says WHICH keys leave the schema: `key` for a check computed in",
-    "place, `members` for a rule whose keys are the things it stands in for. It",
-    "lives here because enforcement.py and agreement.py both need it and both had",
-    "their own copy of `if attr == \"counts\"`.",
-    "",
-    "`equivalence.py --enforcement` checks conformance empirically rather than",
-    "trusting this list: for every primitive with excludesKeys, it asserts the",
-    "generated prompt omits those keys from the checklist, that it carries a line",
-    "telling the model not to answer them, AND that the schema the harness actually",
-    "sends omits them too. A registry that is only a declaration would rot the way",
-    "every other hand-maintained mirror in this project has."
-  ],
-  "sheetAttributes": [
-    "id",
-    "target",
-    "slots",
-    "verdicts",
-    "max",
-    "showChecks"
-  ],
-  "primitives": [
-    {
-      "attr": "cover",
-      "excludesKeys": false,
-      "summary": "Checks that between them must COVER a set of labels; the grader does the pairing."
-    },
-    {
-      "attr": "equals",
-      "excludesKeys": true,
-      "summary": "A check COMPUTED by comparing two others, with lenient operands that establish nothing.",
-      "excludes": "key"
-    },
-    {
-      "attr": "onlyif",
-      "excludesKeys": false,
-      "summary": "A check charged only when another is satisfied; one deduction, two possible causes."
-    },
-    {
-      "attr": "derived",
-      "excludesKeys": true,
-      "summary": "A check read off the page \u2014 field contents \u2014 rather than asked of the model.",
-      "kinds": [
-        "plots",
-        "complete",
-        "present"
-      ],
-      "excludes": "key"
-    },
-    {
-      "attr": "counts",
-      "excludesKeys": true,
-      "summary": "A repeated element counted ONCE, with its member checks derived from the count.",
-      "excludes": "members"
-    }
-  ]
+ "_comment": [
+  "The slot-sheet primitives, in one place, because adding one has to be taught to",
+  "FIVE consumers and every hand-maintained mirror of them has rotted at least once.",
+  "",
+  "Consumers, all of which read this file:",
+  "  1. lib/llm/slotSheet.ts       parsing and scoring",
+  "  2. blocks/action/LLMAction.ts wiring the attribute into a call",
+  "  3. lib/llm/probe.test.ts      reporting what a sheet enforces, for the audit",
+  "  4. molly_scoring/olx_prompts  generating the prompt body from the rubric",
+  "  5. molly_scoring/agreement.py the measurement harness's schema and scoring",
+  "",
+  "Consumer 5 was added after it drifted three separate ways at once while its",
+  "docstring called itself a mirror of buildSlotSchema(): it left every computed",
+  "key in the response schema (27 keys, 14 items) so the model was required to",
+  "answer what the prompt told it not to; it never stripped the `@pts` suffix, so",
+  "35 slots offered `\"no@2\"` as a legal verdict; and it never expanded `counts`.",
+  "A registry protects the files that read it, and that one did not read it.",
+  "",
+  "`excludes` says WHICH keys leave the schema: `key` for a check computed in",
+  "place, `members` for a rule whose keys are the things it stands in for. It",
+  "lives here because enforcement.py and agreement.py both need it and both had",
+  "their own copy of `if attr == \"counts\"`.",
+  "",
+  "`equivalence.py --enforcement` checks conformance empirically rather than",
+  "trusting this list: for every primitive with excludesKeys, it asserts the",
+  "generated prompt omits those keys from the checklist, that it carries a line",
+  "telling the model not to answer them, AND that the schema the harness actually",
+  "sends omits them too. A registry that is only a declaration would rot the way",
+  "every other hand-maintained mirror in this project has."
+ ],
+ "sheetAttributes": [
+  "id",
+  "target",
+  "slots",
+  "verdicts",
+  "max",
+  "showChecks",
+  "choices"
+ ],
+ "primitives": [
+  {
+   "attr": "cover",
+   "excludesKeys": false,
+   "summary": "Checks that between them must COVER a set of labels; the grader does the pairing."
+  },
+  {
+   "attr": "equals",
+   "excludesKeys": true,
+   "summary": "A check COMPUTED by comparing two others, with lenient operands that establish nothing.",
+   "excludes": "key"
+  },
+  {
+   "attr": "onlyif",
+   "excludesKeys": false,
+   "summary": "A check charged only when another is satisfied; one deduction, two possible causes."
+  },
+  {
+   "attr": "derived",
+   "excludesKeys": true,
+   "summary": "A check read off the page \u2014 field contents \u2014 rather than asked of the model.",
+   "kinds": [
+    "plots",
+    "complete",
+    "present"
+   ],
+   "excludes": "key"
+  },
+  {
+   "attr": "counts",
+   "excludesKeys": true,
+   "summary": "A repeated element counted ONCE, with its member checks derived from the count.",
+   "excludes": "members"
+  },
+  {
+   "attr": "expect",
+   "excludesKeys": true,
+   "summary": "A check COMPUTED by comparing one classification against an authored value.",
+   "excludes": "key"
+  }
+ ]
 }

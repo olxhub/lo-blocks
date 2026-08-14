@@ -31,6 +31,7 @@ import { correctness } from '@/lib/grading/correctness';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import type { CheckPayload, ExpectRule } from '@/lib/llm/slotSheet';
 import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
          type OnlyIfRule,
          type CountGroup } from '@/lib/llm/slotSheet';
@@ -39,9 +40,38 @@ import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
 // does not read it — a hidden check still costs its points, which is the whole
 // reason an author hides one — but it belongs to the sheet's shape, and an
 // analysis harness reading the same field needs it.
-type Payload = { slots: SlotSpec[]; verdicts: Record<string, { verdict?: string }>; max?: number;
+type Payload = { slots: SlotSpec[]; verdicts: Record<string, CheckPayload>; max?: number;
                  cover?: CoverGroup[]; equals?: EqualsRule[]; onlyif?: OnlyIfRule[]; counts?: CountGroup[];
-                 showChecks?: boolean };
+                 expect?: ExpectRule[]; showChecks?: boolean };
+
+/**
+ * A stored sheet, as the grader needs it: parsed, with every rule defaulted.
+ *
+ * Spreads `parsed` FIRST so a rule the sheet carries survives even if it is not
+ * named below. The previous version listed the fields by hand, and when `expect`
+ * was added it was declared on the Payload type and passed to scoreSlotSheet but
+ * never copied out of the JSON — so the grader silently stopped applying it and
+ * every ungated cell of four items lost exactly the points that rule carried.
+ * It typechecked, and it read as the model failing a check it was never asked.
+ */
+export function sheetFromJson(raw: unknown): Payload | null {
+  try {
+    const parsed = JSON.parse(String(raw));
+    if (!parsed || !Array.isArray(parsed.slots)) return null;
+    return {
+      ...parsed,
+      slots: parsed.slots,
+      verdicts: parsed.verdicts ?? {},
+      cover: parsed.cover ?? [],
+      equals: parsed.equals ?? [],
+      onlyif: parsed.onlyif ?? [],
+      counts: parsed.counts ?? [],
+      expect: parsed.expect ?? [],
+    };
+  } catch {
+    return null;
+  }
+}
 
 /** Read the published sheet off the target's `checks` field. */
 function readChecks(props: any): Payload | null {
@@ -55,12 +85,7 @@ function readChecks(props: any): Payload | null {
     const field = state.componentFieldByStateKey(props, key, 'checks');
     const raw = state.getField(props, field, { stateKey: key });
     if (!raw) return null;
-    const parsed = JSON.parse(String(raw));
-    if (!parsed || !Array.isArray(parsed.slots)) return null;
-    return { slots: parsed.slots, verdicts: parsed.verdicts ?? {}, max: parsed.max,
-             cover: parsed.cover ?? [], equals: parsed.equals ?? [],
-             onlyif: parsed.onlyif ?? [], counts: parsed.counts ?? [],
-             showChecks: parsed.showChecks };
+    return sheetFromJson(raw);
   } catch {
     return null;
   }
@@ -77,7 +102,7 @@ function gradeSlotSheet(props: any) {
 
   const result = scoreSlotSheet(payload.slots, payload.verdicts, payload.max, payload.cover,
                               payload.equals, payload.onlyif,
-                              payload.counts);
+                              payload.counts, payload.expect);
   if (!result) {
     return {
       correct: correctness.invalid,

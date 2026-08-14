@@ -12,6 +12,8 @@ import {
   parseCover,
   parseEquals, parseOnlyIf, parseDerived, parseCounts,
   buildSlotSchema,
+  parseChoices,
+  parseExpect,
   composeSlotFeedback,
   slotSheetGuidance,
   publishedSheet,
@@ -91,6 +93,8 @@ async function llmAction({ props }) {
       const derived = parseDerived(props.derived);
       const counts = parseCounts(props.counts);
       const cover = parseCover(props.cover);
+      const choices = parseChoices(props.choices);
+      const expect = parseExpect(props.expect);
       if (slots.length === 0) {
         throw new Error(`LLMAction: could not parse any slots from slots="${slotsAttr}"`);
       }
@@ -102,7 +106,7 @@ async function llmAction({ props }) {
       // author gets this by setting showChecks, not by writing it into a prompt.
       const { data, text } = await reduxClient.callLLMJson(
         promptText + slotSheetGuidance(showChecks),
-        buildSlotSchema(slots, equals, derived, counts, showChecks, cover),
+        buildSlotSchema(slots, equals, derived, counts, showChecks, cover, choices, expect),
         'feedback_checks',
         props.runtime.activityId,
       );
@@ -111,7 +115,7 @@ async function llmAction({ props }) {
       if (data && derived.length) {
         data.checks = { ...(data.checks ?? {}), ...deriveChecks(props, derived) };
       }
-      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts }) : text;
+      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect }) : text;
       // Publish the sheet and its verdicts for anything that needs to reason
       // about them rather than read them — a grader, or an analysis harness.
       // Written whether or not the checklist is displayed.
@@ -120,6 +124,7 @@ async function llmAction({ props }) {
           const checksField = state.componentFieldByStateKey(props, targetStateKey, 'checks');
           state.setField(props, checksField, JSON.stringify(publishedSheet({
             slots, verdicts: (data.checks ?? {}) as Record<string, unknown>, showChecks,
+            choices, expect,
             max: props.max, cover, equals, onlyif, counts,
           })), { stateKey: targetStateKey });
         } catch {
@@ -235,6 +240,13 @@ const LLMAction = blocks.test({
       'with. Left out of the response schema, so the model is never asked to ' +
       'guess at something the runtime already knows.'
     ),
+    choices: z.string().optional().describe(
+      'Named sets of categories an item asks about, "name:a,b,c" separated by "|". ' +
+      'Referenced by a slot\'s pick(name); declared once instead of restated per slot.'),
+    expect: z.string().optional().describe(
+      'A check COMPUTED by comparing one classification against an authored value: ' +
+      '"key:pickSlot=VALUE:lenient,…". The counterpart to equals, which compares two ' +
+      'classifications. Names the expected answer out loud instead of by list order.'),
     onlyif: z.string().optional().describe(
       'Checks that are only CHARGED when another check is satisfied, for rubrics ' +
       'that bill one deduction for either of two causes and never twice. Rules ' +

@@ -19,6 +19,9 @@ import {
   slotSheetGuidance,
   DEFAULT_VERDICTS,
   displayVerdict,
+  parseEquals,
+  parseExpect,
+  parseChoices,
   resolveOptions,
   isSatisfied,
   parseCounts,
@@ -913,5 +916,76 @@ describe('cover once the reference is its own field', () => {
     }, cover);
     expect(sat.a).toBe(false);
     expect(sat.b).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Classifications: the categories are content, the comparison is a rule.
+//
+// PR/NR/PP/NP were never verdicts — they are the subject matter. Routed through
+// `verdict` they forced the satisfied-first convention to double as an answer
+// key, which is why one question appeared four times with its list permuted.
+// ---------------------------------------------------------------------------
+describe('pick and expect', () => {
+  const CHOICES = parseChoices('operant_type:PR,NR,PP,NP,none');
+
+  it('declares a set once and draws the enum from it', () => {
+    const slots = parseSlots('t:Which type this shows:pick(operant_type)');
+    expect(slots[0].picks).toBe('operant_type');
+    expect(slots[0].options).toEqual([]);          // not a verdict list
+
+    const schema: any = buildSlotSchema(slots, [], [], [], false, [], CHOICES, []);
+    const spec = schema.properties.checks.properties.t;
+    expect(spec.properties.refers_to.enum).toEqual(['PR', 'NR', 'PP', 'NP', 'none']);
+    expect(spec.properties.verdict).toBeUndefined();
+    expect(new Set(spec.required)).toEqual(new Set(Object.keys(spec.properties)));
+  });
+
+  it('names the expected answer out loud instead of by list order', () => {
+    const slots = parseSlots('t:Which type:pick(operant_type)|ok:Right type@2');
+    const expectRules = parseExpect('ok:t=PP:none');
+    expect(expectRules).toEqual([{ key: 'ok', left: 't', value: 'PP', lenient: ['none'] }]);
+
+    const hit = satisfiedMap(slots, { t: { refers_to: 'PP' } }, [], [], [], expectRules);
+    expect(hit.ok).toBe(true);
+    const miss = satisfiedMap(slots, { t: { refers_to: 'NR' } }, [], [], [], expectRules);
+    expect(miss.ok).toBe(false);
+  });
+
+  it('treats a lenient member as establishing nothing, not as a mismatch', () => {
+    // The same rule `equals` follows: a category nobody could determine is not
+    // a mismatch to charge.
+    const slots = parseSlots('t:Which type:pick(operant_type)|ok:Right type@2');
+    const rules = parseExpect('ok:t=PP:none');
+    expect(satisfiedMap(slots, { t: { refers_to: 'none' } }, [], [], [], rules).ok).toBe(true);
+  });
+
+  it('lets `equals` compare two picks', () => {
+    const slots = parseSlots('a:Shows:pick(operant_type)|b:Chose:pick(operant_type)|m:Match@2');
+    const eq = parseEquals('m:a,b:none');
+    const agree = satisfiedMap(slots, { a: { refers_to: 'NR' }, b: { refers_to: 'NR' } }, [], eq);
+    expect(agree.m).toBe(true);
+    const differ = satisfiedMap(slots, { a: { refers_to: 'NR' }, b: { refers_to: 'PP' } }, [], eq);
+    expect(differ.m).toBe(false);
+  });
+
+  it('reports the category to the student without a tick', () => {
+    // "this is Negative Punishment" did not pass or fail; the rule that reads
+    // it carries the judgement. Answering correctly used to render as a dot.
+    const slots = parseSlots('t:Which type this shows:pick(operant_type)');
+    const out = composeSlotFeedback(slots, { feedback: '', checks: { t: { refers_to: 'NP' } } } as any,
+                                    { showChecks: true });
+    expect(out).toContain('**Which type this shows** — NP');
+    expect(out).not.toContain('· **Which type this shows**');
+  });
+
+  it('carries its rules into the published sheet', () => {
+    // A stored sheet re-scores by the rules in force when it was written.
+    const sheet: any = publishedSheet({
+      slots: parseSlots('t:Which:pick(operant_type)'), verdicts: {}, showChecks: true,
+      choices: CHOICES, expect: parseExpect('ok:t=PP'),
+    });
+    expect(sheet.choices).toEqual(CHOICES);
+    expect(sheet.expect).toEqual([{ key: 'ok', left: 't', value: 'PP', lenient: [] }]);
   });
 });
