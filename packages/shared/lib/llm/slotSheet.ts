@@ -81,9 +81,11 @@ export const DEFAULT_VERDICTS = ['met', 'absent'];
  * `first/second/...`) still parse while they wait to move out of `verdict`.
  * The two forms are unambiguous because `met` and `absent` are never extras.
  */
+export const MISMATCH = 'mismatch';
+
 export const EXTRA_VERDICTS = [
   'unclear',
-  'wrong_kind', 'incomplete', 'duplicate', 'mismatch', 'generic', 'tick_values',
+  'wrong_kind', 'incomplete', 'duplicate', MISMATCH, 'generic', 'tick_values',
 ];
 
 /**
@@ -95,6 +97,9 @@ export const EXTRA_VERDICTS = [
  * `refers_to` and `count` below.
  */
 export const MET = 'met';
+
+/** Not satisfied, with no more specific reason to give. */
+export const ABSENT = 'absent';
 
 /**
  * The `checks` payload a filled sheet carries, per check.

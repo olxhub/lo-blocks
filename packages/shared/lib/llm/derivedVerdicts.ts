@@ -6,11 +6,17 @@
 // DerivedChecks, for items with no model call at all — come through here so the
 // dispatch exists once.
 
-import type { DerivedRule } from './slotSheet';
+import { MET, ABSENT, type DerivedRule } from './slotSheet';
 import { completeVerdict, dataVerdict }
   from '@/components/blocks/display/SelfMonitorPlot/dataVerdict';
 
 export type DerivedVerdict = { verdict: string; evidence: string };
+
+// These verdicts are decided HERE rather than by a model, so they have to name
+// the canonical vocabulary rather than restate it. Writing 'met' as a literal
+// worked only while every consuming slot happened to list `met` first — an
+// unguarded coincidence between two files, and one that would have failed
+// silently by scoring every derived check absent.
 
 /**
  * Is a value present at all?
@@ -23,8 +29,8 @@ export type DerivedVerdict = { verdict: string; evidence: string };
 function presentVerdict(texts: string[]): DerivedVerdict {
   const filled = texts.filter(t => String(t ?? '').trim()).length;
   return filled === texts.length
-    ? { verdict: 'met', evidence: 'Answered.' }
-    : { verdict: 'absent', evidence: 'Nothing chosen here.' };
+    ? { verdict: MET, evidence: 'Answered.' }
+    : { verdict: ABSENT, evidence: 'Nothing chosen here.' };
 }
 
 export function verdictFor(rule: DerivedRule, texts: string[]): DerivedVerdict {

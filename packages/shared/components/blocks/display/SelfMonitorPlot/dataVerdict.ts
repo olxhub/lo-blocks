@@ -11,6 +11,7 @@
 // first with nothing to catch it.
 
 import { parseSeries } from './_SelfMonitorPlot';
+import { MET, ABSENT, MISMATCH } from '@/lib/llm/slotSheet';
 
 export type DataVerdict = { verdict: string; evidence: string };
 
@@ -33,7 +34,7 @@ export function dataVerdict(texts: string[], template: number[][] = []): DataVer
   const { rows } = parseSeries(texts, labels, []);
   if (!rows.length) {
     return {
-      verdict: 'absent',
+      verdict: ABSENT,
       evidence: texts.length === 1
         ? 'No numbers here, so nothing plots for this week.'
         : 'None of the data fields hold numbers, so no graph is drawn.',
@@ -49,13 +50,13 @@ export function dataVerdict(texts: string[], template: number[][] = []): DataVer
       t.length === mine[i].length && t.every((v, j) => v === mine[i][j]));
   if (copied) {
     return {
-      verdict: 'mismatch',
+      verdict: MISMATCH,
       evidence: "This is the worked example's own data, not a record of your behaviour.",
     };
   }
   const filled = texts.filter(t => t.trim()).length;
   return {
-    verdict: 'met',
+    verdict: MET,
     evidence: texts.length === 1
       ? `${rows.length} value(s) entered.`
       : `${rows.length} value(s) plotted from ${filled} of ${texts.length} data field(s).`,
@@ -80,13 +81,13 @@ export function completeVerdict(texts: string[], template: number[][] = []): Dat
   const missing = texts.filter(t => !parseSeries([t], ['s'], []).rows.length).length;
   if (missing === texts.length) {
     return {
-      verdict: 'absent',
+      verdict: ABSENT,
       evidence: 'None of the data fields hold numbers, so no graph is drawn.',
     };
   }
   if (missing > 0) {
     return {
-      verdict: 'absent',
+      verdict: ABSENT,
       evidence: `${missing} of the ${texts.length} weeks hold no data, so the graph `
         + 'covers only part of the month. Enter all four weeks — the baseline week '
         + 'and weeks 1, 2 and 3 — and the chart will show the whole period.',

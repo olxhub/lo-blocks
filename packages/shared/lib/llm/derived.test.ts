@@ -15,6 +15,8 @@ import { describe, it, expect } from 'vitest';
 import { parseDerived, parseSlots, buildSlotSchema, parseCounts,
          satisfiedMap, scoreSlotSheet, composeSlotFeedback } from './slotSheet';
 import { verdictFor } from './derivedVerdicts';
+import { DEFAULT_VERDICTS, EXTRA_VERDICTS, parseSlots, satisfiedMap } from './slotSheet';
+import { verdictFor } from './derivedVerdicts';
 
 const SHEET =
   '!has_own_graph:Your 1b data produces a graph of your own:met/absent/mismatch@2|' +
@@ -190,5 +192,47 @@ describe('counts — a repeated element counted once', () => {
     expect(keys).toContain('reasons_given');
     expect(keys).not.toContain('reason_1');
     expect(props.checks.required).not.toContain('reason_3');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Derived verdicts have to speak the canonical vocabulary.
+//
+// These are decided by code, not by a model, so nothing validates them against
+// the slot's schema on the way through. Before the standardisation they were
+// bare literals that happened to match because every consuming slot listed
+// `met` first — a coincidence between two files that would have failed by
+// silently scoring every derived check absent, with no error anywhere.
+// ---------------------------------------------------------------------------
+describe('derived verdicts speak the canonical vocabulary', () => {
+  const CANONICAL = new Set([...DEFAULT_VERDICTS, ...EXTRA_VERDICTS]);
+
+  const emitted = [
+    verdictFor({ key: 'k', kind: 'present', template: [] } as any, ['x']),
+    verdictFor({ key: 'k', kind: 'present', template: [] } as any, ['']),
+    verdictFor({ key: 'k', kind: 'plots', template: [] } as any, ['1, 2, 3']),
+    verdictFor({ key: 'k', kind: 'plots', template: [] } as any, ['nothing numeric']),
+    verdictFor({ key: 'k', kind: 'plots', template: [[1, 2, 3]] } as any, ['1, 2, 3']),
+  ];
+
+  it('never invents a token outside the vocabulary', () => {
+    for (const v of emitted) {
+      expect(CANONICAL, `emitted "${v.verdict}"`).toContain(v.verdict);
+    }
+  });
+
+  it('produces a verdict a canonical slot actually counts as satisfied', () => {
+    // The end-to-end property: a derived `met` must survive isSatisfied on a
+    // slot authored the ordinary way. This is what the old literal risked.
+    const [slot] = parseSlots('k:Answered@1');
+    const met = verdictFor({ key: 'k', kind: 'present', template: [] } as any, ['x']);
+    expect(satisfiedMap([slot], { k: { verdict: met.verdict } }).k).toBe(true);
+
+    const absent = verdictFor({ key: 'k', kind: 'present', template: [] } as any, ['']);
+    expect(satisfiedMap([slot], { k: { verdict: absent.verdict } }).k).toBe(false);
+  });
+
+  it('always says why, since the student reads it', () => {
+    for (const v of emitted) expect(v.evidence.trim()).not.toBe('');
   });
 });
