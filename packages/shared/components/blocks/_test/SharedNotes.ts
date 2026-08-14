@@ -2,17 +2,24 @@
 //
 // Test block for SHARED fields (fields-design 2c): one notes value that
 // every connected user reads and writes — the minimal group-editing
-// exercise. The field is a shared LWW register: last write wins whole-
-// string, which is fine for a demo and deliberately avoids the shared-
-// docField compaction question (rgaCompact assumes a single writer; see
-// fields-design "Correctness traps").
+// exercise.
+//
+// The field is a shared DOCUMENT. It was a shared LWW register while the
+// prototype RGA backed docField, because that CRDT folded positional
+// splices and needed a single writer; two people typing meant one of them
+// silently lost a paragraph, so last-write-wins on the whole string was
+// the more honest of two bad options. The sequence CRDT folds updates
+// that name neighbouring characters instead of counting from the start,
+// so concurrent edits merge and this block can be what it was always
+// meant to be.
 
 import * as parsers from '@/lib/content/parsers';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
+import { docField } from '@/lib/state';
 
 export const fields = state.fields([
-  { name: 'notes', level: 'everyone' },
+  docField('notes', { level: 'everyone' }),
 ]);
 
 const SharedNotes = test({

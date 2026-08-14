@@ -39,6 +39,7 @@ import { consumeCustomEvent } from 'lo_event/util';
 import { scopes, Scope } from './scopes';
 import { PENDING_GRADE_TIMEOUT_EVENT } from '../grading/pendingTimeout';
 import { commonFields } from './commonFields';
+import { mergeDocFields, hasMergeableDoc } from '../crdt/merge';
 import type { FieldInfo, Fields, AppState } from '../types';
 import {
   olxjsonReducer,
@@ -253,19 +254,37 @@ export const updateResponseReducer = (state = initialState, action) => {
   // - Shared fields (`sharedComponent`): server-authoritative; merge at
   //   FIELD granularity into whatever bucket exists — everyone reads one
   //   truth, and this session's copy may be stale the moment it loads.
+  //
+  // DOCUMENTS are the exception to both, and the reason is that neither
+  // rule is answering a question a document has. Picking a side is right
+  // for a register — one of the two values is what the learner meant —
+  // but two copies of a document are two sets of EDITS, and the loser's
+  // paragraphs are simply gone. The stored copy can hold an essay from
+  // last week that this session has never seen; the local copy can hold
+  // the sentence typed while the fetch was in flight. Both are merged.
+  // See crdt/merge.ts.
   if (eventType === ADOPT_FIELD_STATE) {
     const local = state.component ?? {};
     const incoming: Record<string, any> = action.fieldState?.component ?? {};
-    const adopted = Object.fromEntries(
-      Object.entries(incoming).filter(([key]) => !(key in local)),
-    );
     const shared: Record<string, any> = action.fieldState?.sharedComponent ?? {};
-    if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0) {
+    const adopted: Record<string, any> = {};
+    const reconciled: Record<string, any> = {};
+    for (const [key, bucket] of Object.entries(incoming)) {
+      if (!(key in local)) adopted[key] = bucket;
+      else if (hasMergeableDoc(local[key], bucket)) {
+        reconciled[key] = mergeDocFields(local[key], bucket);
+      }
+    }
+    if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0
+      && Object.keys(reconciled).length === 0) {
       return state;
     }
-    const component = { ...adopted, ...local };
+    const component = { ...adopted, ...local, ...reconciled };
     for (const [key, bucket] of Object.entries(shared)) {
-      component[key] = { ...component[key], ...(bucket as Record<string, any>) };
+      component[key] = mergeDocFields(
+        { ...component[key], ...(bucket as Record<string, any>) },
+        component[key],
+      );
     }
     return { ...state, component };
   }

@@ -13,6 +13,7 @@ import { updateResponseReducer, initReducers } from '@/lib/state/store';
 import { chatFields } from '@/lib/state/chatFields';
 import { editorFields } from '@/lib/state/editorFields';
 import { fieldInfosFrom } from '@/lib/state/fields';
+import { mergeDocFields } from '@/lib/crdt/merge';
 
 // Populate the field reducer registry from all registered blocks, plus the
 // app-level fields with no owning block (same set the client registers via
@@ -52,12 +53,19 @@ export class ServerState {
     // review 2026-07). Field-level within buckets, LIVE values winning —
     // anything this materialization already folded is strictly newer
     // than the stored snapshot.
+    //
+    // "Newer" is the right rule for a register and the wrong one for a
+    // DOCUMENT: the stored snapshot is not a stale value to be
+    // superseded, it is the edits every earlier session made, and the
+    // handful this materialization folded first do not replace them.
+    // Documents on both sides merge (crdt/merge.ts).
     const merged: Record<string, any> = { ...this.state };
     for (const [scope, storedBuckets] of Object.entries(persistedScopes)) {
       const live = (this.state as any)[scope] ?? {};
       const out: Record<string, any> = {};
       for (const key of new Set([...Object.keys(storedBuckets ?? {}), ...Object.keys(live)])) {
-        out[key] = { ...(storedBuckets as any)?.[key], ...live[key] };
+        const stored = (storedBuckets as any)?.[key];
+        out[key] = mergeDocFields({ ...stored, ...live[key] }, stored);
       }
       merged[scope] = out;
     }

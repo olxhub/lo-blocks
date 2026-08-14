@@ -81,7 +81,21 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       // learner's text alone, which is the safe direction for a reducer
       // that also runs on whatever arrives over the wire.
       if (!isDocUpdate(action.update)) return {};
-      return { [fieldName]: foldDocUpdate(componentState[fieldName], action.update) };
+      try {
+        return { [fieldName]: foldDocUpdate(componentState[fieldName], action.update) };
+      } catch (error) {
+        // This reducer is where wire data becomes state, and it runs on
+        // every peer and on the server's materialization. An update the
+        // CRDT rejects — the serious case being two writers that claim one
+        // client ID, which addresses different characters identically and
+        // cannot be merged — must not become an exception thrown out of a
+        // Redux reducer, because that takes down every LATER event too and
+        // turns one bad packet into a dead page. Drop the event, keep the
+        // document, and say so: a rejection here means a bug in identity
+        // (crdt/actorId.ts) or a peer sending updates it did not generate.
+        console.warn(`[docField] '${name}': rejected update —`, error);
+        return {};
+      }
     }),
     equality: opts?.equality ?? Object.is,
   };

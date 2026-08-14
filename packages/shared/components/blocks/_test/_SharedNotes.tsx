@@ -19,7 +19,7 @@ export default function SharedNotes(props: RuntimeProps) {
   return (
     <div className="p-4 border rounded">
       <div className="text-sm text-muted-foreground mb-1">
-        Shared notes — everyone sees and edits the same value
+        Shared notes — everyone sees and edits the same document
       </div>
       <textarea
         {...inputProps}
