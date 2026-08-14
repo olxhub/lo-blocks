@@ -14,6 +14,7 @@ import { FieldPersister } from '@/lib/state/sync/persistence';
 import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeSharedFieldPolicyIndex } from '@/lib/state/sync/fieldLevels';
+import { stateForContentFetch } from '@/lib/state/sync/contentState';
 import { kvsKey, type SafeUserId } from '@/lib/types/identity';
 import { ALL, userInstance, setInstance, subscriptionKey } from '@/lib/state/sync/levels';
 import type { AuthUser } from './auth.js';
@@ -536,6 +537,116 @@ test('switching groups drops stale SCOPED self-subscriptions in the old partitio
   await new Promise(r => setTimeout(r, 20));
   expect(wsA.sent.slice(beforeDogs)
     .find(m => m.status === 'browser_event')?.detail.value).toBe('dogs scoped');
+
+  wsA.emit('close'); wsB.emit('close');
+  await Promise.all([runA, runB]);
+});
+
+test('a content fetch carries the SCOPED shared buckets, not just the definition', async () => {
+  // The bug this pins: sharedStateFor picked buckets by the served
+  // DEFINITION id only (`scopes.component[id]`). A list's scoped shared
+  // instances ("demos/list:#2:chat") live under their own state ids, so a
+  // client rejoining a shared list got the plain bucket and nothing else
+  // — an empty list until someone wrote again. The fetch now includes
+  // every bucket whose LEAF definition is a served id (found by review
+  // 2026-08; stateIdsForDefinition in state/sync/levels.ts).
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+
+  // A previous session's shared state: the plain definition bucket AND
+  // two scoped instances of it, in the caller's partition (here `all`).
+  const p = new FieldPersister(kvs, ALL, 0);
+  p.stateChanged({
+    system: {}, componentSetting: {}, storage: {},
+    component: {
+      'demos/chat': { value: 'plain' },
+      'demos/list:#2:chat': { value: 'scoped 2' },
+      'demos/list:#7:chat': { value: 'scoped 7' },
+      'demos/other': { value: 'not served' },
+    },
+  } as any);
+  await p.close();
+
+  // The content response names DEFINITIONS — nobody fetches a scoped id.
+  const fieldState = await stateForContentFetch(
+    registry, subs, USER.safe_user_id, { 'demos/chat': { v1: {} } });
+
+  const shared = fieldState!.sharedComponent;
+  expect(shared['demos/chat'].value).toBe('plain');
+  expect(shared['demos/list:#2:chat'].value).toBe('scoped 2');
+  expect(shared['demos/list:#7:chat'].value).toBe('scoped 7');
+  // Unserved definitions still stay out.
+  expect(shared['demos/other']).toBeUndefined();
+});
+
+test('switching groups patches SCOPED instances, not just the definition bucket', async () => {
+  // The bug this pins: the switch patched only `component[blockId]`, so a
+  // user moving partitions kept the OLD group's scoped list items on
+  // screen — and got nothing from the new partition when it holds only
+  // scoped buckets. The patch is now per matching state id.
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  const SCOPED = 'demos/list:#2:chat';
+
+  const fieldLevels = makeSharedFieldPolicyIndex(
+    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
+    (tag: string) => (tag === 'SharedChat'
+      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
+  );
+  const grouping = {
+    specOf: async (id: string) =>
+      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+    groupedBlocksFor: async (pickerKey: string, field: string) =>
+      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
+        ? ['demos/chat'] : [],
+  };
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const ctxA: PipelineContext = { ws: wsA as any, user: USER, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const ctxB: PipelineContext = { ws: wsB as any, user: USER_B, conn: fakeConn(), kvs, canonical: 'fields', stateRegistry: registry, subscriptions: subs, fieldLevels, grouping };
+  const runA = runPipeline(ctxA);
+  const runB = runPipeline(ctxB);
+
+  // A in Cats (0) writes the scoped item; B in Dogs (1) writes its own.
+  // Neither partition has a bucket under the PLAIN definition id — the
+  // shared state here is scoped-only, as a list's contents always are.
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 0, ts: 1, actor: 'a' })));
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 1, actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'scoped cats' })));
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'scoped dogs', actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+
+  // A switches to Dogs: it must be TOLD the Dogs partition's scoped
+  // bucket, under the scoped state id.
+  const before = wsA.sent.length;
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 2, actor: 'a' })));
+  await new Promise(r => setTimeout(r, 20));
+  const patches = wsA.sent.slice(before).filter(m => m.event_type === 'lo_server_state');
+  const scopedPatch = patches.find(m => m.detail.sharedComponent[SCOPED]);
+  expect(scopedPatch.detail.sharedComponent[SCOPED].value).toBe('scoped dogs');
+
+  // And switching BACK blanks the fields the new partition lacks, so the
+  // old group's scoped text cannot linger.
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 2, ts: 3, actor: 'a' })));
+  await new Promise(r => setTimeout(r, 20));
+  const blanked = wsA.sent.filter(m => m.event_type === 'lo_server_state')
+    .filter(m => m.detail.sharedComponent[SCOPED]).at(-1);
+  expect(blanked.detail.sharedComponent[SCOPED].value).toBe('');
 
   wsA.emit('close'); wsB.emit('close');
   await Promise.all([runA, runB]);

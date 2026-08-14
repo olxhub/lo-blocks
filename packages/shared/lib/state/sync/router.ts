@@ -32,7 +32,7 @@ import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
-  isEphemeralNamespaceKey,
+  isEphemeralNamespaceKey, stateIdsForDefinition,
 } from './levels';
 
 /** One connection's standing context in the sync engine — acquired at
@@ -214,8 +214,16 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
  * their connections' subscriptions to the new instance and push its
  * bucket so their UI switches content now, not at next reload. Fields
  * present in the OLD partition but absent in the new bucket are blanked
- * — otherwise the old group's text would linger on screen. The picker
- * transition tells us both partitions; no scanning.
+ * — otherwise the old group's text would linger on screen.
+ *
+ * Nothing is scanned to FIND the partitions: the picker transition names
+ * both of them directly. Within those two (already materialized)
+ * partitions we do filter the buckets in hand, because `blockId` is a
+ * DEFINITION and a grouped block may have many scoped INSTANCES
+ * (`demos/list:#2:chat`) that only the container's state knows about.
+ * Patching just the plain id left every scoped copy showing the old
+ * group's content; stateIdsForDefinition (levels.ts) picks them out of
+ * the scopes already read here — no extra I/O, no reverse index.
  */
 async function switchGroup(
   session: SyncSession,
@@ -236,11 +244,17 @@ async function switchGroup(
   if (oldInstance === newInstance) return;
 
   const newEntry = await entryFor(session, newInstance);
-  const newBucket = (newEntry.serverState.state as any).component?.[blockId] ?? {};
+  const newComponent = (newEntry.serverState.state as any).component as
+    Record<string, any> | undefined;
   const oldScopes = await session.registry.read(oldInstance);
-  const blanks: Record<string, any> = {};
-  for (const field of Object.keys(oldScopes?.component?.[blockId] ?? {})) blanks[field] = '';
-  const patch = { ...blanks, ...newBucket };
+  const oldComponent = oldScopes?.component as Record<string, any> | undefined;
+
+  // Every state id of this definition in either partition — the plain
+  // definition bucket plus any scoped instances (see the note above).
+  const stateIds = new Set([
+    ...stateIdsForDefinition(newComponent, blockId),
+    ...stateIdsForDefinition(oldComponent, blockId),
+  ]);
 
   // Which of this socket's keys belong to `blockId`? A subscription key is
   // `{instance}|{stateId}`, and only the stateId is '|'-free (instances can
@@ -261,8 +275,14 @@ async function switchGroup(
   for (const sock of sockets) {
     session.subscriptions.resubscribe(sock, belongsToBlock, subscriptionKey(newInstance, blockId));
   }
-  if (Object.keys(patch).length > 0) {
-    newEntry.broadcastStatePatch(blockId, patch, sockets);
+  for (const stateId of stateIds) {
+    const newBucket = newComponent?.[stateId] ?? {};
+    const blanks: Record<string, any> = {};
+    for (const field of Object.keys(oldComponent?.[stateId] ?? {})) blanks[field] = '';
+    const patch = { ...blanks, ...newBucket };
+    if (Object.keys(patch).length > 0) {
+      newEntry.broadcastStatePatch(stateId, patch, sockets);
+    }
   }
 }
 

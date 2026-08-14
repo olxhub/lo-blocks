@@ -17,6 +17,7 @@
 
 import type { SafeUserId } from '@/lib/types/identity';
 import type { DefinitionKey, StateKey } from '@/lib/types';
+import { leafDefinitionIdFor } from '@/lib/types/id-grammar';
 
 /** An instance address segment. Deliberately a string (it IS a key). */
 export type LevelInstance = string;
@@ -46,6 +47,39 @@ export function isUserInstance(instance: LevelInstance): boolean {
 /** Subscription key for a block within an instance. */
 export function subscriptionKey(instance: LevelInstance, blockId: string): string {
   return `${instance}|${blockId}`;
+}
+
+/**
+ * Which state ids in a MATERIALIZED component scope belong to `definitionId`.
+ *
+ * This is the ONE place that answers that question. It exists because
+ * scoped instances cannot be enumerated from content: only a container's
+ * own state knows that `demos/list:#2:chat` exists at all, so a consumer
+ * that already holds a materialized scope answers by FILTERING the keys
+ * it has in hand — no reverse index, no KVS enumeration, no extra I/O.
+ *
+ *   stateIdsForDefinition({ 'demos/chat': {}, 'demos/list:#2:chat': {} },
+ *                         'demos/chat')
+ *   → ['demos/chat', 'demos/list:#2:chat']
+ *
+ * Matching is by LEAF DEFINITION (leafDefinitionIdFor): scope segments
+ * only pick WHICH copy, so every scoped copy belongs to its definition,
+ * and a bare DefinitionKey is a StateKey whose leaf is itself — the
+ * exact-id case falls out as a special case. Ids that are not StateKeys
+ * (componentSetting tags, storage URIs, system ids) map to themselves,
+ * so they match only when equal to `definitionId`.
+ *
+ * TODO(demand-loading): the roadmap replaces these callers with exact-key
+ * reads (the over-fetch here is transitional); this helper goes with them.
+ */
+export function stateIdsForDefinition(
+  componentScope: Record<string, unknown> | undefined,
+  definitionId: string,
+): string[] {
+  if (!componentScope) return [];
+  return Object.keys(componentScope).filter(
+    (key) => leafDefinitionIdFor(key) === definitionId,
+  );
 }
 
 /**

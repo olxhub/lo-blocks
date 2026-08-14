@@ -11,7 +11,10 @@ import { parseDefinitionKey } from '@/lib/types/id-grammar';
 import type { UserStateRegistry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import { parsePartitionSpec, groupFor } from './partitions';
-import { ALL, type LevelInstance, userInstance, setInstance, subscriptionKey, isEphemeralNamespaceKey } from './levels';
+import {
+  ALL, type LevelInstance, userInstance, setInstance, subscriptionKey,
+  isEphemeralNamespaceKey, stateIdsForDefinition,
+} from './levels';
 
 /**
  * Pick the caller's per-user component buckets that belong to the ids
@@ -60,8 +63,17 @@ export function instancesFor(
 
 /**
  * The caller's shared buckets for the served blocks — read from each
- * block's level instance under its PLAIN id (clients are partition-
- * oblivious; the address carries the partition).
+ * block's level instance under their OWN state ids (clients are
+ * partition-oblivious; the address carries the partition).
+ *
+ * A served id is a DEFINITION id (a content fetch names definitions), but
+ * shared state is stored per INSTANCE: a list's scoped copies live at
+ * `ns/list:#2:chat` alongside the plain `ns/chat`. Picking only the exact
+ * id dropped every scoped bucket, so a rejoining client saw an empty
+ * shared list. The instance's scope is already read here, so each served
+ * id contributes every bucket whose LEAF DEFINITION is that id
+ * (stateIdsForDefinition), keyed by its own state id — the plain
+ * definition bucket is the special case where the key is the id itself.
  */
 async function sharedStateFor(
   registry: UserStateRegistry,
@@ -75,8 +87,10 @@ async function sharedStateFor(
   for (const [instance, ids] of byInstance) {
     const scopes = await registry.read(instance);
     for (const id of ids) {
-      const bucket = scopes?.component?.[id];
-      if (bucket !== undefined) sharedComponent[id] = bucket;
+      for (const stateId of stateIdsForDefinition(scopes?.component, id)) {
+        const bucket = scopes!.component[stateId];
+        if (bucket !== undefined) sharedComponent[stateId] = bucket;
+      }
     }
   }
   return sharedComponent;
