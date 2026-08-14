@@ -12,7 +12,7 @@
 //
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
 import { srcAttributes, problemAttributes } from '@/lib/blocks/attributeSchemas';
 import { gradingSelectors, problemGradeMode } from '@/lib/grading';
 import * as capaParser from '../specialized/peg_prototype/_capaParser';
@@ -56,12 +56,12 @@ const SEP          = parseLeafId('sep');
  * Transform parsed CAPA AST into OLX component structure.
  * Returns graders, inputs, and content as direct children of MarkupProblem.
  */
-function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
-  // Parent ref for building child IDs via joinDefinitionRef.
+function generateProblemComponents({ parsed, storeEntry, definitionKey, attributes }) {
+  // Parent ref for building child DefinitionRefs via joinDefinitionRef.
   // Expressions (@ref syntax) also need bare IDs since the expression parser
   // doesn't understand namespace syntax.
-  const parentRef = asDefinitionRef(splitNs(id).path);
-  const ns = splitNs(id).ns;
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
+  const ns = splitNs(definitionKey).ns;
   const blockRef = (definitionRef: DefinitionRef): KidEntry => blockReference(definitionRef, ns);
   // Every generated grader is a boundary grader of this problem — stamp the
   // problem's grading mode on each (same parse-time convention as capaParser;
@@ -79,27 +79,27 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
     switch (block.type) {
       case 'h3': {
         // Header becomes Markdown
-        const headerId = joinDefinitionRef(parentRef, HEADER, contentIndex++);
-        storeEntry(headerId, {
-          id: headerId,
+        const headerRef = joinDefinitionRef(parentRef, HEADER, contentIndex++);
+        storeEntry(headerRef, {
+          id: headerRef,
           tag: 'Markdown',
-          attributes: { id: headerId },
+          attributes: { id: headerRef },
           kids: `### ${block.content}`
         });
-        problemKids.push(blockRef(headerId));
+        problemKids.push(blockRef(headerRef));
         break;
       }
 
       case 'p': {
         // Paragraph becomes Markdown
-        const pId = joinDefinitionRef(parentRef, P, contentIndex++);
-        storeEntry(pId, {
-          id: pId,
+        const pRef = joinDefinitionRef(parentRef, P, contentIndex++);
+        storeEntry(pRef, {
+          id: pRef,
           tag: 'Markdown',
-          attributes: { id: pId },
+          attributes: { id: pRef },
           kids: block.content
         });
-        problemKids.push(blockRef(pId));
+        problemKids.push(blockRef(pRef));
         break;
       }
 
@@ -107,14 +107,14 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         // Question label can be a string or array with inline dropdowns
         if (typeof block.label === 'string') {
           // Simple question without dropdowns
-          const qId = joinDefinitionRef(parentRef, QUESTION, contentIndex++);
-          storeEntry(qId, {
-            id: qId,
+          const qRef = joinDefinitionRef(parentRef, QUESTION, contentIndex++);
+          storeEntry(qRef, {
+            id: qRef,
             tag: 'Markdown',
-            attributes: { id: qId },
+            attributes: { id: qRef },
             kids: `**${block.label}**`
           });
-          problemKids.push(blockRef(qId));
+          problemKids.push(blockRef(qRef));
         } else {
           // Question with inline dropdowns - handle each part
           const parts = block.label;
@@ -127,51 +127,51 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
             } else if (part.type === 'dropdown') {
               // Flush text buffer as Markdown
               if (textBuffer.trim()) {
-                const textId = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
-                storeEntry(textId, {
-                  id: textId,
+                const textRef = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
+                storeEntry(textRef, {
+                  id: textRef,
                   tag: 'Markdown',
-                  attributes: { id: textId },
+                  attributes: { id: textRef },
                   kids: textBuffer
                 });
-                questionKids.push(blockRef(textId));
+                questionKids.push(blockRef(textRef));
                 textBuffer = '';
               }
 
               // Create KeyGrader with DropdownInput for inline dropdown
-              const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-              const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+              const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+              const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
               // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
-              storeEntry(inputId, {
-                id: inputId,
+              storeEntry(inputRef, {
+                id: inputRef,
                 tag: 'DropdownInput',
-                attributes: { id: inputId, placeholder: 'Select...' },
+                attributes: { id: inputRef, placeholder: 'Select...' },
                 kids: { type: 'parsed', parsed: { options: part.options } }
               });
 
               // Store KeyGrader wrapping the DropdownInput
-              storeEntry(graderId, {
-                id: graderId,
+              storeEntry(graderRef, {
+                id: graderRef,
                 tag: 'KeyGrader',
-                attributes: { id: graderId, target: inputId, gradeMode },
-                kids: [blockRef(inputId)]
+                attributes: { id: graderRef, target: inputRef, gradeMode },
+                kids: [blockRef(inputRef)]
               });
 
-              questionKids.push(blockRef(graderId));
+              questionKids.push(blockRef(graderRef));
             }
           }
 
           // Flush any remaining text
           if (textBuffer.trim()) {
-            const textId = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
-            storeEntry(textId, {
-              id: textId,
+            const textRef = joinDefinitionRef(parentRef, QTEXT, contentIndex++);
+            storeEntry(textRef, {
+              id: textRef,
               tag: 'Markdown',
-              attributes: { id: textId },
+              attributes: { id: textRef },
               kids: textBuffer
             });
-            questionKids.push(blockRef(textId));
+            questionKids.push(blockRef(textRef));
           }
 
           // Add all question kids to problem
@@ -183,58 +183,58 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'choices': {
         // Multiple choice - KeyGrader with ChoiceInput
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+        const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = joinDefinitionRef(parentRef, CHOICE, inputIndex - 1, i);
-          const choiceMdId = joinDefinitionRef(choiceId, MD);
-          storeEntry(choiceMdId, {
-            id: choiceMdId,
+          const choiceRef = joinDefinitionRef(parentRef, CHOICE, inputIndex - 1, i);
+          const choiceMdRef = joinDefinitionRef(choiceRef, MD);
+          storeEntry(choiceMdRef, {
+            id: choiceMdRef,
             tag: 'Markdown',
-            attributes: { id: choiceMdId },
+            attributes: { id: choiceMdRef },
             kids: opt.text
           });
-          storeEntry(choiceId, {
-            id: choiceId,
+          storeEntry(choiceRef, {
+            id: choiceRef,
             tag: opt.tag,
-            attributes: { id: choiceId, value: opt.text },
-            kids: [blockRef(choiceMdId)]
+            attributes: { id: choiceRef, value: opt.text },
+            kids: [blockRef(choiceMdRef)]
           });
-          return blockRef(choiceId);
+          return blockRef(choiceRef);
         });
 
         // Store ChoiceInput
-        storeEntry(inputId, {
-          id: inputId,
+        storeEntry(inputRef, {
+          id: inputRef,
           tag: 'ChoiceInput',
-          attributes: { id: inputId },
+          attributes: { id: inputRef },
           kids: choiceKids
         });
 
         // Store KeyGrader
-        storeEntry(graderId, {
-          id: graderId,
+        storeEntry(graderRef, {
+          id: graderRef,
           tag: 'KeyGrader',
-          attributes: { id: graderId, target: inputId, gradeMode },
-          kids: [blockRef(inputId)]
+          attributes: { id: graderRef, target: inputRef, gradeMode },
+          kids: [blockRef(inputRef)]
         });
 
-        problemKids.push(blockRef(graderId));
+        problemKids.push(blockRef(graderRef));
 
         // Per-choice feedback: {{ hint text }} shows based on submitted answer
         for (let oi = 0; oi < block.options.length; oi++) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
-          storeEntry(fbId, {
-            id: fbId,
+          const fbRef = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
+          storeEntry(fbRef, {
+            id: fbRef,
             tag: 'Markdown',
-            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).includes('${escaped}') : false`) },
+            attributes: { id: fbRef, when: whenExpr(`@${graderRef}.lastSubmission ? (@${graderRef}.lastSubmission).includes('${escaped}') : false`) },
             kids: opt.feedback
           });
-          problemKids.push(blockRef(fbId));
+          problemKids.push(blockRef(fbRef));
         }
 
         break;
@@ -243,32 +243,32 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'checkboxes': {
         // Checkboxes - multi-select using CheckboxInput and CheckboxGrader
         // Grammar outputs { text, value, tag: 'Key'/'Distractor', feedback? } directly
-        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+        const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const choiceKids = block.options.map((opt, i) => {
-          const choiceId = joinDefinitionRef(parentRef, CHECKBOX, inputIndex - 1, i);
-          const choiceMdId = joinDefinitionRef(choiceId, MD);
-          storeEntry(choiceMdId, {
-            id: choiceMdId,
+          const choiceRef = joinDefinitionRef(parentRef, CHECKBOX, inputIndex - 1, i);
+          const choiceMdRef = joinDefinitionRef(choiceRef, MD);
+          storeEntry(choiceMdRef, {
+            id: choiceMdRef,
             tag: 'Markdown',
-            attributes: { id: choiceMdId },
+            attributes: { id: choiceMdRef },
             kids: opt.text
           });
-          storeEntry(choiceId, {
-            id: choiceId,
+          storeEntry(choiceRef, {
+            id: choiceRef,
             tag: opt.tag,
-            attributes: { id: choiceId, value: opt.text },
-            kids: [blockRef(choiceMdId)]
+            attributes: { id: choiceRef, value: opt.text },
+            kids: [blockRef(choiceMdRef)]
           });
-          return blockRef(choiceId);
+          return blockRef(choiceRef);
         });
 
         // CheckboxInput for multi-select (value is array)
-        storeEntry(inputId, {
-          id: inputId,
+        storeEntry(inputRef, {
+          id: inputRef,
           tag: 'CheckboxInput',
-          attributes: { id: inputId },
+          attributes: { id: inputRef },
           kids: choiceKids
         });
 
@@ -276,35 +276,35 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
         // Inline type: graderMixin contributes target/answer/displayAnswer at factory time,
         // but here we're emitting raw OLX attributes, so target is a single string.
         const graderAttrs: { id: string; target: string; gradeMode: string; partialCredit?: 'true' | 'false' } = {
-          id: graderId,
-          target: inputId,
+          id: graderRef,
+          target: inputRef,
           gradeMode,
         };
         if (block.partialCredit) {
           graderAttrs.partialCredit = 'true';
         }
-        storeEntry(graderId, {
-          id: graderId,
+        storeEntry(graderRef, {
+          id: graderRef,
           tag: 'CheckboxGrader',
           attributes: graderAttrs,
-          kids: [blockRef(inputId)]
+          kids: [blockRef(inputRef)]
         });
 
-        problemKids.push(blockRef(graderId));
+        problemKids.push(blockRef(graderRef));
 
         // Per-choice feedback for checkboxes: shows based on submitted answer
         for (let oi = 0; oi < block.options.length; oi++) {
           const opt = block.options[oi];
           if (!opt.feedback) continue;
           const escaped = escapeExprString(opt.text);
-          const fbId = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
-          storeEntry(fbId, {
-            id: fbId,
+          const fbRef = joinDefinitionRef(parentRef, FB, inputIndex - 1, oi);
+          storeEntry(fbRef, {
+            id: fbRef,
             tag: 'Markdown',
-            attributes: { id: fbId, when: whenExpr(`@${graderId}.lastSubmission ? (@${graderId}.lastSubmission).flat().includes('${escaped}') : false`) },
+            attributes: { id: fbRef, when: whenExpr(`@${graderRef}.lastSubmission ? (@${graderRef}.lastSubmission).flat().includes('${escaped}') : false`) },
             kids: opt.feedback
           });
-          problemKids.push(blockRef(fbId));
+          problemKids.push(blockRef(fbRef));
         }
 
         break;
@@ -313,67 +313,67 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'textInput': {
         // Text input - RulesGrader with StringMatch rules
         // Grammar outputs rules array: [{ answer, score, feedback }, ...]
-        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+        const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         const matchKids: KidEntry[] = [];
 
         // Create StringMatch for each rule from grammar
         block.rules.forEach((rule, i) => {
-          const matchId = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, i);
-          storeEntry(matchId, {
-            id: matchId,
+          const matchRef = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, i);
+          storeEntry(matchRef, {
+            id: matchRef,
             tag: 'StringMatch',
             attributes: {
-              id: matchId,
+              id: matchRef,
               answer: rule.answer,
               score: rule.score,
               feedback: rule.feedback
             },
             kids: []
           });
-          matchKids.push(blockRef(matchId));
+          matchKids.push(blockRef(matchRef));
         });
 
         // Default catch-all
-        const defaultMatchId = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, DEFAULT);
-        storeEntry(defaultMatchId, {
-          id: defaultMatchId,
+        const defaultMatchRef = joinDefinitionRef(parentRef, MATCH, graderIndex - 1, DEFAULT);
+        storeEntry(defaultMatchRef, {
+          id: defaultMatchRef,
           tag: 'DefaultMatch',
           attributes: {
-            id: defaultMatchId,
+            id: defaultMatchRef,
             score: 0,
             feedback: 'Try again'
           },
           kids: []
         });
-        matchKids.push(blockRef(defaultMatchId));
+        matchKids.push(blockRef(defaultMatchRef));
 
         // Store LineInput
-        storeEntry(inputId, {
-          id: inputId,
+        storeEntry(inputRef, {
+          id: inputRef,
           tag: 'LineInput',
-          attributes: { id: inputId },
+          attributes: { id: inputRef },
           kids: []
         });
-        matchKids.push(blockRef(inputId));
+        matchKids.push(blockRef(inputRef));
 
         // Store RulesGrader
-        storeEntry(graderId, {
-          id: graderId,
+        storeEntry(graderRef, {
+          id: graderRef,
           tag: 'RulesGrader',
-          attributes: { id: graderId, gradeMode },
+          attributes: { id: graderRef, gradeMode },
           kids: matchKids
         });
 
-        problemKids.push(blockRef(graderId));
+        problemKids.push(blockRef(graderRef));
         break;
       }
 
       case 'numericalInput': {
         // Numerical input - NumericalGrader
-        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+        const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         let answer, tolerance;
         if (block.range) {
@@ -385,79 +385,79 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
           tolerance = block.tolerance?.toString();
         }
 
-        storeEntry(inputId, {
-          id: inputId,
+        storeEntry(inputRef, {
+          id: inputRef,
           tag: 'NumberInput',
-          attributes: { id: inputId },
+          attributes: { id: inputRef },
           kids: []
         });
 
-        storeEntry(graderId, {
-          id: graderId,
+        storeEntry(graderRef, {
+          id: graderRef,
           tag: 'NumericalGrader',
           attributes: {
-            id: graderId,
+            id: graderRef,
             answer,
             ...(tolerance && { tolerance }),
-            target: inputId,
+            target: inputRef,
             gradeMode,
           },
-          kids: [blockRef(inputId)]
+          kids: [blockRef(inputRef)]
         });
 
-        problemKids.push(blockRef(graderId));
+        problemKids.push(blockRef(graderRef));
         break;
       }
 
       case 'dropdown': {
         // Standalone dropdown - KeyGrader with DropdownInput
-        const graderId = joinDefinitionRef(parentRef, GRADER, graderIndex++);
-        const inputId = joinDefinitionRef(parentRef, INPUT, inputIndex++);
+        const graderRef = joinDefinitionRef(parentRef, GRADER, graderIndex++);
+        const inputRef = joinDefinitionRef(parentRef, INPUT, inputIndex++);
 
         // Store DropdownInput with pre-parsed options (grammar outputs DropdownInput format directly)
-        storeEntry(inputId, {
-          id: inputId,
+        storeEntry(inputRef, {
+          id: inputRef,
           tag: 'DropdownInput',
-          attributes: { id: inputId, placeholder: 'Select...' },
+          attributes: { id: inputRef, placeholder: 'Select...' },
           kids: { type: 'parsed', parsed: { options: block.options } }
         });
 
         // Store KeyGrader wrapping the DropdownInput
-        storeEntry(graderId, {
-          id: graderId,
+        storeEntry(graderRef, {
+          id: graderRef,
           tag: 'KeyGrader',
-          attributes: { id: graderId, target: inputId, gradeMode },
-          kids: [blockRef(inputId)]
+          attributes: { id: graderRef, target: inputRef, gradeMode },
+          kids: [blockRef(inputRef)]
         });
 
-        problemKids.push(blockRef(graderId));
+        problemKids.push(blockRef(graderRef));
         break;
       }
 
       case 'hint': {
         // Single hint - add to demand hints (revealed on request)
-        const hintId = joinDefinitionRef(parentRef, HINT, hintIndex++);
-        storeEntry(hintId, {
-          id: hintId,
+        const hintRef = joinDefinitionRef(parentRef, HINT, hintIndex++);
+        storeEntry(hintRef, {
+          id: hintRef,
           tag: 'Markdown',
-          attributes: { id: hintId },
+          attributes: { id: hintRef },
           kids: block.content
         });
-        demandHints.push(blockRef(hintId));
+        demandHints.push(blockRef(hintRef));
         break;
       }
 
       case 'demandHints': {
         // Progressive demand hints
         block.hints.forEach((hint, i) => {
-          const hintId = joinDefinitionRef(parentRef, DEMAND_HINT, i);
-          storeEntry(hintId, {
-            id: hintId,
+          const hintRef = joinDefinitionRef(parentRef, DEMAND_HINT, i);
+          storeEntry(hintRef, {
+            id: hintRef,
             tag: 'Markdown',
-            attributes: { id: hintId },
+            attributes: { id: hintRef },
             kids: hint
           });
-          demandHints.push(blockRef(hintId));
+          demandHints.push(blockRef(hintRef));
         });
         break;
       }
@@ -465,35 +465,35 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
       case 'explanation': {
         // Explanation block - shown after correct answer
         // Wrap content in Markdown for proper rendering
-        const explId = joinDefinitionRef(parentRef, EXPLANATION, contentIndex++);
-        const explContentId = joinDefinitionRef(explId, CONTENT);
-        storeEntry(explContentId, {
-          id: explContentId,
+        const explRef = joinDefinitionRef(parentRef, EXPLANATION, contentIndex++);
+        const explContentRef = joinDefinitionRef(explRef, CONTENT);
+        storeEntry(explContentRef, {
+          id: explContentRef,
           tag: 'Markdown',
-          attributes: { id: explContentId },
+          attributes: { id: explContentRef },
           kids: block.content
         });
-        storeEntry(explId, {
-          id: explId,
+        storeEntry(explRef, {
+          id: explRef,
           tag: 'Explanation',
-          attributes: { id: explId },
-          kids: [blockRef(explContentId)]
+          attributes: { id: explRef },
+          kids: [blockRef(explContentRef)]
         });
-        problemKids.push(blockRef(explId));
+        problemKids.push(blockRef(explRef));
         break;
       }
 
       case 'separator': {
         // Question separator - could start a new sub-problem
         // For now, just add a visual separator
-        const sepId = joinDefinitionRef(parentRef, SEP, contentIndex++);
-        storeEntry(sepId, {
-          id: sepId,
+        const sepRef = joinDefinitionRef(parentRef, SEP, contentIndex++);
+        storeEntry(sepRef, {
+          id: sepRef,
           tag: 'Markdown',
-          attributes: { id: sepId },
+          attributes: { id: sepRef },
           kids: '---'
         });
-        problemKids.push(blockRef(sepId));
+        problemKids.push(blockRef(sepRef));
         break;
       }
 
@@ -504,14 +504,14 @@ function generateProblemComponents({ parsed, storeEntry, id, attributes }) {
 
   // Add DemandHints if any
   if (demandHints.length > 0) {
-    const demandHintsId = joinDefinitionRef(parentRef, DEMAND_HINTS);
-    storeEntry(demandHintsId, {
-      id: demandHintsId,
+    const demandHintsRef = joinDefinitionRef(parentRef, DEMAND_HINTS);
+    storeEntry(demandHintsRef, {
+      id: demandHintsRef,
       tag: 'DemandHints',
-      attributes: { id: demandHintsId },
+      attributes: { id: demandHintsRef },
       kids: demandHints
     });
-    problemKids.push(blockRef(demandHintsId));
+    problemKids.push(blockRef(demandHintsRef));
   }
 
   return problemKids;
@@ -540,7 +540,7 @@ const MarkupProblem = dev({
   // blocks (graders, inputs, hints) dynamically during PEG parsing. Without a
   // staticKids that reports them, the content API's static-kids serving mode
   // won't ship them and the client renders "Block <id> not found in content".
-  staticKids: directKidIds,
+  staticKids: directKidDefinitionKeys,
 });
 
 export default MarkupProblem;

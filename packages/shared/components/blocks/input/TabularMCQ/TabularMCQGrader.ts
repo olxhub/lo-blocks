@@ -12,7 +12,7 @@
 //
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
-import { core, correctness, getBlockByOLXId } from '@/lib/blocks';
+import { core, correctness, getBlockByDefinitionRef } from '@/lib/blocks';
 import { graderInputStateKeys } from '@/lib/grading/topology';
 import { leafDefinitionKeyFromStateKey, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import * as state from '@/lib/state';
@@ -38,7 +38,7 @@ function getTabularMCQDisplayAnswer(props) {
     const reduxState = props.runtime.store.getState();
     const inputIds = graderInputStateKeys(reduxState, props, scopedStateKeyForBlock(props));
     const inputDefKey = leafDefinitionKeyFromStateKey(inputIds[0]);
-    const inputNode = getBlockByOLXId(props, inputDefKey);
+    const inputNode = getBlockByDefinitionRef(props, inputDefKey);
     const inputBlueprint = inputNode ? props.runtime.blockRegistry?.[inputNode.tag] : null;
 
     if (inputBlueprint?.locals?.getAnswers) {

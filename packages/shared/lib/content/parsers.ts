@@ -232,7 +232,7 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
 
   const factory = function childParserFactory(options = {}) {
     const wrapped = async function wrappedParser(ctx) {
-      const { id, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata } = ctx;
+      const { definitionKey, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata } = ctx;
       const tagParsed = rawParsed[tag];
       const kids = Array.isArray(tagParsed) ? tagParsed : [tagParsed];
       // Mutable accumulator so inner parsers (textParser etc.) can record
@@ -240,7 +240,7 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
       const deps = [...parseDepsIn];
       const fnKids = await fn({ ...ctx, parseDeps: deps, rawKids: kids, rawParsed: tagParsed, ...options });
       const entry = {
-        id,
+        id: definitionKey,
         tag,
         attributes,
         source,
@@ -248,8 +248,8 @@ export function childParser(fn: ChildParserFn, nameOverride?: string) {
         kids: fnKids,
         ...(metadata || {})
       };
-      storeEntry(id, entry);
-      return id;
+      storeEntry(definitionKey, entry);
+      return definitionKey;
     };
 
     Object.defineProperty(wrapped, 'name', {
@@ -289,11 +289,11 @@ export const ignore = ignoreFactory;
 // more robust version.
 export const xml = {
   parser: function xmlParser(ctx) {
-    const { id, tag, attributes, source, parseDeps, rawParsed, storeEntry } = ctx;
+    const { definitionKey, tag, attributes, source, parseDeps, rawParsed, storeEntry } = ctx;
     return [
       {
         type: 'xml', xml: builder.build(rawParsed),
-        id, tag, attributes, source, parseDeps
+        id: definitionKey, tag, attributes, source, parseDeps
       }
     ];
   },
@@ -312,10 +312,10 @@ export const xml = {
 //   requiredChildren: N - enforce exactly N block children at parse time.
 //                     Children cannot use when= (filtering would break the
 //                     fixed structure). E.g. SplitPanel requires exactly 2.
-// ─── staticKids id collection ────────────────────────────────────────────────
+// ─── staticKids definition-key collection ───────────────────────────────────
 //
 // A block's `staticKids(entry)` tells collectBlockWithKids (the content-serving
-// path) which child block ids to ship to the client. Blocks whose parsed `kids`
+// path) which child definition keys to ship to the client. Blocks whose parsed `kids`
 // is a flat array of child entries all need the same logic — return the ids of
 // the entries that carry one — so it lives here next to the parser factories
 // that default it. Forgetting it (or getting it wrong) is exactly what makes a
@@ -342,7 +342,7 @@ export function blockReference(
  * parsed kid entries, so blocks whose kids are grouped under named slots can
  * spread the slots together first (see SideBarPanel/SplitPanel/Course).
  */
-export function kidIds(kids: readonly unknown[]): DefinitionKey[] {
+export function kidDefinitionKeys(kids: readonly unknown[]): DefinitionKey[] {
   return kids.flatMap((k) => {
     const kid = k as { type?: unknown; definitionKey?: unknown } | null | undefined;
     return kid?.type === 'block' && typeof kid.definitionKey === 'string'
@@ -355,10 +355,10 @@ export function kidIds(kids: readonly unknown[]): DefinitionKey[] {
  * The canonical `staticKids` for blocks whose parsed `kids` is a flat array of
  * child entries — the shape the blocks parser produces and the shape generator
  * blocks build when they `storeEntry` their children. Returns the direct child
- * ids; collectBlockWithKids recurses into each to gather the rest of the subtree.
+ * definition keys; collectBlockWithKids recurses into each to gather the rest of the subtree.
  */
-export function directKidIds(entry: { kids?: unknown }): DefinitionKey[] {
-  return kidIds(Array.isArray(entry?.kids) ? entry.kids : []);
+export function directKidDefinitionKeys(entry: { kids?: unknown }): DefinitionKey[] {
+  return kidDefinitionKeys(Array.isArray(entry?.kids) ? entry.kids : []);
 }
 
 // Text handling modes for blocks parser:
@@ -459,7 +459,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
   }
 
   const factory = childParser(blocksParser, 'blocksParser');
-  factory.staticKids = directKidIds;
+  factory.staticKids = directKidDefinitionKeys;
   factory.childMode = 'blocks';
 
   return factory;
@@ -467,7 +467,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
 
 // Default blocks parser (no HTML)
 const blocksFactory = createBlocksParser();
-blocksFactory.staticKids = directKidIds;
+blocksFactory.staticKids = directKidDefinitionKeys;
 export const blocks = Object.assign(blocksFactory, {
   // blocks.allowHTML() returns parser that includes HTML/text as mixed content
   allowHTML: () => createBlocksParser({ text: 'passthrough' })(),
@@ -642,7 +642,7 @@ export function textWithTemplate<T extends {
 //
 export function textToAttribute(attrName: string) {
   async function textToAttributeParser(ctx) {
-    const { id, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata, provider } = ctx;
+    const { definitionKey, tag, attributes, source, parseDeps: parseDepsIn, rawParsed, storeEntry, metadata, provider } = ctx;
     const tagParsed = rawParsed[tag];
     let parseDeps = parseDepsIn;
 
@@ -672,7 +672,7 @@ export function textToAttribute(attrName: string) {
     }
 
     const entry = {
-      id,
+      id: definitionKey,
       tag,
       attributes: finalAttributes,
       source,
@@ -680,8 +680,8 @@ export function textToAttribute(attrName: string) {
       kids: [],
       ...(metadata || {})
     };
-    storeEntry(id, entry);
-    return id;
+    storeEntry(definitionKey, entry);
+    return definitionKey;
   }
 
   return { parser: textToAttributeParser, staticKids: () => [], childMode: 'none' as ChildMode };
@@ -715,7 +715,7 @@ export function peggyParser(
     skipStoreEntry = false
   } = options;
   async function parser({
-    id,
+    definitionKey,
     rawParsed,
     tag,
     attributes,
@@ -752,13 +752,13 @@ export function peggyParser(
         // Pass through context for advanced use cases
         storeEntry,
         parseNode,
-        id,
+        definitionKey,
         tag,
         attributes
       });
 
       entry = {
-        id,
+        id: definitionKey,
         tag,
         attributes,
         source,
@@ -784,13 +784,13 @@ export function peggyParser(
           found: parseError.found,
           name: parseError.name,
           originalTag: tag,
-          originalId: id,
+          originalId: definitionKey,
           fullError: parseError
         }
       };
 
       entry = {
-        id,
+        id: definitionKey,
         tag: 'ErrorNode',
         attributes: errorObj,
         source,
@@ -809,9 +809,9 @@ export function peggyParser(
 
     // Allow postprocess to handle storage for complex cases
     if (!skipStoreEntry) {
-      storeEntry(id, entry);
+      storeEntry(definitionKey, entry);
     }
-    return id;
+    return definitionKey;
   }
 
   // Auto-detect grammar from compiled parser metadata (set by compile-grammars)
@@ -845,7 +845,7 @@ export function peggyParser(
  */
 export function yamlParser(schema: z.ZodType) {
   async function parser({
-    id,
+    definitionKey,
     rawParsed,
     tag,
     attributes,
@@ -876,7 +876,7 @@ export function yamlParser(schema: z.ZodType) {
       const parsed = schema.parse(raw);
 
       entry = {
-        id,
+        id: definitionKey,
         tag,
         attributes,
         source,
@@ -905,14 +905,14 @@ export function yamlParser(schema: z.ZodType) {
         technical: {
           name: parseError.name,
           originalTag: tag,
-          originalId: id,
+          originalId: definitionKey,
           ...(isZod ? { zodIssues: parseError.issues } : {}),
           fullError: parseError
         }
       };
 
       entry = {
-        id,
+        id: definitionKey,
         tag: 'ErrorNode',
         attributes: errorObj,
         source,
@@ -928,8 +928,8 @@ export function yamlParser(schema: z.ZodType) {
       }
     }
 
-    storeEntry(id, entry);
-    return id;
+    storeEntry(definitionKey, entry);
+    return definitionKey;
   }
 
   return { parser, staticKids: () => [], childMode: 'text' as ChildMode };
@@ -959,7 +959,7 @@ export function yamlParser(schema: z.ZodType) {
  *   const Image = core({ ...parsers.assetSrc(), ... });
  */
 const assetSrcFactory = function assetSrc() {
-  function assetSrcParser({ id, tag, attributes, source, parseDeps, storeEntry, provider }) {
+  function assetSrcParser({ definitionKey, tag, attributes, source, parseDeps, storeEntry, provider }) {
     const { src, ...otherAttributes } = attributes;
 
     let resolvedSrc = src;
@@ -981,8 +981,8 @@ const assetSrcFactory = function assetSrc() {
       }
     }
 
-    storeEntry(id, { id, tag, attributes: { ...otherAttributes, src: resolvedSrc }, source, parseDeps: updatedParseDeps, kids: [] });
-    return id;
+    storeEntry(definitionKey, { id: definitionKey, tag, attributes: { ...otherAttributes, src: resolvedSrc }, source, parseDeps: updatedParseDeps, kids: [] });
+    return definitionKey;
   }
 
   return { parser: assetSrcParser, staticKids: () => [], childMode: 'none' as ChildMode };

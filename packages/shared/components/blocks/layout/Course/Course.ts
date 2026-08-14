@@ -23,7 +23,7 @@
 */
 
 import { dev } from '@/lib/blocks';
-import { childParser, kidIds } from '@/lib/content/parsers';
+import { childParser, kidDefinitionKeys } from '@/lib/content/parsers';
 import * as state from '@/lib/state';
 
 export const fields = state.fields([
@@ -77,8 +77,8 @@ const courseParser = childParser(async function courseBlockParser({ rawKids, par
 });
 
 // Flatten the chapter/section structure to a single list of child entries
-// (chapter children + top-level block sections), then collect their ids.
-courseParser.staticKids = entry => kidIds(
+// (chapter children + top-level block sections), then collect their definition keys.
+courseParser.staticKids = entry => kidDefinitionKeys(
   (entry.kids.sections || []).flatMap((section: any) =>
     section.type === 'chapter' ? (section.children || [])
       : section.type === 'block' ? [section]

@@ -22,7 +22,7 @@
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
 import { src } from '@/lib/blocks/attributeSchemas';
 import { problemGradeMode } from '@/lib/grading';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
@@ -51,30 +51,30 @@ function problemAttrsForMode(mode: string): { grade: 'immediate' | 'submit'; sho
  * and return this block's kids (just the problem). The passage parse is handed
  * to the input as pre-parsed kids so it renders without re-parsing.
  */
-function generateComposition({ parsed, storeEntry, id, attributes }) {
-  const parentRef = asDefinitionRef(splitNs(id).path);
-  const ns = splitNs(id).ns;
+function generateComposition({ parsed, storeEntry, definitionKey, attributes }) {
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
+  const ns = splitNs(definitionKey).ns;
   const blockRef = (definitionRef: DefinitionRef): KidEntry => blockReference(definitionRef, ns);
-  const problemId = joinDefinitionRef(parentRef, PROBLEM);
-  const graderId  = joinDefinitionRef(parentRef, GRADER);
-  const inputId   = joinDefinitionRef(parentRef, INPUT);
+  const problemRef = joinDefinitionRef(parentRef, PROBLEM);
+  const graderRef  = joinDefinitionRef(parentRef, GRADER);
+  const inputRef   = joinDefinitionRef(parentRef, INPUT);
 
   // `mode` and `src` are consumed here; the block's own `id` is replaced by the
-  // generated problemId. Everything else (title, maxAttempts, ...) passes
+  // generated problem ref. Everything else (title, maxAttempts, ...) passes
   // through to the CapaProblem. Order matters: the mode mapping wins over any
   // stray grade/showanswer the author passed through.
   const { mode, src: _src, id: _id, ...passthrough } = attributes;
   const problemAttrs = {
-    id: problemId,
+    id: problemRef,
     ...passthrough,
     ...problemAttrsForMode(mode ?? 'immediate'),
   };
 
   // The input carries the parsed passage as pre-parsed kids.
-  storeEntry(inputId, {
-    id: inputId,
+  storeEntry(inputRef, {
+    id: inputRef,
     tag: 'TextSelectionInput',
-    attributes: { id: inputId },
+    attributes: { id: inputRef },
     kids: { type: 'parsed', parsed },
   });
 
@@ -84,22 +84,22 @@ function generateComposition({ parsed, storeEntry, id, attributes }) {
   // never re-runs), we replicate that stamp here — exactly as MarkupProblem does.
   // gradeModeOf reads this at grade time; without it, immediate mode never fires.
   const gradeMode = problemGradeMode(problemAttrs);
-  storeEntry(graderId, {
-    id: graderId,
+  storeEntry(graderRef, {
+    id: graderRef,
     tag: 'TextSelectionGrader',
-    attributes: { id: graderId, target: inputId, gradeMode },
-    kids: [blockRef(inputId)],
+    attributes: { id: graderRef, target: inputRef, gradeMode },
+    kids: [blockRef(inputRef)],
   });
 
   // The real CapaProblem container: owns the chrome, footer, and showAnswer.
-  storeEntry(problemId, {
-    id: problemId,
+  storeEntry(problemRef, {
+    id: problemRef,
     tag: 'CapaProblem',
     attributes: problemAttrs,
-    kids: [blockRef(graderId)],
+    kids: [blockRef(graderRef)],
   });
 
-  return [blockRef(problemId)];
+  return [blockRef(problemRef)];
 }
 
 export const fields = state.fields([]);
@@ -128,7 +128,7 @@ const SimpleTextSelection = dev({
   // the client render fails with "Block <id>_problem not found in content".
   // Mirrors SimpleSortable/MarkupProblem; the generated CapaProblem's own
   // staticKids recurses the rest of the subtree.
-  staticKids: directKidIds,
+  staticKids: directKidDefinitionKeys,
 });
 
 export default SimpleTextSelection;

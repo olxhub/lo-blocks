@@ -1,7 +1,7 @@
 // packages/shared/components/blocks/input/Sortable/SimpleSortable.ts
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { blockReference, peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { BlockReference, DefinitionRef } from '@/lib/types';
@@ -18,34 +18,34 @@ const ITEM    = parseLeafId('item');
  * Generate all required components for a sortable problem
  * This uses storeEntry to create multiple components from a single SimpleSortable
  */
-function generateSortableComponents({ parsed, storeEntry, id, tag, attributes }) {
+function generateSortableComponents({ parsed, storeEntry, definitionKey, tag, attributes }) {
   const { prompt, items } = parsed;
-  const parentRef = asDefinitionRef(splitNs(id).path);
-  const ns = splitNs(id).ns;
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
+  const ns = splitNs(definitionKey).ns;
   const blockRef = (definitionRef: DefinitionRef): BlockReference => blockReference(definitionRef, ns);
 
-  // Generate IDs for all components
-  const problemId = joinDefinitionRef(parentRef, PROBLEM);
-  const graderId = joinDefinitionRef(parentRef, GRADER);
-  const inputId = joinDefinitionRef(parentRef, INPUT);
-  const promptId = joinDefinitionRef(parentRef, PROMPT);
-  const itemIds = items.map((_, i) => joinDefinitionRef(parentRef, ITEM, i));
+  // Generate definition refs for all components
+  const problemRef = joinDefinitionRef(parentRef, PROBLEM);
+  const graderRef = joinDefinitionRef(parentRef, GRADER);
+  const inputRef = joinDefinitionRef(parentRef, INPUT);
+  const promptRef = joinDefinitionRef(parentRef, PROMPT);
+  const itemRefs = items.map((_, i) => joinDefinitionRef(parentRef, ITEM, i));
 
   // Store prompt block (using Markdown for rich text)
-  storeEntry(promptId, {
-    id: promptId,
+  storeEntry(promptRef, {
+    id: promptRef,
     tag: 'Markdown',
-    attributes: { id: promptId },
+    attributes: { id: promptRef },
     kids: prompt
   });
 
   // Store item blocks
   items.forEach((item, i) => {
-    storeEntry(itemIds[i], {
-      id: itemIds[i],
+    storeEntry(itemRefs[i], {
+      id: itemRefs[i],
       tag: 'Markdown',
       attributes: {
-        id: itemIds[i],
+        id: itemRefs[i],
         // Add initialPosition attribute if item has explicit ordering
         ...(item.initialPosition ? { initialPosition: item.initialPosition.toString() } : {})
       },
@@ -54,42 +54,42 @@ function generateSortableComponents({ parsed, storeEntry, id, tag, attributes })
   });
 
   // Store SortableInput
-  storeEntry(inputId, {
-    id: inputId,
+  storeEntry(inputRef, {
+    id: inputRef,
     tag: 'SortableInput',
-    attributes: { id: inputId },
-    kids: itemIds.map(blockRef)
+    attributes: { id: inputRef },
+    kids: itemRefs.map(blockRef)
   });
 
   // Store SortableGrader
-  storeEntry(graderId, {
-    id: graderId,
+  storeEntry(graderRef, {
+    id: graderRef,
     tag: 'SortableGrader',
     attributes: {
-      id: graderId,
-      target: inputId
+      id: graderRef,
+      target: inputRef
     },
     kids: [
-      blockRef(promptId),
-      blockRef(inputId)
+      blockRef(promptRef),
+      blockRef(inputRef)
     ]
   });
 
   // Store CapaProblem (the main container)
-  storeEntry(problemId, {
-    id: problemId,
+  storeEntry(problemRef, {
+    id: problemRef,
     tag: 'CapaProblem',
     attributes: {
-      id: problemId,
+      id: problemRef,
       ...attributes // Pass through any attributes from SimpleSortable
     },
     kids: [
-      blockRef(graderId)
+      blockRef(graderRef)
     ]
   });
 
-  // Return the main problem ID - this becomes the "SimpleSortable"
-  return [blockRef(problemId)];
+  // The generated problem becomes this block's only child.
+  return [blockRef(problemRef)];
 }
 
 export const fields = state.fields([]);
@@ -112,7 +112,7 @@ const SimpleSortable = dev({
   // the client render fails with "Block <id>_problem not found in content".
   // Mirrors MarkupProblem; the generated CapaProblem's own staticKids recurses
   // the rest of the subtree.
-  staticKids: directKidIds,
+  staticKids: directKidDefinitionKeys,
 });
 
 export default SimpleSortable;

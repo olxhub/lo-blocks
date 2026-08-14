@@ -1,7 +1,7 @@
 // @vitest-environment node
 // packages/shared/lib/content/parseOLX.test.ts
 import { parseOLX } from './parseOLX';
-import { kidIds } from './parsers';
+import { kidDefinitionKeys } from './parsers';
 import type { IdMap, OlxJson, DefinitionKey, ContentVariant } from '../types';
 import { toMemoryRef } from '../types/storage';
 import { TEST_NS, testKey } from '../test-utils';
@@ -103,7 +103,7 @@ test('preserves <Use> state identity and overrides in mixed-content blocks', asy
 });
 
 test('static kid collection ignores HTML DOM ids', () => {
-  expect(kidIds([
+  expect(kidDefinitionKeys([
     { type: 'html', tag: 'div', id: 'dom-anchor' },
     { type: 'block', definitionKey: testKey('actual_child') },
   ])).toEqual([testKey('actual_child')]);

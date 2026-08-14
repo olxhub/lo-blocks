@@ -1,12 +1,12 @@
-// packages/shared/lib/blocks/getBlockByOLXId.ts
+// packages/shared/lib/blocks/getBlockByDefinitionRef.ts
 //
-// Synchronous accessors for blocks by OLX ID.
+// Synchronous accessors for block definitions.
 //
 // Blocks are looked up from Redux state. Content must be loaded
 // before rendering - there is no async fetching.
 //
-// OLX ID = static ID from markup: <Block id="myblockid">
-// Redux ID = runtime ID with suffixes: myblockid_1, myblockid_2 (for repeated blocks)
+// Authored id= values enter this API as DefinitionRefs. They are qualified
+// against the current namespace before looking up the canonical DefinitionKey.
 //
 // NOTE: State is accessed via props.store. This enables replay mode where
 // a different store provides historical state. The store is threaded through
@@ -22,26 +22,26 @@ interface PropsWithStore {
 }
 
 /**
- * Get a block from Redux by its OLX ID.
+ * Get a block from Redux by its definition ref.
  *
  * Synchronous lookup - returns the block or undefined.
  * Content must already be in Redux before calling.
  *
  * @param props - Props containing runtime context with store and olxJsonSources
- * @param id - The OLX ID to look up (can be null for optional lookups)
+ * @param definitionRef - The definition ref to look up (can be null for optional lookups)
  * @returns The block entry, or undefined if not found
  */
-export function getBlockByOLXId(props: PropsWithStore, id: DefinitionRef | null): OlxJson | undefined {
-  if (id == null) {
+export function getBlockByDefinitionRef(props: PropsWithStore, definitionRef: DefinitionRef | null): OlxJson | undefined {
+  if (definitionRef == null) {
     return undefined;
   }
 
-  if (id === '') {
-    console.warn('getBlockByOLXId: Called with empty string. Pass null instead if ID is optional.');
+  if (definitionRef === '') {
+    console.warn('getBlockByDefinitionRef: Called with empty string. Pass null instead if the ref is optional.');
     return undefined;
   }
 
-  const key = qualifyDefinitionRef(id, props.runtime.ns);
+  const definitionKey = qualifyDefinitionRef(definitionRef, props.runtime.ns);
   const store = props.runtime.store;
   const sources = props.runtime.olxJsonSources ?? ['content'];
   const locale = props.runtime.locale?.code;
@@ -49,18 +49,18 @@ export function getBlockByOLXId(props: PropsWithStore, id: DefinitionRef | null)
     return undefined;
   }
   const state = store.getState();
-  return selectBlock(state, sources, key, locale);
+  return selectBlock(state, sources, definitionKey, locale);
 }
 
 /**
- * Get multiple blocks from Redux by their OLX IDs.
+ * Get multiple blocks from Redux by their definition refs.
  *
  * Synchronous lookup - returns an array of blocks.
  *
  * @param props - Props containing store and olxJsonSources
- * @param ids - Array of OLX IDs to look up
+ * @param definitionRefs - Definition refs to look up
  * @returns Array of block entries (undefined for blocks not found)
  */
-export function getBlocksByOLXIds(props: PropsWithStore, ids: DefinitionRef[]): (OlxJson | undefined)[] {
-  return ids.map(id => getBlockByOLXId(props, id));
+export function getBlocksByDefinitionRefs(props: PropsWithStore, definitionRefs: DefinitionRef[]): (OlxJson | undefined)[] {
+  return definitionRefs.map(definitionRef => getBlockByDefinitionRef(props, definitionRef));
 }

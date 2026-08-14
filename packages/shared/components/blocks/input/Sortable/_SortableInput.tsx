@@ -37,9 +37,11 @@ export default function SortableInput(props: RuntimeProps) {
   // Fetch block definitions to get attributes
   type BlockKid = Extract<import('@/lib/types').KidEntry, { type: 'block' }>;
   const blockKids = kidsValid ? kids.filter((k): k is BlockKid => k.type === 'block') : [];
-  const kidIds = blockKids.map((k) => k.definitionKey);
-  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidIds);
-  const kidBlockMap = Object.fromEntries(kidIds.map((id, i) => [id, kidBlocks[i]]));
+  const kidDefinitionKeys = blockKids.map((k) => k.definitionKey);
+  const { olxJsons: kidBlocks } = useOlxJsonMultiple(props, kidDefinitionKeys);
+  const kidBlockMap = Object.fromEntries(
+    kidDefinitionKeys.map((definitionKey, i) => [definitionKey, kidBlocks[i]])
+  );
 
   // State management
   const [arrangement, setArrangement] = useFieldState(props, fields.arrangement, []);
@@ -80,11 +82,11 @@ export default function SortableInput(props: RuntimeProps) {
     // buildArrangementWithPositions reads via idSelector) guarantees the lookup
     // matches regardless of namespace qualification. (Same fix as
     // _MatchingInput.tsx; without it the arrangement collapses to undefined.)
-    const kidIdToIndex = new Map(
+    const kidDefinitionKeyToIndex = new Map(
       blockKids.map((kid, i) => [kidBlockMap[kid.definitionKey].id, i])
     );
     const indicesArrangement = result.arrangement.map(
-      (block) => kidIdToIndex.get(block.id)
+      (block) => kidDefinitionKeyToIndex.get(block.id)
     );
     setArrangement(indicesArrangement);
     // Use the computed arrangement immediately in this render

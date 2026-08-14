@@ -7,12 +7,12 @@
 // grading runs — selectors, node, analytics — where there is no dynamic
 // (rendered) DOM.
 //
-import { getBlockByOLXId } from '@/lib/blocks';
+import { getBlockByDefinitionRef } from '@/lib/blocks';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { isKidArray } from '@/lib/types/kids';
 import type { DefinitionKey, RuntimeProps, StateRef } from '@/lib/types';
 
-export interface Choice { id: DefinitionKey; tag: string; value: string }
+export interface Choice { tag: string; value: string }
 
 const isChoiceTag = (tag: string) => tag === 'Key' || tag === 'Distractor';
 
@@ -23,10 +23,10 @@ function choiceKeysFromKids(props: RuntimeProps, kids: any): DefinitionKey[] {
   return kids.flatMap(k => {
     if (k.type === 'html') return choiceKeysFromKids(props, k.kids);
     if (k.type !== 'block') return [];
-    const defKey = k.definitionKey;
-    const inst = getBlockByOLXId(props, defKey);
+    const definitionKey = k.definitionKey;
+    const inst = getBlockByDefinitionRef(props, definitionKey);
     if (!inst) return [];
-    if (isChoiceTag(inst.tag)) return [defKey];
+    if (isChoiceTag(inst.tag)) return [definitionKey];
     return choiceKeysFromKids(props, inst.kids);
   });
 }
@@ -40,14 +40,14 @@ export function getChoices(props: RuntimeProps, _state: unknown, _id: unknown): 
     ? (Array.isArray(props.target) ? props.target : String(props.target).split(','))
       .map((t: string) => t.trim()).filter(Boolean).map(parseAnyStateRef)
     : [];
-  const defIds = targetRefs.length > 0
+  const choiceDefinitionKeys = targetRefs.length > 0
     ? targetRefs.map(ref => leafDefinitionKeyFromStateKey(
         stateKeyForGlobalRef(ref, props.runtime.ns)))
     : choiceKeysFromKids(props, props.kids);
 
-  return defIds.flatMap(cid => {
-    const inst = getBlockByOLXId(props, cid);
+  return choiceDefinitionKeys.flatMap(definitionKey => {
+    const inst = getBlockByDefinitionRef(props, definitionKey);
     if (!inst || !isChoiceTag(inst.tag)) return [];
-    return [{ id: cid, tag: inst.tag, value: String(inst.attributes.value ?? cid) }];
+    return [{ tag: inst.tag, value: String(inst.attributes.value ?? definitionKey) }];
   });
 }

@@ -11,7 +11,7 @@
 */
 
 import { dev } from '@/lib/blocks';
-import { childParser, kidIds } from '@/lib/content/parsers';
+import { childParser, kidDefinitionKeys } from '@/lib/content/parsers';
 
 // === Custom parser to build named slots ===
 const sbParser = childParser(async function sideBlockParser({ rawKids, parseNode }) {
@@ -45,7 +45,7 @@ const sbParser = childParser(async function sideBlockParser({ rawKids, parseNode
 
   return { main, sidebar };
 });
-sbParser.staticKids = entry => kidIds([
+sbParser.staticKids = entry => kidDefinitionKeys([
   ...(Array.isArray(entry.kids.main) ? entry.kids.main : []),
   ...(Array.isArray(entry.kids.sidebar) ? entry.kids.sidebar : [])
 ]);
