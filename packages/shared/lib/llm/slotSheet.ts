@@ -81,11 +81,9 @@ export const DEFAULT_VERDICTS = ['met', 'absent'];
  * `first/second/...`) still parse while they wait to move out of `verdict`.
  * The two forms are unambiguous because `met` and `absent` are never extras.
  */
-export const MISMATCH = 'mismatch';
-
 export const EXTRA_VERDICTS = [
   'unclear',
-  'wrong_kind', 'incomplete', 'duplicate', MISMATCH, 'generic', 'tick_values',
+  'wrong_kind', 'incomplete', 'duplicate', 'mismatch', 'generic', 'tick_values',
 ];
 
 /**
@@ -100,6 +98,12 @@ export const MET = 'met';
 
 /** Not satisfied, with no more specific reason to give. */
 export const ABSENT = 'absent';
+
+/** A failure reason, named so code that decides one can say it. */
+export const MISMATCH = 'mismatch';
+
+/** `refers_to` when a check names nothing on its cover group's list. */
+export const NONE = 'none';
 
 /**
  * The `checks` payload a filled sheet carries, per check.
@@ -490,15 +494,23 @@ export function satisfiedMap(
     const cannotTell = r.lenient.includes(l) || r.lenient.includes(rt);
     out[r.key] = cannotTell || (!!l && !!rt && l === rt);
   }
+  const byKeySpec = new Map(slots.map(s => [s.key, s]));
   for (const g of cover) {
     const claimed = new Set<string>();
     for (const k of g.keys) {
       // Which item of the list this check addresses. `refers_to` once the item
       // is migrated; `verdict` while it still spells the reference as a verdict.
+      const migrated = checks[k]?.refers_to !== undefined;
       const v = String(checks[k]?.refers_to ?? checks[k]?.verdict ?? '').trim();
       const ok = g.labels.includes(v) && !claimed.has(v);
       if (ok) claimed.add(v);
-      out[k] = ok;
+      // Once the two are separate fields, BOTH have to hold: naming a distinct
+      // item of the list is not enough if the check also says nothing was
+      // answered. While the reference IS the verdict there is only one thing to
+      // read, so the legacy path is left exactly as it was.
+      const spec = byKeySpec.get(k);
+      const judged = migrated && spec ? isSatisfied(spec, checks[k]?.verdict) : true;
+      out[k] = ok && judged;
     }
   }
   return out;
@@ -711,15 +723,34 @@ export function buildSlotSchema(
   // the same reason the checklist itself is one — a required property is
   // answered, a request in prose is answered when convenient.
   perCheckNotes = false,
+  // Cover groups, so a member can be asked WHICH item of the list it addresses.
+  cover: CoverGroup[] = [],
 ): Record<string, unknown> {
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
                             ...counts.flatMap(g => g.slots)]);
+  // Which list each cover member has to choose from. The enum is the group's
+  // own labels, so this generalises to any number of them — two, or twelve —
+  // without the engine knowing how many. `none` is always available: "I named
+  // something, but not one of these" is a real answer and used to be spelled by
+  // adding a `neither` to the verdict list.
+  const coverOf = new Map<string, string[]>();
+  for (const g of cover) for (const k of g.keys) coverOf.set(k, [...g.labels, NONE]);
   const properties: Record<string, unknown> = {};
   for (const slot of slots) {
     if (computed.has(slot.key)) continue;   // the grader derives this one
     properties[slot.key] = {
       type: 'object',
       properties: {
+        ...(coverOf.has(slot.key) ? {
+          refers_to: {
+            type: 'string', enum: coverOf.get(slot.key),
+            description:
+              'WHICH item of the list above this one addresses, or "none". This ' +
+              'is not a judgement — the verdict says whether they answered, this ' +
+              'says what they answered ABOUT. Two checks naming the same item is ' +
+              'the error it exists to catch, so do not use one twice.',
+          },
+        } : {}),
         ...(slot.countMax !== undefined
           // A measurement, so an integer with the range it can take. Asking for
           // it as one of "3"/"2"/"1"/"0" invited the model to treat the first
@@ -762,6 +793,7 @@ export function buildSlotSchema(
       // fails the schema, not the answer.
       required: [
         slot.countMax !== undefined ? 'count' : 'verdict',
+        ...(coverOf.has(slot.key) ? ['refers_to'] : []),
         'evidence',
         ...(perCheckNotes ? ['note'] : []),
       ],

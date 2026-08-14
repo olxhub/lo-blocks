@@ -90,6 +90,7 @@ async function llmAction({ props }) {
       const onlyif = parseOnlyIf(props.onlyif);
       const derived = parseDerived(props.derived);
       const counts = parseCounts(props.counts);
+      const cover = parseCover(props.cover);
       if (slots.length === 0) {
         throw new Error(`LLMAction: could not parse any slots from slots="${slotsAttr}"`);
       }
@@ -101,11 +102,10 @@ async function llmAction({ props }) {
       // author gets this by setting showChecks, not by writing it into a prompt.
       const { data, text } = await reduxClient.callLLMJson(
         promptText + slotSheetGuidance(showChecks),
-        buildSlotSchema(slots, equals, derived, counts, showChecks),
+        buildSlotSchema(slots, equals, derived, counts, showChecks, cover),
         'feedback_checks',
         props.runtime.activityId,
       );
-      const cover = parseCover(props.cover);
       // Merged before anything reads `checks`, so feedback, the published sheet
       // and the grader all see one set of verdicts with no notion of origin.
       if (data && derived.length) {

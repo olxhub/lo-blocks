@@ -685,7 +685,11 @@ describe('displayVerdict', () => {
 // unmigrated content, and breaking it would break every item at once.
 // ---------------------------------------------------------------------------
 describe('refers_to and count', () => {
-  const coverSlots = parseSlots('a:Box one:first/second/neither|b:Box two:first/second/neither');
+  // Migrated shape: the slots are ordinary judgements, and the cover group
+  // supplies the list they choose from. The legacy shape (the reference spelled
+  // as the verdict) is exercised by its own case below.
+  const coverSlots = parseSlots('a:Box one|b:Box two');
+  const legacySlots = parseSlots('a:Box one:first/second/neither|b:Box two:first/second/neither');
   const cover = parseCover('a,b:first,second');
 
   it('covers from refers_to when the check supplies it', () => {
@@ -709,7 +713,7 @@ describe('refers_to and count', () => {
   });
 
   it('falls back to verdict for a check that has not migrated', () => {
-    const sat = satisfiedMap(coverSlots, {
+    const sat = satisfiedMap(legacySlots, {
       a: { verdict: 'first' },
       b: { verdict: 'second' },
     }, cover);
@@ -863,6 +867,10 @@ describe('schema validity', () => {
     for (const notes of [false, true]) {
       everyCheckRequiresAllItsProperties(
         buildSlotSchema(slots, [], [], parseCounts('n:r1'), notes));
+      // ...and with a cover group, which adds `refers_to` to its members.
+      everyCheckRequiresAllItsProperties(
+        buildSlotSchema(slots, [], [], parseCounts('n:r1'), notes,
+                        parseCover('a,b:first,second')));
     }
   });
 
@@ -871,5 +879,39 @@ describe('schema validity', () => {
     const spec = schema.properties.checks.properties.n;
     expect(spec.required).toContain('count');
     expect(spec.required).not.toContain('verdict');
+  });
+});
+
+describe('cover once the reference is its own field', () => {
+  const slots = parseSlots('a:Box one@1|b:Box two@1');
+  const cover = parseCover('a,b:first,second');
+
+  it('needs the check to have answered AND to name a distinct item', () => {
+    // Separating the fields makes a contradiction expressible — "nothing here"
+    // while also naming one of the required items — so both now have to hold.
+    const sat = satisfiedMap(slots, {
+      a: { verdict: 'absent', refers_to: 'first' },
+      b: { verdict: 'met', refers_to: 'second' },
+    }, cover);
+    expect(sat.a).toBe(false);
+    expect(sat.b).toBe(true);
+  });
+
+  it('offers the group\'s own labels plus none, whatever the arity', () => {
+    // The generalisation: nothing here knows the list is two long.
+    const five = parseCover('a,b:one,two,three,four,five');
+    const schema: any = buildSlotSchema(slots, [], [], [], false, five);
+    expect(schema.properties.checks.properties.a.properties.refers_to.enum)
+      .toEqual(['one', 'two', 'three', 'four', 'five', 'none']);
+    expect(schema.properties.checks.properties.a.required).toContain('refers_to');
+  });
+
+  it('treats `none` as naming nothing on the list', () => {
+    const sat = satisfiedMap(slots, {
+      a: { verdict: 'met', refers_to: 'none' },
+      b: { verdict: 'met', refers_to: 'first' },
+    }, cover);
+    expect(sat.a).toBe(false);
+    expect(sat.b).toBe(true);
   });
 });

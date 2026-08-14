@@ -253,19 +253,22 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
         error,
         feedback: fb?.value ?? '',
         slots: slots.map((s: any) => ({ key: s.key, pts: s.pts, gates: s.gates })),
-        // What the model answered for each slot. A check answers exactly one of
-        // these — a judgement fills `verdict`, a count fills `count`, a cover
-        // member fills `refers_to` — so reading only `verdict` reports null for
-        // every count in the sheet, and the per-slot rates this file exists to
-        // make countable go blind on them.
+        // What the model answered for each slot. A judgement fills `verdict`, a
+        // count fills `count`; reading only `verdict` reported null for every
+        // count, and the per-slot rates this file exists to make countable went
+        // blind on them.
         verdicts: Object.fromEntries(
           slots.map((s: any) => [
             s.key,
-            verdicts[s.key]?.verdict
-              ?? verdicts[s.key]?.count
-              ?? verdicts[s.key]?.refers_to
-              ?? null,
+            verdicts[s.key]?.verdict ?? verdicts[s.key]?.count ?? null,
           ]),
+        ),
+        // `refers_to` is its OWN column rather than a fallback: a cover member
+        // answers both fields, so folding it into `verdicts` would always lose
+        // to the verdict and the reference would be unobservable — which is
+        // exactly what happened the first time this was collapsed.
+        refers_to: Object.fromEntries(
+          slots.map((s: any) => [s.key, verdicts[s.key]?.refers_to ?? null]),
         ),
         // The evidence is why a slot got its verdict, and a slot sheet exists to
         // make that inspectable. Dropping it meant a failing cell could only be
