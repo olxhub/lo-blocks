@@ -113,7 +113,11 @@ async function sharedInstanceFor(session: SyncSession, stateId: string): Promise
   const spec = session.grouping
     ? await session.grouping.specOf(defId) : undefined;
   if (!spec) return ALL;
-  const parsed = parsePartitionSpec(spec, stateId);
+  // The spec's contract is "the grouped block's id" — pass the definition,
+  // not the scoped state id. (Passing stateId happened to work only because
+  // the grammar forbids '/' in the path portion, so slicing to the namespace
+  // gave the same answer — an equivalence the callee never promised.)
+  const parsed = parsePartitionSpec(spec, defId);
   const own = session.holdings.get(userInstance(session.principal));
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
