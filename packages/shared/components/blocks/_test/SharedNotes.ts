@@ -15,10 +15,7 @@
 //
 // The TEXT converges; the CURSORS do not yet. Editors cannot see each
 // other's carets, and each editor's own caret is held locally rather than
-// shared (state/bindings/useInputField.ts, TODO(cursor)). This is also the
-// one place the document-seeding gap is reachable — if an author edits the
-// default text between two learners' first-ever edits, their two baselines
-// cannot merge (crdt/docText.ts, TODO(epochs)). Both are worth knowing
+// shared (state/bindings/useInputField.ts, TODO(cursor)) — worth knowing
 // before using this block to demo collaboration.
 
 import * as parsers from '@/lib/content/parsers';

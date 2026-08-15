@@ -61,7 +61,7 @@ class Client {
     } else {
       payload = {
         field: 'notes',
-        update: docSpliceUpdate(this.raw, computeSplice(this.text, next), this.clientID),
+        doc: docSpliceUpdate(this.raw, computeSplice(this.text, next), this.clientID),
       };
     }
     const event = {
@@ -92,7 +92,7 @@ const editBy = (clientID: number, from: unknown, next: string) => ({
   scope: 'component',
   id: BLOCK,
   field: 'notes',
-  update: docSpliceUpdate(from, computeSplice(docText(from), next), clientID),
+  doc: docSpliceUpdate(from, computeSplice(docText(from), next), clientID),
 });
 
 beforeEach(() => {
@@ -218,7 +218,7 @@ describe('a document shared by several people', () => {
     alice.receive({ event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes' });
     alice.receive({
       event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes',
-      update: { version: 9, structs: [], deletes: [] },
+      doc: { format: 9, epoch: '', update: null },
     });
     expect(alice.raw).toBe(before);
     expect(alice.text).toBe('keep me');
@@ -299,13 +299,12 @@ describe('adopting stored state', () => {
 });
 
 describe('two replicas seeded from different authored fallback text', () => {
-  // The one document-layer case the CRDT cannot merge: two incarnations of
-  // one field claiming the same seed IDs with different content (see
-  // TODO(epochs) in crdt/docText.ts). Refusing is correct — interleaving
-  // two unrelated baselines would produce an unreadable document. What
-  // must NOT happen is the refusal escaping as an exception: these
-  // boundaries are a Redux reducer, a connection handshake, and a
-  // keystroke handler, where a throw costs far more than one field.
+  // Two incarnations of one field — different authored baselines, so
+  // different epochs. Refusing to merge them is correct; interleaving two
+  // unrelated baselines would produce an unreadable document. What must
+  // NOT happen is the refusal escaping as an exception: these boundaries
+  // are a Redux reducer, a connection handshake, and a keystroke handler,
+  // where a throw costs far more than one field.
 
   const docFrom = (seed: string, next: string, client: number) =>
     foldDocUpdate(undefined, docSpliceUpdate(seed, computeSplice(seed, next), client));
@@ -326,13 +325,13 @@ describe('two replicas seeded from different authored fallback text', () => {
     const alice = new Client(1);
     alice.state = updateResponseReducer(alice.state, {
       event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes',
-      update: MINE(),
+      doc: MINE(),
     });
     const before = alice.text;
 
     const { warned } = quietly(() => alice.receive({
       event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes',
-      update: THEIRS(),
+      doc: THEIRS(),
     }));
 
     expect(alice.text).toBe(before);
@@ -411,7 +410,7 @@ describe('recovering from an unmergeable document', () => {
 
   it('leaves the losing client usable — it renders and still accepts typing', () => {
     const state = quiet(() => updateResponseReducer(bobsClient(), {
-      event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', update: ALICE(),
+      event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', doc: ALICE(),
     }));
 
     expect(docText(state.component[BLOCK].notes)).toBe('Answer below. Bob');
@@ -467,7 +466,7 @@ describe('recovering from an unmergeable document', () => {
     try {
       for (let i = 0; i < 10; i++) {
         state = updateResponseReducer(state, {
-          event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', update: ALICE(),
+          event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', doc: ALICE(),
         });
       }
     } finally { console.warn = warn; }

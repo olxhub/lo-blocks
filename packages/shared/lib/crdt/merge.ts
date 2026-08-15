@@ -26,7 +26,7 @@
 // and out of scope to change; widening this is a separate decision, and
 // the shape of the helper below leaves room for it.
 
-import { isDocUpdate, tryFoldDocUpdate } from './docText';
+import { isDocValue, tryFoldDocUpdate } from './docText';
 
 /**
  * Reconcile two copies of one state bucket.
@@ -68,7 +68,7 @@ export function mergeDocFields<T extends Record<string, any>>(
   let result: T | undefined;
   for (const [field, theirs] of Object.entries(other)) {
     const mine = preferred[field];
-    if (!isDocUpdate(mine) || !isDocUpdate(theirs)) continue;
+    if (!isDocValue(mine) || !isDocValue(theirs)) continue;
     const merged = tryFoldDocUpdate(mine, theirs, `reconciling '${field}'`);
     if (merged === null && onUnmergeable === 'keep-preferred') continue;
     result ??= { ...preferred };
@@ -84,6 +84,6 @@ export function hasMergeableDoc(
 ): boolean {
   if (!preferred || !other) return false;
   return Object.entries(other).some(
-    ([field, theirs]) => isDocUpdate(theirs) && isDocUpdate(preferred[field]),
+    ([field, theirs]) => isDocValue(theirs) && isDocValue(preferred[field]),
   );
 }

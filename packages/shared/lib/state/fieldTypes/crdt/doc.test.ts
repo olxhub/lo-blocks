@@ -7,7 +7,7 @@
 // payload shape, what the reducer returns, and what it refuses.
 
 import { docField } from './doc';
-import { docSpliceUpdate, isDocUpdate } from '../../../crdt/docText';
+import { docSpliceUpdate, isDocValue } from '../../../crdt/docText';
 import { computeSplice } from '../../../crdt/computeSplice';
 
 /** Run the field's own write → reduce loop, as store.ts would. */
@@ -77,7 +77,7 @@ describe('docField', () => {
       const { results } = edit(field, undefined, 'hi');
       expect(results).toHaveLength(1);
       expect(results[0]!.payload.field).toBe('value');
-      expect(isDocUpdate(results[0]!.payload.update)).toBe(true);
+      expect(isDocValue(results[0]!.payload.doc)).toBe(true);
     });
 
     it('emits nothing when the text is unchanged', () => {
@@ -108,7 +108,7 @@ describe('docField', () => {
       const { raw } = edit(field, undefined, 'base');
       const first = field.write!(raw as any, 'base!');
       const second = field.write!(raw as any, 'base!');
-      expect(first[0]!.payload.update).toEqual(second[0]!.payload.update);
+      expect(first[0]!.payload.doc).toEqual(second[0]!.payload.doc);
     });
   });
 
@@ -130,9 +130,9 @@ describe('docField', () => {
       const { raw } = edit(field, undefined, 'keep me');
       for (const payload of [
         { field: 'value' },
-        { field: 'value', update: null },
-        { field: 'value', update: 'nonsense' },
-        { field: 'value', update: { version: 2, structs: [], deletes: [] } },
+        { field: 'value', doc: null },
+        { field: 'value', doc: 'nonsense' },
+        { field: 'value', doc: { format: 2, epoch: '', update: null } },
         { field: 'value', index: 0, deleteCount: 0, inserted: 'x' },
       ]) {
         expect(field.reduce!({ value: raw }, payload, 'value')).toEqual({});
@@ -241,7 +241,7 @@ describe('writing faster than the store folds', () => {
     box.flush();
 
     const peer = docSpliceUpdate(box.stored, computeSplice('mine', 'mine and theirs'), 99);
-    box.receive({ field: 'value', update: peer });
+    box.receive({ field: 'value', doc: peer });
     expect(box.text).toBe('mine and theirs');
 
     // Now type again without the store having folded it yet.

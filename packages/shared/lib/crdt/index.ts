@@ -1,6 +1,8 @@
 export {
-  docText, docSpliceUpdate, foldDocUpdate, tryFoldDocUpdate, mergeDocUpdates, isDocUpdate,
+  docText, docSpliceUpdate, foldDocUpdate, tryFoldDocUpdate, mergeDocUpdates,
+  isDocValue, epochOf, onDocumentFault, documentFaults,
 } from './docText';
+export type { DocValue } from './docText';
 export type { JsonUpdate } from './text';
 export { computeSplice } from './computeSplice';
 export { getActorId, getClientId } from './actorId';

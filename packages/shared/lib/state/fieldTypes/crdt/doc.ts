@@ -18,7 +18,7 @@
 //   - reduce:   applyUpdate — commutative, idempotent, order-independent
 //   - display:  same as read (both produce a string)
 //   - equality: referential (every fold produces a new object)
-//   - events:   SPLICE_INPUT, carrying { field, update }
+//   - events:   SPLICE_INPUT, carrying { field, doc }
 //
 // WHY THE EVENT CARRIES AN UPDATE rather than (index, deleteCount,
 // inserted): positions are only meaningful against the exact text the
@@ -45,7 +45,7 @@
 //
 import { scopes } from '../../scopes';
 import {
-  docText, docSpliceUpdate, tryFoldDocUpdate, isDocUpdate, writerBase,
+  docText, docSpliceUpdate, tryFoldDocUpdate, isDocValue, writerBase,
 } from '../../../crdt/docText';
 import { computeSplice } from '../../../crdt/computeSplice';
 import { getClientId } from '../../../crdt/actorId';
@@ -84,7 +84,7 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
         event: 'SPLICE_INPUT' as FieldEvent,
         payload: {
           field: name,
-          update: docSpliceUpdate(base, splice, getClientId(), remember),
+          doc: docSpliceUpdate(base, splice, getClientId(), remember),
         },
       }];
     }),
@@ -95,14 +95,14 @@ export function docField(name: string, opts?: Partial<FieldInfo>): FieldInfo {
       // replace the document with an empty one; ignoring it leaves the
       // learner's text alone, which is the safe direction for a reducer
       // that also runs on whatever arrives over the wire.
-      if (!isDocUpdate(action.update)) return {};
+      if (!isDocValue(action.doc)) return {};
       // This reducer is where wire data becomes state, and it runs on every
       // peer and on the server's materialization. An update the CRDT
       // rejects must not become an exception thrown out of a Redux reducer,
       // because that takes down every LATER event too and turns one bad
       // packet into a dead page. Keep the document, drop the event — an
       // empty patch leaves the bucket untouched.
-      const next = tryFoldDocUpdate(componentState[fieldName], action.update, `field '${name}'`);
+      const next = tryFoldDocUpdate(componentState[fieldName], action.doc, `field '${name}'`);
       return next === null ? {} : { [fieldName]: next };
     }),
     equality: opts?.equality ?? Object.is,

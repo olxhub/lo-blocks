@@ -16,10 +16,10 @@
 import { describe, it, expect } from 'vitest';
 import { computeSplice } from './computeSplice';
 import {
-  docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocUpdate,
-  tryFoldDocUpdate, onDocumentFault, documentFaults,
+  docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocValue,
+  tryFoldDocUpdate, onDocumentFault, documentFaults, epochOf,
 } from './docText';
-import type { JsonUpdate } from './text';
+import type { DocValue } from './docText';
 
 /**
  * One client: a stored value, plus the two operations the field system
@@ -37,13 +37,13 @@ class Peer {
   }
 
   /** The learner's textarea now reads `next`. Returns the wire event. */
-  type(next: string): JsonUpdate {
+  type(next: string): DocValue {
     const update = docSpliceUpdate(this.raw, computeSplice(this.text, next), this.clientID);
     this.receive(update);
     return update;
   }
 
-  receive(update: JsonUpdate): void {
+  receive(update: DocValue): void {
     this.raw = foldDocUpdate(this.raw, update);
   }
 }
@@ -134,7 +134,7 @@ describe('the stored value', () => {
     peer.type('hello 🌍');
     peer.type('hello, 🌍');
 
-    expect(isDocUpdate(peer.raw)).toBe(true);
+    expect(isDocValue(peer.raw)).toBe(true);
     expect(docText(wire(peer.raw))).toBe('hello, 🌍');
   });
 
@@ -179,11 +179,11 @@ describe('the stored value', () => {
   it('keeps a pasted run as one struct rather than one per character', () => {
     const peer = new Peer(1);
     peer.type('x'.repeat(5000));
-    expect((peer.raw as JsonUpdate).structs).toHaveLength(1);
+    expect((peer.raw as DocValue).update.structs).toHaveLength(1);
 
     // And typing extends that run instead of minting records.
     peer.type('x'.repeat(5000) + 'y');
-    expect((peer.raw as JsonUpdate).structs).toHaveLength(1);
+    expect((peer.raw as DocValue).update.structs).toHaveLength(1);
   });
 
   it('reclaims deleted payload', () => {
@@ -191,7 +191,7 @@ describe('the stored value', () => {
     peer.type('a'.repeat(1000));
     peer.type('');
 
-    const structs = (peer.raw as JsonUpdate).structs;
+    const structs = (peer.raw as DocValue).update.structs;
     expect(structs).toHaveLength(1);
     expect(structs[0]!.content).toBeNull();
     expect(peer.text).toBe('');
@@ -276,11 +276,11 @@ describe('two writers', () => {
 
 describe('delivery is not something the fold depends on', () => {
   /** The edits three peers make, as a fixed set of wire events. */
-  const history = (): JsonUpdate[] => {
+  const history = (): DocValue[] => {
     const alice = new Peer(1);
     const bob = new Peer(2);
     const carol = new Peer(3);
-    const events: JsonUpdate[] = [];
+    const events: DocValue[] = [];
 
     const broadcast = (from: Peer, next: string) => {
       const update = wire(from.type(next));
@@ -296,7 +296,7 @@ describe('delivery is not something the fold depends on', () => {
     return events;
   };
 
-  const foldAll = (events: readonly JsonUpdate[]): string => {
+  const foldAll = (events: readonly DocValue[]): string => {
     let raw: unknown = undefined;
     for (const update of events) raw = foldDocUpdate(raw, update);
     return docText(raw);
@@ -407,8 +407,13 @@ describe('reporting a document that cannot merge', () => {
   // because letting someone keep writing under the impression it is being
   // kept is worse than the lost text.
 
-  const other = (seed: string, next: string, client: number) =>
+  /** A document seeded from `seed` — its own incarnation. */
+  const from = (seed: string, next: string, client: number) =>
     docSpliceUpdate(seed, computeSplice(seed, next), client);
+
+  /** A further edit to an EXISTING document, so same epoch, so mergeable. */
+  const edit = (base: DocValue, next: string, client: number) =>
+    docSpliceUpdate(base, computeSplice(docText(base), next), client);
 
   const silently = <T,>(f: () => T): T => {
     const warn = console.warn;
@@ -421,14 +426,14 @@ describe('reporting a document that cannot merge', () => {
     const record: string[][] = seen as string[][];
     const stop = onDocumentFault(f => { record.push([...f]); });
 
-    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
-    const theirs = other('Beta baseline.', 'Beta baseline. theirs', 2);
+    const mine = foldDocUpdate(undefined, from('Alpha baseline.', 'Alpha baseline. mine', 1));
+    const theirs = from('Beta baseline.', 'Beta baseline. theirs', 2);
 
     silently(() => tryFoldDocUpdate(mine, theirs, "field 'essay'"));
     expect(documentFaults()).toContain("field 'essay'");
 
     // Healed — a later fold at the same place succeeds.
-    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine!', 3), "field 'essay'"));
+    silently(() => tryFoldDocUpdate(mine, edit(mine, 'Alpha baseline. mine!', 3), "field 'essay'"));
     expect(documentFaults()).not.toContain("field 'essay'");
 
     stop();
@@ -436,29 +441,89 @@ describe('reporting a document that cannot merge', () => {
   });
 
   it('keeps two documents\' faults independent', () => {
-    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
-    const theirs = other('Beta baseline.', 'Beta baseline. theirs', 2);
+    const mine = foldDocUpdate(undefined, from('Alpha baseline.', 'Alpha baseline. mine', 1));
+    const theirs = from('Beta baseline.', 'Beta baseline. theirs', 2);
 
     silently(() => tryFoldDocUpdate(mine, theirs, "field 'a'"));
     silently(() => tryFoldDocUpdate(mine, theirs, "field 'b'"));
     expect(documentFaults()).toEqual(expect.arrayContaining(["field 'a'", "field 'b'"]));
 
     // One recovers; the other must keep reporting.
-    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine?', 4), "field 'a'"));
+    silently(() => tryFoldDocUpdate(mine, edit(mine, 'Alpha baseline. mine?', 4), "field 'a'"));
     expect(documentFaults()).not.toContain("field 'a'");
     expect(documentFaults()).toContain("field 'b'");
 
-    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine.', 5), "field 'b'"));
+    silently(() => tryFoldDocUpdate(mine, edit(mine, 'Alpha baseline. mine.', 5), "field 'b'"));
     expect(documentFaults()).toEqual([]);
   });
 
   it('survives a listener that throws', () => {
     const stop = onDocumentFault(() => { throw new Error('a broken view'); });
-    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
+    const mine = foldDocUpdate(undefined, from('Alpha baseline.', 'Alpha baseline. mine', 1));
     expect(() => silently(() =>
-      tryFoldDocUpdate(mine, other('Beta baseline.', 'Beta baseline. theirs', 2), "field 'c'"),
+      tryFoldDocUpdate(mine, from('Beta baseline.', 'Beta baseline. theirs', 2), "field 'c'"),
     )).not.toThrow();
     stop();
-    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine!', 6), "field 'c'"));
+    silently(() => tryFoldDocUpdate(mine, edit(mine, 'Alpha baseline. mine!', 6), "field 'c'"));
+  });
+});
+
+describe('epochs', () => {
+  const from = (seed: string, next: string, client: number) =>
+    docSpliceUpdate(seed, computeSplice(seed, next), client);
+
+  it('agrees across clients that seeded from the same authored text', () => {
+    const a = from('Write your answer here.', 'Write your answer here. A', 1);
+    const b = from('Write your answer here.', 'Write your answer here. B', 2);
+    expect(a.epoch).toBe(b.epoch);
+    expect(a.epoch).toBe(epochOf('Write your answer here.'));
+  });
+
+  it('differs when the authored text differs, and carries forward through edits', () => {
+    const a = from('Write your answer here.', 'Write your answer here. A', 1);
+    const b = from('Answer below.', 'Answer below. B', 2);
+    expect(a.epoch).not.toBe(b.epoch);
+
+    // Later edits inherit the epoch rather than re-deriving from current text.
+    const later = docSpliceUpdate(
+      foldDocUpdate(undefined, a), computeSplice('Write your answer here. A', 'changed entirely'), 1,
+    );
+    expect(later.epoch).toBe(a.epoch);
+  });
+
+  it('gives a field with no authored text the empty epoch, everywhere', () => {
+    expect(from('', 'typed', 1).epoch).toBe('');
+    expect(epochOf('')).toBe('');
+  });
+
+  it('refuses to merge two incarnations, naming both', () => {
+    const mine = foldDocUpdate(undefined, from('Write your answer here.', 'Write your answer here. A', 1));
+    const theirs = from('Answer below.', 'Answer below. B', 2);
+    expect(() => foldDocUpdate(mine, theirs)).toThrow(/another incarnation/);
+    // And the refusal is decided BEFORE the CRDT sees anything, so the two
+    // baselines are never interleaved into one document.
+    expect(docText(mine)).toBe('Write your answer here. A');
+  });
+
+  it('merges only same-epoch values when combining diverged copies', () => {
+    const seed = 'Shared baseline.';
+    const a = from(seed, 'Shared baseline. A', 1);
+    const b = from(seed, 'Shared baseline. B', 2);
+    const foreign = from('Other baseline.', 'Other baseline. X', 3);
+
+    const merged = mergeDocUpdates([a, b, foreign]);
+    expect(merged.epoch).toBe(epochOf(seed));
+    const text = docText(foldDocUpdate(undefined, merged));
+    expect(text).toContain('A');
+    expect(text).toContain('B');
+    expect(text).not.toContain('Other baseline');
+  });
+
+  it('survives the JSON round trip the wire and storage both do', () => {
+    const value = from('Baseline.', 'Baseline. edited', 1);
+    const roundTripped = JSON.parse(JSON.stringify(value));
+    expect(isDocValue(roundTripped)).toBe(true);
+    expect(roundTripped.epoch).toBe(value.epoch);
+    expect(roundTripped.format).toBe(1);
   });
 });

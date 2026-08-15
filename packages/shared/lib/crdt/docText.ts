@@ -4,14 +4,14 @@
 // field system, which stores plain JSON in Redux and folds it with pure
 // reducers.
 //
-// THE STORED VALUE IS A `JsonUpdate` — `{ version, structs, deletes }`.
-// Not a live document: the CRDT's `Doc` is a mutable object graph with a
-// linked list and split/merge machinery, which Redux may not hold and a
-// reducer may not mutate. `JsonUpdate` is the CRDT's own serialization
-// boundary, is ordinary immutable JSON, and carries everything needed to
-// rebuild the document. Structs coalesce compatible runs, so a pasted
-// paragraph is one struct and steady typing extends one struct rather
-// than minting a record per character.
+// THE STORED VALUE IS A `DocValue` — an epoch plus the CRDT's own
+// `JsonUpdate`. Not a live document: the CRDT's `Doc` is a mutable object
+// graph with a linked list and split/merge machinery, which Redux may not
+// hold and a reducer may not mutate. `JsonUpdate` is the CRDT's
+// serialization boundary, is ordinary immutable JSON, and carries
+// everything needed to rebuild the document. Structs coalesce compatible
+// runs, so a pasted paragraph is one struct and steady typing extends one
+// struct rather than minting a record per character.
 //
 // THE FOLD IS `applyUpdate` — commutative, idempotent, and independent of
 // arrival order. That is what makes docField's reducer safe to run on the
@@ -39,51 +39,30 @@
 // and has a known failure at a larger one. None of it is load-bearing for
 // correctness today; all of it is load-bearing for the version after.
 //
-// TODO(epochs): a document has no INCARNATION identity, and three separate
-// gaps are all really this one gap.
+// Documents carry an EPOCH (see DocValue below): two of them may only
+// merge when they descend from the same authored baseline. That closes the
+// case where an author edits a field's default text and two clients seed
+// from different versions of it, and it is what a future document RESET
+// would use to announce itself. What remains open:
 //
-// An epoch would name "which authored baseline this document descends
-// from" — something like { format: 1, epoch: string, update: JsonUpdate }
-// as the stored value, where the epoch is derived from the authored
-// starting text (and bumped deliberately by a reset/migration). Updates
-// from different epochs would never be handed to applyUpdate together;
-// instead the integration picks a policy — keep the learner's document,
-// start a new one, or rebase — BEFORE calling the CRDT. The three gaps:
+// TODO(tombstones): history has no bound. `gc: true` reclaims deleted
+// payload and coalesces tombstones into compact clock ranges, but IDs stay
+// addressable forever — exactly what makes a long-offline replica merge
+// correctly, and upstream is explicit that it does not pretend arbitrary
+// IDs can be forgotten (upstream COMPATIBILITY.md states the
+// representation has no formal worst-case history bound). So a document's
+// ID structure grows with EDIT COUNT, not text length. A term of essay
+// writing compacts well; a script, a long autosave loop, or years of
+// accumulation would not.
 //
-//   1. Seed identity (see SEED_CLIENT). Every document seeded from
-//      authored default text claims client 0, clocks 0..n-1. Identical
-//      default text therefore converges, which is the point. DIFFERENT
-//      default text claims the SAME ids with different content, and the
-//      CRDT correctly refuses to merge the two histories.
-//
-//      Reachable only on a SHARED document whose two first-ever edits
-//      straddle an author's edit to the default text: per-user documents
-//      never re-seed, because the authored text is consulted only when no
-//      document exists yet. It fails closed — docField's reducer drops the
-//      rejected update and warns — so it loses an edit rather than
-//      corrupting a document. Do NOT "fix" this by deriving distinct
-//      client ids from the seed text: distinct ids make the two baselines
-//      concurrent INSERTIONS, and they merge into a document containing
-//      both default texts concatenated. Silent mismerge is worse than a
-//      loud refusal. The fix is an epoch.
-//
-//   2. Tombstone sunsetting. `gc: true` reclaims deleted payload and
-//      coalesces tombstones into compact clock ranges, but IDs stay
-//      addressable forever — that is exactly what makes a long-offline
-//      replica merge correctly, and upstream is explicit that it does not
-//      pretend arbitrary IDs can be forgotten (upstream COMPATIBILITY.md
-//      states the representation has no formal worst-case history
-//      bound). So a document's ID structure grows monotonically with edit
-//      count, not with text length. Normal typing compacts well and a term
-//      of essay writing is fine; a document edited by a script, a long
-//      autosave loop, or years of accumulation is not. A hard bound needs
-//      snapshot-and-rebase — replace the document with a fresh one and
-//      rebase any stale offline text onto it — which IS an epoch bump.
-//
-//   3. Cursor anchor validity (see the cursor TODO in
-//      state/bindings/useInputField.ts). A cursor anchored to a character
-//      ID must not resolve against a different incarnation of the
-//      document. The anchor needs to name its epoch.
+// The fix is a reset: replace a document with a fresh snapshot of its own
+// text under a new epoch. Safe when nothing else holds the old IDs, which
+// the sync registry can already tell (entry.sockets). The subtleties are
+// that "no sockets" is not "no client state" — a backgrounded tab,
+// persisted client state, and lo_event's unacked queue all outlive a
+// disconnect — so the trigger wants to be quiescence plus a grace period,
+// and the grace period is really a policy question about how long a
+// learner may be offline and still merge.
 //
 // TODO(fold-cost): every fold re-encodes the WHOLE document.
 // `foldDocUpdate` calls `encodeStateAsUpdate()` so Redux gets a new
@@ -140,10 +119,12 @@ const FOLD_CLIENT = 0;
  * The same ID as FOLD_CLIENT, and compatibly so: clocks 0..length-1 belong
  * to the seed, and a folding document never mints an operation at all.
  *
- * Correct only while every replica seeds from the SAME authored text —
- * see TODO(epochs) gap 1 in the header for what happens when an author
- * edits that text mid-pilot, and for why deriving distinct client ids from
- * the seed text makes it worse rather than better.
+ * This only works while every replica seeds from the SAME authored text.
+ * When it does not, the two documents claim these IDs with different
+ * content — which is what the EPOCH catches, before the CRDT is asked to
+ * merge them. Do not instead give differing baselines differing client
+ * IDs: that makes them concurrent INSERTIONS, and they merge into one
+ * document containing both default texts.
  */
 const SEED_CLIENT = 0;
 
@@ -181,7 +162,7 @@ const texts = new WeakMap<object, string>();
  * it, and a writer that dropped them would keep re-sending a document
  * that disagrees with everyone else's.
  */
-const heads = new Map<string, { from: unknown; head: JsonUpdate; at: number }>();
+const heads = new Map<string, { from: unknown; head: DocValue; at: number }>();
 
 /**
  * How long a writer's head stays usable while the store still shows no
@@ -199,15 +180,71 @@ const heads = new Map<string, { from: unknown; head: JsonUpdate; at: number }>()
  */
 const HEAD_TTL_MS = 2000;
 
-/** Is this raw field value a CRDT document? */
-export function isDocUpdate(raw: unknown): raw is JsonUpdate {
+/**
+ * What a docField stores, and what its events carry.
+ *
+ * The CRDT's own `JsonUpdate` wrapped in an envelope naming which
+ * INCARNATION of the field it belongs to. Both uses share the shape: in
+ * the store `update` is the whole document, on the wire it is one edit.
+ *
+ * `format` versions the envelope itself. It is redundant with
+ * `update.version` today and exists because an envelope is the one thing
+ * that cannot be added later without rewriting stored data.
+ */
+export interface DocValue {
+  readonly format: 1;
+  readonly epoch: string;
+  readonly update: JsonUpdate;
+}
+
+/**
+ * Which incarnation a document belongs to.
+ *
+ * Two documents may only be merged when they descend from the same
+ * baseline. Everything else about the CRDT is designed to merge, so this
+ * is the one question that has to be settled BEFORE `applyUpdate` is
+ * called — after it, two unrelated baselines have already been interleaved
+ * into one unreadable document, or have collided on IDs and thrown.
+ *
+ * Derived from the authored starting text, so every client that seeds from
+ * the same text agrees without coordinating, and an author editing that
+ * text produces a document the old one declines to merge with rather than
+ * one that silently contains both. Empty text is its own epoch: a field
+ * nobody has authored a default for starts from nothing, everywhere.
+ *
+ * A future document RESET (replacing a document with a snapshot of its own
+ * text, to bound history) is an epoch change by the same rule, since the
+ * snapshot's baseline is different text.
+ *
+ * FNV-1a. Not a security boundary — a collision merely lets two baselines
+ * attempt a merge, which is exactly today's behavior and is contained.
+ */
+export function epochOf(baseline: string): string {
+  if (baseline.length === 0) return '';
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < baseline.length; i++) {
+    hash ^= baseline.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/** Is this a CRDT document value? */
+export function isDocValue(raw: unknown): raw is DocValue {
+  if (typeof raw !== 'object' || raw === null) return false;
+  const value = raw as DocValue;
   return (
-    typeof raw === 'object' && raw !== null &&
-    (raw as JsonUpdate).version === 1 &&
-    Array.isArray((raw as JsonUpdate).structs) &&
-    Array.isArray((raw as JsonUpdate).deletes)
+    value.format === 1 &&
+    typeof value.epoch === 'string' &&
+    typeof value.update === 'object' && value.update !== null &&
+    value.update.version === 1 &&
+    Array.isArray(value.update.structs) &&
+    Array.isArray(value.update.deletes)
   );
 }
+
+const wrap = (epoch: string, update: JsonUpdate): DocValue =>
+  ({ format: 1, epoch, update });
 
 /**
  * The document for a stored value, from cache or rebuilt.
@@ -217,13 +254,13 @@ export function isDocUpdate(raw: unknown): raw is JsonUpdate {
  * mutation it no longer encodes the value it is filed under.
  */
 function liveDoc(raw: unknown): Doc {
-  if (isDocUpdate(raw)) {
+  if (isDocValue(raw)) {
     const cached = docs.get(raw);
     if (cached) return cached;
   }
   const doc = new Doc({ clientID: FOLD_CLIENT, guid: FOLD_GUID });
-  if (isDocUpdate(raw)) {
-    doc.applyUpdate(raw);
+  if (isDocValue(raw)) {
+    doc.applyUpdate(raw.update);
     docs.set(raw, doc);
   }
   return doc;
@@ -238,7 +275,7 @@ function liveDoc(raw: unknown): Doc {
  */
 export function docText(raw: unknown): string {
   if (typeof raw === 'string') return raw;
-  if (!isDocUpdate(raw)) return '';
+  if (!isDocValue(raw)) return '';
   const cached = texts.get(raw);
   if (cached !== undefined) return cached;
   const value = liveDoc(raw).getText(TEXT).toString();
@@ -255,11 +292,19 @@ export function docText(raw: unknown): string {
  * rebuild. The previous value is untouched — it is immutable JSON — so a
  * later read of it (replay, a retained snapshot) simply rebuilds.
  */
-export function foldDocUpdate(raw: unknown, update: JsonUpdate): JsonUpdate {
+export function foldDocUpdate(raw: unknown, incoming: DocValue): DocValue {
+  // The epoch check, before the CRDT sees anything. Two baselines that
+  // never shared a history must not be interleaved, and by the time
+  // applyUpdate has run it is too late to ask.
+  if (isDocValue(raw) && raw.epoch !== incoming.epoch) {
+    throw new Error(
+      `document is from another incarnation (have '${raw.epoch}', got '${incoming.epoch}')`,
+    );
+  }
   const doc = liveDoc(raw);
-  if (isDocUpdate(raw)) docs.delete(raw);
-  doc.applyUpdate(update);
-  const next = doc.encodeStateAsUpdate();
+  if (isDocValue(raw)) docs.delete(raw);
+  doc.applyUpdate(incoming.update);
+  const next = wrap(incoming.epoch, doc.encodeStateAsUpdate());
   docs.set(next, doc);
   return next;
 }
@@ -267,11 +312,9 @@ export function foldDocUpdate(raw: unknown, update: JsonUpdate): JsonUpdate {
 /**
  * Fold, or `null` if the two documents cannot merge.
  *
- * `foldDocUpdate` throws on a document the CRDT refuses — today that means
- * two incarnations of one field claiming the same IDs with different
- * content (see TODO(epochs) in the header). Refusing is correct: the
- * alternative is interleaving two unrelated histories into one unreadable
- * document. But refusing must not become an exception escaping into a
+ * `foldDocUpdate` throws on a document that cannot be merged — a differing
+ * epoch, or IDs that conflict. Refusing is correct: the alternative is
+ * interleaving two unrelated histories into one unreadable document. But refusing must not become an exception escaping into a
  * Redux reducer, a connection handshake, or a keystroke handler, so every
  * caller goes through here and decides what to keep.
  *
@@ -281,11 +324,11 @@ export function foldDocUpdate(raw: unknown, update: JsonUpdate): JsonUpdate {
  */
 export function tryFoldDocUpdate(
   raw: unknown,
-  update: JsonUpdate,
+  incoming: DocValue,
   where: string,
-): JsonUpdate | null {
+): DocValue | null {
   try {
-    const next = foldDocUpdate(raw, update);
+    const next = foldDocUpdate(raw, incoming);
     if (faulted.delete(where)) notifyFaultListeners();
     return next;
   } catch (error) {
@@ -345,9 +388,20 @@ export function documentFaults(): readonly string[] {
   return [...faulted];
 }
 
-/** Merge stored values that diverged — reconnect, adoption, seeding. */
-export function mergeDocUpdates(values: readonly unknown[]): JsonUpdate {
-  return mergeUpdates(values.filter(isDocUpdate));
+/**
+ * Merge stored values that diverged — reconnect, adoption, seeding.
+ *
+ * Only values of ONE incarnation can combine, so the first value's epoch
+ * wins and anything else is dropped rather than interleaved. Callers that
+ * care which survives should pick before calling.
+ */
+export function mergeDocUpdates(values: readonly unknown[]): DocValue {
+  const docValues = values.filter(isDocValue);
+  const epoch = docValues[0]?.epoch ?? '';
+  return wrap(
+    epoch,
+    mergeUpdates(docValues.filter(v => v.epoch === epoch).map(v => v.update)),
+  );
 }
 
 /**
@@ -383,7 +437,7 @@ export function docSpliceUpdate(
   // behind `raw` when `raw` is already a head. Recording the base instead
   // would make the next write think the store had moved.
   remember?: { key: string; from: unknown },
-): JsonUpdate {
+): DocValue {
   if (clientID === SEED_CLIENT) {
     throw new RangeError(
       `client ${SEED_CLIENT} is reserved for document seeding and must not write`,
@@ -393,27 +447,29 @@ export function docSpliceUpdate(
   const text = doc.getText(TEXT);
 
   // Before the listener: replaying the prior state is not part of the delta.
-  if (isDocUpdate(raw)) doc.applyUpdate(raw);
+  if (isDocValue(raw)) doc.applyUpdate(raw.update);
 
   const parts: JsonUpdate[] = [];
   doc.on('update', (update: JsonUpdate) => { parts.push(update); });
 
-  if (!isDocUpdate(raw) && typeof raw === 'string' && raw.length > 0) {
-    doc.applyUpdate(seedUpdate(raw));
-  }
+  const seed = !isDocValue(raw) && typeof raw === 'string' ? raw : '';
+  if (seed.length > 0) doc.applyUpdate(seedUpdate(seed));
+  // A document's epoch comes from the baseline it was seeded from, and is
+  // carried forward unchanged by every later edit.
+  const epoch = isDocValue(raw) ? raw.epoch : epochOf(seed);
   doc.transact(() => {
     if (splice.deleteCount > 0) text.delete(splice.index, splice.deleteCount);
     if (splice.inserted.length > 0) text.insert(splice.index, splice.inserted);
   });
 
-  const update = parts.length === 1 ? parts[0]! : mergeUpdates(parts);
+  const update = wrap(epoch, parts.length === 1 ? parts[0]! : mergeUpdates(parts));
   // Where this write left off, so the next one can pick up from here
   // rather than from a store that has not folded it yet. Free: the
   // throwaway document already holds the result.
   if (remember !== undefined) {
     heads.set(remember.key, {
       from: remember.from,
-      head: doc.encodeStateAsUpdate(),
+      head: wrap(epoch, doc.encodeStateAsUpdate()),
       at: Date.now(),
     });
   }
@@ -442,7 +498,7 @@ export function writerBase(raw: unknown, key?: string): unknown {
   if (key === undefined) return raw;
   const entry = heads.get(key);
   if (entry === undefined || entry.head === raw) return raw;
-  if (!isDocUpdate(raw)) {
+  if (!isDocValue(raw)) {
     // Still in flight: the store has not moved since this head was written.
     if (raw === entry.from && Date.now() - entry.at < HEAD_TTL_MS) return entry.head;
     heads.delete(key);                            // a different document
