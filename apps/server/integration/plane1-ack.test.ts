@@ -68,7 +68,14 @@ beforeAll(async () => {
   const { startServer } = await import('../src/server.js');
   kvs = new MemoryKVStore();
   handle = await startServer(kvs, createToolRegistry());
-});
+  // Generous budget, deliberately per-hook rather than a global hookTimeout
+  // bump (which would blunt genuine-hang detection suite-wide). This hook
+  // does real one-time work — vitest transforms the ENTIRE server module
+  // graph on the dynamic import above, then boots it. Measured 8.3-9.2s
+  // standalone against the default 10s: under full-suite CPU contention it
+  // crossed the line, failing runs with a hook timeout and no assertion.
+  // A real hang still fails — just in 60s instead of 10.
+}, 60_000);
 
 afterAll(async () => {
   try { handle?.server.close(); } catch { /* ignore */ }
