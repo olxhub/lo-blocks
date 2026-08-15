@@ -229,29 +229,40 @@ export function SaveIndicator({
 }
 
 /**
- * Inline offline notice: WifiOff icon + the standard wording. Carries no
- * background of its own — the caller supplies the container styling (StatusBar
- * uses a full-width banner).
+ * Which page-stopping banner to show, or null. Pure, so the precedence is
+ * testable without React and StatusBar holds no policy.
+ *
+ * Fatal outranks offline: "offline" promises the work is held and will sync
+ * on reconnect, which a fatal state cannot keep.
  */
-export function OfflineNotice({ className = '' }: { className?: string }) {
-  return (
-    <span className={`flex items-center gap-2 ${className}`}>
-      <WifiOff className="w-4 h-4" />
-      {OFFLINE_MESSAGE}
-    </span>
-  );
+export function blockingAlert(status: ConnectionStatus) {
+  const { fatal } = status;
+  if (fatal) {
+    return {
+      icon: AlertTriangle,
+      message: fatalMessage(fatal.code),
+      reloadable: FATAL_RELOADABLE.has(fatal.code),
+    };
+  }
+  if (status.offline) {
+    return { icon: WifiOff, message: OFFLINE_MESSAGE, reloadable: false };
+  }
+  return null;
 }
 
-/**
- * Inline fatal notice: AlertTriangle + FATAL_MESSAGES copy (never a raw
- * diagnostic). Like OfflineNotice, it carries no background of its own — the
- * caller supplies the container styling.
- */
-export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
+/** The dim is deliberate: it discourages working, rather than only reporting. */
+export function BlockingBanner({ alert }: { alert: NonNullable<ReturnType<typeof blockingAlert>> }) {
+  const { icon: Icon, message, reloadable } = alert;
   return (
-    <span className={`flex items-center gap-2 ${className}`}>
-      <AlertTriangle className="w-4 h-4" />
-      {message}
-    </span>
+    <div className="sticky top-0 z-50 print:hidden">
+      <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center items-center gap-3">
+        <span className="flex items-center gap-2"><Icon className="w-4 h-4" />{message}</span>
+        {reloadable && (
+          <button type="button" onClick={() => window.location.reload()}
+            className="underline underline-offset-2 font-semibold whitespace-nowrap">Reload</button>
+        )}
+      </div>
+      <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
+    </div>
   );
 }
