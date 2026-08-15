@@ -26,13 +26,13 @@ import type { SharedFieldPolicyIndex, SharedFieldPolicy } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
 import {
-  tryParseStateKey, leafDefinitionIdFor, allDefinitionKeysFromStateKey,
+  tryParseStateKey, leafDefinitionIdFor, leafDefinitionKeyFromStateKey,
 } from '@/lib/types/id-grammar';
 import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
-  isEphemeralNamespaceKey, stateIdsForDefinition,
+  isEphemeralNamespaceKey, indexScopeByLeafDefinition,
 } from './levels';
 
 /** One connection's standing context in the sync engine — acquired at
@@ -125,12 +125,22 @@ async function sharedInstanceFor(session: SyncSession, stateId: string): Promise
  * Who hears about an event at an instance: the connections subscribed to
  * (instance, stateId) — content fetch = subscription; writers
  * self-subscribe so a client that writes without fetching still hears
- * responses. Scoped state keys (`ns/list:#2:grader`) also reach their
- * DEFINITION subscribers, container and leaf (content fetches subscribe
- * by DefinitionKey — whoever fetched the list hears its instances).
- * (This used to slice at '#', a pre-id-grammar dialect nothing
- * produces; scoped events reached only exact-key subscribers, i.e.
- * usually nobody. Found by review 2026-07.)
+ * responses. A scoped state key (`ns/list:#2:grader`) also reaches the
+ * subscribers of its LEAF DEFINITION, because nobody subscribes a scoped
+ * id: a content fetch names definitions, so whoever renders the list
+ * subscribed `ns/grader` (the list's static kid) at the instance their
+ * own partition resolved to — the same instance this event routed to.
+ * (This used to slice at '#', a pre-id-grammar dialect nothing produces;
+ * scoped events reached only exact-key subscribers, i.e. usually nobody.
+ * Found by review 2026-07.)
+ *
+ * The leaf SUFFICES, and the container hop this used to add
+ * (allDefinitionKeysFromStateKey) leaked across partitions: every reader
+ * of an ungrouped container holds it at `all` (instancesFor), so an
+ * unpartitioned scoped write fanned into every partition's readers at
+ * once. Only the leaf's subscription key carries a per-subscriber
+ * resolved instance; container keys pin `all` and cannot filter.
+ * (Found by review 2026-08.)
  */
 function subscribersFor(
   session: SyncSession,
@@ -139,12 +149,12 @@ function subscribersFor(
 ): Set<StateConnection> {
   session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, stateId)]);
   const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, stateId)));
-  // An id that isn't a StateKey has no definition chain — exact-key
+  // An id that isn't a StateKey has no leaf definition — exact-key
   // subscribers (above) are the only audience.
   const key = tryParseStateKey(stateId);
-  for (const defId of key ? allDefinitionKeysFromStateKey(key) : []) {
-    if (defId === stateId) continue;
-    for (const sock of session.subscriptions.subscribers(subscriptionKey(instance, defId))) {
+  const leafDef = key ? leafDefinitionKeyFromStateKey(key) : undefined;
+  if (leafDef !== undefined && leafDef !== stateId) {
+    for (const sock of session.subscriptions.subscribers(subscriptionKey(instance, leafDef))) {
       recipients.add(sock);
     }
   }
@@ -218,12 +228,12 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
  *
  * Nothing is scanned to FIND the partitions: the picker transition names
  * both of them directly. Within those two (already materialized)
- * partitions we do filter the buckets in hand, because `blockId` is a
+ * partitions we do index the buckets in hand, because `blockId` is a
  * DEFINITION and a grouped block may have many scoped INSTANCES
  * (`demos/list:#2:chat`) that only the container's state knows about.
  * Patching just the plain id left every scoped copy showing the old
- * group's content; stateIdsForDefinition (levels.ts) picks them out of
- * the scopes already read here — no extra I/O, no reverse index.
+ * group's content; indexScopeByLeafDefinition (levels.ts) picks them out
+ * of the scopes already read here — no extra I/O, no reverse index.
  */
 async function switchGroup(
   session: SyncSession,
@@ -251,10 +261,20 @@ async function switchGroup(
 
   // Every state id of this definition in either partition — the plain
   // definition bucket plus any scoped instances (see the note above).
+  // One index per partition scope, not one filter per lookup: the two
+  // scopes are walked once each, then asked about `blockId`.
   const stateIds = new Set([
-    ...stateIdsForDefinition(newComponent, blockId),
-    ...stateIdsForDefinition(oldComponent, blockId),
+    ...(indexScopeByLeafDefinition(newComponent).get(blockId) ?? []),
+    ...(indexScopeByLeafDefinition(oldComponent).get(blockId) ?? []),
   ]);
+  // Every one of these becomes its own broadcastStatePatch, so a
+  // definition with N accumulated scoped instances costs N messages per
+  // re-pick. Not bounded here: the only available narrowing is "does this
+  // user still subscribe the state id's CONTAINER", and container
+  // subscriptions are held at `all` by every reader (instancesFor), so
+  // asking would drop legitimate patches for any container that IS
+  // grouped — a stale-UI bug traded for a message count. Demand loading
+  // (TODO(demand-loading), levels.ts) removes the accumulation instead.
 
   // Which of this socket's keys belong to `blockId`? A subscription key is
   // `{instance}|{stateId}`, and only the stateId is '|'-free (instances can

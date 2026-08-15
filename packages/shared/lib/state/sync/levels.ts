@@ -50,36 +50,45 @@ export function subscriptionKey(instance: LevelInstance, blockId: string): strin
 }
 
 /**
- * Which state ids in a MATERIALIZED component scope belong to `definitionId`.
+ * A MATERIALIZED component scope, indexed by the DEFINITION its state ids
+ * belong to: `definitionId → [state ids]`.
  *
- * This is the ONE place that answers that question. It exists because
- * scoped instances cannot be enumerated from content: only a container's
- * own state knows that `demos/list:#2:chat` exists at all, so a consumer
- * that already holds a materialized scope answers by FILTERING the keys
- * it has in hand — no reverse index, no KVS enumeration, no extra I/O.
+ * This is the ONE place answering "which state ids belong to this
+ * definition?". It exists because scoped instances cannot be enumerated
+ * from content: only a container's own state knows that
+ * `demos/list:#2:chat` exists at all, so a consumer that already holds a
+ * materialized scope answers from the keys it has in hand — no reverse
+ * index in the KVS, no enumeration, no extra I/O.
  *
- *   stateIdsForDefinition({ 'demos/chat': {}, 'demos/list:#2:chat': {} },
- *                         'demos/chat')
- *   → ['demos/chat', 'demos/list:#2:chat']
+ *   indexScopeByLeafDefinition({ 'demos/chat': {}, 'demos/list:#2:chat': {} })
+ *   → Map { 'demos/chat' → ['demos/chat', 'demos/list:#2:chat'] }
  *
- * Matching is by LEAF DEFINITION (leafDefinitionIdFor): scope segments
+ * Grouping is by LEAF DEFINITION (leafDefinitionIdFor): scope segments
  * only pick WHICH copy, so every scoped copy belongs to its definition,
  * and a bare DefinitionKey is a StateKey whose leaf is itself — the
  * exact-id case falls out as a special case. Ids that are not StateKeys
- * (componentSetting tags, storage URIs, system ids) map to themselves,
- * so they match only when equal to `definitionId`.
+ * (componentSetting tags, storage URIs, system ids) index as themselves,
+ * so they are found only by their exact id.
+ *
+ * An INDEX rather than a per-definition filter: callers ask about many
+ * ids against one scope (a content fetch serves a whole page; a group
+ * switch walks two partitions), and filtering per id parsed every key
+ * once per id — O(ids × keys) key parses for what is one pass.
  *
  * TODO(demand-loading): the roadmap replaces these callers with exact-key
  * reads (the over-fetch here is transitional); this helper goes with them.
  */
-export function stateIdsForDefinition(
+export function indexScopeByLeafDefinition(
   componentScope: Record<string, unknown> | undefined,
-  definitionId: string,
-): string[] {
-  if (!componentScope) return [];
-  return Object.keys(componentScope).filter(
-    (key) => leafDefinitionIdFor(key) === definitionId,
-  );
+): Map<string, string[]> {
+  const byDefinition = new Map<string, string[]>();
+  for (const key of Object.keys(componentScope ?? {})) {
+    const definitionId = leafDefinitionIdFor(key);
+    const stateIds = byDefinition.get(definitionId);
+    if (stateIds) stateIds.push(key);
+    else byDefinition.set(definitionId, [key]);
+  }
+  return byDefinition;
 }
 
 /**

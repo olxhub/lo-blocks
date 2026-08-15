@@ -876,11 +876,21 @@ export function stateKeyForGlobalRef(
  *
  *   scopePrefixOfStateKey("CONTENT/list:#0:answer") → "list:#0"
  *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
+ *   scopePrefixOfStateKey("CONTENT/list:#0")        → undefined (not a
+ *                                                     canonical key)
  */
 export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
-  // A statePath always ends in a leaf id (the grammar has no
-  // container-own-key shape), so the prefix is everything before it —
-  // absent only when the leaf IS the whole path.
+  // Fail safe on non-canonical input. The brand is COMPILE-TIME only and
+  // unvalidated asStateKey casts exist at boundaries, so a trailing-marker
+  // string ("list:#0" — a container's own key, which the grammar has no
+  // shape for) can arrive here. Its leaf is an INTERIOR segment, so the
+  // slice below would answer "li": a prefix that silently mis-addresses
+  // some other block's state through siblingScopedKey (grading topology,
+  // staticTargetProps). "No derivable scope" is the honest answer, and
+  // the only one callers can act on — splitNs would merely throw.
+  if (validateStateKey(key) !== true) return undefined;
+  // A canonical statePath ends in a leaf id, so the prefix is everything
+  // before it — absent when the leaf IS the whole path.
   const { path } = splitNs(key);
   const leaf = leafBlock(path);
   if (leaf === path) return undefined;

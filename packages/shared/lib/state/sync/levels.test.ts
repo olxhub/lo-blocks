@@ -1,12 +1,12 @@
 // @vitest-environment node
 // packages/shared/lib/state/sync/levels.test.ts
 //
-// stateIdsForDefinition: the one filter answering "which state ids in a
-// materialized component scope belong to this definition?" — scoped
+// indexScopeByLeafDefinition: the one index answering "which state ids in
+// a materialized component scope belong to this definition?" — scoped
 // instances are only discoverable from state, never from content.
 
 import { test, expect } from 'vitest';
-import { stateIdsForDefinition } from './levels';
+import { indexScopeByLeafDefinition } from './levels';
 
 const component = {
   'demos/chat': { value: 'plain' },
@@ -18,13 +18,16 @@ const component = {
   Tabs: { activeIndex: 0 },
 };
 
-test('the bare definition key matches itself', () => {
-  expect(stateIdsForDefinition({ 'demos/chat': {} }, 'demos/chat'))
-    .toEqual(['demos/chat']);
+/** What a caller asks the index: the state ids of one definition. */
+const idsOf = (scope: Record<string, unknown> | undefined, definitionId: string) =>
+  indexScopeByLeafDefinition(scope).get(definitionId) ?? [];
+
+test('the bare definition key indexes under itself', () => {
+  expect(idsOf({ 'demos/chat': {} }, 'demos/chat')).toEqual(['demos/chat']);
 });
 
 test('scoped instances of the definition come along, at any depth', () => {
-  expect(stateIdsForDefinition(component, 'demos/chat').sort()).toEqual([
+  expect(idsOf(component, 'demos/chat').sort()).toEqual([
     'demos/chat',
     'demos/list:#2:chat',
     'demos/list:#7:chat',
@@ -33,21 +36,26 @@ test('scoped instances of the definition come along, at any depth', () => {
 });
 
 test('other definitions never match — including their scoped copies', () => {
-  const out = stateIdsForDefinition(component, 'demos/chat');
+  const out = idsOf(component, 'demos/chat');
   expect(out).not.toContain('demos/notes');
   expect(out).not.toContain('demos/list:#2:notes');
   // The CONTAINER is a different definition: its own key would be
   // "demos/list", and no bucket here has that leaf.
-  expect(stateIdsForDefinition(component, 'demos/list')).toEqual([]);
+  expect(idsOf(component, 'demos/list')).toEqual([]);
+  // Each definition gets its own bucket in the same one-pass index.
+  expect(idsOf(component, 'demos/notes').sort())
+    .toEqual(['demos/list:#2:notes', 'demos/notes']);
 });
 
-test('non-StateKey ids map to themselves: they match only on equality', () => {
-  expect(stateIdsForDefinition(component, 'Tabs')).toEqual(['Tabs']);
-  expect(stateIdsForDefinition({ 'studio://course/f.olx': {} }, 'demos/chat'))
-    .toEqual([]);
+test('non-StateKey ids index as themselves: they are found only by equality', () => {
+  expect(idsOf(component, 'Tabs')).toEqual(['Tabs']);
+  expect(idsOf({ 'studio://course/f.olx': {} }, 'demos/chat')).toEqual([]);
+  expect(idsOf({ 'studio://course/f.olx': {} }, 'studio://course/f.olx'))
+    .toEqual(['studio://course/f.olx']);
 });
 
-test('no scope (unseeded instance) → no ids', () => {
-  expect(stateIdsForDefinition(undefined, 'demos/chat')).toEqual([]);
-  expect(stateIdsForDefinition({}, 'demos/chat')).toEqual([]);
+test('no scope (unseeded instance) → empty index', () => {
+  expect(indexScopeByLeafDefinition(undefined).size).toBe(0);
+  expect(indexScopeByLeafDefinition({}).size).toBe(0);
+  expect(idsOf(undefined, 'demos/chat')).toEqual([]);
 });

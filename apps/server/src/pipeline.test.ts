@@ -82,6 +82,31 @@ const levels = (map: Record<string, { level: 'everyone'; delivery: 'events' | 'f
   sharedPolicyFor: async (id: string, field: string) => map[`${id}|${field}`],
 });
 
+/** The REAL level index over the scoped-state fixture content: a list
+ * containing a shared chat block. Used wherever a test writes a SCOPED
+ * state id ("demos/list:#2:chat") — declarations live on the leaf
+ * definition, and the index also checks the id's definition chain against
+ * content, so the container must declare the kid it scopes. */
+const scopedFixtureLevels = () => makeSharedFieldPolicyIndex(
+  async () => ({
+    'demos/list': { v1: { tag: 'DynamicList', kids: [{ type: 'block', id: 'demos/chat' }] } },
+    'demos/chat': { v1: { tag: 'SharedChat' } },
+  }),
+  (tag: string) => (tag === 'SharedChat'
+    ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
+);
+
+/** Content declares the chat block grouped by each user's topic choice
+ * (partitions.ts). The container is NOT grouped — as containers usually
+ * are not — so every reader holds it at `all`. */
+const chatGrouping = {
+  specOf: async (id: string) =>
+    id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
+  groupedBlocksFor: async (pickerKey: string, field: string) =>
+    pickerKey === 'demos/topic_picker' && field === 'activeIndex'
+      ? ['demos/chat'] : [],
+};
+
 test('blob canonical: fetch_blob serves the stored blob', async () => {
   const kvs = new MemoryKVStore();
   await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
@@ -414,19 +439,9 @@ test('scoped instances route by their LEAF definition: level, partition, fan-out
 
   // The REAL level index (not the map stub): declarations live on the
   // leaf DEFINITION, so the scoped instance must resolve through it.
-  const fieldLevels = makeSharedFieldPolicyIndex(
-    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
-    (tag: string) => (tag === 'SharedChat'
-      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
-  );
+  const fieldLevels = scopedFixtureLevels();
   // Grouping is likewise keyed by definition.
-  const grouping = {
-    specOf: async (id: string) =>
-      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
-    groupedBlocksFor: async (pickerKey: string, field: string) =>
-      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
-        ? ['demos/chat'] : [],
-  };
+  const grouping = chatGrouping;
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
@@ -464,6 +479,75 @@ test('scoped instances route by their LEAF definition: level, partition, fan-out
   await Promise.all([runA, runB]);
 });
 
+test('a scoped event reaches LEAF-definition subscribers only, never CONTAINER ones', async () => {
+  // The leak this pins: the fan-out walked the state id's WHOLE definition
+  // chain, so a scoped event also went to subscribers of its container —
+  // and containers are ungrouped, so every reader holds them at `all`
+  // whatever partition they are in (instancesFor). An unpartitioned scoped
+  // write therefore reached every partition's readers at once. The leaf
+  // definition suffices and is partition-correct: it is what the content
+  // fetch subscribed, at the instance that reader's own state resolved to
+  // (found by review 2026-08).
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+  const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
+  const USER_C: AuthUser = { ...USER, user_id: 'Third', safe_user_id: 'guest-Third' as SafeUserId };
+  const SCOPED = 'demos/list:#2:chat';
+
+  const fieldLevels = scopedFixtureLevels();
+  const grouping = chatGrouping;
+
+  const wsA = new FakeWs();
+  const wsB = new FakeWs();
+  const wsC = new FakeWs();
+  const ctxOf = (ws: FakeWs, user: AuthUser): PipelineContext => ({
+    ws: ws as any, user, conn: fakeConn(), kvs, canonical: 'fields',
+    stateRegistry: registry, subscriptions: subs, fieldLevels, grouping,
+  });
+  const runA = runPipeline(ctxOf(wsA, USER));
+  const runB = runPipeline(ctxOf(wsB, USER_B));
+  const runC = runPipeline(ctxOf(wsC, USER_C));
+
+  // B and C both render the list, so each holds the CONTAINER at `all`.
+  // They differ in the kid: B picked Dogs, C never picked and stays at `all`.
+  const dogs = setInstance('topic_picker.activeIndex', '1');
+  wsB.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 1, ts: 1, actor: 'b' })));
+  await new Promise(r => setTimeout(r, 20));
+  subs.subscribe(wsB as any, [subscriptionKey(ALL, 'demos/list'), subscriptionKey(dogs, 'demos/chat')]);
+  subs.subscribe(wsC as any, [subscriptionKey(ALL, 'demos/list'), subscriptionKey(ALL, 'demos/chat')]);
+
+  // A never picked either, so its scoped write lands at `all`.
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'unpartitioned' })));
+  await new Promise(r => setTimeout(r, 20));
+  expect((await registry.read(ALL))!.component[SCOPED].value).toBe('unpartitioned');
+
+  // C hears it — its LEAF subscription is at the instance the write
+  // landed in. B does not: at `all` it holds only the container, which
+  // says nothing about which partition B is reading.
+  expect(wsC.sent.find(m => m.status === 'browser_event')?.detail.value).toBe('unpartitioned');
+  expect(wsB.sent.find(m => m.status === 'browser_event')).toBeUndefined();
+
+  // And the partitioned direction: A picks Cats and writes there. The
+  // container subscription must not carry that into `all` readers either.
+  const before = { b: wsB.sent.length, c: wsC.sent.length };
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    event: 'UPDATE_ACTIVEINDEX', field: 'activeIndex', scope: 'component',
+    id: 'demos/topic_picker', activeIndex: 0, ts: 2, actor: 'a' })));
+  await new Promise(r => setTimeout(r, 20));
+  wsA.emit('message', Buffer.from(JSON.stringify({
+    ...UPDATE, authority: 'shared', id: SCOPED, value: 'cats only', ts: 3 })));
+  await new Promise(r => setTimeout(r, 20));
+  expect(wsB.sent.slice(before.b).filter(m => m.status === 'browser_event')).toEqual([]);
+  expect(wsC.sent.slice(before.c).filter(m => m.status === 'browser_event')).toEqual([]);
+
+  wsA.emit('close'); wsB.emit('close'); wsC.emit('close');
+  await Promise.all([runA, runB, runC]);
+});
+
 test('switching groups drops stale SCOPED self-subscriptions in the old partition', async () => {
   // The bug this pins: a writer self-subscribes under its event's RAW state
   // id, so writing a scoped grouped item subscribes `set:...|demos/list:#2:chat`.
@@ -477,18 +561,8 @@ test('switching groups drops stale SCOPED self-subscriptions in the old partitio
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
   const SCOPED = 'demos/list:#2:chat';
 
-  const fieldLevels = makeSharedFieldPolicyIndex(
-    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
-    (tag: string) => (tag === 'SharedChat'
-      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
-  );
-  const grouping = {
-    specOf: async (id: string) =>
-      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
-    groupedBlocksFor: async (pickerKey: string, field: string) =>
-      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
-        ? ['demos/chat'] : [],
-  };
+  const fieldLevels = scopedFixtureLevels();
+  const grouping = chatGrouping;
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();
@@ -549,7 +623,7 @@ test('a content fetch carries the SCOPED shared buckets, not just the definition
   // client rejoining a shared list got the plain bucket and nothing else
   // — an empty list until someone wrote again. The fetch now includes
   // every bucket whose LEAF definition is a served id (found by review
-  // 2026-08; stateIdsForDefinition in state/sync/levels.ts).
+  // 2026-08; indexScopeByLeafDefinition in state/sync/levels.ts).
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);
   const subs = new SubscriptionRegistry();
@@ -569,8 +643,10 @@ test('a content fetch carries the SCOPED shared buckets, not just the definition
   await p.close();
 
   // The content response names DEFINITIONS — nobody fetches a scoped id.
+  // A page rendering the list renders its kid too, so both are served.
   const fieldState = await stateForContentFetch(
-    registry, subs, USER.safe_user_id, { 'demos/chat': { v1: {} } });
+    registry, subs, USER.safe_user_id,
+    { 'demos/list': { v1: {} }, 'demos/chat': { v1: {} } });
 
   const shared = fieldState!.sharedComponent;
   expect(shared['demos/chat'].value).toBe('plain');
@@ -578,6 +654,72 @@ test('a content fetch carries the SCOPED shared buckets, not just the definition
   expect(shared['demos/list:#7:chat'].value).toBe('scoped 7');
   // Unserved definitions still stay out.
   expect(shared['demos/other']).toBeUndefined();
+});
+
+test('a content fetch carries scoped buckets only for the containers it serves', async () => {
+  // The bound this pins: shared scopes are per INSTANCE and `all` is
+  // deployment-global, so "every bucket whose leaf is a served id" shipped
+  // the chat instances of EVERY list in the deployment to a page that
+  // renders a bare chat. A scoped id rides only when its whole definition
+  // chain is served by this same fetch (found by review 2026-08).
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+
+  const p = new FieldPersister(kvs, ALL, 0);
+  p.stateChanged({
+    system: {}, componentSetting: {}, storage: {},
+    component: {
+      'demos/chat': { value: 'plain' },
+      'demos/list:#2:chat': { value: 'scoped 2' },
+    },
+  } as any);
+  await p.close();
+
+  // A page with a bare chat on it: the list is somebody ELSE's page.
+  const bare = await stateForContentFetch(
+    registry, subs, USER.safe_user_id, { 'demos/chat': { v1: {} } });
+  expect(bare!.sharedComponent['demos/chat'].value).toBe('plain');
+  expect(bare!.sharedComponent['demos/list:#2:chat']).toBeUndefined();
+
+  // The page that DOES render the list gets them.
+  const withList = await stateForContentFetch(
+    registry, subs, USER.safe_user_id,
+    { 'demos/list': { v1: {} }, 'demos/chat': { v1: {} } });
+  expect(withList!.sharedComponent['demos/list:#2:chat'].value).toBe('scoped 2');
+});
+
+test("a content fetch carries the caller's OWN scoped buckets", async () => {
+  // The bug this pins: the per-user half of the fetch matched a retired
+  // "{id}#{qualifier}" dialect, so real scoped keys matched NOTHING and a
+  // user's own answers inside a list never rode a content fetch. The
+  // fetch is the only channel for them (the client adopts server state
+  // only where it has none locally), so a reload emptied the boxes the
+  // user had just filled in (found by review 2026-08).
+  const kvs = new MemoryKVStore();
+  const registry = new UserStateRegistry(kvs);
+  const subs = new SubscriptionRegistry();
+
+  // A previous session's PRIVATE state, in the user's own instance.
+  const p = new FieldPersister(kvs, userInstance(USER.safe_user_id), 0);
+  p.stateChanged({
+    system: {}, componentSetting: {}, storage: {},
+    component: {
+      'demos/chat': { value: 'plain answer' },
+      'demos/list:#2:chat': { value: 'scoped answer' },
+      'demos/other': { value: 'not served' },
+    },
+  } as any);
+  await p.close();
+
+  const fieldState = await stateForContentFetch(
+    registry, subs, USER.safe_user_id,
+    { 'demos/list': { v1: {} }, 'demos/chat': { v1: {} } });
+
+  const own = fieldState!.component;
+  expect(own['demos/chat'].value).toBe('plain answer');
+  expect(own['demos/list:#2:chat'].value).toBe('scoped answer');
+  expect(own['demos/other']).toBeUndefined();
 });
 
 test('switching groups patches SCOPED instances, not just the definition bucket', async () => {
@@ -591,18 +733,8 @@ test('switching groups patches SCOPED instances, not just the definition bucket'
   const USER_B: AuthUser = { ...USER, user_id: 'Other', safe_user_id: 'guest-Other' as SafeUserId };
   const SCOPED = 'demos/list:#2:chat';
 
-  const fieldLevels = makeSharedFieldPolicyIndex(
-    async () => ({ 'demos/chat': { v1: { tag: 'SharedChat' } } }),
-    (tag: string) => (tag === 'SharedChat'
-      ? { value: { name: 'value', level: 'everyone' } } as any : undefined),
-  );
-  const grouping = {
-    specOf: async (id: string) =>
-      id === 'demos/chat' ? 'topic_picker.activeIndex' : undefined,
-    groupedBlocksFor: async (pickerKey: string, field: string) =>
-      pickerKey === 'demos/topic_picker' && field === 'activeIndex'
-        ? ['demos/chat'] : [],
-  };
+  const fieldLevels = scopedFixtureLevels();
+  const grouping = chatGrouping;
 
   const wsA = new FakeWs();
   const wsB = new FakeWs();

@@ -7,29 +7,68 @@
 // The HTTP route is a passthrough to stateForContentFetch.
 
 import type { SafeUserId } from '@/lib/types/identity';
-import { parseDefinitionKey } from '@/lib/types/id-grammar';
+import {
+  parseDefinitionKey, tryParseStateKey, allDefinitionKeysFromStateKey,
+} from '@/lib/types/id-grammar';
 import type { UserStateRegistry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import { parsePartitionSpec, groupFor } from './partitions';
 import {
   ALL, type LevelInstance, userInstance, setInstance, subscriptionKey,
-  isEphemeralNamespaceKey, stateIdsForDefinition,
+  isEphemeralNamespaceKey, indexScopeByLeafDefinition,
 } from './levels';
 
 /**
- * Pick the caller's per-user component buckets that belong to the ids
- * being served. State keys usually equal block ids; scoped variants
- * extend the id (`{id}#{qualifier}`), so prefix matches are included.
+ * The state ids of ONE served definition that this fetch may carry, from
+ * a scope already indexed by leaf definition (levels.ts).
+ *
+ * A served id is a DEFINITION id (a content fetch names definitions) but
+ * state is stored per INSTANCE, so `demos/chat` also answers for every
+ * scoped copy `demos/list:#2:chat` — that is the index's bucket.
+ *
+ * Bounded by the CHAIN, though: a scoped id rides only when every
+ * definition along it (container(s) + leaf) is served by this same fetch.
+ * Scopes are per instance, and the `all` instance is deployment-global —
+ * without the bound, fetching one page that happens to contain `chat`
+ * would ship the chat buckets of every OTHER page's list. Bare keys
+ * (chain = [self]) are unaffected: self is served by construction.
+ */
+function servedStateIdsOf(
+  index: Map<string, string[]>,
+  id: string,
+  servedIds: ReadonlySet<string>,
+): string[] {
+  return (index.get(id) ?? []).filter((stateId) => {
+    // A non-StateKey id (setting tag, storage URI) has no chain — it is
+    // in this bucket only by exact equality with the served id.
+    const key = tryParseStateKey(stateId);
+    return !key || allDefinitionKeysFromStateKey(key).every(d => servedIds.has(d));
+  });
+}
+
+/**
+ * Pick the caller's PER-USER component buckets that belong to the ids
+ * being served — the same definition→instances logic as sharedStateFor
+ * (see servedStateIdsOf), over the caller's own scope.
+ *
+ * This used to match `{id}#{qualifier}` prefixes, a pre-id-grammar
+ * dialect nothing produces: real scoped keys (`demos/list:#2:notes`)
+ * matched nothing, so a user's own scoped answers never rode a content
+ * fetch — and since the client adopts server state only where it has none
+ * locally, and the fetch is the only channel carrying it, a reload lost
+ * them from the screen (found by review 2026-08).
  */
 export function fieldStateForIds(
   scopes: Record<string, any> | null,
   ids: string[],
 ): Record<string, any> | null {
   if (!scopes?.component) return null;
+  const index = indexScopeByLeafDefinition(scopes.component);
+  const servedIds = new Set(ids);
   const component: Record<string, any> = {};
-  for (const key of Object.keys(scopes.component)) {
-    if (ids.some((id) => key === id || key.startsWith(`${id}#`))) {
-      component[key] = scopes.component[key];
+  for (const id of ids) {
+    for (const stateId of servedStateIdsOf(index, id, servedIds)) {
+      component[stateId] = scopes.component[stateId];
     }
   }
   return Object.keys(component).length > 0 ? { component } : null;
@@ -71,9 +110,15 @@ export function instancesFor(
  * `ns/list:#2:chat` alongside the plain `ns/chat`. Picking only the exact
  * id dropped every scoped bucket, so a rejoining client saw an empty
  * shared list. The instance's scope is already read here, so each served
- * id contributes every bucket whose LEAF DEFINITION is that id
- * (stateIdsForDefinition), keyed by its own state id — the plain
- * definition bucket is the special case where the key is the id itself.
+ * id contributes the buckets whose LEAF DEFINITION is that id, keyed by
+ * their own state ids — the plain definition bucket is the special case
+ * where the key is the id itself.
+ *
+ * One index per instance read (levels.ts) answers for every served id at
+ * that instance: one key parse per bucket instead of one per bucket per
+ * served id. The chain bound in servedStateIdsOf keeps the blast radius
+ * to the containers this page actually renders. Both are transitional —
+ * see TODO(demand-loading) in levels.ts.
  */
 async function sharedStateFor(
   registry: UserStateRegistry,
@@ -83,11 +128,16 @@ async function sharedStateFor(
   for (const [id, instance] of instanceOf) {
     byInstance.set(instance, [...(byInstance.get(instance) ?? []), id]);
   }
+  // The bound spans the WHOLE fetch, not one instance: a grouped leaf sits
+  // in the caller's partition while its (ungrouped) container sits at
+  // `all`, and both are served by this response.
+  const servedIds = new Set(instanceOf.keys());
   const sharedComponent: Record<string, any> = {};
   for (const [instance, ids] of byInstance) {
     const scopes = await registry.read(instance);
+    const index = indexScopeByLeafDefinition(scopes?.component);
     for (const id of ids) {
-      for (const stateId of stateIdsForDefinition(scopes?.component, id)) {
+      for (const stateId of servedStateIdsOf(index, id, servedIds)) {
         const bucket = scopes!.component[stateId];
         if (bucket !== undefined) sharedComponent[stateId] = bucket;
       }

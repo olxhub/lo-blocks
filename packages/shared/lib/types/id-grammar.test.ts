@@ -18,7 +18,8 @@ import {
   scopedStateKeyForBlock, stateKeyForGlobalRef,
   qualifyDefinitionRef, leafDefinitionKeyFromStateKey, leafDefinitionIdFor, allDefinitionKeysFromStateKey,
   tryParseStateKey,
-  asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
+  scopePrefixOfStateKey, siblingScopedKey,
+  asIdPrefix, asStateKey, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
   validateAnyDefinitionRef, validateAnyStateRef,
@@ -661,6 +662,43 @@ describe("leafDefinitionKeyFromStateKey", () => {
   it("deeply nested", () => {
     expect(String(leafDefinitionKeyFromStateKey(parseStateKey("physics/outer:#0:inner:#1:leaf"))))
       .toBe("physics/leaf");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// scopePrefixOfStateKey — the scope a key lives in
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The prefix everything inside one scoping container shares. It feeds
+// siblingScopedKey (grading topology, staticTargetProps), so a WRONG
+// prefix silently addresses another block's state — hence the fail-safe
+// on input the brand cannot vouch for.
+
+describe("scopePrefixOfStateKey", () => {
+  it("scoped key → its prefix", () => {
+    expect(String(scopePrefixOfStateKey(parseStateKey("CONTENT/list:#0:answer"))))
+      .toBe("list:#0");
+    expect(String(scopePrefixOfStateKey(parseStateKey("physics/outer:#0:inner:#1:leaf"))))
+      .toBe("outer:#0:inner:#1");
+  });
+
+  it("unscoped key → undefined (no scope to share)", () => {
+    expect(scopePrefixOfStateKey(parseStateKey("CONTENT/answer"))).toBeUndefined();
+  });
+
+  it("container-own-key shape → undefined, not a corrupt prefix", () => {
+    // "list:#0" is not a canonical StateKey — the grammar has no
+    // container-own-key shape — but the brand is compile-time only, so an
+    // unvalidated cast at a boundary can deliver one. Its leaf ("list")
+    // is an interior segment: stripping it blindly yields "li". Answering
+    // undefined (rather than throwing out of splitNs) keeps the caller in
+    // charge: an unscoped sibling is wrong-but-visible, "li:" is not.
+    const notCanonical = asStateKey("CONTENT/list:#0");
+    expect(scopePrefixOfStateKey(notCanonical)).toBeUndefined();
+    // ...and the sibling built from it stays unscoped rather than
+    // pointing at a fabricated "li:" scope.
+    expect(String(siblingScopedKey(notCanonical, parseDefinitionKey("CONTENT/grader"))))
+      .toBe("CONTENT/grader");
   });
 });
 
