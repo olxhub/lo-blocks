@@ -29,6 +29,86 @@
 // caches below make the common case — folding forward along one history —
 // amortized O(1). They are WeakMaps keyed by the stored value's identity,
 // so they hold nothing once Redux drops a state.
+//
+// ===========================================================================
+// KNOWN GAPS — read this before extending the document layer
+// ===========================================================================
+//
+// The pilot this shipped for is single-writer-per-document in practice, and
+// documents live weeks, not years. Everything below is sound at that scale
+// and has a known failure at a larger one. None of it is load-bearing for
+// correctness today; all of it is load-bearing for the version after.
+//
+// TODO(epochs): a document has no INCARNATION identity, and three separate
+// gaps are all really this one gap.
+//
+// An epoch would name "which authored baseline this document descends
+// from" — something like { format: 1, epoch: string, update: JsonUpdate }
+// as the stored value, where the epoch is derived from the authored
+// starting text (and bumped deliberately by a reset/migration). Updates
+// from different epochs would never be handed to applyUpdate together;
+// instead the integration picks a policy — keep the learner's document,
+// start a new one, or rebase — BEFORE calling the CRDT. The three gaps:
+//
+//   1. Seed identity (see SEED_CLIENT). Every document seeded from
+//      authored default text claims client 0, clocks 0..n-1. Identical
+//      default text therefore converges, which is the point. DIFFERENT
+//      default text claims the SAME ids with different content, and the
+//      CRDT correctly refuses to merge the two histories.
+//
+//      Reachable only on a SHARED document whose two first-ever edits
+//      straddle an author's edit to the default text: per-user documents
+//      never re-seed, because the authored text is consulted only when no
+//      document exists yet. It fails closed — docField's reducer drops the
+//      rejected update and warns — so it loses an edit rather than
+//      corrupting a document. Do NOT "fix" this by deriving distinct
+//      client ids from the seed text: distinct ids make the two baselines
+//      concurrent INSERTIONS, and they merge into a document containing
+//      both default texts concatenated. Silent mismerge is worse than a
+//      loud refusal. The fix is an epoch.
+//
+//   2. Tombstone sunsetting. `gc: true` reclaims deleted payload and
+//      coalesces tombstones into compact clock ranges, but IDs stay
+//      addressable forever — that is exactly what makes a long-offline
+//      replica merge correctly, and upstream is explicit that it does not
+//      pretend arbitrary IDs can be forgotten (upstream COMPATIBILITY.md
+//      states the representation has no formal worst-case history
+//      bound). So a document's ID structure grows monotonically with edit
+//      count, not with text length. Normal typing compacts well and a term
+//      of essay writing is fine; a document edited by a script, a long
+//      autosave loop, or years of accumulation is not. A hard bound needs
+//      snapshot-and-rebase — replace the document with a fresh one and
+//      rebase any stale offline text onto it — which IS an epoch bump.
+//
+//   3. Cursor anchor validity (see the cursor TODO in
+//      state/bindings/useInputField.ts). A cursor anchored to a character
+//      ID must not resolve against a different incarnation of the
+//      document. The anchor needs to name its epoch.
+//
+// TODO(fold-cost): every fold re-encodes the WHOLE document.
+// `foldDocUpdate` calls `encodeStateAsUpdate()` so Redux gets a new
+// immutable value, which costs O(structs) serialization per keystroke —
+// measured at ~6ms on a 10k-character document fragmented by a few hundred
+// scattered edits, and it grows with fragmentation rather than with text
+// length. This is the most expensive thing on the keystroke path and it
+// dominates everything the cursor layer does by two orders of magnitude.
+// Directions: keep the live `Doc` as the stored value behind an opaque
+// handle and serialize lazily (at persistence and wire boundaries only),
+// or store a compact op log and re-encode on a schedule. Either way the
+// reducer must keep returning a NEW value per edit, since field equality
+// is referential.
+//
+// TODO(sync-fold): `heads` below exists only because the local fold is
+// asynchronous. The right fix is in lo_event: have the Redux logger fold
+// SYNCHRONOUSLY on enqueue, with wire and persistence delivery staying
+// async, so local reduction is exactly-once and the store is never behind
+// the DOM. Then `heads`, HEAD_TTL_MS, `writerBase`, `forgetWriterHead`,
+// the `remember` parameter here, and `writeKey` in state/fieldWrites.ts
+// all delete. Do NOT instead dispatch the event directly to the store
+// alongside logEvent: the queued echo then folds a second time, which
+// doubles the re-encode cost above, and the event's `extras.selection`
+// rides along as a plain overwrite that would regress to the older
+// position when the echo lands.
 
 import { Doc, mergeUpdates } from './text';
 import type { JsonUpdate } from './text';
@@ -59,6 +139,11 @@ const FOLD_CLIENT = 0;
  *
  * The same ID as FOLD_CLIENT, and compatibly so: clocks 0..length-1 belong
  * to the seed, and a folding document never mints an operation at all.
+ *
+ * Correct only while every replica seeds from the SAME authored text —
+ * see TODO(epochs) gap 1 in the header for what happens when an author
+ * edits that text mid-pilot, and for why deriving distinct client ids from
+ * the seed text makes it worse rather than better.
  */
 const SEED_CLIENT = 0;
 

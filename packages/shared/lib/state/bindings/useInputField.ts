@@ -38,6 +38,86 @@
 // through — and the learner's own edit, already reflected in the ref, is
 // not double-counted.
 //
+// ===========================================================================
+// TODO(cursor): cursor state is the weakest part of this binding
+// ===========================================================================
+//
+// Good enough for one learner in one tab, which is the pilot. Flaky the
+// moment two people edit one document, and the shape below is why.
+//
+// THREE DIFFERENT THINGS are conflated into the single `selection` field:
+//
+//   (a) The live caret of a FOCUSED input. Not shared state at all. It is
+//       the ref above, and it must never round-trip through anything
+//       async — that was the "caret jumps backwards while typing" bug.
+//
+//   (b) Cursor HISTORY, for replay and analytics. Integer offsets are
+//       sound here, and this is worth stating because it is not obvious:
+//       replay folds events in order, so each event's offset is
+//       interpreted against the document as of that event. Integers only
+//       become unsound for LIVE concurrent editing and for DURABLE
+//       positions, neither of which replay is.
+//
+//   (c) Other people's cursors, and durable bookmarks. Needs anchors, not
+//       offsets — see below.
+//
+// Known defects, roughly in order of how cheaply they can be fixed:
+//
+//   1. ONE SLOT PER BUCKET, not per field. Co-bucketed inputs share
+//      `selection` and disambiguate by stamping `field`, so the last
+//      input to be typed in owns the slot and the others read a cursor
+//      that is not theirs (they correctly ignore it, and so restore
+//      nothing). Two tabs of one user overwrite each other the same way.
+//
+//   2. MOVES ARE NOT RECORDED. Only `onChange` dispatches; the `onSelect`
+//      handler below updates the ref only. So clicking and arrowing are
+//      invisible to replay — a learner who reads back through their essay
+//      leaves no trace. This predates the CRDT work (there was no
+//      `onSelect` handler at all before), but it is more visible now.
+//      Cursor moves are high-frequency, so this wants the encode axis
+//      (FieldInfo.encoder, state/encode.ts) — debounce or trace — rather
+//      than an event per mousemove.
+//
+//   3. INTEGERS ARE UNSOUND UNDER CONCURRENCY. An offset is meaningful
+//      only for the document version it was measured in. Before docFields
+//      were CRDTs this was safe — one writer, whole-string LWW, nothing
+//      could move the text underneath an offset. It is not safe now, and
+//      it is why `carryCaret` above has to exist at all.
+//
+//      The fix is to anchor to a CHARACTER rather than to a count:
+//      { after: ID | null, assoc: 'before' | 'after', epoch } — the ID of
+//      the character the cursor follows, which is globally unique and
+//      permanent. Peers inserting before or after it need no transform;
+//      a deleted anchor stays addressable as a tombstone and resolves by
+//      walking toward the associated side. This belongs in the CRDT layer
+//      as a real relative-position API (crdt/docText.ts), NOT
+//      reconstructed here — upstream ships the forward half as
+//      `Text._idAt` but marks it an instructional primitive, so both
+//      directions want writing and testing properly. Measured cost of the
+//      reverse walk on a cached document is ~0.02ms at 10k characters,
+//      about 100x cheaper than the diffing it would replace.
+//
+//      Note this is ADDITIVE: anchors reference IDs that already exist in
+//      every stored document, so adopting them needs no migration and no
+//      change to JsonUpdate or SPLICE_INPUT. An old integer cursor read by
+//      an anchor-aware client simply fails to resolve and resets once.
+//
+//   4. NON-DOC FIELDS HAVE NO IDS. LineInput, NumberInput, ColorField and
+//      friends are plain stateFields holding strings, where anchors cannot
+//      exist. Integers remain correct for them (single writer, no
+//      concurrent edits), so the binding will need both paths — which is
+//      a good reason to put the anchor logic behind a field-kind check
+//      rather than assuming every input is a document.
+//
+// The deeper shape problem, if this is ever done properly: the field
+// system models `field -> value`, but a cursor is `(field, client) ->
+// position`. That shape does not exist, which is what defect 1 really is.
+// It does NOT have to be built, though: (b) can live entirely in the
+// EVENT log rather than in folded state, and (c) is presence — ephemeral,
+// TTL'd, excluded from persistence — so neither needs an unbounded
+// per-client map inside a student's persisted document state. Adding one
+// would grow without bound, since client ids are per session.
+//
 
 'use client';
 
@@ -141,6 +221,10 @@ export function useInputField(
   // without producing an event. Tracking `select` keeps the local record
   // current whatever moved it, so an edit arriving from a peer transforms
   // the caret the learner actually has.
+  //
+  // Deliberately ref-only — it does NOT dispatch. An event per caret move
+  // is too frequent to log raw, and the encode axis is the right home for
+  // it; see TODO(cursor) defect 2 in the header.
   const onSelect = useCallback((event: any) => {
     caret.current = {
       start: event.target.selectionStart,

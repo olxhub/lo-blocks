@@ -37,6 +37,12 @@
 // write path must not fold, or the local fold would be a no-op here and
 // a real merge everywhere else.
 //
+// KNOWN GAPS live with the representation, in crdt/docText.ts: document
+// epochs (which subsume seed identity, tombstone sunsetting, and cursor
+// anchor validity), the per-keystroke re-encode cost, and the
+// asynchronous local fold that `heads` works around. Cursor gaps are in
+// state/bindings/useInputField.ts. Read both before extending this.
+//
 import { scopes } from '../../scopes';
 import {
   docText, docSpliceUpdate, foldDocUpdate, isDocUpdate, writerBase,

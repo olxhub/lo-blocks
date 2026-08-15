@@ -314,6 +314,15 @@ export const updateResponseReducer = (state = initialState, action) => {
     // event. The explicit envelope replaces both failure modes.)
     const extra: Record<string, any> = foldExtras(action.extras);
 
+    // TODO(extras-drop): every branch below bails with
+    // `if (Object.keys(patch).length === 0) return state` when the FIELD
+    // reducer has nothing to change, and that discards `extra` with it —
+    // so an event whose value fold is a no-op silently loses its cursor.
+    // Reachable whenever a reducer declines: a stale LWW write, a
+    // duplicate LOG_APPEND, a docField update that was malformed or
+    // rejected. The bail exists to preserve state identity (React
+    // re-renders on a new object), so the fix is to bail only when the
+    // extras are empty TOO, and otherwise fold them on their own.
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the plain-spread switch below.
     switch (scope) {
