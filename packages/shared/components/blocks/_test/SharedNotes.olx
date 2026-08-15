@@ -1,12 +1,15 @@
 <!-- Shared-field demo (fields-design 2c): open this in two browsers (or a
      normal + private window — DIFFERENT users, unlike the same-user tab
-     test) and type. Everyone edits one value; last write wins. -->
-<Vertical id="SharedNotesDemo" title="SharedNotes — one value for everyone">
+     test) and type. Everyone edits one document: type in different places
+     at once and both edits survive; type in the same place and the
+     characters interleave the same way for everybody. -->
+<Vertical id="SharedNotesDemo" title="SharedNotes — one document for everyone">
   <Markdown id="sn_intro">
 ## Shared notes
 
 This text is **shared across all users**: open the page as two different
-users and both edit the same value.
+users and both edit it at the same time. Nobody's sentence is overwritten
+— the edits merge.
   </Markdown>
   <SharedNotes id="sn_notes"/>
 </Vertical>

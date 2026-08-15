@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, WifiOff } from 'lucide-react';
 import * as lo_event from 'lo_event';
 import { useConnected, useSaved } from '@/lib/state';
+import { onDocumentFault } from '@/lib/crdt/docText';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
 
@@ -51,9 +52,20 @@ export interface Fatal { code: string; message: string }
 
 export const FATAL_MESSAGES: Record<string, string> = {
   NOT_ACKING: 'Saving isn’t working right now — the server isn’t confirming your work. Your work is held on this device; keep this page open and try again later.',
+  DOCUMENT_FAULT: 'This page is out of sync, and edits to the text on it can no longer be saved. Reload to get the current version — anything typed here since the problem started will be lost.',
 };
 export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
 export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+
+/**
+ * Fatals that RELOADING fixes, which is not most of them — the advice is
+ * per-code and sometimes opposite. NOT_ACKING holds the work in an on-device
+ * queue and tells the student to keep the page open, so offering a reload
+ * there would invite them to discard exactly what is being protected. A
+ * document fault is the reverse: the copy in this tab is the broken thing,
+ * and reloading is the whole remedy.
+ */
+export const FATAL_RELOADABLE = new Set(['DOCUMENT_FAULT']);
 
 // --- symptom detector -------------------------------------------------------
 //
@@ -146,6 +158,22 @@ function useNotAckingFatal(connected: boolean | null): Fatal | null {
   return fatal;
 }
 
+/**
+ * Fatal from a document the CRDT refused (lib/crdt/docText.ts).
+ *
+ * Unlike the NOT_ACKING detector above, this needs no sampling and no
+ * heuristic: the fold either merged or it did not. It reports directly,
+ * and clears itself if the same place folds again — which is what happens
+ * when reconnecting adopts the stored copy and repairs this client.
+ */
+function useDocumentFaultFatal(): Fatal | null {
+  const [faults, setFaults] = useState<readonly string[]>([]);
+  useEffect(() => onDocumentFault(setFaults), []);
+  return faults.length > 0
+    ? { code: 'DOCUMENT_FAULT', message: fatalMessage('DOCUMENT_FAULT') }
+    : null;
+}
+
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
   connected: boolean | null;
@@ -162,13 +190,18 @@ export interface ConnectionStatus {
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
-  const fatal = useNotAckingFatal(connected);
+  const notAcking = useNotAckingFatal(connected);
+  const documentFault = useDocumentFaultFatal();
   return {
     connected,
     saveStatus,
     persists: connected !== null,
     offline: connected === false,
-    fatal,
+    // A document fault takes precedence: it is a certainty rather than a
+    // symptom, and its remedy (reload) contradicts NOT_ACKING's advice, so
+    // showing the weaker diagnosis would tell the student to sit and wait
+    // for something that will never resolve on its own.
+    fatal: documentFault ?? notAcking,
   };
 }
 
@@ -196,29 +229,40 @@ export function SaveIndicator({
 }
 
 /**
- * Inline offline notice: WifiOff icon + the standard wording. Carries no
- * background of its own — the caller supplies the container styling (StatusBar
- * uses a full-width banner).
+ * Which page-stopping banner to show, or null. Pure, so the precedence is
+ * testable without React and StatusBar holds no policy.
+ *
+ * Fatal outranks offline: "offline" promises the work is held and will sync
+ * on reconnect, which a fatal state cannot keep.
  */
-export function OfflineNotice({ className = '' }: { className?: string }) {
-  return (
-    <span className={`flex items-center gap-2 ${className}`}>
-      <WifiOff className="w-4 h-4" />
-      {OFFLINE_MESSAGE}
-    </span>
-  );
+export function blockingAlert(status: ConnectionStatus) {
+  const { fatal } = status;
+  if (fatal) {
+    return {
+      icon: AlertTriangle,
+      message: fatalMessage(fatal.code),
+      reloadable: FATAL_RELOADABLE.has(fatal.code),
+    };
+  }
+  if (status.offline) {
+    return { icon: WifiOff, message: OFFLINE_MESSAGE, reloadable: false };
+  }
+  return null;
 }
 
-/**
- * Inline fatal notice: AlertTriangle + FATAL_MESSAGES copy (never a raw
- * diagnostic). Like OfflineNotice, it carries no background of its own — the
- * caller supplies the container styling.
- */
-export function FatalNotice({ message, className = '' }: { message: string; className?: string }) {
+/** The dim is deliberate: it discourages working, rather than only reporting. */
+export function BlockingBanner({ alert }: { alert: NonNullable<ReturnType<typeof blockingAlert>> }) {
+  const { icon: Icon, message, reloadable } = alert;
   return (
-    <span className={`flex items-center gap-2 ${className}`}>
-      <AlertTriangle className="w-4 h-4" />
-      {message}
-    </span>
+    <div className="sticky top-0 z-50 print:hidden">
+      <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center items-center gap-3">
+        <span className="flex items-center gap-2"><Icon className="w-4 h-4" />{message}</span>
+        {reloadable && (
+          <button type="button" onClick={() => window.location.reload()}
+            className="underline underline-offset-2 font-semibold whitespace-nowrap">Reload</button>
+        )}
+      </div>
+      <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
+    </div>
   );
 }

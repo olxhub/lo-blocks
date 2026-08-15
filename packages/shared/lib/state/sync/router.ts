@@ -165,8 +165,9 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
   if (ownInstance) {
     // A user instance's devices are its implicit subscribers: relay to
     // the sender's other tabs/devices (origin excluded — it already
-    // applied the event optimistically; requires tab-sync off, or
-    // siblings would double-apply RGA splices).
+    // applied the event optimistically, and the field folds are all
+    // idempotent, so a sibling that also hears it over BroadcastChannel
+    // converges rather than doubling).
     entry.broadcastEvent(event, session.origin);
     if (session.grouping && event.id && event.field) {
       const regrouped = await session.grouping.groupedBlocksFor(event.id, event.field);

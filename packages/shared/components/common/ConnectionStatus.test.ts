@@ -5,7 +5,11 @@
 // whether a stuck outbox is a fatal delivery failure or ordinary churn.
 //
 import { describe, test, expect } from 'vitest';
-import { foldNotAcking, NOT_ACKING_WINDOW_MS, POLL_MS, type NotAckingSample } from './ConnectionStatus';
+import {
+  foldNotAcking, NOT_ACKING_WINDOW_MS, POLL_MS, type NotAckingSample,
+  blockingAlert, FATAL_MESSAGES, FATAL_FALLBACK, OFFLINE_MESSAGE,
+  type ConnectionStatus,
+} from './ConnectionStatus';
 
 /** Connected samples, one every POLL_MS, with the given outbox depths. */
 function connectedRun(counts: number[], t0 = 0): NotAckingSample[] {
@@ -82,5 +86,47 @@ describe('not-acking detector', () => {
       Array.from({ length: polls(NOT_ACKING_WINDOW_MS) }, (_, i) => i + 1),
     );
     expect(foldNotAcking(samples).fatal).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Which blocking banner shows. Pure, so it needs no React.
+// ---------------------------------------------------------------------------
+
+const status = (over: Partial<ConnectionStatus> = {}): ConnectionStatus => ({
+  connected: true, saveStatus: 'saved', persists: true, offline: false, fatal: null, ...over,
+});
+
+describe('blocking banner', () => {
+  test('shows nothing when connected and healthy', () => {
+    expect(blockingAlert(status())).toBeNull();
+  });
+
+  test('shows the offline notice, with no reload — reloading does not reconnect', () => {
+    expect(blockingAlert(status({ connected: false, offline: true }))).toMatchObject({
+      message: OFFLINE_MESSAGE, reloadable: false,
+    });
+  });
+
+  test('a fatal outranks offline, since "will sync later" is a promise it cannot keep', () => {
+    const fatal = { code: 'NOT_ACKING', message: 'ignored — copy comes from the code' };
+    expect(blockingAlert(status({ offline: true, fatal }))).toMatchObject({
+      message: FATAL_MESSAGES.NOT_ACKING, reloadable: false,
+    });
+  });
+
+  test('offers reload only where reloading is the remedy', () => {
+    // A document fault: this tab's copy is the broken thing.
+    expect(blockingAlert(status({ fatal: { code: 'DOCUMENT_FAULT', message: '' } })))
+      .toMatchObject({ message: FATAL_MESSAGES.DOCUMENT_FAULT, reloadable: true });
+    // NOT_ACKING holds work in an on-device queue — reloading would discard it.
+    expect(blockingAlert(status({ fatal: { code: 'NOT_ACKING', message: '' } })))
+      .toMatchObject({ reloadable: false });
+  });
+
+  test('an unknown fatal code still gets student-facing copy, never a raw diagnostic', () => {
+    const alert = blockingAlert(status({ fatal: { code: 'WAT', message: 'ETIMEDOUT at socket.js:42' } }));
+    expect(alert!.message).toBe(FATAL_FALLBACK);
+    expect(alert!.reloadable).toBe(false);
   });
 });

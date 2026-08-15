@@ -16,7 +16,7 @@
 // Usage in components: `useField(props, props.fields.value)`
 //
 // Fields belong to blocks — two blocks can have a "value" field with different
-// storage types (plain string vs RgaDoc). The global registry is for convenience
+// storage types (plain string vs JsonUpdate). The global registry is for convenience
 // lookups only (fieldByName), not for enforcement.
 //
 import { Scope, scopes } from '../state/scopes';

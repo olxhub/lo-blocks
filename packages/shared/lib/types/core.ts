@@ -312,7 +312,7 @@ export type FileSystemPath = string & { __brand: 'FileSystemPath', __safe: true 
 // reduced and merged across peers.
 //
 // Fields belong to blocks, not to a global registry. Two blocks can have a
-// "value" field with different storage types (plain string vs RgaDoc).
+// "value" field with different storage types (plain string vs JsonUpdate).
 //
 // Design direction: each field type (plain, doc, set, counter, ...) will
 // carry its own reducer and merge function, enabling:
@@ -416,7 +416,7 @@ export interface FieldInfo {
   schema?: z.ZodType;
 
   /** Materialize raw Redux value → consumer-facing value. Default: identity.
-   *  Examples: RgaDoc → string, SetDoc → Set, CounterDoc → number.
+   *  Examples: JsonUpdate → string, SetDoc → Set, CounterDoc → number.
    *  Must be a pure function. Called AFTER useSelector equality check, never inside it. */
   read?: (raw: RawFieldValue<any>) => any;
 
@@ -430,13 +430,24 @@ export interface FieldInfo {
    *
    *  Examples:
    *  - Plain field: (_, val) => [{ event: 'UPDATE_VALUE', payload: { value: val } }]
-   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { index, deleteCount, inserted } }]
+   *  - Doc field: (doc, text) => [{ event: 'SPLICE_INPUT', payload: { update } }]
    *  - Set field: not a single write fn — needs add/remove/clear operations
    *    (will be exposed through useField API, not write)
    *
+   *  `key` identifies the FIELD INSTANCE being written (the same address
+   *  the event is dispatched to). A write that has to remember something
+   *  between calls needs it, because oldRaw is a snapshot the caller may
+   *  already have run ahead of and two instances of one field share
+   *  everything else. docField keeps its in-flight document under it (see
+   *  crdt/docText.ts); stateless writes ignore it.
+   *
    *  Returns an array of WriteResult — usually one event, but some operations
    *  may produce multiple (e.g., clear + insert). Empty array = no-op. */
-  write?: (oldRaw: RawFieldValue<any>, newValue: any) => WriteResult[];
+  write?: (
+    oldRaw: RawFieldValue<any>,
+    newValue: any,
+    context?: { key?: string },
+  ) => WriteResult[];
 
   /** Field-level reducer. Receives the component's state object and returns a
    *  patch to merge back. The main reducer routes events to field.reduce based
@@ -492,7 +503,7 @@ export interface FieldInfo {
   //   CRDT merge function for reconciling divergent state.
   //   Used when: syncing offline edits, collaborative editing, server-side replay.
   //   Plain (LWW): (local, remote) => remote.ts > local.ts ? remote : local
-  //   Doc (RGA): (local, remote) => rgaMerge(local, remote)
+  //   Doc (sequence): (local, remote) => mergeDocUpdates([local, remote])
   //   Set (OR-Set): (local, remote) => orSetMerge(local, remote)
   //   Counter (G-Counter): (local, remote) => gCounterMerge(local, remote)
   // ---------------------------------------------------------------------------

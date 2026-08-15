@@ -55,8 +55,9 @@ export function groupFor(
   const value = userScopes?.component?.[spec.pickerKey]?.[spec.field];
   if (value === undefined || value === null || value === '') return undefined;
   // LWW stateFields store the bare value; structured values stringify.
-  // (docField pickers are unsupported: raw RgaDoc objects would make a
-  // meaningless key — declare the picker as a stateField.)
+  // (docField pickers are unsupported: a document's raw value is its
+  // update log, which would make a meaningless key — and prose is not
+  // what a partition is keyed by. Declare the picker as a stateField.)
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
 

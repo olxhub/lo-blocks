@@ -6,7 +6,7 @@
 //   RawFieldValue<T> --[field.read]--> T (internal) --[level-3 gate, stamped]--> ObservableValue<T>
 //      storage                          the black box                             exported / final
 //
-// RawFieldValue is the storage representation (an RgaDoc, a SetDoc, an LWW
+// RawFieldValue is the storage representation (a JsonUpdate, a SetDoc, an LWW
 // cell). ObservableValue is a block's FINAL, exportable value: what level 3
 // returns after the blueprint getter (or getterless decode) has run. The
 // unbranded middle is deliberate: if you hold a plain T from a field read,

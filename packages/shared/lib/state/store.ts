@@ -39,6 +39,7 @@ import { consumeCustomEvent } from 'lo_event/util';
 import { scopes, Scope } from './scopes';
 import { PENDING_GRADE_TIMEOUT_EVENT } from '../grading/pendingTimeout';
 import { commonFields } from './commonFields';
+import { mergeDocFields, hasMergeableDoc } from '../crdt/merge';
 import type { FieldInfo, Fields, AppState } from '../types';
 import {
   olxjsonReducer,
@@ -253,19 +254,42 @@ export const updateResponseReducer = (state = initialState, action) => {
   // - Shared fields (`sharedComponent`): server-authoritative; merge at
   //   FIELD granularity into whatever bucket exists — everyone reads one
   //   truth, and this session's copy may be stale the moment it loads.
+  //
+  // DOCUMENTS are the exception to both, and the reason is that neither
+  // rule is answering a question a document has. Picking a side is right
+  // for a register — one of the two values is what the learner meant —
+  // but two copies of a document are two sets of EDITS, and the loser's
+  // paragraphs are simply gone. The stored copy can hold an essay from
+  // last week that this session has never seen; the local copy can hold
+  // the sentence typed while the fetch was in flight. Both are merged.
+  // See crdt/merge.ts.
   if (eventType === ADOPT_FIELD_STATE) {
     const local = state.component ?? {};
     const incoming: Record<string, any> = action.fieldState?.component ?? {};
-    const adopted = Object.fromEntries(
-      Object.entries(incoming).filter(([key]) => !(key in local)),
-    );
     const shared: Record<string, any> = action.fieldState?.sharedComponent ?? {};
-    if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0) {
+    const adopted: Record<string, any> = {};
+    const reconciled: Record<string, any> = {};
+    for (const [key, bucket] of Object.entries(incoming)) {
+      if (!(key in local)) adopted[key] = bucket;
+      else if (hasMergeableDoc(local[key], bucket)) {
+        // 'take-other' only for documents that cannot merge at all: a local
+        // document the stored one refuses is dead — nothing built on it will
+        // ever persist — so this is the one reconciliation that must NOT
+        // prefer local. Mergeable documents (the normal case) still merge,
+        // and every non-document field keeps local-wins untouched.
+        reconciled[key] = mergeDocFields(local[key], bucket, 'take-other');
+      }
+    }
+    if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0
+      && Object.keys(reconciled).length === 0) {
       return state;
     }
-    const component = { ...adopted, ...local };
+    const component = { ...adopted, ...local, ...reconciled };
     for (const [key, bucket] of Object.entries(shared)) {
-      component[key] = { ...component[key], ...(bucket as Record<string, any>) };
+      component[key] = mergeDocFields(
+        { ...component[key], ...(bucket as Record<string, any>) },
+        component[key],
+      );
     }
     return { ...state, component };
   }
@@ -295,6 +319,15 @@ export const updateResponseReducer = (state = initialState, action) => {
     // event. The explicit envelope replaces both failure modes.)
     const extra: Record<string, any> = foldExtras(action.extras);
 
+    // TODO(extras-drop): every branch below bails with
+    // `if (Object.keys(patch).length === 0) return state` when the FIELD
+    // reducer has nothing to change, and that discards `extra` with it —
+    // so an event whose value fold is a no-op silently loses its cursor.
+    // Reachable whenever a reducer declines: a stale LWW write, a
+    // duplicate LOG_APPEND, a docField update that was malformed or
+    // rejected. The bail exists to preserve state identity (React
+    // re-renders on a new object), so the fix is to bail only when the
+    // extras are empty TOO, and otherwise fold them on their own.
     // Scope-aware: read from and write to the correct state bucket,
     // mirroring the plain-spread switch below.
     switch (scope) {
@@ -578,9 +611,12 @@ function configureStore({
   ]);
   const syncFilter = (action: any): boolean => {
     // Server-fanned events must not re-broadcast: sibling tabs have their
-    // own sockets and receive the fan-out directly — a BroadcastChannel
-    // copy would double-apply (RGA splices duplicate text). This guard
-    // matters only if tab-sync is ever re-enabled alongside fan-out.
+    // own sockets and receive the fan-out directly, so a BroadcastChannel
+    // copy is redundant traffic and an echo loop waiting to happen. Every
+    // CRDT fold here is idempotent — document updates, log appends by
+    // opId, LWW registers — so a duplicate is survivable rather than
+    // corrupting, but it should still not be sent. This guard matters only
+    // if tab-sync is ever re-enabled alongside fan-out.
     if (action?.__fromServer) return false;
     if (action?.redux_type !== 'EMIT_EVENT' || typeof action.payload !== 'string') return true;
     try { return !CONTENT_EVENTS.has(JSON.parse(action.payload).event); }

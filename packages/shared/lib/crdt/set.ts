@@ -19,7 +19,7 @@
 //
 // Relationship to other CRDTs in this directory:
 //   - lww.ts: register CRDT for single values (used by stateField)
-//   - rga.ts: sequence CRDT for collaborative text (used by docField)
+//   - text/: sequence CRDT for collaborative text, via docText.ts (used by docField)
 //   - set.ts: set CRDT for add/remove sets (used by setField)
 //   All are plain JS objects, Redux-serializable, no WASM or binary formats.
 //

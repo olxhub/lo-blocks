@@ -45,7 +45,7 @@ const EMPTY_CONTEXT: ContextData = {
 // Bucket materialization
 // ---------------------------------------------------------------------------
 // The view a DSL reference sees is the block's OBSERVABLE state: stored
-// values decoded through field.read (e.g. RgaDoc → string), overlaid with
+// values decoded through field.read (e.g. JsonUpdate → string), overlaid with
 // the block's computed fields (LoBlock.selectors — the getter half of the
 // getter/setter pattern; grading state is the canonical case). Generic:
 // this module knows nothing about grading — capabilities arrive as data on
@@ -109,7 +109,7 @@ function materializeComponentState(
  * Hook that subscribes to all referenced values from Redux.
  *
  * Returns a ContextData object suitable for passing to evaluate().
- * Field values are materialized via field.read (e.g., RgaDoc → string).
+ * Field values are materialized via field.read (e.g., JsonUpdate → string).
  *
  * @param props - Component props (needed for ID resolution)
  * @param refs - Structured references to subscribe to
@@ -153,7 +153,7 @@ export function useReferences(props: any, refs: References): ContextData {
  * Can be used outside of React hooks.
  *
  * Field values are materialized via field.read when the block's field definition
- * has a read transform (e.g., docField stores RgaDoc, materializes to string).
+ * has a read transform (e.g., docField stores JsonUpdate, materializes to string).
  * Materialization is cached per raw state object for referential stability.
  *
  * @param state - Redux state
