@@ -5,7 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { useFieldState } from '@/lib/state';
 import { useBlock, useKidsJson } from '@/lib/player/client/render';
-import { getBlockByOLXId } from '@/lib/blocks';
+import { getBlockByDefinitionRef } from '@/lib/blocks';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { StateRef } from '@/lib/types';
 import ExpandIcon from '@/components/common/ExpandIcon';
@@ -14,23 +14,21 @@ import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function CourseContent({ props, selectedChild }) {
-  // selectedChild is a bare block id read out of the parsed section structure
-  // (never through the OLX parser's attribute qualification). useBlock expects
-  // a fully-qualified StateKey, so qualify it against this block's namespace —
-  // the same thing getBlockByOLXId does internally, and mirroring
-  // _NavigatorReadingDetail and the other dynamic-ref consumers.
+  // selectedChild is a DefinitionKey read from the parsed section structure.
+  // useBlock expects a StateKey; stateKeyForGlobalRef preserves its namespace
+  // while establishing that runtime identity.
   const stateKey = stateKeyForGlobalRef(selectedChild as StateRef, props.runtime.ns);
   const { block } = useBlock(props, stateKey);
   return <>{block}</>;
 }
 
-// Compute the first selectable (and currently-visible) ID from sections
-function firstSelectableId(sections: any[], isVisible: (id: string) => boolean): string | null {
+// Compute the first selectable (and currently-visible) definition key from sections
+function firstSelectableDefinitionKey(sections: any[], isVisible: (definitionKey: string) => boolean): string | null {
   for (const section of sections) {
-    if (section.type === 'block' && section.id && isVisible(section.id)) return section.id;
+    if (section.type === 'block' && section.definitionKey && isVisible(section.definitionKey)) return section.definitionKey;
     if (section.type === 'chapter') {
-      const child = (section.children || []).find((c: any) => c.id && isVisible(c.id));
-      if (child) return child.id;
+      const child = (section.children || []).find((c: any) => c.definitionKey && isVisible(c.definitionKey));
+      if (child) return child.definitionKey;
     }
   }
   return null;
@@ -38,11 +36,11 @@ function firstSelectableId(sections: any[], isVisible: (id: string) => boolean):
 
 // Find the first chapter that has a currently-visible child, so the default
 // expanded chapter isn't one whose children are all hidden by when= (which
-// would render nothing and force an extra click). Mirrors firstSelectableId.
-function firstChapterId(sections: any[], isVisible: (id: string) => boolean): string | null {
+// would render nothing and force an extra click). Mirrors firstSelectableDefinitionKey.
+function firstChapterId(sections: any[], isVisible: (definitionKey: string) => boolean): string | null {
   for (const section of sections) {
     if (section.type === 'chapter'
-        && (section.children || []).some((c: any) => c.id && isVisible(c.id))) {
+        && (section.children || []).some((c: any) => c.definitionKey && isVisible(c.definitionKey))) {
       return section.id;
     }
   }
@@ -57,27 +55,27 @@ function Course(props: RuntimeProps) {
   const sections = (kids.sections || []) as any[];
 
   // Honor `when=` on course children, the same way Vertical/Sequential do:
-  // run the flat list of child ids through the shared when= filter (useKidsJson)
+  // run the flat list of child definition keys through the shared when= filter (useKidsJson)
   // and treat only the survivors as visible — both in the nav and as valid
   // selections. Memoized so the synthetic kid array is stable across renders.
   const childKids = React.useMemo(() => {
-    const ids: string[] = [];
+    const definitionKeys: string[] = [];
     for (const section of sections) {
       if (section.type === 'chapter') {
-        for (const child of (section.children || [])) if (child.id) ids.push(child.id);
-      } else if (section.id) {
-        ids.push(section.id);
+        for (const child of (section.children || [])) if (child.definitionKey) definitionKeys.push(child.definitionKey);
+      } else if (section.definitionKey) {
+        definitionKeys.push(section.definitionKey);
       }
     }
-    return ids.map(id => ({ type: 'block', id }));
+    return definitionKeys.map(definitionKey => ({ type: 'block', definitionKey }));
   }, [sections]);
-  const visibleIds = new Set<string>(
-    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.id)
+  const visibleDefinitionKeys = new Set<string>(
+    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.definitionKey)
   );
-  const isVisible = (id: string) => visibleIds.has(id);
+  const isVisible = (definitionKey: string) => visibleDefinitionKeys.has(definitionKey);
 
   const [selectedChild, setSelectedChild] = useFieldState(props, fields.selectedChild,
-    firstSelectableId(sections, isVisible));
+    firstSelectableDefinitionKey(sections, isVisible));
   const [expandedChapter, setExpandedChapter] = useFieldState(props, fields.expandedChapter,
     firstChapterId(sections, isVisible));
   const [navCollapsed, setNavCollapsed] = useFieldState(props, fields.navCollapsed, false);
@@ -86,15 +84,15 @@ function Course(props: RuntimeProps) {
     setExpandedChapter(expandedChapter === chapterId ? null : chapterId);
   };
 
-  const handleChildClick = (childId) => {
-    setSelectedChild(childId);
+  const handleChildClick = (definitionKey) => {
+    setSelectedChild(definitionKey);
   };
 
   // Valid only if the selected child exists AND is currently visible (its
   // when= condition holds). A child hidden by when= falls back to empty state.
   const hasValidSelection = !!selectedChild && isVisible(selectedChild) && sections.some(section =>
-    (section.type === 'block' && section.id === selectedChild) ||
-    (section.type === 'chapter' && (section.children || []).some((child: any) => child.id === selectedChild))
+    (section.type === 'block' && section.definitionKey === selectedChild) ||
+    (section.type === 'chapter' && (section.children || []).some((child: any) => child.definitionKey === selectedChild))
   );
 
   return (
@@ -119,7 +117,7 @@ function Course(props: RuntimeProps) {
             if (section.type === 'chapter') {
               // Drop children filtered out by when=, and the whole chapter if
               // none remain visible.
-              const visibleChildren = (section.children || []).filter((child: any) => child.id && isVisible(child.id));
+              const visibleChildren = (section.children || []).filter((child: any) => child.definitionKey && isVisible(child.definitionKey));
               if (visibleChildren.length === 0) return null;
               return (
                 <div key={section.id}>
@@ -138,14 +136,14 @@ function Course(props: RuntimeProps) {
                   {expandedChapter === section.id && (
                     <div className="course-chapter-children">
                       {visibleChildren.map((child) => {
-                        const childId = child.id;
-                        const childEntry = getBlockByOLXId(props, childId);
-                        const title = childEntry?.attributes?.title || childEntry?.tag || childId;
+                        const childDefinitionKey = child.definitionKey;
+                        const childEntry = getBlockByDefinitionRef(props, childDefinitionKey);
+                        const title = childEntry?.attributes?.title || childEntry?.tag || childDefinitionKey;
                         return (
                           <button
-                            key={childId}
-                            onClick={() => handleChildClick(childId)}
-                            className={`course-nav-leaf${selectedChild === childId ? ' selected' : ''}`}
+                            key={childDefinitionKey}
+                            onClick={() => handleChildClick(childDefinitionKey)}
+                            className={`course-nav-leaf${selectedChild === childDefinitionKey ? ' selected' : ''}`}
                           >
                             {title}
                           </button>
@@ -158,15 +156,15 @@ function Course(props: RuntimeProps) {
             }
 
             // Loose block at top level — hidden when its when= condition fails.
-            const blockId = section.id;
-            if (!isVisible(blockId)) return null;
-            const blockEntry = getBlockByOLXId(props, blockId);
-            const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockId;
+            const blockDefinitionKey = section.definitionKey;
+            if (!isVisible(blockDefinitionKey)) return null;
+            const blockEntry = getBlockByDefinitionRef(props, blockDefinitionKey);
+            const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockDefinitionKey;
             return (
               <button
-                key={blockId}
-                onClick={() => handleChildClick(blockId)}
-                className={`course-nav-leaf course-nav-top-level${selectedChild === blockId ? ' selected' : ''}`}
+                key={blockDefinitionKey}
+                onClick={() => handleChildClick(blockDefinitionKey)}
+                className={`course-nav-leaf course-nav-top-level${selectedChild === blockDefinitionKey ? ' selected' : ''}`}
               >
                 {blockTitle}
               </button>

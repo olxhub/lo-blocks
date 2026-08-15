@@ -107,7 +107,7 @@ describe('Error-pipeline canary (BadBlock fixtures)', () => {
       locale: { code: localeCode, dir: getTextDirection(localeCode) },
     });
     const element = render({
-      node: { type: 'block', id: parsed.root },
+      node: { type: 'block', definitionKey: parsed.root },
       nodeInfo: makeRootNode(runtime),
       runtime,
     });

@@ -351,16 +351,16 @@ async function processEmbedBlocks(
 
       const result = await parseNode(rootNodes[0], rootNodes, 0);
 
-      if (result?.id) {
+      if (result?.definitionKey) {
         body[i] = {
           type: 'EmbedCommand',
-          ref: result.id,
+          ref: result.definitionKey,
           metadata: entry.metadata || {},
           options: null,
           parsedOptions: {},
         };
       } else {
-        warnings.push(`EmbedBlock at position ${i}: parseNode returned no id`);
+        warnings.push(`EmbedBlock at position ${i}: parseNode returned no definition key`);
       }
     } catch (e: any) {
       warnings.push(`EmbedBlock at position ${i}: ${e?.message ?? String(e)}`);
@@ -387,14 +387,14 @@ async function processEmbedBlocks(
 // Typed child-role suffix for joinDefinitionRef.
 const POPOUT = parseLeafId('popout');
 
-async function postprocess({ parsed, parseNode, storeEntry, id }: {
+async function postprocess({ parsed, parseNode, storeEntry, definitionKey }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
   storeEntry: (id: DefinitionRef, entry: any) => void;
-  id: DefinitionKey;
+  definitionKey: DefinitionKey;
   [key: string]: any;
 }) {
-  const parentRef = asDefinitionRef(splitNs(id).path);
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
   if (parsed.header && typeof parsed.header === 'string') {
     try {
       parsed.header = yaml.load(parsed.header, { schema: yaml.JSON_SCHEMA }) || {};
@@ -431,7 +431,7 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
     // PEG produces bare refs (e.g. "my_quiz"); idMap is keyed by qualified
     // DefinitionKeys (e.g. "CONTENT/my_quiz"). Qualify here so staticKids
     // and runtime rendering see consistent keys.
-    const ns = splitNs(id).ns;
+    const ns = splitNs(definitionKey).ns;
     for (const entry of parsed.body) {
       if (entry.type === 'EmbedCommand' && entry.ref) {
         entry.ref = qualifyDefinitionRef(parseDefinitionRef(entry.ref), ns);
@@ -457,14 +457,14 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
           continue;
         }
         const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-        const wrapperId = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
-        storeEntry(wrapperId, {
-          id: wrapperId,
+        const wrapperRef = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
+        storeEntry(wrapperRef, {
+          id: wrapperRef,
           tag: 'CompactPopout',
-          attributes: { id: wrapperId, label, mode: 'target', autoOpen: true, target, targetContent: entry.ref },
-          kids: [{ type: 'block', id: entry.ref }],
+          attributes: { id: wrapperRef, label, mode: 'target', autoOpen: true, target, targetContent: entry.ref },
+          kids: [{ type: 'block', definitionKey: entry.ref }],
         });
-        entry.ref = wrapperId;
+        entry.ref = wrapperRef;
         continue;
       }
 
@@ -475,14 +475,14 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
       }
 
       const label = entry.metadata.label ?? entry.parsedOptions?.label ?? 'View expanded content';
-      const wrapperId = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
-      storeEntry(wrapperId, {
-        id: wrapperId,
+      const wrapperRef = joinDefinitionRef(parentRef, POPOUT, popoutIndex++);
+      storeEntry(wrapperRef, {
+        id: wrapperRef,
         tag: 'CompactPopout',
-        attributes: { id: wrapperId, label, mode: display, autoOpen: true },
-        kids: [{ type: 'block', id: entry.ref }],
+        attributes: { id: wrapperRef, label, mode: display, autoOpen: true },
+        kids: [{ type: 'block', definitionKey: entry.ref }],
       });
-      entry.ref = wrapperId;
+      entry.ref = wrapperRef;
     }
   }
 
@@ -492,11 +492,11 @@ async function postprocess({ parsed, parseNode, storeEntry, id }: {
 /**
  * Static kids function for Chat block.
  *
- * Extracts all EmbedCommand block IDs from the parsed conversation so the
+ * Extracts all EmbedCommand definition keys from the parsed conversation so the
  * server can preload them when fetching the Chat block.
  *
  * @param olxJson - The OlxJson entry for the Chat block
- * @returns Array of block IDs that are embedded in the conversation
+ * @returns Definition keys for blocks embedded in the conversation
  */
 function staticKids(olxJson: any): string[] {
   const kids = olxJson.kids as PeggyKids<ParsedConversation> | undefined;

@@ -13,8 +13,8 @@
 // prefixes — see siblingScopedKey).
 //
 import { selectBlock } from '../state/olxjson';
-import { leafDefinitionKeyFromStateKey, qualifyDefinitionRef } from '../types/id-grammar';
-import type { DefinitionKey, DefinitionRef, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
+import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
+import type { DefinitionKey, LoBlock, OlxJson, RuntimeProps, StateKey } from '../types';
 
 /** The static-DOM entry for a block, or null if content isn't loaded. */
 export function staticEntry(state: unknown, props: RuntimeProps, defKey: DefinitionKey): OlxJson | null {
@@ -52,18 +52,15 @@ export function inferKids(
     if (!Array.isArray(kidList)) return;
     for (const kid of kidList) {
       if (!kid || typeof kid !== 'object') continue;
-      const k = kid as { type?: string; id?: string; stateKey?: StateKey; kids?: unknown };
-      if (k.type === 'block' && k.id) {
-        if (k.stateKey && k.stateKey !== k.id) {
+      const k = kid as { type?: string; definitionKey?: DefinitionKey; stateKey?: StateKey; kids?: unknown };
+      if (k.type === 'block' && k.definitionKey) {
+        if (k.stateKey && String(k.stateKey) !== String(k.definitionKey)) {
           throw new Error(
             `Static DOM inference cannot traverse <Use> of scoped state "${k.stateKey}". ` +
             'Declare the inferred block directly or wire it explicitly instead.'
           );
         }
-        // Kid ids may be bare DefinitionRefs (generated content, e.g.
-        // MarkupProblem's expansion) or qualified DefinitionKeys
-        // (capaParser) — qualify uniformly.
-        const defKey = qualifyDefinitionRef(k.id as DefinitionRef, props.runtime.ns);
+        const defKey = k.definitionKey;
         const entry = staticEntry(state, props, defKey);
         if (!entry) continue; // content not loaded yet — heals on its dispatch
         const loBlock = blueprintFor(props, entry);

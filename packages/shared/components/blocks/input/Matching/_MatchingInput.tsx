@@ -32,10 +32,10 @@ function MatchingItemContent({ props, kid, itemIdPrefix }) {
 }
 
 /**
- * Generate a stable ID for an item if not present
+ * Use the child definition key as this item's identity until KidKey lands.
  */
-function ensureItemId(item: any, index: number): string {
-  if (item.id) return item.id;
+function itemKeyForKid(item: any, index: number): string {
+  if (item.definitionKey) return item.definitionKey;
   // Fallback: generate ID from index if truly missing
   return `item_${index}`;
 }
@@ -44,8 +44,8 @@ function ensureItemId(item: any, index: number): string {
  * Pair structure for matching items
  */
 interface MatchingPair {
-  leftId: string;
-  rightId: string;
+  leftItemKey: string;
+  rightItemKey: string;
   leftKid: any;
   rightKid: any;
   pairIndex: number;
@@ -66,8 +66,8 @@ function parseMatchingPairs(kids: any[]): MatchingPair[] | null {
     const rightItem = kids[i + 1];
 
     pairs.push({
-      leftId: ensureItemId(leftItem, i),
-      rightId: ensureItemId(rightItem, i + 1),
+      leftItemKey: itemKeyForKid(leftItem, i),
+      rightItemKey: itemKeyForKid(rightItem, i + 1),
       leftKid: leftItem,
       rightKid: rightItem,
       pairIndex: pairs.length,
@@ -165,12 +165,12 @@ function ConnectionLines({
   const renderLines = (currentArrangement: MatchingArrangement, isCorrect: boolean, opacity: number): React.ReactNode[] => {
     const lines: React.ReactNode[] = [];
 
-    Object.entries(currentArrangement).forEach(([leftId, rightId]) => {
-      const leftPos = positions[leftId];
-      const rightPos = positions[rightId];
+    Object.entries(currentArrangement).forEach(([leftItemKey, rightItemKey]) => {
+      const leftPos = positions[leftItemKey];
+      const rightPos = positions[rightItemKey];
 
       if (leftPos && rightPos) {
-        const key = `${leftId}-${rightId}-${isCorrect ? 'correct' : 'student'}`;
+        const key = `${leftItemKey}-${rightItemKey}-${isCorrect ? 'correct' : 'student'}`;
         const stroke = isCorrect ? '#22c55e' : '#3b82f6'; // green or blue
         const strokeWidth = isCorrect ? 10 : 2.5; // Correct lines much thicker
 
@@ -261,9 +261,13 @@ export default function MatchingInput(props: RuntimeProps) {
   // Fetch block definitions to get attributes for right-side items.
   // pairs may be null (invalid child count); use [] so the hooks below run
   // unconditionally — we render the DisplayError guard after all hooks.
-  const rightKidIds = pairs ? pairs.map((p) => p.rightKid.id).filter((id) => id) : [];
-  const { olxJsons: rightKidBlocks } = useOlxJsonMultiple(props, rightKidIds);
-  const rightKidBlockMap = Object.fromEntries(rightKidIds.map((id, i) => [id, rightKidBlocks[i]]));
+  const rightKidDefinitionKeys = pairs
+    ? pairs.map((p) => p.rightKid.definitionKey).filter(Boolean)
+    : [];
+  const { olxJsons: rightKidBlocks } = useOlxJsonMultiple(props, rightKidDefinitionKeys);
+  const rightKidBlockMap = Object.fromEntries(
+    rightKidDefinitionKeys.map((definitionKey, i) => [definitionKey, rightKidBlocks[i]])
+  );
 
   // State management
   const [arrangement, setArrangement] = useFieldState(props, fields.arrangement, {});
@@ -276,7 +280,7 @@ export default function MatchingInput(props: RuntimeProps) {
   // DisplayError guard is emitted after all hooks.
   let arrangementError: any = null;
   if (pairs && (!endOrder || endOrder.length === 0)) {
-    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.id]);
+    const rightKidBlocks = pairs.map((p) => rightKidBlockMap[p.rightKid.definitionKey]);
 
     const result = buildArrangementWithPositions(rightKidBlocks, {
       idSelector: (block) => block.id,
@@ -287,16 +291,18 @@ export default function MatchingInput(props: RuntimeProps) {
     if ('error' in result) {
       arrangementError = result.error;
     } else {
-      // Map arranged blocks back to their rightIds and store for future renders.
+      // Map arranged blocks back to their item keys and store for future renders.
       // Key by the FETCHED block's id, not the bare kid ref: the stored/fetched
       // entries carry namespace-qualified ids (e.g. "greenheart/..._right_0")
-      // while pair.rightKid.id is the bare authored ref. Keying by block.id
+      // while pair.rightKid.definitionKey is the canonical content key. Keying by block.id
       // (the exact id buildArrangementWithPositions reads via idSelector)
       // guarantees the lookup matches regardless of namespace qualification.
-      const blockIdToRightId = new Map(
-        pairs.map((p) => [rightKidBlockMap[p.rightKid.id].id, p.rightId])
+      const blockDefinitionKeyToRightItemKey = new Map(
+        pairs.map((p) => [rightKidBlockMap[p.rightKid.definitionKey].id, p.rightItemKey])
       );
-      const arrangedOrder = result.arrangement.map((block) => blockIdToRightId.get(block.id));
+      const arrangedOrder = result.arrangement.map(
+        (block) => blockDefinitionKeyToRightItemKey.get(block.id)
+      );
       setEndOrder(arrangedOrder);
       // Use the computed order immediately in this render
       endOrder = arrangedOrder;
@@ -377,7 +383,7 @@ export default function MatchingInput(props: RuntimeProps) {
   // Build correct arrangement (odd indices match with their right neighbors)
   const correctArrangement: MatchingArrangement = {};
   pairs.forEach((pair) => {
-    correctArrangement[pair.leftId] = pair.rightId;
+    correctArrangement[pair.leftItemKey] = pair.rightItemKey;
   });
 
   // Handle connection point click (start or end)
@@ -398,7 +404,7 @@ export default function MatchingInput(props: RuntimeProps) {
       // For end items, find and remove the connection pointing to it
       if (side === 'end') {
         const leftItemWithConnection = Object.entries(arrangement).find(
-          ([_, rightId]) => rightId === itemId
+          ([_, rightItemKey]) => rightItemKey === itemId
         )?.[0];
         if (leftItemWithConnection) {
           const newArrangement = { ...arrangement };
@@ -424,23 +430,23 @@ export default function MatchingInput(props: RuntimeProps) {
       }
 
       // Different side - create connection
-      const leftId = selectedSide === 'start' ? selectedId : itemId;
-      const rightId = selectedSide === 'start' ? itemId : selectedId;
+      const leftItemKey = selectedSide === 'start' ? selectedId : itemId;
+      const rightItemKey = selectedSide === 'start' ? itemId : selectedId;
 
       const newArrangement = { ...arrangement };
 
       // Remove any existing connection from this left item
-      delete newArrangement[leftId];
+      delete newArrangement[leftItemKey];
 
       // Remove any existing connections TO this right item (from other left items)
       Object.keys(newArrangement).forEach((key) => {
-        if (newArrangement[key] === rightId) {
+        if (newArrangement[key] === rightItemKey) {
           delete newArrangement[key];
         }
       });
 
       // Create the new connection
-      newArrangement[leftId] = rightId;
+      newArrangement[leftItemKey] = rightItemKey;
       setArrangement(newArrangement);
 
       // Clear selection
@@ -456,10 +462,10 @@ export default function MatchingInput(props: RuntimeProps) {
 
 
   // Disconnect a matching
-  const handleDisconnect = (leftId: string) => {
+  const handleDisconnect = (leftItemKey: string) => {
     if (readOnly) return;
     const newArrangement = { ...arrangement };
-    delete newArrangement[leftId];
+    delete newArrangement[leftItemKey];
     setArrangement(newArrangement);
     setSelectedId(null);
     setSelectedSide(null);
@@ -487,12 +493,12 @@ export default function MatchingInput(props: RuntimeProps) {
         {/* Left column */}
         <div className="matching-left flex-1 space-y-3">
           {pairs.map((pair) => {
-            const isSelected = selectedId === pair.leftId && selectedSide === 'start';
-            const isMatched = arrangement[pair.leftId] !== undefined;
+            const isSelected = selectedId === pair.leftItemKey && selectedSide === 'start';
+            const isMatched = arrangement[pair.leftItemKey] !== undefined;
 
             return (
               <div
-                key={pair.leftId}
+                key={pair.leftItemKey}
                 className={`matching-item matching-left-item relative p-3 border-2 rounded-md transition-all pe-12
                   ${readOnly ? 'bg-muted border-border' : isSelected ? 'border-accent bg-accent-subtle' : isMatched ? 'bg-success-subtle border-success' : 'bg-background border-border'}
                 `}
@@ -515,7 +521,7 @@ export default function MatchingInput(props: RuntimeProps) {
                 <HandleCommon
                   pattern="connect-the-dots"
                   title="Click to select and match"
-                  dataMatchingPointId={pair.leftId}
+                  dataMatchingPointId={pair.leftItemKey}
                   className={`
                     absolute end-0 top-0 bottom-0 w-8
                     border-e-2 transition-all
@@ -523,7 +529,7 @@ export default function MatchingInput(props: RuntimeProps) {
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleConnectionPointClick(pair.leftId, 'start');
+                    handleConnectionPointClick(pair.leftItemKey, 'start');
                   }}
                 />
 
@@ -532,7 +538,7 @@ export default function MatchingInput(props: RuntimeProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDisconnect(pair.leftId);
+                      handleDisconnect(pair.leftItemKey);
                     }}
                     className="absolute top-1 end-2 px-1 py-0 text-xs bg-muted hover:bg-muted text-secondary rounded transition-all"
                     title="Remove connection"
@@ -547,17 +553,17 @@ export default function MatchingInput(props: RuntimeProps) {
 
         {/* Right column */}
         <div className="matching-right flex-1 space-y-3">
-          {endOrder.map((rightId) => {
-            const pair = pairs.find(p => p.rightId === rightId);
+          {endOrder.map((rightItemKey) => {
+            const pair = pairs.find(p => p.rightItemKey === rightItemKey);
             if (!pair) return null; // Skip if pair not found (shouldn't happen)
 
-            const isSelected = selectedId === rightId && selectedSide === 'end';
-            const isMatchedByStudent = Object.values(arrangement).includes(rightId);
+            const isSelected = selectedId === rightItemKey && selectedSide === 'end';
+            const isMatchedByStudent = Object.values(arrangement).includes(rightItemKey);
             const canConnect = selectedId !== null && selectedSide !== null && selectedSide !== 'end';
 
             return (
               <div
-                key={rightId}
+                key={rightItemKey}
                 className={`matching-item matching-right-item relative p-3 border-2 rounded-md transition-all ps-12
                   ${readOnly ? 'bg-muted border-border' : isSelected ? 'border-accent bg-accent-subtle' : isMatchedByStudent ? 'bg-success-subtle border-success' : 'bg-background border-border'}
                   ${canConnect && !isMatchedByStudent ? 'hover:border-accent hover:bg-accent-subtle' : ''}
@@ -578,7 +584,7 @@ export default function MatchingInput(props: RuntimeProps) {
                 <HandleCommon
                   pattern="connect-the-dots"
                   title="Click to select and match"
-                  dataMatchingPointId={rightId}
+                  dataMatchingPointId={rightItemKey}
                   className={`
                     absolute start-0 top-0 bottom-0 w-8
                     border-s-2 transition-all
@@ -586,7 +592,7 @@ export default function MatchingInput(props: RuntimeProps) {
                   `}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleConnectionPointClick(rightId, 'end');
+                    handleConnectionPointClick(rightItemKey, 'end');
                   }}
                 />
               </div>

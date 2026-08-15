@@ -41,7 +41,7 @@ import type { DefinitionRef } from '@/lib/types';
  * Chat's body entries serve the same role — they ARE the kids list — but
  * carry richer semantics (speaker, expression, section title) that don't
  * map to the existing KidEntry variants.  EmbedCommand is the
- * closest overlap: it's conceptually { type: 'block', id: ref } with
+ * closest overlap: it's conceptually { type: 'block', definitionKey: ref } with
  * display metadata.
  *
  * Current: body entries are chat-specific types; postprocess wraps them
@@ -168,7 +168,7 @@ export interface CommandBlock {
 
 /**
  * Embed a block by reference.  Conceptually equivalent to
- * KidEntry { type: 'block', id: ref } — an existing block
+ * KidEntry { type: 'block', definitionKey: ref } — an existing block
  * rendered inline in the conversation flow.
  *
  *   ::problem_1                               Simple reference
@@ -177,7 +177,7 @@ export interface CommandBlock {
  *     fullscreen: true
  *     label: Watch a video
  *
- * `ref` is an OLX block ID (like KidEntry.block.id).
+ * `ref` is an OLX block definition key (like KidEntry.block.definitionKey).
  * `metadata` carries inline [key=value] pairs (display hints).
  * `options` is a raw YAML string from indented lines, or null.
  *

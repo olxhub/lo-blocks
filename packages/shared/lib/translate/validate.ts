@@ -74,10 +74,12 @@ async function validateOlx(
   }
 
   const isExplicitId = (id: string) => !id.startsWith('_');
-  const translatedIds = new Set(translatedResult.ids.filter(isExplicitId));
-  const missingIds = sourceResult.ids.filter((id: string) => isExplicitId(id) && !translatedIds.has(id));
-  if (missingIds.length > 0) {
-    return `Translation is missing ${missingIds.length} block(s): ${missingIds.join(', ')}`;
+  const translatedDefinitionKeys = new Set(translatedResult.definitionKeys.filter(isExplicitId));
+  const missingDefinitionKeys = sourceResult.definitionKeys.filter(
+    (definitionKey: string) => isExplicitId(definitionKey) && !translatedDefinitionKeys.has(definitionKey)
+  );
+  if (missingDefinitionKeys.length > 0) {
+    return `Translation is missing ${missingDefinitionKeys.length} block(s): ${missingDefinitionKeys.join(', ')}`;
   }
 
   return null;

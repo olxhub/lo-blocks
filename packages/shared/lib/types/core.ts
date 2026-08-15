@@ -1208,7 +1208,7 @@ export type ParseError = string | null | {
  *
  *   ::video_1 [display=fullscreen title="Theory of Foo"]
  *
- *   → { type: 'block', id: 'video_1',
+ *   → { type: 'block', definitionKey: 'course/video_1',
  *       parentContext: { display: 'fullscreen', title: 'Theory of Foo' } }
  *
  * The Video block renders normally.  _Chat.tsx reads parentContext to
@@ -1230,7 +1230,7 @@ export type ParseError = string | null | {
  * its own subtypes and narrows accordingly.  The kids system treats custom
  * entries as opaque.
  *
- * A block entry normally has only `id`, the definition to render in the
+ * A block entry normally has only `definitionKey`, the definition to render in the
  * surrounding scope. `<Use>` additionally stores `stateKey`: the existing
  * runtime state instance selected by its authored StateRef.
  */
@@ -1241,8 +1241,18 @@ export type ParseError = string | null | {
  *  chatpeg embed directive `::video_1 [display=fullscreen title="Theory of Foo"]`. */
 export type ParentContext = Record<string, JSONValue>;
 
+/** A reusable reference to a block definition. Unlike an OlxJson block's
+ * `id`, `definitionKey` always identifies namespace-qualified static content. */
+export type BlockReference = {
+  type: 'block';
+  definitionKey: DefinitionKey;
+  stateKey?: StateKey;
+  overrides?: Record<string, JSONValue>;
+  parentContext?: ParentContext;
+};
+
 export type KidEntry =
-  | { type: 'block'; id: DefinitionRef; stateKey?: StateKey; overrides?: Record<string, JSONValue>; parentContext?: ParentContext }
+  | BlockReference
   | { type: 'text'; text: string; parentContext?: ParentContext }
   | { type: 'xml'; xml: string; parentContext?: ParentContext }
   | { type: 'cdata'; value: string; parentContext?: ParentContext }

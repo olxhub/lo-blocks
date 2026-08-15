@@ -15,7 +15,7 @@ it('wraps exactly one measured child', async () => {
 
   expect(errors).toEqual([]);
   expect(getOlxJson(idMap, 'timer')?.kids).toEqual([
-    { type: 'block', id: testKey('draft') },
+    { type: 'block', definitionKey: testKey('draft') },
   ]);
 });
 

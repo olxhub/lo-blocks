@@ -58,7 +58,7 @@ function renderReferences(entries: [DefinitionKey, StateKey][], surroundingIdPre
     ...(surroundingIdPrefix ? { idPrefix: surroundingIdPrefix } : {}),
   });
   const nodeInfo = makeRootNode(runtime);
-  const kids = entries.map(([id, stateKey]) => ({ type: 'block', id, stateKey }));
+  const kids = entries.map(([definitionKey, stateKey]) => ({ type: 'block', definitionKey, stateKey }));
   const elements = renderCompiledKids({ kids, nodeInfo, runtime });
   const result = renderReact(<Provider store={reduxStore}>{elements}</Provider>);
   return { ...result, nodeInfo };

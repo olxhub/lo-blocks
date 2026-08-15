@@ -16,10 +16,10 @@
 
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { peggyParser, directKidIds } from '@/lib/content/parsers';
+import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
-import type { DefinitionRef } from '@/lib/types';
+import type { BlockReference, DefinitionRef } from '@/lib/types';
 import * as matchingParser from './_matchingParser';
 
 // Typed child-role suffixes for joinDefinitionRef.
@@ -40,98 +40,100 @@ interface MatchingParsed {
  * Generate all required components for a matching problem
  * Expands DSL into CapaProblem + MatchingGrader + MatchingInput + Markdown items
  */
-function generateMatchingComponents({ parsed, storeEntry, id, tag, attributes }: any) {
+function generateMatchingComponents({ parsed, storeEntry, definitionKey, tag, attributes }: any) {
   const { title, pairs } = parsed as MatchingParsed;
-  const parentRef = asDefinitionRef(splitNs(id).path);
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
+  const ns = splitNs(definitionKey).ns;
+  const blockRef = (definitionRef: DefinitionRef): BlockReference => blockReference(definitionRef, ns);
 
-  // Generate IDs for all components
-  const problemId = joinDefinitionRef(parentRef, PROBLEM);
-  const graderId = joinDefinitionRef(parentRef, GRADER);
-  const inputId = joinDefinitionRef(parentRef, INPUT);
-  const titleId = joinDefinitionRef(parentRef, TITLE);
+  // Generate definition refs for all components
+  const problemRef = joinDefinitionRef(parentRef, PROBLEM);
+  const graderRef = joinDefinitionRef(parentRef, GRADER);
+  const inputRef = joinDefinitionRef(parentRef, INPUT);
+  const titleRef = joinDefinitionRef(parentRef, TITLE);
 
-  // Generate IDs for each pair's left and right items
-  const itemIds = pairs.map((_, i) => ({
+  // Generate definition refs for each pair's left and right items
+  const itemRefs = pairs.map((_, i) => ({
     left: joinDefinitionRef(parentRef, LEFT, i),
     right: joinDefinitionRef(parentRef, RIGHT, i),
   }));
 
   // Store title/prompt block if present
-  let titleBlockRef: { type: 'block'; id: DefinitionRef } | null = null;
+  let titleBlockRef: BlockReference | null = null;
   if (title) {
-    storeEntry(titleId, {
-      id: titleId,
+    storeEntry(titleRef, {
+      id: titleRef,
       tag: 'Markdown',
-      attributes: { id: titleId },
+      attributes: { id: titleRef },
       kids: title
     });
-    titleBlockRef = { type: 'block', id: titleId };
+    titleBlockRef = blockRef(titleRef);
   }
 
   // Store left and right item blocks
-  const inputKids: { type: 'block'; id: DefinitionRef }[] = [];
+  const inputKids: BlockReference[] = [];
   pairs.forEach((pair, i) => {
     // Store left item
-    storeEntry(itemIds[i].left, {
-      id: itemIds[i].left,
+    storeEntry(itemRefs[i].left, {
+      id: itemRefs[i].left,
       tag: 'Markdown',
-      attributes: { id: itemIds[i].left },
+      attributes: { id: itemRefs[i].left },
       kids: pair.left
     });
-    inputKids.push({ type: 'block', id: itemIds[i].left });
+    inputKids.push(blockRef(itemRefs[i].left));
 
     // Store right item
-    storeEntry(itemIds[i].right, {
-      id: itemIds[i].right,
+    storeEntry(itemRefs[i].right, {
+      id: itemRefs[i].right,
       tag: 'Markdown',
-      attributes: { id: itemIds[i].right },
+      attributes: { id: itemRefs[i].right },
       kids: pair.right
     });
-    inputKids.push({ type: 'block', id: itemIds[i].right });
+    inputKids.push(blockRef(itemRefs[i].right));
   });
 
   // Store MatchingInput
-  storeEntry(inputId, {
-    id: inputId,
+  storeEntry(inputRef, {
+    id: inputRef,
     tag: 'MatchingInput',
-    attributes: { id: inputId },
+    attributes: { id: inputRef },
     kids: inputKids
   });
 
   // Build MatchingGrader kids
-  const graderKids: { type: 'block'; id: DefinitionRef }[] = [];
+  const graderKids: BlockReference[] = [];
   if (titleBlockRef) {
     graderKids.push(titleBlockRef);
   }
-  graderKids.push({ type: 'block', id: inputId });
+  graderKids.push(blockRef(inputRef));
 
   // Store MatchingGrader
-  storeEntry(graderId, {
-    id: graderId,
+  storeEntry(graderRef, {
+    id: graderRef,
     tag: 'MatchingGrader',
     attributes: {
-      id: graderId,
-      target: inputId
+      id: graderRef,
+      target: inputRef
     },
     kids: graderKids
   });
 
   // Store CapaProblem (the main container)
-  storeEntry(problemId, {
-    id: problemId,
+  storeEntry(problemRef, {
+    id: problemRef,
     tag: 'CapaProblem',
     attributes: {
-      id: problemId,
+      id: problemRef,
       ...(title ? { title } : {}), // Use title as CapaProblem title if present
       ...attributes // Pass through any attributes from SimpleMatching tag
     },
     kids: [
-      { type: 'block', id: graderId }
+      blockRef(graderRef)
     ]
   });
 
-  // Return the main problem ID - this becomes the "SimpleMatching"
-  return [{ type: 'block', id: problemId }];
+  // The generated problem becomes this block's only child.
+  return [blockRef(problemRef)];
 }
 
 export const fields = state.fields([]);
@@ -154,7 +156,7 @@ const SimpleMatching = dev({
   // the client render fails with "Block <id>_problem not found in content".
   // Mirrors MarkupProblem; the generated CapaProblem's own staticKids recurses
   // the rest of the subtree.
-  staticKids: directKidIds,
+  staticKids: directKidDefinitionKeys,
 });
 
 export default SimpleMatching;

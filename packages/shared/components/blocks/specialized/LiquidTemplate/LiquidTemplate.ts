@@ -17,12 +17,12 @@ import { Liquid } from 'liquidjs';
 
 import { core } from '@/lib/blocks';
 import { parseXmlFragment } from '@/lib/content/xmlParser';
-import { loadExternalSource, extractTextFromXmlNodes, directKidIds } from '@/lib/content/parsers';
+import { loadExternalSource, extractTextFromXmlNodes, directKidDefinitionKeys } from '@/lib/content/parsers';
 import { isDataFile, getExtension } from '@/lib/util/fileTypes';
 import { registerFilters } from './liquidFilters';
 
 import type { LofsCanonical } from '@/lib/types/address';
-import type { DefinitionRef, OLXLoadingError } from '@/lib/types';
+import type { DefinitionKey, DefinitionRef, OLXLoadingError } from '@/lib/types';
 
 // === Data file loading ===
 
@@ -51,7 +51,7 @@ function createLiquidEngine(): Liquid {
 // === Parser ===
 
 async function liquidTemplateParser({
-  id,
+  definitionKey,
   rawParsed,
   tag,
   attributes,
@@ -63,7 +63,7 @@ async function liquidTemplateParser({
   errors,
   metadata,
 }: {
-  id: any;
+  definitionKey: DefinitionKey;
   rawParsed: any;
   tag: string;
   attributes: any;
@@ -79,12 +79,12 @@ async function liquidTemplateParser({
 
   // 1. Load data file
   if (!attributes.data) {
-    throw new Error(`<LiquidTemplate id="${id}"> requires a data= attribute`);
+    throw new Error(`<LiquidTemplate id="${definitionKey}"> requires a data= attribute`);
   }
 
   if (!isDataFile(attributes.data)) {
     throw new Error(
-      `<LiquidTemplate id="${id}">: data="${attributes.data}" must be a .yaml, .yml, or .json file`
+      `<LiquidTemplate id="${definitionKey}">: data="${attributes.data}" must be a .yaml, .yml, or .json file`
     );
   }
 
@@ -106,7 +106,7 @@ async function liquidTemplateParser({
     data = parseDataFile(dataLoaded.text, attributes.data);
   } catch (e: any) {
     throw new Error(
-      `<LiquidTemplate id="${id}">: failed to parse data file "${attributes.data}": ${e.message}`
+      `<LiquidTemplate id="${definitionKey}">: failed to parse data file "${attributes.data}": ${e.message}`
     );
   }
 
@@ -130,7 +130,7 @@ async function liquidTemplateParser({
 
     if (!templateText.trim()) {
       throw new Error(
-        `<LiquidTemplate id="${id}">: no template provided. Use src= attribute or inline CDATA content.`
+        `<LiquidTemplate id="${definitionKey}">: no template provided. Use src= attribute or inline CDATA content.`
       );
     }
   }
@@ -142,7 +142,7 @@ async function liquidTemplateParser({
     renderedOlx = await engine.parseAndRender(templateText, data);
   } catch (e: any) {
     throw new Error(
-      `<LiquidTemplate id="${id}">: Liquid template error: ${e.message}`
+      `<LiquidTemplate id="${definitionKey}">: Liquid template error: ${e.message}`
     );
   }
 
@@ -152,13 +152,13 @@ async function liquidTemplateParser({
     xmlNodes = parseXmlFragment(renderedOlx);
   } catch (e: any) {
     throw new Error(
-      `<LiquidTemplate id="${id}">: rendered template produced invalid XML: ${e.message}`
+      `<LiquidTemplate id="${definitionKey}">: rendered template produced invalid XML: ${e.message}`
     );
   }
 
   if (xmlNodes.length === 0) {
     throw new Error(
-      `<LiquidTemplate id="${id}">: rendered template produced no XML elements`
+      `<LiquidTemplate id="${definitionKey}">: rendered template produced no XML elements`
     );
   }
 
@@ -166,14 +166,14 @@ async function liquidTemplateParser({
   const kids: any[] = [];
   for (let i = 0; i < xmlNodes.length; i++) {
     const result = await parseNode(xmlNodes[i], xmlNodes, i);
-    if (result?.id) {
+    if (result?.definitionKey) {
       kids.push(result);
     }
   }
 
   // 6. Store entry
-  storeEntry(id, {
-    id,
+  storeEntry(definitionKey, {
+    id: definitionKey,
     tag,
     attributes,
     source,
@@ -182,14 +182,14 @@ async function liquidTemplateParser({
     ...(metadata || {}),
   });
 
-  return id;
+  return definitionKey;
 }
 
 // === Block definition ===
 
 const LiquidTemplate = core({
   parser: liquidTemplateParser,
-  staticKids: directKidIds,
+  staticKids: directKidDefinitionKeys,
   name: 'LiquidTemplate',
   description: 'Renders a Liquid template with data at parse time, producing child OLX blocks.',
   attributes: z.object({

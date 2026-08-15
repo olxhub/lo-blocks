@@ -45,7 +45,7 @@ async function llmAction({ props }) {
 }
 
 // Custom parser that handles mixed text and block content
-const llmActionParser = async function({ id, rawParsed, tag, attributes, source, parseDeps, provider, parseNode, storeEntry }) {
+const llmActionParser = async function({ definitionKey, rawParsed, tag, attributes, source, parseDeps, provider, parseNode, storeEntry }) {
   const kids: any[] = [];
 
   // Process each child node in the raw parsed XML
@@ -67,8 +67,8 @@ const llmActionParser = async function({ id, rawParsed, tag, attributes, source,
     }
   }
 
-  storeEntry(id, {
-    id,
+  storeEntry(definitionKey, {
+    id: definitionKey,
     tag,
     attributes,
     kids,
@@ -79,7 +79,7 @@ const llmActionParser = async function({ id, rawParsed, tag, attributes, source,
 
 const LLMAction = blocks.test({
   parser: llmActionParser,
-  staticKids: parsers.directKidIds,
+  staticKids: parsers.directKidDefinitionKeys,
   ...blocks.action({
     action: llmAction,
   }),

@@ -44,8 +44,8 @@ function getCorrectArrangement(props: RuntimeProps) {
     const leftKid = kids[i];
     const rightKid = kids[i + 1];
 
-    // Kids are guaranteed to be block references with IDs
-    correct[leftKid.id] = rightKid.id;
+    // Until KidKey lands, the child definition key is also the matching-item identity.
+    correct[leftKid.definitionKey] = rightKid.definitionKey;
   }
 
   return correct;

@@ -42,7 +42,7 @@ export default function DemandHints(props: RuntimeProps) {
       </div>
       <div className="lo-demand-hints__list">
         {revealedHints.map((hint, index) => (
-          <div key={hint.id || index} className="lo-demand-hints__item">
+          <div key={hint.definitionKey || index} className="lo-demand-hints__item">
             <span className="lo-demand-hints__number">{index + 1}.</span>
             <div className="lo-demand-hints__content">
               {Array.isArray(renderedHints) ? renderedHints[index] : renderedHints}

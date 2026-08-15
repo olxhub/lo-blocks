@@ -14,7 +14,7 @@
 //   </RulesGrader>
 //
 import { z } from 'zod';
-import { core, grader, isMatch, getBlockByOLXId } from '@/lib/blocks';
+import { core, grader, isMatch, getBlockByDefinitionRef } from '@/lib/blocks';
 import { qualifyDefinitionRef } from '@/lib/types/id-grammar';
 import { correctness } from '@/lib/grading/correctness';
 import * as parsers from '@/lib/content/parsers';
@@ -60,7 +60,7 @@ function gradeRules(props: RuntimeProps, context) {
       if (kid.type === 'html') {
         collectMatches(kid.kids);
       } else if (kid.type === 'block') {
-        const entry = getBlockByOLXId(props, qualifyDefinitionRef(kid.id, props.runtime.ns));
+        const entry = getBlockByDefinitionRef(props, kid.definitionKey);
         if (!entry) continue;
         const blueprint = blockRegistry[entry.tag];
         if (isMatch(blueprint)) { matchEntries.push(entry); continue; }
@@ -133,7 +133,7 @@ const RulesGrader = core({
     if (!isKidArray(kids)) return undefined;
     for (const kid of kids) {
       if (kid.type !== 'block') continue;
-      const childEntry = getBlockByOLXId(props, kid.id);
+      const childEntry = getBlockByDefinitionRef(props, kid.definitionKey);
       if (!childEntry) continue;
 
       const childBlueprint = blockRegistry?.[childEntry.tag];

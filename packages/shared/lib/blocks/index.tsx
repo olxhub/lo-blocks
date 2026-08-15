@@ -21,4 +21,4 @@ export { correctness, correctnessPriority, visibilityHandlers, computeVisibility
 export { baseAttributes, inputAttributes, graderAttributes, placeholder, src, templateAttribute, textTemplateModes, z_stateRef, z_stateRefList, z_blockFieldRef, z_blockFieldRefList, z_expression } from './attributeSchemas';
 export type { BlockFieldRef, RefExtractor, TextTemplateMode } from './attributeSchemas';
 export { createGrader } from './createGrader';
-export { getBlockByOLXId, getBlocksByOLXIds } from './getBlockByOLXId';
+export { getBlockByDefinitionRef, getBlocksByDefinitionRefs } from './getBlockByDefinitionRef';

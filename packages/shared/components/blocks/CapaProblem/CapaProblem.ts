@@ -90,15 +90,15 @@ export const fields = state.fields([state.commonFields.showAnswer]);
 //
 // IDs are assigned by mutating nodes BEFORE child parsers run. See:
 // docs/architecture/container-id-scoping.md
-async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, HACK_getBlockRolesForCapaProblem }) {
+async function capaParser({ definitionKey, tag, attributes, source, parseDeps, rawParsed, storeEntry, parseNode, assignSystemId, ns, HACK_getBlockRolesForCapaProblem }) {
   const tagParsed = rawParsed[tag];
   const rawKids = (Array.isArray(tagParsed) ? tagParsed : [tagParsed]) as RawXmlNode[];
   let inputIndex = 0;
   let graderIndex = 0;
   let nodeIndex = 0;
   const discoveredGraders: DiscoveredGrader[] = [];
-  // Parent ref for building child IDs via joinDefinitionRef.
-  const parentRef = asDefinitionRef(splitNs(id).path);
+  // Parent ref for building child DefinitionRefs via joinDefinitionRef.
+  const parentRef = asDefinitionRef(splitNs(definitionKey).path);
 
   function compileKids(nodes: RawXmlNode[], enclosingGrader: DiscoveredGrader | null): KidEntry[] {
     const kids: KidEntry[] = [];
@@ -147,7 +147,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
       } else {
         blockRef = parseDefinitionRef(childAttrs.id);
       }
-      const blockId = qualifyDefinitionRef(blockRef, ns);
+      const childDefinitionKey = qualifyDefinitionRef(blockRef, ns);
 
       let graderForChildren = enclosingGrader;
       if (blockGradingRole.isGrader) {
@@ -169,7 +169,7 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
         compileKid(kid, graderForChildren);
       }
 
-      return { type: 'block', id: blockId };
+      return { type: 'block', definitionKey: childDefinitionKey };
     }
 
     // HTML tag
@@ -210,20 +210,20 @@ async function capaParser({ id, tag, attributes, source, parseDeps, rawParsed, s
 
   await parseBlockFrontier(rawKids);
 
-  storeEntry(id, { id, tag, attributes, source, parseDeps, kids });
-  return id;
+  storeEntry(definitionKey, { id: definitionKey, tag, attributes, source, parseDeps, kids });
+  return definitionKey;
 }
 
-function collectIds(nodes: KidEntry[] = []) {
+function collectDefinitionKeys(nodes: KidEntry[] = []) {
   return nodes.flatMap(n => {
     if (!n) return [];
-    if (n.type === 'block' && n.id) return [n.id];
-    if (n.type === 'html') return collectIds(n.kids);
+    if (n.type === 'block') return [n.definitionKey];
+    if (n.type === 'html') return collectDefinitionKeys(n.kids);
     return [];
   });
 }
 
-capaParser.staticKids = entry => collectIds(entry.kids);
+capaParser.staticKids = entry => collectDefinitionKeys(entry.kids);
 
 const CapaProblem = dev({
   parser: capaParser,

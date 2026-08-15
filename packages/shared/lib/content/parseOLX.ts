@@ -57,9 +57,9 @@ const defaultParser = parsers.blocks().parser;
 // render-side callers.
 export { parseXmlFragment } from './xmlParser';
 
-function isBlockKid(node: JSONValue): node is { type: 'block'; id: DefinitionKey } {
+function isBlockKid(node: JSONValue): node is { type: 'block'; definitionKey: DefinitionKey } {
   return typeof node === 'object' && node !== null && !Array.isArray(node) &&
-    node.type === 'block' && typeof node.id === 'string';
+    node.type === 'block' && typeof node.definitionKey === 'string';
 }
 
 /**
@@ -459,8 +459,8 @@ export async function parseOLX(
     );
   }
 
-  const parsedIds: DefinitionKey[] = [];
-  let rootId = '';
+  const parsedDefinitionKeys: DefinitionKey[] = [];
+  let rootDefinitionKey = '';
   const errors: OLXLoadingError[] = [];
 
   // Track attribute objects whose `id` was set by the system (component parsers),
@@ -473,14 +473,14 @@ export async function parseOLX(
 
   /** Mark a node's id attribute as system-assigned. Component parsers call this
    *  instead of directly setting `node[':@'].id`. */
-  function assignSystemId(node: any, id: DefinitionRef) {
+  function assignSystemId(node: any, definitionRef: DefinitionRef) {
     if (!node[':@']) node[':@'] = {};
-    node[':@'].id = id;
+    node[':@'].id = definitionRef;
     systemAssignedIds.add(node[':@']);
   }
 
-  function storeErrorNode({ id, error, rawParsed, lang, sourceOffset, metadata }: {
-    id: DefinitionKey;
+  function storeErrorNode({ definitionKey, error, rawParsed, lang, sourceOffset, metadata }: {
+    definitionKey: DefinitionKey;
     error: OLXLoadingError;
     rawParsed: RawXmlNode;
     lang: string;
@@ -489,15 +489,15 @@ export async function parseOLX(
   }) {
     errors.push(error);
     const entry = {
-      id, tag: 'ErrorNode', attributes: error, source, parseDeps,
+      id: definitionKey, tag: 'ErrorNode', attributes: error, source, parseDeps,
       rawParsed, kids: [], parseError: true, lang,
       ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
       ...metadata,
     };
-    if (!idMap[id]) idMap[id] = {};
-    idMap[id][lang] = entry;
-    parsedIds.push(id);
-    return { type: 'block' as const, id };
+    if (!idMap[definitionKey]) idMap[definitionKey] = {};
+    idMap[definitionKey][lang] = entry;
+    parsedDefinitionKeys.push(definitionKey);
+    return { type: 'block' as const, definitionKey };
   }
 
   async function parseNode(node: RawXmlNode, siblings: RawXmlNode[] | null = null, nodeIndex = -1, parentLang: string | undefined = undefined, parentGenerated: OLXMetadata['generated'] | undefined = undefined) {
@@ -557,7 +557,7 @@ export async function parseOLX(
       const stateKey = stateKeyForGlobalRef(parseStateRef(ref), ns);
       return {
         type: 'block',
-        id: leafDefinitionKeyFromStateKey(stateKey),
+        definitionKey: leafDefinitionKeyFromStateKey(stateKey),
         stateKey,
         overrides,
       };
@@ -580,11 +580,11 @@ export async function parseOLX(
     try {
       bareRef = idStr
         ? (systemAssigned ? parseAnyDefinitionRef(idStr) : parseDefinitionRef(idStr))
-        : createId(node);
+        : createDefinitionRef(node);
     } catch (idError: any) {
       // Invalid authored ID — produce a recoverable ErrorNode instead of aborting the file.
-      bareRef = createId(node);
-      const id: DefinitionKey = qualifyDefinitionRef(bareRef, ns);
+      bareRef = createDefinitionRef(node);
+      const definitionKey = qualifyDefinitionRef(bareRef, ns);
       const errorObj = {
         type: 'attribute_validation' as const,
         title: `Invalid id on <${tag}> in ${source}`,
@@ -593,12 +593,12 @@ export async function parseOLX(
         technical: { tag, id: idStr, attributes }
       };
       return storeErrorNode({
-        id, error: errorObj, rawParsed: node,
+        definitionKey, error: errorObj, rawParsed: node,
         lang: resolveElementLanguage(attributes, currentLang, metadataLang),
         sourceOffset, metadata,
       });
     }
-    const id: DefinitionKey = qualifyDefinitionRef(bareRef, ns);
+    const definitionKey = qualifyDefinitionRef(bareRef, ns);
 
     const Component = BLOCK_REGISTRY[tag];
 
@@ -618,11 +618,11 @@ export async function parseOLX(
       const errorObj = {
         type: 'attribute_validation' as const,
         title: `Invalid attribute on <${tag}> in ${source}`,
-        message: `Invalid attributes for <${tag} id="${id}">:\n${zodErrors}`,
+        message: `Invalid attributes for <${tag} id="${definitionKey}">:\n${zodErrors}`,
         location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, sourceOffset) },
         technical: {
           tag,
-          id,
+          id: definitionKey,
           attributes,
           zodError: result.error
         }
@@ -632,7 +632,7 @@ export async function parseOLX(
       // which could cause runtime crashes or security issues downstream.
       // Matches the PEG error pattern in parsers.ts.
       return storeErrorNode({
-        id, error: errorObj, rawParsed: node,
+        definitionKey, error: errorObj, rawParsed: node,
         lang: resolveElementLanguage(attributes, currentLang, metadataLang),
         sourceOffset, metadata,
       });
@@ -654,17 +654,17 @@ export async function parseOLX(
           const errorObj = {
             type: 'attribute_validation',
             title: `Invalid attribute on <${tag}> in ${source}`,
-            message: `Invalid attributes for <${tag} id="${id}">:\n${errorList}`,
+            message: `Invalid attributes for <${tag} id="${definitionKey}">:\n${errorList}`,
             location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, sourceOffset) },
             technical: {
               tag,
-              id,
+              id: definitionKey,
               attributes: parsedAttributes,
               semanticErrors
             }
           } satisfies OLXLoadingError;
           return storeErrorNode({
-            id, error: errorObj, rawParsed: node, lang: currentLang,
+            definitionKey, error: errorObj, rawParsed: node, lang: currentLang,
             sourceOffset, metadata,
           });
         }
@@ -681,7 +681,7 @@ export async function parseOLX(
     // Parse the node using the component's parser. The parser is responsible
     // for calling `storeEntry` for every piece of data that should be tracked
     // in the ID map. A single node may generate multiple entries this way.
-    // The return value of `parseNode` simply exposes the block's primary id
+    // The return value of `parseNode` exposes the block's primary definition key
     // and is only used when determining the document's root.
     //
     // A parser that THROWS is downgraded to a recoverable ErrorNode for this
@@ -689,7 +689,7 @@ export async function parseOLX(
     // one bad block can't abort parsing the whole file.
     try {
     await parser({
-      id,
+      definitionKey,
       rawParsed: node,
       tag,
       attributes: parsedAttributes,
@@ -715,12 +715,12 @@ export async function parseOLX(
         executesGrading: BLOCK_REGISTRY[blockTag]?.grading !== undefined,
       }),
       metadata,  // Pass metadata to parser so it can include in entry
-      storeEntry: (refId: DefinitionRef, entryOrUpdater) => {
+      storeEntry: (definitionRef: DefinitionRef, entryOrUpdater) => {
         // Callers pass branded DefinitionRef values — either the block's own
-        // id (a DefinitionKey, which is a DefinitionRef subtype) or a child
+        // definitionKey (a DefinitionKey, which is a DefinitionRef subtype) or a child
         // ref built with joinDefinitionRef.  Bare refs get namespace-qualified
         // here; already-qualified keys pass through unchanged.
-        const storeId = qualifyDefinitionRef(refId, ns);
+        const definitionKeyToStore = qualifyDefinitionRef(definitionRef, ns);
 
         // Support both direct entry and updater function patterns:
         // - storeEntry(id, entry) - store/overwrite
@@ -735,12 +735,12 @@ export async function parseOLX(
         }
         const lang = resolveElementLanguage(entryAttributes, currentLang, metadataLang);
         const entry = typeof entryOrUpdater === 'function'
-          ? entryOrUpdater(idMap[storeId]?.[lang])
+          ? entryOrUpdater(idMap[definitionKeyToStore]?.[lang])
           : entryOrUpdater;
 
         // Ensure entry.id matches the qualified store key so downstream code
         // (render, inferRelatedNodes, etc.) always sees qualified IDs.
-        // Parsers set entry.id from their own id (DefinitionKey) or from
+        // Parsers set entry.id from their own definitionKey or from
         // joinDefinitionRef (DefinitionRef) — both are valid DefinitionRef.
         if (entry && typeof entry === 'object' && 'id' in entry && typeof entry.id === 'string') {
           entry.id = qualifyDefinitionRef(asDefinitionRef(entry.id), ns);
@@ -784,14 +784,14 @@ export async function parseOLX(
         }
 
         // If this is an update to an existing entry, just update it
-        if (typeof entryOrUpdater === 'function' && idMap[storeId]?.[lang]) {
-          if (!idMap[storeId]) idMap[storeId] = {};
-          idMap[storeId][lang] = entry;
+        if (typeof entryOrUpdater === 'function' && idMap[definitionKeyToStore]?.[lang]) {
+          if (!idMap[definitionKeyToStore]) idMap[definitionKeyToStore] = {};
+          idMap[definitionKeyToStore][lang] = entry;
           return;
         }
 
-        if (idMap[storeId]?.[lang]) {
-          const existing = idMap[storeId][lang];
+        if (idMap[definitionKeyToStore]?.[lang]) {
+          const existing = idMap[definitionKeyToStore][lang];
           if (isAcceptableDuplicate(existing, entry)) {
             // Identical stateless block (e.g. same Markdown in multiple tabs).
             // TODO: Lint suggestion to use <Use ref="..."/> instead.
@@ -799,14 +799,14 @@ export async function parseOLX(
           }
 
           // Get detailed information about both the existing and duplicate entries
-          const existingEntry = idMap[storeId][lang];
+          const existingEntry = idMap[definitionKeyToStore][lang];
           const existingLoc = offsetToLineCol(xml, existingEntry._sourceOffset);
           const dupLoc = offsetToLineCol(xml, entry._sourceOffset);
 
           errors.push({
             type: 'duplicate_id',
-            title: `Duplicate ID "${storeId}" in ${source}`,
-            message: `Duplicate ID "${storeId}" found in ${source}. Each element must have a unique id.
+            title: `Duplicate ID "${definitionKeyToStore}" in ${source}`,
+            message: `Duplicate ID "${definitionKeyToStore}" found in ${source}. Each element must have a unique id.
 
 🔍 EXISTING ENTRY (Line ${existingLoc.line ?? '?'}, Column ${existingLoc.column ?? '?'}):
    Tag: <${existingEntry.tag || 'unknown'}>
@@ -821,7 +821,7 @@ export async function parseOLX(
 💡 TIP: If these appear to be different elements, they likely have the same text content and are generating the same hash ID. Add explicit id="unique_name" attributes to distinguish them.`,
             location: { provenance: [source, ...parseDeps], ...dupLoc },
             technical: {
-              duplicateId: storeId,
+              duplicateId: definitionKeyToStore,
               existingEntry: existingEntry,
               duplicateEntry: entry
             }
@@ -829,8 +829,8 @@ export async function parseOLX(
           // Skip the duplicate, keep the first one
           return;
         }
-        if (!idMap[storeId]) idMap[storeId] = {};
-        idMap[storeId][lang] = entry;
+        if (!idMap[definitionKeyToStore]) idMap[definitionKeyToStore] = {};
+        idMap[definitionKeyToStore][lang] = entry;
       },
       // Pass errors array to parsers so they can accumulate errors too
       errors
@@ -848,28 +848,29 @@ export async function parseOLX(
         // Keep technical JSON-safe (idMap is dispatched as olxjson / saved).
         technical: {
           tag,
-          id,
+          id: definitionKey,
           ...(appError.stack ? { stack: appError.stack } : {}),
         },
       };
       errors.push(errorObj);
       const lang = resolveElementLanguage(parsedAttributes, currentLang, metadataLang);
-      if (!idMap[id]) idMap[id] = {};
-      idMap[id][lang] = {
-        id, tag: 'ErrorNode', attributes: errorObj, source, parseDeps,
+      if (!idMap[definitionKey]) idMap[definitionKey] = {};
+      idMap[definitionKey][lang] = {
+        id: definitionKey, tag: 'ErrorNode', attributes: errorObj, source, parseDeps,
         rawParsed: node, kids: [], parseError: true,
         lang,
         ...(sourceOffset !== undefined ? { _sourceOffset: sourceOffset } : {}),
         ...(metadata || {})
       };
-      parsedIds.push(id);
-      return { type: 'block', id };
+      parsedDefinitionKeys.push(definitionKey);
+      return { type: 'block', definitionKey };
     }
 
     // Structural validation: check children after they are parsed
     if (Component?.validateChildren) {
-      const fallbackLang = idMap[id] ? variantMapKeys(idMap[id])[0] : undefined;
-      const entry = idMap[id]?.[currentLang] ?? (fallbackLang ? idMap[id]?.[fallbackLang] : undefined);
+      const fallbackLang = idMap[definitionKey] ? variantMapKeys(idMap[definitionKey])[0] : undefined;
+      const entry = idMap[definitionKey]?.[currentLang]
+        ?? (fallbackLang ? idMap[definitionKey]?.[fallbackLang] : undefined);
       const kids = entry?.kids;
       const childErrors = Component.validateChildren(kids, idMap);
       if (childErrors && childErrors.length > 0) {
@@ -877,15 +878,15 @@ export async function parseOLX(
         errors.push({
           type: 'attribute_validation',
           title: `Invalid children in <${tag}> in ${source}`,
-          message: `Invalid children for <${tag} id="${id}">:\n${errorList}`,
+          message: `Invalid children for <${tag} id="${definitionKey}">:\n${errorList}`,
           location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, sourceOffset) },
-          technical: { tag, id, childErrors }
+          technical: { tag, id: definitionKey, childErrors }
         });
       }
     }
 
-    parsedIds.push(id);
-    return { type: 'block', id };
+    parsedDefinitionKeys.push(definitionKey);
+    return { type: 'block', definitionKey };
   }
 
   // Parsed OLX can include comment nodes or whitespace before the actual
@@ -905,16 +906,15 @@ export async function parseOLX(
   let fileMetadata: OLXMetadata = OLXMetadataSchema.parse({});
 
   if (rootNode) {
-    // We take the ID from the result of `parseNode` rather than directly from
-    // `rootNode`. The parser can rewrite the ID (for example when handling
-    // `<Use ref="...">`), so the value returned here reflects the final ID
+    // We take the definition key from `parseNode`, rather than directly from
+    // `rootNode`. A parser can rewrite the reference, so this reflects the key
     // stored in the ID map.
     // Pass parsedTree as siblings so root can extract metadata from preceding comments
     const rootIndex = Array.isArray(parsedTree) ? parsedTree.indexOf(rootNode) : -1;
 
     const parsedRoot = await parseNode(rootNode, parsedTree, rootIndex);
-    if (parsedRoot?.id) {
-      rootId = parsedRoot.id;
+    if (parsedRoot?.definitionKey) {
+      rootDefinitionKey = parsedRoot.definitionKey;
     }
   }
 
@@ -930,13 +930,13 @@ export async function parseOLX(
     }
   }
 
-  if (!rootId && parsedIds.length) rootId = parsedIds[0];
+  if (!rootDefinitionKey && parsedDefinitionKeys.length) rootDefinitionKey = parsedDefinitionKeys[0];
 
   // Post-parse: check input/grader type compatibility via Zod schemas.
   // Best-effort — only checks same-file targets and direct children.
   // The runtime check in actions.tsx is the authoritative fallback.
-  for (const blockId of parsedIds) {
-    const variants = idMap[blockId];
+  for (const definitionKey of parsedDefinitionKeys) {
+    const variants = idMap[definitionKey];
     if (!variants) continue;
     const variant = variantMapKeys(variants)[0];
     const entry = variant ? variants[variant] : undefined;
@@ -944,27 +944,27 @@ export async function parseOLX(
     const graderBlock = BLOCK_REGISTRY[entry.tag];
     if (!graderBlock?.isGrader || !graderBlock.inputSchema) continue;
 
-    // Find input IDs: explicit target attribute, or child blocks with isInput.
+    // Find input definition keys: explicit target attribute, or child blocks with isInput.
     // Target values normally arrive as Zod-validated StateRef[]. Retain string
     // handling for parser-generated or legacy entries. Resolve via the canonical
     // stateKeyForGlobalRef path — handles already-qualified refs correctly and
     // extracts DefinitionKeys from scoped refs (e.g., "list:#0:answer" → ["list", "answer"]).
-    let inputIds: string[] = [];
+    let inputDefinitionKeys: DefinitionKey[] = [];
     const target = entry.attributes?.target;
     if (target) {
-      const rawIds = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
+      const rawRefs = Array.isArray(target) ? target.filter((value): value is string => typeof value === 'string')
         : typeof target === 'string' ? target.split(',').map(s => s.trim()) : [];
-      inputIds = rawIds.flatMap(s => {
+      inputDefinitionKeys = rawRefs.flatMap(s => {
         const ref = parseAnyStateRef(s);
         const stateKey = stateKeyForGlobalRef(ref, ns);
         return allDefinitionKeysFromStateKey(stateKey);
       });
     } else if (Array.isArray(entry.kids)) {
-      inputIds = entry.kids
+      inputDefinitionKeys = entry.kids
         .filter(isBlockKid)
-        .map(k => k.id)
-        .filter(id => {
-          const v = idMap[id];
+        .map(k => k.definitionKey)
+        .filter(definitionKey => {
+          const v = idMap[definitionKey];
           if (!v) return false;
           const variant = variantMapKeys(v)[0];
           const e = variant ? v[variant] : undefined;
@@ -972,8 +972,8 @@ export async function parseOLX(
         });
     }
 
-    for (const inputId of inputIds) {
-      const inputVariants = idMap[inputId];
+    for (const inputDefinitionKey of inputDefinitionKeys) {
+      const inputVariants = idMap[inputDefinitionKey];
       if (!inputVariants) continue; // Cross-file or unresolvable — skip
       const inputVariant = variantMapKeys(inputVariants)[0];
       const inputEntry = inputVariant ? inputVariants[inputVariant] : undefined;
@@ -988,9 +988,9 @@ export async function parseOLX(
           message: `<${entry.tag}> expects ${describeZodType(graderBlock.inputSchema)} input, but <${inputEntry.tag}> provides ${describeZodType(inputBlock.valueSchema)}.`,
           location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, entry._sourceOffset) },
           technical: {
-            graderId: blockId,
+            graderId: definitionKey,
             graderTag: entry.tag,
-            inputId,
+            inputId: inputDefinitionKey,
             inputTag: inputEntry.tag,
           }
         });
@@ -998,13 +998,13 @@ export async function parseOLX(
     }
   }
 
-  return { ids: parsedIds, idMap, root: rootId, errors };
+  return { definitionKeys: parsedDefinitionKeys, idMap, root: rootDefinitionKey, errors };
 }
 
 /** Generate a stable auto-ID for a node without an explicit id= attribute.
  *  Returns a branded DefinitionRef via makeSystemDefinitionRef ("_" + hash).
  *  Authors cannot collide — bare "_foo" refs are rejected at parse time. */
-function createId(node): DefinitionRef {
+function createDefinitionRef(node): DefinitionRef {
   const canonical = JSON.stringify(node);
   return makeSystemDefinitionRef(SHA1(canonical).toString());
 }

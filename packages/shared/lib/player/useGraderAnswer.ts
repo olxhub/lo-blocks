@@ -22,7 +22,7 @@ import { useFieldSelector } from '@/lib/state';
 import { getGrader, getDomNodeByStateKey, getAllNodes, inferRelatedNodes } from '../blocks/dynamicDom';
 import { useOlxJson } from './client/useOlxJson';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, qualifyDefinitionRef, scopedStateKeyForBlock } from '../types/id-grammar';
-import { getBlockByOLXId } from '../blocks/getBlockByOLXId';
+import { getBlockByDefinitionRef } from '../blocks/getBlockByDefinitionRef';
 import { staticTargetProps } from '../state/blockData';
 import { isInput } from '../blocks/actions';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
@@ -103,7 +103,7 @@ function resolveInputSlot(
   const inputId = props.id;
 
   // Check for explicit slot= attribute on this input
-  const inputInstance = getBlockByOLXId(props, inputId);
+  const inputInstance = getBlockByDefinitionRef(props, inputId);
   if (inputInstance?.attributes?.slot) {
     return inputInstance.attributes.slot as string;
   }

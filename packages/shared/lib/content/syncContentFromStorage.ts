@@ -500,7 +500,7 @@ async function parseAndIndexFiles(
 
       newParsedFiles[fileUri] = {
         ...fileRecord,
-        blockIds: parseResult.ids,
+        blockIds: parseResult.definitionKeys,
         errors: fileErrors,
       };
 

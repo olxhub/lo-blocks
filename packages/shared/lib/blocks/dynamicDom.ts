@@ -391,7 +391,7 @@ export function extractChildText(props, actionNode) {
     } else if (kid.type === 'text') {
       promptText += kid.text;
     } else if (kid.type === 'block') {
-      const value = getValueById(props, kid.id);
+      const value = getValueById(props, kid.definitionKey);
       if (value) {
         promptText += value;
       } // TODO: else -- maybe recurse down?
