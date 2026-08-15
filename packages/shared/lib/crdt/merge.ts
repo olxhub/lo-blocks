@@ -48,6 +48,21 @@ import { isDocUpdate, tryFoldDocUpdate } from './docText';
 export function mergeDocFields<T extends Record<string, any>>(
   preferred: T | undefined,
   other: Record<string, any> | undefined,
+  // What to do with a document that cannot merge at all. Keeping the
+  // preferred copy is right wherever the preferred copy is the one that
+  // will survive anyway — a server-authoritative bucket, a server's own
+  // materialization.
+  //
+  // 'take-other' is for the one place that is not true: a CLIENT
+  // reconciling its own bucket against stored state. There, a local
+  // document that cannot merge with the stored one is dead — it can never
+  // persist and never sync, because every write built on it will be
+  // refused for as long as the learner keeps that browser. Adopting the
+  // stored copy costs whatever was typed in the racing window that created
+  // the split (seconds, before the connect-time load landed) and buys back
+  // a device that works. Keeping the local copy costs everything typed on
+  // that device from then on, silently.
+  onUnmergeable: 'keep-preferred' | 'take-other' = 'keep-preferred',
 ): T | undefined {
   if (!preferred || !other) return preferred;
   let result: T | undefined;
@@ -55,9 +70,9 @@ export function mergeDocFields<T extends Record<string, any>>(
     const mine = preferred[field];
     if (!isDocUpdate(mine) || !isDocUpdate(theirs)) continue;
     const merged = tryFoldDocUpdate(mine, theirs, `reconciling '${field}'`);
-    if (merged === null) continue;   // unmergeable — preferred stands
+    if (merged === null && onUnmergeable === 'keep-preferred') continue;
     result ??= { ...preferred };
-    (result as Record<string, any>)[field] = merged;
+    (result as Record<string, any>)[field] = merged ?? theirs;
   }
   return result ?? preferred;
 }

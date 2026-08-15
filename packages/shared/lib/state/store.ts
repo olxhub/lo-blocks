@@ -272,7 +272,12 @@ export const updateResponseReducer = (state = initialState, action) => {
     for (const [key, bucket] of Object.entries(incoming)) {
       if (!(key in local)) adopted[key] = bucket;
       else if (hasMergeableDoc(local[key], bucket)) {
-        reconciled[key] = mergeDocFields(local[key], bucket);
+        // 'take-other' only for documents that cannot merge at all: a local
+        // document the stored one refuses is dead — nothing built on it will
+        // ever persist — so this is the one reconciliation that must NOT
+        // prefer local. Mergeable documents (the normal case) still merge,
+        // and every non-document field keeps local-wins untouched.
+        reconciled[key] = mergeDocFields(local[key], bucket, 'take-other');
       }
     }
     if (Object.keys(adopted).length === 0 && Object.keys(shared).length === 0

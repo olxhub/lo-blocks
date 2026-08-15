@@ -339,27 +339,24 @@ describe('two replicas seeded from different authored fallback text', () => {
     expect(warned).toBeGreaterThan(0);
   });
 
-  it('does not throw out of ADOPT_FIELD_STATE, and each route keeps its policy', () => {
-    // A content fetch carrying stored state. The two routes resolve in
-    // OPPOSITE directions by design, and an unmergeable document must fall
-    // back to that policy rather than to an exception — or to a document
-    // containing both baselines spliced together.
+  it('does not throw out of ADOPT_FIELD_STATE, and converges on the stored copy', () => {
+    // A content fetch carrying stored state. Mergeable documents resolve in
+    // opposite directions on the two routes (local-wins for a per-user
+    // bucket, server-wins for a shared one) — but an UNMERGEABLE one
+    // converges on the stored copy either way, because a local document the
+    // stored one refuses can never be persisted again. See the recovery
+    // suite below for why that matters.
     const local = { component: { [BLOCK]: { notes: MINE() } } } as any;
 
-    // Per-user: a bucket that exists locally came from this session, so
-    // local wins.
-    const own = quietly(() => updateResponseReducer(local, {
-      event: ADOPT_FIELD_STATE,
-      fieldState: { component: { [BLOCK]: { notes: THEIRS() } } },
-    })).result;
-    expect(docText(own.component[BLOCK].notes)).toBe('Write your answer here. A');
-
-    // Shared: server-authoritative, so the incoming copy wins.
-    const shared = quietly(() => updateResponseReducer(local, {
-      event: ADOPT_FIELD_STATE,
-      fieldState: { sharedComponent: { [BLOCK]: { notes: THEIRS() } } },
-    })).result;
-    expect(docText(shared.component[BLOCK].notes)).toBe('Answer below. B');
+    for (const fieldState of [
+      { component: { [BLOCK]: { notes: THEIRS() } } },
+      { sharedComponent: { [BLOCK]: { notes: THEIRS() } } },
+    ]) {
+      const { result } = quietly(() =>
+        updateResponseReducer(local, { event: ADOPT_FIELD_STATE, fieldState }));
+      // One baseline, whole — never the two spliced together.
+      expect(docText(result.component[BLOCK].notes)).toBe('Answer below. B');
+    }
   });
 
   it('does not throw out of a keystroke', () => {
@@ -388,5 +385,94 @@ describe('two replicas seeded from different authored fallback text', () => {
       NOTES.write!(mine as any, 'Write your answer here. A!!', { key }));
     expect(result).toHaveLength(1);
     expect(warned).toBe(0);
+  });
+});
+
+describe('recovering from an unmergeable document', () => {
+  // The bar: never a state that needs someone to go clear a database or a
+  // browser profile. A rejection may cost the losing side its text, but it
+  // must not cost them a working device, and reconnecting must put them
+  // back on the document everyone else is on.
+
+  const docFrom = (seed: string, next: string, client: number) =>
+    foldDocUpdate(undefined, docSpliceUpdate(seed, computeSplice(seed, next), client));
+
+  const ALICE = () => docFrom('Write your answer here.', 'Write your answer here. Alice', 1);
+  const BOB = () => docFrom('Answer below.', 'Answer below. Bob', 2);
+
+  const quiet = <T>(f: () => T): T => {
+    const warn = console.warn;
+    console.warn = () => {};
+    try { return f(); } finally { console.warn = warn; }
+  };
+
+  /** Bob's client, holding the baseline the server will not accept. */
+  const bobsClient = () => ({ component: { [BLOCK]: { notes: BOB() } } }) as any;
+
+  it('leaves the losing client usable — it renders and still accepts typing', () => {
+    const state = quiet(() => updateResponseReducer(bobsClient(), {
+      event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', update: ALICE(),
+    }));
+
+    expect(docText(state.component[BLOCK].notes)).toBe('Answer below. Bob');
+    const written = quiet(() => NOTES.write!(
+      state.component[BLOCK].notes, 'Answer below. Bob keeps going',
+      { key: 'component|usable|notes' },
+    ));
+    expect(written).toHaveLength(1);
+  });
+
+  it('rejoins the shared document on reconnect', () => {
+    const state = quiet(() => updateResponseReducer(bobsClient(), {
+      event: ADOPT_FIELD_STATE,
+      fieldState: { sharedComponent: { [BLOCK]: { notes: ALICE() } } },
+    }));
+    expect(docText(state.component[BLOCK].notes)).toBe('Write your answer here. Alice');
+  });
+
+  it('rejoins a per-user document on reload, rather than diverging forever', () => {
+    // Local-wins is right for a bucket this session has touched — EXCEPT
+    // when the two documents cannot merge, where the local copy can never
+    // be persisted again. Without this, a second device keeps a document
+    // the server refuses and the learner's work silently stops saving,
+    // recoverable only by clearing browser state.
+    const state = quiet(() => updateResponseReducer(bobsClient(), {
+      event: ADOPT_FIELD_STATE,
+      fieldState: { component: { [BLOCK]: { notes: ALICE() } } },
+    }));
+    expect(docText(state.component[BLOCK].notes)).toBe('Write your answer here. Alice');
+  });
+
+  it('still prefers local for a per-user document that merges normally', () => {
+    // The healing above must not become "the server always wins": ordinary
+    // divergence still merges, keeping both sides' work.
+    const shared = docFrom('', 'shared start', 1);
+    const mine = foldDocUpdate(shared, docSpliceUpdate(shared, computeSplice('shared start', 'shared start, mine'), 3));
+    const stored = foldDocUpdate(shared, docSpliceUpdate(shared, computeSplice('shared start', 'shared start, stored'), 4));
+
+    const state = quiet(() => updateResponseReducer(
+      { component: { [BLOCK]: { notes: mine } } } as any,
+      { event: ADOPT_FIELD_STATE, fieldState: { component: { [BLOCK]: { notes: stored } } } },
+    ));
+    const text = docText(state.component[BLOCK].notes);
+    expect(text).toContain('mine');
+    expect(text).toContain('stored');
+  });
+
+  it('settles instead of storming — one warning per event, no retry loop', () => {
+    let state = bobsClient();
+    let warnings = 0;
+    const warn = console.warn;
+    console.warn = () => { warnings++; };
+    try {
+      for (let i = 0; i < 10; i++) {
+        state = updateResponseReducer(state, {
+          event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes', update: ALICE(),
+        });
+      }
+    } finally { console.warn = warn; }
+
+    expect(warnings).toBe(10);
+    expect(docText(state.component[BLOCK].notes)).toBe('Answer below. Bob');
   });
 });
