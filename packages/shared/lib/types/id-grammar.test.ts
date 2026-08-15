@@ -16,8 +16,10 @@ import {
   VALID, splitNs, joinNs, extractBlocks, extractBlockIds, extractLeafId,
   isNamespaceQualified, isSourceQualifiedRef, defaultNamespace,
   scopedStateKeyForBlock, stateKeyForGlobalRef,
-  qualifyDefinitionRef, leafDefinitionKeyFromStateKey, allDefinitionKeysFromStateKey,
-  asIdPrefix, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
+  qualifyDefinitionRef, leafDefinitionKeyFromStateKey, leafDefinitionIdFor, allDefinitionKeysFromStateKey,
+  tryParseStateKey,
+  scopePrefixOfStateKey, siblingScopedKey,
+  asIdPrefix, asStateKey, asStateRef, asDefinitionRef, asLeafId, asContentNamespace,
   parseLeafId, parseStateKey, parseDefinitionKey, joinDefinitionRef,
   parseAnyDefinitionRef, parseAnyStateRef,
   validateAnyDefinitionRef, validateAnyStateRef,
@@ -663,6 +665,54 @@ describe("leafDefinitionKeyFromStateKey", () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// scopePrefixOfStateKey — the scope a key lives in
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The prefix everything inside one scoping container shares. It feeds
+// siblingScopedKey (grading topology, staticTargetProps), so a WRONG
+// prefix silently addresses another block's state — hence the fail-safe
+// on input the brand cannot vouch for.
+
+describe("scopePrefixOfStateKey", () => {
+  it("scoped key → its prefix", () => {
+    expect(String(scopePrefixOfStateKey(parseStateKey("CONTENT/list:#0:answer"))))
+      .toBe("list:#0");
+    expect(String(scopePrefixOfStateKey(parseStateKey("physics/outer:#0:inner:#1:leaf"))))
+      .toBe("outer:#0:inner:#1");
+  });
+
+  it("unscoped key → undefined (no scope to share)", () => {
+    expect(scopePrefixOfStateKey(parseStateKey("CONTENT/answer"))).toBeUndefined();
+  });
+
+  it("container-own-key shape → undefined, not a corrupt prefix", () => {
+    // "list:#0" is not a canonical StateKey — the grammar has no
+    // container-own-key shape — but the brand is compile-time only, so an
+    // unvalidated cast at a boundary can deliver one. Its leaf ("list")
+    // is an interior segment: stripping it blindly yields "li". Answering
+    // undefined (rather than throwing out of splitNs) keeps the caller in
+    // charge: an unscoped sibling is wrong-but-visible, "li:" is not.
+    const notCanonical = asStateKey("CONTENT/list:#0");
+    expect(scopePrefixOfStateKey(notCanonical)).toBeUndefined();
+    // ...and the sibling built from it stays unscoped rather than
+    // pointing at a fabricated "li:" scope.
+    expect(String(siblingScopedKey(notCanonical, parseDefinitionKey("CONTENT/grader"))))
+      .toBe("CONTENT/grader");
+  });
+});
+
+describe("leafDefinitionIdFor", () => {
+  it("scoped key → leaf definition id", () => {
+    expect(leafDefinitionIdFor("demos/list:#2:notes")).toBe("demos/notes");
+  });
+
+  it("non-key id → itself", () => {
+    expect(leafDefinitionIdFor("Tabs")).toBe("Tabs");
+    expect(leafDefinitionIdFor("demos/notes#row3")).toBe("demos/notes#row3");
+  });
+});
+
 describe("allDefinitionKeysFromStateKey", () => {
   it("scoped key → all blocks", () => {
     expect(allDefinitionKeysFromStateKey(parseStateKey("CONTENT/problems:#0:answer")).map(String))
@@ -677,6 +727,29 @@ describe("allDefinitionKeysFromStateKey", () => {
   it("deeply nested", () => {
     expect(allDefinitionKeysFromStateKey(parseStateKey("physics/a:#0:b:#1:c")).map(String))
       .toEqual(["physics/a", "physics/b", "physics/c"]);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// tryParseStateKey — the non-throwing boundary parse
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The sync engine handles id-shaped strings that are USUALLY StateKeys
+// but may be componentSetting tags, storage URIs, or system sentinels.
+// It parses at the boundary and keeps the null case — the grammar module
+// never returns an unbranded id-shaped string.
+
+describe("tryParseStateKey", () => {
+  it("valid keys parse to the branded key", () => {
+    expect(String(tryParseStateKey("CONTENT/list:#2:grader"))).toBe("CONTENT/list:#2:grader");
+    expect(String(tryParseStateKey("CONTENT/grader"))).toBe("CONTENT/grader");
+  });
+
+  it("non-keys return null, never throw", () => {
+    expect(tryParseStateKey("Tabs")).toBeNull();                  // setting tag
+    expect(tryParseStateKey("studio://course/f.olx")).toBeNull(); // storage URI
+    expect(tryParseStateKey("demos/notes#row3")).toBeNull();      // dead '#' dialect
+    expect(tryParseStateKey("")).toBeNull();
   });
 });
 

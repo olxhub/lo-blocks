@@ -17,6 +17,7 @@
 
 import type { SafeUserId } from '@/lib/types/identity';
 import type { DefinitionKey, StateKey } from '@/lib/types';
+import { leafDefinitionIdFor } from '@/lib/types/id-grammar';
 
 /** An instance address segment. Deliberately a string (it IS a key). */
 export type LevelInstance = string;
@@ -46,6 +47,48 @@ export function isUserInstance(instance: LevelInstance): boolean {
 /** Subscription key for a block within an instance. */
 export function subscriptionKey(instance: LevelInstance, blockId: string): string {
   return `${instance}|${blockId}`;
+}
+
+/**
+ * A MATERIALIZED component scope, indexed by the DEFINITION its state ids
+ * belong to: `definitionId → [state ids]`.
+ *
+ * This is the ONE place answering "which state ids belong to this
+ * definition?". It exists because scoped instances cannot be enumerated
+ * from content: only a container's own state knows that
+ * `demos/list:#2:chat` exists at all, so a consumer that already holds a
+ * materialized scope answers from the keys it has in hand — no reverse
+ * index in the KVS, no enumeration, no extra I/O.
+ *
+ *   indexScopeByLeafDefinition({ 'demos/chat': {}, 'demos/list:#2:chat': {} })
+ *   → Map { 'demos/chat' → ['demos/chat', 'demos/list:#2:chat'] }
+ *
+ * Grouping is by LEAF DEFINITION (leafDefinitionIdFor): scope segments
+ * only pick WHICH copy, so every scoped copy belongs to its definition,
+ * and a bare DefinitionKey is a StateKey whose leaf is itself — the
+ * exact-id case falls out as a special case. Ids that are not StateKeys
+ * (componentSetting tags, storage URIs, system ids) index as themselves,
+ * so they are found only by their exact id.
+ *
+ * An INDEX rather than a per-definition filter: callers ask about many
+ * ids against one scope (a content fetch serves a whole page; a group
+ * switch walks two partitions), and filtering per id parsed every key
+ * once per id — O(ids × keys) key parses for what is one pass.
+ *
+ * TODO(demand-loading): the roadmap replaces these callers with exact-key
+ * reads (the over-fetch here is transitional); this helper goes with them.
+ */
+export function indexScopeByLeafDefinition(
+  componentScope: Record<string, unknown> | undefined,
+): Map<string, string[]> {
+  const byDefinition = new Map<string, string[]>();
+  for (const key of Object.keys(componentScope ?? {})) {
+    const definitionId = leafDefinitionIdFor(key);
+    const stateIds = byDefinition.get(definitionId);
+    if (stateIds) stateIds.push(key);
+    else byDefinition.set(definitionId, [key]);
+  }
+  return byDefinition;
 }
 
 /**

@@ -876,13 +876,24 @@ export function stateKeyForGlobalRef(
  *
  *   scopePrefixOfStateKey("CONTENT/list:#0:answer") → "list:#0"
  *   scopePrefixOfStateKey("CONTENT/answer")         → undefined
+ *   scopePrefixOfStateKey("CONTENT/list:#0")        → undefined (not a
+ *                                                     canonical key)
  */
 export function scopePrefixOfStateKey(key: StateKey): IdPrefix | undefined {
+  // Fail safe on non-canonical input. The brand is COMPILE-TIME only and
+  // unvalidated asStateKey casts exist at boundaries, so a trailing-marker
+  // string ("list:#0" — a container's own key, which the grammar has no
+  // shape for) can arrive here. Its leaf is an INTERIOR segment, so the
+  // slice below would answer "li": a prefix that silently mis-addresses
+  // some other block's state through siblingScopedKey (grading topology,
+  // staticTargetProps). "No derivable scope" is the honest answer, and
+  // the only one callers can act on — splitNs would merely throw.
+  if (validateStateKey(key) !== true) return undefined;
+  // A canonical statePath ends in a leaf id, so the prefix is everything
+  // before it — absent when the leaf IS the whole path.
   const { path } = splitNs(key);
   const leaf = leafBlock(path);
-  // Only the plain trailing-leaf shape has a derivable prefix; a container's
-  // own key ("list:#0") has no leaf suffix to strip.
-  if (leaf === path || !path.endsWith(`${SCOPE_SEPARATOR}${leaf}`)) return undefined;
+  if (leaf === path) return undefined;
   return asIdPrefix(path.slice(0, path.length - leaf.length - SCOPE_SEPARATOR.length));
 }
 
@@ -926,4 +937,33 @@ export function leafDefinitionKeyFromStateKey(key: StateKey): DefinitionKey {
 export function allDefinitionKeysFromStateKey(key: StateKey): DefinitionKey[] {
   const { ns, path } = splitNs(key);
   return blockSegments(path).map(id => asDefinitionKey(joinNs(ns, id)));
+}
+
+/** Non-throwing boundary parse: the branded StateKey when valid, else
+ * null. For callers handling id-shaped strings that may not be StateKeys
+ * (componentSetting tags, storage URIs, system ids) — the caller keeps
+ * the null case and decides what non-key means THERE; this module never
+ * returns an unbranded id-shaped string. */
+export function tryParseStateKey(s: string): StateKey | null {
+  return validateStateKey(s) === true ? asStateKey(s) : null;
+}
+
+/**
+ * The lenient boundary form for ids arriving off the wire: a StateKey
+ * becomes its leaf DefinitionKey; anything else (componentSetting tags,
+ * storage URIs, system ids) is returned unchanged.
+ *
+ *   leafDefinitionIdFor("demos/list:#2:notes") → "demos/notes"
+ *   leafDefinitionIdFor("Tabs")                → "Tabs"
+ *
+ * Typed string → string deliberately: the input is untrusted wire data
+ * (not yet known to be a key), and the output is used to key raw idMap
+ * lookups, whose keys are plain content ids.
+ *
+ * Bug memory: replaces per-site '#'-slicing of a retired dialect; see the
+ * scoped-routing regression test in pipeline.test.ts.
+ */
+export function leafDefinitionIdFor(stateId: string): string {
+  const key = tryParseStateKey(stateId);
+  return key ? leafDefinitionKeyFromStateKey(key) : stateId;
 }

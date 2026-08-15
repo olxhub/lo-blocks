@@ -49,15 +49,20 @@ export class SubscriptionRegistry {
     return this.byKey.get(key) ?? EMPTY;
   }
 
-  /** Swap a connection's instance for one block: drop every
-   * `{instance}|{blockId}` key for this block, subscribe the new key.
-   * The group-switch path (router.ts) — a user re-picking moves their
-   * sockets to the new partition. */
-  resubscribe(ws: StateConnection, blockId: string, newKey: string) {
+  /** Swap a connection's subscriptions for one block: drop every key the
+   * CALLER says belongs to that block (across all instances), subscribe
+   * the new key. The group-switch path (router.ts) — a user re-picking
+   * moves their sockets to the new partition.
+   *
+   * The predicate is the caller's job on purpose: this registry is
+   * generic bus infrastructure over opaque string keys and must not learn
+   * the StateKey grammar. Only the caller knows that e.g. a scoped
+   * instance of a definition counts as "this block". */
+  resubscribe(ws: StateConnection, matchesKey: (key: string) => boolean, newKey: string) {
     const mine = this.bySocket.get(ws);
     if (mine) {
       for (const key of mine) {
-        if (key.endsWith(`|${blockId}`)) {
+        if (matchesKey(key)) {
           mine.delete(key);
           const subs = this.byKey.get(key);
           if (subs) {

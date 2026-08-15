@@ -36,7 +36,7 @@ import { UserStateRegistry } from '@/lib/state/sync/registry';
 import { SubscriptionRegistry } from '@/lib/state/sync/subscriptions';
 import { makeGroupingIndex } from '@/lib/state/sync/partitions';
 import { makeAggregationIndex } from '@/lib/state/sync/aggregations';
-import { makeFieldLevelIndex } from '@/lib/state/sync/fieldLevels';
+import { makeSharedFieldPolicyIndex } from '@/lib/state/sync/fieldLevels';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
@@ -137,7 +137,7 @@ export async function startServer(
   // Trusted level declarations (fieldLevels.ts): routing derives a
   // field's level from content + registry, never from the wire's
   // authority stamp — without this index every field is level 'user'.
-  const fieldLevels = makeFieldLevelIndex(
+  const fieldLevels = makeSharedFieldPolicyIndex(
     async () => (await syncContentFromStorage()).idMap as any,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );

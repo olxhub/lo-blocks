@@ -22,14 +22,17 @@ import type { StateConnection } from './connection';
 import type { UserStateRegistry, UserStateEntry } from './registry';
 import type { SubscriptionRegistry } from './subscriptions';
 import type { GroupingIndex } from './partitions';
-import type { FieldLevelIndex, FieldLevelInfo } from './fieldLevels';
+import type { SharedFieldPolicyIndex, SharedFieldPolicy } from './fieldLevels';
 import type { AggregationIndex, AggregationView } from './aggregations';
 import { parsePartitionSpec, groupFor } from './partitions';
+import {
+  tryParseStateKey, leafDefinitionIdFor, leafDefinitionKeyFromStateKey,
+} from '@/lib/types/id-grammar';
 import { assembleFieldState } from './persistence';
 import type { KVStore } from '@/lib/storage/kvs';
 import {
   ALL, type LevelInstance, userInstance, isUserInstance, setInstance, subscriptionKey,
-  isEphemeralNamespaceKey,
+  isEphemeralNamespaceKey, indexScopeByLeafDefinition,
 } from './levels';
 
 /** One connection's standing context in the sync engine — acquired at
@@ -45,7 +48,7 @@ export interface SyncSession {
   /** Trusted level declarations from content + registry; absent = every
    * field is level 'user'. Routing NEVER trusts the wire's authority
    * stamp — see resolveLevel. */
-  fieldLevels?: FieldLevelIndex;
+  fieldLevels?: SharedFieldPolicyIndex;
   /** Partition index from content; absent = no grouping. */
   grouping?: GroupingIndex;
   /** Aggregation index from content; absent = no distant folds. */
@@ -86,9 +89,9 @@ export async function entryFor(session: SyncSession, instance: LevelInstance): P
  * to routing — a client stamping 'shared' on a private field must not
  * reach shared state. Undefined = level 'user' (fail closed: no index,
  * no declaration, or no field name on the event → private). */
-async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<FieldLevelInfo | undefined> {
+async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<SharedFieldPolicy | undefined> {
   const info = session.fieldLevels && event.id && event.field
-    ? await session.fieldLevels.levelOf(event.id, event.field)
+    ? await session.fieldLevels.sharedPolicyFor(event.id, event.field)
     : undefined;
   if (event.authority && !info) {
     // Forged stamp, stale client, or content/registry skew — routed as
@@ -101,12 +104,20 @@ async function resolveLevel(session: SyncSession, event: SyncEvent): Promise<Fie
 
 /** The instance a level-everyone block folds into for THIS sender:
  * their partition when grouped, else `all`. The partition NEVER comes
- * from the wire: grouped fields resolve from the SENDER's own state. */
-async function sharedInstanceFor(session: SyncSession, blockId: string): Promise<LevelInstance> {
+ * from the wire: grouped fields resolve from the SENDER's own state.
+ * Grouping is declared on DEFINITIONS, so a scoped instance
+ * (`ns/list:#2:notes`) resolves via its leaf definition. `stateId` is
+ * the event's runtime state id (usually a StateKey; parsed inside). */
+async function sharedInstanceFor(session: SyncSession, stateId: string): Promise<LevelInstance> {
+  const defId = leafDefinitionIdFor(stateId);
   const spec = session.grouping
-    ? await session.grouping.specOf(blockId) : undefined;
+    ? await session.grouping.specOf(defId) : undefined;
   if (!spec) return ALL;
-  const parsed = parsePartitionSpec(spec, blockId);
+  // The spec's contract is "the grouped block's id" — pass the definition,
+  // not the scoped state id. (Passing stateId happened to work only because
+  // the grammar forbids '/' in the path portion, so slicing to the namespace
+  // gave the same answer — an equivalence the callee never promised.)
+  const parsed = parsePartitionSpec(spec, defId);
   const own = session.holdings.get(userInstance(session.principal));
   const group = parsed && own
     ? groupFor(own.serverState.state as any, parsed)
@@ -116,22 +127,40 @@ async function sharedInstanceFor(session: SyncSession, blockId: string): Promise
 
 /**
  * Who hears about an event at an instance: the connections subscribed to
- * (instance, blockId) — content fetch = subscription; writers
+ * (instance, stateId) — content fetch = subscription; writers
  * self-subscribe so a client that writes without fetching still hears
- * responses. Scoped state keys (`defId#anchor`) also reach BASE-id
- * subscribers (content fetches subscribe by definition id).
+ * responses. A scoped state key (`ns/list:#2:grader`) also reaches the
+ * subscribers of its LEAF DEFINITION, because nobody subscribes a scoped
+ * id: a content fetch names definitions, so whoever renders the list
+ * subscribed `ns/grader` (the list's static kid) at the instance their
+ * own partition resolved to — the same instance this event routed to.
+ * (This used to slice at '#', a pre-id-grammar dialect nothing produces;
+ * scoped events reached only exact-key subscribers, i.e. usually nobody.
+ * Found by review 2026-07.)
+ *
+ * The leaf SUFFICES, and the container hop this used to add
+ * (allDefinitionKeysFromStateKey) leaked across partitions: every reader
+ * of an ungrouped container holds it at `all` (instancesFor), so an
+ * unpartitioned scoped write fanned into every partition's readers at
+ * once. Only the leaf's subscription key carries a per-subscriber
+ * resolved instance; container keys pin `all` and cannot filter.
+ * (Found by review 2026-08.)
  */
 function subscribersFor(
   session: SyncSession,
   instance: LevelInstance,
-  blockId: string,
+  stateId: string,
 ): Set<StateConnection> {
-  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, blockId)]);
-  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, blockId)));
-  const hash = blockId.indexOf('#');
-  if (hash > 0) {
-    const base = subscriptionKey(instance, blockId.slice(0, hash));
-    for (const sock of session.subscriptions.subscribers(base)) recipients.add(sock);
+  session.subscriptions.subscribe(session.origin, [subscriptionKey(instance, stateId)]);
+  const recipients = new Set(session.subscriptions.subscribers(subscriptionKey(instance, stateId)));
+  // An id that isn't a StateKey has no leaf definition — exact-key
+  // subscribers (above) are the only audience.
+  const key = tryParseStateKey(stateId);
+  const leafDef = key ? leafDefinitionKeyFromStateKey(key) : undefined;
+  if (leafDef !== undefined && leafDef !== stateId) {
+    for (const sock of session.subscriptions.subscribers(subscriptionKey(instance, leafDef))) {
+      recipients.add(sock);
+    }
   }
   return recipients;
 }
@@ -199,8 +228,16 @@ export async function routeEvent(session: SyncSession, event: SyncEvent): Promis
  * their connections' subscriptions to the new instance and push its
  * bucket so their UI switches content now, not at next reload. Fields
  * present in the OLD partition but absent in the new bucket are blanked
- * — otherwise the old group's text would linger on screen. The picker
- * transition tells us both partitions; no scanning.
+ * — otherwise the old group's text would linger on screen.
+ *
+ * Nothing is scanned to FIND the partitions: the picker transition names
+ * both of them directly. Within those two (already materialized)
+ * partitions we do index the buckets in hand, because `blockId` is a
+ * DEFINITION and a grouped block may have many scoped INSTANCES
+ * (`demos/list:#2:chat`) that only the container's state knows about.
+ * Patching just the plain id left every scoped copy showing the old
+ * group's content; indexScopeByLeafDefinition (levels.ts) picks them out
+ * of the scopes already read here — no extra I/O, no reverse index.
  */
 async function switchGroup(
   session: SyncSession,
@@ -221,18 +258,55 @@ async function switchGroup(
   if (oldInstance === newInstance) return;
 
   const newEntry = await entryFor(session, newInstance);
-  const newBucket = (newEntry.serverState.state as any).component?.[blockId] ?? {};
+  const newComponent = (newEntry.serverState.state as any).component as
+    Record<string, any> | undefined;
   const oldScopes = await session.registry.read(oldInstance);
-  const blanks: Record<string, any> = {};
-  for (const field of Object.keys(oldScopes?.component?.[blockId] ?? {})) blanks[field] = '';
-  const patch = { ...blanks, ...newBucket };
+  const oldComponent = oldScopes?.component as Record<string, any> | undefined;
+
+  // Every state id of this definition in either partition — the plain
+  // definition bucket plus any scoped instances (see the note above).
+  // One index per partition scope, not one filter per lookup: the two
+  // scopes are walked once each, then asked about `blockId`.
+  const stateIds = new Set([
+    ...(indexScopeByLeafDefinition(newComponent).get(blockId) ?? []),
+    ...(indexScopeByLeafDefinition(oldComponent).get(blockId) ?? []),
+  ]);
+  // Every one of these becomes its own broadcastStatePatch, so a
+  // definition with N accumulated scoped instances costs N messages per
+  // re-pick. Not bounded here: the only available narrowing is "does this
+  // user still subscribe the state id's CONTAINER", and container
+  // subscriptions are held at `all` by every reader (instancesFor), so
+  // asking would drop legitimate patches for any container that IS
+  // grouped — a stale-UI bug traded for a message count. Demand loading
+  // (TODO(demand-loading), levels.ts) removes the accumulation instead.
+
+  // Which of this socket's keys belong to `blockId`? A subscription key is
+  // `{instance}|{stateId}`, and only the stateId is '|'-free (instances can
+  // carry a JSON-stringified group member) — hence lastIndexOf, not split.
+  // We compare the state id's LEAF DEFINITION: grouping is declared on
+  // definitions, so every scoped copy (`demos/list:#2:chat`) belongs to the
+  // same partition as its definition (`demos/chat`) — scope segments only
+  // pick which copy. A bare DefinitionKey is a StateKey whose leaf is
+  // itself, so this also matches the plain definition subscription.
+  // Bug memory: matching keys by `endsWith('|' + blockId)` left a writer's
+  // stale SCOPED self-subscription alive in the OLD partition, so a switched
+  // user kept receiving that partition's scoped events (found by review
+  // 2026-08; regression test in apps/server/src/pipeline.test.ts).
+  const belongsToBlock = (key: string) =>
+    leafDefinitionIdFor(key.slice(key.lastIndexOf('|') + 1)) === blockId;
 
   const sockets = session.registry.socketsOf(userInstance(session.principal));
   for (const sock of sockets) {
-    session.subscriptions.resubscribe(sock, blockId, subscriptionKey(newInstance, blockId));
+    session.subscriptions.resubscribe(sock, belongsToBlock, subscriptionKey(newInstance, blockId));
   }
-  if (Object.keys(patch).length > 0) {
-    newEntry.broadcastStatePatch(blockId, patch, sockets);
+  for (const stateId of stateIds) {
+    const newBucket = newComponent?.[stateId] ?? {};
+    const blanks: Record<string, any> = {};
+    for (const field of Object.keys(oldComponent?.[stateId] ?? {})) blanks[field] = '';
+    const patch = { ...blanks, ...newBucket };
+    if (Object.keys(patch).length > 0) {
+      newEntry.broadcastStatePatch(stateId, patch, sockets);
+    }
   }
 }
 
