@@ -26,7 +26,7 @@
 // and out of scope to change; widening this is a separate decision, and
 // the shape of the helper below leaves room for it.
 
-import { isDocUpdate, foldDocUpdate } from './docText';
+import { isDocUpdate, tryFoldDocUpdate } from './docText';
 
 /**
  * Reconcile two copies of one state bucket.
@@ -35,6 +35,12 @@ import { isDocUpdate, foldDocUpdate } from './docText';
  * EXCEPT for fields where both copies hold a document, which are merged.
  * Merging normalizes through a document rather than concatenating the two
  * updates, so repeated reconciliation cannot accumulate redundant structs.
+ *
+ * A document that cannot merge falls back to the caller's policy too:
+ * `preferred` is kept and a warning is logged. This runs inside a Redux
+ * reducer (ADOPT_FIELD_STATE) and inside connection setup
+ * (ServerState.seed), where an exception would take down a whole state
+ * update or a handshake rather than one field.
  *
  * Returns `preferred` itself when nothing merged, so callers can keep
  * their same-object-when-unchanged guarantees.
@@ -48,8 +54,10 @@ export function mergeDocFields<T extends Record<string, any>>(
   for (const [field, theirs] of Object.entries(other)) {
     const mine = preferred[field];
     if (!isDocUpdate(mine) || !isDocUpdate(theirs)) continue;
+    const merged = tryFoldDocUpdate(mine, theirs, `reconciling '${field}'`);
+    if (merged === null) continue;   // unmergeable — preferred stands
     result ??= { ...preferred };
-    (result as Record<string, any>)[field] = foldDocUpdate(mine, theirs);
+    (result as Record<string, any>)[field] = merged;
   }
   return result ?? preferred;
 }

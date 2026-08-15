@@ -264,6 +264,34 @@ export function foldDocUpdate(raw: unknown, update: JsonUpdate): JsonUpdate {
   return next;
 }
 
+/**
+ * Fold, or `null` if the two documents cannot merge.
+ *
+ * `foldDocUpdate` throws on a document the CRDT refuses — today that means
+ * two incarnations of one field claiming the same IDs with different
+ * content (see TODO(epochs) in the header). Refusing is correct: the
+ * alternative is interleaving two unrelated histories into one unreadable
+ * document. But refusing must not become an exception escaping into a
+ * Redux reducer, a connection handshake, or a keystroke handler, so every
+ * caller goes through here and decides what to keep.
+ *
+ * Recovery is clean: validation runs before the document is touched, the
+ * stored value is immutable JSON, and the cache is only a cache — the
+ * rejected value simply rebuilds on next read.
+ */
+export function tryFoldDocUpdate(
+  raw: unknown,
+  update: JsonUpdate,
+  where: string,
+): JsonUpdate | null {
+  try {
+    return foldDocUpdate(raw, update);
+  } catch (error) {
+    console.warn(`[docText] ${where}: unmergeable document, keeping the existing copy —`, error);
+    return null;
+  }
+}
+
 /** Merge stored values that diverged — reconnect, adoption, seeding. */
 export function mergeDocUpdates(values: readonly unknown[]): JsonUpdate {
   return mergeUpdates(values.filter(isDocUpdate));
@@ -367,7 +395,16 @@ export function writerBase(raw: unknown, key?: string): unknown {
     heads.delete(key);                            // a different document
     return raw;
   }
-  return foldDocUpdate(entry.head, raw);
+  const combined = tryFoldDocUpdate(entry.head, raw, 'writer base');
+  if (combined === null) {
+    // Our in-flight edits belong to an incarnation the store has moved off.
+    // The store is the shared truth, so abandon the head rather than keep
+    // re-trying a fold that cannot succeed; the learner's next keystroke
+    // builds on what everyone else has.
+    heads.delete(key);
+    return raw;
+  }
+  return combined;
 }
 
 /**

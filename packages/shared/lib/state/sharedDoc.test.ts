@@ -18,7 +18,7 @@ import { initReducers, updateResponseReducer, ADOPT_FIELD_STATE } from './store'
 import { fieldInfosFrom } from './fields';
 import { docField } from './fieldTypes/crdt/doc';
 import { computeSplice } from '../crdt/computeSplice';
-import { docText, docSpliceUpdate } from '../crdt/docText';
+import { docText, docSpliceUpdate, foldDocUpdate } from '../crdt/docText';
 
 const NOTES = docField('notes', { level: 'everyone' });
 const BLOCK = 'demos/notes';
@@ -207,7 +207,7 @@ describe('a document shared by several people', () => {
     } finally {
       console.warn = warn;
     }
-    expect(warnings.flat().join(' ')).toMatch(/rejected update/);
+    expect(warnings.flat().join(' ')).toMatch(/unmergeable document/);
   });
 
   it('leaves the bucket alone when the event carries no usable update', () => {
@@ -295,5 +295,98 @@ describe('adopting stored state', () => {
 
     expect(alice.state.component[BLOCK].value).toBe('local');
     expect(alice.state.component.other.value).toBe('new');
+  });
+});
+
+describe('two replicas seeded from different authored fallback text', () => {
+  // The one document-layer case the CRDT cannot merge: two incarnations of
+  // one field claiming the same seed IDs with different content (see
+  // TODO(epochs) in crdt/docText.ts). Refusing is correct — interleaving
+  // two unrelated baselines would produce an unreadable document. What
+  // must NOT happen is the refusal escaping as an exception: these
+  // boundaries are a Redux reducer, a connection handshake, and a
+  // keystroke handler, where a throw costs far more than one field.
+
+  const docFrom = (seed: string, next: string, client: number) =>
+    foldDocUpdate(undefined, docSpliceUpdate(seed, computeSplice(seed, next), client));
+
+  const MINE = () => docFrom('Write your answer here.', 'Write your answer here. A', 1);
+  const THEIRS = () => docFrom('Answer below.', 'Answer below. B', 2);
+
+  /** Run with console.warn captured, since every path here warns. */
+  function quietly<T>(body: () => T): { result: T; warned: number } {
+    const warn = console.warn;
+    let warned = 0;
+    console.warn = () => { warned++; };
+    try { return { result: body(), warned }; }
+    finally { console.warn = warn; }
+  }
+
+  it('keeps the local document when an incoming event cannot merge', () => {
+    const alice = new Client(1);
+    alice.state = updateResponseReducer(alice.state, {
+      event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes',
+      update: MINE(),
+    });
+    const before = alice.text;
+
+    const { warned } = quietly(() => alice.receive({
+      event: 'SPLICE_INPUT', scope: 'component', id: BLOCK, field: 'notes',
+      update: THEIRS(),
+    }));
+
+    expect(alice.text).toBe(before);
+    expect(warned).toBeGreaterThan(0);
+  });
+
+  it('does not throw out of ADOPT_FIELD_STATE, and each route keeps its policy', () => {
+    // A content fetch carrying stored state. The two routes resolve in
+    // OPPOSITE directions by design, and an unmergeable document must fall
+    // back to that policy rather than to an exception — or to a document
+    // containing both baselines spliced together.
+    const local = { component: { [BLOCK]: { notes: MINE() } } } as any;
+
+    // Per-user: a bucket that exists locally came from this session, so
+    // local wins.
+    const own = quietly(() => updateResponseReducer(local, {
+      event: ADOPT_FIELD_STATE,
+      fieldState: { component: { [BLOCK]: { notes: THEIRS() } } },
+    })).result;
+    expect(docText(own.component[BLOCK].notes)).toBe('Write your answer here. A');
+
+    // Shared: server-authoritative, so the incoming copy wins.
+    const shared = quietly(() => updateResponseReducer(local, {
+      event: ADOPT_FIELD_STATE,
+      fieldState: { sharedComponent: { [BLOCK]: { notes: THEIRS() } } },
+    })).result;
+    expect(docText(shared.component[BLOCK].notes)).toBe('Answer below. B');
+  });
+
+  it('does not throw out of a keystroke', () => {
+    // This client's in-flight document versus a store that holds the other
+    // baseline — the write path combines the two, so it can hit the same
+    // refusal while the learner is typing.
+    const key = 'component|conflict|notes';
+    const theirs = THEIRS();
+    quietly(() => NOTES.write!(theirs as any, 'Answer below. B!', { key }));
+
+    const { result } = quietly(() =>
+      NOTES.write!(MINE() as any, 'Write your answer here. A!', { key }));
+    expect(result).toHaveLength(1);
+  });
+
+  it('recovers: the next keystroke builds on what the store holds', () => {
+    const key = 'component|recovery|notes';
+    const theirs = THEIRS();
+    quietly(() => NOTES.write!(theirs as any, 'Answer below. B!', { key }));
+
+    const mine = MINE();
+    quietly(() => NOTES.write!(mine as any, 'Write your answer here. A!', { key }));
+
+    // The abandoned head must not keep poisoning later writes.
+    const { result, warned } = quietly(() =>
+      NOTES.write!(mine as any, 'Write your answer here. A!!', { key }));
+    expect(result).toHaveLength(1);
+    expect(warned).toBe(0);
   });
 });

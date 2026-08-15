@@ -1,5 +1,5 @@
 export {
-  docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocUpdate,
+  docText, docSpliceUpdate, foldDocUpdate, tryFoldDocUpdate, mergeDocUpdates, isDocUpdate,
 } from './docText';
 export type { JsonUpdate } from './text';
 export { computeSplice } from './computeSplice';
