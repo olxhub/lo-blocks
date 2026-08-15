@@ -285,11 +285,64 @@ export function tryFoldDocUpdate(
   where: string,
 ): JsonUpdate | null {
   try {
-    return foldDocUpdate(raw, update);
+    const next = foldDocUpdate(raw, update);
+    if (faulted.delete(where)) notifyFaultListeners();
+    return next;
   } catch (error) {
     console.warn(`[docText] ${where}: unmergeable document, keeping the existing copy —`, error);
+    if (!faulted.has(where)) {
+      faulted.add(where);
+      notifyFaultListeners();
+    }
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Document faults, for the UI
+// ---------------------------------------------------------------------------
+//
+// A refused document is not a transient hiccup: until this client reloads,
+// nothing it types into that field will ever be saved or seen by anyone.
+// Letting someone keep writing under the impression that it is being kept
+// is the actual harm, worse than the lost text, so the app surfaces it as a
+// fatal (components/common/ConnectionStatus.tsx) and stops the page rather
+// than only logging.
+//
+// Reported here rather than from the reducer because this is the layer that
+// knows. Faults are keyed by their `where` label and CLEAR when the same
+// place folds successfully again, so a client healed by adoption on
+// reconnect stops warning without a reload, and two independent documents
+// do not clear each other's fault.
+
+const faulted = new Set<string>();
+type FaultListener = (faulted: readonly string[]) => void;
+const faultListeners = new Set<FaultListener>();
+
+function notifyFaultListeners(): void {
+  const snapshot = [...faulted];
+  for (const listener of faultListeners) {
+    try { listener(snapshot); } catch { /* a broken view must not break the fold */ }
+  }
+}
+
+/**
+ * Subscribe to unmergeable-document faults. Returns an unsubscribe.
+ *
+ * The listener is called once immediately, so a view mounting into an
+ * already-faulted client reports it rather than waiting for the next fold
+ * that may never come. Guarded like the notify path: a view that throws on
+ * subscribe must not take the subscription with it.
+ */
+export function onDocumentFault(listener: FaultListener): () => void {
+  faultListeners.add(listener);
+  try { listener([...faulted]); } catch { /* see notifyFaultListeners */ }
+  return () => { faultListeners.delete(listener); };
+}
+
+/** Places currently holding a document that cannot merge. */
+export function documentFaults(): readonly string[] {
+  return [...faulted];
 }
 
 /** Merge stored values that diverged — reconnect, adoption, seeding. */

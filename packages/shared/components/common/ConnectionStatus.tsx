@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, WifiOff } from 'lucide-react';
 import * as lo_event from 'lo_event';
 import { useConnected, useSaved } from '@/lib/state';
+import { onDocumentFault } from '@/lib/crdt/docText';
 
 export type SaveStatus = 'saved' | 'modified' | 'error';
 
@@ -51,9 +52,20 @@ export interface Fatal { code: string; message: string }
 
 export const FATAL_MESSAGES: Record<string, string> = {
   NOT_ACKING: 'Saving isn’t working right now — the server isn’t confirming your work. Your work is held on this device; keep this page open and try again later.',
+  DOCUMENT_FAULT: 'This page is out of sync, and edits to the text on it can no longer be saved. Reload to get the current version — anything typed here since the problem started will be lost.',
 };
 export const FATAL_FALLBACK = 'Saving is unavailable right now. Your work is held and will sync once the connection is restored.';
 export function fatalMessage(code: string): string { return FATAL_MESSAGES[code] ?? FATAL_FALLBACK; }
+
+/**
+ * Fatals that RELOADING fixes, which is not most of them — the advice is
+ * per-code and sometimes opposite. NOT_ACKING holds the work in an on-device
+ * queue and tells the student to keep the page open, so offering a reload
+ * there would invite them to discard exactly what is being protected. A
+ * document fault is the reverse: the copy in this tab is the broken thing,
+ * and reloading is the whole remedy.
+ */
+export const FATAL_RELOADABLE = new Set(['DOCUMENT_FAULT']);
 
 // --- symptom detector -------------------------------------------------------
 //
@@ -146,6 +158,22 @@ function useNotAckingFatal(connected: boolean | null): Fatal | null {
   return fatal;
 }
 
+/**
+ * Fatal from a document the CRDT refused (lib/crdt/docText.ts).
+ *
+ * Unlike the NOT_ACKING detector above, this needs no sampling and no
+ * heuristic: the fold either merged or it did not. It reports directly,
+ * and clears itself if the same place folds again — which is what happens
+ * when reconnecting adopts the stored copy and repairs this client.
+ */
+function useDocumentFaultFatal(): Fatal | null {
+  const [faults, setFaults] = useState<readonly string[]>([]);
+  useEffect(() => onDocumentFault(setFaults), []);
+  return faults.length > 0
+    ? { code: 'DOCUMENT_FAULT', message: fatalMessage('DOCUMENT_FAULT') }
+    : null;
+}
+
 export interface ConnectionStatus {
   /** null = no persistence configured, false = disconnected, true = connected. */
   connected: boolean | null;
@@ -162,13 +190,18 @@ export interface ConnectionStatus {
 export function useConnectionStatus(): ConnectionStatus {
   const connected = useConnected();
   const saveStatus = useSaved() as SaveStatus;
-  const fatal = useNotAckingFatal(connected);
+  const notAcking = useNotAckingFatal(connected);
+  const documentFault = useDocumentFaultFatal();
   return {
     connected,
     saveStatus,
     persists: connected !== null,
     offline: connected === false,
-    fatal,
+    // A document fault takes precedence: it is a certainty rather than a
+    // symptom, and its remedy (reload) contradicts NOT_ACKING's advice, so
+    // showing the weaker diagnosis would tell the student to sit and wait
+    // for something that will never resolve on its own.
+    fatal: documentFault ?? notAcking,
   };
 }
 

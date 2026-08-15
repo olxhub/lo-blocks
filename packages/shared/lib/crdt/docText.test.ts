@@ -15,7 +15,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { computeSplice } from './computeSplice';
-import { docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocUpdate } from './docText';
+import {
+  docText, docSpliceUpdate, foldDocUpdate, mergeDocUpdates, isDocUpdate,
+  tryFoldDocUpdate, onDocumentFault, documentFaults,
+} from './docText';
 import type { JsonUpdate } from './text';
 
 /**
@@ -394,5 +397,68 @@ describe('a starting value nobody typed', () => {
     // writer there would address the same characters as everyone's seed.
     expect(() => docSpliceUpdate(undefined, computeSplice('', 'x'), 0))
       .toThrow(/reserved/);
+  });
+});
+
+describe('reporting a document that cannot merge', () => {
+  // A refused document means nothing typed into that field will ever be
+  // saved or seen again on this client. The UI turns this into a fatal
+  // banner that stops the page (components/common/ConnectionStatus.tsx),
+  // because letting someone keep writing under the impression it is being
+  // kept is worse than the lost text.
+
+  const other = (seed: string, next: string, client: number) =>
+    docSpliceUpdate(seed, computeSplice(seed, next), client);
+
+  const silently = <T,>(f: () => T): T => {
+    const warn = console.warn;
+    console.warn = () => {};
+    try { return f(); } finally { console.warn = warn; }
+  };
+
+  it('reports a fault, and clears it when the same place folds again', () => {
+    const seen: readonly string[][] = [];
+    const record: string[][] = seen as string[][];
+    const stop = onDocumentFault(f => { record.push([...f]); });
+
+    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
+    const theirs = other('Beta baseline.', 'Beta baseline. theirs', 2);
+
+    silently(() => tryFoldDocUpdate(mine, theirs, "field 'essay'"));
+    expect(documentFaults()).toContain("field 'essay'");
+
+    // Healed — a later fold at the same place succeeds.
+    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine!', 3), "field 'essay'"));
+    expect(documentFaults()).not.toContain("field 'essay'");
+
+    stop();
+    expect(record.length).toBeGreaterThanOrEqual(3);   // initial + fault + clear
+  });
+
+  it('keeps two documents\' faults independent', () => {
+    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
+    const theirs = other('Beta baseline.', 'Beta baseline. theirs', 2);
+
+    silently(() => tryFoldDocUpdate(mine, theirs, "field 'a'"));
+    silently(() => tryFoldDocUpdate(mine, theirs, "field 'b'"));
+    expect(documentFaults()).toEqual(expect.arrayContaining(["field 'a'", "field 'b'"]));
+
+    // One recovers; the other must keep reporting.
+    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine?', 4), "field 'a'"));
+    expect(documentFaults()).not.toContain("field 'a'");
+    expect(documentFaults()).toContain("field 'b'");
+
+    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine.', 5), "field 'b'"));
+    expect(documentFaults()).toEqual([]);
+  });
+
+  it('survives a listener that throws', () => {
+    const stop = onDocumentFault(() => { throw new Error('a broken view'); });
+    const mine = foldDocUpdate(undefined, other('Alpha baseline.', 'Alpha baseline. mine', 1));
+    expect(() => silently(() =>
+      tryFoldDocUpdate(mine, other('Beta baseline.', 'Beta baseline. theirs', 2), "field 'c'"),
+    )).not.toThrow();
+    stop();
+    silently(() => tryFoldDocUpdate(mine, other('Alpha baseline. mine', 'Alpha baseline. mine!', 6), "field 'c'"));
   });
 });

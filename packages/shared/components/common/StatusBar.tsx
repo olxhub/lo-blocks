@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useUser } from '@/lib/state';
 import { resolveConfig } from '@/lib/config';
 import type { Locale } from '@/lib/types';
-import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice, fatalMessage } from './ConnectionStatus';
+import { useConnectionStatus, SaveIndicator, OfflineNotice, FatalNotice, fatalMessage, FATAL_RELOADABLE } from './ConnectionStatus';
 import LanguageSwitcher, { useVariantTiers, hasLanguageChoices } from './LanguageSwitcher';
 
 interface StatusBarProps {
@@ -54,8 +54,20 @@ export default function StatusBar({ availableLocales, bestEffortLocales }: Statu
   if (fatal) {
     return (
       <div className="sticky top-0 z-50 print:hidden">
-        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center">
+        <div className="bg-error text-inverse px-4 py-2 text-sm font-medium flex justify-center items-center gap-3">
           <FatalNotice message={fatalMessage(fatal.code)} />
+          {/* Only where reloading is actually the remedy — for NOT_ACKING it
+              would discard the on-device queue the message just promised to
+              keep. See FATAL_RELOADABLE. */}
+          {FATAL_RELOADABLE.has(fatal.code) && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="underline underline-offset-2 font-semibold whitespace-nowrap"
+            >
+              Reload
+            </button>
+          )}
         </div>
         <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
       </div>
