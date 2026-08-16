@@ -21,6 +21,7 @@ import {
   parseCover,
   parseEquals,
   parseOnlyIf,
+  parseRequires,
   parseDerived,
   parseCounts,
   scoreSlotSheet,
@@ -42,6 +43,7 @@ type Req = {
   expect?: string;
   equals?: string;
   onlyif?: string;
+  requires?: string;
   derived?: string;
   counts?: string;
   max?: number;
@@ -101,6 +103,7 @@ function probe(req: Req) {
   const counts = parseCounts(req.counts);
   const choices = parseChoices(req.choices);
   const expect = parseExpect(req.expect);
+  const requires = parseRequires(req.requires);
 
   const sheet = (failing: string[]) => {
     const claimed = new Map<CoverGroup, Set<string>>();
@@ -124,7 +127,13 @@ function probe(req: Req) {
   };
 
   const score = (failing: string[]) =>
-    scoreSlotSheet(slots, sheet(failing), req.max, cover, equals, onlyif);
+    // `counts`/`expect` are passed EMPTY on purpose, which is what this probe
+    // has always done: its synthetic sheet answers each member slot directly and
+    // supplies no `count`, so forwarding the real groups would derive every
+    // member from a missing count and read 2a's all-satisfied baseline as 2/6.
+    // Only `requires` is new here, and it needs the two placeholders to reach it.
+    scoreSlotSheet(slots, sheet(failing), req.max, cover, equals, onlyif,
+                   [], [], requires);
 
   const base = score([]);
   const max = base?.max ?? 0;
@@ -154,7 +163,12 @@ function probe(req: Req) {
   // they agree again, so the computed check comes back satisfied. That is real
   // behaviour, not a charge-once rule. Discovery belongs on the CLI side, where
   // the rules are in Python and the flip values can be chosen to avoid it.
-  const declaredPairs = onlyif.map(r => [r.key, r.cond] as [string, string]);
+  // `requires` declares sublinear pairs for the same reason `onlyif` does, from
+  // the other direction: once a condition has denied its dependent, failing that
+  // dependent as well costs nothing more. Both are DECLARED here so the CLI's
+  // empirical discovery has something to match against.
+  const declaredPairs = [...onlyif, ...requires]
+    .map(r => [r.key, r.cond] as [string, string]);
 
   return {
     item: req.item,
@@ -172,6 +186,7 @@ function probe(req: Req) {
                                  hasTemplate: r.template.length > 0 })),
     equals: equals.map(r => ({ key: r.key, operands: [r.left, r.right], lenient: r.lenient })),
     onlyif: onlyif.map(r => ({ key: r.key, cond: r.cond })),
+    requires: requires.map(r => ({ key: r.key, cond: r.cond })),
     gates,
     ignored,
     chargeOnce: declaredPairs,
@@ -183,7 +198,8 @@ describe('enforcement probe', () => {
   it('handles every primitive in the shared registry', () => {
     // If a primitive is added to primitives.json and not parsed here, the audit
     // silently stops seeing it — which is how `derived` went unnoticed once.
-    const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts', 'expect'];
+    const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts', 'expect',
+                     'requires'];
     expect(PRIMITIVES.primitives.map(p => p.attr).sort()).toEqual([...handled].sort());
   });
 

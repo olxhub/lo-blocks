@@ -263,6 +263,47 @@ export type EqualsRule = {
 export type OnlyIfRule = { key: string; cond: string };
 
 /**
+ * `requires="key:condition"` — `key` can only be CREDITED while `condition`
+ * holds. The mirror image of `onlyif`, which decides what may be CHARGED.
+ *
+ * Q6 is why it exists. Its eight slots are four (element, treatment) pairs, and
+ * the sheet asked each box whether its consequence was named and whether an
+ * effect was described — but never which antecedent's change PRODUCES that
+ * effect. A response addressing one antecedent in a single run-on sentence
+ * therefore banked both consequence pairs from one clause, where the graders
+ * charged the whole second half. Asking the linkage as its own check gives
+ * `cover` a duplicate to spot; `requires` is what lets that answer reach the
+ * pair it governs, which is scored on other slots.
+ */
+export type RequiresRule = { key: string; cond: string; lenient: string[] };
+
+/**
+ * Parse a `requires` attribute: rules separated by `|`, each `key:condition`.
+ *
+ *   requires="state_c2:link_c2:unclear|affect_c2:link_c2:unclear"
+ *
+ * The optional third segment lists verdicts on the CONDITION that establish
+ * nothing either way, and so deny nothing — the same `lenient` the `equals` and
+ * `expect` rules carry, for the same reason. A condition answered `unclear` is
+ * the model declining to say; reading that as a denial charges the student for
+ * the grader's hesitation.
+ */
+export function parseRequires(spec?: string): RequiresRule[] {
+  return (spec ?? '')
+    .split('|')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const parts = entry.split(':').map(p => (p ?? '').trim());
+      return {
+        key: parts[0], cond: parts[1],
+        lenient: (parts[2] ?? '').split(',').map(v => v.trim()).filter(Boolean),
+      };
+    })
+    .filter(r => r.key && r.cond);
+}
+
+/**
  * Parse an `onlyif` attribute: rules separated by `|`, each `key:condition`.
  *
  *   onlyif="targets_goal_behavior:observed_type"
@@ -492,6 +533,7 @@ export function satisfiedMap(
   equals: EqualsRule[] = [],
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
+  requires: RequiresRule[] = [],
 ): Record<string, boolean> {
   // Counted members first: they are derived from the count, so whatever the model
   // may have sent for them is replaced before anything reads it.
@@ -534,6 +576,18 @@ export function satisfiedMap(
       const judged = migrated && spec ? isSatisfied(spec, checks[k]?.verdict) : true;
       out[k] = ok && judged;
     }
+  }
+
+  // `requires` last, so a dependency may name a cover or computed check: those
+  // are already resolved above. The mirror image of `onlyif` — that one decides
+  // what may be CHARGED once a condition failed, this one decides what may be
+  // CREDITED — and non-transitive for the same reason, so a chain of two reads
+  // the way the attribute looks.
+  for (const r of requires) {
+    if (!(r.cond in out)) continue;   // unknown condition denies nothing
+    const answered = String(checks[r.cond]?.verdict ?? '').trim();
+    if (r.lenient.includes(answered)) continue;   // establishes nothing
+    if (r.key in out) out[r.key] = out[r.key] && out[r.cond];
   }
   return out;
 }
@@ -702,6 +756,7 @@ export function publishedSheet(args: {
   counts?: CountGroup[];
   choices?: Record<string, string[]>;
   expect?: ExpectRule[];
+  requires?: RequiresRule[];
 }): Record<string, unknown> {
   const { slots, verdicts, showChecks, max } = args;
   const cover = args.cover ?? [], equals = args.equals ?? [];
@@ -709,6 +764,7 @@ export function publishedSheet(args: {
   // Carried so a stored sheet re-scores by the rules in force when it was
   // written — the property that makes old sheets immune to a vocabulary change.
   const choices = args.choices ?? {}, expect = args.expect ?? [];
+  const requires = args.requires ?? [];
   return {
     slots,
     ...(cover.length ? { cover } : {}),
@@ -717,6 +773,7 @@ export function publishedSheet(args: {
     ...(counts.length ? { counts } : {}),
     ...(Object.keys(choices).length ? { choices } : {}),
     ...(expect.length ? { expect } : {}),
+    ...(requires.length ? { requires } : {}),
     showChecks,
     verdicts,
     ...(max !== undefined && max !== null && String(max) !== ''
@@ -734,14 +791,15 @@ export function scoreSlotSheet(
   onlyif: OnlyIfRule[] = [],
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
+  requires: RequiresRule[] = [],
 ): { score: number; max: number; failed: string[] } | null {
   const scored = slots.filter(s => typeof s.pts === 'number');
   if (scored.length === 0 && explicitMax === undefined) return null;
   const max = explicitMax ?? scored.reduce((n, s) => n + (s.pts as number), 0);
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
   const charged = chargedMap(slots, sat, onlyif);
 
-  const gate = failedGate(slots, checks, cover, equals, onlyif, counts);
+  const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires);
   if (gate) return { score: 0, max, failed: [gate.key] };
 
   const failed = scored.filter(s => !sat[s.key] && charged[s.key]);
@@ -787,8 +845,9 @@ export function failedGate(
   onlyif: OnlyIfRule[] = [],
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
+  requires: RequiresRule[] = [],
 ): SlotSpec | null {
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
   const charged = chargedMap(slots, sat, onlyif);
   for (const slot of slots) {
     if (slot.gates && !sat[slot.key] && charged[slot.key]) return slot;
@@ -1085,6 +1144,7 @@ export function composeSlotFeedback(
     onlyif?: OnlyIfRule[];
     counts?: CountGroup[];
     expect?: ExpectRule[];
+    requires?: RequiresRule[];
   } = {},
 ): string {
   let checks = (data?.checks ?? {}) as Record<
@@ -1118,9 +1178,10 @@ export function composeSlotFeedback(
   const equals = opts.equals ?? [];
   const byKey = new Map(equals.map(r => [r.key, r]));
   const expect = opts.expect ?? [];
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect);
+  const requires = opts.requires ?? [];
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
   const charged = chargedMap(slots, sat, opts.onlyif ?? []);
-  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect);
+  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect, requires);
   const shown = gate ? [gate] : slots;
 
   const lines = shown.map(slot => {

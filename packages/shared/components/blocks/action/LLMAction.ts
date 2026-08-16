@@ -10,7 +10,7 @@ import { verdictFor } from '@/lib/llm/derivedVerdicts';
 import {
   parseSlots,
   parseCover,
-  parseEquals, parseOnlyIf, parseDerived, parseCounts,
+  parseEquals, parseOnlyIf, parseRequires, parseDerived, parseCounts,
   buildSlotSchema,
   parseChoices,
   parseExpect,
@@ -95,6 +95,7 @@ async function llmAction({ props }) {
       const cover = parseCover(props.cover);
       const choices = parseChoices(props.choices);
       const expect = parseExpect(props.expect);
+      const requires = parseRequires(props.requires);
       if (slots.length === 0) {
         throw new Error(`LLMAction: could not parse any slots from slots="${slotsAttr}"`);
       }
@@ -115,7 +116,7 @@ async function llmAction({ props }) {
       if (data && derived.length) {
         data.checks = { ...(data.checks ?? {}), ...deriveChecks(props, derived) };
       }
-      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect }) : text;
+      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect, requires }) : text;
       // Publish the sheet and its verdicts for anything that needs to reason
       // about them rather than read them — a grader, or an analysis harness.
       // Written whether or not the checklist is displayed.
@@ -125,7 +126,7 @@ async function llmAction({ props }) {
           state.setField(props, checksField, JSON.stringify(publishedSheet({
             slots, verdicts: (data.checks ?? {}) as Record<string, unknown>, showChecks,
             choices, expect,
-            max: props.max, cover, equals, onlyif, counts,
+            max: props.max, cover, equals, onlyif, counts, requires,
           })), { stateKey: targetStateKey });
         } catch {
           // Target has no `checks` field (e.g. a plain TextSlot) — the prose
@@ -254,6 +255,13 @@ const LLMAction = blocks.test({
       '"targets_goal_behavior:observed_type". The check is still answered and ' +
       'reported honestly; only its cost is suppressed, so the model is never asked ' +
       'to report a verdict that is false in order to make the arithmetic come out.'
+    ),
+    requires: z.string().optional().describe(
+      'Checks that are only CREDITED while another check holds. The mirror of ' +
+      'onlyif, which suppresses a charge: this denies credit. Rules separated by ' +
+      '"|", each `key:condition` — e.g. "state_c2:link_c2". For a rubric whose ' +
+      'slots come in pairs, where a fact established by one check decides whether ' +
+      'the pair scored on OTHER checks was ever addressed at all.'
     ),
     showChecks: z.enum(['true', 'false']).optional().describe(
       'Whether to show the student the filled checklist under the feedback (default true). ' +

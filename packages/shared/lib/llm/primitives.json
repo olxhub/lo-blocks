@@ -56,6 +56,11 @@
    "summary": "A check charged only when another is satisfied; one deduction, two possible causes."
   },
   {
+   "attr": "requires",
+   "excludesKeys": false,
+   "summary": "A check CREDITED only while another holds; the mirror of onlyif, which suppresses a charge."
+  },
+  {
    "attr": "derived",
    "excludesKeys": true,
    "summary": "A check read off the page \u2014 field contents \u2014 rather than asked of the model.",
