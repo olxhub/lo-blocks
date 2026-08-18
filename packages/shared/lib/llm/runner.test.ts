@@ -285,6 +285,12 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
       });
 
       cleanup();
+      // Written after EVERY cell, not once at the end. The caller scores each
+      // cell as it lands and reports it against gold, which it cannot do if the
+      // file only appears when the whole pass is over — and a pass is ~12
+      // minutes, so that meant no visible result for twelve minutes at a time.
+      // The last write is the complete set, so the final read is unchanged.
+      writeFileSync(RESULTS!, JSON.stringify(results, null, 2));
       // eslint-disable-next-line no-console
       console.log(`[runner] ${job.cell}: ${results[results.length - 1].ok ? 'ok' : 'FAILED'}`);
     }
