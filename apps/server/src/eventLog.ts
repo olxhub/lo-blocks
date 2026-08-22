@@ -17,6 +17,29 @@ const EVENTS_DIR = 'events';
 // Ensure events directory exists
 fs.mkdirSync(EVENTS_DIR, { recursive: true });
 
+// Deploy provenance (code + content revisions), stamped into every log
+// header so analytics can tell what produced a stream. Deploys write this
+// JSON file next to the checkout; read once at startup, and missing or
+// malformed is fine -- dev checkouts have no deploy info.
+function readDeployInfo(): Record<string, unknown> | undefined {
+  const candidates = process.env.DEPLOY_INFO_PATH
+    ? [process.env.DEPLOY_INFO_PATH]
+    : [path.join('..', '.deploy-info'), '.deploy-info'];
+  for (const candidate of candidates) {
+    try {
+      const info = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+      console.log(`Deploy info loaded from ${candidate}`);
+      return info;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+  console.log(`No deploy info (tried ${candidates.join(', ')})`);
+  return undefined;
+}
+
+const DEPLOY_INFO = readDeployInfo();
+
 export interface EventLog {
   description: string;
   started: string;
@@ -129,7 +152,7 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   fileStream.on('error', onStreamError);
 
   // Write header line with connection metadata
-  const header = { event: 'ndjson_header', description: log.description, started: log.started, user };
+  const header = { event: 'ndjson_header', description: log.description, started: log.started, user, deploy: DEPLOY_INFO };
   gzip.write(JSON.stringify(header) + '\n');
 
   return conn;
