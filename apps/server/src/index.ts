@@ -138,18 +138,28 @@ async function main() {
   const port = Number(process.env.PORT ?? 8888);
   const boot = await startBoot(port);
 
-  await boot.task('Load configuration', loadConfig);
-  await boot.task('Validate LLM provider', () => validateLLMProvider());
-  await boot.task('Sync content (clone, scan, parse)', async () => {
-    const { idMap } = await syncContentFromStorage();
-    console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
-  });
-  const kvs = await boot.task('Initialize storage', initStorage);
-  const registry = await boot.task('Register MCP tools', initTools);
-  // startServer calls boot.handoff() itself, synchronously adjacent to the
-  // request-handler attach — the swap must be atomic (see server.ts).
-  const handle = await boot.task('Start server (vite, websockets, routes)',
-    () => startServer(kvs, registry, boot));
+  let kvs, registry, handle;
+  try {
+    await boot.task('Load configuration', loadConfig);
+    await boot.task('Validate LLM provider', () => validateLLMProvider());
+    await boot.task('Sync content (clone, scan, parse)', async () => {
+      const { idMap } = await syncContentFromStorage();
+      console.log(`  Content: ${Object.keys(idMap).length} definitions loaded`);
+    });
+    kvs = await boot.task('Initialize storage', initStorage);
+    registry = await boot.task('Register MCP tools', initTools);
+    // startServer calls boot.handoff() itself, synchronously adjacent to the
+    // request-handler attach — the swap must be atomic (see server.ts).
+    handle = await boot.task('Start server (vite, websockets, routes)',
+      () => startServer(kvs, registry, boot));
+  } catch {
+    // The failed task is already marked ✗ on the boot page and its error
+    // printed by boot.task — don't repeat it. Stay up serving the page —
+    // a console error scrolls away, but / showing exactly which task
+    // failed and why does not. Ctrl+C to stop.
+    console.error('\nStartup halted. Boot status page left running at /  — fix the config and restart.\n');
+    return;
+  }
 
   console.log('\nReady. Press Ctrl+C to stop.\n');
 
