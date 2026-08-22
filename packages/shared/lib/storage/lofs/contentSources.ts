@@ -55,6 +55,7 @@
 // manifest.yaml at its root or the directory convention (namespaceFor).
 // This file is about WHERE content lives; namespaces are WHAT it is.
 
+import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { FileStorageProvider } from './providers/file';
@@ -337,14 +338,25 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
   };
 
   const sources: ConfiguredSource[] = [];
+  // Directories we can't read (missing, or hidden by the firejail sandbox).
+  // Collected across the whole loop so ONE error names every unreadable
+  // source, with a copy-pasteable fix — without this check each one would
+  // surface as a bare ENOENT on every read, buried in scrolling console
+  // output.
+  const missingDirs: string[] = [];
   for (const [mount, entry] of Object.entries(config.sources)) {
     if (typeof entry === 'string' || 'dir' in entry) {
       const dirEntry = asDirSource(entry);
+      const directory = path.resolve(dirEntry.dir);
       // Directory form: a checkout on disk. defaultNs = the mount name, so a
       // collection that moved out of ./content/<mount> keeps its namespace even
       // with files at the checkout root and no manifest. See namespaceFor.
       // Directories resolve against the process cwd (the repo root).
-      registerAllowedContentDir(path.resolve(dirEntry.dir));
+      if (!fs.existsSync(directory)) {
+        missingDirs.push(directory);
+        continue;
+      }
+      registerAllowedContentDir(directory);
       sources.push({
         origin: toLofsOrigin(`file:content/${mount}`),
         label: mount,
@@ -363,6 +375,21 @@ async function configuredSources(): Promise<{ sources: ConfiguredSource[]; fallb
       });
     }
   }
+
+  if (missingDirs.length > 0) {
+    const list = missingDirs.map(d => `  ${d}`).join('\n');
+    throw new Error(
+      `We are unable to access:\n${list}\n` +
+      `Either ${missingDirs.length === 1 ? 'this path is' : 'these paths are'} missing, or not permitted by the sandbox.\n\n` +
+      `If ${missingDirs.length === 1 ? 'this path exists' : 'these paths exist'}, you can enable access to the sandbox with:\n` +
+      `   SANDBOX_WHITELIST=${missingDirs.join(':')} npm run dev\n` +
+      `Or disable the sandbox entirely with:\n` +
+      `   NO_SANDBOX=1 npm run dev\n` +
+      `Or fix the 'dir:' paths in the active content-source config (relative to the repo root):\n` +
+      `   config/content-sources.local.yaml when present; otherwise config/content-sources.yaml.`
+    );
+  }
+
   return { sources, fallback };
 }
 

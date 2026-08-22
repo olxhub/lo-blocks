@@ -50,6 +50,10 @@ const PAGE = `<!doctype html>
 <script>
   let failures = 0;
   const note = (msg) => { document.getElementById('note').textContent = msg; };
+  const escapeHtml = (text) => String(text)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
   async function poll() {
     try {
       const r = await fetch('/boot-status');
@@ -61,9 +65,9 @@ const PAGE = `<!doctype html>
       failures = 0;
       if (s.ready) { location.reload(); return; }
       document.getElementById('tasks').innerHTML = s.tasks.map(t =>
-        '<li class="' + t.status + '">' + t.name +
+        '<li class="' + t.status + '">' + escapeHtml(t.name) +
         (t.ms ? ' <span class="ms">' + (t.ms/1000).toFixed(1) + 's</span>' : '') +
-        (t.detail ? ' <span class="ms">— ' + t.detail + '</span>' : '') + '</li>'
+        (t.detail ? ' <span class="ms">— ' + escapeHtml(t.detail) + '</span>' : '') + '</li>'
       ).join('');
       note(s.tasks.some(t => t.status === 'failed')
         ? 'A startup task failed — check the server console.'
