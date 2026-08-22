@@ -11,11 +11,22 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
 import type { AuthUser } from './auth.js';
+import { DEPLOY_IDENTITY } from './deployIdentity.js';
 
 const EVENTS_DIR = 'events';
 
 // Ensure events directory exists
 fs.mkdirSync(EVENTS_DIR, { recursive: true });
+
+// Deploy provenance (code + content revisions), stamped into every log
+// header so analytics can tell what produced a stream.
+//
+// Derived once at boot by deployIdentity.ts, which owns the whole question
+// -- manifest location, the dev-checkout git fallback, and the summary
+// string -- and answers it identically for /api/deploy-info and for the
+// per-connection SERVER_DEPLOY_IDENTITY record in the event stream. This
+// header is not an event: a reader replaying the stream never sees it,
+// which is why the pipeline writes the stamp as well.
 
 export interface EventLog {
   description: string;
@@ -129,7 +140,7 @@ export function createConnectionLog(user: AuthUser): ConnectionLog {
   fileStream.on('error', onStreamError);
 
   // Write header line with connection metadata
-  const header = { event: 'ndjson_header', description: log.description, started: log.started, user };
+  const header = { event: 'ndjson_header', description: log.description, started: log.started, user, deploy: DEPLOY_IDENTITY };
   gzip.write(JSON.stringify(header) + '\n');
 
   return conn;

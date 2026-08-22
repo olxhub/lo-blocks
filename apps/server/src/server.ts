@@ -9,6 +9,7 @@
 //                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
 //                 ├→ /api/olxjson   → content API (Hono)
 //                 ├→ /api/config    → PMSS configuration (Hono)
+//                 ├→ /api/deploy-info → what is deployed here (Hono)
 //                 ├→ /api/translate → content translation (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
@@ -41,6 +42,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
+import { handleDeployInfo } from './routes/deployInfo.js';
 import { resolveConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
@@ -60,7 +62,7 @@ const WS_PATH = '/wsapi/in/';
 // MCP tools too (lib/storage/lofs/tools.ts); the /api/file|files|grep|sources REST
 // routes are retired.
 const SERVER_PREFIXES = [
-  '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
+  '/api/olxjson', '/api/config', '/api/deploy-info', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
@@ -151,6 +153,9 @@ export async function startServer(
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
   app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
+  // Deploy identity for the debug panel. Same exposure as /api/config:
+  // session-resolved and behind the deployment's htpasswd, not public.
+  app.get('/api/deploy-info', handleDeployInfo);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
   app.get('/api/activities', handleActivities);
