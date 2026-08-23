@@ -9,6 +9,7 @@
 // and raise on duplicates. `locals` merges per-key.
 import { z } from 'zod';
 import { test as testBlocks } from './namespaces';
+import { input } from './actions';
 import * as state from '@/lib/state';
 
 describe('factory mixin composition', () => {
@@ -19,6 +20,13 @@ describe('factory mixin composition', () => {
     });
     expect(block.name).toBe('PlainBlock');
     expect(block.description).toBe('no mixins');
+  });
+
+  it('requires an input to declare a stored or computed value', () => {
+    expect(() => testBlocks({
+      ...input(),
+      name: 'ValuelessInput',
+    })).toThrow('input blocks must declare fields.value or selectors.value');
   });
 
   it('parserMixin contributes parser and staticKids to the block', () => {
