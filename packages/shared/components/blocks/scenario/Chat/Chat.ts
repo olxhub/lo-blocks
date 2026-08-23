@@ -486,13 +486,10 @@ async function postprocess({ parsed, parseNode, storeEntry, definitionKey, attri
       entry.ref = wrapperRef;
     }
 
-    // Blocks written by `set <ref>.field` are referenced, not contained: they
-    // must be LOADED but are not kids (see staticKids below). Lift their refs
-    // into a ref-typed attribute so the platform's existing ref-preloading
-    // channel (getRefAttributes → collectBlockWithKids / ensureReferencedBlocks)
-    // picks them up, without putting them in any structural traversal.
-    // Run through the schema so refs are branded and malformed ones are a
-    // parse-time error rather than a runtime miss.
+    // Set-command targets are referenced, not contained: lift them into a
+    // ref-typed attribute so the ref-preloading channel loads them, without
+    // making them kids. Schema-parsed so a malformed ref fails here, not at
+    // advance time.
     const setTargets = [...new Set(parsed.body
       .filter((e: any) => e.type === 'SetField' && e.scope === 'ref' && e.ref)
       .map((e: any) => String(e.ref)))];
@@ -542,7 +539,7 @@ const Chat = blocks.dev({
     clip: z.string().optional().describe('Clip range for dialogue section'),
     history: z.string().optional().describe('History clip range to show before current clip'),
     height: z.string().optional().describe('Container height (e.g., "400px" or "flex-1")'),
-    _setTargets: z_stateRefList.optional().describe('INTERNAL: blocks written by `set <ref>.field` commands, lifted here at parse time so the ref-preloading channel loads them (they are referenced, not contained, so they are not staticKids)'),
+    _setTargets: z_stateRefList.optional().describe('Internal: set-command targets, lifted from the script by postprocess for ref-preloading'),
   }),
 });
 

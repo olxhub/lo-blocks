@@ -69,7 +69,7 @@ function extractAttrsFromZodObject(schema: z.ZodTypeAny): AttrSpec[] {
 
   const attrs: AttrSpec[] = [];
   for (const [name, fieldSchema] of Object.entries(obj.shape)) {
-    if (isInternalAttribute(name)) continue;  // parse-time only — never offered
+    if (isInternalAttribute(name)) continue;  // not authorable
     const enumValues = extractEnumValues(fieldSchema as z.ZodTypeAny);
     const attr: AttrSpec = { name };
     if (enumValues) {

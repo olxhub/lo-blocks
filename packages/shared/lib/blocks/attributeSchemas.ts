@@ -197,14 +197,10 @@ function unwrapSchema(schema: z.ZodType): z.ZodType {
 }
 
 /**
- * Platform-internal attributes: filled in at parse time by a block's own
- * parser, never authored. Hidden from block documentation and from editor
- * autocomplete, but otherwise ordinary attributes — declared in the schema
- * (so they are typed and validated) and visible to machinery that scans
- * attributes, such as getRefAttributes.
- *
- * The `_` prefix matches the convention already used for system-generated
- * ids and refs (see id-grammar).
+ * Internal attributes (`_`-prefixed, matching system-generated ids in
+ * id-grammar) are filled in by a block's parser, never authored. Declared in
+ * schemas like any attribute — typed, validated, scanned by getRefAttributes —
+ * but hidden from docs/autocomplete and rejected in authored OLX (parseOLX).
  */
 export const isInternalAttribute = (name: string): boolean => name.startsWith('_');
 

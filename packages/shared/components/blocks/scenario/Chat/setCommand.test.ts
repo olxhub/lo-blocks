@@ -69,13 +69,11 @@ board_ready <- go
     const chatKey = testKey('chat');
     const entry = idMap[chatKey]!['*' as keyof typeof idMap[typeof chatKey]] as any;
 
-    // Ref-typed attribute (getRefAttributes) — the LOADING channel. Injected by
-    // the parser, so it is unaffected by parseOLX's rejection of AUTHORED
-    // "_"-prefixed attributes (see parseOLX.test.ts).
+    // Parser-injected, so unaffected by parseOLX's rejection of authored
+    // internal attributes (see parseOLX.test.ts).
     expect(entry.attributes._setTargets.map(String)).toEqual(['board_ready']);
-    // NOT a structural kid: staticKids feeds containment traversals.
+    // Loaded, but not a structural kid.
     expect(BLOCK_REGISTRY['Chat'].staticKids!(entry)).toEqual([]);
-    // Net effect: the target ships with the chat.
     expect(Object.keys(collectBlockWithKids(idMap, chatKey, null)))
       .toContain(testKey('board_ready'));
   });

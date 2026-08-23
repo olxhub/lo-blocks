@@ -137,7 +137,7 @@ export function extractAttributes(schema: z.ZodTypeAny | undefined): AttributeDo
   const attributes: AttributeDoc[] = [];
 
   for (const [name, fieldSchema] of Object.entries(shape)) {
-    if (isInternalAttribute(name)) continue;  // parse-time only — not authorable
+    if (isInternalAttribute(name)) continue;  // not authorable
     const field = fieldSchema as z.ZodTypeAny;
     const { type, enumValues } = getTypeName(field);
     const description = getDescription(field);

@@ -608,10 +608,9 @@ export async function parseOLX(
     // only content that actually uses such blocks pays the load.
     if (Component?.ensureReady) await Component.ensureReady();
 
-    // Platform-internal attributes (`_`-prefixed) are filled in at parse time by
-    // a block's own parser — they are declared in schemas so they are typed and
-    // validated, but authoring one is an error. Checked HERE, at the authoring
-    // boundary: parser-injected values land after this point and are unaffected.
+    // Internal (`_`-prefixed) attributes are filled in by the block's parser,
+    // which runs after this point — anything here was authored, which is an
+    // error.
     const authoredInternal = Object.keys(attributes).filter(isInternalAttribute);
     if (authoredInternal.length > 0) {
       const errorObj = {
