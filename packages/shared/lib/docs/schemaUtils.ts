@@ -3,7 +3,7 @@
 // Utilities for extracting documentation-friendly information from Zod schemas.
 //
 import { z } from 'zod';
-import { baseAttributes, inputAttributes, graderAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, inputAttributes, graderAttributes, isInternalAttribute } from '@/lib/blocks/attributeSchemas';
 
 // Mixin membership for attribute grouping — derived from the actual mixin
 // shapes so the docs can never drift from the factory's composition.
@@ -137,6 +137,7 @@ export function extractAttributes(schema: z.ZodTypeAny | undefined): AttributeDo
   const attributes: AttributeDoc[] = [];
 
   for (const [name, fieldSchema] of Object.entries(shape)) {
+    if (isInternalAttribute(name)) continue;  // parse-time only — not authorable
     const field = fieldSchema as z.ZodTypeAny;
     const { type, enumValues } = getTypeName(field);
     const description = getDescription(field);

@@ -197,6 +197,18 @@ function unwrapSchema(schema: z.ZodType): z.ZodType {
 }
 
 /**
+ * Platform-internal attributes: filled in at parse time by a block's own
+ * parser, never authored. Hidden from block documentation and from editor
+ * autocomplete, but otherwise ordinary attributes — declared in the schema
+ * (so they are typed and validated) and visible to machinery that scans
+ * attributes, such as getRefAttributes.
+ *
+ * The `_` prefix matches the convention already used for system-generated
+ * ids and refs (see id-grammar).
+ */
+export const isInternalAttribute = (name: string): boolean => name.startsWith('_');
+
+/**
  * Returns the attribute names in a zod object schema that contain
  * block references, along with extractor functions for each.
  *

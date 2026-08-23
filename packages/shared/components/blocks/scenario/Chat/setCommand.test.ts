@@ -12,6 +12,8 @@ import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
 import { toMemoryRef } from '@/lib/types/storage';
 import { TEST_NS, testKey } from '@/lib/test-utils';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { extractAttributes } from '@/lib/docs/schemaUtils';
+import { generateOlxSchema } from '@/components/common/CodeEditor/olxSchema';
 
 const entriesOf = (src: string) => (parseChat(src + '\n') as any).body;
 const firstSet = (src: string) => entriesOf(src)[0];
@@ -68,11 +70,18 @@ board_ready <- go
     const entry = idMap[chatKey]!['*' as keyof typeof idMap[typeof chatKey]] as any;
 
     // Ref-typed attribute (getRefAttributes) — the LOADING channel.
-    expect(entry.attributes.setTargets.map(String)).toEqual(['board_ready']);
+    expect(entry.attributes._setTargets.map(String)).toEqual(['board_ready']);
     // NOT a structural kid: staticKids feeds containment traversals.
     expect(BLOCK_REGISTRY['Chat'].staticKids!(entry)).toEqual([]);
     // Net effect: the target ships with the chat.
     expect(Object.keys(collectBlockWithKids(idMap, chatKey, null)))
       .toContain(testKey('board_ready'));
+  });
+
+  it('keeps the parse-time attribute out of docs and editor autocomplete', () => {
+    const chat = BLOCK_REGISTRY['Chat'];
+    expect(extractAttributes(chat.attributes)!.map(a => a.name)).not.toContain('_setTargets');
+    const { attributes } = generateOlxSchema({ Chat: chat } as any);
+    expect(attributes.map(a => a.name)).not.toContain('_setTargets');
   });
 });

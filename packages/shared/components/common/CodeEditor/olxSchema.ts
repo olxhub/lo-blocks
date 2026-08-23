@@ -12,7 +12,7 @@
 import { z } from 'zod';
 import type { ElementSpec, AttrSpec } from '@codemirror/lang-xml';
 import type { BlockRegistry } from '@/lib/types';
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, isInternalAttribute } from '@/lib/blocks/attributeSchemas';
 
 /**
  * Extract enum values from a Zod schema, unwrapping optionals/transforms/unions.
@@ -69,6 +69,7 @@ function extractAttrsFromZodObject(schema: z.ZodTypeAny): AttrSpec[] {
 
   const attrs: AttrSpec[] = [];
   for (const [name, fieldSchema] of Object.entries(obj.shape)) {
+    if (isInternalAttribute(name)) continue;  // parse-time only — never offered
     const enumValues = extractEnumValues(fieldSchema as z.ZodTypeAny);
     const attr: AttrSpec = { name };
     if (enumValues) {

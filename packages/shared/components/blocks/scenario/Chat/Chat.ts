@@ -491,10 +491,12 @@ async function postprocess({ parsed, parseNode, storeEntry, definitionKey, attri
     // into a ref-typed attribute so the platform's existing ref-preloading
     // channel (getRefAttributes → collectBlockWithKids / ensureReferencedBlocks)
     // picks them up, without putting them in any structural traversal.
+    // Run through the schema so refs are branded and malformed ones are a
+    // parse-time error rather than a runtime miss.
     const setTargets = [...new Set(parsed.body
       .filter((e: any) => e.type === 'SetField' && e.scope === 'ref' && e.ref)
       .map((e: any) => String(e.ref)))];
-    if (setTargets.length) attributes.setTargets = setTargets;
+    if (setTargets.length) attributes._setTargets = z_stateRefList.parse(setTargets);
   }
 
   return { type: 'parsed', parsed };
@@ -540,7 +542,7 @@ const Chat = blocks.dev({
     clip: z.string().optional().describe('Clip range for dialogue section'),
     history: z.string().optional().describe('History clip range to show before current clip'),
     height: z.string().optional().describe('Container height (e.g., "400px" or "flex-1")'),
-    setTargets: z_stateRefList.optional().describe('Blocks written by `set <ref>.field` commands (filled in at parse time; ref-typed so they are preloaded, not traversed)'),
+    _setTargets: z_stateRefList.optional().describe('INTERNAL: blocks written by `set <ref>.field` commands, lifted here at parse time so the ref-preloading channel loads them (they are referenced, not contained, so they are not staticKids)'),
   }),
 });
 
