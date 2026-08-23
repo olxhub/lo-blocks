@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 import * as blocks from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
-import { srcAttributes, cast } from '@/lib/blocks/attributeSchemas';
+import { srcAttributes, cast, z_stateRefList } from '@/lib/blocks/attributeSchemas';
 import { CHAT_METADATA_KEYS } from '@/lib/content/metadata';
 import { parseXmlFragment } from '@/lib/content/xmlParser';
 import { validateCast, withCastSupport } from '@/lib/avatar/cast';
@@ -387,11 +387,12 @@ async function processEmbedBlocks(
 // Typed child-role suffix for joinDefinitionRef.
 const POPOUT = parseLeafId('popout');
 
-async function postprocess({ parsed, parseNode, storeEntry, definitionKey }: {
+async function postprocess({ parsed, parseNode, storeEntry, definitionKey, attributes }: {
   parsed: any;
   parseNode?: (node: any, siblings: any[] | null, index: number) => Promise<any>;
   storeEntry: (id: DefinitionRef, entry: any) => void;
   definitionKey: DefinitionKey;
+  attributes: Record<string, any>;
   [key: string]: any;
 }) {
   const parentRef = asDefinitionRef(splitNs(definitionKey).path);
@@ -484,6 +485,16 @@ async function postprocess({ parsed, parseNode, storeEntry, definitionKey }: {
       });
       entry.ref = wrapperRef;
     }
+
+    // Blocks written by `set <ref>.field` are referenced, not contained: they
+    // must be LOADED but are not kids (see staticKids below). Lift their refs
+    // into a ref-typed attribute so the platform's existing ref-preloading
+    // channel (getRefAttributes → collectBlockWithKids / ensureReferencedBlocks)
+    // picks them up, without putting them in any structural traversal.
+    const setTargets = [...new Set(parsed.body
+      .filter((e: any) => e.type === 'SetField' && e.scope === 'ref' && e.ref)
+      .map((e: any) => String(e.ref)))];
+    if (setTargets.length) attributes.setTargets = setTargets;
   }
 
   return { type: 'parsed', parsed };
@@ -529,6 +540,7 @@ const Chat = blocks.dev({
     clip: z.string().optional().describe('Clip range for dialogue section'),
     history: z.string().optional().describe('History clip range to show before current clip'),
     height: z.string().optional().describe('Container height (e.g., "400px" or "flex-1")'),
+    setTargets: z_stateRefList.optional().describe('Blocks written by `set <ref>.field` commands (filled in at parse time; ref-typed so they are preloaded, not traversed)'),
   }),
 });
 
