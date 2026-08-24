@@ -7,6 +7,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse as parseChat } from './_chatParser';
+import { parseOLX } from '@/lib/content/parseOLX';
+import { collectBlockWithKids } from '@/lib/content/collectBlockWithKids';
+import { toMemoryRef } from '@/lib/types/storage';
+import { TEST_NS, testKey } from '@/lib/test-utils';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { extractAttributes } from '@/lib/docs/schemaUtils';
+import { generateOlxSchema } from '@/components/common/CodeEditor/olxSchema';
 
 const entriesOf = (src: string) => (parseChat(src + '\n') as any).body;
 const firstSet = (src: string) => entriesOf(src)[0];
@@ -45,5 +52,36 @@ describe('SetCommand parsing', () => {
     const entry = firstSet('Lin: write A -> B -> C as a sequence.');
     expect(entry.type).toBe('Line');
     expect(entry.text).toContain('A -> B -> C');
+  });
+});
+
+describe('set targets are loaded, not contained', () => {
+  const xml = `<Vertical id="root">
+  <Chat id="chat"><![CDATA[
+Lin: hello
+board_ready <- go
+]]></Chat>
+  <LineInput id="board_ready" />
+</Vertical>`;
+
+  it('lifts named-ref set targets into the ref-preloading channel', async () => {
+    const { idMap } = await parseOLX(xml, [toMemoryRef('set.xml')], undefined, TEST_NS);
+    const chatKey = testKey('chat');
+    const entry = idMap[chatKey]!['*' as keyof typeof idMap[typeof chatKey]] as any;
+
+    // Parser-injected, so unaffected by parseOLX's rejection of authored
+    // internal attributes (see parseOLX.test.ts).
+    expect(entry.attributes._setTargets.map(String)).toEqual(['board_ready']);
+    // Loaded, but not a structural kid.
+    expect(BLOCK_REGISTRY['Chat'].staticKids!(entry)).toEqual([]);
+    expect(Object.keys(collectBlockWithKids(idMap, chatKey, null)))
+      .toContain(testKey('board_ready'));
+  });
+
+  it('keeps the parse-time attribute out of docs and editor autocomplete', () => {
+    const chat = BLOCK_REGISTRY['Chat'];
+    expect(extractAttributes(chat.attributes)!.map(a => a.name)).not.toContain('_setTargets');
+    const { attributes } = generateOlxSchema({ Chat: chat } as any);
+    expect(attributes.map(a => a.name)).not.toContain('_setTargets');
   });
 });

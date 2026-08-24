@@ -42,7 +42,7 @@ import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address
 import { variantMapKeys } from '@/lib/types/i18n';
 import { hashContent } from '@/lib/util';
 
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, isInternalAttribute } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
@@ -607,6 +607,27 @@ export async function parseOLX(
     // (test-evaluating an answer formula). Awaited here (idempotent), so
     // only content that actually uses such blocks pays the load.
     if (Component?.ensureReady) await Component.ensureReady();
+
+    // Internal (`_`-prefixed) attributes are filled in by the block's parser,
+    // which runs after this point — anything here was authored, which is an
+    // error.
+    const authoredInternal = Object.keys(attributes).filter(isInternalAttribute);
+    if (authoredInternal.length > 0) {
+      const errorObj = {
+        type: 'attribute_validation' as const,
+        title: `Internal attribute on <${tag}> in ${source}`,
+        message: `${authoredInternal.map(a => `${a}=`).join(', ')} on <${tag} id="${definitionKey}"> ` +
+          `${authoredInternal.length > 1 ? 'are' : 'is'} platform-internal and cannot be authored: ` +
+          '"_"-prefixed attributes are filled in by the block\'s parser.',
+        location: { provenance: [source, ...parseDeps], ...offsetToLineCol(xml, sourceOffset) },
+        technical: { tag, id: definitionKey, attributes, internalAttributes: authoredInternal },
+      };
+      return storeErrorNode({
+        definitionKey, error: errorObj, rawParsed: node,
+        lang: resolveElementLanguage(attributes, currentLang, metadataLang),
+        sourceOffset, metadata,
+      });
+    }
 
     // Validate and transform attributes - use component schema if defined, else base with passthrough
     // Passthrough preserves unknown attrs; strict() rejects unknown (catching typos like scr= vs src=)
