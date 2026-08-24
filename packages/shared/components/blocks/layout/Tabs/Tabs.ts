@@ -8,7 +8,9 @@ import { printModes } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
 import { shallowEqual } from 'react-redux';
 
-export const fields = state.fields(['activeTab']);
+// Schema so writes from string-valued setters (SetFieldAction value="3")
+// coerce to the number the index comparison needs.
+export const fields = state.fields([{ name: 'activeTab', schema: z.coerce.number() }]);
 
 const Tabs = dev({
   ...parsers.blocks(),
