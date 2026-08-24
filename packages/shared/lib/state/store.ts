@@ -392,8 +392,36 @@ export const updateResponseReducer = (state = initialState, action) => {
   // is the classic-strategy/unregistered-event twin of the field-reducer
   // path's fold above (classic events don't stamp `field`, so cursor
   // extras land here).
-  const { scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest } = action;
+  const {
+    scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest
+  } = action;
   const extrasFold: Record<string, any> = foldExtras(extras);
+
+  // An LWW write's envelope is `{ field: F, [F]: value, ts, actor }`
+  // (crdt/lww.ts). When such an event has no registered reducer this
+  // fallback used to spread the WHOLE payload, so `field`, `ts` and
+  // `actor` landed in the bucket as if they were state — and unlike the
+  // field-reducer path they arrived UNPREFIXED, one set per bucket,
+  // overwritten by whichever field was written last.
+  //
+  // That is the general defect behind the character-map corruption: the
+  // junk keys are a string and a number sitting where every generic
+  // walker over state expects a field map, so the first thing that
+  // spreads a "bucket" explodes `"locale"` into {0:'l',1:'o',…}. Naming
+  // the missing reducer (SET_LOCALE, and every system field with it) is
+  // necessary but not sufficient — ANY event reaching this path with an
+  // unregistered field does the same, and blocks add fields routinely.
+  //
+  // The rule from the field-reducer path applies here too: the payload's
+  // field value is the state, the envelope is not. Only the envelope
+  // SHAPE is recognized, so events that merely happen to carry a `ts`
+  // (VIDEO_TIME_EVENT) keep it.
+  if (typeof rest.field === 'string' && rest.field in rest) {
+    delete rest.ts;
+    delete rest.actor;
+    delete rest.field;
+  }
+
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
