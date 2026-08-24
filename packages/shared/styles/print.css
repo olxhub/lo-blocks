@@ -80,6 +80,23 @@
     min-height: 0 !important;
   }
 
+  /* The static app's page shell is a viewport-pinned flex column with one
+     scrolling region inside it (apps/static/src/StaticPage.tsx). .h-screen and
+     .overflow-auto are handled above; .overflow-hidden is NOT reset globally
+     (plenty of blocks rely on it for clipping), so the shell's own classes get
+     their own reset here. Linearize both variants: no viewport height, no
+     clipping, normal block flow so content pages out. */
+  .lo-static-shell,
+  .lo-static-shell .lo-static-scroll,
+  .lo-static-shell .lo-viewport-lock {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
   /* ===== Typography ===== */
 
   body {

@@ -20,6 +20,18 @@
   font-family: var(--lo-font-ui);
 }
 
+/* Studio as the root of a viewport-locked page shell: the shell has already
+ * subtracted its own chrome and handed us the remaining region, so fill that
+ * instead of re-claiming 100vh (which would overflow it). Absolute rather than
+ * height: 100% because the block-wrapper divs between the region and .studio
+ * are unstyled and would break a percentage-height chain. Mirrors the same
+ * rule in Course's course.css. */
+.lo-viewport-lock .lo-tag-studio .studio {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    CHROME — header, sidebar, footer
    ═══════════════════════════════════════════════════════════════ */
@@ -933,4 +945,15 @@
 .studio-empty-state p {
   margin: 0;
   max-width: 32ch;
+}
+
+/* Print: undo the viewport lock, or the studio prints as one viewport-sized
+   absolutely-positioned box on page 1. (See course.css for the same reset.) */
+@media print {
+  .studio,
+  .lo-viewport-lock .lo-tag-studio .studio {
+    position: static;
+    inset: auto;
+    height: auto;
+  }
 }

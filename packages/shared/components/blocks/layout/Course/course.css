@@ -7,6 +7,23 @@
   font-family: var(--lo-font-ui);
 }
 
+/* When the course IS the page (a host shell has marked its content region
+ * .lo-viewport-lock), the shell already owns the viewport: it has subtracted
+ * its status bar and footer and handed us what's left. Re-claiming 100vh here
+ * would overflow that region by exactly the chrome's height and give the page
+ * a second scrollbar.
+ *
+ * Absolute positioning rather than height: 100% is deliberate. RenderOLX wraps
+ * every block in an unstyled .lo-tag-* div, so a percentage-height chain from
+ * the region down to .course-container would resolve against `auto` and
+ * collapse. Absolute positioning skips the intermediates entirely: it resolves
+ * against .lo-viewport-lock, the nearest positioned ancestor. */
+.lo-viewport-lock .lo-tag-course .course-container {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
 /* Structural layout (width, border, overflow, flex-shrink) provided by .lo-sidebar */
 
 .lo-tag-course .course-navigation > div:first-child {
@@ -145,5 +162,12 @@
 
   .lo-tag-course .course-content {
     overflow: visible;
+  }
+
+  /* Undo the viewport-lock variant too, or the course prints as one
+     viewport-sized absolutely-positioned box on page 1. */
+  .lo-viewport-lock .lo-tag-course .course-container {
+    position: static;
+    inset: auto;
   }
 }
