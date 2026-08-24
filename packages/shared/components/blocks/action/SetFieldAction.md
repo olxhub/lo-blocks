@@ -23,10 +23,17 @@ Sets a field value on a target component when triggered. A generic action for dy
 
 ## Value Parsing
 
-Since OLX attributes are always strings, SetFieldAction parses common types:
-- `"true"` / `"false"` are converted to booleans
-- Numeric strings (e.g., `"42"`, `"3.14"`) are converted to numbers
-- Everything else remains a string
+`value` is always a string in OLX. The target field's schema, if present,
+coerces and validates it. The same literal can therefore mean different
+things depending on where it is written:
+
+- a boolean field (`Done.value`, `readonly`) accepts only `"true"` / `"false"`
+- a numeric field (`Tabs.activeTab`) accepts numeric strings like `"3"`
+- a string field (`LineInput.value`, `TextArea.value`) takes the text as-is
+
+Rejected values are not written. To store a semantic code such as
+`"acknowledged"`, target a string field; boolean fields accept only true or
+false.
 
 ## Common Patterns
 

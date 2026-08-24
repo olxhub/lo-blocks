@@ -8,7 +8,8 @@ import { printModes } from '@/lib/blocks/attributeSchemas';
 import * as parsers from '@/lib/content/parsers';
 import { shallowEqual } from 'react-redux';
 
-export const fields = state.fields(['activeTab']);
+// Authored setters carry strings; tab indexes are integers.
+export const fields = state.fields([{ name: 'activeTab', schema: z.coerce.number().int() }]);
 
 const Tabs = dev({
   ...parsers.blocks(),
