@@ -124,7 +124,22 @@ function applySetField(props: RuntimeProps, block: SetField): void {
       stateKey = scopedStateKeyForBlock({ ...props, id: block.ref as DefinitionRef });
   }
   const field = state.componentFieldByStateKey(props, stateKey, block.field);
-  state.updateField(props, field, block.value, { stateKey });
+  state.updateField(props, field, coerceSetValue(field, block.value), { stateKey });
+}
+
+/**
+ * A set command's value arrives as text. A field that declares a schema
+ * (Tabs' activeTab is z.coerce.number()) has it applied, so content can
+ * write `tabs.activeTab <- 3` and the block reads the number it declared.
+ * A value the schema rejects is written as text, with a warning, rather
+ * than dropped: the author sees the effect and the message.
+ */
+export function coerceSetValue(field: { name: string; schema?: { safeParse: (v: unknown) => any } }, raw: string): unknown {
+  if (!field.schema) return raw;
+  const parsed = field.schema.safeParse(raw);
+  if (parsed.success) return parsed.data;
+  console.warn(`[Chat] set ${field.name} <- ${JSON.stringify(raw)}: ${parsed.error?.message ?? 'rejected by schema'}; writing the text as is`);
+  return raw;
 }
 
 function canAdvance(props: RuntimeProps, reduxState: any): boolean {
