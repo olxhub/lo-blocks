@@ -101,11 +101,15 @@ export function generateOlxSchema(registry: BlockRegistry): {
   const elements: ElementSpec[] = [];
 
   for (const [name, block] of Object.entries(registry)) {
-    // Extract per-element attributes, excluding globals (already covered)
+    // A different schema object marks a block-specific override of a global
+    // attribute; keep it local so its completion values take precedence.
     let localAttrs: AttrSpec[] = [];
     if (block.attributes) {
+      const shape = unwrapToObject(block.attributes)?.shape ?? {};
       const allAttrs = extractAttrsFromZodObject(block.attributes);
-      localAttrs = allAttrs.filter(a => !BASE_ATTR_NAMES.has(a.name));
+      localAttrs = allAttrs.filter(a =>
+        !BASE_ATTR_NAMES.has(a.name) || shape[a.name] !== (baseAttributes.shape as any)[a.name]
+      );
     }
 
     // Determine child element completion behavior from childMode:
