@@ -91,9 +91,7 @@ export default function ChoiceItem(props: RuntimeProps) {
     <label className={labelClasses}>
       <input
         type={isCheckbox ? 'checkbox' : 'radio'}
-        // The parent's StateKey groups sibling radios (and is a stable,
-        // scoped name for checkboxes).
-        name={parentStateKey}
+        name={isCheckbox ? parentStateKey : group.radioName}
         checked={checked}
         onChange={handleChange}
         className="lo-choice-item__input"
