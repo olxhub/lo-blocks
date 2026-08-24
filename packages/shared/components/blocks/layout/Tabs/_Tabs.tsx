@@ -41,8 +41,11 @@ export default function Tabs(props: RuntimeProps) {
 
   return (
     <div className="tabs-component border rounded-lg bg-background overflow-hidden">
-      {/* Tab Headers */}
-      <div className="flex border-b bg-surface">
+      {/* Tab Headers.
+         print="no-chrome" keeps the strip on screen but drops it from print
+         via the shared .print-hide rule in styles/print.css — the active
+         panel then prints as a plain page. */}
+      <div className={`tabs-header flex border-b bg-surface${props.print === 'no-chrome' ? ' print-hide' : ''}`}>
         {filteredKids.map((kid, index) => {
           const isActive = index === currentTab;
 
@@ -80,7 +83,7 @@ export default function Tabs(props: RuntimeProps) {
          OnShow can detect tab switches. */}
       <div className="p-4">
         {renderedContent.map((content, index) => (
-          <div key={index} style={{ display: index === currentTab ? 'block' : 'none' }}>
+          <div key={index} className="tab-panel" style={{ display: index === currentTab ? 'block' : 'none' }}>
             {content}
           </div>
         ))}

@@ -77,6 +77,31 @@ export const z_expression = z.union([
  */
 export const z_triggerMode = z.enum(['once', 'each']).default('once');
 
+/**
+ * Print modes understood by EVERY block.
+ *
+ * "false" hides the block from print/PDF output (render.tsx maps it to the
+ * `.print-hide` class in styles/print.css); "true" (and the unset default)
+ * prints normally.
+ *
+ * This is an OPEN enum: a block may widen it with its own print modes by
+ * redeclaring `print` in its own attribute schema and listing it in
+ * `allowOverrides`, e.g.
+ *
+ *   attributes: z.object({
+ *     print: z.enum([...printModes, 'no-chrome']).optional().describe(...),
+ *   }).strict(),
+ *   allowOverrides: ['print'],
+ *
+ * The block's declaration shadows the base one (later layer wins in
+ * mergeAttributes), so the base values keep working and only the block's
+ * extra values become legal on that tag. Tabs' "no-chrome" is the first
+ * such extension.
+ */
+export const printModes = ['true', 'false'] as const;
+
+export type PrintMode = typeof printModes[number];
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -248,8 +273,8 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
-  print: z_olx_boolean.optional()
-    .describe('Set to "false" to hide this block from print/PDF output'),
+  print: z.enum(printModes).optional()
+    .describe('Print/PDF output: "false" hides this block from print, "true" (default) prints it. Some blocks add their own modes (e.g. Tabs supports "no-chrome").'),
   'grouped-by': z.string().optional()
     .describe('Partition shared/server fields by a field of each user\'s own state: "pickerBlockId.fieldName" (e.g. "topic_picker.activeIndex"). The server resolves each user\'s group from their committed choice; users who haven\'t chosen share the unpartitioned bucket. See docs/fields-design.md "Groups".'),
 }).strict();

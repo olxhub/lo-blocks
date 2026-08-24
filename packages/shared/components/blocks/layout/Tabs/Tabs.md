@@ -36,6 +36,11 @@ Core idea: Learners build understanding through experience and social interactio
 
 ## Properties
 - `id` (required): Unique identifier for the tabs container
+- `print`: Print/PDF behavior. Tabs extends the common `print` attribute with an extra mode:
+  - `true` (default): print normally
+  - `false`: keep the whole block out of print
+  - `no-chrome`: print the active panel without the tab header strip — useful when a
+    tab holds a print-ready page (`<Tabs id="worksheet" print="no-chrome">`)
 
 ## Child Properties
 Each child block's `title` attribute becomes the tab header text.
