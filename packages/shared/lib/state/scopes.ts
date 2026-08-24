@@ -29,3 +29,15 @@ export type Scope = typeof scopeNames[number];
 export function asScope(value: string): Scope {
   return value as Scope;
 }
+
+/**
+ * Is this scope ONE flat field map (scope → field → value) rather than a
+ * map of buckets (scope → bucketId → field → value)?
+ *
+ * `system` is global, so it has no bucket key and sits one level shallower
+ * than every other persisted scope. Generic scope walkers must branch on
+ * this shape instead of treating each system field as a bucket.
+ */
+export function isFlatScope(scope: string): boolean {
+  return scope === scopes.system;
+}

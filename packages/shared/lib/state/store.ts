@@ -40,6 +40,7 @@ import { scopes, Scope } from './scopes';
 import { PENDING_GRADE_TIMEOUT_EVENT } from '../grading/pendingTimeout';
 import { commonFields } from './commonFields';
 import { mergeDocFields, hasMergeableDoc } from '../crdt/merge';
+import { lwwMergeBuckets } from '../crdt/lww';
 import type { FieldInfo, Fields, AppState } from '../types';
 import {
   olxjsonReducer,
@@ -392,8 +393,19 @@ export const updateResponseReducer = (state = initialState, action) => {
   // is the classic-strategy/unregistered-event twin of the field-reducer
   // path's fold above (classic events don't stamp `field`, so cursor
   // extras land here).
-  const { scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest } = action;
+  const {
+    scope = scopes.component, id, tag, context, event, metadata, authority, extras, ...rest
+  } = action;
   const extrasFold: Record<string, any> = foldExtras(extras);
+
+  // An unregistered LWW event has `{ field: F, [F]: value, ts, actor }`.
+  // Store its named value, not the transport envelope. Recognize the whole
+  // shape so unrelated events that merely carry `ts` keep it.
+  if (typeof rest.field === 'string' && rest.field in rest) {
+    delete rest.ts;
+    delete rest.actor;
+    delete rest.field;
+  }
 
   // TODO: This should be simplified now that we can use [scope] instead of
   // componentSetting, etc.
@@ -560,6 +572,69 @@ export function initReducers(blockRegistry: BlockRegistryParam, extraFields: Ext
   collectEventTypes(extraFields, blockRegistry);
 }
 
+/**
+ * What of the Redux tree is persisted: system, component, componentSetting
+ * and storage. Excludes olxjson (large, loaded from the content system) and
+ * catalog/docs/sources (loaded from MCP). Chat transcripts are
+ * component-scope fields (chatFields.ts) so they ride with component state;
+ * Studio/editor buffers are storage scope and must load with the rest of
+ * the user's field state.
+ *
+ * Must stay in step with PERSISTED_SCOPES in sync/persistence.ts — the
+ * server persists the same set.
+ */
+export function serializeForSave(state: any): any {
+  const appState = state?.application_state;
+  if (!appState) return state;
+  return {
+    application_state: {
+      system: appState.system,
+      component: appState.component,
+      componentSetting: appState.componentSetting,
+      storage: appState.storage,
+    },
+  };
+}
+
+/**
+ * Apply a server snapshot (the fetch_blob response) to the live store.
+ *
+ * Merges into the live application_state so scopes we don't persist
+ * (olxjson/catalog/docs/sources) survive the load instead of being replaced
+ * away — set_state_reducer returns the payload wholesale. Merges FIELD-level
+ * within buckets: a content fetch can adopt state (including shared fields,
+ * which never live in the loaded snapshot) BEFORE this load resolves, and
+ * replacing scope maps or whole buckets silently dropped it.
+ *
+ * Merge stamped fields by timestamp rather than letting every loaded value
+ * win. This callback runs for retries too, so a stale response can arrive
+ * after the learner has made newer writes. A first load remains unchanged:
+ * the live store is empty, while ties and unstamped fields still prefer the
+ * snapshot.
+ */
+export function deserializeOnLoad(blob: any, currentState?: any): any {
+  const appState = blob?.application_state;
+  const cur = currentState?.application_state ?? {};
+  if (!appState) return {};
+  const mergeBuckets = (curScope: any = {}, loadedScope: any = {}) => {
+    const out: Record<string, any> = { ...curScope };
+    for (const [key, bucket] of Object.entries(loadedScope)) {
+      out[key] = lwwMergeBuckets(out[key], bucket as Record<string, any>);
+    }
+    return out;
+  };
+  return {
+    application_state: {
+      ...cur,
+      // `system` is ONE flat bucket, not a map of them (scopes.ts).
+      system: lwwMergeBuckets(cur.system, appState.system),
+      component: mergeBuckets(cur.component, appState.component),
+      componentSetting: mergeBuckets(cur.componentSetting, appState.componentSetting),
+      storage: mergeBuckets(cur.storage, appState.storage),
+    },
+  };
+}
+
 // Event capture logger - accessible via window.__eventCapture in browser
 let eventCaptureLogger: ReturnType<typeof createArrayLogger> | null = null;
 
@@ -626,52 +701,8 @@ function configureStore({
   const loggers = [
     reduxLogger.reduxLogger([], {
       stateSync: useTabSync ? { predicate: syncFilter } : false,
-      // Persist system, component, componentSetting, and storage scopes.
-      // Excludes olxjson (large, loaded from content system) and
-      // catalog/docs/sources (loaded from MCP/content systems). Chat
-      // transcripts are component-scope fields (chatFields.ts), so they
-      // persist with component state. Studio/editor buffers are storage
-      // scope and must load with the rest of user field state.
-      serializeForSave: (state) => {
-        const appState = (state as any).application_state;
-        if (!appState) return state;
-        return {
-          application_state: {
-            system: appState.system,
-            component: appState.component,
-            componentSetting: appState.componentSetting,
-            storage: appState.storage,
-          },
-        };
-      },
-      deserializeOnLoad: (blob, currentState) => {
-        const appState = (blob as any).application_state;
-        const cur = (currentState as any)?.application_state ?? {};
-        if (!appState) return {} as any;
-        // Merge into the live application_state so scopes we don't persist
-        // (olxjson/catalog/docs/sources) survive the load instead of being
-        // replaced away — set_state_reducer returns the payload wholesale.
-        // Merge FIELD-level within buckets: a content fetch can adopt
-        // state (incl. shared fields, which never live in the loaded
-        // snapshot) BEFORE this load resolves — replacing scope maps or
-        // whole buckets silently dropped it. Loaded values win per field.
-        const mergeBuckets = (curScope: any = {}, loadedScope: any = {}) => {
-          const out: Record<string, any> = { ...curScope };
-          for (const [key, bucket] of Object.entries(loadedScope)) {
-            out[key] = { ...out[key], ...(bucket as Record<string, any>) };
-          }
-          return out;
-        };
-        return {
-          application_state: {
-            ...cur,
-            system: { ...cur.system, ...appState.system },
-            component: mergeBuckets(cur.component, appState.component),
-            componentSetting: mergeBuckets(cur.componentSetting, appState.componentSetting),
-            storage: mergeBuckets(cur.storage, appState.storage),
-          },
-        } as any;
-      },
+      serializeForSave,
+      deserializeOnLoad,
     }),
     eventCaptureLogger,
     ...(debugEvents ? [consoleLogger()] : []),
