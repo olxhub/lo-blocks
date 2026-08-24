@@ -77,6 +77,9 @@ export const z_expression = z.union([
  */
 export const z_triggerMode = z.enum(['once', 'each']).default('once');
 
+/** Base print modes. Blocks may explicitly override this enum to add modes. */
+export const printModes = ['true', 'false'] as const;
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -248,8 +251,8 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
-  print: z_olx_boolean.optional()
-    .describe('Set to "false" to hide this block from print/PDF output'),
+  print: z.enum(printModes).optional()
+    .describe('Print/PDF output: "false" omits this block; omitted or "true" prints it. Some blocks support additional modes.'),
   'grouped-by': z.string().optional()
     .describe('Partition shared/server fields by a field of each user\'s own state: "pickerBlockId.fieldName" (e.g. "topic_picker.activeIndex"). The server resolves each user\'s group from their committed choice; users who haven\'t chosen share the unpartitioned bucket. See docs/fields-design.md "Groups".'),
 }).strict();
