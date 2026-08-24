@@ -291,6 +291,21 @@ export function olxjsonReducer(
       const { source, id } = action;
       if (!source || !id) return state;
 
+      // NO-SHADOW: never write a loading marker onto an entry that already has
+      // content. A marker beside real data is stale by construction — it means
+      // some consumer checked "do we have this block?" BEFORE the data landed
+      // and its dispatch drained AFTER (the async lo_event queue reorders
+      // check-then-dispatch), or a duplicate mount (StrictMode/HMR) re-armed a
+      // fetch for a block that is already loaded. Honouring it hangs the render
+      // forever on a spinner even though the block is sitting right there.
+      //
+      // Guarding at the WRITE point (rather than only at read time) keeps the
+      // invariant "entry has olxJson ⇒ loadingState is ready" true in Redux
+      // itself, so every reader — selectOlxJson, selectBlock, selectBlocksReady,
+      // useValue, useReferences, state dumps, replay — inherits it for free.
+      const prior = state[source]?.[id];
+      if (prior?.olxJson && Object.keys(prior.olxJson).length > 0) return state;
+
       return {
         ...state,
         [source]: {
@@ -429,7 +444,10 @@ export function selectBlock(
 
   for (const source of sources) {
     const entry = olxjson[source]?.[id];
-    if (entry?.loadingState.status === 'ready' && entry.olxJson) {
+    // DATA WINS: content present is content usable, whatever marker sits beside
+    // it. A 'loading' marker on an entry that already holds variants is stale
+    // (see NO-SHADOW in the OLXJSON_LOADING fold) and must not hide the block.
+    if (entry?.olxJson) {
       const langVariant = extractLocalizedVariant(entry.olxJson, locale);
       if (langVariant?.tag) {
         return langVariant;
