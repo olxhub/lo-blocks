@@ -13,6 +13,20 @@ export default function Tabs(props: RuntimeProps) {
   const { t } = useBlockTranslation(props);
   const [activeTab, setActiveTab] = useFieldState(props, fields.activeTab, 0);
 
+  // A tab switch scrolls this Tabs back into view. Matters most when the
+  // switch came from elsewhere on a long page (SetFieldAction shortcut
+  // buttons, the confirm-box jump): without it the student lands mid-page
+  // on the new tab. Skips first render (initial/restored state must not
+  // yank scroll) and hidden duplicates (offsetParent null under
+  // display:none — only the visible copy scrolls).
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const mountedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
+    const el = rootRef.current;
+    if (el && el.offsetParent !== null) el.scrollIntoView({ block: 'start' });
+  }, [activeTab]);
+
   // Filtered kids (when= applied) — used for headers and content indexing
   const filteredKids = useKidsJson(props);
 
@@ -40,7 +54,7 @@ export default function Tabs(props: RuntimeProps) {
   }
 
   return (
-    <div className="tabs-component border rounded-lg bg-background overflow-hidden">
+    <div ref={rootRef} className="tabs-component border rounded-lg bg-background overflow-hidden">
       {/* Tab Headers.
          print="no-chrome" keeps the strip on screen but drops it from print
          via the shared .print-hide rule in styles/print.css — the active
