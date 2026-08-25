@@ -10,7 +10,7 @@ import { verdictFor } from '@/lib/llm/derivedVerdicts';
 import {
   parseSlots,
   parseCover,
-  parseEquals, parseOnlyIf, parseRequires, parseDerived, parseCounts,
+  parseEquals, parseOnlyIf, parseRequires, parseDerived, parseCounts, parseForbid,
   buildSlotSchema,
   parseChoices,
   parseExpect,
@@ -96,6 +96,7 @@ async function llmAction({ props }) {
       const choices = parseChoices(props.choices);
       const expect = parseExpect(props.expect);
       const requires = parseRequires(props.requires);
+      const forbid = parseForbid(props.forbid);
       if (slots.length === 0) {
         throw new Error(`LLMAction: could not parse any slots from slots="${slotsAttr}"`);
       }
@@ -107,7 +108,8 @@ async function llmAction({ props }) {
       // author gets this by setting showChecks, not by writing it into a prompt.
       const { data, text } = await reduxClient.callLLMJson(
         promptText + slotSheetGuidance(showChecks),
-        buildSlotSchema(slots, equals, derived, counts, showChecks, cover, choices, expect),
+        buildSlotSchema(slots, equals, derived, counts, showChecks, cover, choices, expect,
+                        forbid),
         'feedback_checks',
         props.runtime.activityId,
       );
@@ -116,7 +118,7 @@ async function llmAction({ props }) {
       if (data && derived.length) {
         data.checks = { ...(data.checks ?? {}), ...deriveChecks(props, derived) };
       }
-      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect, requires }) : text;
+      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect, requires, forbid }) : text;
       // Publish the sheet and its verdicts for anything that needs to reason
       // about them rather than read them — a grader, or an analysis harness.
       // Written whether or not the checklist is displayed.
@@ -126,7 +128,7 @@ async function llmAction({ props }) {
           state.setField(props, checksField, JSON.stringify(publishedSheet({
             slots, verdicts: (data.checks ?? {}) as Record<string, unknown>, showChecks,
             choices, expect,
-            max: props.max, cover, equals, onlyif, counts, requires,
+            max: props.max, cover, equals, onlyif, counts, requires, forbid,
           })), { stateKey: targetStateKey });
         } catch {
           // Target has no `checks` field (e.g. a plain TextSlot) — the prose

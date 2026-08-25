@@ -260,6 +260,31 @@ export type EqualsRule = {
  * how the rubric does it: its check list records the real value while its ledger
  * declines to bill for it, which is why this is not a `satisfiedMap` concern.
  */
+/**
+ * A check that FAILS when a named COMBINATION of other answers holds.
+ *
+ * `equals` asks whether two answers agree and `expect` compares one against an
+ * authored value; neither can say "fail when A is this AND B is that". Written
+ * as one slot instead, the question becomes composite — and composite is how the
+ * rule this replaces already failed, four times over. Asked of one answer at a
+ * time it stayed stable; asked as a single judgement the model resolved the
+ * tension by re-reading which clause was which.
+ *
+ * The case it was added for: a deprivation the plan CREATES is not by itself a
+ * fault, because an ordinary punishment contingency creates one too. It is a
+ * fault only when the student's own SUCCESS is what lifts it, since then the
+ * deprivation stands in front of the behaviour rather than following it. Over 216
+ * measured cell-runs, `created` alone ran 24 gold-0 against 67 gold->0, while
+ * `created` together with success-lifts-it ran 13 against 1.
+ *
+ * Each operand stays a separate question the model answers on its own; the
+ * conjunction is arithmetic done here.
+ *
+ * An unanswered operand means the combination cannot be ESTABLISHED, so the check
+ * PASSES. A gate must not fire on missing data: a false zero costs a whole item.
+ */
+export type ForbidRule = { key: string; conds: { slot: string; value: string }[] };
+
 export type OnlyIfRule = { key: string; cond: string };
 
 /**
@@ -493,6 +518,49 @@ export function parseEquals(spec?: string): EqualsRule[] {
     .filter(r => r.key && r.left && r.right);
 }
 
+/**
+ * Parse a `forbid` attribute: rules separated by `|`, each
+ * `key:slot=value,slot=value`. The check fails only when EVERY condition holds.
+ *
+ *   forbid="consequence_not_a_setup:restriction_authored=created,trigger_expects=gain"
+ */
+export function parseForbid(spec?: string): ForbidRule[] {
+  return (spec ?? '')
+    .split('|')
+    .map(r => r.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const idx = entry.indexOf(':');
+      const key = (idx < 0 ? entry : entry.slice(0, idx)).trim();
+      const conds = (idx < 0 ? '' : entry.slice(idx + 1))
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean)
+        .map(c => {
+          const [slot, value] = c.split('=').map(x => (x ?? '').trim());
+          return { slot, value };
+        })
+        .filter(c => c.slot && c.value);
+      return { key, conds };
+    })
+    .filter(r => r.key && r.conds.length > 0);
+}
+
+/** Whether a forbid rule's combination is established by the answers given. */
+export function forbidden(
+  rule: ForbidRule,
+  checks: Record<string, CheckPayload | undefined>,
+): boolean {
+  return rule.conds.every(c => {
+    // A classification answers `refers_to`; only an unmigrated slot spells it as
+    // the verdict. Reading the verdict alone made this never fire on the pick
+    // slots it exists for — the same bug `equals` had, caught here by the
+    // enforcement probe before the rule was ever measured.
+    const v = String(checks[c.slot]?.refers_to ?? checks[c.slot]?.verdict ?? '').trim();
+    return !!v && v === c.value;
+  });
+}
+
 /** The verdict a computed check gets, for display and for the published sheet. */
 export function computedVerdict(
   rule: EqualsRule,
@@ -534,6 +602,7 @@ export function satisfiedMap(
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
+  forbid: ForbidRule[] = [],
 ): Record<string, boolean> {
   // Counted members first: they are derived from the count, so whatever the model
   // may have sent for them is replaced before anything reads it.
@@ -559,6 +628,9 @@ export function satisfiedMap(
   }
 
   const byKeySpec = new Map(slots.map(s => [s.key, s]));
+  // A forbidden combination fails the check; anything else passes, an
+  // unanswered operand included.
+  for (const r of forbid) out[r.key] = !forbidden(r, checks);
   for (const g of cover) {
     const claimed = new Set<string>();
     for (const k of g.keys) {
@@ -757,6 +829,7 @@ export function publishedSheet(args: {
   choices?: Record<string, string[]>;
   expect?: ExpectRule[];
   requires?: RequiresRule[];
+  forbid?: ForbidRule[];
 }): Record<string, unknown> {
   const { slots, verdicts, showChecks, max } = args;
   const cover = args.cover ?? [], equals = args.equals ?? [];
@@ -765,6 +838,7 @@ export function publishedSheet(args: {
   // written — the property that makes old sheets immune to a vocabulary change.
   const choices = args.choices ?? {}, expect = args.expect ?? [];
   const requires = args.requires ?? [];
+  const forbid = args.forbid ?? [];
   return {
     slots,
     ...(cover.length ? { cover } : {}),
@@ -774,6 +848,7 @@ export function publishedSheet(args: {
     ...(Object.keys(choices).length ? { choices } : {}),
     ...(expect.length ? { expect } : {}),
     ...(requires.length ? { requires } : {}),
+    ...(forbid.length ? { forbid } : {}),
     showChecks,
     verdicts,
     ...(max !== undefined && max !== null && String(max) !== ''
@@ -792,14 +867,15 @@ export function scoreSlotSheet(
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
+  forbid: ForbidRule[] = [],
 ): { score: number; max: number; failed: string[] } | null {
   const scored = slots.filter(s => typeof s.pts === 'number');
   if (scored.length === 0 && explicitMax === undefined) return null;
   const max = explicitMax ?? scored.reduce((n, s) => n + (s.pts as number), 0);
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
   const charged = chargedMap(slots, sat, onlyif);
 
-  const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires);
+  const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires, forbid);
   if (gate) return { score: 0, max, failed: [gate.key] };
 
   const failed = scored.filter(s => !sat[s.key] && charged[s.key]);
@@ -846,8 +922,9 @@ export function failedGate(
   counts: CountGroup[] = [],
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
+  forbid: ForbidRule[] = [],
 ): SlotSpec | null {
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
   const charged = chargedMap(slots, sat, onlyif);
   for (const slot of slots) {
     if (slot.gates && !sat[slot.key] && charged[slot.key]) return slot;
@@ -880,9 +957,11 @@ export function buildSlotSchema(
   // Named category sets, and the rules that compare a pick against a constant.
   choices: Record<string, string[]> = {},
   expect: ExpectRule[] = [],
+  forbid: ForbidRule[] = [],
 ): Record<string, unknown> {
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
-                            ...counts.flatMap(g => g.slots), ...expect.map(r => r.key)]);
+                            ...counts.flatMap(g => g.slots), ...expect.map(r => r.key),
+                            ...forbid.map(r => r.key)]);
   // Which list each cover member has to choose from. The enum is the group's
   // own labels, so this generalises to any number of them — two, or twelve —
   // without the engine knowing how many. `none` is always available: "I named
@@ -1145,6 +1224,7 @@ export function composeSlotFeedback(
     counts?: CountGroup[];
     expect?: ExpectRule[];
     requires?: RequiresRule[];
+    forbid?: ForbidRule[];
   } = {},
 ): string {
   let checks = (data?.checks ?? {}) as Record<
@@ -1179,15 +1259,27 @@ export function composeSlotFeedback(
   const byKey = new Map(equals.map(r => [r.key, r]));
   const expect = opts.expect ?? [];
   const requires = opts.requires ?? [];
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires);
+  const forbid = opts.forbid ?? [];
+  const forbidByKey = new Map(forbid.map(r => [r.key, r]));
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
   const charged = chargedMap(slots, sat, opts.onlyif ?? []);
-  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect, requires);
+  const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect,
+                          requires, forbid);
   const shown = gate ? [gate] : slots;
 
   const lines = shown.map(slot => {
     const rule = byKey.get(slot.key);
+    // A forbid key has no verdict of its own — the model never answered it — so
+    // show the operands it was computed from, which is what makes a zero on it
+    // legible instead of arbitrary.
+    const forbidRule = forbidByKey.get(slot.key);
     const verdict = rule
       ? computedVerdict(rule, checks)
+      : forbidRule
+      ? forbidRule.conds
+          .map(c => `${c.slot}=${String(checks[c.slot]?.refers_to
+                                         ?? checks[c.slot]?.verdict ?? '').trim() || '?'}`)
+          .join(', ')
       : (checks[slot.key]?.verdict ?? '').trim();
     // A count is reported, not judged: it gets no tick, because there is no
     // sense in which "2 of 3" passed or failed on its own. What it feeds — the

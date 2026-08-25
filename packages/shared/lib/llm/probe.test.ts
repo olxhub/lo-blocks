@@ -29,6 +29,7 @@ import {
   type CheckPayload,
   type ExpectRule,
   parseExpect,
+  parseForbid,
   parseChoices,
   type SlotSpec,
   type CoverGroup,
@@ -44,6 +45,7 @@ type Req = {
   equals?: string;
   onlyif?: string;
   requires?: string;
+  forbid?: string;
   derived?: string;
   counts?: string;
   max?: number;
@@ -104,6 +106,7 @@ function probe(req: Req) {
   const choices = parseChoices(req.choices);
   const expect = parseExpect(req.expect);
   const requires = parseRequires(req.requires);
+  const forbid = parseForbid(req.forbid);
 
   const sheet = (failing: string[]) => {
     const claimed = new Map<CoverGroup, Set<string>>();
@@ -133,7 +136,7 @@ function probe(req: Req) {
     // member from a missing count and read 2a's all-satisfied baseline as 2/6.
     // Only `requires` is new here, and it needs the two placeholders to reach it.
     scoreSlotSheet(slots, sheet(failing), req.max, cover, equals, onlyif,
-                   [], [], requires);
+                   [], [], requires, forbid);
 
   const base = score([]);
   const max = base?.max ?? 0;
@@ -181,6 +184,7 @@ function probe(req: Req) {
     // primitive that lands here without being added to this list would make the
     // audit silently blind to it — which is how `derived` was missed once.
     computed: [...equals.map(r => r.key), ...derived.map(r => r.key),
+               ...forbid.map(r => r.key),
                ...counts.flatMap(g => g.slots)],
     derived: derived.map(r => ({ key: r.key, targets: r.targets,
                                  hasTemplate: r.template.length > 0 })),
@@ -199,7 +203,7 @@ describe('enforcement probe', () => {
     // If a primitive is added to primitives.json and not parsed here, the audit
     // silently stops seeing it — which is how `derived` went unnoticed once.
     const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts', 'expect',
-                     'requires'];
+                     'requires', 'forbid'];
     expect(PRIMITIVES.primitives.map(p => p.attr).sort()).toEqual([...handled].sort());
   });
 

@@ -33,7 +33,7 @@ import * as state from '@/lib/state';
 import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { CheckPayload, ExpectRule } from '@/lib/llm/slotSheet';
 import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
-         type OnlyIfRule,
+         type OnlyIfRule, type RequiresRule, type ForbidRule,
          type CountGroup } from '@/lib/llm/slotSheet';
 
 // `showChecks` records whether the student was shown these checks. The grader
@@ -42,7 +42,8 @@ import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
 // analysis harness reading the same field needs it.
 type Payload = { slots: SlotSpec[]; verdicts: Record<string, CheckPayload>; max?: number;
                  cover?: CoverGroup[]; equals?: EqualsRule[]; onlyif?: OnlyIfRule[]; counts?: CountGroup[];
-                 expect?: ExpectRule[]; showChecks?: boolean };
+                 expect?: ExpectRule[]; requires?: RequiresRule[];
+                 forbid?: ForbidRule[]; showChecks?: boolean };
 
 /**
  * A stored sheet, as the grader needs it: parsed, with every rule defaulted.
@@ -67,6 +68,7 @@ export function sheetFromJson(raw: unknown): Payload | null {
       onlyif: parsed.onlyif ?? [],
       counts: parsed.counts ?? [],
       expect: parsed.expect ?? [],
+      forbid: parsed.forbid ?? [],
     };
   } catch {
     return null;
@@ -102,7 +104,8 @@ function gradeSlotSheet(props: any) {
 
   const result = scoreSlotSheet(payload.slots, payload.verdicts, payload.max, payload.cover,
                               payload.equals, payload.onlyif,
-                              payload.counts, payload.expect);
+                              payload.counts, payload.expect, payload.requires,
+                              payload.forbid);
   if (!result) {
     return {
       correct: correctness.invalid,
