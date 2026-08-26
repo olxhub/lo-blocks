@@ -91,6 +91,18 @@ export interface AnnotationRange {
 }
 
 /**
+ * Build a valid CSS <custom-ident> without losing identity information.
+ * Definition IDs contain characters such as `/` and `.`, which are legal in
+ * the HighlightRegistry key but make an unescaped ::highlight() rule invalid.
+ */
+export function highlightName(instanceId: string, noteId: string): string {
+  const encoded = Array.from(`${instanceId}\0${noteId}`, char =>
+    char.codePointAt(0)!.toString(16)
+  ).join('-');
+  return `lo-ann-${encoded}`;
+}
+
+/**
  * Register CSS Custom Highlights for each annotation in the passage.
  *
  * Runs as a useEffect after render — the passage DOM must exist before we
@@ -119,7 +131,7 @@ export function useHighlights(
     const registeredNames: string[] = [];
 
     for (const ann of annotations) {
-      const name = `lo-ann-${instanceId}-${ann.noteId}`;
+      const name = highlightName(instanceId, ann.noteId);
       const range = createRangeFromOffsets(container, ann.start, ann.end);
       if (range) {
         // Highlight is a browser global (not imported — it's a DOM API)
