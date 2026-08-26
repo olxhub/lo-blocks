@@ -16,7 +16,7 @@ import { z_stateRef } from '@/lib/blocks/attributeSchemas';
 import { findVisibleBlock } from '../visibleTarget';
 
 export function flashAction({ props }) {
-  const { target, duration = '500ms', color = 'gold' } = props;
+  const { target, duration = '800ms', color = 'var(--lo-info-subtle)' } = props;
 
   if (!target) {
     console.warn('[Flash] No target specified');
