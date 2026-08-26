@@ -30,7 +30,7 @@ describe('Done', () => {
     mocks.useFieldState.mockReturnValue([false, setDone]);
     const view = render(<Done {...props} />);
 
-    const checkbox = view.getByRole('checkbox', { name: 'I have completed this activity' });
+    const checkbox = view.getByRole('checkbox', { name: 'Mark as complete' });
     expect((checkbox as HTMLInputElement).checked).toBe(false);
     fireEvent.click(checkbox);
 
@@ -42,7 +42,7 @@ describe('Done', () => {
     mocks.useFieldState.mockReturnValue([true, setDone]);
     const view = render(<Done {...props} align="right" />);
 
-    const checkbox = view.getByRole('checkbox', { name: 'I have completed this activity' });
+    const checkbox = view.getByRole('checkbox', { name: 'Mark as complete' });
     expect((checkbox as HTMLInputElement).checked).toBe(true);
     expect(checkbox.closest('.done-control-right')).toBeTruthy();
     fireEvent.click(checkbox);

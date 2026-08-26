@@ -7,7 +7,7 @@ import type { RuntimeProps } from '@/lib/types';
 import './Done.css';
 
 export default function Done(props: RuntimeProps) {
-  const { align = 'left', fields } = props;
+  const { align = 'left', label = 'Mark as complete', fields } = props;
   const [done, setDone] = useFieldState(props, fields.value, false);
   const inputId = useId();
 
@@ -22,10 +22,10 @@ export default function Done(props: RuntimeProps) {
           onChange={event => setDone(event.currentTarget.checked)}
         />
         <label className="done-switch-label" htmlFor={inputId}>
-          <span className="done-sr-only">I have completed this activity</span>
+          <span className="done-sr-only">{label}</span>
           <span className="done-switch-track" aria-hidden="true">
             <span className="done-switch-state done-switch-unmark">Unmark</span>
-            <span className="done-switch-state done-switch-mark">Mark as complete</span>
+            <span className="done-switch-state done-switch-mark">{label}</span>
           </span>
           <span className="done-switch-thumb" aria-hidden="true">{done ? '✓' : ''}</span>
         </label>

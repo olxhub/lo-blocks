@@ -25,6 +25,8 @@ const Done = core({
   attributes: z.object({
     align: z.enum(['left', 'center', 'right']).default('left')
       .describe('Horizontal alignment of the completion control'),
+    label: z.string().default('Mark as complete')
+      .describe('Text on the unchecked switch (e.g. "Mark as read")'),
   }).strict(),
 });
 
