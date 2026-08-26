@@ -54,8 +54,8 @@ const Flash = blocks.core({
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   attributes: z.object({
     target: z_stateRef.describe('Block ID to flash'),
-    duration: z.string().default('500ms').describe('Animation duration (CSS time value)'),
-    color: z.string().default('gold').describe('Flash color (CSS color value)'),
+    duration: z.string().default('800ms').describe('Animation duration (CSS time value)'),
+    color: z.string().default('var(--lo-info-subtle)').describe('Flash color (CSS color value)'),
   }).strict(),
 });
 
