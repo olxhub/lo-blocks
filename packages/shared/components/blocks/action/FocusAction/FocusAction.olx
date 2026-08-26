@@ -1,0 +1,8 @@
+<Vertical id="FocusActionDemo" title="FocusAction">
+<ActionButton id="focus_start_writing" label="Start writing">
+  <FocusAction target="focus_response_field" />
+</ActionButton>
+
+<Markdown id="focus_instructions">Choose **Start writing** to move to the response field.</Markdown>
+<TextArea id="focus_response_field" title="Response" placeholder="Write here..." />
+</Vertical>
