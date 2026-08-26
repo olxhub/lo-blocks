@@ -21,17 +21,18 @@
 
 import type { RuntimeProps, DefinitionRef } from '@/lib/types';
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useId, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useFieldState, useSet, useNextId, updateField } from '@/lib/state';
 import { extendIdPrefix, scopeMarker, parseDefinitionRef, scopedStateKeyForBlock } from '@/lib/types/id-grammar';
 import { useKids, useBlock } from '@/lib/player/client/render';
 import { assertKidArray } from '@/lib/types/kids';
-import { groupHue, themeColors } from '@/lib/util/colorWheel';
+import { groupHue, stringColorIndex, themeColors } from '@/lib/util/colorWheel';
 import RenderMarkdown from '@/components/common/RenderMarkdown';
 import { fields as annotateFields } from './Annotate';
 import {
   useHighlights,
+  highlightName,
   createRangeFromOffsets,
   getSelectionOffsets,
   getCharOffsetAtPoint,
@@ -73,7 +74,7 @@ function scopedNoteProps(props: RuntimeProps, noteId: string): RuntimeProps {
  * dark bg → dark tint, warm bg → warm tint. Automatic.
  */
 function noteColors(noteId: string) {
-  const hue = groupHue(parseInt(noteId, 10) || 0);
+  const hue = groupHue(stringColorIndex(noteId));
   const tc = themeColors(hue);
   return {
     highlight:       tc.tint,
@@ -172,11 +173,12 @@ function DefaultEditor({
   isActive: boolean;
 }) {
   const scoped = scopedNoteProps(props, noteId);
-  const [value, setValue] = useFieldState(scoped, annotateFields.value, '');
+  const [value, setValue] = useFieldState(scoped, annotateFields.text, '');
 
   if (isActive) {
     return (
       <textarea
+        autoFocus
         className="w-full border border-border rounded p-2 text-sm resize-y min-h-[3rem] bg-surface focus:border-accent focus:outline-none"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -249,7 +251,7 @@ function EditorSlot({
   // Custom editors always render (they manage their own empty state).
   // Default editor: check if it would render anything.
   const scoped = scopedNoteProps(props, noteId);
-  const [value] = useFieldState(scoped, annotateFields.value, '');
+  const [value] = useFieldState(scoped, annotateFields.text, '');
   const hasContent = isActive || !!value || !!isCustom;
 
   if (!hasContent) return null;
@@ -342,7 +344,7 @@ function NoteCard({
 
 export default function Annotate(props: RuntimeProps) {
   assertKidArray(props.kids);
-  const { fields, id } = props;
+  const { fields } = props;
 
   // Editor mode from attribute: "textarea" (default), "false", or block ID
   const editorMode = props.editor || 'textarea';
@@ -358,6 +360,15 @@ export default function Annotate(props: RuntimeProps) {
   // ── Passage rendering ──
   const { kids } = useKids(props);
   const passageRef = useRef<HTMLDivElement>(null);
+
+  // CSS.highlights is one document-wide registry, and each entry's Ranges point
+  // into one copy of the passage. A block can be on screen several times at
+  // once (a <Use> of it, a Tabs panel kept mounted behind display:none, an
+  // activity pane showing the same screen), so a name built from the block id
+  // makes the copies overwrite one another: the last effect in tree order wins
+  // and every other copy paints nothing. useId is unique per mount, so each
+  // copy keeps its own entry and its own ::highlight() rule.
+  const mountId = useId();
 
   // ── Collect annotation ranges for highlighting ──
   // Read each annotation's offsets from scoped state. We need these both
@@ -381,14 +392,14 @@ export default function Annotate(props: RuntimeProps) {
   // and read offsets from Redux directly.
   const annotationRanges = useAnnotationRanges(props, sortedNoteIds);
 
-  useHighlights(passageRef, annotationRanges, id);
+  useHighlights(passageRef, annotationRanges, mountId);
 
   // ── Generate ::highlight() CSS rules ──
   const highlightStyles = sortedNoteIds.map((noteId) => {
     const colors = noteColors(noteId);
     const isActive = noteId === activeNote;
     const bg = isActive ? colors.highlightActive : colors.highlight;
-    const name = `lo-ann-${id}-${noteId}`;
+    const name = highlightName(mountId, noteId);
     return `::highlight(${name}) { background-color: ${bg}; }`;
   }).join('\n');
 
@@ -593,4 +604,3 @@ function useAnnotationRanges(props: RuntimeProps, noteIds: string[]): Annotation
       a.every((r, i) => r.noteId === b[i].noteId && r.start === b[i].start && r.end === b[i].end),
   );
 }
-
