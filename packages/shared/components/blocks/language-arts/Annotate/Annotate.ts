@@ -31,7 +31,7 @@
 //   start        (stateField) — per-annotation: char offset start (scoped)
 //   end          (stateField) — per-annotation: char offset end (scoped)
 //   activeNote   (stateField) — currently selected annotation ID
-//   value        (stateField) — per-annotation: note text (scoped, default editor only)
+//   text         (docField)   — per-annotation: note text (scoped, default editor only)
 //
 // When editor= references a custom block ID, that block manages its own
 // state through scoped props. The `value` field is only used by the
@@ -44,7 +44,9 @@
 import { z } from 'zod';
 import { test } from '@/lib/blocks';
 import * as state from '@/lib/state';
-import { docField } from '@/lib/state';
+import { docField, fieldSelector, selectFields } from '@/lib/state';
+import { extendIdPrefix, scopeMarker } from '@/lib/types/id-grammar';
+import type { RuntimeProps } from '@/lib/types';
 import * as parsers from '@/lib/content/parsers';
 
 // All fields on the block — including per-annotation scoped fields.
@@ -61,8 +63,54 @@ export const fields = state.fields([
   'start',
   'end',
   'activeNote',
-  docField('value'),
+  docField('text'),
 ]);
+
+export interface AnnotationValue {
+  id: string;
+  quote: string;
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface AnnotateValue {
+  annotations: AnnotationValue[];
+}
+
+export function readAnnotations(reduxState: any, props: RuntimeProps): AnnotateValue {
+  const noteIds = fieldSelector<Set<string>>(
+    reduxState, props, fields.notes, { fallback: new Set<string>() },
+  );
+  const annotations = [...noteIds].map((id): AnnotationValue => {
+    const { idPrefix } = extendIdPrefix(props, [props.id, scopeMarker(id)]);
+    const scoped = { ...props, idPrefix } as RuntimeProps;
+    const values = selectFields(
+      reduxState, scoped, [fields.quote, fields.start, fields.end, fields.text],
+      { fallback: '' },
+    );
+    return {
+      id,
+      quote: String(values.quote ?? ''),
+      start: Number.parseInt(String(values.start ?? ''), 10) || 0,
+      end: Number.parseInt(String(values.end ?? ''), 10) || 0,
+      text: String(values.text ?? ''),
+    };
+  }).sort((a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id));
+  return { annotations };
+}
+
+function equalAnnotateValues(a: unknown, b: unknown): boolean {
+  const left = (a as AnnotateValue | undefined)?.annotations;
+  const right = (b as AnnotateValue | undefined)?.annotations;
+  return Array.isArray(left) && Array.isArray(right) &&
+    left.length === right.length && left.every((annotation, index) => {
+      const other = right[index];
+      return annotation.id === other.id && annotation.quote === other.quote &&
+        annotation.start === other.start && annotation.end === other.end &&
+        annotation.text === other.text;
+    });
+}
 
 const Annotate = test({
   ...parsers.blocks(),
@@ -70,6 +118,9 @@ const Annotate = test({
   category: 'language-arts',
   description: 'Text annotation block: students highlight passages and take notes in a sidebar',
   fields,
+  selectors: {
+    value: { select: readAnnotations, equality: equalAnnotateValues },
+  },
   attributes: z.object({
     editor: z.string().optional()
       .describe('Per-annotation editor: block ID, "textarea" (default), or "false" to disable'),

@@ -91,17 +91,23 @@ export interface AnnotationRange {
 }
 
 /**
+ * Build a valid CSS <custom-ident> without losing identity information.
+ * Instance IDs contain characters such as `/`, `.` and (from React's useId)
+ * `_` or `«»`, which are legal in the HighlightRegistry key but make an
+ * unescaped ::highlight() rule invalid.
+ */
+export function highlightName(instanceId: string, noteId: string): string {
+  const encoded = Array.from(`${instanceId}\0${noteId}`, char =>
+    char.codePointAt(0)!.toString(16)
+  ).join('-');
+  return `lo-ann-${encoded}`;
+}
+
+/**
  * Register CSS Custom Highlights for each annotation in the passage.
  *
- * Runs as a useEffect after render — the passage DOM must exist before we
- * can create Ranges. Re-runs when annotations or activeNoteId change.
- *
- * Each annotation gets a highlight named `lo-ann-{instanceId}-{noteId}`.
- * The instanceId (block ID) ensures multiple Annotate blocks on the same
- * page don't collide.
- *
- * The corresponding ::highlight() CSS rules are injected by the component
- * via a <style> element — this hook only manages the Highlight objects.
+ * The instanceId identifies a mount, because registry entries contain Ranges
+ * into that mount's DOM. The component injects the matching CSS rules.
  */
 export function useHighlights(
   passageRef: RefObject<HTMLDivElement | null>,
@@ -119,7 +125,7 @@ export function useHighlights(
     const registeredNames: string[] = [];
 
     for (const ann of annotations) {
-      const name = `lo-ann-${instanceId}-${ann.noteId}`;
+      const name = highlightName(instanceId, ann.noteId);
       const range = createRangeFromOffsets(container, ann.start, ann.end);
       if (range) {
         // Highlight is a browser global (not imported — it's a DOM API)
