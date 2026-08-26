@@ -13,8 +13,9 @@ import { z } from 'zod';
 import * as parsers from '@/lib/content/parsers';
 import * as blocks from '@/lib/blocks';
 import { z_stateRef } from '@/lib/blocks/attributeSchemas';
+import { findVisibleBlock } from '../visibleTarget';
 
-function flashAction({ props }) {
+export function flashAction({ props }) {
   const { target, duration = '500ms', color = 'gold' } = props;
 
   if (!target) {
@@ -22,26 +23,25 @@ function flashAction({ props }) {
     return;
   }
 
-  const el = document.querySelector(`[data-block-id="${CSS.escape(target)}"]`);
+  const el = findVisibleBlock(target, props.runtime.ns);
   if (!el) {
-    console.warn(`[Flash] Target "${target}" not found in DOM`);
+    console.warn(`[Flash] Target "${target}" not found in visible DOM`);
     return;
   }
 
   // Set custom properties and add animation class
-  const htmlEl = el as HTMLElement;
-  htmlEl.style.setProperty('--lo-flash-color', color);
-  htmlEl.style.setProperty('--lo-flash-duration', duration);
+  el.style.setProperty('--lo-flash-color', color);
+  el.style.setProperty('--lo-flash-duration', duration);
 
   // Remove class first in case it's already animating (allows re-trigger)
-  htmlEl.classList.remove('lo-flash-active');
+  el.classList.remove('lo-flash-active');
   // Force reflow to restart animation
-  void htmlEl.offsetWidth;
-  htmlEl.classList.add('lo-flash-active');
+  void el.offsetWidth;
+  el.classList.add('lo-flash-active');
 
   // Clean up when animation ends
-  htmlEl.addEventListener('animationend', () => {
-    htmlEl.classList.remove('lo-flash-active');
+  el.addEventListener('animationend', () => {
+    el.classList.remove('lo-flash-active');
   }, { once: true });
 }
 
