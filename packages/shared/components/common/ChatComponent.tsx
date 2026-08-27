@@ -56,7 +56,6 @@ export interface ChatComponentProps {
    *  sidebar passes the studio namespace. */
   ns: ContentNamespace;
   participants?: Cast | null;
-  initialScrollPosition?: 'bottom' | 'top' | number;
   subtitle?: string | null;
   footer?: React.ReactNode;
   height?: string;
@@ -340,7 +339,6 @@ export function ChatComponent({
   messages,
   ns,
   participants = null,
-  initialScrollPosition = 'bottom',
   subtitle = null,
   footer,
   height = 'h-96',
@@ -350,15 +348,8 @@ export function ChatComponent({
   useEffect(() => {
     const el = chatContainerRef.current;
     if (!el) return;
-    if (initialScrollPosition === 'bottom') {
-      el.scrollTop = el.scrollHeight;
-    } else if (initialScrollPosition === 'top') {
-      el.scrollTop = 0;
-    } else if (typeof initialScrollPosition === 'number') {
-      const items = el.querySelectorAll('.message-item');
-      items[initialScrollPosition]?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [initialScrollPosition]);
+    el.scrollTop = el.scrollHeight;
+  }, []);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
