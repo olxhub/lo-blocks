@@ -5,6 +5,8 @@
 .lo-choice-item {
   display: flex;
   align-items: flex-start;
+  /* Keep the hidden input inside its label when it receives focus. */
+  position: relative;
   gap: var(--lo-space-md);
   padding: var(--lo-space-xs) var(--lo-space-sm);
   border-radius: var(--lo-radius-md);
