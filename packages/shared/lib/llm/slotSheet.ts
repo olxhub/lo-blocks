@@ -627,6 +627,7 @@ export function satisfiedMap(
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
   forbid: ForbidRule[] = [],
+  maps: MapsRule[] = [],
 ): Record<string, boolean> {
   // Counted members first: they are derived from the count, so whatever the model
   // may have sent for them is replaced before anything reads it.
@@ -655,6 +656,15 @@ export function satisfiedMap(
   // A forbidden combination fails the check; anything else passes, an
   // unanswered operand included.
   for (const r of forbid) out[r.key] = !forbidden(r, checks);
+  // `maps` last of the computed three, so a mapped check may read a pick that an
+  // earlier rule wrote. It resolves to a VERDICT and is reduced to satisfied/not
+  // through the same isSatisfied the model-answered slots use, so a mapped
+  // `not_active` and an answered `not_active` are the same thing here.
+  for (const r of maps) {
+    const spec = byKeySpec.get(r.key);
+    const v = mappedVerdict(r, checks);
+    out[r.key] = spec ? isSatisfied(spec, v) : false;
+  }
   for (const g of cover) {
     const claimed = new Set<string>();
     for (const k of g.keys) {
@@ -855,6 +865,7 @@ export function publishedSheet(args: {
   expect?: ExpectRule[];
   requires?: RequiresRule[];
   forbid?: ForbidRule[];
+  maps?: MapsRule[];
 }): Record<string, unknown> {
   const { slots, verdicts, showChecks, max } = args;
   const cover = args.cover ?? [], equals = args.equals ?? [];
@@ -893,14 +904,15 @@ export function scoreSlotSheet(
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
   forbid: ForbidRule[] = [],
+  maps: MapsRule[] = [],
 ): { score: number; max: number; failed: string[] } | null {
   const scored = slots.filter(s => typeof s.pts === 'number');
   if (scored.length === 0 && explicitMax === undefined) return null;
   const max = explicitMax ?? scored.reduce((n, s) => n + (s.pts as number), 0);
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid, maps);
   const charged = chargedMap(slots, sat, onlyif);
 
-  const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires, forbid);
+  const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires, forbid, maps);
   if (gate) return { score: 0, max, failed: [gate.key] };
 
   const failed = scored.filter(s => !sat[s.key] && charged[s.key]);
@@ -910,6 +922,70 @@ export function scoreSlotSheet(
     max,
     failed: failed.map(s => s.key),
   };
+}
+
+/**
+ * `maps="key:pick:value>verdict,...,*>verdict"` — a check COMPUTED by mapping one
+ * pick's value to a NAMED verdict.
+ *
+ * The primitive the other three could not express. `equals`, `expect` and `forbid`
+ * each produce a check with ONE failing verdict, because each answers a yes/no
+ * question about other answers. A check with more than one kind of failure cannot
+ * be derived that way, and Q4b's `behavior_*` is exactly that: `absent` means the
+ * box was empty and charges "you only gave one example", while `not_active` means
+ * something is there but is not an activity done instead of the goal behaviour, and
+ * charges a repeatable deduction. Two different things to tell a student.
+ *
+ * Writing it as two `forbid` rules on one key does not work and fails DANGEROUSLY:
+ * every implementation ASSIGNS the computed check per rule, so the last rule wins
+ * and an earlier failure is overwritten back to satisfied — a wrong entry would be
+ * credited.
+ *
+ * `*` is the fallback. A pick value with no pair and no fallback leaves the check
+ * unmapped rather than guessing, which surfaces as unsatisfied here and as an
+ * audit finding in the scoring repo.
+ */
+export type MapsRule = {
+  key: string;
+  pick: string;
+  pairs: { value: string; verdict: string }[];
+  fallback?: string;
+};
+
+export function parseMaps(spec?: string): MapsRule[] {
+  const out: MapsRule[] = [];
+  for (const rule of (spec ?? '').split('|')) {
+    const parts = rule.split(':').map(x => x.trim());
+    if (parts.length < 3) continue;
+    const [key, pick, rawPairs] = parts;
+    if (!key || !pick) continue;
+    const pairs: { value: string; verdict: string }[] = [];
+    let fallback: string | undefined;
+    for (const pair of (rawPairs ?? '').split(',')) {
+      const i = pair.indexOf('>');
+      if (i < 0) continue;
+      const value = pair.slice(0, i).trim();
+      const verdict = pair.slice(i + 1).trim();
+      if (!value || !verdict) continue;
+      if (value === '*') fallback = verdict;
+      else pairs.push({ value, verdict });
+    }
+    if (pairs.length || fallback) out.push({ key, pick, pairs, ...(fallback ? { fallback } : {}) });
+  }
+  return out;
+}
+
+/** The verdict a maps rule assigns, or undefined when nothing matches. */
+export function mappedVerdict(
+  rule: MapsRule,
+  checks: Record<string, CheckPayload | undefined>,
+): string | undefined {
+  // A classification answers `refers_to`; an unmigrated slot spells it as the
+  // verdict. Same read as `equals`, `expect` and `forbid` use on their operands.
+  const got = String(checks[rule.pick]?.refers_to ?? checks[rule.pick]?.verdict ?? '').trim();
+  if (!got) return undefined;
+  const hit = rule.pairs.find(p => p.value === got);
+  return hit ? hit.verdict : rule.fallback;
 }
 
 /**
@@ -948,8 +1024,9 @@ export function failedGate(
   expect: ExpectRule[] = [],
   requires: RequiresRule[] = [],
   forbid: ForbidRule[] = [],
+  maps: MapsRule[] = [],
 ): SlotSpec | null {
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid, maps);
   const charged = chargedMap(slots, sat, onlyif);
   for (const slot of slots) {
     if (slot.gates && !sat[slot.key] && charged[slot.key]) return slot;
@@ -983,6 +1060,7 @@ export function buildSlotSchema(
   choices: Record<string, string[]> = {},
   expect: ExpectRule[] = [],
   forbid: ForbidRule[] = [],
+  maps: MapsRule[] = [],
 ): Record<string, unknown> {
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
                             ...counts.flatMap(g => g.slots), ...expect.map(r => r.key),
@@ -1250,6 +1328,7 @@ export function composeSlotFeedback(
     expect?: ExpectRule[];
     requires?: RequiresRule[];
     forbid?: ForbidRule[];
+    maps?: MapsRule[];
   } = {},
 ): string {
   let checks = (data?.checks ?? {}) as Record<
@@ -1286,10 +1365,11 @@ export function composeSlotFeedback(
   const requires = opts.requires ?? [];
   const forbid = opts.forbid ?? [];
   const forbidByKey = new Map(forbid.map(r => [r.key, r]));
-  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid);
+  const maps = opts.maps ?? [];
+  const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid, maps);
   const charged = chargedMap(slots, sat, opts.onlyif ?? []);
   const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect,
-                          requires, forbid);
+                          requires, forbid, maps);
   const shown = gate ? [gate] : slots;
 
   const lines = shown.map(slot => {

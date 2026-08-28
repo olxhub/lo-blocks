@@ -30,6 +30,7 @@ import {
   type ExpectRule,
   parseExpect,
   parseForbid,
+  parseMaps,
   parseChoices,
   type SlotSpec,
   type CoverGroup,
@@ -48,6 +49,7 @@ type Req = {
   forbid?: string;
   derived?: string;
   counts?: string;
+  maps?: string;
   max?: number;
 };
 
@@ -107,6 +109,7 @@ function probe(req: Req) {
   const expect = parseExpect(req.expect);
   const requires = parseRequires(req.requires);
   const forbid = parseForbid(req.forbid);
+  const maps = parseMaps(req.maps);
 
   const sheet = (failing: string[]) => {
     const claimed = new Map<CoverGroup, Set<string>>();
@@ -136,7 +139,7 @@ function probe(req: Req) {
     // member from a missing count and read 2a's all-satisfied baseline as 2/6.
     // Only `requires` is new here, and it needs the two placeholders to reach it.
     scoreSlotSheet(slots, sheet(failing), req.max, cover, equals, onlyif,
-                   [], [], requires, forbid);
+                   [], [], requires, forbid, maps);
 
   const base = score([]);
   const max = base?.max ?? 0;
@@ -203,7 +206,7 @@ describe('enforcement probe', () => {
     // If a primitive is added to primitives.json and not parsed here, the audit
     // silently stops seeing it — which is how `derived` went unnoticed once.
     const handled = ['cover', 'equals', 'onlyif', 'derived', 'counts', 'expect',
-                     'requires', 'forbid'];
+                     'requires', 'forbid', 'maps'];
     expect(PRIMITIVES.primitives.map(p => p.attr).sort()).toEqual([...handled].sort());
   });
 

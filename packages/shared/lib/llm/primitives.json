@@ -87,6 +87,12 @@
       "attr": "forbid",
       "excludesKeys": true,
       "summary": "A check that FAILS on a named COMBINATION of other answers; each operand stays its own question."
+    },
+    {
+      "attr": "maps",
+      "excludesKeys": true,
+      "excludes": "key",
+      "summary": "A check COMPUTED by mapping one pick's value to a NAMED verdict, so a check with more than one kind of failure can be derived: `key:pick:value>verdict,...` with `*` as the fallback."
     }
   ]
 }
