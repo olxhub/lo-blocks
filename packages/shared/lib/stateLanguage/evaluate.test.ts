@@ -545,3 +545,70 @@ describe('id() helper', () => {
     expect(() => evaluate(parse("id('foo')"), createContext())).toThrow(/no content namespace/);
   });
 });
+
+describe('DefinitionKey() helper', () => {
+  // DefinitionKey() normalizes a definition ref to its canonical, qualified
+  // form so that a pane VALUE (written qualified by a display=target: embed)
+  // and an author-written bare ref compare equal. Registered as a
+  // context-aware DSL function — the registry hands it the evaluation
+  // context, from which it takes ns.
+  const NS = 'edu.memphis.writing.sba';
+  const ctx = (extra = {}) => createContext({ ns: asContentNamespace(NS), ...extra });
+
+  it('qualifies a bare ref against the context namespace', () => {
+    expect(evaluate(parse("DefinitionKey('tut_welcome')"), ctx()))
+      .toBe(`${NS}/tut_welcome`);
+  });
+
+  it('passes an already-qualified ref through unchanged', () => {
+    expect(evaluate(parse(`DefinitionKey('${NS}/tut_welcome')`), ctx()))
+      .toBe(`${NS}/tut_welcome`);
+    // Cross-namespace refs are not re-qualified either.
+    expect(evaluate(parse("DefinitionKey('ee101/hw1')"), ctx())).toBe('ee101/hw1');
+  });
+
+  it('passes null/undefined/empty through as falsy', () => {
+    const c = ctx({ componentState: { sidebar: { value: null } } });
+    expect(evaluate(parse('DefinitionKey(@sidebar.value)'), c)).toBe(null);
+    // An unset field entirely (no bucket) → undefined, still no throw.
+    expect(evaluate(parse('DefinitionKey(@missing.value)'), ctx())).toBe(undefined);
+    expect(evaluate(parse("DefinitionKey('')"), ctx())).toBe('');
+  });
+
+  it('normalizes both sides of a comparison (the motivating case)', () => {
+    // The pane holds the QUALIFIED ref, as the target embed writes it.
+    const c = ctx({
+      componentState: { tut_sidebar: { value: `${NS}/tut_welcome` } },
+    });
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_welcome')"), c
+    )).toBe(true);
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_other')"), c
+    )).toBe(false);
+    // Unnormalized, the same comparison is the bug this fixes.
+    expect(evaluate(parse("@tut_sidebar.value === 'tut_welcome'"), c)).toBe(false);
+  });
+
+  it('normalizes a bare stored value too (arrow-syntax legacy writes)', () => {
+    const c = ctx({ componentState: { tut_sidebar: { value: 'tut_welcome' } } });
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_welcome')"), c
+    )).toBe(true);
+  });
+
+  it('degrades to the raw string when the context has no namespace', () => {
+    // Render paths always supply ns; hand-built contexts may not. Returning
+    // the input keeps the comparison working as it did before normalization
+    // rather than throwing and killing every Trigger on the page.
+    expect(evaluate(parse("DefinitionKey('tut_welcome')"), createContext()))
+      .toBe('tut_welcome');
+    expect(evaluate(
+      parse("DefinitionKey('tut_welcome') === DefinitionKey('tut_welcome')"), createContext()
+    )).toBe(true);
+  });
+
+  it('rejects non-string arguments', () => {
+    expect(() => evaluate(parse('DefinitionKey(42)'), ctx())).toThrow(/needs a ref string/);
+  });
+});
