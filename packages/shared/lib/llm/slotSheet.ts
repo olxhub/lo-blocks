@@ -283,7 +283,31 @@ export type EqualsRule = {
  * An unanswered operand means the combination cannot be ESTABLISHED, so the check
  * PASSES. A gate must not fire on missing data: a false zero costs a whole item.
  */
-export type ForbidRule = { key: string; conds: { slot: string; value: string }[] };
+/**
+ * `behavior_1->not_active` — a computed rule may NAME the verdict it sets when it
+ * fails, instead of the verdict being positional.
+ *
+ * Positional was not merely awkward, it was ambiguous, and the two python engines
+ * resolved it differently: one took the LAST option of the slot's vocabulary and
+ * the other the SECOND. Every computed check in the current content has exactly
+ * two options, so those coincide and the three implementations agreed by luck; the
+ * disagreement appears on the first three-option computed check.
+ *
+ * This runtime scores a computed check by whether it is satisfied and charges its
+ * points, with no verdict-to-code mapping of its own, so `fails` changes nothing
+ * about what a student is charged HERE. It is parsed and carried because the key
+ * must resolve: without stripping the arrow the key would read
+ * `behavior_1->not_active`, no slot would match it, and the check it names would
+ * silently never be computed.
+ */
+export function splitFailsVerdict(key: string): { key: string; fails?: string } {
+  const i = key.indexOf('->');
+  if (i < 0) return { key: key.trim() };
+  const fails = key.slice(i + 2).trim();
+  return { key: key.slice(0, i).trim(), ...(fails ? { fails } : {}) };
+}
+
+export type ForbidRule = { key: string; fails?: string; conds: { slot: string; value: string }[] };
 
 export type OnlyIfRule = { key: string; cond: string };
 
@@ -531,7 +555,7 @@ export function parseForbid(spec?: string): ForbidRule[] {
     .filter(Boolean)
     .map(entry => {
       const idx = entry.indexOf(':');
-      const key = (idx < 0 ? entry : entry.slice(0, idx)).trim();
+      const { key, fails } = splitFailsVerdict(idx < 0 ? entry : entry.slice(0, idx));
       const conds = (idx < 0 ? '' : entry.slice(idx + 1))
         .split(',')
         .map(c => c.trim())
@@ -541,7 +565,7 @@ export function parseForbid(spec?: string): ForbidRule[] {
           return { slot, value };
         })
         .filter(c => c.slot && c.value);
-      return { key, conds };
+      return { key, conds, ...(fails ? { fails } : {}) };
     })
     .filter(r => r.key && r.conds.length > 0);
 }
@@ -717,20 +741,21 @@ export function parsePick(segment: string | undefined): string | undefined {
  * without establishing a match, the same way they do for `equals`: a category
  * nobody could determine is not a mismatch to charge.
  */
-export type ExpectRule = { key: string; left: string; value: string; lenient: string[] };
+export type ExpectRule = { key: string; fails?: string; left: string; value: string; lenient: string[] };
 
 export function parseExpect(spec?: string): ExpectRule[] {
   const out: ExpectRule[] = [];
   for (const rule of (spec ?? '').split('|')) {
     const parts = rule.split(':').map(x => x.trim());
     if (parts.length < 2) continue;
-    const [key, lhs, len] = parts;
+    const [rawKey, lhs, len] = parts;
+    const { key, fails } = splitFailsVerdict(rawKey ?? '');
     const eq = lhs.indexOf('=');
     if (!key || eq < 0) continue;
     const left = lhs.slice(0, eq).trim();
     const value = lhs.slice(eq + 1).trim();
     if (!left || !value) continue;
-    out.push({ key, left, value,
+    out.push({ key, left, value, ...(fails ? { fails } : {}),
                lenient: (len ?? '').split(',').map(v => v.trim()).filter(Boolean) });
   }
   return out;

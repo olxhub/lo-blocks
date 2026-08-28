@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   parseForbid,
+  parseExpect,
   forbidden,
   satisfiedMap,
   buildSlotSchema,
@@ -142,5 +143,49 @@ describe('buildSlotSchema with forbid', () => {
     expect(Object.keys(props)).toContain('restriction_authored');
     expect(Object.keys(props)).toContain('trigger_expects');
     expect(Object.keys(props)).not.toContain('consequence_not_a_setup');
+  });
+});
+
+describe('a computed rule may name the verdict it sets on failure', () => {
+  // `->verdict` exists because the failing verdict used to be POSITIONAL, and the
+  // three implementations resolved the position differently: one python engine took
+  // the last option of the slot's vocabulary, the other took the second. Every
+  // computed check in the current content has exactly two options, so those
+  // coincide and the implementations agreed by luck. The disagreement appears on
+  // the first three-option computed check -- e.g. Q4b's behavior_* slots, where
+  // `absent` means "you only gave one example" and `not_active` means "present but
+  // not something done instead", which are different things to tell a student.
+  it('strips the arrow so the key still resolves to a slot', () => {
+    const [r] = parseForbid('behavior_1->not_active:b1_basis=consequence');
+    expect(r.key).toBe('behavior_1');
+    expect(r.fails).toBe('not_active');
+    expect(r.conds).toEqual([{ slot: 'b1_basis', value: 'consequence' }]);
+  });
+
+  it('leaves a rule without an arrow exactly as before', () => {
+    const [r] = parseForbid(SPEC);
+    expect(r.key).toBe('consequence_not_a_setup');
+    expect(r.fails).toBeUndefined();
+  });
+
+  it('reads it on `expect` too', () => {
+    const [r] = parseExpect('behavior_1->not_active:b1_basis=activity:');
+    expect(r.key).toBe('behavior_1');
+    expect(r.fails).toBe('not_active');
+    expect(r.left).toBe('b1_basis');
+    expect(r.value).toBe('activity');
+  });
+
+  it('an unstripped key would compute nothing, which is why this matters', () => {
+    // The failure mode being guarded: with the arrow left on, no slot matches the
+    // key, so the check it names is never written and never charged -- silently.
+    const slots = parseSlots(
+      'behavior_1:First example:not_active@1.5|b1_basis:What it is',
+      ['met', 'absent', 'not_active'],
+    );
+    const rules = parseForbid('behavior_1->not_active:b1_basis=consequence');
+    const sat = satisfiedMap(slots, { b1_basis: { verdict: 'consequence' } }, [], [], [], [], [], rules);
+    expect(Object.keys(sat)).toContain('behavior_1');
+    expect(sat.behavior_1).toBe(false);
   });
 });
