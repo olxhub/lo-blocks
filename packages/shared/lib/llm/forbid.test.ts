@@ -156,7 +156,7 @@ describe('a computed rule may name the verdict it sets on failure', () => {
   // `absent` means "you only gave one example" and `not_active` means "present but
   // not something done instead", which are different things to tell a student.
   it('strips the arrow so the key still resolves to a slot', () => {
-    const [r] = parseForbid('behavior_1->not_active:b1_basis=consequence');
+    const [r] = parseForbid('behavior_1~not_active:b1_basis=consequence');
     expect(r.key).toBe('behavior_1');
     expect(r.fails).toBe('not_active');
     expect(r.conds).toEqual([{ slot: 'b1_basis', value: 'consequence' }]);
@@ -169,7 +169,7 @@ describe('a computed rule may name the verdict it sets on failure', () => {
   });
 
   it('reads it on `expect` too', () => {
-    const [r] = parseExpect('behavior_1->not_active:b1_basis=activity:');
+    const [r] = parseExpect('behavior_1~not_active:b1_basis=activity:');
     expect(r.key).toBe('behavior_1');
     expect(r.fails).toBe('not_active');
     expect(r.left).toBe('b1_basis');
@@ -183,7 +183,7 @@ describe('a computed rule may name the verdict it sets on failure', () => {
       'behavior_1:First example:not_active@1.5|b1_basis:What it is',
       ['met', 'absent', 'not_active'],
     );
-    const rules = parseForbid('behavior_1->not_active:b1_basis=consequence');
+    const rules = parseForbid('behavior_1~not_active:b1_basis=consequence');
     const sat = satisfiedMap(slots, { b1_basis: { verdict: 'consequence' } }, [], [], [], [], [], rules);
     expect(Object.keys(sat)).toContain('behavior_1');
     expect(sat.behavior_1).toBe(false);

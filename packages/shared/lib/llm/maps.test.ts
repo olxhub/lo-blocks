@@ -24,7 +24,7 @@ const SLOTS = parseSlots(
   'behavior_1:First example:wrong_kind@1.5|b1_basis:What the entry is',
   ['met', 'absent', 'unclear'],
 );
-const SPEC = 'behavior_1:b1_basis:activity>met,none>absent,*>wrong_kind';
+const SPEC = 'behavior_1:b1_basis:activity~met,none~absent,*~wrong_kind';
 
 describe('maps: one pick, several named verdicts', () => {
   it('parses pairs and the fallback', () => {
@@ -59,7 +59,7 @@ describe('maps: one pick, several named verdicts', () => {
   });
 
   it('with no fallback, an unlisted value maps to nothing rather than guessing', () => {
-    const [r] = parseMaps('behavior_1:b1_basis:activity>met');
+    const [r] = parseMaps('behavior_1:b1_basis:activity~met');
     expect(r.fallback).toBeUndefined();
     expect(mappedVerdict(r, { b1_basis: { verdict: 'consequence' } })).toBeUndefined();
   });

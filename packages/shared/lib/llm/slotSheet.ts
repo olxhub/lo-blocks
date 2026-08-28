@@ -284,8 +284,13 @@ export type EqualsRule = {
  * PASSES. A gate must not fire on missing data: a false zero costs a whole item.
  */
 /**
- * `behavior_1->not_active` — a computed rule may NAME the verdict it sets when it
+ * `behavior_1~not_active` — a computed rule may NAME the verdict it sets when it
  * fails, instead of the verdict being positional.
+ *
+ * `~` and not `->`: the scoring repo reads an opening tag as `[^>]*>`, so a `>`
+ * inside an attribute VALUE ends the match early and every attribute after it
+ * vanishes. The first version of `maps` used `>` and Q4b's `slots=` became
+ * invisible. XML allows `>` in a value; those readers do not.
  *
  * Positional was not merely awkward, it was ambiguous, and the two python engines
  * resolved it differently: one took the LAST option of the slot's vocabulary and
@@ -301,9 +306,9 @@ export type EqualsRule = {
  * silently never be computed.
  */
 export function splitFailsVerdict(key: string): { key: string; fails?: string } {
-  const i = key.indexOf('->');
+  const i = key.indexOf('~');
   if (i < 0) return { key: key.trim() };
-  const fails = key.slice(i + 2).trim();
+  const fails = key.slice(i + 1).trim();
   return { key: key.slice(0, i).trim(), ...(fails ? { fails } : {}) };
 }
 
@@ -925,7 +930,7 @@ export function scoreSlotSheet(
 }
 
 /**
- * `maps="key:pick:value>verdict,...,*>verdict"` — a check COMPUTED by mapping one
+ * `maps="key:pick:value~verdict,...,*~verdict"` — a check COMPUTED by mapping one
  * pick's value to a NAMED verdict.
  *
  * The primitive the other three could not express. `equals`, `expect` and `forbid`
@@ -962,7 +967,7 @@ export function parseMaps(spec?: string): MapsRule[] {
     const pairs: { value: string; verdict: string }[] = [];
     let fallback: string | undefined;
     for (const pair of (rawPairs ?? '').split(',')) {
-      const i = pair.indexOf('>');
+      const i = pair.indexOf('~');
       if (i < 0) continue;
       const value = pair.slice(0, i).trim();
       const verdict = pair.slice(i + 1).trim();
