@@ -4,7 +4,7 @@
 // No React, no Redux - just takes an AST and a context object.
 
 import type { ASTNode } from './parser';
-import { dslFunctions } from './functions';
+import { dslFunctions, contextFunctions } from './functions';
 import { correctness, completion } from '@/lib/grading/correctness';
 import { ACTIVE_METHODS } from './keywords';
 import { qualifyRef } from '@/lib/types/id-grammar';
@@ -141,6 +141,13 @@ function evaluateIdentifier(name: string, context: ContextData): any {
   // Object.keys() is still used in some existing expressions.
   // Prefer isFilled(@value) in new content — it handles objects, arrays, and strings.
   if (name === 'Object') return Object;
+
+  // Context-aware functions (DefinitionKey, ...) — the registry holds
+  // factories, bound to this evaluation context on lookup. Checked before
+  // dslFunctions so a context-aware helper always wins over a plain one.
+  if (name in contextFunctions) {
+    return contextFunctions[name](context);
+  }
 
   // DSL functions from registry (stringMatch, numericalMatch, etc.)
   if (name in dslFunctions) {
