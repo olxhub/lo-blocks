@@ -11,6 +11,7 @@ import {
   parseSlots,
   parseCover,
   parseEquals, parseOnlyIf, parseRequires, parseDerived, parseCounts, parseForbid,
+  parseMaps,
   buildSlotSchema,
   parseChoices,
   parseExpect,
@@ -97,6 +98,7 @@ async function llmAction({ props }) {
       const expect = parseExpect(props.expect);
       const requires = parseRequires(props.requires);
       const forbid = parseForbid(props.forbid);
+      const maps = parseMaps(props.maps);
       if (slots.length === 0) {
         throw new Error(`LLMAction: could not parse any slots from slots="${slotsAttr}"`);
       }
@@ -109,7 +111,7 @@ async function llmAction({ props }) {
       const { data, text } = await reduxClient.callLLMJson(
         promptText + slotSheetGuidance(showChecks),
         buildSlotSchema(slots, equals, derived, counts, showChecks, cover, choices, expect,
-                        forbid),
+                        forbid, maps),
         'feedback_checks',
         props.runtime.activityId,
       );
@@ -118,7 +120,7 @@ async function llmAction({ props }) {
       if (data && derived.length) {
         data.checks = { ...(data.checks ?? {}), ...deriveChecks(props, derived) };
       }
-      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect, requires, forbid }) : text;
+      content = data ? composeSlotFeedback(slots, data, { showChecks, cover, equals, onlyif, counts, expect, requires, forbid, maps }) : text;
       // Publish the sheet and its verdicts for anything that needs to reason
       // about them rather than read them — a grader, or an analysis harness.
       // Written whether or not the checklist is displayed.
@@ -128,7 +130,7 @@ async function llmAction({ props }) {
           state.setField(props, checksField, JSON.stringify(publishedSheet({
             slots, verdicts: (data.checks ?? {}) as Record<string, unknown>, showChecks,
             choices, expect,
-            max: props.max, cover, equals, onlyif, counts, requires, forbid,
+            max: props.max, cover, equals, onlyif, counts, requires, forbid, maps,
           })), { stateKey: targetStateKey });
         } catch {
           // Target has no `checks` field (e.g. a plain TextSlot) — the prose
@@ -264,6 +266,23 @@ const LLMAction = blocks.test({
       '"|", each `key:condition` — e.g. "state_c2:link_c2". For a rubric whose ' +
       'slots come in pairs, where a fact established by one check decides whether ' +
       'the pair scored on OTHER checks was ever addressed at all.'
+    ),
+    forbid: z.string().optional().describe(
+      'A check that FAILS on a named COMBINATION of other answers, for a code the ' +
+      'rubric charges only when several things are true at once. Rules separated ' +
+      'by "|", each `key:slot=value,slot=value` — e.g. ' +
+      '"no_antecedents:antecedent_1=absent,antecedent_2=absent". Each operand stays ' +
+      'its own question, so the model is never asked to report the combination; the ' +
+      'check is computed and left out of the response schema. Append `~verdict` to ' +
+      'the key to name the failing verdict.'
+    ),
+    maps: z.string().optional().describe(
+      "A check COMPUTED by mapping one pick's value to a NAMED verdict, so a check " +
+      'with more than one kind of failure can be derived rather than asked. Rules ' +
+      'separated by "|", each `key:pick:value~verdict,…` with `*` as the fallback — ' +
+      'e.g. "behavior_1:b1_basis:activity~met,none~absent,*~wrong_kind". `~` and not ' +
+      '">" because an opening tag is read as `[^>]*>`, and a ">" inside an attribute ' +
+      'truncates the match.'
     ),
     showChecks: z.enum(['true', 'false']).optional().describe(
       'Whether to show the student the filled checklist under the feedback (default true). ' +
