@@ -235,6 +235,64 @@ test('Markdown elements with same content should allow duplicates', async () => 
   expect(markdownBlocks.length).toBeGreaterThan(0);
 });
 
+// ─── option-label whitespace (blocks.wrapText) ──────────────────────────────
+//
+// <Key>/<Distractor> bare text is auto-wrapped in a synthetic Markdown block by
+// parsers.blocks.wrapText. The house literate-XML style pads tags into columns
+// (docs/literate-xml.md), so the label text arrives with whitespace on both
+// sides; it must be trimmed on both sides, and only at the ends.
+
+/** Text of the synthetic Markdown block wrapping a Key/Distractor's label. */
+const optionLabelText = (idMap: IdMap, optionId: string): unknown => {
+  const option = getOlxJson(idMap, optionId);
+  const wrapperKey = kidDefinitionKeys(option!.kids as unknown[])[0];
+  return idMap[wrapperKey]?.['*' as ContentVariant]?.kids;
+};
+
+test('option label with trailing padding parses trimmed', async () => {
+  const xml = '<ChoiceInput id="ci"><Key id="k">Positive Reinforcement          </Key></ChoiceInput>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  expect(errors).toHaveLength(0);
+  expect(optionLabelText(idMap, 'k')).toBe('Positive Reinforcement');
+});
+
+test('option label with leading and trailing padding parses trimmed', async () => {
+  // Literate-XML alignment: attributes padded out, text padded on both sides.
+  const xml = '<ChoiceInput id="ci"><Key id="k"      > Positive Reinforcement            </Key>'
+    + '<Distractor id="d"  >\n      Negative Punishment\n    </Distractor></ChoiceInput>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  expect(errors).toHaveLength(0);
+  expect(optionLabelText(idMap, 'k')).toBe('Positive Reinforcement');
+  expect(optionLabelText(idMap, 'd')).toBe('Negative Punishment');
+});
+
+test('option label keeps interior whitespace', async () => {
+  const xml = '<ChoiceInput id="ci"><Key id="k">   a  b   </Key></ChoiceInput>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  expect(errors).toHaveLength(0);
+  expect(optionLabelText(idMap, 'k')).toBe('a  b');
+});
+
+test('padded and unpadded option labels are the same block (trim runs before hashing)', async () => {
+  // Auto-IDs of the synthetic wrapper are the SHA of the trimmed text, so
+  // alignment padding no longer perturbs them.
+  const xml = '<ChoiceInput id="ci"><Key id="k">Yes   </Key><Distractor id="d">  Yes</Distractor></ChoiceInput>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  expect(errors).toHaveLength(0);
+  const kWrapper = kidDefinitionKeys(getOlxJson(idMap, 'k')!.kids as unknown[])[0];
+  const dWrapper = kidDefinitionKeys(getOlxJson(idMap, 'd')!.kids as unknown[])[0];
+  expect(kWrapper).toBe(dWrapper);
+});
+
+test('authored Markdown bodies keep their whitespace (trim is option-label only)', async () => {
+  // Divergence check: <Markdown> goes through parsers.text.stripIndent(), not
+  // the wrapText branch, so its internal blank lines and indentation survive.
+  const xml = '<Vertical id="v"><Markdown id="m">    # Title\n\n      indented\n</Markdown></Vertical>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+  expect(errors).toHaveLength(0);
+  expect(getOlxJson(idMap, 'm')?.kids).toBe('# Title\n\n  indented');
+});
+
 test('Mixed block types: TextBlock allows duplicates, TextArea does not', async () => {
   const xml = `
     <Vertical>
