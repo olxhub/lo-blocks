@@ -27,20 +27,43 @@ const slots = parseSlots(SHEET);
 describe('parseDerived', () => {
   it('reads a rule with no template', () => {
     expect(parseDerived('has_own_graph:plots:a,b,c')).toEqual([
-      { key: 'has_own_graph', kind: 'plots', targets: ['a', 'b', 'c'], template: [] },
+      { key: 'has_own_graph', kind: 'plots', targets: ['a', 'b', 'c'], template: [],
+        words: [] },
     ]);
   });
 
   it('reads template series, semicolon-separated', () => {
     expect(parseDerived('k:plots:a,b:1,2,3;4,5,6')).toEqual([
-      { key: 'k', kind: 'plots', targets: ['a', 'b'], template: [[1, 2, 3], [4, 5, 6]] },
+      { key: 'k', kind: 'plots', targets: ['a', 'b'], template: [[1, 2, 3], [4, 5, 6]],
+        words: [] },
     ]);
   });
 
   it('reads the `present` kind', () => {
     expect(parseDerived('type_stated:present:choice')).toEqual([
-      { key: 'type_stated', kind: 'present', targets: ['choice'], template: [] },
+      { key: 'type_stated', kind: 'present', targets: ['choice'], template: [],
+        words: [] },
     ]);
+  });
+
+  it('reads the `contains` kind, case-folding its words', () => {
+    expect(parseDerived('keyword:contains:a,b:Antecedent,TRIGGER')).toEqual([
+      { key: 'keyword', kind: 'contains', targets: ['a', 'b'], template: [],
+        words: ['antecedent', 'trigger'] },
+    ]);
+  });
+
+  it('gives `words` only to `contains`, so a template cannot leak into it', () => {
+    // A plots template splits on commas into a token `3;4`, which is not a
+    // number. Read as words it would survive a numeric filter and sit in the
+    // structure unused -- harmless until something consulted it.
+    expect(parseDerived('k:plots:a,b:1,2,3;4,5,6')[0].words).toEqual([]);
+  });
+
+  it('DROPS a `contains` rule with no words, which would fail every student', () => {
+    // It would match nothing and score everyone `absent`. Dropped like an
+    // unknown kind, so DerivedChecks reports a scored check with no rule.
+    expect(parseDerived('keyword:contains:a')).toEqual([]);
   });
 
   it('reads several rules of mixed kinds', () => {
@@ -89,6 +112,50 @@ describe('verdictFor dispatches on kind', () => {
     const two = parseDerived('k:present:a,b')[0];
     expect(verdictFor(two, ['x', 'y']).verdict).toBe('met');
     expect(verdictFor(two, ['x', '']).verdict).toBe('absent');
+  });
+
+  it('`contains` searches the WHOLE response, not each field', () => {
+    // The rubric asks whether the word appears anywhere, so a student who uses
+    // it in the first box and not the second has still used it.
+    const two = parseDerived('k:contains:a,b:antecedent')[0];
+    expect(verdictFor(two, ['my antecedent is noise', '']).verdict).toBe('met');
+    expect(verdictFor(two, ['', 'the antecedent again']).verdict).toBe('met');
+    expect(verdictFor(two, ['bored', 'tired']).verdict).toBe('absent');
+  });
+
+  it('`contains` is case-folded and matches inflections', () => {
+    const r = parseDerived('k:contains:a:antecedent,trigger')[0];
+    expect(verdictFor(r, ['The TRIGGER was hunger']).verdict).toBe('met');
+    expect(verdictFor(r, ['two antecedents']).verdict).toBe('met');
+  });
+
+  it('`contains` accepts all four kinds of mistyping as ONE edit', () => {
+    const r = parseDerived('k:contains:a:antecedent')[0];
+    expect(verdictFor(r, ['my antecdent']).verdict).toBe('met');      // deletion
+    expect(verdictFor(r, ['my antecedennt']).verdict).toBe('met');    // insertion
+    expect(verdictFor(r, ['my antecedant']).verdict).toBe('met');     // substitution
+    expect(verdictFor(r, ['my antecedetn']).verdict).toBe('met');     // TRANSPOSITION
+  });
+
+  it('a short target keeps a budget of 1, so a real word cannot satisfy it', () => {
+    // `bigger` is two edits from `trigger`. A budget that admitted it would be
+    // crediting a student for a word they did not reach for.
+    const r = parseDerived('k:contains:a:trigger')[0];
+    expect(verdictFor(r, ['a bigger problem']).verdict).toBe('absent');
+    expect(verdictFor(r, ['my trigegr']).verdict).toBe('met');        // swap, 1 edit
+  });
+
+  it('`contains` says what they typed when it accepted a misspelling', () => {
+    const r = parseDerived('k:contains:a:consequence')[0];
+    const v = verdictFor(r, ['the conequence of that']);
+    expect(v.verdict).toBe('met');
+    expect(v.evidence).toContain('conequence');
+  });
+
+  it('`contains` names the word it found in its evidence', () => {
+    const r = parseDerived('k:contains:a:antecedent,trigger')[0];
+    expect(verdictFor(r, ['my trigger']).evidence).toContain('trigger');
+    expect(verdictFor(r, ['nothing']).evidence).toContain('antecedent');
   });
 
   it('`plots` goes through the chart parser', () => {

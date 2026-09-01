@@ -23,6 +23,7 @@ import {
   parseSlots, parseCover, parseCounts, parseEquals, parseDerived,
   buildSlotSchema, DEFAULT_VERDICTS,
 } from './slotSheet';
+import { verdictFor } from './derivedVerdicts';
 
 // The attribute shapes really authored in the handouts, including the two that
 // broke: a cover group (adds `refers_to`) and a count group (swaps `verdict`
@@ -34,6 +35,73 @@ const AUTHORED = {
   cover: 'a,b:first,second',
   counts: 'n:r1,r2,r3',
 };
+
+// The Q4a and Q4c sheets AS AUTHORED, copied from bmod_handout1.olx. E14 is the
+// reason these are here verbatim rather than paraphrased: `forbid` and `maps`
+// passed every unit test in this file while the app replaced the whole block with
+// an ErrorNode, because the shapes exercised here were synthetic and the ones
+// shipped were not. A derived `contains` key has to LEAVE the schema, and the
+// only way to know it does is to run the authored string through.
+const SHIPPED = {
+  q4a: {
+    slots: 'antecedent_1:First antecedent is a genuine trigger:wrong_kind@2'
+         + '|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2'
+         + '|keyword:Uses the word antecedent or trigger'
+         + '|confident:All judgments confident'
+         + '|!no_antecedents:Nothing was listed at all:met/absent',
+    derived: 'keyword:contains:bmod_h1_q4a_first,bmod_h1_q4a_second:antecedent,trigger',
+  },
+  q4c: {
+    slots: 'consequence_1:First consequence follows from the behavior:wrong_kind/duplicate@2'
+         + '|consequence_2:Second consequence follows from the behavior:wrong_kind/duplicate@2'
+         + '|keyword:Uses the word consequence'
+         + '|confident:All judgments confident'
+         + '|!no_consequences:Nothing was listed at all:met/absent',
+    derived: 'keyword:contains:bmod_h1_q4c_first,bmod_h1_q4c_second:consequence',
+  },
+};
+
+describe('the shipped Q4a/Q4c sheets, with a derived `contains` key', () => {
+  for (const [name, authored] of Object.entries(SHIPPED)) {
+    const slots = parseSlots(authored.slots, DEFAULT_VERDICTS);
+    const derived = parseDerived(authored.derived);
+    const schema: any = buildSlotSchema(slots, parseEquals(undefined), derived,
+                                        parseCounts(undefined), true, parseCover(undefined));
+    const checks = schema.properties.checks.properties;
+
+    it(`${name}: the derived rule survives parsing`, () => {
+      expect(derived).toHaveLength(1);
+      expect(derived[0].kind).toBe('contains');
+      expect(derived[0].words.length).toBeGreaterThan(0);
+    });
+
+    it(`${name}: \`keyword\` LEAVES the schema, so the model is never asked`, () => {
+      expect(Object.keys(checks)).not.toContain('keyword');
+      expect(schema.properties.checks.required ?? Object.keys(checks))
+        .not.toContain('keyword');
+    });
+
+    it(`${name}: the scored checks are still asked`, () => {
+      expect(Object.keys(checks).length).toBeGreaterThan(0);
+      expect(Object.keys(checks)).toContain('confident');
+    });
+
+    it(`${name}: still well-formed for a strict provider`, () => {
+      for (const [key, spec] of Object.entries<any>(checks)) {
+        expect(new Set(spec.required), `check '${key}'`)
+          .toEqual(new Set(Object.keys(spec.properties)));
+        expect(spec.additionalProperties, `check '${key}'`).toBe(false);
+      }
+    });
+
+    it(`${name}: the derived verdict computes from the fields`, () => {
+      const word = derived[0].words[0];
+      expect(verdictFor(derived[0], [`I wrote about the ${word} here`, '']).verdict)
+        .toBe('met');
+      expect(verdictFor(derived[0], ['nothing relevant', '']).verdict).toBe('absent');
+    });
+  }
+});
 
 describe('the schema LLMAction sends', () => {
   // Mirrors LLMAction's own assembly order. If that function starts parsing

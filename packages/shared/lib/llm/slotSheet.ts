@@ -471,10 +471,20 @@ export type DerivedRule = {
    * because there is now more than one way and a silently-guessed one would
    * misgrade rather than fail: `plots` reads typed numbers through the chart's own
    * parser, `present` asks only whether the field holds anything at all (a closed
-   * choice has nothing to parse).
+   * choice has nothing to parse), `contains` looks for a literal word.
    */
   kind: string;
   targets: string[];
+  /**
+   * The words `contains` looks for, any one of which satisfies it. Empty for
+   * every other kind.
+   *
+   * Shares the fourth segment with `template`, which is safe because the two
+   * never co-occur: `template` keeps only finite numbers and `words` only
+   * non-numeric tokens, so each kind reads the segment its own way and a rule
+   * written for one cannot half-parse as the other.
+   */
+  words: string[];
   /**
    * Data that means "this is not yours" — one list of numbers per target.
    *
@@ -495,6 +505,7 @@ export type DerivedRule = {
  *   derived="type_stated:present:bmod_h2_t1"
  *   derived="baseline_data:plots:bmod_h3_baseline"
  *   derived="has_own_graph:plots:fieldA,fieldB:1,2,3;4,5,6"   (template data)
+ *   derived="keyword:contains:fieldA,fieldB:antecedent,trigger"  (any one word)
  *
  * A rule naming an unknown kind is DROPPED, and `DerivedChecks` then reports the
  * scored check that has no rule — an author error surfaced where it is visible,
@@ -522,9 +533,24 @@ export function parseDerived(spec?: string): DerivedRule[] {
           .map(g => g.split(',').map(n => n.trim()).filter(Boolean)
                      .map(Number).filter(Number.isFinite))
           .filter(g => g.length > 0),
+        // Only `contains` reads this segment as words. Populating it for the
+        // other kinds put junk in the structure — a plots template of
+        // `1,2,3;4,5,6` splits on commas into a token `3;4`, which is not a
+        // number and so survived a numeric filter. Nothing consults it for those
+        // kinds, which is exactly why it would have gone unnoticed.
+        // Case-folded here, once, so neither the matcher nor its Python
+        // counterpart has to remember to do it.
+        words: kind === 'contains'
+          ? (tmpl ?? '').split(',').map(w => w.trim().toLowerCase()).filter(Boolean)
+          : [],
       };
     })
-    .filter(r => r.key && DERIVED_KINDS.includes(r.kind) && r.targets.length > 0);
+    // A `contains` rule with no words would match nothing and score every
+    // student absent, so it is dropped like an unknown kind — `DerivedChecks`
+    // then reports the scored check that has no rule, which is visible, rather
+    // than failing everyone quietly.
+    .filter(r => r.key && DERIVED_KINDS.includes(r.kind) && r.targets.length > 0
+                 && (r.kind !== 'contains' || r.words.length > 0));
 }
 
 /**

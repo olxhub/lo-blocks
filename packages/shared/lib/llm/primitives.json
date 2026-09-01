@@ -67,7 +67,8 @@
       "kinds": [
         "plots",
         "complete",
-        "present"
+        "present",
+        "contains"
       ],
       "excludes": "key"
     },

@@ -1,0 +1,222 @@
+[
+  {
+    "text": "my antecedent is noise",
+    "words": [
+      "antecedent",
+      "trigger"
+    ],
+    "met": true,
+    "why": "literal"
+  },
+  {
+    "text": "two antecedents",
+    "words": [
+      "antecedent",
+      "trigger"
+    ],
+    "met": true,
+    "why": "inflection"
+  },
+  {
+    "text": "The TRIGGER was hunger",
+    "words": [
+      "antecedent",
+      "trigger"
+    ],
+    "met": true,
+    "why": "case-folded"
+  },
+  {
+    "text": "my antecdent",
+    "words": [
+      "antecedent"
+    ],
+    "met": true,
+    "why": "deletion"
+  },
+  {
+    "text": "my antecedennt",
+    "words": [
+      "antecedent"
+    ],
+    "met": true,
+    "why": "insertion"
+  },
+  {
+    "text": "my antecedant",
+    "words": [
+      "antecedent"
+    ],
+    "met": true,
+    "why": "substitution"
+  },
+  {
+    "text": "my antecedetn",
+    "words": [
+      "antecedent"
+    ],
+    "met": true,
+    "why": "transposition"
+  },
+  {
+    "text": "atecedents here",
+    "words": [
+      "antecedent"
+    ],
+    "met": true,
+    "why": "two edits, long target"
+  },
+  {
+    "text": "the conequence",
+    "words": [
+      "consequence"
+    ],
+    "met": true,
+    "why": "the corpus's real misspelling"
+  },
+  {
+    "text": "my trigegr",
+    "words": [
+      "trigger"
+    ],
+    "met": true,
+    "why": "swap is ONE edit"
+  },
+  {
+    "text": "a bigger problem",
+    "words": [
+      "trigger"
+    ],
+    "met": false,
+    "why": "two edits, short target"
+  },
+  {
+    "text": "the sequence of events",
+    "words": [
+      "consequence"
+    ],
+    "met": false,
+    "why": "a real word, far away"
+  },
+  {
+    "text": "I get bored",
+    "words": [
+      "antecedent",
+      "trigger"
+    ],
+    "met": false,
+    "why": "no attempt"
+  },
+  {
+    "text": "trig",
+    "words": [
+      "trigger"
+    ],
+    "met": false,
+    "why": "too short to be the word"
+  },
+  {
+    "text": "",
+    "words": [
+      "consequence"
+    ],
+    "met": false,
+    "why": "empty response"
+  },
+  {
+    "text": "if I do that",
+    "words": [
+      "if"
+    ],
+    "met": true,
+    "why": "short target: exact whole token"
+  },
+  {
+    "text": "IF I do that",
+    "words": [
+      "if"
+    ],
+    "met": true,
+    "why": "short target: case-insensitive"
+  },
+  {
+    "text": "a gift for you",
+    "words": [
+      "if"
+    ],
+    "met": false,
+    "why": "short target: NOT inside a longer word"
+  },
+  {
+    "text": "is it here",
+    "words": [
+      "if"
+    ],
+    "met": false,
+    "why": "short target: one edit is most of a 2-letter word"
+  },
+  {
+    "text": "the cat sat",
+    "words": [
+      "cat"
+    ],
+    "met": true,
+    "why": "3-char target: exact whole token"
+  },
+  {
+    "text": "a catalogue of",
+    "words": [
+      "cat"
+    ],
+    "met": false,
+    "why": "3-char target: NOT inside a longer word"
+  },
+  {
+    "text": "my car is red",
+    "words": [
+      "cat"
+    ],
+    "met": false,
+    "why": "3-char target: one edit is a rhyme, not a spelling"
+  },
+  {
+    "text": "four char wodr",
+    "words": [
+      "word"
+    ],
+    "met": false,
+    "why": "4-char target: a swap is half the word, so NOT one edit"
+  },
+  {
+    "text": "the from field",
+    "words": [
+      "form"
+    ],
+    "met": false,
+    "why": "4-char target: `from` is a real word one swap from `form`"
+  },
+  {
+    "text": "the form field",
+    "words": [
+      "form"
+    ],
+    "met": true,
+    "why": "4-char target: the word itself"
+  },
+  {
+    "text": "four char worf",
+    "words": [
+      "word"
+    ],
+    "met": true,
+    "why": "4-char target: substitution IS still one edit"
+  },
+  {
+    "text": "my trigegr",
+    "words": [
+      "trigger"
+    ],
+    "met": true,
+    "why": "7-char target: a swap is still one edit above the cut-off"
+  }
+]
