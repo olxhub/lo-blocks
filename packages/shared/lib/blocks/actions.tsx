@@ -18,6 +18,7 @@
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './dynamicDom';
 import { inputAttributes } from './attributeSchemas';
+import { ACTION_ERROR, describeError, logErrorEvent } from '@/lib/state/errorEvents';
 import type { BlockAction, RuntimeProps, LoBlock } from '@/lib/types';
 
 // Mix-in to make a block an action
@@ -92,6 +93,38 @@ export async function executeNodeActions(props: RuntimeProps) {
       console.warn(`[executeNodeActions] Block "${targetId}" (${node.olxJson.tag}) has no action method`);
       continue;
     }
-    await node.loBlock.action({ props: propsFromNode(node) });
+    // Callers are event handlers (ActionButton's onClick, Trigger, OnShow)
+    // that cannot await us, so a rejection here becomes a dropped promise:
+    // the author sees a control that does nothing at all, with no clue which
+    // block refused. Name the block and keep going — a failing SetFieldAction
+    // must not cancel its siblings on the same button.
+    //
+    // The console line is for the developer with DevTools open; the EVENT is
+    // for everyone else — production log, replay, per-user counts. Both, not
+    // either: the stack is only useful on the console, and the console is
+    // only visible to one person. See lib/state/errorEvents.ts.
+    try {
+      await node.loBlock.action({ props: propsFromNode(node) });
+    } catch (e) {
+      console.error(
+        `[executeNodeActions] <${node.olxJson.tag} id="${node.olxJson.id}"> `
+        + `(${targetId}) threw; its effect did not happen:`,
+        e
+      );
+      logErrorEvent(ACTION_ERROR, {
+        // NOT `id` — see the wire-shape note in errorEvents.ts. A top-level
+        // `id` would make the server fold this report into student state.
+        actionTag: node.olxJson.tag,
+        actionId: node.olxJson.id,
+        actionStateKey: targetId,
+        // Who ran it: the ActionButton/Trigger/OnShow that could not await.
+        // "caller", not "host" — host means a server around here.
+        callerTag: props.nodeInfo?.olxJson?.tag,
+        callerId: props.nodeInfo?.olxJson?.id,
+        callerStateKey: props.nodeInfo?.stateKey,
+        ns: props.runtime?.ns,
+        error: describeError(e),
+      }, props.runtime?.logEvent);
+    }
   }
 }
