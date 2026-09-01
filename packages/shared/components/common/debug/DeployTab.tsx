@@ -77,7 +77,17 @@ export default function DeployTab() {
   useEffect(() => {
     let cancelled = false;
     fetch('/api/deploy-info')
-      .then(r => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then(r => {
+        if (!r.ok) return Promise.reject(new Error(`HTTP ${r.status}`));
+        // An HTML answer means the route never reached the server — on
+        // static-site hosts the SPA fallback answers unproxied paths with
+        // index.html, which is a routing problem, not a build-age problem.
+        if (!(r.headers.get('content-type') ?? '').includes('json')) {
+          return Promise.reject(new Error(
+            'the route returned non-JSON — nginx is not proxying /api/deploy-info to the server (or this build predates the route)'));
+        }
+        return r.json();
+      })
       .then(d => { if (!cancelled) setInfo(d); })
       .catch(e => { if (!cancelled) setError(String(e.message ?? e)); });
     return () => { cancelled = true; };
@@ -88,8 +98,6 @@ export default function DeployTab() {
       <div className="debug-deploy">
         <div className="debug-empty">
           Could not read deploy info: {error}
-          <br />
-          (This build may predate the /api/deploy-info route.)
         </div>
       </div>
     );
