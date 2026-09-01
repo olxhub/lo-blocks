@@ -111,6 +111,10 @@ export type ASTNode =
   | BooleanLiteral
   | ObjectLiteral;
 
+/** Authored state-language source and its syntax tree. Parsing is static;
+ * evaluation supplies the current state separately. */
+export type ParsedStateExpression = { expr: string; ast: ASTNode };
+
 // ============================================
 // Parser Functions
 // ============================================

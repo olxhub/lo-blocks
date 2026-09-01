@@ -42,7 +42,7 @@ import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address
 import { variantMapKeys } from '@/lib/types/i18n';
 import { hashContent } from '@/lib/util';
 
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, z_expression } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
@@ -554,6 +554,14 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
+
+      // Normal block attributes store `when` as a parsed state expression.
+      // `<Use>` produces a BlockReference instead, so normalize its override
+      // here too. selectKidsJson later evaluates the AST against Redux state.
+      if (typeof overrides.when === 'string') {
+        (overrides as Record<string, unknown>).when = z_expression.parse(overrides.when);
+      }
+
       const stateKey = stateKeyForGlobalRef(parseStateRef(ref), ns);
       return {
         type: 'block',

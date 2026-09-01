@@ -12,7 +12,7 @@
 
 // Parser
 export { parse, tryParse, parseResult } from './parser';
-export type { ASTNode, SigilRef } from './parser';
+export type { ASTNode, ParsedStateExpression, SigilRef } from './parser';
 
 // References
 export {

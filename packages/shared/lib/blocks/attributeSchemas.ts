@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { VALID, validateAnyStateRef, parseAnyStateRef, z_anyStateRef as z_anyStateRef_canonical } from '../types/id-grammar';
 import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
-import { parse as parseExpr } from '@/lib/stateLanguage';
+import { parse as parseExpr, type ParsedStateExpression } from '@/lib/stateLanguage';
 import { parseDuration } from '@/lib/util/duration';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
@@ -63,11 +63,12 @@ export const z_olx_duration = z.union([z.string(), z.number()])
   .refine(v => !isNaN(v) && v > 0, 'Must be a positive duration (e.g. "5 minutes", "1 hour 30 minutes", "300")');
 
 /**
- * Pre-parsed expression: string → { expr, ast }. Idempotent (accepts already-parsed objects).
- * Used for visibility conditions (when=) and grading expressions (Rule match=).
+ * Parsed state expression: string → { expr, ast }. Idempotent (accepts
+ * already-parsed objects). Used for visibility conditions (when=) and grading
+ * expressions (Rule match=).
  */
 export const z_expression = z.union([
-  z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
+  z.string().transform((expr): ParsedStateExpression => ({ expr, ast: parseExpr(expr) })),
   z.object({ expr: z.string(), ast: z.any() }),
 ]);
 

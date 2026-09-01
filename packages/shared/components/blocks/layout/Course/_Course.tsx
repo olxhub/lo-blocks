@@ -1,6 +1,6 @@
 // packages/shared/components/blocks/layout/Course/_Course.tsx
 'use client';
-import type { RuntimeProps } from '@/lib/types';
+import type { BlockReference, RuntimeProps } from '@/lib/types';
 
 import React from 'react';
 import { useFieldState } from '@/lib/state';
@@ -13,6 +13,23 @@ import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
+type CourseChapter = {
+  type: 'chapter';
+  id: string;
+  title: string;
+  children: BlockReference[];
+};
+type CourseSection = CourseChapter | BlockReference;
+
+function courseItemTitle(
+  entry: ReturnType<typeof getBlockByDefinitionRef>,
+  fallback: string,
+): string {
+  return typeof entry?.attributes.title === 'string'
+    ? entry.attributes.title
+    : entry?.tag || fallback;
+}
+
 function CourseContent({ props, selectedChild }) {
   // selectedChild is a DefinitionKey read from the parsed section structure.
   // useBlock expects a StateKey; stateKeyForGlobalRef preserves its namespace
@@ -23,11 +40,11 @@ function CourseContent({ props, selectedChild }) {
 }
 
 // Compute the first selectable (and currently-visible) definition key from sections
-function firstSelectableDefinitionKey(sections: any[], isVisible: (definitionKey: string) => boolean): string | null {
+function firstSelectableDefinitionKey(sections: CourseSection[], isVisible: (definitionKey: string) => boolean): string | null {
   for (const section of sections) {
     if (section.type === 'block' && section.definitionKey && isVisible(section.definitionKey)) return section.definitionKey;
     if (section.type === 'chapter') {
-      const child = (section.children || []).find((c: any) => c.definitionKey && isVisible(c.definitionKey));
+      const child = section.children.find(c => isVisible(c.definitionKey));
       if (child) return child.definitionKey;
     }
   }
@@ -37,10 +54,10 @@ function firstSelectableDefinitionKey(sections: any[], isVisible: (definitionKey
 // Find the first chapter that has a currently-visible child, so the default
 // expanded chapter isn't one whose children are all hidden by when= (which
 // would render nothing and force an extra click). Mirrors firstSelectableDefinitionKey.
-function firstChapterId(sections: any[], isVisible: (definitionKey: string) => boolean): string | null {
+function firstChapterId(sections: CourseSection[], isVisible: (definitionKey: string) => boolean): string | null {
   for (const section of sections) {
     if (section.type === 'chapter'
-        && (section.children || []).some((c: any) => c.definitionKey && isVisible(c.definitionKey))) {
+        && section.children.some(c => isVisible(c.definitionKey))) {
       return section.id;
     }
   }
@@ -52,25 +69,19 @@ function Course(props: RuntimeProps) {
   const { t } = useBlockTranslation(props);
   const resolvedTitle = title || t('defaultCourseTitle');
   assertNamedObject(kids, ['sections']);
-  const sections = (kids.sections || []) as any[];
+  const sections = React.useMemo(
+    () => (kids.sections || []) as unknown as CourseSection[],
+    [kids.sections],
+  );
 
-  // Honor `when=` on course children, the same way Vertical/Sequential do:
-  // run the flat list of child definition keys through the shared when= filter (useKidsJson)
-  // and treat only the survivors as visible — both in the nav and as valid
-  // selections. Memoized so the synthetic kid array is stable across renders.
-  const childKids = React.useMemo(() => {
-    const definitionKeys: string[] = [];
-    for (const section of sections) {
-      if (section.type === 'chapter') {
-        for (const child of (section.children || [])) if (child.definitionKey) definitionKeys.push(child.definitionKey);
-      } else if (section.definitionKey) {
-        definitionKeys.push(section.definitionKey);
-      }
-    }
-    return definitionKeys.map(definitionKey => ({ type: 'block', definitionKey }));
-  }, [sections]);
+  // Course groups BlockReferences into chapters for navigation. Flatten that
+  // presentation structure without reconstructing the references: stateKey,
+  // overrides, and future reference metadata remain part of the static DOM.
+  const childKids = React.useMemo(() => sections.flatMap(section =>
+    section.type === 'chapter' ? section.children : [section]
+  ), [sections]);
   const visibleDefinitionKeys = new Set<string>(
-    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.definitionKey)
+    useKidsJson({ ...props, kids: childKids }).map((kid: BlockReference) => kid.definitionKey)
   );
   const isVisible = (definitionKey: string) => visibleDefinitionKeys.has(definitionKey);
 
@@ -92,7 +103,7 @@ function Course(props: RuntimeProps) {
   // when= condition holds). A child hidden by when= falls back to empty state.
   const hasValidSelection = !!selectedChild && isVisible(selectedChild) && sections.some(section =>
     (section.type === 'block' && section.definitionKey === selectedChild) ||
-    (section.type === 'chapter' && (section.children || []).some((child: any) => child.definitionKey === selectedChild))
+    (section.type === 'chapter' && section.children.some(child => child.definitionKey === selectedChild))
   );
 
   return (
@@ -117,7 +128,7 @@ function Course(props: RuntimeProps) {
             if (section.type === 'chapter') {
               // Drop children filtered out by when=, and the whole chapter if
               // none remain visible.
-              const visibleChildren = (section.children || []).filter((child: any) => child.definitionKey && isVisible(child.definitionKey));
+              const visibleChildren = section.children.filter(child => isVisible(child.definitionKey));
               if (visibleChildren.length === 0) return null;
               return (
                 <div key={section.id}>
@@ -138,7 +149,7 @@ function Course(props: RuntimeProps) {
                       {visibleChildren.map((child) => {
                         const childDefinitionKey = child.definitionKey;
                         const childEntry = getBlockByDefinitionRef(props, childDefinitionKey);
-                        const title = childEntry?.attributes?.title || childEntry?.tag || childDefinitionKey;
+                        const title = courseItemTitle(childEntry, childDefinitionKey);
                         return (
                           <button
                             key={childDefinitionKey}
@@ -159,7 +170,7 @@ function Course(props: RuntimeProps) {
             const blockDefinitionKey = section.definitionKey;
             if (!isVisible(blockDefinitionKey)) return null;
             const blockEntry = getBlockByDefinitionRef(props, blockDefinitionKey);
-            const blockTitle = blockEntry?.attributes?.title || blockEntry?.tag || blockDefinitionKey;
+            const blockTitle = courseItemTitle(blockEntry, blockDefinitionKey);
             return (
               <button
                 key={blockDefinitionKey}
