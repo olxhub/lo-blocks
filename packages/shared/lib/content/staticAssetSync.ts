@@ -21,24 +21,28 @@ import type { StorageProvider } from '@/lib/types/storage';
 const ASSET_EXTS_WITH_DOTS = extensionsWithDots(CATEGORY.media);
 
 /**
- * Filesystem roots to copy assets from, with their URL prefixes.
+ * Filesystem roots to copy assets from.
  *
  * Only filesystem-backed sources have local assets to copy. A stack contributes
- * its children's roots; a FileStorageProvider contributes its own `baseDir`, at
- * a URL prefix equal to its mountPoint past "content" \u2014 so the fallback
- * (mountPoint "content") copies to the root and a directory mount
- * (mountPoint "content/<mount>") copies under "<mount>", keeping asset URLs
- * aligned with content paths. Non-filesystem sources (git, memory, network)
- * have no local assets \u2014 repo-source assets are deferred (forge URLs / a blob
- * route). instanceof rather than field-sniffing: a rename breaks the build, and
- * static-asset copying stays out of the StorageProvider interface.
+ * its children's roots. Every root copies to the TARGET ROOT, with no
+ * per-mount prefix: parsed asset srcs are source-relative paths
+ * (parsers.assetSrc -> resolveRelativePath) and the client requests
+ * /content/<that path> with no mount segment, so the copy must mirror that
+ * shape or URLs and files diverge (they did: dev copied under <mount>/ while
+ * pages requested the bare path, and only stray xml2json-run copies at the
+ * root made images appear to work). Same relative path in two sources is one
+ * URL - an authoring conflict, warned in the copy loop. Non-filesystem
+ * sources (git, memory, network) have no local assets - repo-source assets
+ * are deferred (forge URLs / a blob route). instanceof rather than
+ * field-sniffing: a rename breaks the build, and static-asset copying stays
+ * out of the StorageProvider interface.
  */
-function assetRoots(provider: StorageProvider): { dir: string; prefix: string }[] {
+function assetRoots(provider: StorageProvider): { dir: string }[] {
   if (provider instanceof StackedStorageProvider) {
     return provider.providers.flatMap(assetRoots);
   }
   if (provider instanceof FileStorageProvider) {
-    return [{ dir: provider.baseDir, prefix: provider.mountPoint.replace(/^content\/?/, '') }];
+    return [{ dir: provider.baseDir }];
   }
   return [];
 }
@@ -48,8 +52,11 @@ export async function copyAssetsToPublic(provider: StorageProvider, targetDir = 
 
   try {
     await fs.mkdir(publicContentDir, { recursive: true });
-    for (const { dir, prefix } of assetRoots(provider)) {
-      await copyAssetsRecursive(dir, path.join(publicContentDir, prefix));
+    // Same relative path from two sources = one URL, last copy wins - that
+    // must not be silent.
+    const seen = new Map<string, string>();
+    for (const { dir } of assetRoots(provider)) {
+      await copyAssetsRecursive(dir, publicContentDir, dir, seen);
     }
     console.log(`\u2705 Assets copied to ${publicContentDir}`);
   } catch (error) {
@@ -57,7 +64,7 @@ export async function copyAssetsToPublic(provider: StorageProvider, targetDir = 
   }
 }
 
-async function copyAssetsRecursive(sourceDir, targetDir) {
+async function copyAssetsRecursive(sourceDir, targetDir, root, seen) {
   const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -67,8 +74,14 @@ async function copyAssetsRecursive(sourceDir, targetDir) {
     const targetPath = path.join(targetDir, entry.name);
 
     if (entry.isDirectory()) {
-      await copyAssetsRecursive(sourcePath, targetPath);
+      await copyAssetsRecursive(sourcePath, targetPath, root, seen);
     } else if (entry.isFile() && ASSET_EXTS_WITH_DOTS.some(ext => entry.name.toLowerCase().endsWith(ext))) {
+      const rel = path.relative(root, sourcePath);
+      const prior = seen.get(rel);
+      if (prior && prior !== root) {
+        console.warn(`Asset collision: ${rel} exists in both ${prior} and ${root}; serving the latter.`);
+      }
+      seen.set(rel, root);
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.copyFile(sourcePath, targetPath);
     }
