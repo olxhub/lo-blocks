@@ -217,7 +217,13 @@ export async function syncContentFromStorage(
   // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
   _snapshot = await applyFileChanges(_snapshot, scan, provider);
 
-  // Step 5: Sync static assets
+  // Step 5: Sync static assets.
+  //
+  // Unconditional, and cheap when nothing changed: copyAssetsToPublic
+  // compares each asset against its copy and writes only what differs
+  // (staticAssetSync.ts). It cannot be driven off `scan` — the scan
+  // collects CATEGORY.content extensions and assets are CATEGORY.media,
+  // so an image replaced in place is invisible to it.
   await copyAssetsToPublic(provider);
 
   return {
