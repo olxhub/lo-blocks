@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
-import { src, problemAttributes } from '@/lib/blocks/attributeSchemas';
+import { src, problemAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { problemGradeMode } from '@/lib/grading';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
@@ -60,21 +60,28 @@ function generateComposition({ parsed, storeEntry, definitionKey, attributes }) 
   const inputRef   = joinDefinitionRef(parentRef, INPUT);
 
   // `mode` and `src` are consumed here; the block's own `id` is replaced by the
-  // generated problem ref. Everything else (title, maxAttempts, ...) passes
-  // through to the CapaProblem. Order matters: the mode mapping wins over any
-  // stray grade/showAnswer the author passed through.
-  const { mode, src: _src, id: _id, ...passthrough } = attributes;
+  // generated problem ref. `separatorRegexp`/`separatorHidden` belong to the
+  // input, so they are forwarded there rather than to the problem. Everything
+  // else (title, maxAttempts, ...) passes through to the CapaProblem. Order
+  // matters: the mode mapping wins over any stray grade/showAnswer the author
+  // passed through.
+  const { mode, src: _src, id: _id, separatorRegexp, separatorHidden, ...passthrough } = attributes;
   const problemAttrs = {
     id: problemRef,
     ...passthrough,
     ...problemAttrsForMode(mode ?? 'immediate'),
   };
 
-  // The input carries the parsed passage as pre-parsed kids.
+  // The input carries the parsed passage as pre-parsed kids, plus the selectable
+  // unit the author asked for (omitted entirely when they didn't ask, so the
+  // generated input's attributes stay as bare as they always were).
+  const inputAttrs: Record<string, unknown> = { id: inputRef };
+  if (separatorRegexp !== undefined) inputAttrs.separatorRegexp = separatorRegexp;
+  if (separatorHidden !== undefined) inputAttrs.separatorHidden = separatorHidden;
   storeEntry(inputRef, {
     id: inputRef,
     tag: 'TextSelectionInput',
-    attributes: { id: inputRef },
+    attributes: inputAttrs,
     kids: { type: 'parsed', parsed },
   });
 
@@ -124,6 +131,11 @@ const SimpleTextSelection = dev({
     mode: z.enum(['immediate', 'graded', 'selfcheck']).optional()
       .describe('Interaction mode: "immediate" (live feedback, default), "graded" (Check button), or "selfcheck" (reveal answer to compare)'),
     ...problemAttributes.shape,
+    // Forwarded to the generated TextSelectionInput, which owns their semantics.
+    separatorRegexp: z.string().optional()
+      .describe('JavaScript regexp source dividing the passage into selectable chunks (e.g. "\\." for sentences, "\\|" for hand-placed markers). Absent: the learner selects single words.'),
+    separatorHidden: z_olx_boolean.optional()
+      .describe('true: the matched separator is consumed and never rendered. false (default): it stays at the end of the left chunk and renders as content.'),
     ...src,  // Optional external passage file (peggyParser loads it).
   }),
   // peggyParser sets staticKids: () => [], but SimpleTextSelection generates its
