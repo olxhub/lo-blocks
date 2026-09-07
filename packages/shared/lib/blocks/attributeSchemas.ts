@@ -286,25 +286,37 @@ export const graderAttributes = z.object({
 // Problem Mode Attributes (shared by CapaProblem, MarkupProblem, etc.)
 // =============================================================================
 
-/**
- * Valid showanswer modes - when the Show Answer button becomes available.
- */
-export const showAnswerModes = [
-  'always',     // Always visible
-  'never',      // Never visible
-  'attempted',  // After first attempt (submitCount > 0)
-  'correct',    // After a correct answer
-  'closed',     // After attempts exhausted (submitCount >= maxAttempts)
-  'finished',   // correct OR closed
+/** Conditions shared by answer visibility and input locking. */
+export const problemConditions = [
+  'always',     // From the start
+  'never',      // At no point
+  'attempted',  // Once a submission is recorded (submitCount > 0)
+  'correct',    // Once the answer is correct
+  'closed',     // Once attempts are exhausted (submitCount >= maxAttempts)
+  'finished',   // Once correct OR closed
 ] as const;
 
-export type ShowAnswerMode = typeof showAnswerModes[number];
+export type ProblemCondition = typeof problemConditions[number];
 
-/**
- * Schema for showanswer attribute - validates against allowed modes.
- */
-export const showAnswerAttr = z.enum(showAnswerModes).optional()
-  .describe('When to show answer: always, never, attempted, correct, closed, finished');
+export const showAnswerModes = problemConditions;
+
+export type ShowAnswerMode = ProblemCondition;
+
+export const showAnswerAttr = z.enum(problemConditions).optional()
+  .describe('When the answer becomes available: always, never, attempted, correct, closed, finished');
+
+export const answerRevealModes = [
+  'button',  // A Show Answer button appears; the learner presses it (default)
+  'auto',    // The answer appears on its own; no button is ever rendered
+] as const;
+
+export type AnswerRevealMode = typeof answerRevealModes[number];
+
+export const answerRevealAttr = z.enum(answerRevealModes).optional()
+  .describe('How the answer arrives when its showAnswer condition holds: button (default) or auto (revealed automatically, no button)');
+
+export const lockInputAttr = z.enum(problemConditions).optional()
+  .describe('When inputs stop accepting changes: never (default), attempted, correct, closed, finished, always');
 
 /**
  * Schema for maxAttempts attribute - positive integer string or empty for unlimited.
@@ -341,7 +353,12 @@ export const gradeAttr = z.enum(gradeModes).optional()
  */
 export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
+  showAnswer: showAnswerAttr,
+  // TODO(course-migration): REMOVE THIS LOUD BACKWARDS-COMPATIBILITY HACK
+  // once every fall course has migrated to showAnswer. _CapaProblem warns.
   showanswer: showAnswerAttr,
+  answerReveal: answerRevealAttr,
+  lockInput: lockInputAttr,
   grade: gradeAttr,
 });
 

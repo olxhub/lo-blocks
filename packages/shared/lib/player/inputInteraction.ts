@@ -14,19 +14,16 @@ import { selectGradingState } from '@/lib/grading';
 /**
  * Hook: should this input be read-only?
  *
- * Priority order:
- * 1. Explicit readOnly prop (for Survey, custom containers, etc.)
- * 2. Related grader correctness state — locked while ANY related grader is
- *    in 'submitted' (pending async grading); a shared input must not be
- *    editable while one of its graders is still grading the snapshot.
- * 3. Default to interactive (fail open)
- *
- * TODO: Add attempt limiting logic based on container configuration.
+ * An input is locked by its own readOnly prop, inherited container policy, or
+ * related grader state. Related graders may be parents or explicit targets;
+ * lock while any is awaiting asynchronous grading so the submitted snapshot
+ * cannot change underneath it.
  */
 export function useInputReadOnly(props): boolean {
-  const explicit = props.readOnly !== undefined;
+  const imposedReadOnly = props.readOnly === true
+    || props.runtime.inputPolicy?.readOnly === true;
 
-  const graderIds = explicit ? [] : inferRelatedNodes(props, {
+  const graderIds = imposedReadOnly ? [] : inferRelatedNodes(props, {
     selector: n => n.loBlock.isGrader,
     infer: true
   });
@@ -35,6 +32,5 @@ export function useInputReadOnly(props): boolean {
     graderIds.some(id =>
       selectGradingState(state, props, id).correct === correctness.submitted));
 
-  if (explicit) return Boolean(props.readOnly);
-  return anyPending;
+  return imposedReadOnly || anyPending;
 }

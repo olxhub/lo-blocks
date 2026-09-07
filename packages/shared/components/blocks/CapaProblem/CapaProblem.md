@@ -175,6 +175,51 @@ By default the action button reads "Check" (or "Submit" on the final attempt). U
 </CapaProblem>
 ```
 
+## Attempts, Answers, and Locking
+
+`maxAttempts` caps submissions (empty or absent = unlimited). One attempt shows
+no countdown at all; several show "N attempts remaining", then "Final attempt".
+
+`showAnswer` and `lockInput` both take a value from one condition vocabulary,
+and both are evaluated the same way:
+
+- `always` — from the start.
+- `never` — at no point.
+- `attempted` — once a submission is recorded.
+- `correct` — once the learner has answered correctly.
+- `closed` — once attempts are exhausted.
+- `finished` — once correct or closed.
+
+`showAnswer` (default `attempted`) says when the answer becomes available, and
+`lockInput` (default `never`) says when the inputs stop accepting changes. The
+lowercase `showanswer` is a deprecated spelling of `showAnswer`: still accepted,
+warned about at parse time, and to be replaced in content. All
+six values are accepted for both: `lockInput="always"` is a display-only input
+and `lockInput="correct"` stops editing once the answer is right.
+
+`answerReveal` says how an available answer arrives:
+
+- `button` (default) — a Show Answer button appears, and the learner presses it.
+- `auto` — the answer is revealed with the result; no button is ever rendered.
+
+`maxAttempts="1" showAnswer="attempted" answerReveal="auto" lockInput="closed"`
+is the assessment-item configuration: one submission, the correct answer shown
+with the result and nothing to click, and the answer frozen at what was scored.
+
+```olx:playground
+<CapaProblem id="assessmentitem" title="Capital of France"
+             maxAttempts="1" showAnswer="attempted" answerReveal="auto" lockInput="closed">
+  <KeyGrader>
+    <Markdown>What is the capital of France?</Markdown>
+    <ChoiceInput>
+      <Key>Paris</Key>
+      <Distractor>Lyon</Distractor>
+      <Distractor>Marseille</Distractor>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+```
+
 ## How It Works
 
 1. **Parsing**: CapaProblem's parser walks child nodes, identifying inputs (`getValue`) and graders (`isGrader`)

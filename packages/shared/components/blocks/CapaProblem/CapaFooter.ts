@@ -2,7 +2,9 @@
 import { z } from 'zod';
 import * as blocks from '@/lib/blocks';
 import { ignore } from '@/lib/content/parsers';
-import { problemAttributes, z_stateRefList, z_stateRef } from '@/lib/blocks/attributeSchemas';
+import {
+  answerRevealAttr, gradeAttr, maxAttemptsAttr, showAnswerAttr, z_stateRefList, z_stateRef,
+} from '@/lib/blocks/attributeSchemas';
 
 const CapaFooter = blocks.dev({
   ...ignore(),
@@ -11,7 +13,10 @@ const CapaFooter = blocks.dev({
   internal: true,
   // Note: Receives runtime attributes from _CapaProblem
   attributes: z.object({
-    ...problemAttributes.shape,
+    maxAttempts: maxAttemptsAttr,
+    showAnswer: showAnswerAttr,
+    answerReveal: answerRevealAttr,
+    grade: gradeAttr,
     target: z_stateRefList.optional().describe('Comma-separated grader IDs to trigger'),
     hintsTarget: z_stateRef.nullish().describe('DemandHints ID for hint button'),
     label: z.string().optional().describe('Override check button label'),
