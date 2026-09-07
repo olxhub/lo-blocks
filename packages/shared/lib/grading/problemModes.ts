@@ -132,77 +132,58 @@ export function isSubmitDisabled(state: ProblemState): boolean {
 }
 
 /**
- * Get the appropriate button label based on problem state.
+ * Footer presentation for a problem: action-button label and attempts text.
  *
- * Pattern:
- * - Unlimited attempts: "Check"
- * - Single attempt: "Submit"
- * - Multiple attempts, not final: "Check" or "Check (X/Y)"
- * - Multiple attempts, final: "Submit"
- * - Attempts exhausted: "Submit" (button will be disabled)
+ * One table, one place. `remaining` is maxAttempts - submitCount.
  *
- * @param state - Current problem state
- * @param options - Display options
- * @returns Button label string
+ *   attempts limit   state              button    attempts text
+ *   ---------------  -----------------  --------  ----------------------
+ *   unlimited        any                Check     (none)
+ *   exactly 1        before submission  Submit    (none)
+ *   exactly 1        exhausted          Submit    (none)
+ *   more than 1      remaining > 1      Check     "N attempts remaining"
+ *   more than 1      remaining === 1    Submit    "Final attempt"
+ *   more than 1      exhausted          Submit    "No attempts remaining"
+ *
+ * A single-attempt problem never shows attempts text: with one attempt there
+ * is nothing to count down, before or after it is used — "1 attempt
+ * remaining" and "No attempts remaining" are both noise there. The button
+ * carries the whole story ("Submit", disabled once used — isSubmitDisabled).
+ *
+ * The label is deliberately bare ("Check", not "Check (2/3)"): the attempts
+ * text next to it already carries the count.
  */
-export function getButtonLabel(
-  state: ProblemState,
-  options: { showCount?: boolean } = {}
-): string {
-  const { submitCount, maxAttempts } = state;
-  const { showCount = true } = options;
-
-  // Unlimited attempts
-  if (maxAttempts === null || maxAttempts === undefined) {
-    return 'Check';
-  }
-
-  // Single attempt
-  if (maxAttempts === 1) {
-    return 'Submit';
-  }
-
-  // Multiple attempts - check if this is the final one
-  const attemptsRemaining = maxAttempts - submitCount;
-
-  if (attemptsRemaining <= 1) {
-    // Final attempt (or already exhausted)
-    return 'Submit';
-  }
-
-  // Not final - show Check with optional count
-  if (showCount) {
-    return `Check (${submitCount + 1}/${maxAttempts})`;
-  }
-
-  return 'Check';
+export interface AttemptsPresentation {
+  /** Action-button label. */
+  label: string;
+  /** Attempts status text, or null when there is nothing worth saying. */
+  attemptsText: string | null;
 }
 
-/**
- * Get a display string for attempts status.
- *
- * @param state - Current problem state
- * @returns Display string like "2 of 3 attempts used" or null for unlimited
- */
-export function getAttemptsDisplay(state: ProblemState): string | null {
+export function getAttemptsPresentation(state: ProblemState): AttemptsPresentation {
   const { submitCount, maxAttempts } = state;
 
-  // Unlimited attempts - no display needed
+  // Unlimited attempts — nothing to count.
   if (maxAttempts === null || maxAttempts === undefined) {
-    return null;
+    return { label: 'Check', attemptsText: null };
+  }
+
+  // One attempt — one shot, no countdown, before or after it is used.
+  if (maxAttempts === 1) {
+    return { label: 'Submit', attemptsText: null };
   }
 
   const remaining = maxAttempts - submitCount;
 
   if (remaining <= 0) {
-    return 'No attempts remaining';
+    return { label: 'Submit', attemptsText: 'No attempts remaining' };
   }
 
   if (remaining === 1) {
-    return '1 attempt remaining';
+    return { label: 'Submit', attemptsText: 'Final attempt' };
   }
 
-  return `${remaining} attempts remaining`;
+  return { label: 'Check', attemptsText: `${remaining} attempts remaining` };
 }
 
 /**

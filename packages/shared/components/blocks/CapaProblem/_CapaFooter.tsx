@@ -4,7 +4,7 @@
 // Renders: Check/Submit button, Show Answer button, Hint button, correctness icon, status text.
 //
 // Uses problemModes utilities for:
-// - Button labels (Check vs Submit based on attempts)
+// - Button label and attempts text (one decision table: getAttemptsPresentation)
 // - Show Answer visibility (based on showanswer mode)
 // - Disabling submit when attempts exhausted
 //
@@ -13,10 +13,9 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { Block } from '@/lib/player/client/render';
 import {
-  getButtonLabel,
+  getAttemptsPresentation,
   shouldShowAnswer,
   isSubmitDisabled,
-  getAttemptsDisplay,
   parseMaxAttempts,
   type ProblemState,
 } from '@/lib/grading/problemModes';
@@ -42,10 +41,11 @@ export default function _CapaFooter(props: RuntimeProps) {
   // Build state for problemModes utilities
   const problemState = buildProblemState(props);
 
-  // Compute button label and disabled state
-  const buttonLabel = label || getButtonLabel(problemState);
+  // Button label and attempts text come from one decision table (see
+  // getAttemptsPresentation); an authored `label` overrides only the button.
+  const { label: computedLabel, attemptsText } = getAttemptsPresentation(problemState);
+  const buttonLabel = label || computedLabel;
   const submitDisabled = isSubmitDisabled(problemState);
-  const attemptsDisplay = getAttemptsDisplay(problemState);
 
   // Compute Show Answer visibility
   const showAnswerVisible = shouldShowAnswer(showanswer, problemState);
@@ -76,8 +76,8 @@ export default function _CapaFooter(props: RuntimeProps) {
       <div className="lo-capafooter__status">
         <Block props={props} tag="Correctness" id={statusIconId} />
         <Block props={props} tag="StatusText" id={statusTextId} field="message" />
-        {!isImmediate && attemptsDisplay && (
-          <span className="lo-capafooter__attempts">{attemptsDisplay}</span>
+        {!isImmediate && attemptsText && (
+          <span className="lo-capafooter__attempts">{attemptsText}</span>
         )}
       </div>
     </div>
