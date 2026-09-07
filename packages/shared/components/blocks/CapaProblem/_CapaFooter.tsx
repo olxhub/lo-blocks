@@ -5,7 +5,7 @@
 //
 // Uses problemModes utilities for:
 // - Button label and attempts text (one decision table: getAttemptsPresentation)
-// - Show Answer visibility (based on showanswer mode)
+// - Show Answer visibility (the showAnswer condition, and answerReveal="button")
 // - Disabling submit when attempts exhausted
 //
 'use client';
@@ -32,7 +32,7 @@ function buildProblemState(props): ProblemState {
 }
 
 export default function _CapaFooter(props: RuntimeProps) {
-  const { id, target, hintsTarget, label, showanswer } = props;
+  const { id, target, hintsTarget, label, showAnswer, answerReveal } = props;
 
   // Immediate mode: correctness derives from live input values, so there is
   // nothing to submit — no Check button, and no attempt bookkeeping.
@@ -47,8 +47,9 @@ export default function _CapaFooter(props: RuntimeProps) {
   const buttonLabel = label || computedLabel;
   const submitDisabled = isSubmitDisabled(problemState);
 
-  // Compute Show Answer visibility
-  const showAnswerVisible = shouldShowAnswer(showanswer, problemState);
+  // Compute Show Answer visibility. answerReveal="auto" reveals the answer
+  // with the result instead (useGraderAnswer) — there is no button then.
+  const showAnswerVisible = shouldShowAnswer(showAnswer, answerReveal, problemState);
 
   // Element IDs
   const buttonId = `${id}_action`;

@@ -3,18 +3,58 @@
 // Utility functions for problem submission modes, attempts, and answer visibility.
 //
 // This module provides shared logic for:
-// - When to show the "Show Answer" button (showanswer modes)
+// - Whether a problem condition holds (conditionHolds — the one evaluator)
+// - Whether the Show Answer button is offered, and whether the answer is
+//   instead revealed automatically (showAnswer + answerReveal)
+// - Whether inputs still accept changes (lockInput)
 // - Button labels (Check vs Submit)
 // - Attempts tracking and enforcement
 //
-// See docs/architecture/problem-submission-modes.md for design rationale.
+// ONE VOCABULARY. showAnswer and lockInput both name a condition from
+// attributeSchemas.problemConditions, and conditionHolds answers all of them:
+//
+//   condition    holds
+//   ----------   -------------------------------------------
+//   always       from the start
+//   never        at no point
+//   attempted    once a submission is recorded
+//   correct      once the answer is correct
+//   closed       once attempts are exhausted
+//   finished     once correct or closed
+//
+// The attributes then differ only in what the condition governs:
+//
+//   attribute      default      the condition governs
+//   ------------   ----------   -----------------------------------------
+//   showAnswer     attempted    when the answer becomes available
+//   lockInput      never        when inputs stop accepting changes
+//
+// answerReveal says HOW an available answer arrives: "button" (default —
+// a Show Answer button appears, shouldShowAnswer) or "auto" (it is revealed
+// with no button, ever — isAnswerAutoRevealed).
+//
+// maxAttempts="1" showAnswer="attempted" answerReveal="auto" lockInput="closed"
+// is the one-submission assessment item: the answer appears with the result,
+// and what is on screen stays what was scored.
+//
+// See the "Attempts, Answers, and Locking" section of
+// components/blocks/CapaProblem/CapaProblem.md for the authoring view.
 //
 
 import { correctness as correctnessEnum, completion, type Completion } from './correctness';
-import { showAnswerModes, type ShowAnswerMode } from '../blocks/attributeSchemas';
+import {
+  showAnswerModes, type AnswerRevealMode, type ProblemCondition, type ShowAnswerMode,
+} from '../blocks/attributeSchemas';
 
 // Re-export for consumers
-export type { ShowAnswerMode };
+export type { AnswerRevealMode, ProblemCondition, ShowAnswerMode };
+
+/** showAnswer says nothing → the answer becomes available once attempted. */
+const DEFAULT_SHOW_ANSWER: ProblemCondition = 'attempted';
+/** lockInput says nothing → inputs stay editable. */
+const DEFAULT_LOCK_INPUT: ProblemCondition = 'never';
+/** answerReveal says nothing → the learner presses a button for the answer. */
+const DEFAULT_ANSWER_REVEAL: AnswerRevealMode = 'button';
 
 // Future modes (require due date infrastructure):
 // | 'past_due'           // After due date passes
@@ -60,24 +100,21 @@ export function isProblemFinished(state: ProblemState): boolean {
 }
 
 /**
- * Determine if the Show Answer button should be visible.
+ * Does a problem condition hold for this state?
  *
- * Each mode gates on ONE axis:
+ * The one evaluator behind every "when" attribute (showAnswer, lockInput).
+ * Each condition gates on ONE axis:
+ * - 'always' / 'never' — no axis at all
  * - 'attempted' — any recorded submission
  * - 'correct'   — CORRECTNESS axis: answered correctly
  * - 'closed'    — COMPLETION axis: can no longer be worked
  * - 'finished'  — COMPLETION axis: terminal (done or closed)
  *
- * @param mode - The showanswer mode from problem attributes
+ * @param condition - A value from attributeSchemas.problemConditions
  * @param state - Current problem state
- * @returns true if Show Answer should be visible
  */
-export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, state: ProblemState): boolean {
-  // Default to 'attempted': reveal the answer after the learner has made a
-  // real submission, without requiring correctness or exhausted attempts.
-  const effectiveMode = (mode || 'attempted') as ShowAnswerMode;
-
-  switch (effectiveMode) {
+export function conditionHolds(condition: ProblemCondition | string, state: ProblemState): boolean {
+  switch (condition) {
     case 'always':
       return true;
 
@@ -101,10 +138,57 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return isProblemFinished(state);
 
     default:
-      // Unknown mode - log warning and default to 'attempted' behavior
-      console.warn(`Unknown showanswer mode: "${mode}", defaulting to 'attempted'`);
-      return state.submitCount > 0;
+      // Zod rejects unknown values at parse time; reaching here means content
+      // bypassed the schema. Hold nothing rather than guess.
+      console.warn(`Unknown problem condition: "${condition}"`);
+      return false;
   }
+}
+
+/**
+ * Determine if the Show Answer button should be visible.
+ *
+ * Two things must be true: the answer is available (the showAnswer condition
+ * holds) AND the answer arrives by button. answerReveal="auto" means there is
+ * no button to show, before or after the condition holds.
+ */
+export function shouldShowAnswer(
+  mode: ShowAnswerMode | string | undefined,
+  reveal: AnswerRevealMode | string | undefined,
+  state: ProblemState,
+): boolean {
+  return (reveal ?? DEFAULT_ANSWER_REVEAL) === 'button'
+    && conditionHolds(mode ?? DEFAULT_SHOW_ANSWER, state);
+}
+
+/**
+ * Is the answer revealed without the learner pressing anything?
+ *
+ * answerReveal="auto" and the showAnswer condition holds. The counterpart of
+ * shouldShowAnswer: exactly one of the two can be true at a time.
+ */
+export function isAnswerAutoRevealed(
+  mode: ShowAnswerMode | string | undefined,
+  reveal: AnswerRevealMode | string | undefined,
+  state: ProblemState,
+): boolean {
+  return reveal === 'auto' && conditionHolds(mode ?? DEFAULT_SHOW_ANSWER, state);
+}
+
+/**
+ * Are this problem's inputs read-only?
+ *
+ * The same conditions, read as "when does editing stop": 'attempted' locks on
+ * the first submission, 'closed' on the last one, 'finished' on either that or
+ * a correct answer, 'correct' once it is right, and 'always' never lets the
+ * learner type at all. A one-attempt problem makes 'attempted' and 'closed'
+ * coincide.
+ *
+ * A missing lockInput is 'never': content that says nothing about locking keeps
+ * the editable-forever behaviour it has always had.
+ */
+export function isInputLocked(mode: ProblemCondition | string | undefined, state: ProblemState): boolean {
+  return conditionHolds(mode ?? DEFAULT_LOCK_INPUT, state);
 }
 
 /**
@@ -204,13 +288,13 @@ export function parseMaxAttempts(value: string | number | undefined | null): num
 }
 
 /**
- * All valid showanswer mode values (for validation/documentation).
+ * All valid showAnswer mode values (for validation/documentation).
  * Re-exported from attributeSchemas for convenience.
  */
 export const SHOWANSWER_MODES = showAnswerModes;
 
 /**
- * Check if a string is a valid showanswer mode.
+ * Check if a string is a valid showAnswer mode.
  */
 export function isValidShowAnswerMode(mode: string): mode is ShowAnswerMode {
   return (showAnswerModes as readonly string[]).includes(mode);

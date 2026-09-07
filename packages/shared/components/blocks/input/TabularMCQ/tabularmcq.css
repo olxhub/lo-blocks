@@ -151,7 +151,7 @@
   color: var(--lo-error);
 }
 
-/* Disabled state (for future use) */
+/* Locked: mid-grade, or the enclosing problem's lockInput. */
 .tabular-mcq.disabled {
   opacity: 0.6;
   pointer-events: none;

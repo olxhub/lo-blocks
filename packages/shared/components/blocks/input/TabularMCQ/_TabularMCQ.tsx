@@ -6,6 +6,7 @@ import React, { useId } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { assertNamedObject } from '@/lib/types/kids';
 
 export default function TabularMCQ(props: RuntimeProps) {
@@ -17,6 +18,10 @@ export default function TabularMCQ(props: RuntimeProps) {
 
   // Show answer support - displayAnswer is { rowId: number[] }
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
+
+  // Locked mid-grade, or by the enclosing problem's lockInput: the cells stop
+  // accepting clicks, so the grid keeps showing what was scored.
+  const readOnly = useInputReadOnly(props);
 
   // DOM identity is PER MOUNTED COPY, not per block. Radio `name` is a
   // document-wide grouping key in HTML, so if the same block is mounted twice
@@ -108,7 +113,7 @@ export default function TabularMCQ(props: RuntimeProps) {
   };
 
   return (
-    <div className="tabular-mcq">
+    <div className={readOnly ? 'tabular-mcq disabled' : 'tabular-mcq'}>
       <table>
         <thead>
           <tr>
@@ -138,6 +143,7 @@ export default function TabularMCQ(props: RuntimeProps) {
                         type={mode === 'checkbox' ? 'checkbox' : 'radio'}
                         name={mode === 'radio' ? `${domScope}tabular-mcq-row-${props.id}-${row.id}` : undefined}
                         checked={isChecked(row.id, colIndex)}
+                        disabled={readOnly}
                         onChange={() =>
                           mode === 'checkbox'
                             ? handleCheckboxChange(row.id, colIndex)
