@@ -10,8 +10,13 @@
 // `getExpectedSelections` local (the getChoices pattern: static, callable from
 // graders and analytics with no rendered DOM).
 //
+// `separatorRegexp` / `separatorHidden` change only the selectable UNIT — word
+// (the default) or chunk — not the value: a chunk writes the word indices it
+// spans, so the grader and the analytics read both modes identically.
+//
 import { z } from 'zod';
 import { test, input, src } from '@/lib/blocks';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
@@ -50,7 +55,16 @@ const TextSelectionInput = test({
     value: (state, props: RuntimeProps, _stateKey) =>
       decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS }),
   },
-  attributes: z.object({ ...src }).strict(),  // Optional external passage file.
+  attributes: z.object({
+    ...src,  // Optional external passage file.
+    // The selectable unit. Absent, it is the word (the passage is split on
+    // whitespace). Given, the passage is divided into chunks at every match of
+    // this regexp and the chunk is what the learner selects.
+    separatorRegexp: z.string().optional()
+      .describe('JavaScript regexp source dividing the passage into selectable chunks (e.g. "\\." for sentences, "\\|" for hand-placed markers). Absent: the learner selects single words.'),
+    separatorHidden: z_olx_boolean.optional()
+      .describe('true: the matched separator is consumed and never rendered. false (default): it stays at the end of the left chunk and renders as content.'),
+  }).strict(),
   locals: {
     // Projects the answer key off the parsed passage for the grader. Bound at
     // grade time to this input's own (props, state, id); ignores state/id —
