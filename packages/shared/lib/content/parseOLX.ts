@@ -42,7 +42,7 @@ import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address
 import { variantMapKeys } from '@/lib/types/i18n';
 import { hashContent } from '@/lib/util';
 
-import { baseAttributes, z_expression } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, normalizeDeprecatedAttributes, z_expression } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
@@ -653,8 +653,10 @@ export async function parseOLX(
         sourceOffset, metadata,
       });
     } else {
-      // Use transformed attributes (e.g., "true" -> true for booleans)
-      parsedAttributes = result.data;
+      // Use transformed attributes (e.g., "true" -> true for booleans), with
+      // deprecated attribute spellings rewritten onto their current names so
+      // no reader downstream has to know the old ones.
+      parsedAttributes = normalizeDeprecatedAttributes(result.data, tag, definitionKey);
 
       // Re-resolve lang from transformed attributes (Zod canonicalizes e.g. "EN-us" → "en-US")
       if (parsedAttributes.lang) {

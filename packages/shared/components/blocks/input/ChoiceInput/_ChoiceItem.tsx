@@ -34,6 +34,8 @@ export default function ChoiceItem(props: RuntimeProps) {
   // to DisplayError.
   const parentStateKey = group?.parentStateKey ?? scopedStateKeyForBlock(props);
   const isCheckbox = group?.isCheckbox ?? false;
+  // The lock belongs to the input, which decided it once for the whole group.
+  const readOnly = group?.readOnly ?? false;
 
   // The parent input's value field, read/written under the parent's StateKey.
   const valueField = group
@@ -94,6 +96,7 @@ export default function ChoiceItem(props: RuntimeProps) {
         name={isCheckbox ? parentStateKey : group.radioName}
         checked={checked}
         onChange={handleChange}
+        disabled={readOnly}
         className="lo-choice-item__input"
       />
       <span className="lo-choice-item__indicator" aria-hidden="true" />
