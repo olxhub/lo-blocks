@@ -219,10 +219,23 @@ async function main() {
       process.exit(1);
     }
 
-    // Graph validation only in default mode
+    // Graph validation. Fatal in default mode. In static mode it runs but only
+    // reports: the multi-namespace prototype (proto/multi-ns-static) needs to
+    // see whether cross-namespace <Use> refs resolve against the merged idMap,
+    // and a static build that has already survived parsing shouldn't start
+    // failing on graph issues that the single-course builds never checked.
     const allErrors = isStaticMode
       ? parseErrors
       : await addGraphValidationErrors(idMap, parseErrors);
+    if (isStaticMode) {
+      const graphOnly = (await addGraphValidationErrors(idMap, [])) as any[];
+      if (graphOnly.length > 0) {
+        console.warn(`\n⚠️  Graph validation: ${graphOnly.length} issue(s) (reported, not fatal in static mode):`);
+        for (const g of graphOnly) console.warn(`  ${g.message}`);
+      } else {
+        console.log('Graph validation: no issues over the merged idMap.');
+      }
+    }
 
     // Write idMap output
     if (outFile) {
