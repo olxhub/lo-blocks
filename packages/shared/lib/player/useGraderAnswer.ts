@@ -10,6 +10,12 @@
 // 1. Grader with target pointing to this input (sibling graders - most specific)
 // 2. Parent grader (input nested inside grader - includes metagraders)
 //
+// The reveal itself has two sources, OR'd together:
+// - the grader's stored showAnswer field (the Show Answer button wrote it), and
+// - the enclosing problem's answerReveal="auto", which reveals the answer as
+//   soon as its showAnswer condition holds, with no button ever rendered
+//   (lib/grading/problemModes.ts).
+//
 // Answer display is controlled by the grader's answerDisplayMode:
 // - 'per-input': Show answer next to each input (default)
 // - 'summary': Show answer once after all inputs (inputs get undefined)
@@ -25,6 +31,8 @@ import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey, 
 import { getBlockByDefinitionRef } from '../blocks/getBlockByDefinitionRef';
 import { staticTargetProps } from '../state/blockData';
 import { isInput } from '../blocks/actions';
+import { useEnclosingProblem } from './useEnclosingProblem';
+import { isAnswerAutoRevealed } from '../grading/problemModes';
 import type { DefinitionKey, DefinitionRef, StateKey, RuntimeProps } from '@/lib/types';
 
 /**
@@ -173,7 +181,14 @@ export function useGraderAnswer(props: RuntimeProps) {
     showAnswerField ?? state.commonFields.showAnswer,
     { stateKey: graderStateKey ?? undefined, fallback: false },
   );
-  const showAnswer = showAnswerField ? rawShowAnswer : false;
+  const buttonRevealed = showAnswerField ? rawShowAnswer : false;
+
+  // answerReveal="auto" reveals as soon as the showAnswer condition holds —
+  // derived from the problem's live state, so a revisit or a reload shows
+  // exactly what the submission showed.
+  const problem = useEnclosingProblem(props);
+  const showAnswer = buttonRevealed || (problem !== null
+    && isAnswerAutoRevealed(problem.showAnswer, problem.answerReveal, problem.state));
 
   // Get grader instance unconditionally (hook must always be called).
   // Convert StateKey to DefinitionKey for useOlxJson lookup.
@@ -241,7 +256,13 @@ export function useGraderSummary(props: RuntimeProps, graderId: StateKey | null)
     showAnswerField ?? state.commonFields.showAnswer,
     { stateKey: summaryGraderStateKey ?? undefined, fallback: false },
   );
-  const showAnswer = showAnswerField ? rawShowAnswer : false;
+  const buttonRevealed = showAnswerField ? rawShowAnswer : false;
+
+  // Same two sources as useGraderAnswer: the button, or the problem's
+  // answerReveal="auto" automatic reveal.
+  const problem = useEnclosingProblem(props);
+  const showAnswer = buttonRevealed || (problem !== null
+    && isAnswerAutoRevealed(problem.showAnswer, problem.answerReveal, problem.state));
 
   const summaryGraderDefKey = graderId ? leafDefinitionKeyFromStateKey(graderId) : null;
   const { olxJson: graderInstance } = useOlxJson(props, summaryGraderDefKey);

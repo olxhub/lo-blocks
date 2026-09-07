@@ -17,7 +17,7 @@ words. Three interaction modes map onto standard problem semantics:
 
 - **immediate** (default) → `grade="immediate"`: correctness derives live, no button.
 - **graded** → `grade="submit"`: the standard Check button, submit-time grading.
-- **selfcheck** → `grade="submit"` + `showanswer="always"`: select, then reveal the answer to compare.
+- **selfcheck** → `grade="submit"` + `showAnswer="always"`: select, then reveal the answer to compare.
 
 ## Basic Usage
 
@@ -117,9 +117,11 @@ credit.
 | `mode` | No | `immediate` | One of `immediate`, `graded`, `selfcheck` |
 | `src` | No | – | Path to an external `.textSelectionpeg` passage file |
 
-Any other problem attribute (`title`, `maxAttempts`, `showanswer`, …) passes
-through to the generated CapaProblem. Passage content is provided inline **or**
-via `src` (not both).
+The problem attributes (`title`, `maxAttempts`, `showAnswer` — the deprecated
+`showanswer` spelling still parses — `answerReveal`, `lockInput`, `grade`) may
+be authored here and pass through to the generated CapaProblem; `mode` wins
+over any `grade`/`showAnswer` it sets. Passage content is provided
+inline **or** via `src` (not both).
 
 ## Generated Structure
 
