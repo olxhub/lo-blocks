@@ -21,6 +21,7 @@
 'use client';
 import React, { createContext, useId } from 'react';
 import { useKids } from '@/lib/player/client/render';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export interface ChoiceGroupInfo {
@@ -47,6 +48,10 @@ export interface ChoiceGroupInfo {
    *  multi-select. Decided by which input provides this context — no more
    *  two-pass ancestor sniffing to tell the two apart. */
   isCheckbox: boolean;
+  /** Is the input locked (mid-grade, or the enclosing problem's lockInput)?
+   *  Asked ONCE here, on the input's own props, rather than per item: the
+   *  items are the DOM controls, but the input is what is locked. */
+  readOnly: boolean;
 }
 
 // null when a Key/Distractor is rendered outside any choice input; the item
@@ -59,6 +64,10 @@ export default function ChoiceGroup(props: RuntimeProps) {
   // Per-mounted-copy DOM scope for the radio group name. See inputName above.
   const domScope = useId();
 
+  // Asked here, on the input's own props: the group is what is locked, the
+  // items are only the controls that go grey.
+  const readOnly = useInputReadOnly(props);
+
   const group: ChoiceGroupInfo = {
     // nodeInfo.stateKey is this input's own scoped StateKey (assigned by
     // render() — the same key inferRelatedNodes used to return for the parent).
@@ -69,6 +78,7 @@ export default function ChoiceGroup(props: RuntimeProps) {
     // isCheckbox is decided HERE, from this input's own block name — the one
     // place that unambiguously knows which input this is.
     isCheckbox: props.loBlock.name === 'CheckboxInput',
+    readOnly,
   };
 
   return (

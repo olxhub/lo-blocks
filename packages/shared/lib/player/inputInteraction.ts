@@ -10,6 +10,8 @@ import { useSelector } from 'react-redux';
 import { correctness } from '../grading/correctness';
 import { inferRelatedNodes } from '../blocks/dynamicDom';
 import { selectGradingState } from '@/lib/grading';
+import { isInputLocked } from '../grading/problemModes';
+import { useEnclosingProblem } from './useEnclosingProblem';
 
 /**
  * Hook: should this input be read-only?
@@ -19,9 +21,11 @@ import { selectGradingState } from '@/lib/grading';
  * 2. Related grader correctness state — locked while ANY related grader is
  *    in 'submitted' (pending async grading); a shared input must not be
  *    editable while one of its graders is still grading the snapshot.
- * 3. Default to interactive (fail open)
- *
- * TODO: Add attempt limiting logic based on container configuration.
+ * 3. The enclosing problem's lockInput condition — read-only once the problem
+ *    is 'attempted', 'closed', 'finished', 'correct' or 'always', so what is
+ *    on screen stays what was scored. Derived from the problem's live state,
+ *    so the lock survives a remount or a reload.
+ * 4. Default to interactive (fail open)
  */
 export function useInputReadOnly(props): boolean {
   const explicit = props.readOnly !== undefined;
@@ -35,6 +39,9 @@ export function useInputReadOnly(props): boolean {
     graderIds.some(id =>
       selectGradingState(state, props, id).correct === correctness.submitted));
 
+  const problem = useEnclosingProblem(props);
+
   if (explicit) return Boolean(props.readOnly);
-  return anyPending;
+  return anyPending
+    || (problem !== null && isInputLocked(problem.lockInput, problem.state));
 }

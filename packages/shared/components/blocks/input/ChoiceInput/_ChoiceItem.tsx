@@ -34,6 +34,8 @@ export default function ChoiceItem(props: RuntimeProps) {
   // to DisplayError.
   const parentStateKey = group?.parentStateKey ?? scopedStateKeyForBlock(props);
   const isCheckbox = group?.isCheckbox ?? false;
+  // The lock belongs to the input, which decided it once for the whole group.
+  const readOnly = group?.readOnly ?? false;
 
   // Fallback DOM name for the orphaned case only (we render a DisplayError
   // below, but hooks must still run unconditionally). The real name comes
@@ -103,6 +105,7 @@ export default function ChoiceItem(props: RuntimeProps) {
         name={inputName}
         checked={checked}
         onChange={handleChange}
+        disabled={readOnly}
         className="lo-choice-item__input"
       />
       <span className="lo-choice-item__indicator" aria-hidden="true" />
