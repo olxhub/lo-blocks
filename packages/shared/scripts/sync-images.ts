@@ -14,6 +14,13 @@
  * prefix the checkout's directory name (e.g. 'edu.mtsu.temperance'), while the
  * parsed src stays mount-relative ('images/foo.jpg' → /content/images/foo.jpg),
  * so every image 404s in the built site.
+ *
+ * MIRROR, NOT MERGE: copyAssetsToPublic makes the target match the source it
+ * is given, deleting assets no source claims (staticAssetSync.ts). Point this
+ * at ONE source and the target holds that source's assets and nothing else —
+ * fine for a single-course static build, but it means this script does not
+ * add to a target another source also feeds. The running server's boot sync
+ * mirrors every mounted source, so a default-target run restores itself.
  */
 
 import { FileStorageProvider } from '../lib/storage/lofs/providers/file.js';
