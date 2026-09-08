@@ -50,6 +50,7 @@ import { handleActivities } from './routes/activities.js';
 import { handleShutdown } from './routes/admin.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
+import { readContentRescanMs, indexTtlFor } from './contentRescan.js';
 
 // --- Constants ---------------------------------------------------------------
 // Overridable for tests (the smoke test boots a second instance beside a
@@ -128,43 +129,57 @@ export async function startServer(
   const subscriptions = new SubscriptionRegistry();
   // ONE content scan behind all three routing indexes below.
   //
-  // Each index TTL-caches its own maps (2s) and rebuilds by calling
-  // syncContentFromStorage(), which re-stats and re-reads every content
-  // file in every mounted source (~80ms across the fall-pilot repos).
-  // router.ts asks all three about every field write, and their TTLs
-  // expire independently, so with a scan per index one keystroke per
-  // two seconds paid three full scans. This closure holds the last
-  // result for the same 2s the indexes do, so whichever index asks
-  // first pays the scan and the other two read its answer.
+  // Each index caches its own maps and rebuilds them by loading the
+  // content idMap; router.ts asks all three about every field write. A
+  // load means syncContentFromStorage() — re-stat and re-read every
+  // content file in every mounted source, ~80ms across the fall-pilot
+  // repos — so this closure owns WHEN that is allowed to happen and
+  // hands all three indexes the same answer. Without it their caches
+  // expired independently and one keystroke paid three scans.
   //
-  // Cost of sharing: a content edit can take up to two TTLs (~4s)
-  // rather than one to affect routing. Fine — routing is derived from
-  // definitions, and the pages that render the edit re-sync on load.
-  const CONTENT_SCAN_TTL_MS = 2000;
+  // content-rescan-ms (config/server.pmss) is the interval; 0 means
+  // scan once at boot and serve that forever, which is the production
+  // default because a deployed host's content changes only in a deploy,
+  // and a deploy restarts the server. Read once here: it decides the
+  // shape of the event path, so changing it is a restart.
+  const rescanMs = readContentRescanMs();
+  console.log(`  Content re-scan: ${rescanMs === 0
+    ? 'off (content is static until restart)' : `every ${rescanMs}ms`}`);
   let cachedIdMap: Record<string, Record<string, any>> | null = null;
   let cachedAt = 0;
+  let scans = 0;
   let scanInflight: Promise<Record<string, Record<string, any>>> | null = null;
   const loadIdMap = async (): Promise<Record<string, Record<string, any>>> => {
-    if (cachedIdMap && Date.now() - cachedAt < CONTENT_SCAN_TTL_MS) return cachedIdMap;
+    const stale = rescanMs > 0 && Date.now() - cachedAt >= rescanMs;
+    if (cachedIdMap && !stale) return cachedIdMap;
     // Single-flight: two indexes expiring in the same tick share one scan.
     // Concurrent syncs would each diff against the same stale snapshot and
     // re-parse the whole tree (seconds, not milliseconds).
-    scanInflight ??= syncContentFromStorage()
-      .then(({ idMap }) => {
-        cachedIdMap = idMap as any;
-        cachedAt = Date.now();
-        return cachedIdMap!;
-      })
-      .finally(() => { scanInflight = null; });
+    scanInflight ??= (async () => {
+      const started = Date.now();
+      const { idMap } = await syncContentFromStorage();
+      cachedIdMap = idMap as any;
+      cachedAt = Date.now();
+      // Announced because a re-scan is real work on the event path: if
+      // these are scrolling past while someone types, that is the cost
+      // content-rescan-ms exists to bound.
+      if (++scans > 1) console.log(`[content] re-scan ${scans} (${cachedAt - started}ms)`);
+      return cachedIdMap!;
+    })().finally(() => { scanInflight = null; });
     return scanInflight;
   };
-  // Grouping index (specs + picker reverse map), TTL-cached from content.
-  const grouping = makeGroupingIndex(loadIdMap);
+  // All three indexes expire on the same schedule as the scan behind
+  // them: re-deriving the maps from an idMap that cannot have changed
+  // is work with no possible new answer.
+  const indexTtl = indexTtlFor(rescanMs);
+  // Grouping index (specs + picker reverse map), cached from content.
+  const grouping = makeGroupingIndex(loadIdMap, indexTtl);
   // Aggregation index: view blocks whose blueprints fold other blocks'
-  // answers (aggregations.ts), TTL-cached from content + registry.
+  // answers (aggregations.ts), cached from content + registry.
   const aggregations = makeAggregationIndex(
     loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+    indexTtl,
   );
   // Trusted level declarations (fieldLevels.ts): routing derives a
   // field's level from content + registry, never from the wire's
@@ -172,6 +187,7 @@ export async function startServer(
   const fieldLevels = makeSharedFieldPolicyIndex(
     loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+    indexTtl,
   );
 
   // --- Hono app (HTTP only) ------------------------------------------------
