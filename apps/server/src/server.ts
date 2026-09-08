@@ -126,21 +126,51 @@ export async function startServer(
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
+  // ONE content scan behind all three routing indexes below.
+  //
+  // Each index TTL-caches its own maps (2s) and rebuilds by calling
+  // syncContentFromStorage(), which re-stats and re-reads every content
+  // file in every mounted source (~80ms across the fall-pilot repos).
+  // router.ts asks all three about every field write, and their TTLs
+  // expire independently, so with a scan per index one keystroke per
+  // two seconds paid three full scans. This closure holds the last
+  // result for the same 2s the indexes do, so whichever index asks
+  // first pays the scan and the other two read its answer.
+  //
+  // Cost of sharing: a content edit can take up to two TTLs (~4s)
+  // rather than one to affect routing. Fine — routing is derived from
+  // definitions, and the pages that render the edit re-sync on load.
+  const CONTENT_SCAN_TTL_MS = 2000;
+  let cachedIdMap: Record<string, Record<string, any>> | null = null;
+  let cachedAt = 0;
+  let scanInflight: Promise<Record<string, Record<string, any>>> | null = null;
+  const loadIdMap = async (): Promise<Record<string, Record<string, any>>> => {
+    if (cachedIdMap && Date.now() - cachedAt < CONTENT_SCAN_TTL_MS) return cachedIdMap;
+    // Single-flight: two indexes expiring in the same tick share one scan.
+    // Concurrent syncs would each diff against the same stale snapshot and
+    // re-parse the whole tree (seconds, not milliseconds).
+    scanInflight ??= syncContentFromStorage()
+      .then(({ idMap }) => {
+        cachedIdMap = idMap as any;
+        cachedAt = Date.now();
+        return cachedIdMap!;
+      })
+      .finally(() => { scanInflight = null; });
+    return scanInflight;
+  };
   // Grouping index (specs + picker reverse map), TTL-cached from content.
-  const grouping = makeGroupingIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
-  );
+  const grouping = makeGroupingIndex(loadIdMap);
   // Aggregation index: view blocks whose blueprints fold other blocks'
   // answers (aggregations.ts), TTL-cached from content + registry.
   const aggregations = makeAggregationIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
   // Trusted level declarations (fieldLevels.ts): routing derives a
   // field's level from content + registry, never from the wire's
   // authority stamp — without this index every field is level 'user'.
   const fieldLevels = makeSharedFieldPolicyIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
   );
 

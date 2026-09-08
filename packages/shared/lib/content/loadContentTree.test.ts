@@ -255,3 +255,52 @@ it('re-parses a manifest\'s subtree when the manifest is added, changed, or dele
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
 });
+
+
+it('copies static assets only when the scan found file changes', async () => {
+  // The asset copy walks every filesystem content root and rewrites every
+  // media file it finds. syncContentFromStorage runs on the websocket event
+  // path (router.ts consults three TTL-cached content indexes per field
+  // write), so a copy per call put that walk between a keystroke and its
+  // ack. A no-op scan must not copy.
+  const tmpDir = path.join(process.cwd(), 'content', '_test_assets_' + Date.now());
+  const olxDir = path.join(tmpDir, 'assetcourse');
+  await fs.mkdir(olxDir, { recursive: true });
+  const copiedAsset = path.join(
+    process.cwd(), 'apps/server/public/content/assetcourse/pixel.png');
+
+  try {
+    await fs.writeFile(path.join(olxDir, 'lesson.olx'), '<Markdown id="a">Hi</Markdown>');
+    // A 1x1 PNG — content is irrelevant, only that the copy walk sees it.
+    await fs.writeFile(path.join(olxDir, 'pixel.png'), Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8AAAwAB'
+      + 'AQEAdvzUAAAAAElFTkSuQmCC', 'base64'));
+
+    const provider = new FileStorageProvider(tmpDir);
+    const copies = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const copyCount = () => copies.mock.calls
+      .filter(([msg]) => typeof msg === 'string' && msg.includes('Assets copied')).length;
+
+    // First sync: the OLX file is ADDED, so assets copy.
+    await syncContentFromStorage(provider);
+    expect(copyCount()).toBe(1);
+
+    // Second sync with nothing touched: no copy.
+    copies.mockClear();
+    await syncContentFromStorage(provider);
+    expect(copyCount()).toBe(0);
+
+    // A content edit copies again. (mtime granularity can be coarse; nudge
+    // the clock to guarantee the scan sees a change.)
+    await new Promise(r => setTimeout(r, 20));
+    await fs.writeFile(path.join(olxDir, 'lesson.olx'), '<Markdown id="a">Hello</Markdown>');
+    copies.mockClear();
+    await syncContentFromStorage(provider);
+    expect(copyCount()).toBe(1);
+
+    copies.mockRestore();
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.rm(path.dirname(copiedAsset), { recursive: true, force: true });
+  }
+});

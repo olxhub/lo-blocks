@@ -206,6 +206,13 @@ export async function defaultContentProviders(): Promise<StorageProvider> {
   ]);
 }
 
+/** Did the scan see anything added, changed, or removed on disk? */
+function scanFoundChanges(scan: XmlScanResult): boolean {
+  return Object.keys(scan.added).length > 0
+    || Object.keys(scan.changed).length > 0
+    || Object.keys(scan.deleted).length > 0;
+}
+
 export async function syncContentFromStorage(
   provider?: StorageProvider
 ) {
@@ -217,8 +224,26 @@ export async function syncContentFromStorage(
   // Steps 1-4 (scan, promote deps, remove stale, parse) happen inside applyFileChanges
   _snapshot = await applyFileChanges(_snapshot, scan, provider);
 
-  // Step 5: Sync static assets
-  await copyAssetsToPublic(provider);
+  // Step 5: Sync static assets — only when this scan found file changes.
+  //
+  // The copy walks every filesystem content root and rewrites every
+  // image/video/PDF it finds (~30ms for ~7MB across the fall-pilot
+  // repos). This function runs on the WEBSOCKET EVENT PATH: router.ts
+  // consults the TTL-cached field-level, grouping and aggregation
+  // indexes (fieldLevels.ts, partitions.ts, aggregations.ts) for every
+  // field write, and each index rebuilds itself from a sync — so an
+  // unconditional copy re-ran the whole walk several times a second
+  // while a student typed, printing "Assets copied" each time and
+  // adding that latency to every keystroke that happened to land on a
+  // TTL expiry.
+  //
+  // Nothing to copy has changed unless a file changed, so gate on the
+  // scan. Media files are NOT in the scan (it collects
+  // CATEGORY.content extensions; assets are CATEGORY.media), so an
+  // asset REPLACED in place with no accompanying content edit is not
+  // re-copied until some content file changes or the process restarts:
+  // touch the OLX that references it, or run `npm run build:sync-images`.
+  if (scanFoundChanges(scan)) await copyAssetsToPublic(provider);
 
   return {
     parsed: { ..._snapshot.parsedFiles },
