@@ -4,7 +4,7 @@ import { test, expect } from 'vitest';
 import { parse } from './_textSelectionParser';
 import {
   expectedSelections, computeStats, scoreFromStats, targetedFeedbackItems,
-  projectParse, projectChunks, applyGesture, toggleChunks,
+  projectParse, projectChunks, applyGesture, toggleChunks, anchorChanged,
   type ParsedDocument,
 } from './textSelectionModel';
 
@@ -622,6 +622,39 @@ for (const row of GESTURE_TABLE) {
   test(`token gesture: ${row.name}`, () => {
     const next = applyGesture(new Set(row.before), new Set(row.touched), row.anchor);
     expect([...next].sort((a, b) => a - b)).toEqual(row.after);
+  });
+}
+
+// --- The gesture anchor is written only when it CHANGES --------------------
+//
+// The anchor is a Redux field, so a write is an event in the log. The
+// container clears it on EVERY mousedown (capture phase) and a word sets it on
+// the ones that land on a word, so without a gate a click on whitespace after
+// a finished gesture would log null over null. The gate bounds the log to the
+// transitions that mean something.
+const ANCHOR_WRITE_TABLE: {
+  name: string;
+  current: number | null;
+  next: number | null;
+  writes: boolean;
+}[] = [
+  { name: 'a mousedown landing on a word after a finished gesture writes the anchor',
+    current: null, next: 3, writes: true },
+  { name: 'a mousedown landing on whitespace after a finished gesture writes nothing',
+    current: null, next: null, writes: false },
+  { name: 'the end of a gesture clears the anchor it set',
+    current: 3, next: null, writes: true },
+  { name: 'a mousedown on a different word re-anchors',
+    current: 3, next: 5, writes: true },
+  { name: 'a mousedown on the same word again writes nothing',
+    current: 3, next: 3, writes: false },
+  { name: 'word 0 is a real anchor, not an absent one',
+    current: null, next: 0, writes: true },
+];
+
+for (const row of ANCHOR_WRITE_TABLE) {
+  test(`anchor write: ${row.name}`, () => {
+    expect(anchorChanged(row.current, row.next)).toBe(row.writes);
   });
 }
 

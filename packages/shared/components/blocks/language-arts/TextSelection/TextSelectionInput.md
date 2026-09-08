@@ -177,6 +177,14 @@ Passage content is provided inline **or** via `src` (not both).
 ## State Fields
 
 - `selections`: the current selection as an array of word indices (the value).
+- `gestureAnchor`: the word index a mousedown began on, or `null` between
+  gestures and when one began on whitespace. It decides whether a token-mode
+  drag selects or clears the span it touches; the log therefore records which
+  end of a span the learner dragged from. Written once per mousedown and
+  cleared when the gesture ends.
+
+Hover is not state: the dashed outline on the chunk under the pointer is a
+`:hover` rule in `textselection.css`.
 
 ## Related Blocks
 

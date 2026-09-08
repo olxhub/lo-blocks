@@ -27,7 +27,24 @@ import type { RuntimeProps } from '@/lib/types';
 // The field is named `selections` (not `value`) because that names what the
 // value IS — the array of selected word indices. `value` would also collide with
 // the selector namespace below, where the `value` getter reads this very field.
-export const fields = state.fields(['selections']);
+//
+// `gestureAnchor` holds the word index a mousedown began on, or null when the
+// gesture began on whitespace or no gesture is in flight. It decides whether a
+// token-mode drag SELECTS or CLEARS the span it touches, and it clears when the
+// gesture ends.
+//
+// It is a FIELD, not React local state, because that is the platform's
+// contract: block state lives in Redux through declared fields, so every value
+// is persisted and every change is logged. The anchor is logic — which end of a
+// span a drag started from is what makes a corrective drag corrective, and it
+// is exactly what a reader of the event log needs to replay the gesture. Local
+// state would drop it on the floor. Drag bookkeeping in the same shape:
+// SortableInput.ts:11-15 (`draggedItem` / `dragOverIndex`).
+//
+// Hover is deliberately NOT here: the chunk outline under the pointer is
+// presentation, so it is a `:hover` rule in textselection.css and reaches no
+// store at all.
+export const fields = state.fields(['selections', 'gestureAnchor']);
 
 // Getters run inside useSelector subscriptions; a fresh [] per call would
 // defeat the equality gate and re-render every dispatch while unanswered.

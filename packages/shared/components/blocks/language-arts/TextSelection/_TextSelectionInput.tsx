@@ -28,13 +28,14 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useFieldState } from '@/lib/state';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useFieldState, getDecodedField } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
 import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import {
   projectParse, chunkProjection, targetedFeedbackItems, applyGesture, toggleChunks,
+  anchorChanged,
   type Chunk, type ParsedDocument, type Token, type WordToken,
 } from './textSelectionModel';
 
@@ -93,11 +94,24 @@ export default function TextSelectionInput(props: RuntimeProps) {
   const wordRefs = useRef(new Map<number, HTMLElement>());
   const isSelecting = useRef(false);
   const liveBrowserSelection = useRef(new Set<number>());
-  // The word the pointer went down on — the gesture's anchor, which decides
-  // whether a token-mode drag selects or clears. Null when the gesture began on
-  // whitespace.
-  const gestureAnchor = useRef<number | null>(null);
-  const [hoveredChunk, setHoveredChunk] = useState<number | null>(null);
+
+  // The gesture's anchor lives in the store, as a declared field
+  // (TextSelectionInput.ts) rather than local state, so the platform persists
+  // and logs it like every other piece of block state.
+  const [, setGestureAnchor] = useFieldState(props, props.fields.gestureAnchor, null);
+  // Read from the store, not from the subscribed value above: a word's
+  // mousedown writes the anchor in the same synchronous event that arms the
+  // gesture's finalizer, so the finalizer's closure — and the render that
+  // paints the live preview — must see the write that just happened rather than
+  // the value the last render captured. Level 2 is the whole value here; the
+  // field has no blueprint getter.
+  const anchorNow = (): number | null =>
+    getDecodedField<number | null>(props, props.fields.gestureAnchor, { fallback: null });
+  // One event per transition, so the log holds the gesture and not the pointer.
+  const setAnchor = (next: number | null) => {
+    if (anchorChanged(anchorNow(), next)) setGestureAnchor(next);
+  };
+
   const [, forceUpdate] = React.useReducer(x => x + 1, 0);
   // The document-level mouseup that finalizes the current gesture, held so it can
   // be removed on the next mousedown or on unmount (F1: releasing outside the
@@ -135,7 +149,7 @@ export default function TextSelectionInput(props: RuntimeProps) {
 
   // One gesture, applied by whichever rule this input's mode uses.
   const applyTouched = (base: Set<number>, touched: Set<number>): Set<number> =>
-    chunks ? toggleChunks(base, chunksTouchedBy(touched)) : applyGesture(base, touched, gestureAnchor.current);
+    chunks ? toggleChunks(base, chunksTouchedBy(touched)) : applyGesture(base, touched, anchorNow());
 
   const handleWordClick = (wordIndex: number) => {
     if (locked || wordIndex < 0) return;
@@ -176,10 +190,12 @@ export default function TextSelectionInput(props: RuntimeProps) {
       finalizeGesture.current = null;
       const sel = window.getSelection();
       if (!sel || sel.toString().length === 0) {
+        setAnchor(null); // the gesture is over; the anchor outlives nothing
         forceUpdate(); // a bare click (the click handler commits it); drop the preview
         return;
       }
       setSelected(applyTouched(selected, readBrowserSelection()));
+      setAnchor(null);
       // Clear the native highlight so only our styling shows.
       setTimeout(() => window.getSelection()?.removeAllRanges(), 10);
     };
@@ -267,15 +283,15 @@ export default function TextSelectionInput(props: RuntimeProps) {
     };
   };
 
-  // A chunk is outlined as a whole: solid when selected, dashed on hover.
+  // A chunk is outlined as a whole when it is selected. The dashed HOVER
+  // outline is a `:hover` rule on .text-chunk-live (textselection.css) — no
+  // state of any kind — and the inline outline below deliberately wins over it,
+  // so hovering a selected chunk keeps the solid outline.
   const chunkStyle = (chunk: Chunk): React.CSSProperties => {
     const isSelected = chunk.wordIndices.every(i => effectiveSelection.has(i));
-    const isHovered = !locked && hoveredChunk === chunk.index;
     return {
       backgroundColor: isSelected && !showAnswer ? 'var(--lo-bg-muted)' : '',
-      outline: isSelected
-        ? '2px solid var(--lo-border-strong)'
-        : (isHovered ? '2px dashed var(--lo-border-strong)' : ''),
+      outline: isSelected ? '2px solid var(--lo-border-strong)' : '',
       outlineOffset: '1px',
       borderRadius: '4px',
       cursor: locked ? 'default' : 'pointer',
@@ -292,7 +308,7 @@ export default function TextSelectionInput(props: RuntimeProps) {
           if (el) wordRefs.current.set(token.index, el);
           else wordRefs.current.delete(token.index);
         }}
-        onMouseDown={() => { gestureAnchor.current = token.index; }}
+        onMouseDown={() => { setAnchor(token.index); }}
         onClick={chunks ? undefined : () => handleWordClick(token.index)}
         style={wordStyle(token)}
       >
@@ -316,7 +332,7 @@ export default function TextSelectionInput(props: RuntimeProps) {
 
       <div
         className="text-content mb-4 text-base leading-relaxed"
-        onMouseDownCapture={() => { gestureAnchor.current = null; }}
+        onMouseDownCapture={() => { setAnchor(null); }}
         onMouseDown={handleMouseDown}
         style={{ WebkitUserSelect: 'text', MozUserSelect: 'text', userSelect: 'text' }}
       >
@@ -327,14 +343,14 @@ export default function TextSelectionInput(props: RuntimeProps) {
             <React.Fragment key={chunk.index}>
               {position > 0 && ' '}
               <span
-                className="text-chunk"
+                // .text-chunk-live is the hover affordance: a locked passage is
+                // a reference, not an input, so it does not get one.
+                className={locked ? 'text-chunk' : 'text-chunk text-chunk-live'}
                 role="button"
                 tabIndex={locked ? -1 : 0}
                 aria-pressed={chunk.wordIndices.every(i => effectiveSelection.has(i))}
                 onClick={() => handleChunkClick(chunk)}
                 onKeyDown={(event) => handleChunkKeyDown(event, chunk)}
-                onMouseEnter={() => setHoveredChunk(chunk.index)}
-                onMouseLeave={() => setHoveredChunk(null)}
                 style={chunkStyle(chunk)}
               >
                 {chunk.tokens.map(renderToken)}

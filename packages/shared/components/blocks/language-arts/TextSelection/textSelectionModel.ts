@@ -646,3 +646,20 @@ export function toggleChunks(committed: Set<number>, touched: Chunk[]): Set<numb
   }
   return next;
 }
+
+// --- Writing the gesture anchor ----------------------------------------------
+
+/**
+ * The write-on-change gate for `gestureAnchor`: true when the store actually
+ * has something new to record.
+ *
+ * The anchor lives in Redux, so every write is an event in the log, and the
+ * pointer offers a write more often than it changes anything -- the container's
+ * capture-phase handler clears the anchor on EVERY mousedown, including the
+ * ones that land on whitespace with the anchor already clear. Gating on the
+ * value bounds the log to the transitions that mean something: one event per
+ * mousedown that lands on a word, one when the gesture ends.
+ */
+export function anchorChanged(current: number | null, next: number | null): boolean {
+  return current !== next;
+}
