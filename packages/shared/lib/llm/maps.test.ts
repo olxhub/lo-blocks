@@ -5,6 +5,7 @@ import {
   satisfiedMap,
   parseSlots,
   parseForbid,
+  buildSlotSchema,
   scoreSlotSheet,
 } from './slotSheet';
 
@@ -96,5 +97,33 @@ describe('maps: one pick, several named verdicts', () => {
     const satMap = satisfiedMap(SLOTS, { b1_basis: { verdict: 'consequence' } },
                                 [], [], [], [], [], [], [r]);
     expect(satMap.behavior_1).toBe(false);         // what we actually meant
+  });
+});
+
+// THE ONE COMPUTED PRIMITIVE THAT WAS STILL ASKED FOR. buildSlotSchema took
+// `maps` as its tenth parameter, LLMAction.ts passed it, and the name appeared
+// exactly once inside the function -- its own declaration. It was never added to
+// the `computed` set, so the schema handed the model a `behavior_1` property
+// while the prompt two sections earlier said "DO NOT ANSWER `behavior_1`". The
+// model obliged often enough to measure: 1c/legend 19 of 120 recorded verdicts
+// off their own map, Q4a/antecedent_* 21-23, Q2 4-9, against python's 0 of 120
+// on every artifact, because python COMPUTES it.
+//
+// This is NOT the withdrawn fix. Dropping a mapped slot from `slots=` would
+// leave satisfiedMap's byKeySpec lookup undefined, so out[key] = false and the
+// points get CHARGED. Only the response schema changes here.
+describe('the mapped check is not asked for', () => {
+  it('is absent from the schema properties and required list', () => {
+    const schema: any = buildSlotSchema(SLOTS, [], [], [], false, [], {}, [], [],
+                                        parseMaps(SPEC));
+    const props = schema.properties.checks.properties;
+    expect(Object.keys(props)).not.toContain('behavior_1');
+    expect(schema.properties.checks.required).not.toContain('behavior_1');
+    expect(Object.keys(props)).toContain('b1_basis');
+  });
+
+  it('is still asked for when no maps rule names it', () => {
+    const schema: any = buildSlotSchema(SLOTS);
+    expect(Object.keys(schema.properties.checks.properties)).toContain('behavior_1');
   });
 });
