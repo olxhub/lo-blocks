@@ -1095,7 +1095,7 @@ export function buildSlotSchema(
 ): Record<string, unknown> {
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
                             ...counts.flatMap(g => g.slots), ...expect.map(r => r.key),
-                            ...forbid.map(r => r.key), ...maps.map(r => r.key)]);
+                            ...forbid.map(r => r.key)]);
   // Which list each cover member has to choose from. The enum is the group's
   // own labels, so this generalises to any number of them — two, or twelve —
   // without the engine knowing how many. `none` is always available: "I named
