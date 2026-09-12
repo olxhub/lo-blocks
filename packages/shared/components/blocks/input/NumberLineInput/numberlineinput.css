@@ -1,0 +1,121 @@
+/* NumberLineInput — a native range input with a layer of labeled ticks.
+ *
+ * Everything is laid out with LOGICAL properties (inset-inline-start,
+ * margin-inline, padding-inline) so the line mirrors correctly under
+ * dir="rtl" along with the native range element itself. No `left`/`right`
+ * anywhere — a physical offset here would put the ticks on the wrong side
+ * of an RTL page while the thumb moved the other way.
+ */
+
+.lo-tag-numberlineinput .lo-numberline {
+  padding-block: var(--lo-space-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input {
+  inline-size: 100%;
+  margin: 0;
+  accent-color: var(--lo-primary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled {
+  cursor: not-allowed;
+  accent-color: var(--lo-border-strong);
+}
+
+/* The focus ring must survive any custom track/thumb styling: it is drawn
+ * on the control itself, outside its box, with the theme's ring tokens. */
+.lo-tag-numberlineinput .lo-numberline__input:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+  box-shadow: var(--lo-focus-ring-shadow);
+  border-radius: var(--lo-radius-sm);
+}
+
+/* Unanswered: the thumb rests at `initial=` but must not read as an answer,
+ * so it is hollow until the learner writes the field. */
+.lo-tag-numberlineinput .lo-numberline[data-unset="true"] .lo-numberline__input {
+  accent-color: var(--lo-bg);
+  opacity: 0.75;
+}
+
+.lo-tag-numberlineinput .lo-numberline[data-unset="true"] .lo-numberline__input::-webkit-slider-thumb {
+  background: var(--lo-bg);
+  border: 2px solid var(--lo-border-strong);
+}
+
+.lo-tag-numberlineinput .lo-numberline[data-unset="true"] .lo-numberline__input::-moz-range-thumb {
+  background: var(--lo-bg);
+  border: 2px solid var(--lo-border-strong);
+}
+
+/* The tick layer. Positioned, so every mark inside it (ticks, reference)
+ * resolves its inset against THIS box and not some scrolled ancestor. */
+.lo-tag-numberlineinput .lo-numberline__marks {
+  position: relative;
+  min-block-size: var(--lo-space-2xl);
+  margin-inline: var(--lo-space-sm);
+}
+
+/* The renderer wraps each child block in its own element; it must not
+ * become the containing block for the tick's own absolute position. */
+.lo-tag-numberlineinput .lo-numberline__marks .lo-tag-tick {
+  position: static;
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick,
+.lo-tag-numberlineinput .lo-numberline__reference {
+  position: absolute;
+  inset-block-start: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: max-content;
+  max-inline-size: 8rem;
+  text-align: center;
+}
+
+/* translateX is physical; mirror it so a tick stays centred in RTL. */
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline-tick,
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__reference {
+  transform: translateX(50%);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__mark {
+  inline-size: 1px;
+  block-size: var(--lo-space-sm);
+  background: var(--lo-border-strong);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__label {
+  font-size: var(--lo-font-size-sm);
+  line-height: var(--lo-line-height-tight);
+  color: var(--lo-text-secondary);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__label p {
+  margin: 0;
+}
+
+/* The fixed marker: "where you are now" while the thumb says something
+ * else. Visually distinct from a tick, and never draggable. */
+.lo-tag-numberlineinput .lo-numberline__reference-mark {
+  inline-size: 2px;
+  block-size: var(--lo-space-lg);
+  background: var(--lo-secondary);
+  border-radius: var(--lo-radius-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__reference-label {
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text-muted);
+}
+
+.lo-tag-numberlineinput .lo-numberline__value {
+  display: inline-block;
+  margin-inline-start: var(--lo-space-sm);
+  font-size: var(--lo-font-size-sm);
+  color: var(--lo-text);
+}
