@@ -29,7 +29,7 @@ Inputs and graders communicate through a simple interface: inputs provide values
 |-------|-------------|
 | `NumberInput` | Text field for numeric entry |
 | `ChoiceInput` | Dropdown or radio returning numeric value |
-| (future) Slider, NumberLine, etc. | Any component returning a number |
+| `NumberLineInput` | A position dragged on a labeled number line |
 
 ### Common Pairs
 
@@ -41,7 +41,7 @@ Inputs and graders communicate through a simple interface: inputs provide values
 | `SortableInput` | `SortableGrader` | Ordering tasks |
 | `LineInput` | (custom) | Text answers |
 
-This decoupling means you can swap inputs without changing graders. A numeric slider and a text input can both feed `NumericalGrader`.
+This decoupling means you can swap inputs without changing graders. A number line and a text input can both feed `NumericalGrader`.
 
 ### Wiring Inputs to Graders
 

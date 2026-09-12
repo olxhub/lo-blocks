@@ -15,7 +15,10 @@ const NumericalGrader = createGrader({
   base: 'Numerical',
   description: 'Grades numeric answers with tolerance for rounding and formatting variations',
   match: numericalMatch,
-  inputSchema: z.string(),  // Single string input
+  // One value, typed or dragged. numericalMatch takes `string | number`
+  // and parseComplex handles both, so the declaration says both: a
+  // NumberLineInput hands over a number, a NumberInput a string.
+  inputSchema: z.union([z.string(), z.number()]),
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
     tolerance: ToleranceSchema.optional(),
