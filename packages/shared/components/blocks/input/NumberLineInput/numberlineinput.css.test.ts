@@ -1,6 +1,6 @@
 // packages/shared/components/blocks/input/NumberLineInput/numberlineinput.css.test.ts
 //
-// Two CSS invariants this block cannot be correct without, and which no
+// The CSS invariants this block cannot be correct without, and which no
 // render test would catch (jsdom does no layout):
 //
 // 1. LOGICAL positioning only. The native range mirrors itself under
@@ -11,6 +11,15 @@
 // 2. A visible :focus-visible ring. Custom track and thumb styling is the
 //    usual way a slider loses its focus ring, and a slider with no visible
 //    focus is unusable by keyboard.
+//
+// 3. The control draws its own track and thumb. A native range is painted
+//    from `accent-color`, which colours track and thumb together: styling
+//    the unanswered state that way made the whole line disappear into the
+//    page background. appearance: none plus both vendors' track and thumb
+//    pseudo-elements is what keeps the states independent.
+//
+// 4. Anchored endpoints. `data-edge` is set by _Tick.tsx; without the rules
+//    that consume it the labels at min and max are clipped in half.
 //
 import fs from 'fs';
 import path from 'path';
@@ -30,6 +39,25 @@ describe('numberlineinput.css', () => {
 
   it('draws a focus ring that survives the custom control styling', () => {
     expect(css).toMatch(/:focus-visible\s*\{[^}]*outline\s*:/);
+  });
+
+  it('draws its own control rather than letting the engine paint it', () => {
+    expect(css).toMatch(/\.lo-numberline__input\s*\{[^}]*appearance:\s*none/);
+    // Both engines, or the line is unstyled in one of them.
+    expect(css).toMatch(/::-webkit-slider-runnable-track\s*\{/);
+    expect(css).toMatch(/::-moz-range-track\s*\{/);
+  });
+
+  it('never recolours the unanswered state with accent-color', () => {
+    // accent-color paints the track fill AND the thumb; setting it to the
+    // page background to say "unanswered" erased the whole control.
+    const unsetRules = css.match(/\[data-unset[^{]*\{[^}]*\}/g) ?? [];
+    expect(unsetRules.join('\n')).not.toMatch(/accent-color/);
+  });
+
+  it('anchors the endpoint ticks so their labels are not clipped', () => {
+    expect(css).toMatch(/\[data-edge="start"\][^{]*\{[^}]*transform:/);
+    expect(css).toMatch(/\[data-edge="end"\][^{]*\{[^}]*transform:/);
   });
 
   it('gives the tick layer its own containing block', () => {

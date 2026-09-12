@@ -276,6 +276,18 @@ describe('NumberLineInput: expressions', () => {
       .map(el => (el as HTMLElement).style.getPropertyValue('inset-inline-start'));
     expect(positions).toEqual(['0%', '10%', '50%', '100%']);
   });
+
+  // A tick centred on its position hangs half its label off the end of the
+  // line, where the enclosing panel clips it. The endpoints say so, and the
+  // stylesheet anchors them inward; everything between stays centred.
+  it('flags the ticks at min and max so their labels can anchor inward', async () => {
+    const { container } = await mountOLXString(
+      line('nl_edges', 'min="0" max="100" step="1"', UNEVEN_TICKS), 'nl-edges');
+
+    const edges = Array.from(container.querySelectorAll('.lo-numberline-tick'))
+      .map(el => el.getAttribute('data-edge'));
+    expect(edges).toEqual(['start', null, null, 'end']);
+  });
 });
 
 describe('NumberLineInput: parse-time errors', () => {

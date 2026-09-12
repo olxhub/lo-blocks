@@ -153,8 +153,12 @@ On top of that:
   translated course reads correctly.
 - The tick layer is positioned with logical properties, and the focus ring is
   drawn with the theme's focus tokens so it survives custom track styling.
-- An unanswered line shows a hollow thumb: the thumb has to rest somewhere,
-  and it must not look like an answer the learner gave.
+- An unanswered line shows a hollow thumb on a fully visible track: the thumb
+  has to rest somewhere, and it must not look like an answer the learner gave,
+  but the scale itself is still there to be read.
+- The labels on the end ticks anchor inward from their mark rather than
+  straddling it, so the first and last words of a scale are never clipped by
+  the edge of the line or of the panel around it.
 - Touching or focusing-and-keying the line at its resting position counts as
   choosing it, so a learner who means the midpoint of a Likert can click the
   thumb where it already sits (or press Home at `min`) and still answer.

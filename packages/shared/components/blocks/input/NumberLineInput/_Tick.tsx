@@ -29,10 +29,20 @@ export default function Tick(props: RuntimeProps) {
     );
   }
 
+  // A tick is centred on its position, which puts half of an ENDPOINT label
+  // outside the line and into the clip of whatever panel holds it. The two
+  // ends are flagged here and anchored in CSS so their labels grow inward;
+  // the mark itself stays on the position either way.
+  const value = Number(props.value);
+  const edge = value === Number(line.min) ? 'start'
+    : value === Number(line.max) ? 'end'
+    : undefined;
+
   return (
     <span
       className="lo-numberline-tick"
-      style={{ insetInlineStart: `${line.percentOf(Number(props.value))}%` }}
+      data-edge={edge}
+      style={{ insetInlineStart: `${line.percentOf(value)}%` }}
     >
       <span className="lo-numberline-tick__mark" aria-hidden="true" />
       <span className="lo-numberline-tick__label">{kids}</span>
