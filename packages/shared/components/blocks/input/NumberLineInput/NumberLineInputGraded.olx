@@ -1,0 +1,17 @@
+<CapaProblem id="NumberLineInputGradedDemo" title="Water on Earth" lockInput="attempted">
+  <NumericalGrader id="water_grader" answer="71" tolerance="3">
+    <Markdown id="water_prompt">About what percent of Earth's surface is covered by water?</Markdown>
+    <NumberLineInput id="water_estimate" min="0" max="100" step="1" snap="step" initial="0" showValue="true">
+      <Tick value="0"   label="none"       > 0%   </Tick>
+      <Tick value="50"  label="half"       > 50%  </Tick>
+      <Tick value="100" label="everything" > 100% </Tick>
+    </NumberLineInput>
+  </NumericalGrader>
+  <DemandHints id="water_hints">
+    <Hint id="water_hint_land">Land is the smaller share — by a lot.</Hint>
+    <Hint id="water_hint_range">It is somewhere between two thirds and three quarters.</Hint>
+  </DemandHints>
+  <Explanation id="water_explanation">
+Water covers about 71% of Earth's surface; the oceans alone account for roughly 96.5% of that water.
+  </Explanation>
+</CapaProblem>
