@@ -11,6 +11,14 @@
 // A five-step Likert item is this block with five labeled ticks and
 // snap="ticks"; a continuum is the same block with endpoint ticks only.
 //
+// TODO(shorthand): plain numeric ticks are the common case, and three <Tick>
+// children for 0% / 50% / 100% is verbose. Planned, following Perseus's
+// number-line vocabulary: tickStep="25" or ticks="0 50 100" generate
+// number-labeled ticks (locale-formatted); unit="%" is appended to generated
+// labels; labelTicks="false" draws bare marks; a <Tick> child at a generated
+// value replaces it. The value contract does not change. If this is not done
+// before the merge to main, it is a review item there.
+//
 import { z } from 'zod';
 import { core, input } from '@/lib/blocks';
 import * as state from '@/lib/state';
