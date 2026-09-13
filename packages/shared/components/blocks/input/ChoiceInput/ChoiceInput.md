@@ -18,6 +18,12 @@ Creates multiple choice questions using Key (correct) and Distractor (incorrect)
 
 ## Properties
 - `id` (recommended): Unique identifier for the input
+- `reverseCoded` (`"true"`/`"false"`, default `false`): Mark this item
+  **reverse-coded** — the psychometric sense: agreeing with it means the
+  opposite of agreeing with the rest of the scale. The [default-code
+  table](#default-codes) is negated for this item's options, so a reversed
+  Likert item needs no per-option `code=` at all. Recording only; it is not a
+  score and not a grade. See [Reverse-coded items](#reverse-coded-items).
 
 ## Child Blocks
 - **Key**: Correct answer option(s) - supports optional `value` and `code` attributes
@@ -65,38 +71,45 @@ and underscores treated alike:
 
 A value the table does not know has no code, and `@inputId.code` reads
 `undefined` rather than a guessed number. An explicit `code` always wins; when
-an explicit code disagrees with the table's, the parser prints a warning (a
-likely typo) and uses the explicit code anyway. Reversed items are the
-exception and stay quiet: an explicit code that is exactly the table's value
-*negated* — `strongly_agree` coded `-2` — is a reversal, not a mistake.
+an explicit code disagrees with the effective default, the parser prints a
+warning (a likely typo) and uses the explicit code anyway.
+
+Nothing is exempt from that warning, **including a flipped sign** — a dropped
+minus in a column of signed numbers is the easiest typo there is, and the one
+the guard is best placed to catch. A reversal is declared on the item instead,
+with `reverseCoded`, and the warning is measured against the negated table
+from then on.
 
 The table is a breadcrumb toward inferring more of an option from less
 authoring — see `INFERENCE.md` in this directory for the intended chain and
 what is missing today. Content that cares about its numbers should write
 `code=` explicitly: the content file is the record of what the numbers mean.
 
-### Likert items, with a reversal
+### Reverse-coded items
 
 Codes exist so that a reversed item can be reversed **on the item**, once,
-instead of in every consumer of the data. Both items below store the learner's
-literal answer as `value`; only the codes differ.
+instead of in every consumer of the data. `reverseCoded="true"` says the item
+is reverse-coded and negates the default table for its options — `agree` →
+-1, `strongly_disagree` → 2 — so a reversed Likert item needs no per-option
+`code=` at all. Both items below store the learner's literal answer as
+`value`; only the codes differ.
 
 ```olx:playground
 <Vertical id="likert_mindset">
   <Markdown>*I can get better at writing if I work at it.*</Markdown>
   <ChoiceInput id="likert_growth">
-    <Key id="likert_growth_strongly_agree" value="strongly_agree" code="2">Strongly agree</Key>
-    <Key id="likert_growth_agree" value="agree" code="1">Agree</Key>
-    <Key id="likert_growth_disagree" value="disagree" code="-1">Disagree</Key>
-    <Key id="likert_growth_strongly_disagree" value="strongly_disagree" code="-2">Strongly disagree</Key>
+    <Key id="likert_growth_strongly_agree" value="strongly_agree">Strongly agree</Key>
+    <Key id="likert_growth_agree" value="agree">Agree</Key>
+    <Key id="likert_growth_disagree" value="disagree">Disagree</Key>
+    <Key id="likert_growth_strongly_disagree" value="strongly_disagree">Strongly disagree</Key>
   </ChoiceInput>
 
-  <Markdown>*Either you are a writer or you are not.* (reversed)</Markdown>
-  <ChoiceInput id="likert_fixed">
-    <Key id="likert_fixed_strongly_agree" value="strongly_agree" code="-2">Strongly agree</Key>
-    <Key id="likert_fixed_agree" value="agree" code="-1">Agree</Key>
-    <Key id="likert_fixed_disagree" value="disagree" code="1">Disagree</Key>
-    <Key id="likert_fixed_strongly_disagree" value="strongly_disagree" code="2">Strongly disagree</Key>
+  <Markdown>*Either you are a writer or you are not.* (reverse-coded)</Markdown>
+  <ChoiceInput id="likert_fixed" reverseCoded="true">
+    <Key id="likert_fixed_strongly_agree" value="strongly_agree">Strongly agree</Key>
+    <Key id="likert_fixed_agree" value="agree">Agree</Key>
+    <Key id="likert_fixed_disagree" value="disagree">Disagree</Key>
+    <Key id="likert_fixed_strongly_disagree" value="strongly_disagree">Strongly disagree</Key>
   </ChoiceInput>
 
   <Markdown>Coded: {{@likert_growth.code}} and {{@likert_fixed.code}}</Markdown>
@@ -107,6 +120,28 @@ A learner who agrees with both answers `agree` twice, and is recorded as `1`
 and `-1` — which is the point. Every option is a `Key` here because nothing is
 wrong: `Key`/`Distractor` is a grading distinction, and this instrument is not
 graded.
+
+Content that cares about its numbers may write both — `reverseCoded` on the
+item for the intent, explicit reversed codes on the options for the record:
+
+```olx:code
+<ChoiceInput id="likert_fixed_explicit" reverseCoded="true">
+  <Key id="likert_fixed_explicit_strongly_agree" value="strongly_agree" code="-2">Strongly agree</Key>
+  <Key id="likert_fixed_explicit_agree" value="agree" code="-1">Agree</Key>
+  <Key id="likert_fixed_explicit_disagree" value="disagree" code="1">Disagree</Key>
+  <Key id="likert_fixed_explicit_strongly_disagree" value="strongly_disagree" code="2">Strongly disagree</Key>
+</ChoiceInput>
+```
+
+Each code here is the negated default, so the typo guard stays quiet — and a
+sign flip in *either* the attribute or one of the codes would make the two
+disagree and warn.
+
+> **Booleans reverse badly.** The negation is plain arithmetic, so under
+> `reverseCoded` the boolean family gives `true` → -1 and `false` → 0 (zero
+> is its own negation). That is rarely what anyone means, which is why a
+> reversed true/false or yes/no item should carry explicit `code=` values
+> rather than lean on the table.
 
 ## Pedagogical Purpose
 

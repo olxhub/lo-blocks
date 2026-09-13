@@ -101,6 +101,32 @@ left as a hole, so `codes` can be shorter than `value` — which keeps a sum of
 codes a sum of what is actually coded. A code must be a finite number;
 anything else is a parse error.
 
+### Reverse-coded items
+
+`reverseCoded="true"` marks the item **reverse-coded** — the psychometric
+sense: agreeing with it means the opposite of agreeing with the rest of the
+scale. The default-code table is negated for that item's options, so a
+reversed checklist needs no per-option `code=` at all:
+
+```olx:code
+<CheckboxInput id="doubts_checklist" reverseCoded="true">
+  <Key id="doubts_checklist_strongly_agree" value="strongly_agree">Strongly agree</Key>
+  <Key id="doubts_checklist_agree" value="agree">Agree</Key>
+  <Key id="doubts_checklist_neutral" value="neutral">Neutral</Key>
+  <Key id="doubts_checklist_disagree" value="disagree">Disagree</Key>
+</CheckboxInput>
+```
+
+Checking those four in order reads `@doubts_checklist.codes` as
+`[-2, -1, 0, 1]`. An explicit `code` still wins, and the parse-time typo
+warning is measured against the negated default — so a reversed item written
+with both `reverseCoded` and explicit reversed codes stays quiet, and a sign
+flip in either one warns. It is recording, not grading: `CheckboxGrader` is
+untouched by any of this. See
+[ChoiceInput.md](ChoiceInput.md#reverse-coded-items) for the whole story,
+including why the boolean family (`true`/`false`, `yes`/`no`) reverses badly
+and should carry explicit codes.
+
 ## How It Works
 
 1. `CheckboxInput` collects selections as an array
@@ -114,6 +140,6 @@ anything else is a parse error.
 - `Distractor` - marks wrong answers
 
 Blueprint note: `CheckboxInput` exposes `value` (the checked values) and
-`codes` (their codes). `ChoiceInput`, being single-select, exposes `value` and
+`codes` (their codes), and takes `reverseCoded` exactly as `ChoiceInput` does. `ChoiceInput`, being single-select, exposes `value` and
 `code`.
 
