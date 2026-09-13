@@ -2,7 +2,9 @@
 
 This document defines the syntax for the state language expression system.
 Lines starting with `>>>` are test cases. The following lines (until blank or next `>>>`)
-are the expected AST output.
+are the expected AST output. Lines starting with `!!!` are the opposite: input
+that MUST NOT parse, because the spelling is reserved for a future meaning or
+because it is malformed.
 
 ## Sigil References
 
@@ -211,6 +213,64 @@ one you want for gating:
 { "type": "Call", "callee": { "type": "Identifier", "name": "isTruthy" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "flag", "fields": ["value"] }] }
 
 >>> isTruthy(@done.value) === @done.value
+
+## Array Literals
+
+A list written out by the author. Elements are full expressions, so refs,
+nested literals and calls all work:
+
+>>> [1, 2]
+{ "type": "Array", "elements": [{ "type": "Number", "value": 1 }, { "type": "Number", "value": 2 }] }
+
+>>> []
+{ "type": "Array", "elements": [] }
+
+>>> [[1, 2], [3]]
+{ "type": "Array", "elements": [{ "type": "Array", "elements": [{ "type": "Number", "value": 1 }, { "type": "Number", "value": 2 }] }, { "type": "Array", "elements": [{ "type": "Number", "value": 3 }] }] }
+
+A trailing comma is allowed (JS, not JSON) — these lists are hand-edited in
+XML attributes and diffed line by line:
+
+>>> [1, 2,]
+{ "type": "Array", "elements": [{ "type": "Number", "value": 1 }, { "type": "Number", "value": 2 }] }
+
+Refs inside a literal are ordinary elements, and are subscribed like any
+other ref (references.ts walks the elements):
+
+>>> [@s09.code, @s19.code]
+{ "type": "Array", "elements": [{ "type": "SigilRef", "sigil": "@", "id": "s09", "fields": ["code"] }, { "type": "SigilRef", "sigil": "@", "id": "s19", "fields": ["code"] }] }
+
+The literal is a Primary, so everything PostfixExpr already does works on
+one — methods, `.length`, and `in` — with no new rules (parse only):
+
+>>> [1, 2].length
+>>> [@a.value, @b.value].map(v => v)
+>>> [1, 2, 3].filter(v => v > 1).length
+>>> @x.value in ["agree", "strongly_agree"]
+>>> average([@s09.code, @s19.code], {weights: [1, 2]})
+>>> {a: [1, 2]}
+>>> [{a: 1}, {a: 2}]
+
+An arrow is not a value in this language, only a call argument, so a bare
+arrow in a literal is a syntax error:
+
+!!! [v => v]
+
+Indexing is RESERVED, not implemented. `x[0]` stays a parse error so the
+spelling is free for whenever there is a use for it:
+
+!!! a[0]
+!!! @x.value[0]
+!!! [1, 2][0]
+
+Malformed literals are errors, not silent holes:
+
+!!! [
+!!! ]
+!!! [1, 2
+!!! [,]
+!!! [1,,2]
+!!! [1 2]
 
 ## Array Aggregation
 

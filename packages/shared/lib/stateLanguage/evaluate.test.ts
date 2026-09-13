@@ -314,6 +314,65 @@ describe('object literals', () => {
   });
 });
 
+describe('array literals', () => {
+  const ctx = () => createContext({
+    componentState: {
+      s09: { code: 1, value: 'agree' },
+      s19: { code: -2, value: 'strongly_disagree' },
+      blank: { value: '' },
+    },
+  });
+
+  it('evaluates an empty literal', () => {
+    expect(evaluate(parse('[]'), createContext())).toEqual([]);
+  });
+
+  it('evaluates elements in order', () => {
+    expect(evaluate(parse('[1, 2, 3]'), createContext())).toEqual([1, 2, 3]);
+    expect(evaluate(parse('[1, "two", true]'), createContext())).toEqual([1, 'two', true]);
+  });
+
+  it('evaluates a trailing comma as no extra element', () => {
+    expect(evaluate(parse('[1, 2,]'), createContext())).toEqual([1, 2]);
+  });
+
+  it('evaluates elements that are full expressions', () => {
+    expect(evaluate(parse('[@s09.code, @s19.code]'), ctx())).toEqual([1, -2]);
+    expect(evaluate(parse('[1 + 1, @s09.code * 2]'), ctx())).toEqual([2, 2]);
+    expect(evaluate(parse('[[1, 2], [3]]'), createContext())).toEqual([[1, 2], [3]]);
+    expect(evaluate(parse('[{a: 1}]'), createContext())).toEqual([{ a: 1 }]);
+  });
+
+  it('returns a fresh array each evaluation', () => {
+    const ast = parse('[1, 2]');
+    const first = evaluate(ast, createContext());
+    const second = evaluate(ast, createContext());
+    expect(first).toEqual(second);
+    expect(first).not.toBe(second);
+  });
+
+  it('is an ordinary array to the member table', () => {
+    expect(evaluate(parse('[1, 2, 3].length'), createContext())).toBe(3);
+    expect(evaluate(parse('[1, 2, 3].map(v => v * 2)'), createContext())).toEqual([2, 4, 6]);
+    expect(evaluate(parse('[1, 2, 3].filter(v => v > 1).length'), createContext())).toBe(2);
+    expect(evaluate(parse('[@s09.code, @s19.code].map(v => v + 1)'), ctx())).toEqual([2, -1]);
+  });
+
+  it('works as the right side of `in`', () => {
+    expect(evaluate(parse('@s09.value in ["agree", "strongly_agree"]'), ctx())).toBe(true);
+    expect(evaluate(parse('@s09.value in ["disagree"]'), ctx())).toBe(false);
+  });
+
+  it('carries missing values through as elements (length counts slots)', () => {
+    // The literal does not filter — that is the aggregates' job. An
+    // unanswered item is a slot with a blank in it.
+    expect(evaluate(parse('[1, @blank.value]'), ctx())).toEqual([1, '']);
+    expect(evaluate(parse('[1, @blank.value].length'), ctx())).toBe(2);
+    expect(evaluate(parse('[@gone.code].length'), ctx())).toBe(1);
+    expect(evaluate(parse('[@gone.code]'), ctx())).toEqual([undefined]);
+  });
+});
+
 describe('in operator', () => {
   it('checks array membership', () => {
     const ctx = createContext({

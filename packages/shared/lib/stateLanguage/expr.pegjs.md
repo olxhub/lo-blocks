@@ -194,6 +194,26 @@ Math.min(@a, @b)
 Math.max(@a, @b)
 ```
 
+## Array Literals
+
+Write a list out with `[...]`. Elements are full expressions, so refs,
+nested literals and calls all work, and a trailing comma is allowed:
+
+```
+[]                                   # empty
+[1, 2, 3]
+[@s09.code, @s19.code, @s06.code]    # the usual case: a scale's items
+[@s09.code, @s19.code,]              # trailing comma is fine
+@answer.value in ["agree", "strongly_agree"]
+[@a.value, @b.value].map(v => v + 1)
+```
+
+A literal is an ordinary array, so every array method below applies to one.
+
+**Indexing is not implemented.** `x[0]` and `@list.value[0]` are syntax
+errors; the spelling is reserved for whenever there is a use. For "which one
+did they pick first", use `find` or (when it lands) `indexOf`.
+
 ## Array Methods
 
 Array methods work on both `items` bindings (child component lists) and

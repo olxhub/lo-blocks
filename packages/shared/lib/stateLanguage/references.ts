@@ -91,6 +91,14 @@ function collectSigilRefs(node: ASTNode, refs: SigilRef[]): void {
         collectSigilRefs(value, refs);
       }
       break;
+    case 'Array':
+      // Same reason as Object: elements are expressions. This is the whole
+      // point of the literal — average([@s09.code, @s19.code]) has to
+      // re-evaluate when either item is answered.
+      for (const element of node.elements) {
+        collectSigilRefs(element, refs);
+      }
+      break;
     // Terminals - no children
     case 'Number':
     case 'String':
