@@ -16,6 +16,16 @@
 // pointer-up and key-up commit the resting position while the answer is
 // still unset.
 //
+// DISPLAY MODE (display="true") is the same line read backwards: it draws a
+// position computed by initial= and takes none. There is no <input> in the
+// tree at all — a disabled-and-hidden range would still be a control with a
+// value in the a11y tree, and this is a picture, not a control, so the whole
+// figure is one role="img" named by the position it shows. The track is ours
+// here (the native range drew it in the other mode), the marker rides in the
+// same __marks layer as the reference marker, and an absent position — the
+// aggregate over items nobody has answered yet — draws no marker at all
+// rather than parking one at the midpoint and calling it a score.
+//
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
@@ -52,8 +62,27 @@ function evaluateNumber(expr: { ast: any } | undefined, context: any): number | 
   }
 }
 
+/**
+ * A mark riding on the line at `percent`, with an optional label under it.
+ *
+ * Two callers, identical structure, different class prefix: `reference` is
+ * the fixed "where you are now" bar, `marker` is display mode's computed
+ * position. Keeping them one component is what keeps them one layout.
+ */
+function Mark(
+  { kind, percent, label }: { kind: 'reference' | 'marker'; percent: number; label?: string }
+) {
+  return (
+    <span className={`lo-numberline__${kind}`} style={{ insetInlineStart: `${percent}%` }}>
+      <span className={`lo-numberline__${kind}-mark`} aria-hidden="true" />
+      {label && <span className={`lo-numberline__${kind}-label`}>{label}</span>}
+    </span>
+  );
+}
+
 function NumberLineInput(props: RuntimeProps) {
-  const { min, max, step, initial, reference, referenceLabel, showValue, title, lang } = props as any;
+  const { min, max, step, initial, reference, referenceLabel, showValue, title, lang,
+          display, markerLabel, placeholder } = props as any;
 
   const ticks = getTicks(props);
   // Ticks imply snapping to them; a bare line snaps to `step`.
@@ -76,13 +105,15 @@ function NumberLineInput(props: RuntimeProps) {
   const isUnset = stored === null || stored === undefined;
   const clamp = (value: number) => Math.min(max, Math.max(min, value));
   const percentOf = (value: number) => ((clamp(value) - min) / (max - min)) * 100;
+  const lineInfo: NumberLineInfo = { min, max, percentOf };
 
-  // Where the thumb rests while unanswered: initial=, else the midpoint.
-  const initialPosition = evaluateNumber(initial, evalContext) ?? (min + max) / 2;
-  const position = clamp(isUnset ? initialPosition : Number(stored));
+  // initial= as a number, or null when the expression is absent: an
+  // `average([...])` over items nobody has answered yet, a ref to a block
+  // with no value, NaN. The two modes read that null differently — the input
+  // rests at the midpoint, the display draws nothing.
+  const initialPosition = evaluateNumber(initial, evalContext);
   const referencePosition = evaluateNumber(reference, evalContext);
 
-  const selectedTick = nearestTick(ticks, position);
   const formatNumber = (value: number) => {
     try {
       return new Intl.NumberFormat(lang || undefined).format(value);
@@ -90,8 +121,11 @@ function NumberLineInput(props: RuntimeProps) {
       return String(value);
     }
   };
-  // What a screen reader says here — the tick's own words, not its number.
-  const valueText = selectedTick && snap === 'ticks' ? selectedTick.text : formatNumber(position);
+  // What is said at a position — the tick's own words, not its number.
+  const textAt = (value: number) => {
+    const tick = nearestTick(ticks, value);
+    return tick && snap === 'ticks' ? tick.text : formatNumber(value);
+  };
 
   // No hard-coded English: the name comes from the author's title=, and
   // failing that from the endpoint ticks' own text.
@@ -99,6 +133,54 @@ function NumberLineInput(props: RuntimeProps) {
     ? `${ticks[0].text} – ${ticks[ticks.length - 1].text}`.trim()
     : (ticks[0]?.text ?? '');
   const label = title || endpointName || undefined;
+
+  const marks = (extra?: React.ReactNode) => (
+    <div className="lo-numberline__marks">
+      <NumberLineContext.Provider value={lineInfo}>
+        {kids}
+      </NumberLineContext.Provider>
+      {referencePosition !== null && (
+        <Mark kind="reference" percent={percentOf(referencePosition)} label={referenceLabel} />
+      )}
+      {extra}
+    </div>
+  );
+
+  // ── Display mode ──────────────────────────────────────────────────────
+  // A picture of a computed position. No control: not a hidden one, not a
+  // disabled one — nothing a learner or a screen reader can mistake for
+  // something to operate. The figure names itself with the position it
+  // shows; the placeholder stays OUTSIDE it, as real text, because it is
+  // addressed to the learner and role="img" would swallow it.
+  if (display) {
+    const shown = initialPosition === null ? null : clamp(initialPosition);
+    const positionText = shown === null ? null : textAt(shown);
+    const figureName = [label, positionText ?? placeholder].filter(Boolean).join(': ') || undefined;
+
+    return (
+      <div className="lo-numberline lo-numberline--display"
+           data-display="true"
+           data-absent={shown === null ? 'true' : 'false'}>
+        <div className="lo-numberline__display" role="img" aria-label={figureName}>
+          <div className="lo-numberline__track" aria-hidden="true" />
+          {marks(shown === null ? undefined : (
+            <Mark kind="marker" percent={percentOf(shown)} label={markerLabel} />
+          ))}
+        </div>
+        {shown === null && placeholder && (
+          <span className="lo-numberline__placeholder">{placeholder}</span>
+        )}
+        {showValue && positionText !== null && (
+          <span className="lo-numberline__value">{positionText}</span>
+        )}
+      </div>
+    );
+  }
+
+  // ── Input mode ────────────────────────────────────────────────────────
+  // Where the thumb rests while unanswered: initial=, else the midpoint.
+  const position = clamp(isUnset ? (initialPosition ?? (min + max) / 2) : Number(stored));
+  const valueText = textAt(position);
 
   // With snap="ticks" the line steps natively but commits to the nearest
   // tick — ticks need not be evenly spaced, so this is not a rounding of
@@ -124,8 +206,6 @@ function NumberLineInput(props: RuntimeProps) {
     updateField(props, props.fields.value, committedValue(raw));
   };
 
-  const lineInfo: NumberLineInfo = { min, max, percentOf };
-
   return (
     <div className="lo-numberline" data-unset={isUnset ? 'true' : 'false'}>
       <input
@@ -142,22 +222,7 @@ function NumberLineInput(props: RuntimeProps) {
         aria-label={label}
         aria-valuetext={valueText}
       />
-      <div className="lo-numberline__marks">
-        <NumberLineContext.Provider value={lineInfo}>
-          {kids}
-        </NumberLineContext.Provider>
-        {referencePosition !== null && (
-          <span
-            className="lo-numberline__reference"
-            style={{ insetInlineStart: `${percentOf(referencePosition)}%` }}
-          >
-            <span className="lo-numberline__reference-mark" aria-hidden="true" />
-            {referenceLabel && (
-              <span className="lo-numberline__reference-label">{referenceLabel}</span>
-            )}
-          </span>
-        )}
-      </div>
+      {marks()}
       {showValue && <span className="lo-numberline__value">{valueText}</span>}
       <DisplayAnswer props={props} />
     </div>

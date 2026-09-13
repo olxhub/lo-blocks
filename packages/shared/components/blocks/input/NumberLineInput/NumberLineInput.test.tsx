@@ -290,6 +290,127 @@ describe('NumberLineInput: expressions', () => {
   });
 });
 
+// ─── Display mode ────────────────────────────────────────────────────────
+//
+// The block turned around: it SHOWS a computed position instead of taking
+// one. The properties that make it a picture rather than an input — no
+// control in the tree, nothing written, and an absent computation that draws
+// nothing rather than parking a marker at the midpoint and calling it a
+// score.
+describe('NumberLineInput: display mode', () => {
+  it('renders no control at all, and a marker at the computed position', async () => {
+    const { container } = await mountOLXString(
+      line('nl_display', 'min="0" max="100" step="1" display="true" initial="50 + 25 * 1"'),
+      'nl-display');
+
+    // Not a hidden input, not a disabled one: none.
+    expect(container.querySelector('input')).toBeNull();
+    expect(container.querySelector('[role="slider"]')).toBeNull();
+
+    const marker = container.querySelector('.lo-numberline__marker') as HTMLElement;
+    expect(marker).toBeTruthy();
+    expect(marker.style.getPropertyValue('inset-inline-start')).toBe('75%');
+  });
+
+  it('carries a markerLabel with the marker, and prints the position with showValue', async () => {
+    const { container } = await mountOLXString(
+      line('nl_display_label',
+        'min="0" max="100" step="1" display="true" initial="40" markerLabel="you" showValue="true"'),
+      'nl-display-label');
+
+    expect(container.querySelector('.lo-numberline__marker')?.textContent).toContain('you');
+    expect(container.querySelector('.lo-numberline__value')?.textContent).toBe('40');
+  });
+
+  it('draws no marker and shows the placeholder while the position is absent', async () => {
+    // average() over an unanswered item is `undefined` — the live case, not
+    // a contrived one: nobody has answered yet.
+    const { container } = await mountOLXString(
+      `<Vertical id="wrap_nl_display_absent">
+        <ChoiceInput id="nl_display_item">
+          <Key id="nl_display_item_agree" value="agree">Agree</Key>
+          <Key id="nl_display_item_disagree" value="disagree">Disagree</Key>
+        </ChoiceInput>
+        <NumberLineInput id="nl_display_absent" min="0" max="100" step="1" display="true"
+                         initial="50 + 25 * average([@nl_display_item.code])"
+                         placeholder="Appears as you answer." />
+      </Vertical>`, 'nl-display-absent');
+
+    const numberline = container.querySelector('.lo-numberline--display') as HTMLElement;
+    expect(numberline.getAttribute('data-absent')).toBe('true');
+    expect(container.querySelector('.lo-numberline__marker')).toBeNull();
+    expect(container.querySelector('.lo-numberline__placeholder')?.textContent)
+      .toBe('Appears as you answer.');
+
+    // And it moves the moment there is something to average: agree codes 1,
+    // so 50 + 25 * 1 = 75.
+    const radios = container.querySelectorAll('input[type="radio"]');
+    await act(async () => { (radios[0] as HTMLInputElement).click(); });
+    await waitFor(() => expect(container.querySelector('.lo-numberline__marker')).toBeTruthy());
+
+    expect((container.querySelector('.lo-numberline__marker') as HTMLElement)
+      .style.getPropertyValue('inset-inline-start')).toBe('75%');
+    expect(container.querySelector('.lo-numberline__placeholder')).toBeNull();
+  });
+
+  it('never writes the field, however the computed position moves', async () => {
+    const { container, reduxStore, events } = await mountCounted(
+      `<Vertical id="wrap_nl_display_quiet">
+        <ChoiceInput id="nl_display_quiet_item">
+          <Key id="nl_display_quiet_agree" value="agree">Agree</Key>
+        </ChoiceInput>
+        <NumberLineInput id="nl_display_quiet" min="0" max="100" step="1" display="true"
+                         initial="50 + 25 * average([@nl_display_quiet_item.code])" />
+      </Vertical>`, 'nl-display-quiet');
+
+    events.length = 0;
+    await act(async () => {
+      (container.querySelector('input[type="radio"]') as HTMLInputElement).click();
+    });
+    await waitFor(() => expect(container.querySelector('.lo-numberline__marker')).toBeTruthy());
+
+    expect(componentState(reduxStore, `${TEST_NS}/nl_display_quiet`)?.value).toBeUndefined();
+    // Exactly one write, and it belongs to the ChoiceInput.
+    expect(events).toHaveLength(1);
+  });
+
+  it('names the figure with the title and the tick at the position', async () => {
+    const { container } = await mountOLXString(
+      line('nl_display_aria',
+        'min="0" max="100" step="1" snap="ticks" display="true" initial="90" title="Purpose"',
+        '<Tick value="0">Expression</Tick><Tick value="100">Evaluation</Tick>'),
+      'nl-display-aria');
+
+    const figure = container.querySelector('[role="img"]') as HTMLElement;
+    expect(figure.getAttribute('aria-label')).toBe('Purpose: Evaluation');
+  });
+
+  it('names it with the formatted number when the line has no ticks', async () => {
+    const { container } = await mountOLXString(
+      line('nl_display_aria_number',
+        'min="0" max="100" step="1" display="true" initial="42" title="Purpose"'),
+      'nl-display-aria-number');
+
+    expect((container.querySelector('[role="img"]') as HTMLElement).getAttribute('aria-label'))
+      .toBe('Purpose: 42');
+  });
+
+  it('names it with the placeholder while there is no position to name', async () => {
+    const { container } = await mountOLXString(
+      `<Vertical id="wrap_nl_display_aria_absent">
+        <ChoiceInput id="nl_display_aria_item">
+          <Key id="nl_display_aria_item_agree" value="agree">Agree</Key>
+        </ChoiceInput>
+        <NumberLineInput id="nl_display_aria_absent" min="0" max="100" step="1" display="true"
+                         title="Purpose" initial="average([@nl_display_aria_item.code])"
+                         placeholder="Appears as you answer." />
+      </Vertical>`, 'nl-display-aria-absent');
+
+    expect((container.querySelector('[role="img"]') as HTMLElement).getAttribute('aria-label'))
+      .toBe('Purpose: Appears as you answer.');
+  });
+});
+
 describe('NumberLineInput: parse-time errors', () => {
   const parse = (olx: string, name: string) =>
     parseOLX(olx, [toMemoryRef(name)], undefined, TEST_NS);
@@ -316,6 +437,14 @@ describe('NumberLineInput: parse-time errors', () => {
       line('nl_zero_step', 'min="0" max="10" step="0"'), 'nl-zero-step');
 
     expect(errors.map(e => e.message).join('\n')).toMatch(/step must be greater than 0/);
+  });
+
+  it('rejects display="true" with nothing to display', async () => {
+    const { errors } = await parse(
+      line('nl_display_no_initial', 'min="0" max="10" step="1" display="true"'),
+      'nl-display-no-initial');
+
+    expect(errors.map(e => e.message).join('\n')).toMatch(/display="true" draws the position/);
   });
 
   it('rejects a range that does not go anywhere', async () => {

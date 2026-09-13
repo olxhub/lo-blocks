@@ -31,6 +31,9 @@ labels only at the ends and `snap="step"`.
 | `referenceLabel` | plain text | — | Small label under the reference marker |
 | `readonly` | boolean | `false` | Show the line without allowing changes. Also a field, so `SetFieldAction` can lock it at runtime |
 | `showValue` | boolean | `false` | Print the current position (or its tick's label) beside the line |
+| `display` | boolean | `false` | Draw a **computed** position instead of taking one — see [Display mode](#display-mode) |
+| `markerLabel` | plain text | — | Small label riding with the computed marker (display mode) |
+| `placeholder` | plain text | — | Shown under the track while the computed position is absent (display mode) |
 
 `id`, `class`, `title`, `when` and `lang` come from the base attributes.
 
@@ -136,6 +139,70 @@ The value is a number, so any numeric grader accepts it:
 `lockInput=` on the problem locks the line once it has been submitted, the
 same way it locks any other input.
 
+## Display mode
+
+`display="true"` turns the block around. Instead of taking a position it
+**shows** one — the number `initial=` evaluates to — and takes none:
+
+- there is no control in the page at all: no thumb, no disabled range, and
+  nothing a screen reader offers to operate. The whole figure is one
+  `role="img"`, named by the position it shows;
+- the field is **never written**. A display line is not an answer, and it
+  does not become one;
+- the marker is drawn like a committed thumb, in the primary colour, in the
+  same layer as the ticks and the `reference` marker. Nothing is greyed —
+  the unanswered and disabled styles say "no answer yet" and "you cannot
+  touch this", and a computed score is neither.
+
+The natural source for `initial=` is an aggregate over the items the learner
+has been answering:
+
+```olx:playground
+<Vertical id="live_purpose_demo">
+  <ChoiceInput id="live_a">
+    <Key id="live_a_agree" value="agree">Agree</Key>
+    <Key id="live_a_disagree" value="disagree">Disagree</Key>
+  </ChoiceInput>
+  <ChoiceInput id="live_b" reverseCoded="true">
+    <Key id="live_b_agree" value="agree">Agree</Key>
+    <Key id="live_b_disagree" value="disagree">Disagree</Key>
+  </ChoiceInput>
+
+  <NumberLineInput id="live_purpose" min="0" max="100" step="1" snap="step"
+                   title="Purpose" display="true"
+                   initial="50 + 25 * average([@live_a.code, @live_b.code])"
+                   placeholder="Your position appears as you answer.">
+    <Tick value="0">Expression</Tick>
+    <Tick value="100">Evaluation</Tick>
+  </NumberLineInput>
+</Vertical>
+```
+
+Codes run −2…2 and the line runs 0…100, so `50 + 25 * average(...)` is the
+whole mapping: −2 → 0, 0 → 50, 2 → 100. A reverse-coded item already carries
+reversed codes, so a **plain** average is correct — the reversal is declared
+once, on the item.
+
+### While there is nothing to show
+
+`average()` skips items the learner has not answered, and is *absent* when
+none of them are answered. An absent `initial=` — `undefined`, `null`, `NaN`
+— draws **no marker at all** rather than parking one at the midpoint, which
+would read as a score of 50. That is what `placeholder=` is for: content-
+supplied words under the track, in place of the marker, until there is a
+position to draw.
+
+(The input mode reads the same absence differently: its thumb has to rest
+somewhere, so it falls back to the midpoint and stays flagged unanswered.)
+
+### What the other attributes do here
+
+| | |
+|---|---|
+| `showValue` | Works as always — prints the position beside the line |
+| `snap` | Nothing snaps (there is nothing to commit), but it still decides how the position is **said**: `ticks` names it with the nearest tick's text, `step` with the formatted number |
+| `step`, `readonly` | Accepted and ignored. There is no control to step and none to lock |
+
 ## Accessibility
 
 The block wraps a native `<input type="range">`, so it arrives with
@@ -162,6 +229,11 @@ On top of that:
 - Touching or focusing-and-keying the line at its resting position counts as
   choosing it, so a learner who means the midpoint of a Likert can click the
   thumb where it already sits (or press Home at `min`) and still answer.
+- In display mode there is no control in the accessibility tree — a disabled
+  range would still be a slider with a value, and this is a picture. The
+  figure is one `role="img"` whose `aria-label` is the block's `title=` and
+  the position it shows ("Purpose: Evaluation", "Purpose: 42"), or the
+  `placeholder=` while there is no position yet.
 
 ## Related
 

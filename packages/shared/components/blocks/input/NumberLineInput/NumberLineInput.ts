@@ -11,6 +11,12 @@
 // A five-step Likert item is this block with five labeled ticks and
 // snap="ticks"; a continuum is the same block with endpoint ticks only.
 //
+// display="true" turns the block around: instead of TAKING a position it
+// SHOWS one, computed by initial= (typically an aggregate over other items),
+// with no control to operate and nothing ever written to the field. The same
+// scale the learner answered on is then also the scale their score is read
+// on, which is the whole reason it is this block and not a second one.
+//
 // TODO(shorthand): plain numeric ticks are the common case, and three <Tick>
 // children for 0% / 50% / 100% is verbose. Planned, following Perseus's
 // number-line vocabulary: tickStep="25" or ticks="0 50 100" generate
@@ -63,9 +69,21 @@ const NumberLineInput = core({
     referenceLabel: z.string().optional().describe('Short plain-text label shown above the reference marker'),
     readonly: z_olx_boolean.optional().describe('Show the line without allowing changes'),
     showValue: z_olx_boolean.optional().describe('Print the current position (or its tick label) beside the line'),
+    display: z_olx_boolean.default(false).describe(
+      'Draw a COMPUTED position rather than take one: no control at all, a marker at initial=, and the field is never written. `readonly`, `snap` and `step` are accepted but do nothing here.'),
+    markerLabel: z.string().optional()
+      .describe('Short plain-text label riding with the computed marker (display mode)'),
+    // Not the shared `placeholder` spread: this one is not "shown when
+    // empty" in an input's sense — it is what stands in for the marker
+    // while the computed position has no value yet.
+    placeholder: z.string().optional()
+      .describe('Text shown under the track while the computed position is absent (display mode)'),
   }).strict(),
   validateAttributes: (attrs) => {
     const errors: string[] = [];
+    if (attrs.display && attrs.initial === undefined) {
+      errors.push('display="true" draws the position given by initial=; without it there is nothing to draw');
+    }
     if (!(attrs.step > 0)) {
       errors.push('step must be greater than 0 (a continuum is a small step, e.g. step="0.01")');
     }

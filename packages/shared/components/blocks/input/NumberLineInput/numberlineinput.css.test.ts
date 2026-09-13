@@ -21,6 +21,12 @@
 // 4. Anchored endpoints. `data-edge` is set by _Tick.tsx; without the rules
 //    that consume it the labels at min and max are clipped in half.
 //
+// 5. Display mode draws its own track and its own marker. There is no
+//    <input> in that tree, so every rule above that hangs off
+//    `.lo-numberline__input` contributes nothing: an unstyled display line
+//    is an empty box, and a marker that inherits the disabled grey is a
+//    real score that reads as a dead control.
+//
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
@@ -58,6 +64,24 @@ describe('numberlineinput.css', () => {
   it('anchors the endpoint ticks so their labels are not clipped', () => {
     expect(css).toMatch(/\[data-edge="start"\][^{]*\{[^}]*transform:/);
     expect(css).toMatch(/\[data-edge="end"\][^{]*\{[^}]*transform:/);
+  });
+
+  it('draws its own track in display mode, where there is no input to draw one', () => {
+    expect(css).toMatch(/\.lo-numberline__track::before\s*\{[^}]*background:/);
+    expect(css).toMatch(/\.lo-numberline__track::before\s*\{[^}]*block-size:\s*var\(--lo-numberline-track\)/);
+  });
+
+  it('draws the computed marker like a committed thumb, never greyed', () => {
+    const marker = css.match(/\.lo-numberline__marker-mark\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(marker).toMatch(/background:\s*var\(--lo-primary\)/);
+    expect(marker).not.toMatch(/--lo-text-muted|--lo-border\b/);
+  });
+
+  it('centres and mirrors the computed marker with the ticks', () => {
+    // Same two rules the ticks and the reference ride in: a marker left out
+    // of either sits half a thumb off its position, or off it in RTL only.
+    expect(css).toMatch(/\.lo-numberline__marker\s*\{\s*position:\s*absolute/);
+    expect(css).toMatch(/\[dir="rtl"\][^{]*\.lo-numberline__marker\s*\{[^}]*transform:\s*translateX\(50%\)/);
   });
 
   it('gives the tick layer its own containing block', () => {

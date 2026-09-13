@@ -163,7 +163,8 @@
 }
 
 .lo-tag-numberlineinput .lo-numberline-tick,
-.lo-tag-numberlineinput .lo-numberline__reference {
+.lo-tag-numberlineinput .lo-numberline__reference,
+.lo-tag-numberlineinput .lo-numberline__marker {
   position: absolute;
   inset-block-start: 0;
   transform: translateX(-50%);
@@ -181,7 +182,8 @@
 
 /* translateX is physical; mirror it so a tick stays centred in RTL. */
 [dir="rtl"] .lo-tag-numberlineinput .lo-numberline-tick,
-[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__reference {
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__reference,
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__marker {
   transform: translateX(50%);
 }
 
@@ -254,4 +256,60 @@
   margin-inline-start: var(--lo-space-sm);
   font-size: var(--lo-font-size-sm);
   color: var(--lo-text);
+}
+
+/* ── Display mode ──────────────────────────────────────────────────────
+ * `display="true"` draws a COMPUTED position and takes none, so there is no
+ * <input> in the tree — which means the track the native range was painting
+ * has to be drawn here instead. Same arithmetic as the control it replaces:
+ * a box as tall as the touch target with the line centred in it, so a
+ * display line and an input line sit at the same height in a column of both.
+ *
+ * Nothing is greyed. The unanswered and disabled styles above say "no answer
+ * yet" and "you cannot touch this"; a computed score is neither, and dimming
+ * it would make a real result read as a dead control. */
+
+.lo-tag-numberlineinput .lo-numberline__track {
+  display: flex;
+  align-items: center;
+  block-size: calc(var(--lo-numberline-thumb) + var(--lo-space-sm));
+}
+
+.lo-tag-numberlineinput .lo-numberline__track::before {
+  content: '';
+  inline-size: 100%;
+  block-size: var(--lo-numberline-track);
+  background: var(--lo-border-strong);
+  border-radius: var(--lo-radius-sm);
+}
+
+/* The computed position: a committed thumb, in the primary colour, drawn in
+ * the marks layer beside the ticks and the reference. That layer begins just
+ * under the track, so the mark is pulled back up by half the track box plus
+ * half its own height to put its centre on the line; the label then lands
+ * about where a tick label does. */
+.lo-tag-numberlineinput .lo-numberline__marker {
+  inset-block-start: calc((var(--lo-numberline-thumb) + var(--lo-space-sm) + var(--lo-numberline-thumb)) / -2);
+}
+
+.lo-tag-numberlineinput .lo-numberline__marker-mark {
+  inline-size: var(--lo-numberline-thumb);
+  block-size: var(--lo-numberline-thumb);
+  border-radius: 50%;
+  background: var(--lo-primary);
+  border: 2px solid var(--lo-bg);
+}
+
+.lo-tag-numberlineinput .lo-numberline__marker-label {
+  margin-block-start: calc((var(--lo-numberline-thumb) + var(--lo-space-sm)) / 2);
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text);
+}
+
+/* No marker yet — the aggregate has nothing to average. The author's own
+ * words stand in for it, under the track where the marker would be. */
+.lo-tag-numberlineinput .lo-numberline__placeholder {
+  display: block;
+  font-size: var(--lo-font-size-sm);
+  color: var(--lo-text-muted);
 }
