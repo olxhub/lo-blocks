@@ -80,6 +80,29 @@ export function extractWaitRefs(entries: ConversationEntry[]): References {
 }
 
 /**
+ * Is there anything other than a pause left in (fromIndex, toIndex]?
+ *
+ * A pause is a separator BETWEEN commands, not an entry of its own (see
+ * advance() in Chat.ts): with nothing after it there is nothing for it to
+ * hold back. A script that ends in one is therefore already finished — the
+ * chat shows its finished footer rather than a Continue that would reveal
+ * nothing, and advance() steps over the trailing pause and returns false so
+ * the click falls through to the parent.
+ */
+export function hasContentAfter(
+  entries: ConversationEntry[],
+  fromIndex: number,
+  toIndex: number,
+): boolean {
+  for (let i = fromIndex + 1; i <= toIndex; i++) {
+    const entry = entries[i];
+    if (!entry) break;
+    if (entry.type !== 'PauseCommand') return true;
+  }
+  return false;
+}
+
+/**
  * Check if we can advance past wait commands to the next content.
  *
  * Returns true if there's something useful to do (arrows to execute,
@@ -87,6 +110,11 @@ export function extractWaitRefs(entries: ConversationEntry[]): References {
  * the first thing we'd encounter is an unsatisfied wait.
  *
  * Multiple consecutive waits act as AND - all must pass.
+ *
+ * A pause counts as reachable: the walk either steps over it (nothing has
+ * run yet this click) or stops on it (it is holding back a command). The
+ * trailing-pause case — a pause with nothing after it — is ruled out
+ * earlier, by hasContentAfter.
  */
 export function canAdvanceToContent(
   entries: ConversationEntry[],

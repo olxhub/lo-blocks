@@ -80,7 +80,7 @@ export default function Tabs(props: RuntimeProps) {
          OnShow can detect tab switches. */}
       <div className="p-4">
         {renderedContent.map((content, index) => (
-          <div key={index} style={{ display: index === currentTab ? 'block' : 'none' }}>
+          <div key={index} className="tab-panel" style={{ display: index === currentTab ? 'block' : 'none' }}>
             {content}
           </div>
         ))}
