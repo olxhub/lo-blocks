@@ -20,28 +20,26 @@
 //   - Block field names are checked against RESERVED_KEYWORDS at
 //     registration time (fields.ts).
 //   - Block attribute names are checked at registration time (factory.tsx).
-//   - The evaluator uses ACTIVE_METHODS to distinguish method calls from
-//     field access on SigilRef chains.
+//   - The evaluator resolves member access and method calls through the
+//     member table in methods.ts; ACTIVE_METHODS is that table's value-kind
+//     vocabulary, re-exported here so tier 2 stays a superset of tier 1.
+
+import { ACTIVE_MEMBER_NAMES } from './methods';
 
 // ─── Tier 1: Active methods ────────────────────────────────────────────
 //
-// These are implemented and formally part of the expression language.
-// The evaluator uses this set to resolve method calls with proper binding
-// on SigilRef chains (e.g., @cb.value.includes("x")).
+// Implemented and formally part of the expression language. This set is
+// DERIVED from the member table in methods.ts — the single place where the
+// language's vocabulary is defined — so a name can never be active in the
+// evaluator while unreserved here, or reserved here while unimplemented.
+//
+// Only members of VALUES (arrays, strings, numbers, booleans) appear:
+// those are the names that would otherwise collide with a block's field
+// names. Namespace members (Math.round, Object.keys) are reached only
+// through their namespace identifier, which is reserved on its own below,
+// so blocks keep fields called `min`, `max` or `round`.
 
-export const ACTIVE_METHODS = new Set([
-  // Array methods
-  'every',
-  'some',
-  'filter',
-  'map',
-  'includes',
-  'find',
-  'join',
-
-  // Array/string property
-  'length',
-]);
+export const ACTIVE_METHODS: ReadonlySet<string> = ACTIVE_MEMBER_NAMES;
 
 // ─── Tier 2: Reserved keywords ─────────────────────────────────────────
 //
@@ -96,8 +94,31 @@ export const RESERVED_KEYWORDS = new Set([
 
   // Built-in functions
   'wordcount',
-  'isFilled',
   'text2markdown',
+  // Value-state predicates (valuePredicates.ts). isValid and isAnswered are
+  // reserved AHEAD of implementation: they are the contextual predicates the
+  // use-case table in valuePredicates.test.ts is a breadcrumb for, and a block
+  // must not be able to claim either name in the meantime.
+  'isFilled',
+  'isTruthy',
+  'isNumber',
+  'isMissing',
+  'isValid',
+  'isAnswered',
+  // Aggregates over a list (aggregates.ts). `countFilled`, not `count`:
+  // "count of what?" is only obvious in a column context, and `count` is
+  // already a DynamicList field, which stays as it is.
+  'sum',
+  'countFilled',
+  'average',
+  // Future aggregates, reserved ahead of implementation so no block can
+  // claim the name meanwhile. NOT min/max/mode/range — those are live
+  // attributes on several blocks today, and Math.min/Math.max already serve.
+  'mean',
+  'avg',
+  'median',
+  'stdev',
+  'variance',
   'formatDuration',
   'stringMatch',
   'numericalMatch',
@@ -122,7 +143,8 @@ export const RESERVED_KEYWORDS = new Set([
 //   first/last  - could be array accessors or positional attributes
 //   has         - could be a set/map method or a boolean field
 //   toString    - could be a coercion method (but prototype-y)
-//   at          - could be an array accessor (arr.at(-1))
+//   at          - could be an array accessor (arr.at(-1)); indexing x[0] is a
+//                 parse error, so this is the spelling that would serve
 
 /**
  * Check whether a name is reserved. Call this from block registration
