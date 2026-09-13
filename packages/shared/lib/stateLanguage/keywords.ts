@@ -105,6 +105,20 @@ export const RESERVED_KEYWORDS = new Set([
   'isMissing',
   'isValid',
   'isAnswered',
+  // Aggregates over a list (aggregates.ts). `countFilled`, not `count`:
+  // "count of what?" is only obvious in a column context, and `count` is
+  // already a DynamicList field, which stays as it is.
+  'sum',
+  'countFilled',
+  'average',
+  // Future aggregates, reserved ahead of implementation so no block can
+  // claim the name meanwhile. NOT min/max/mode/range — those are live
+  // attributes on several blocks today, and Math.min/Math.max already serve.
+  'mean',
+  'avg',
+  'median',
+  'stdev',
+  'variance',
   'formatDuration',
   'stringMatch',
   'numericalMatch',
@@ -129,7 +143,8 @@ export const RESERVED_KEYWORDS = new Set([
 //   first/last  - could be array accessors or positional attributes
 //   has         - could be a set/map method or a boolean field
 //   toString    - could be a coercion method (but prototype-y)
-//   at          - could be an array accessor (arr.at(-1))
+//   at          - could be an array accessor (arr.at(-1)); indexing x[0] is a
+//                 parse error, so this is the spelling that would serve
 
 /**
  * Check whether a name is reserved. Call this from block registration

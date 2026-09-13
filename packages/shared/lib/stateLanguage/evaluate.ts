@@ -84,6 +84,13 @@ export function evaluate(ast: ASTNode, context: ContextData): any {
         return '';
       }).join('');
 
+    case 'Array':
+      // A fresh array every evaluation: authored literals are values, and
+      // nothing downstream (map/filter/the aggregates) may mutate a cached
+      // one. Elements are full expressions, so refs inside are evaluated
+      // here — and subscribed by collectSigilRefs (references.ts).
+      return ast.elements.map(element => evaluate(element, context));
+
     case 'Object':
       // Evaluate each property value and build a NULL-PROTOTYPE object, so
       // an object literal carries exactly the keys the author wrote and
