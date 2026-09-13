@@ -20,28 +20,26 @@
 //   - Block field names are checked against RESERVED_KEYWORDS at
 //     registration time (fields.ts).
 //   - Block attribute names are checked at registration time (factory.tsx).
-//   - The evaluator uses ACTIVE_METHODS to distinguish method calls from
-//     field access on SigilRef chains.
+//   - The evaluator resolves member access and method calls through the
+//     member table in methods.ts; ACTIVE_METHODS is that table's value-kind
+//     vocabulary, re-exported here so tier 2 stays a superset of tier 1.
+
+import { ACTIVE_MEMBER_NAMES } from './methods';
 
 // ─── Tier 1: Active methods ────────────────────────────────────────────
 //
-// These are implemented and formally part of the expression language.
-// The evaluator uses this set to resolve method calls with proper binding
-// on SigilRef chains (e.g., @cb.value.includes("x")).
+// Implemented and formally part of the expression language. This set is
+// DERIVED from the member table in methods.ts — the single place where the
+// language's vocabulary is defined — so a name can never be active in the
+// evaluator while unreserved here, or reserved here while unimplemented.
+//
+// Only members of VALUES (arrays, strings, numbers, booleans) appear:
+// those are the names that would otherwise collide with a block's field
+// names. Namespace members (Math.round, Object.keys) are reached only
+// through their namespace identifier, which is reserved on its own below,
+// so blocks keep fields called `min`, `max` or `round`.
 
-export const ACTIVE_METHODS = new Set([
-  // Array methods
-  'every',
-  'some',
-  'filter',
-  'map',
-  'includes',
-  'find',
-  'join',
-
-  // Array/string property
-  'length',
-]);
+export const ACTIVE_METHODS: ReadonlySet<string> = ACTIVE_MEMBER_NAMES;
 
 // ─── Tier 2: Reserved keywords ─────────────────────────────────────────
 //

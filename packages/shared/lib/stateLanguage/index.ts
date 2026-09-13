@@ -47,5 +47,8 @@ export {
 // Keywords
 export { ACTIVE_METHODS, RESERVED_KEYWORDS, assertNotReserved } from './keywords';
 
+// Member vocabulary (the table member access and method calls dispatch through)
+export { readMember, callMember, isValueMethodName, ACTIVE_MEMBER_NAMES, ACTIVE_METHOD_NAMES, FORBIDDEN_PROPERTIES } from './methods';
+
 // React hooks (require Redux)
 export { useReferences, selectReferences, getReferences, useDSLExpression } from './hooks';
