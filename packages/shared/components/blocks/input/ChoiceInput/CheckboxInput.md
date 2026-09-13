@@ -73,6 +73,34 @@ Use `value` attribute for analytics/state:
 </CheckboxInput>
 ```
 
+### With Codes
+
+Each option may carry a numeric `code` — the number the response is
+**recorded** as. Read the checked options' codes back with `@inputId.codes`:
+an array, in the order the learner checked them, empty when nothing is checked.
+
+```olx:code
+<CheckboxInput id="symptom_checklist">
+  <Key id="symptom_checklist_focus" value="lost_focus" code="1">I lost focus</Key>
+  <Key id="symptom_checklist_blank" value="went_blank" code="2">I went blank</Key>
+  <Key id="symptom_checklist_none" value="none" code="0">None of these</Key>
+</CheckboxInput>
+```
+
+> **A code is not a score.** `code` is the survey-methodology sense of the
+> word — the SPSS code, the Qualtrics "recode value" — not a grade, not
+> points, and not partial credit. Checkbox *grading* is `CheckboxGrader`'s
+> job and is entirely separate; a `Distractor` may carry a code exactly as a
+> `Key` may.
+
+An option with no `code` falls back to the default-code table documented in
+[ChoiceInput.md](ChoiceInput.md#default-codes) (`true`/`yes` → 1,
+`strongly_agree` → 2, and so on); a value the table does not know has no code.
+A checked option with no code at all is **omitted** from `codes` rather than
+left as a hole, so `codes` can be shorter than `value` — which keeps a sum of
+codes a sum of what is actually coded. A code must be a finite number;
+anything else is a parse error.
+
 ## How It Works
 
 1. `CheckboxInput` collects selections as an array
@@ -84,4 +112,8 @@ Use `value` attribute for analytics/state:
 - `ChoiceInput` + `KeyGrader` - for single-select (radio) questions
 - `Key` - marks correct answers
 - `Distractor` - marks wrong answers
+
+Blueprint note: `CheckboxInput` exposes `value` (the checked values) and
+`codes` (their codes). `ChoiceInput`, being single-select, exposes `value` and
+`code`.
 

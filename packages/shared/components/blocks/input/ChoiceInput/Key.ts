@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { core } from '@/lib/blocks';
 import * as parsers from '@/lib/content/parsers';
 import { srcAttributes } from '@/lib/blocks/attributeSchemas';
+import { z_option_code, CODE_ATTRIBUTE_DESCRIPTION, warnOnCodeMismatch } from './defaultCodes';
 
 const Key = core({
   ...parsers.blocks.wrapText('Markdown'),
@@ -20,7 +21,13 @@ const Key = core({
   requiresUniqueId: false,
   attributes: srcAttributes.extend({
     value: z.string().optional().describe('Value submitted when selected; defaults to element ID'),
+    code: z_option_code.optional().describe(CODE_ATTRIBUTE_DESCRIPTION),
   }),
+  // Parse-time typo guard (a warning, never an error) — see defaultCodes.ts.
+  validateAttributes: (attrs) => {
+    warnOnCodeMismatch(attrs, 'Key');
+    return undefined;
+  },
 });
 
 export default Key;

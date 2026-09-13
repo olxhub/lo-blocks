@@ -1,0 +1,42 @@
+<Vertical id="ChoiceInputCodes">
+  <Markdown>
+### Coding a Likert pair
+
+Each option carries a `code=` — the number the response is **recorded** as, in
+the survey sense (the SPSS code, the Qualtrics recode value). It is not a
+score, not points, and not a grade.
+
+The second item is **reversed**: agreeing with it means the opposite of
+agreeing with the first, so the reversal is written onto the item's codes
+rather than left for whoever reads the data later.
+  </Markdown>
+
+  <ChoiceInput id="codes_growth">
+    <Key id="codes_growth_strongly_agree" value="strongly_agree" code="2">Strongly agree</Key>
+    <Key id="codes_growth_agree" value="agree" code="1">Agree</Key>
+    <Key id="codes_growth_disagree" value="disagree" code="-1">Disagree</Key>
+    <Key id="codes_growth_strongly_disagree" value="strongly_disagree" code="-2">Strongly disagree</Key>
+  </ChoiceInput>
+  <Markdown>*I can get better at writing if I work at it.* — recorded as **{{@codes_growth.code}}**</Markdown>
+
+  <ChoiceInput id="codes_fixed">
+    <Key id="codes_fixed_strongly_agree" value="strongly_agree" code="-2">Strongly agree</Key>
+    <Key id="codes_fixed_agree" value="agree" code="-1">Agree</Key>
+    <Key id="codes_fixed_disagree" value="disagree" code="1">Disagree</Key>
+    <Key id="codes_fixed_strongly_disagree" value="strongly_disagree" code="2">Strongly disagree</Key>
+  </ChoiceInput>
+  <Markdown>*Either you are a writer or you are not.* (reversed) — recorded as **{{@codes_fixed.code}}**</Markdown>
+
+  <Markdown>
+### The default table
+
+These options carry no `code=` at all. Their values are ones the default-code
+table knows, so the codes come from there.
+  </Markdown>
+
+  <ChoiceInput id="codes_defaulted">
+    <Key id="codes_defaulted_true" value="true">True</Key>
+    <Distractor id="codes_defaulted_false" value="false">False</Distractor>
+  </ChoiceInput>
+  <Markdown>Recorded as **{{@codes_defaulted.code}}** (no `code=` was written).</Markdown>
+</Vertical>

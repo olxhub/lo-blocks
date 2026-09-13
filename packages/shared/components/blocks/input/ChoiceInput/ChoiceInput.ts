@@ -27,6 +27,23 @@ const ChoiceInput = core({
   fields,
   selectors: {
     value: (state, props: RuntimeProps, _stateKey) => decodedFieldSelector(state, props, fields.value, { fallback: '' }),
+    // The selected option's numeric CODE — the survey-methodology sense
+    // (SPSS code, Qualtrics recode value), never a score or a grade. Read as
+    // `@inputId.code`. Undefined when nothing is selected, and undefined when
+    // the selected option carries no code and its value is not in the default
+    // table (defaultCodes.ts) — an honest gap beats a guessed number.
+    //
+    // Pure over Redux state plus parsed content: the value comes from the
+    // store, the options from getChoices (the static kids/target walk that
+    // graders already use), and nothing is read from the rendered DOM. It
+    // reads the value field exactly as `value` above does, so the two can
+    // never disagree about which option is selected.
+    code: (state, props: RuntimeProps, _stateKey) => {
+      const selected = decodedFieldSelector(state, props, fields.value, { fallback: '' });
+      if (!selected) return undefined;
+      return getChoices(props, state, undefined)
+        .find(choice => choice.value === selected)?.code;
+    },
   },
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),

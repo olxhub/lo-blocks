@@ -10,9 +10,17 @@
 import { getBlockByDefinitionRef } from '@/lib/blocks';
 import { parseAnyStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey } from '@/lib/types/id-grammar';
 import { isKidArray } from '@/lib/types/kids';
+import { defaultCodeForValue } from './defaultCodes';
 import type { DefinitionKey, RuntimeProps, StateRef } from '@/lib/types';
 
-export interface Choice { tag: string; value: string }
+export interface Choice {
+  tag: string;
+  value: string;
+  /** The option's numeric CODE (survey sense — never a score; see
+   *  defaultCodes.ts): the explicit `code=` when the author wrote one, else
+   *  the default for its value, else undefined. */
+  code: number | undefined;
+}
 
 const isChoiceTag = (tag: string) => tag === 'Key' || tag === 'Distractor';
 
@@ -48,6 +56,12 @@ export function getChoices(props: RuntimeProps, _state: unknown, _id: unknown): 
   return choiceDefinitionKeys.flatMap(definitionKey => {
     const inst = getBlockByDefinitionRef(props, definitionKey);
     if (!inst || !isChoiceTag(inst.tag)) return [];
-    return [{ tag: inst.tag, value: String(inst.attributes.value ?? definitionKey) }];
+    const value = String(inst.attributes.value ?? definitionKey);
+    // Explicit beats implicit: an authored code wins over the default table,
+    // even when the two disagree (the parse-time typo guard warns, and the
+    // author still gets the number they wrote).
+    const authored = inst.attributes.code;
+    const code = typeof authored === 'number' ? authored : defaultCodeForValue(value);
+    return [{ tag: inst.tag, value, code }];
   });
 }
