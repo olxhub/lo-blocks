@@ -125,6 +125,17 @@ describe('extractReferences', () => {
       { sigil: '@', id: 'selected', fields: [] }
     ]);
   });
+
+  it('extracts from object literals', () => {
+    expect(extractReferences('{a: @x.value}')).toEqual([
+      { sigil: '@', id: 'x', fields: ['value'] }
+    ]);
+    expect(extractReferences("stringMatch(@answer.value, 'paris', { ignoreCase: @strict.value })"))
+      .toEqual([
+        { sigil: '@', id: 'answer', fields: ['value'] },
+        { sigil: '@', id: 'strict', fields: ['value'] }
+      ]);
+  });
 });
 
 describe('extractStructuredRefs', () => {

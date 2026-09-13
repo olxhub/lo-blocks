@@ -82,6 +82,15 @@ function collectSigilRefs(node: ASTNode, refs: SigilRef[]): void {
         }
       }
       break;
+    case 'Object':
+      // Keys are static; the values are expressions, and a sigil ref in one
+      // of them has to be subscribed like any other — without this,
+      // stringMatch(@a.value, 'x', { ignoreCase: @b.value }) never
+      // re-evaluates when @b changes.
+      for (const value of Object.values(node.properties)) {
+        collectSigilRefs(value, refs);
+      }
+      break;
     // Terminals - no children
     case 'Number':
     case 'String':
