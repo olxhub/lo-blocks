@@ -34,7 +34,9 @@
 //   - It MUST NOT be deleted unless it is replaced by something that serves
 //     the same use cases. The point is the use cases, not the mapping.
 //   - An explicit `code=` ALWAYS wins. The table only speaks when the author
-//     did not.
+//     did not. A code that disagrees with the table draws a parse-time
+//     warning — unless it is the table's value negated, which is a reversed
+//     item rather than a typo.
 //
 // SCOPE OF THE KEYS
 //
@@ -134,9 +136,20 @@ export function resetCodeMismatchWarnings(): void {
 
 /**
  * Typo guard: an explicit code that disagrees with the default for its own
- * value is legal — reversed items depend on it — but it is also exactly what
- * a fat-fingered `code="11"` looks like. So: a WARNING, never an error, and
- * the explicit code is used either way.
+ * value is legal, but it is also exactly what a fat-fingered `code="11"`
+ * looks like. So: a WARNING, never an error, and the explicit code is used
+ * either way.
+ *
+ * One disagreement is NOT a typo and does not warn: an exact NEGATION of the
+ * default (`strongly_agree` coded -2 against a default of 2). That is a
+ * reversed item — the single most common legitimate reason to write a code
+ * at all — and warning on it would bury the real typos under the noise of
+ * every properly reversed instrument. Anything else still warns: 11 against
+ * 1, 3 against 2, 0 against 1.
+ *
+ * Note the zero-default values (`false`, `no`, `neutral`): `-0 === 0`, so an
+ * explicit 0 there matches the default outright and never reached the
+ * negation test; an explicit nonzero code on a 0-default value still warns.
  *
  * Silent when the option has no code, no value, or a value the table does
  * not know (the Polish-label case, and every domain-specific value).
@@ -146,6 +159,7 @@ export function warnOnCodeMismatch(attrs: Record<string, any>, tag: string): voi
   if (typeof code !== 'number' || typeof value !== 'string') return;
   const expected = defaultCodeForValue(value);
   if (expected === undefined || expected === code) return;
+  if (code === -expected) return;   // a reversed item, not a typo
 
   const warnKey = `${attrs.id ?? ''}:${tag}:${normalizeCodeKey(value)}:${code}`;
   if (warnedCodeMismatches.has(warnKey)) return;

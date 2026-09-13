@@ -73,14 +73,20 @@ text would break the table's only stable input.
 
 ### (d) the typo guard — EXISTS (this commit)
 
-An explicit code that disagrees with the default for its own value is legal
-and necessary (that IS a reversed item), but it is also what a fat-fingered
-`code="11"` looks like. So it is a parse-time **warning**, never an error, and
-the explicit code is used either way:
+An explicit code that disagrees with the default for its own value is what a
+fat-fingered `code="11"` looks like. So it is a parse-time **warning**, never
+an error, and the explicit code is used either way:
 
 ```
 ⚠️  <Key value="true" code="11">: code 11 differs from the default code 1 for "true"; explicit code is used — check for a typo.
 ```
+
+One disagreement is exempt: an exact **negation** of the default
+(`strongly_agree` coded -2 against a default of 2). That is a reversed item —
+the commonest legitimate reason to write a code at all — and warning on it
+would bury the real typos under every properly reversed instrument. Every
+other disagreement still warns: 11 against 1, 3 against 2, 1 against 0. (The
+zero-default values are unaffected either way, since `-0 === 0`.)
 
 ### (e) open questions
 
@@ -104,7 +110,8 @@ the explicit code is used either way:
 | `<Key> True </Key>` | id `_<sha1>`, no value, no code; selection stores `CONTENT/_<sha1>` | `<Key id="q1_true" value="true" code="1">` |
 | `<Key value="true"> True </Key>` | id `_<sha1>`, value `true`, **code 1 from the table** | `<Key id="q1_true" value="true" code="1">` |
 | `<Key id="q1_true" value="true"> True </Key>` | value `true`, **code 1 from the table** | unchanged |
-| `<Key value="agree" code="-1"> Agree </Key>` | value `agree`, code −1, **warning** that the table says 1 | unchanged (a reversed item; the warning is the guard doing its job) |
+| `<Key value="agree" code="-1"> Agree </Key>` | value `agree`, code −1, no warning (an exact negation of the table's 1) | unchanged — a reversed item |
+| `<Key value="agree" code="11"> Agree </Key>` | value `agree`, code 11, **warning** that the table says 1 | unchanged — the explicit code still wins |
 | `<Key value="zgadzam_sie"> Zgadzam się </Key>` | value `zgadzam_sie`, **no code** | no code — the table keys English values on purpose |
 | `<Key value="mercury"> Mercury </Key>` | value `mercury`, no code | unchanged — most questions are not instruments and want no code |
 

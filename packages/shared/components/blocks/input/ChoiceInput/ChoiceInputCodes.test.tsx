@@ -266,15 +266,41 @@ describe('the typo guard', () => {
     warn.mockRestore();
   });
 
-  it('stays quiet for a reversed item, which is the whole point of an explicit code', async () => {
-    // A reversal IS a disagreement with the table, so this one DOES warn —
-    // pinned here so nobody "fixes" the noise by weakening the guard. The
-    // author silences it by reading the warning and keeping their code.
+  it('stays quiet for an exact negation — a reversed item, not a typo', async () => {
+    // The one disagreement that is never a mistake, and the commonest reason
+    // to write a code at all. Warning here would bury the real typos under
+    // every properly reversed instrument.
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await parse('<ChoiceInput id="t_rev"><Key id="t_rev_a" value="agree" code="-1">Agree</Key></ChoiceInput>',
-      'typo-reversed');
+    await parse(`<ChoiceInput id="t_rev">
+        <Key id="t_rev_a" value="strongly_agree" code="-2">Strongly agree</Key>
+        <Key id="t_rev_b" value="agree" code="-1">Agree</Key>
+        <Key id="t_rev_c" value="disagree" code="1">Disagree</Key>
+        <Key id="t_rev_d" value="strongly_disagree" code="2">Strongly disagree</Key>
+      </ChoiceInput>`, 'typo-reversed');
 
-    expect(warn.mock.calls.map(c => String(c[0])).join('\n')).toMatch(/check for a typo/);
+    expect(warn.mock.calls.map(c => String(c[0])).join('\n')).not.toMatch(/check for a typo/);
+    warn.mockRestore();
+  });
+
+  it('still warns on a near miss that is not a negation', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await parse('<ChoiceInput id="t_near"><Key id="t_near_a" value="strongly_agree" code="3">Strongly agree</Key></ChoiceInput>',
+      'typo-near');
+
+    expect(warn.mock.calls.map(c => String(c[0])).join('\n')).toMatch(
+      /code 3 differs from the default code 2 for "strongly_agree"/);
+    warn.mockRestore();
+  });
+
+  it('still warns on a nonzero code against a zero default', async () => {
+    // -0 === 0, so `false`/`no`/`neutral` coded 0 matched outright and never
+    // reached the negation test; anything else there is still suspect.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await parse('<ChoiceInput id="t_zero"><Key id="t_zero_a" value="neutral" code="1">Neutral</Key></ChoiceInput>',
+      'typo-zero');
+
+    expect(warn.mock.calls.map(c => String(c[0])).join('\n')).toMatch(
+      /code 1 differs from the default code 0 for "neutral"/);
     warn.mockRestore();
   });
 });

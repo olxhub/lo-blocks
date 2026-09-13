@@ -66,7 +66,9 @@ and underscores treated alike:
 A value the table does not know has no code, and `@inputId.code` reads
 `undefined` rather than a guessed number. An explicit `code` always wins; when
 an explicit code disagrees with the table's, the parser prints a warning (a
-likely typo) and uses the explicit code.
+likely typo) and uses the explicit code anyway. Reversed items are the
+exception and stay quiet: an explicit code that is exactly the table's value
+*negated* — `strongly_agree` coded `-2` — is a reversal, not a mistake.
 
 The table is a breadcrumb toward inferring more of an option from less
 authoring — see `INFERENCE.md` in this directory for the intended chain and
