@@ -12,6 +12,8 @@
 //
 
 import { wordcount, text2markdown, isFilled } from './evaluate';
+import { isTruthy, isNumber, isMissing } from './valuePredicates';
+import { sum, countFilled, average } from './aggregates';
 import { formatDuration } from '@/lib/util/duration';
 import { qualifyDefinitionRef, parseAnyDefinitionRef } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types/id-grammar';
@@ -27,8 +29,22 @@ export const dslFunctions: Record<string, Function> = {
   // Built-in helpers
   wordcount,
   text2markdown,
-  isFilled,
   formatDuration,
+
+  // Value-state predicates (valuePredicates.ts) — "what does this stored
+  // value mean?". isFilled is the original; the rest were split out with the
+  // use-case table that documents all of them.
+  isFilled,
+  isTruthy,
+  isNumber,
+  isMissing,
+
+  // Aggregates over a list (aggregates.ts). Missing elements are skipped,
+  // by the same isMissing above, so these can never disagree with the
+  // predicates about which items exist.
+  sum,
+  countFilled,
+  average,
 };
 
 /**

@@ -82,6 +82,23 @@ function collectSigilRefs(node: ASTNode, refs: SigilRef[]): void {
         }
       }
       break;
+    case 'Object':
+      // Keys are static; the values are expressions, and a sigil ref in one
+      // of them has to be subscribed like any other — without this,
+      // stringMatch(@a.value, 'x', { ignoreCase: @b.value }) never
+      // re-evaluates when @b changes.
+      for (const value of Object.values(node.properties)) {
+        collectSigilRefs(value, refs);
+      }
+      break;
+    case 'Array':
+      // Same reason as Object: elements are expressions. This is the whole
+      // point of the literal — average([@s09.code, @s19.code]) has to
+      // re-evaluate when either item is answered.
+      for (const element of node.elements) {
+        collectSigilRefs(element, refs);
+      }
+      break;
     // Terminals - no children
     case 'Number':
     case 'String':
