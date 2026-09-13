@@ -10,6 +10,11 @@
 // the table, an unanswered item codes to nothing rather than to zero, and a
 // code that is not a number fails the build instead of quietly becoming one.
 //
+// Reverse-coded items are here too: the reversal is declared once on the
+// ITEM (`reverseCoded="true"`), which negates the default table for its
+// options, and the typo guard measures every explicit code against THAT.
+// The guard forgives nothing — a flipped sign is the typo it exists to find.
+//
 // Read end to end through `@id.code` — the way content reads it — because
 // the selector is only useful if the expression language can see it.
 //
@@ -41,9 +46,9 @@ const parse = (olx: string, name: string) =>
 /** An item plus a readout of its code and value, so one mount can assert
  *  both. `{{…}}` interpolation renders an undefined code as the empty
  *  string, which is how "no code" is asserted below. */
-const item = (id: string, options: string, selector = 'code') =>
+const item = (id: string, options: string, selector = 'code', attrs = '') =>
   `<Vertical id="wrap_${id}">
-     <ChoiceInput id="${id}">${options}</ChoiceInput>
+     <ChoiceInput id="${id}"${attrs}>${options}</ChoiceInput>
      <Markdown id="read_${id}">|{{@${id}.${selector}}}|</Markdown>
    </Vertical>`;
 
@@ -77,6 +82,24 @@ describe('the default-code table', () => {
     expect(defaultCodeForValue('  yes  ')).toBe(1);
   });
 
+  it('negates for a reverse-coded item, and leaves zero alone', () => {
+    expect(defaultCodeForValue('strongly_agree', true)).toBe(-2);
+    expect(defaultCodeForValue('agree', true)).toBe(-1);
+    expect(defaultCodeForValue('disagree', true)).toBe(1);
+    expect(defaultCodeForValue('strongly_disagree', true)).toBe(2);
+    // Zero is its own negation, and stays 0 rather than -0 so it prints as
+    // "0" wherever it lands.
+    expect(Object.is(defaultCodeForValue('neutral', true), 0)).toBe(true);
+    expect(Object.is(defaultCodeForValue('false', true), 0)).toBe(true);
+    // Plain arithmetic on the boolean family: true → -1, false → 0. Rarely
+    // what anyone wants, which is why a reversed true/false item should
+    // carry explicit codes.
+    expect(defaultCodeForValue('true', true)).toBe(-1);
+    expect(defaultCodeForValue('yes', true)).toBe(-1);
+    // A value the table does not know is still unknown, reversed or not.
+    expect(defaultCodeForValue('mercury', true)).toBeUndefined();
+  });
+
   it('says nothing about values it does not know', () => {
     // The Polish-label case: the table keys VALUES, not display text.
     expect(defaultCodeForValue('zgadzam_się')).toBeUndefined();
@@ -92,7 +115,8 @@ describe('@id.code', () => {
   it('reads the selected option\'s explicit code', async () => {
     const { container } = await mountOLXString(item('c_explicit', `
       <Key value="agree" code="-1">Zgadzam się</Key>
-      <Distractor value="disagree" code="1">Nie zgadzam się</Distractor>`), 'code-explicit');
+      <Distractor value="disagree" code="1">Nie zgadzam się</Distractor>`,
+      'code', ' reverseCoded="true"'), 'code-explicit');
 
     await choose(container, 0);
     expect(readout(container)).toBe('-1');
@@ -111,13 +135,14 @@ describe('@id.code', () => {
     expect(readout(container)).toBe('-2');
   });
 
-  it('lets an explicit code beat the default for the same value (reversed items)', async () => {
-    // The reversal that makes this feature worth having: the value stays
-    // "agree" — the learner agreed — but on THIS item agreeing is the
-    // negative pole, so it is recorded as -1.
+  it('lets an explicit code beat the default for the same value', async () => {
+    // The value stays "agree" — the learner agreed — but on THIS item
+    // agreeing is the negative pole, so it is recorded as -1. Marked
+    // reverseCoded because it is, which is also what keeps the guard quiet.
     const { container } = await mountOLXString(item('c_reversed', `
       <Key value="agree" code="-1">Agree</Key>
-      <Distractor value="disagree" code="1">Disagree</Distractor>`), 'code-reversed');
+      <Distractor value="disagree" code="1">Disagree</Distractor>`,
+      'code', ' reverseCoded="true"'), 'code-reversed');
 
     await choose(container, 0);
     expect(readout(container)).toBe('-1');   // not the table's 1
@@ -139,6 +164,43 @@ describe('@id.code', () => {
 
     await choose(container, 0);
     expect(readout(container)).toBe('');
+  });
+
+  it('negates the default table on a reverseCoded item, with no per-option codes', async () => {
+    // A reversed item in its shortest honest form: the reversal is stated
+    // once on the item, and every option's number follows from it.
+    const { container } = await mountOLXString(item('c_rc', `
+      <Key value="strongly_agree">Strongly agree</Key>
+      <Key value="agree">Agree</Key>
+      <Key value="neutral">Neutral</Key>
+      <Key value="disagree">Disagree</Key>
+      <Key value="strongly_disagree">Strongly disagree</Key>`,
+      'code', ' reverseCoded="true"'), 'code-reversecoded');
+
+    await choose(container, 0);
+    expect(readout(container)).toBe('-2');   // not the table's 2
+    await choose(container, 1);
+    expect(readout(container)).toBe('-1');
+    await choose(container, 2);
+    expect(readout(container)).toBe('0');    // not "-0"
+    await choose(container, 3);
+    expect(readout(container)).toBe('1');
+    await choose(container, 4);
+    expect(readout(container)).toBe('2');
+  });
+
+  it('lets an explicit code beat the negated default too', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});  // -7 is a real mismatch
+    const { container } = await mountOLXString(item('c_rc_explicit', `
+      <Key value="agree" code="-7">Agree</Key>
+      <Key value="disagree">Disagree</Key>`,
+      'code', ' reverseCoded="true"'), 'code-reversecoded-explicit');
+
+    await choose(container, 0);
+    expect(readout(container)).toBe('-7');
+    await choose(container, 1);
+    expect(readout(container)).toBe('1');
+    warn.mockRestore();
   });
 
   it('codes a Distractor as readily as a Key — a code is not a grade', async () => {
@@ -172,6 +234,25 @@ describe('@id.codes (CheckboxInput)', () => {
     expect(readout(container)).toBe('[-1,1]');
     await choose(container, 1);               // then the defaulted neutral → 0
     expect(readout(container)).toBe('[-1,1,0]');
+  });
+
+  it('negates the default table on a reverseCoded CheckboxInput', async () => {
+    const { container } = await mountOLXString(
+      `<Vertical id="wrap_cb_rc">
+         <CheckboxInput id="cb_rc" reverseCoded="true">
+           <Key value="strongly_agree">Strongly agree</Key>
+           <Key value="neutral">Neutral</Key>
+           <Key value="disagree">Disagree</Key>
+         </CheckboxInput>
+         <Markdown id="read_cb_rc">|{{@cb_rc.codes}}|</Markdown>
+       </Vertical>`, 'codes-reversecoded');
+
+    await choose(container, 0);
+    expect(readout(container)).toBe('[-2]');   // not the table's 2
+    await choose(container, 1);
+    expect(readout(container)).toBe('[-2,0]');
+    await choose(container, 2);
+    expect(readout(container)).toBe('[-2,0,1]');
   });
 
   it('omits checked options that have no code at all', async () => {
@@ -214,6 +295,7 @@ describe('code= at parse time', () => {
   });
 
   it('accepts negative and fractional codes, and stores them as numbers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});  // both disagree; not the point here
     const { idMap, errors } = await parse(
       `<ChoiceInput id="c_ok">
          <Key id="c_ok_a" value="agree" code="-1">Agree</Key>
@@ -223,6 +305,7 @@ describe('code= at parse time', () => {
     expect(errors).toEqual([]);
     expect(getOlxJson(idMap, 'c_ok_a')?.attributes.code).toBe(-1);
     expect(getOlxJson(idMap, 'c_ok_b')?.attributes.code).toBe(1.5);
+    warn.mockRestore();
   });
 });
 
@@ -266,10 +349,11 @@ describe('the typo guard', () => {
     warn.mockRestore();
   });
 
-  it('stays quiet for an exact negation — a reversed item, not a typo', async () => {
-    // The one disagreement that is never a mistake, and the commonest reason
-    // to write a code at all. Warning here would bury the real typos under
-    // every properly reversed instrument.
+  it('warns on a flipped sign — the easiest typo there is, not an exemption', async () => {
+    // A reversed item says so on the item (reverseCoded, below). A code
+    // whose sign disagrees with the default is otherwise indistinguishable
+    // from a dropped minus, which is the mistake this guard is best placed
+    // to catch, so it warns like any other disagreement.
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await parse(`<ChoiceInput id="t_rev">
         <Key id="t_rev_a" value="strongly_agree" code="-2">Strongly agree</Key>
@@ -278,7 +362,41 @@ describe('the typo guard', () => {
         <Key id="t_rev_d" value="strongly_disagree" code="2">Strongly disagree</Key>
       </ChoiceInput>`, 'typo-reversed');
 
+    const warnings = warn.mock.calls.map(c => String(c[0]));
+    expect(warnings.filter(w => /check for a typo/.test(w))).toHaveLength(4);
+    expect(warnings.join('\n')).toMatch(
+      /code -2 differs from the default code 2 for "strongly_agree"/);
+    warn.mockRestore();
+  });
+
+  it('measures against the NEGATED default on a reverseCoded item', async () => {
+    // The same four codes as above, now declared as what they are. Nothing
+    // to warn about: each code is the effective default for its value.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await parse(`<ChoiceInput id="t_rc" reverseCoded="true">
+        <Key id="t_rc_a" value="strongly_agree" code="-2">Strongly agree</Key>
+        <Key id="t_rc_b" value="agree" code="-1">Agree</Key>
+        <Key id="t_rc_c" value="disagree" code="1">Disagree</Key>
+        <Key id="t_rc_d" value="strongly_disagree" code="2">Strongly disagree</Key>
+      </ChoiceInput>`, 'typo-reversecoded');
+
     expect(warn.mock.calls.map(c => String(c[0])).join('\n')).not.toMatch(/check for a typo/);
+    warn.mockRestore();
+  });
+
+  it('warns on an UN-reversed code inside a reverseCoded item', async () => {
+    // One option left at the table's sign while the item is reversed — the
+    // half-finished reversal the old exemption could not see.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await parse(`<ChoiceInput id="t_rc_slip" reverseCoded="true">
+        <Key id="t_rc_slip_a" value="strongly_agree" code="-2">Strongly agree</Key>
+        <Key id="t_rc_slip_b" value="agree" code="1">Agree</Key>
+      </ChoiceInput>`, 'typo-reversecoded-slip');
+
+    const warnings = warn.mock.calls.map(c => String(c[0]));
+    expect(warnings.filter(w => /check for a typo/.test(w))).toHaveLength(1);
+    expect(warnings.join('\n')).toMatch(
+      /code 1 differs from the default code -1 for "agree" on a reverseCoded item/);
     warn.mockRestore();
   });
 

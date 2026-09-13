@@ -8,13 +8,25 @@ import { core, input, z_stateRefList } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { decodedFieldSelector, commonFields } from '@/lib/state';
 import * as parsers from '@/lib/content/parsers';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { getChoices } from './choiceHelpers';
+import { warnOnOptionCodeTypos } from './defaultCodes';
 import type { RuntimeProps } from '@/lib/types';
 
 export const fields = state.fields([commonFields.value]);
 
+// The kids parser, wrapped below so each option's code= can be checked
+// against this item's own reverseCoded= BEFORE the options are parsed. An
+// option's validateAttributes sees only its own attributes, and whether a
+// code is a typo or a reversal is the item's question, not the option's.
+const kidsParser = parsers.blocks();
+
 const ChoiceInput = core({
-  ...parsers.blocks(),
+  ...kidsParser,
+  parser: async (ctx: any) => {
+    warnOnOptionCodeTypos(ctx);
+    return kidsParser.parser(ctx);
+  },
   name: 'ChoiceInput',
   ...input({ valueSchema: z.string() }),
   // Clicking a radio is a deliberate answer — immediate-mode grading shows
@@ -47,6 +59,8 @@ const ChoiceInput = core({
   },
   attributes: z.object({
     target: z_stateRefList.optional().describe('Comma-separated IDs of Key/Distractor children if not directly nested'),
+    reverseCoded: z_olx_boolean.default(false).describe(
+      'Mark this item REVERSE-CODED (the psychometric sense: agreeing with it means the opposite of agreeing with the rest of the scale). The default-code table is negated for this item\'s options — agree → -1, strongly_disagree → 2 — so a reversed Likert item needs no per-option code= at all. An explicit code= still wins, and is checked against the negated default. Recording only; never a score or a grade.'),
   }).strict(),
   locals: {
     getChoices
