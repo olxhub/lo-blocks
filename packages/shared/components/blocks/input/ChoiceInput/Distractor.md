@@ -6,6 +6,11 @@ Marks an incorrect answer option inside `ChoiceInput`. See `ChoiceInput` for ful
 
 - `id`: Unique identifier for this option (auto-generated if omitted)
 - `value`: Value stored when selected (defaults to `id` if omitted)
+- `code`: Numeric CODE recorded when this option is selected — the survey sense
+  of the word (SPSS code, Qualtrics recode value), **not** a score, grade, or
+  points. Must be a finite number. Falls back to the default-code table when
+  omitted; read back as `@inputId.code`. See
+  [ChoiceInput.md](ChoiceInput.md#codes).
 
 ## Usage
 
