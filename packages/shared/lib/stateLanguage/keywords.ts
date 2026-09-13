@@ -94,8 +94,17 @@ export const RESERVED_KEYWORDS = new Set([
 
   // Built-in functions
   'wordcount',
-  'isFilled',
   'text2markdown',
+  // Value-state predicates (valuePredicates.ts). isValid and isAnswered are
+  // reserved AHEAD of implementation: they are the contextual predicates the
+  // use-case table in valuePredicates.test.ts is a breadcrumb for, and a block
+  // must not be able to claim either name in the meantime.
+  'isFilled',
+  'isTruthy',
+  'isNumber',
+  'isMissing',
+  'isValid',
+  'isAnswered',
   'formatDuration',
   'stringMatch',
   'numericalMatch',

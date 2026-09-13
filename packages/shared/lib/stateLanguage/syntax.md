@@ -169,6 +169,49 @@ comparison can use `id('ee101/hw1')` or simply the plain string literal
 >>> id('Part_3_finished') in @completion.value
 >>> id(@picker.value) === @answer.value
 
+### Value-state predicates
+
+Four built-ins ask what a stored value MEANS. They are documented, with a
+use-case table over real block values, in `valuePredicates.ts` and
+`valuePredicates.test.ts`; these are the shapes they take in expressions.
+
+`isFilled(x)` — did the student put something here? (blank string, `[]` and
+`{}` are not filled; `0` and `false` are):
+
+>>> isFilled(@essay.value)
+{ "type": "Call", "callee": { "type": "Identifier", "name": "isFilled" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "essay", "fields": ["value"] }] }
+
+>>> isFilled(@tabularMCQ.value) && isFilled(@essay.value)
+>>> !isFilled(@answer.value)
+
+`isMissing(x)` — is there no response here? `isFilled`'s blanks plus `NaN`,
+which is what a cleared NumberInput reads as. This is the predicate the
+aggregates skip on:
+
+>>> isMissing(@score.value)
+{ "type": "Call", "callee": { "type": "Identifier", "name": "isMissing" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "score", "fields": ["value"] }] }
+
+>>> isMissing(@n.value) ? 0 : @n.value
+>>> !isMissing(@a.value) && !isMissing(@b.value)
+
+`isNumber(x)` — a real, finite number. Not `NaN`, not `Infinity`, and not the
+string `"3"` (the language does not coerce):
+
+>>> isNumber(@n.value)
+{ "type": "Call", "callee": { "type": "Identifier", "name": "isNumber" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "n", "fields": ["value"] }] }
+
+>>> isNumber(@n.value) && @n.value > 5
+>>> isNumber(@slider.value) ? Math.round(@slider.value) : 0
+
+`isTruthy(x)` — plain JavaScript truthiness, made explicit. Note `"0"` from a
+LineInput is truthy and `0` from a NumberInput is not, so this is rarely the
+one you want for gating:
+
+>>> isTruthy(@flag.value)
+{ "type": "Call", "callee": { "type": "Identifier", "name": "isTruthy" }, "arguments": [{ "type": "SigilRef", "sigil": "@", "id": "flag", "fields": ["value"] }] }
+
+>>> isTruthy(@done.value) === @done.value
+
 ## Array Aggregation
 
 Member access on arrays (e.g., caller-provided target lists):
