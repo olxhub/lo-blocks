@@ -295,6 +295,74 @@ More aggregation patterns (parse only):
 >>> items.filter(c => c.id === @selected)
 >>> items.find(c => c.id === @current).value
 
+## Aggregates
+
+`sum`, `countFilled` and `average` take ONE list and skip the elements the
+student hasn't answered. "Unanswered" is `isMissing`: `isFilled`'s blanks
+(`null`, `undefined`, `""`, whitespace-only, `[]`, `{}`) plus `NaN`, which is
+what a cleared NumberInput reads as. All three share that one predicate, so
+`sum` and `countFilled` can never disagree about which items exist.
+
+The semantics are pinned, executably, in `aggregates.test.ts` — the
+expectations there ARE the contract, and changing one re-scores every
+archived response with no parse error anywhere. In summary:
+
+```
+sum([1, 2, 3])                        → 6
+sum([1, @blank.value, 2])             → 3          missing skipped
+sum([])                               → 0          identity
+sum(["1", 2])                         → TypeError  no coercion
+sum([true, 1])                        → TypeError  booleans are not numbers
+sum(3)                                → TypeError  one list, not varargs
+
+countFilled([@a.value, @blank.value, 0, false])  → 3   0 and false are VALUES
+countFilled(["  ", [], {}])           → 0          isFilled's blanks
+countFilled([])                       → 0
+
+average([1, 2, 3, @blank.value])      → 2
+average([])                           → undefined  absent, not NaN and not 0
+average([1, 2, 3], {weights: [1, 1, 2]})     → 2.25
+average([1, @blank.value, 3], {weights: [1, 5, 1]})  → 2   pair-dropped
+average([1, 2], {weights: [1, 5, 1]}) → TypeError  length mismatch
+average([1, 2], {weight: [1, 1]})     → TypeError  typos fail loudly
+```
+
+`.length` counts SLOTS (SQL's `COUNT(*)`); `countFilled` counts VALUES
+(`COUNT(col)`). `[1, @blank.value].length` is 2 while
+`countFilled([1, @blank.value])` is 1, and them disagreeing by the number of
+blanks is the likeliest author bug in this kind of content.
+
+For ONE CheckboxInput, the stored value is already the list of selected ids,
+so "pick exactly 2" stays `@cb.value.length === 2`. `countFilled` is for
+ACROSS inputs — "answered at least 3 of these 5" — where an unanswered
+checkbox is one blank item.
+
+The shapes these take in expressions (parse only):
+
+>>> sum([@s09.code, @s19.code])
+{ "type": "Call", "callee": { "type": "Identifier", "name": "sum" }, "arguments": [{ "type": "Array", "elements": [{ "type": "SigilRef", "sigil": "@", "id": "s09", "fields": ["code"] }, { "type": "SigilRef", "sigil": "@", "id": "s19", "fields": ["code"] }] }] }
+
+>>> countFilled([@s09.value, @s19.value, @s06.value]) >= 2
+>>> average([@s09.code, @s19.code, @s06.code])
+>>> average([@s09.code, @s19.code], {weights: [1, 2]})
+>>> Math.round(50 + 50 * average([@s09.code, @s19.code, @s06.code]) / 2)
+>>> sum([@a.value, @b.value].map(v => v * 2))
+>>> countFilled([@s09.code, @s19.code]) > 0 ? average([@s09.code, @s19.code]) : 50
+
+`undefined` is a reserved word with no literal rule, so an absent average is
+tested with `countFilled(...) > 0` (or left to the consumer — a
+NumberLineInput `initial=` already falls back to its midpoint on `undefined`),
+not compared against `undefined`:
+
+!!! average([]) === undefined
+
+There is NO unary minus in this language: codes live on the item
+(`code="-1"`), so a negative number is written as a subtraction where one is
+genuinely needed. A leading `-` is a syntax error:
+
+!!! sum([-1, 1])
+!!! -@x.value
+
 ## String Literals
 
 Strings produce String nodes:
