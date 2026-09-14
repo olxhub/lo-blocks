@@ -83,6 +83,37 @@ yelling: Careful - what effect did the yelling actually have?
   </SimpleTextSelection>
 
   <Markdown>
+## 5. Sentence Mode
+
+`separatorRegexp` changes the selectable unit. Here `\.` divides the passage into
+sentences, so the learner clicks a whole sentence rather than assembling one word
+by word. The period stays visible at the end of each chunk; the stored value is
+still the array of word indices, so grading is untouched.
+  </Markdown>
+
+  <SimpleTextSelection id="demo_sentences" mode="graded" separatorRegexp="\.">
+"Such intrusions" points back to an earlier sentence. Click the sentence that describes those intrusions — its antecedent.
+---
+Temperance societies grew quickly in the 1830s. Members signed pledges and held public meetings. [Reformers from the middle class pressed their habits on lower-class workers, many of them recent immigrants.] Such intrusions sharpened class and religious tensions. The movement still counted itself a success.
+---
+all: Yes — that sentence names the intrusion "Such intrusions" refers back to.
+: Look for the sentence that describes someone intruding, just before "Such intrusions."
+  </SimpleTextSelection>
+
+  <Markdown>
+## 6. Hidden Markers
+
+`separatorHidden="true"` consumes the separator: the author places `|` markers to
+carve the passage into phrases, and the learner never sees them.
+  </Markdown>
+
+  <SimpleTextSelection id="demo_markers" mode="immediate" separatorRegexp="\|" separatorHidden="true">
+Click the phrase that names who is intruding.
+---
+Such | intrusions | [by the middle class] | on private lives
+  </SimpleTextSelection>
+
+  <Markdown>
 ## Summary
 
 Interactive text highlighting with three interaction modes, subtractive partial

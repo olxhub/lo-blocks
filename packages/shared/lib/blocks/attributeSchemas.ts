@@ -77,6 +77,31 @@ export const z_expression = z.union([
  */
 export const z_triggerMode = z.enum(['once', 'each']).default('once');
 
+/**
+ * Print modes understood by EVERY block.
+ *
+ * "false" hides the block from print/PDF output (render.tsx maps it to the
+ * `.print-hide` class in styles/print.css); "true" (and the unset default)
+ * prints normally.
+ *
+ * This is an OPEN enum: a block may widen it with its own print modes by
+ * redeclaring `print` in its own attribute schema and listing it in
+ * `allowOverrides`, e.g.
+ *
+ *   attributes: z.object({
+ *     print: z.enum([...printModes, 'no-chrome']).optional().describe(...),
+ *   }).strict(),
+ *   allowOverrides: ['print'],
+ *
+ * The block's declaration shadows the base one (later layer wins in
+ * mergeAttributes), so the base values keep working and only the block's
+ * extra values become legal on that tag. Tabs' "no-chrome" is the first
+ * such extension.
+ */
+export const printModes = ['true', 'false'] as const;
+
+export type PrintMode = typeof printModes[number];
+
 // =============================================================================
 // Reusable ID Schemas
 // =============================================================================
@@ -248,8 +273,8 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
-  print: z_olx_boolean.optional()
-    .describe('Set to "false" to hide this block from print/PDF output'),
+  print: z.enum(printModes).optional()
+    .describe('Print/PDF output: "false" hides this block from print, "true" (default) prints it. Some blocks add their own modes (e.g. Tabs supports "no-chrome").'),
   'grouped-by': z.string().optional()
     .describe('Partition shared/server fields by a field of each user\'s own state: "pickerBlockId.fieldName" (e.g. "topic_picker.activeIndex"). The server resolves each user\'s group from their committed choice; users who haven\'t chosen share the unpartitioned bucket. See docs/fields-design.md "Groups".'),
 }).strict();
@@ -283,24 +308,59 @@ export const graderAttributes = z.object({
 // =============================================================================
 
 /**
- * Valid showanswer modes - when the Show Answer button becomes available.
+ * Problem conditions - the ONE vocabulary for "when does this happen?".
+ *
+ * showAnswer and lockInput both take a value from this list, and both are
+ * answered by the same evaluator (conditionHolds in lib/grading/problemModes).
+ * A new condition is added here and implemented once, and every attribute
+ * spelling it gains it.
  */
-export const showAnswerModes = [
-  'always',     // Always visible
-  'never',      // Never visible
-  'attempted',  // After first attempt (submitCount > 0)
-  'correct',    // After a correct answer
-  'closed',     // After attempts exhausted (submitCount >= maxAttempts)
-  'finished',   // correct OR closed
+export const problemConditions = [
+  'always',     // From the start
+  'never',      // At no point
+  'attempted',  // Once a submission is recorded (submitCount > 0)
+  'correct',    // Once the answer is correct
+  'closed',     // Once attempts are exhausted (submitCount >= maxAttempts)
+  'finished',   // Once correct OR closed
 ] as const;
 
-export type ShowAnswerMode = typeof showAnswerModes[number];
+export type ProblemCondition = typeof problemConditions[number];
+
+/** showAnswer - when the answer becomes available. */
+export const showAnswerModes = problemConditions;
+
+export type ShowAnswerMode = ProblemCondition;
 
 /**
- * Schema for showanswer attribute - validates against allowed modes.
+ * Schema for showAnswer attribute - validates against allowed conditions.
  */
-export const showAnswerAttr = z.enum(showAnswerModes).optional()
-  .describe('When to show answer: always, never, attempted, correct, closed, finished');
+export const showAnswerAttr = z.enum(problemConditions).optional()
+  .describe('When the answer becomes available: always, never, attempted, correct, closed, finished');
+
+/**
+ * answerReveal - HOW the answer arrives once its showAnswer condition holds.
+ * The condition says when; this says whether the learner presses for it.
+ */
+export const answerRevealModes = [
+  'button',  // A Show Answer button appears; the learner presses it (default)
+  'auto',    // The answer appears on its own; no button is ever rendered
+] as const;
+
+export type AnswerRevealMode = typeof answerRevealModes[number];
+
+export const answerRevealAttr = z.enum(answerRevealModes).optional()
+  .describe('How the answer arrives when its showAnswer condition holds: button (default) or auto (revealed automatically, no button)');
+
+/**
+ * lockInput - when inputs stop accepting changes, in the same condition
+ * vocabulary as showAnswer.
+ *
+ * The lock is about what was SCORED: once a submission is final, the values
+ * on screen are the values that were graded, and an edit would make the
+ * displayed answer disagree with the reported result.
+ */
+export const lockInputAttr = z.enum(problemConditions).optional()
+  .describe('When inputs stop accepting changes: never (default), attempted, correct, closed, finished, always');
 
 /**
  * Schema for maxAttempts attribute - positive integer string or empty for unlimited.
@@ -332,14 +392,72 @@ export const gradeAttr = z.enum(gradeModes).optional()
   .describe('Grading trigger: submit (button, default) or immediate (grade as the learner answers, no button)');
 
 /**
+ * DEPRECATED spelling of showAnswer, accepted so existing courses keep
+ * parsing. normalizeDeprecatedAttributes rewrites it onto showAnswer at parse
+ * time, so nothing downstream ever reads this key.
+ *
+ * @deprecated Remove this, its entry in deprecatedAttributeNames, and the
+ * problemAttributes line below once every course uses showAnswer.
+ */
+export const showanswerAliasAttr = z.enum(problemConditions).optional()
+  .describe('Deprecated spelling of showAnswer');
+
+/**
  * Problem attributes - added to problem container blocks.
  * Contains attributes for attempts, answer visibility, and grading trigger.
  */
 export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
-  showanswer: showAnswerAttr,
+  showAnswer: showAnswerAttr,
+  showanswer: showanswerAliasAttr,  // deprecated alias of showAnswer
+  answerReveal: answerRevealAttr,
+  lockInput: lockInputAttr,
   grade: gradeAttr,
 });
+
+/**
+ * Deprecated attribute spellings, mapped to their current names.
+ *
+ * Empty this map (and delete the aliases from the schemas above) once no
+ * course uses the old spellings.
+ */
+const deprecatedAttributeNames: Record<string, string> = {
+  showanswer: 'showAnswer',
+};
+
+/** One warning per block and spelling, not one per re-parse. */
+const warnedDeprecatedAttributes = new Set<string>();
+
+/**
+ * Rewrite deprecated attribute spellings onto their current names, so every
+ * reader downstream sees one name.
+ *
+ * The current spelling wins when a block authors both; the deprecated key is
+ * dropped either way. Called once per block from the parse pipeline
+ * (lib/content/parseOLX.ts) with attributes that already passed their schema.
+ */
+export function normalizeDeprecatedAttributes<T extends Record<string, unknown>>(
+  attributes: T, tag: string, definitionKey: string,
+): T {
+  let normalized = attributes;
+  for (const [deprecated, current] of Object.entries(deprecatedAttributeNames)) {
+    if (!(deprecated in normalized)) continue;
+
+    const { [deprecated]: aliasedValue, ...rest } = normalized;
+    normalized = (rest[current] === undefined
+      ? { ...rest, [current]: aliasedValue }
+      : rest) as unknown as T;
+
+    const warnKey = `${definitionKey}:${deprecated}`;
+    if (!warnedDeprecatedAttributes.has(warnKey)) {
+      warnedDeprecatedAttributes.add(warnKey);
+      console.warn(
+        `⚠️  <${tag} id="${definitionKey}">: ${deprecated}= is deprecated; use ${current}=.`
+      );
+    }
+  }
+  return normalized;
+}
 
 // =============================================================================
 // Shared Value Lists

@@ -177,7 +177,8 @@ export default function CapaProblem(props: RuntimeProps) {
       label={props.submitLabel}
       // Problem mode settings
       maxAttempts={props.maxAttempts}
-      showanswer={props.showanswer}
+      showAnswer={props.showAnswer}
+      answerReveal={props.answerReveal}
       grade={props.grade}
       submitCount={submitCount}
       correct={problemCorrectness}

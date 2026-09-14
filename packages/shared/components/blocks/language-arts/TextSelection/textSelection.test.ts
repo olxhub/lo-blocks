@@ -4,6 +4,7 @@ import { test, expect } from 'vitest';
 import { parse } from './_textSelectionParser';
 import {
   expectedSelections, computeStats, scoreFromStats, targetedFeedbackItems,
+  projectParse, projectChunks, applyGesture, toggleChunks, anchorChanged,
   type ParsedDocument,
 } from './textSelectionModel';
 
@@ -302,3 +303,449 @@ coal: Not quite — coal is a fossil fuel.`);
     { id: 'solar', label: 'solar panels', text: 'Correct! Solar energy is renewable.' },
   ]);
 });
+
+// ===========================================================================
+// Chunk mode (`separatorRegexp`) and the gesture rules.
+//
+// Everything below is a decision table: an array of rows, each row a complete
+// case, driven by one loop. A new case is a new row, never a new test body.
+// ===========================================================================
+
+const BLOCK_ID = 'demo_input';
+
+/** Parse a passage body under a fixed prompt (the prompt is never the subject). */
+const passage = (body: string): ParsedDocument => parseTextSelection(`Prompt:\n---\n${body}`);
+
+/** The chunk projection for a passage body, as (text, wordIndices) rows. */
+function chunksOf(body: string, separatorRegexp: string, separatorHidden: boolean) {
+  const parsed = passage(body);
+  const { tokens, expected } = projectParse(parsed);
+  const { chunks } = projectChunks(tokens, expected, separatorRegexp, separatorHidden, BLOCK_ID);
+  return chunks.map(c => [c.text, c.wordIndices] as [string, number[]]);
+}
+
+// --- Chunk projection ------------------------------------------------------
+//
+// `hidden: false` keeps the match at the end of the left chunk and renders it;
+// `hidden: true` consumes it and normalises the whitespace around it. Word
+// indices come from the ONE tokenization and never shift, so they are the
+// column that proves the stored value is unchanged.
+const CHUNK_PROJECTION_TABLE: {
+  name: string;
+  body: string;
+  separator: string;
+  hidden: boolean;
+  chunks: [string, number[]][];
+}[] = [
+  {
+    name: 'sentences on "\\." keep their period and split on it',
+    body: 'The cat sat. The dog ran. Birds flew.',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['The cat sat.', [0, 1, 2]],
+      ['The dog ran.', [3, 4, 5]],
+      ['Birds flew.', [6, 7]],
+    ],
+  },
+  {
+    name: 'hand-placed "\\|" markers, hidden, never render',
+    body: 'Such | intrusions | by the middle class',
+    separator: '\\|',
+    hidden: true,
+    chunks: [
+      ['Such', [0]],
+      ['intrusions', [2]],
+      ['by the middle class', [4, 5, 6, 7]],
+    ],
+  },
+  {
+    name: 'the same markers, shown, render as content in the left chunk',
+    body: 'Such | intrusions | by the middle class',
+    separator: '\\|',
+    hidden: false,
+    chunks: [
+      ['Such |', [0, 1]],
+      ['intrusions |', [2, 3]],
+      ['by the middle class', [4, 5, 6, 7]],
+    ],
+  },
+  {
+    name: 'a marker fused to the preceding word is stripped, not dropped',
+    body: 'Such| intrusions| by the middle class',
+    separator: '\\|',
+    hidden: true,
+    chunks: [
+      ['Such', [0]],
+      ['intrusions', [1]],
+      ['by the middle class', [2, 3, 4, 5]],
+    ],
+  },
+  {
+    name: 'a marker fused to the FOLLOWING word opens the new chunk',
+    body: 'Such |intrusions |by the middle class',
+    separator: '\\|',
+    hidden: true,
+    chunks: [
+      ['Such', [0]],
+      ['intrusions', [1]],
+      ['by the middle class', [2, 3, 4, 5]],
+    ],
+  },
+  {
+    name: 'a separator at the end of the passage adds no empty chunk',
+    body: 'The cat sat. The dog ran.',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['The cat sat.', [0, 1, 2]],
+      ['The dog ran.', [3, 4, 5]],
+    ],
+  },
+  {
+    name: 'consecutive separators inside one word are one boundary',
+    body: 'One... Two.',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['One...', [0]],
+      ['Two.', [1]],
+    ],
+  },
+  {
+    name: 'consecutive hidden separators collapse to one boundary',
+    body: 'Such || intrusions',
+    separator: '\\|',
+    hidden: true,
+    chunks: [
+      ['Such', [0]],
+      ['intrusions', [2]],
+    ],
+  },
+  {
+    name: 'no occurrence: the whole passage is one chunk',
+    body: 'The cat sat on the mat',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['The cat sat on the mat', [0, 1, 2, 3, 4, 5]],
+    ],
+  },
+  {
+    name: 'hidden separators normalise whitespace so words never run together',
+    body: 'Such    |\n  intrusions   |   by the class',
+    separator: '\\|',
+    hidden: true,
+    chunks: [
+      ['Such', [0]],
+      ['intrusions', [2]],
+      ['by the class', [4, 5, 6]],
+    ],
+  },
+  {
+    name: 'a lookbehind pattern splits on the whitespace and keeps the period',
+    body: 'The cat sat. The dog ran! Birds flew?',
+    separator: '(?<=[.!?])\\s+',
+    hidden: true,
+    chunks: [
+      ['The cat sat.', [0, 1, 2]],
+      ['The dog ran!', [3, 4, 5]],
+      ['Birds flew?', [6, 7]],
+    ],
+  },
+  {
+    name: 'a required span wholly inside one chunk is fine',
+    body: 'The cat sat. [The dog ran.] Birds flew.',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['The cat sat.', [0, 1, 2]],
+      ['The dog ran.', [3, 4, 5]],
+      ['Birds flew.', [6, 7]],
+    ],
+  },
+  {
+    name: 'an optional span wholly inside one chunk is fine',
+    body: 'The cat sat. {The dog} ran. Birds flew.',
+    separator: '\\.',
+    hidden: false,
+    chunks: [
+      ['The cat sat.', [0, 1, 2]],
+      ['The dog ran.', [3, 4, 5]],
+      ['Birds flew.', [6, 7]],
+    ],
+  },
+];
+
+for (const row of CHUNK_PROJECTION_TABLE) {
+  test(`chunk projection: ${row.name}`, () => {
+    expect(chunksOf(row.body, row.separator, row.hidden)).toEqual(row.chunks);
+  });
+}
+
+// --- Chunk projection: authoring errors ------------------------------------
+//
+// Each row is a passage the projection must REFUSE, plus a fragment the message
+// has to carry so the author can find what to fix.
+const CHUNK_ERROR_TABLE: {
+  name: string;
+  body: string;
+  separator: string;
+  hidden: boolean;
+  message: RegExp;
+}[] = [
+  {
+    name: 'a required span crossing a boundary',
+    body: 'The cat sat. [The dog ran. Birds] flew.',
+    separator: '\\.',
+    hidden: false,
+    message: /marked span "The dog ran\. Birds" crosses a separator boundary/,
+  },
+  {
+    name: 'a decoy span crossing a boundary',
+    body: 'The cat sat. <<The dog ran. Birds>> flew.',
+    separator: '\\.',
+    hidden: false,
+    message: /marked span "The dog ran\. Birds" crosses a separator boundary/,
+  },
+  {
+    name: 'a required span crossing a hidden marker',
+    body: 'Such ; [intrusions ; by] the class',
+    separator: ';',
+    hidden: true,
+    message: /marked span "intrusions ; by" crosses a separator boundary/,
+  },
+  {
+    name: 'the boundary and the block are named in the message',
+    body: 'The cat sat. [The dog ran. Birds] flew.',
+    separator: '\\.',
+    hidden: false,
+    message: /TextSelectionInput demo_input.*chunks 1 and 2/s,
+  },
+  {
+    name: 'a regexp the RegExp constructor rejects',
+    body: 'The cat sat.',
+    separator: '(unclosed',
+    hidden: false,
+    message: /is not a valid regular expression/,
+  },
+  {
+    name: 'a regexp that matches the empty string',
+    body: 'The cat sat.',
+    separator: '\\.*',
+    hidden: false,
+    message: /matches the empty string/,
+  },
+];
+
+for (const row of CHUNK_ERROR_TABLE) {
+  test(`chunk projection error: ${row.name}`, () => {
+    expect(() => chunksOf(row.body, row.separator, row.hidden)).toThrow(row.message);
+  });
+}
+
+// --- The value a chunk gesture writes --------------------------------------
+//
+// The stored value is still the array of selected word indices: selecting a
+// chunk writes all of its indices, deselecting removes exactly those. Chunks
+// are named by index into the projection of `CHUNK_VALUE_BODY`.
+const CHUNK_VALUE_BODY = 'The cat sat. The dog ran. Birds flew.';
+
+const CHUNK_VALUE_TABLE: {
+  name: string;
+  before: number[];
+  touch: number[];       // chunk indices the gesture touched
+  after: number[];       // the stored value, ascending
+}[] = [
+  { name: 'selecting a chunk writes all of its word indices',
+    before: [], touch: [1], after: [3, 4, 5] },
+  { name: 'selecting a second chunk adds to the value',
+    before: [3, 4, 5], touch: [0], after: [0, 1, 2, 3, 4, 5] },
+  { name: 'deselecting a fully selected chunk removes exactly its indices',
+    before: [0, 1, 2, 3, 4, 5], touch: [1], after: [0, 1, 2] },
+  { name: 'a partly selected chunk fills rather than clears',
+    before: [3], touch: [1], after: [3, 4, 5] },
+  { name: 'a drag across several chunks flips each one on its own state',
+    before: [0, 1, 2], touch: [0, 1], after: [3, 4, 5] },
+  { name: 'a drag touching no chunk leaves the value alone',
+    before: [3, 4, 5], touch: [], after: [3, 4, 5] },
+];
+
+for (const row of CHUNK_VALUE_TABLE) {
+  test(`chunk value: ${row.name}`, () => {
+    const parsed = passage(CHUNK_VALUE_BODY);
+    const { tokens, expected } = projectParse(parsed);
+    const { chunks } = projectChunks(tokens, expected, '\\.', false, BLOCK_ID);
+    const touched = row.touch.map(i => chunks[i]);
+    const next = toggleChunks(new Set(row.before), touched);
+    expect([...next].sort((a, b) => a - b)).toEqual(row.after);
+  });
+}
+
+// --- The token-mode gesture rule: set vs clear -----------------------------
+//
+// A gesture that begins on an UNSELECTED word selects every word it touches; a
+// gesture that begins on a SELECTED word clears every word it touches. A single
+// click is the one-word case of the same rule, so it still reads as a toggle.
+const GESTURE_TABLE: {
+  name: string;
+  before: number[];
+  touched: number[];
+  anchor: number | null;
+  after: number[];
+}[] = [
+  { name: 'single click on an unselected word selects it',
+    before: [], touched: [2], anchor: 2, after: [2] },
+  { name: 'single click on a selected word deselects it',
+    before: [2], touched: [2], anchor: 2, after: [] },
+  { name: 'a drag beginning on an unselected word selects the whole span',
+    before: [], touched: [1, 2, 3], anchor: 1, after: [1, 2, 3] },
+  { name: 'a drag beginning on an unselected word over a partly selected span sets all of it',
+    before: [2], touched: [1, 2, 3], anchor: 1, after: [1, 2, 3] },
+  { name: 'a corrective drag beginning on a selected word clears the whole span',
+    before: [1, 2, 3], touched: [2, 3], anchor: 3, after: [1] },
+  { name: 'a corrective drag over an overshoot leaves the correct words alone',
+    before: [1, 2, 3, 4, 5], touched: [4, 5], anchor: 4, after: [1, 2, 3] },
+  { name: 'a clearing drag over words that were never selected is a no-op on them',
+    before: [1], touched: [1, 2, 3], anchor: 1, after: [] },
+  { name: 'a drag anchored on whitespace takes its direction from the first touched word',
+    before: [], touched: [4, 5], anchor: null, after: [4, 5] },
+  { name: 'a drag anchored on whitespace over a selected first word clears',
+    before: [4, 5], touched: [4, 5], anchor: null, after: [] },
+  { name: 'an anchor outside the touched set falls back to the first touched word',
+    before: [], touched: [4, 5], anchor: 9, after: [4, 5] },
+  { name: 'an empty gesture leaves the selection alone',
+    before: [1, 2], touched: [], anchor: 1, after: [1, 2] },
+];
+
+for (const row of GESTURE_TABLE) {
+  test(`token gesture: ${row.name}`, () => {
+    const next = applyGesture(new Set(row.before), new Set(row.touched), row.anchor);
+    expect([...next].sort((a, b) => a - b)).toEqual(row.after);
+  });
+}
+
+// --- The gesture anchor is written only when it CHANGES --------------------
+//
+// The anchor is a Redux field, so a write is an event in the log. The
+// container clears it on EVERY mousedown (capture phase) and a word sets it on
+// the ones that land on a word, so without a gate a click on whitespace after
+// a finished gesture would log null over null. The gate bounds the log to the
+// transitions that mean something.
+const ANCHOR_WRITE_TABLE: {
+  name: string;
+  current: number | null;
+  next: number | null;
+  writes: boolean;
+}[] = [
+  { name: 'a mousedown landing on a word after a finished gesture writes the anchor',
+    current: null, next: 3, writes: true },
+  { name: 'a mousedown landing on whitespace after a finished gesture writes nothing',
+    current: null, next: null, writes: false },
+  { name: 'the end of a gesture clears the anchor it set',
+    current: 3, next: null, writes: true },
+  { name: 'a mousedown on a different word re-anchors',
+    current: 3, next: 5, writes: true },
+  { name: 'a mousedown on the same word again writes nothing',
+    current: 3, next: 3, writes: false },
+  { name: 'word 0 is a real anchor, not an absent one',
+    current: null, next: 0, writes: true },
+];
+
+for (const row of ANCHOR_WRITE_TABLE) {
+  test(`anchor write: ${row.name}`, () => {
+    expect(anchorChanged(row.current, row.next)).toBe(row.writes);
+  });
+}
+
+// --- Token mode is untouched by the feature --------------------------------
+//
+// The projection of a passage with no `separatorRegexp` is what it always was:
+// the same word indices, and the same scoring off them.
+const TOKEN_MODE_TABLE: {
+  name: string;
+  body: string;
+  words: string[];
+  select: number[];
+  found: number;
+  errors: number;
+  score: number;
+}[] = [
+  { name: 'required phrases only',
+    body: 'The [cat] sat on the [mat].',
+    words: ['The', 'cat', 'sat', 'on', 'the', 'mat', '.'],
+    select: [1, 5], found: 2, errors: 0, score: 1 },
+  { name: 'everything selected costs one error per contiguous plain run',
+    body: 'The [cat] sat on the [mat].',
+    words: ['The', 'cat', 'sat', 'on', 'the', 'mat', '.'],
+    select: [0, 1, 2, 3, 4, 5, 6], found: 2, errors: 3, score: 0 },
+  { name: 'a five-word plain drag is one error, not five',
+    body: 'The [cat] the [dog] the [bird] the [fox] then everyone quickly ran back home',
+    words: ['The', 'cat', 'the', 'dog', 'the', 'bird', 'the', 'fox',
+            'then', 'everyone', 'quickly', 'ran', 'back', 'home'],
+    select: [1, 3, 5, 7, 8, 9, 10, 11, 12], found: 4, errors: 1, score: 0.75 },
+  { name: 'one word of a two-word required phrase is not found',
+    body: 'Power from [solar panels] and coal.',
+    words: ['Power', 'from', 'solar', 'panels', 'and', 'coal.'],
+    select: [2], found: 0, errors: 0, score: 0 },
+  { name: 'a touched decoy is one error',
+    body: 'They used [rewards] but also tried <<punishment>>.',
+    words: ['They', 'used', 'rewards', 'but', 'also', 'tried', 'punishment', '.'],
+    select: [2, 6], found: 1, errors: 1, score: 0 },
+  { name: 'optional words never help nor hurt',
+    body: '{The} [cat] sat on {the} [mat].',
+    words: ['The', 'cat', 'sat', 'on', 'the', 'mat', '.'],
+    select: [0, 1, 4, 5], found: 2, errors: 0, score: 1 },
+];
+
+for (const row of TOKEN_MODE_TABLE) {
+  test(`token mode unchanged: ${row.name}`, () => {
+    const parsed = passage(row.body);
+    const { tokens, expected } = projectParse(parsed);
+    expect(tokens.filter(t => !t.isSpace).map(t => t.text)).toEqual(row.words);
+    const stats = computeStats(new Set(row.select), expected);
+    expect(stats.requiredFound).toBe(row.found);
+    expect(stats.wrongSelected).toBe(row.errors);
+    expect(scoreFromStats(stats)).toBeCloseTo(row.score);
+  });
+}
+
+// --- Grading is blind to chunk mode ----------------------------------------
+//
+// The same passage, graded from the same stored value, scores identically with
+// and without a separator: chunk mode changes what the learner can click, not
+// what the grader reads.
+const GRADING_PARITY_TABLE: {
+  name: string;
+  body: string;
+  separator: string;
+  select: number[];
+  found: number;
+  errors: number;
+}[] = [
+  { name: 'the required sentence selected',
+    body: 'The cat sat. [The dog ran.] Birds flew.',
+    separator: '\\.', select: [3, 4, 5], found: 1, errors: 0 },
+  { name: 'a wrong sentence selected',
+    body: 'The cat sat. [The dog ran.] Birds flew.',
+    separator: '\\.', select: [0, 1, 2], found: 0, errors: 1 },
+  { name: 'nothing selected',
+    body: 'The cat sat. [The dog ran.] Birds flew.',
+    separator: '\\.', select: [], found: 0, errors: 0 },
+];
+
+for (const row of GRADING_PARITY_TABLE) {
+  test(`grading parity: ${row.name}`, () => {
+    const parsed = passage(row.body);
+    const withoutSeparator = computeStats(new Set(row.select), projectParse(parsed).expected);
+
+    const chunked = passage(row.body);
+    const { tokens, expected } = projectParse(chunked);
+    projectChunks(tokens, expected, row.separator, false, BLOCK_ID);
+    const withSeparator = computeStats(new Set(row.select), expected);
+
+    expect(withSeparator).toEqual(withoutSeparator);
+    expect(withSeparator.requiredFound).toBe(row.found);
+    expect(withSeparator.wrongSelected).toBe(row.errors);
+  });
+}

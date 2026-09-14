@@ -305,7 +305,10 @@ export function render({ node, nodeInfo, runtime }: {
   // TODO: We might add lo-id-... and other classes as well, to refer to specific components
   // later
   const userClassName = parsedAttributes.class || '';
-  const printClass = parsedAttributes.print === false ? 'print-hide' : '';
+  // `print` is an open enum (see printModes in attributeSchemas). Only the
+  // base "false" hides the whole block; block-specific modes (e.g. Tabs'
+  // "no-chrome") are handled by the block itself.
+  const printClass = parsedAttributes.print === 'false' ? 'print-hide' : '';
   const combinedClassName = `${blockClassName} ${userClassName} ${printClass}`.trim();
 
   // Wrap logEvent to include context from OLX DOM hierarchy

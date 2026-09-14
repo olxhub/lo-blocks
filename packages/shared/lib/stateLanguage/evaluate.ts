@@ -4,9 +4,9 @@
 // No React, no Redux - just takes an AST and a context object.
 
 import type { ASTNode } from './parser';
-import { dslFunctions } from './functions';
+import { dslFunctions, contextFunctions } from './functions';
 import { correctness, completion } from '@/lib/grading/correctness';
-import { ACTIVE_METHODS } from './keywords';
+import { readMember, callMember, isValueMethodName, NAMESPACE_VALUES } from './methods';
 import { qualifyRef } from '@/lib/types/id-grammar';
 import type { ContentNamespace } from '@/lib/types/id-grammar';
 import type { ObservableValue } from '@/lib/types/fieldValues';
@@ -84,9 +84,18 @@ export function evaluate(ast: ASTNode, context: ContextData): any {
         return '';
       }).join('');
 
+    case 'Array':
+      // A fresh array every evaluation: authored literals are values, and
+      // nothing downstream (map/filter/the aggregates) may mutate a cached
+      // one. Elements are full expressions, so refs inside are evaluated
+      // here — and subscribed by collectSigilRefs (references.ts).
+      return ast.elements.map(element => evaluate(element, context));
+
     case 'Object':
-      // Evaluate each property value and build a plain object
-      const result: Record<string, any> = {};
+      // Evaluate each property value and build a NULL-PROTOTYPE object, so
+      // an object literal carries exactly the keys the author wrote and
+      // nothing from Object.prototype (see methods.ts).
+      const result: Record<string, any> = Object.create(null);
       for (const [key, valueAst] of Object.entries(ast.properties)) {
         result[key] = evaluate(valueAst as ASTNode, context);
       }
@@ -118,10 +127,13 @@ function evaluateSigilRef(
       break;
   }
 
-  // Apply field access chain
+  // Apply field access chain. The grammar folds a trailing method name into
+  // the same SigilRef (@foo.value.includes), so this walk goes through the
+  // same member table as `obj.prop` — a field chain is not a back door to
+  // JS properties.
   for (const field of ast.fields) {
     if (value == null) return undefined;
-    value = value[field];
+    value = readMember(value, field);
   }
 
   return value;
@@ -136,11 +148,19 @@ function evaluateIdentifier(name: string, context: ContextData): any {
   if (name === 'completion') return completion;
   if (name === 'correctness') return correctness;
 
-  // Built-in objects
-  if (name === 'Math') return Math;
-  // Object.keys() is still used in some existing expressions.
-  // Prefer isFilled(@value) in new content — it handles objects, arrays, and strings.
-  if (name === 'Object') return Object;
+  // Built-in namespaces. These are opaque sentinels, not the JS globals:
+  // their whole vocabulary is the namespace table in methods.ts, so
+  // Math.constructor and Object.getPrototypeOf are not part of the language.
+  // (Object.keys() survives from older content; prefer isFilled(@value) in
+  // new content — it handles objects, arrays, and strings.)
+  if (name in NAMESPACE_VALUES) return NAMESPACE_VALUES[name];
+
+  // Context-aware functions (DefinitionKey, ...) — the registry holds
+  // factories, bound to this evaluation context on lookup. Checked before
+  // dslFunctions so a context-aware helper always wins over a plain one.
+  if (name in contextFunctions) {
+    return contextFunctions[name](context);
+  }
 
   // DSL functions from registry (stringMatch, numericalMatch, etc.)
   if (name in dslFunctions) {
@@ -221,7 +241,7 @@ function evaluateMemberAccess(
   const obj = evaluate(ast.object, context);
 
   if (obj == null) return undefined;
-  return obj[ast.property];
+  return readMember(obj, ast.property);
 }
 
 /**
@@ -233,7 +253,10 @@ function evaluateCall(
 ): any {
   const args = ast.arguments.map(arg => evaluate(arg, context));
 
-  // Handle method calls (obj.method(...)) - need to preserve binding
+  // Method calls (obj.method(...)). The method comes from the member table
+  // in methods.ts, keyed by the receiver's kind — never from the value
+  // itself, so no JS function is reachable that the language doesn't
+  // provide.
   if (ast.callee.type === 'MemberAccess') {
     const obj = evaluate(ast.callee.object, context);
 
@@ -241,39 +264,35 @@ function evaluateCall(
       throw new Error(`Cannot access method on null/undefined: ${JSON.stringify(ast.callee)}`);
     }
 
-    const method = obj[ast.callee.property];
-    if (typeof method !== 'function') {
-      throw new Error(`${ast.callee.property} is not a function`);
-    }
-
-    // Call with proper binding
-    return method.apply(obj, args);
+    return callMember(obj, ast.callee.property, args);
   }
 
-  // Handle method calls on SigilRef chains.
+  // Method calls on SigilRef chains.
   // The PEG grammar greedily consumes @foo.bar.method as a single SigilRef
   // with fields ['bar', 'method'], so the callee is a SigilRef rather than
-  // a MemberAccess. When the last field is a whitelisted method name, split
-  // it off and use .apply() for proper `this` binding.
-  if (ast.callee.type === 'SigilRef' && ast.callee.fields.length > 0) {
+  // a MemberAccess. Split a trailing method name off the chain and dispatch
+  // it through the same table as the MemberAccess path above.
+  if (ast.callee.type === 'SigilRef') {
     const fields = ast.callee.fields;
-    const methodName = fields[fields.length - 1];
+    const methodName = fields.length > 0 ? fields[fields.length - 1] : null;
 
-    if (ACTIVE_METHODS.has(methodName)) {
-      const parentRef = { ...ast.callee, fields: fields.slice(0, -1) };
-      const obj = evaluate(parentRef, context);
-      if (obj == null) {
-        throw new Error(`Cannot call method '${methodName}' on null/undefined`);
-      }
-      const method = obj[methodName];
-      if (typeof method !== 'function') {
-        throw new Error(`'${methodName}' is not available on this value`);
-      }
-      return method.apply(obj, args);
+    if (methodName === null || !isValueMethodName(methodName)) {
+      throw new Error(
+        `Cannot call ${ast.callee.sigil}${ast.callee.id}${fields.map(f => '.' + f).join('')}(): ` +
+        `${methodName === null ? 'a reference' : `'${methodName}'`} is not a method in the expression language`
+      );
     }
+
+    const parentRef = { ...ast.callee, fields: fields.slice(0, -1) };
+    const obj = evaluate(parentRef, context);
+    if (obj == null) {
+      throw new Error(`Cannot call method '${methodName}' on null/undefined`);
+    }
+    return callMember(obj, methodName, args);
   }
 
-  // Other callee types (identifiers, nested calls, etc.)
+  // Other callee types (identifiers — registered DSL/context functions —
+  // and expressions that produce one).
   const callee = evaluate(ast.callee, context);
   if (typeof callee !== 'function') {
     throw new Error(`Cannot call non-function: ${JSON.stringify(ast.callee)}`);

@@ -10,8 +10,13 @@
 // `getExpectedSelections` local (the getChoices pattern: static, callable from
 // graders and analytics with no rendered DOM).
 //
+// `separatorRegexp` / `separatorHidden` change only the selectable UNIT — word
+// (the default) or chunk — not the value: a chunk writes the word indices it
+// spans, so the grader and the analytics read both modes identically.
+//
 import { z } from 'zod';
 import { test, input, src } from '@/lib/blocks';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
@@ -22,7 +27,24 @@ import type { RuntimeProps } from '@/lib/types';
 // The field is named `selections` (not `value`) because that names what the
 // value IS — the array of selected word indices. `value` would also collide with
 // the selector namespace below, where the `value` getter reads this very field.
-export const fields = state.fields(['selections']);
+//
+// `gestureAnchor` holds the word index a mousedown began on, or null when the
+// gesture began on whitespace or no gesture is in flight. It decides whether a
+// token-mode drag SELECTS or CLEARS the span it touches, and it clears when the
+// gesture ends.
+//
+// It is a FIELD, not React local state, because that is the platform's
+// contract: block state lives in Redux through declared fields, so every value
+// is persisted and every change is logged. The anchor is logic — which end of a
+// span a drag started from is what makes a corrective drag corrective, and it
+// is exactly what a reader of the event log needs to replay the gesture. Local
+// state would drop it on the floor. Drag bookkeeping in the same shape:
+// SortableInput.ts:11-15 (`draggedItem` / `dragOverIndex`).
+//
+// Hover is deliberately NOT here: the chunk outline under the pointer is
+// presentation, so it is a `:hover` rule in textselection.css and reaches no
+// store at all.
+export const fields = state.fields(['selections', 'gestureAnchor']);
 
 // Getters run inside useSelector subscriptions; a fresh [] per call would
 // defeat the equality gate and re-render every dispatch while unanswered.
@@ -50,7 +72,16 @@ const TextSelectionInput = test({
     value: (state, props: RuntimeProps, _stateKey) =>
       decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS }),
   },
-  attributes: z.object({ ...src }).strict(),  // Optional external passage file.
+  attributes: z.object({
+    ...src,  // Optional external passage file.
+    // The selectable unit. Absent, it is the word (the passage is split on
+    // whitespace). Given, the passage is divided into chunks at every match of
+    // this regexp and the chunk is what the learner selects.
+    separatorRegexp: z.string().optional()
+      .describe('JavaScript regexp source dividing the passage into selectable chunks (e.g. "\\." for sentences, "\\|" for hand-placed markers). Absent: the learner selects single words.'),
+    separatorHidden: z_olx_boolean.optional()
+      .describe('true: the matched separator is consumed and never rendered. false (default): it stays at the end of the left chunk and renders as content.'),
+  }).strict(),
   locals: {
     // Projects the answer key off the parsed passage for the grader. Bound at
     // grade time to this input's own (props, state, id); ignores state/id —

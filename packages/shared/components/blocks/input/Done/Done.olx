@@ -1,0 +1,4 @@
+<Vertical id="DoneDemo" title="Done">
+<Markdown>Read this short activity, then mark it complete when you are satisfied that you have finished.</Markdown>
+<Done id="reading_complete" align="left" />
+</Vertical>

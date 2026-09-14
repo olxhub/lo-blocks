@@ -22,6 +22,11 @@
 //   plain text        everything else — selecting it counts against the score
 //
 // A parsed Document is `{ prompt, segments, scoring, targetedFeedback }`.
+//
+// The selectable UNIT is the word by default. An input carrying a
+// `separatorRegexp` attribute instead selects CHUNKS, projected over the same
+// token stream by `projectChunks` below; the stored value is the same array of
+// word indices either way, so nothing downstream of the renderer changes.
 
 // ─── Parsed grammar shapes ───────────────────────────────────────────────────
 
@@ -365,4 +370,296 @@ export function targetedFeedbackItems(
     items.push({ id, label: segment.words.join(' '), text });
   }
   return items;
+}
+
+// --- Chunk projection (`separatorRegexp`) ------------------------------------
+//
+// By default the selectable unit is the word: `tokenize` splits the passage on
+// the whitespace regexp /(\s+)/. `separatorRegexp` generalises that split. When
+// an input carries one, the passage is divided into CHUNKS at every match and
+// the CHUNK -- not the word -- becomes the selectable unit. Without the
+// attribute nothing below runs and the block behaves exactly as it always has.
+//
+// The attribute is a JavaScript regexp SOURCE string, compiled once with the `g`
+// flag and no others; the author escapes as needed (`\.` for sentences, `\|` for
+// hand-placed markers). Two authoring errors fail fast here: a source the RegExp
+// constructor rejects, and a source that matches the empty string (it would
+// split between every character).
+//
+// `separatorHidden` says what happens to the matched text. False (the default)
+// keeps the match at the END of the left chunk, where it renders as content -- so
+// `\.` keeps each sentence's period. True consumes the match: it is never
+// rendered, and the whitespace around it is normalised so words do not run
+// together.
+//
+// Chunk boundaries come from the separator; CORRECTNESS still comes from the
+// [required] / {optional} / <<decoy>> brackets, and the stored value is still the
+// array of selected word indices -- selecting a chunk writes all of its word
+// indices. So the grader, the scoring, the events, and the analytics heatmap all
+// read chunk mode without knowing it exists. What chunk mode does forbid is a
+// bracket span that straddles a boundary: the learner could never select it, so
+// it is an authoring error and this projection throws.
+//
+// The match is found in the passage text, not inside a single token, so a
+// pattern may cover whitespace as well as word characters (e.g. a lookbehind
+// pattern like `(?<=[.!?])\s+`). A token that straddles a boundary cannot be cut
+// in half -- it carries one stable index -- so it stays with the chunk that holds
+// its content: a token whose remaining text lies entirely after the match opens
+// the new chunk, and every other straddling token closes the old one.
+
+/** A chunk: the selectable unit when `separatorRegexp` is set. */
+export interface Chunk {
+  /** Position in the passage, 0-based. */
+  index: number;
+  /** Words and interior spaces in render order. In hidden mode a token's text
+   *  has the separator removed; a token that was ONLY separator is absent. */
+  tokens: Token[];
+  /** The stable word indices this chunk writes when selected, ascending. */
+  wordIndices: number[];
+  /** The chunk as rendered -- the piece texts joined. */
+  text: string;
+}
+
+export interface ChunkProjection {
+  chunks: Chunk[];
+  /** Word index to its chunk's index. A word consumed as a separator is absent. */
+  chunkOfWord: Map<number, number>;
+}
+
+/** A token with rewritten text; keeps the index, so the stored value is stable. */
+function withText(token: Token, text: string): Token {
+  return token.isSpace ? { index: -1, text, isSpace: true } : { ...token, text };
+}
+
+/**
+ * Compile the author's `separatorRegexp`. Throws on a source the RegExp
+ * constructor rejects and on one that matches the empty string.
+ */
+export function compileSeparator(source: string, blockId: string): RegExp {
+  let probe: RegExp;
+  try {
+    probe = new RegExp(source);
+  } catch (e) {
+    throw new Error(
+      `TextSelectionInput ${blockId}: separatorRegexp "${source}" is not a valid ` +
+      `regular expression: ${(e as Error).message}`,
+    );
+  }
+  if (probe.test('')) {
+    throw new Error(
+      `TextSelectionInput ${blockId}: separatorRegexp "${source}" matches the empty ` +
+      `string, so it would split the passage between every character. Use a pattern ` +
+      `that must consume at least one character.`,
+    );
+  }
+  return new RegExp(source, 'g');
+}
+
+/**
+ * Divide an already-tokenized passage into chunks at every separator match.
+ *
+ * Pure over (tokens, separator, hidden): no DOM, no React, callable from tests,
+ * node, and analytics. Chunks with no selectable word (a lone separator that was
+ * consumed, or whitespace only) are dropped, so consecutive separators produce
+ * one boundary rather than empty chunks. A passage with no match at all is one
+ * chunk.
+ */
+export function projectChunks(
+  tokens: Token[],
+  expected: ExpectedSelections,
+  separatorRegexp: string,
+  separatorHidden: boolean,
+  blockId: string,
+): ChunkProjection {
+  const separator = compileSeparator(separatorRegexp, blockId);
+
+  // The passage text, with each token's span in it. Matching happens on the
+  // whole text so a pattern may straddle token edges (whitespace included).
+  let passage = '';
+  const spans: { token: Token; start: number; end: number }[] = [];
+  for (const token of tokens) {
+    spans.push({ token, start: passage.length, end: passage.length + token.text.length });
+    passage += token.text;
+  }
+
+  const matches: { start: number; end: number }[] = [];
+  for (let m = separator.exec(passage); m !== null; m = separator.exec(passage)) {
+    matches.push({ start: m.index, end: m.index + m[0].length });
+  }
+
+  const chunks: Chunk[] = [];
+  let current: Token[] = [];
+
+  // Close the chunk under construction. Leading and trailing whitespace is
+  // dropped (the renderer puts a single space between chunks), and a chunk with
+  // no selectable word never reaches the learner.
+  const closeChunk = () => {
+    let first = 0;
+    let last = current.length;
+    while (first < last && current[first].isSpace) first++;
+    while (last > first && current[last - 1].isSpace) last--;
+    const kept = current.slice(first, last);
+    current = [];
+    const wordIndices = kept.filter((t): t is WordToken => !t.isSpace).map(t => t.index);
+    if (wordIndices.length === 0) return;
+    chunks.push({
+      index: chunks.length,
+      tokens: kept,
+      wordIndices,
+      text: kept.map(t => t.text).join(''),
+    });
+  };
+
+  let next = 0;  // first match not yet consumed
+  for (const span of spans) {
+    // Boundaries that closed before this token even starts.
+    while (next < matches.length && matches[next].end <= span.start) {
+      closeChunk();
+      next++;
+    }
+
+    // Matches overlapping this token.
+    let after = next;
+    while (after < matches.length && matches[after].start < span.end) after++;
+    if (after === next) {
+      current.push(span.token);
+      continue;
+    }
+
+    const firstMatch = matches[next];
+    const lastMatch = matches[after - 1];
+    const before = span.token.text.slice(0, Math.max(0, firstMatch.start - span.start));
+    const trailing = span.token.text.slice(
+      Math.min(span.token.text.length, Math.max(0, lastMatch.end - span.start)),
+    );
+    // Hidden: the separator is consumed. Visible: the match renders as content.
+    const kept = separatorHidden ? before + trailing : span.token.text;
+    // A token whose surviving text lies wholly AFTER the separator belongs to the
+    // chunk the separator opens; every other straddling token closes the old one.
+    const opensChunk = before === '' && trailing !== '';
+
+    if (opensChunk) closeChunk();
+    if (kept !== '') current.push(withText(span.token, kept));
+    if (!opensChunk) closeChunk();
+
+    // A match that runs on past this token stays current for the next one.
+    next = after;
+    while (next > 0 && matches[next - 1].end > span.end) next--;
+  }
+  closeChunk();
+
+  const chunkOfWord = new Map<number, number>();
+  for (const chunk of chunks) {
+    for (const index of chunk.wordIndices) chunkOfWord.set(index, chunk.index);
+  }
+
+  // A bracket span the learner could never select whole is an authoring error.
+  for (const segment of expected.segments) {
+    if (segment.type === 'text' || segment.wordIndices.length === 0) continue;
+    const homes = new Set<number>();
+    for (const index of segment.wordIndices) {
+      const home = chunkOfWord.get(index);
+      if (home !== undefined) homes.add(home);
+    }
+    if (homes.size <= 1) continue;
+    const across = [...homes].sort((a, b) => a - b);
+    throw new Error(
+      `TextSelectionInput ${blockId}: the marked span "${segment.words.join(' ')}" crosses a ` +
+      `separator boundary. separatorRegexp "${separatorRegexp}" splits it across chunks ` +
+      `${across.join(' and ')} ("${chunks[across[0]].text}" then "${chunks[across[1]].text}"). ` +
+      `A marked span must lie wholly inside one chunk.`,
+    );
+  }
+
+  return { chunks, chunkOfWord };
+}
+
+// Memoized per (Document, separator, hidden), alongside the token projection, so
+// the renderer's re-renders cost one Map lookup.
+const chunksByParse = new WeakMap<ParsedDocument, Map<string, ChunkProjection>>();
+
+/** The chunk projection for a parsed passage (memoized). */
+export function chunkProjection(
+  parsed: ParsedDocument,
+  separatorRegexp: string,
+  separatorHidden: boolean,
+  blockId: string,
+): ChunkProjection {
+  const key = `${separatorHidden ? 'hidden' : 'shown'} ${separatorRegexp}`;
+  let byKey = chunksByParse.get(parsed);
+  if (!byKey) {
+    byKey = new Map();
+    chunksByParse.set(parsed, byKey);
+  }
+  const hit = byKey.get(key);
+  if (hit) return hit;
+  const { tokens, expected } = projectParse(parsed);
+  const projection = projectChunks(tokens, expected, separatorRegexp, separatorHidden, blockId);
+  byKey.set(key, projection);
+  return projection;
+}
+
+// --- Applying a gesture to the selection -------------------------------------
+
+/**
+ * Apply one click-or-drag gesture in TOKEN mode.
+ *
+ * The word the gesture STARTS on sets the direction: starting on an unselected
+ * word SELECTS every word the gesture touches, starting on a selected word
+ * DESELECTS every word it touches. A single click is the one-word case of that
+ * rule, so it still reads as a toggle -- but a corrective second drag back over
+ * an overshoot now clears the overshoot instead of XOR-ing away the correct
+ * words underneath it.
+ *
+ * `anchor` is the word the pointer went down on, or null when the gesture began
+ * on whitespace; in that case the first touched word decides the direction.
+ */
+export function applyGesture(
+  committed: Set<number>,
+  touched: Set<number>,
+  anchor: number | null,
+): Set<number> {
+  if (touched.size === 0) return committed;
+  const start = anchor !== null && touched.has(anchor) ? anchor : Math.min(...touched);
+  const select = !committed.has(start);
+  const next = new Set(committed);
+  for (const index of touched) {
+    if (select) next.add(index); else next.delete(index);
+  }
+  return next;
+}
+
+/**
+ * Apply one gesture in CHUNK mode: every chunk the gesture touched flips once,
+ * each on its own prior state -- a fully selected chunk clears, any other chunk
+ * fills. Selecting a chunk writes all of its word indices, so the stored value
+ * stays the same array of word indices token mode writes.
+ */
+export function toggleChunks(committed: Set<number>, touched: Chunk[]): Set<number> {
+  if (touched.length === 0) return committed;
+  const next = new Set(committed);
+  for (const chunk of touched) {
+    const full = isSegmentSelected(chunk.wordIndices, committed);
+    for (const index of chunk.wordIndices) {
+      if (full) next.delete(index); else next.add(index);
+    }
+  }
+  return next;
+}
+
+// --- Writing the gesture anchor ----------------------------------------------
+
+/**
+ * The write-on-change gate for `gestureAnchor`: true when the store actually
+ * has something new to record.
+ *
+ * The anchor lives in Redux, so every write is an event in the log, and the
+ * pointer offers a write more often than it changes anything -- the container's
+ * capture-phase handler clears the anchor on EVERY mousedown, including the
+ * ones that land on whitespace with the anchor already clear. Gating on the
+ * value bounds the log to the transitions that mean something: one event per
+ * mousedown that lands on a word, one when the gesture ends.
+ */
+export function anchorChanged(current: number | null, next: number | null): boolean {
+  return current !== next;
 }

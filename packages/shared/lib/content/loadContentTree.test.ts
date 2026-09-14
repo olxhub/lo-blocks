@@ -255,3 +255,4 @@ it('re-parses a manifest\'s subtree when the manifest is added, changed, or dele
     await fs.rm(tmpDir, { recursive: true, force: true });
   }
 });
+

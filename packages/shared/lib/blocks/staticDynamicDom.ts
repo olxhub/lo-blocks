@@ -30,6 +30,11 @@ import type { RuntimeProps } from '@/lib/types';
 function getWhen(kid: any, props: RuntimeProps, reduxState: any) {
   if (kid.type === 'html') return undefined;
   if (kid.type === 'block') {
+    // A <Use ref="x" when="..."/> gates THIS reference, not the referenced
+    // definition: the override wins over whatever when= the target carries at
+    // its own definition site. parseOLX pre-parses the override to { expr, ast }
+    // (the same z_expression pass baseAttributes runs), so this is a plain read.
+    if (kid.overrides?.when) return kid.overrides.when;
     const definitionKey = kid.definitionKey;
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(reduxState, sources, definitionKey, props.runtime.locale.code);

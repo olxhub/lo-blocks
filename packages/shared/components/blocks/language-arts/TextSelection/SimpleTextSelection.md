@@ -17,7 +17,7 @@ words. Three interaction modes map onto standard problem semantics:
 
 - **immediate** (default) → `grade="immediate"`: correctness derives live, no button.
 - **graded** → `grade="submit"`: the standard Check button, submit-time grading.
-- **selfcheck** → `grade="submit"` + `showanswer="always"`: select, then reveal the answer to compare.
+- **selfcheck** → `grade="submit"` + `showAnswer="always"`: select, then reveal the answer to compare.
 
 ## Basic Usage
 
@@ -85,6 +85,55 @@ and compound forms like `>1,errors<1`. Fields are `found`, `errors`,
 `incorrect`. A bare `:` is the fallback rule. Full semantics live in the
 [`TextSelectionGrader`](./TextSelectionGrader.md#scoring-rules) doc.
 
+### Selectable unit: words, or chunks
+
+By default the learner clicks single **words**. `separatorRegexp` divides the
+passage into **chunks** instead — sentences, clauses, whatever the pattern names
+— and the chunk becomes what the learner clicks. Both attributes are forwarded
+to the generated [`TextSelectionInput`](./TextSelectionInput.md#the-selectable-unit-words-or-chunks),
+which owns the semantics; the stored value is the same array of word indices
+either way, so grading and analytics are unaffected.
+
+`separatorRegexp` is a **JavaScript regexp source string**, not a literal: escape
+what you must.
+
+Sentences — the period stays visible at the end of each chunk:
+
+```olx:code
+<SimpleTextSelection id="antecedent" mode="graded" separatorRegexp="\.">
+Click the sentence that describes the intrusion.
+---
+Temperance societies grew quickly in the 1830s. Members signed pledges and held
+public meetings. [Reformers from the middle class pressed their habits on
+lower-class workers.] Such intrusions sharpened class tensions.
+</SimpleTextSelection>
+```
+
+Hand-placed markers — `separatorHidden="true"` consumes the marker and normalises
+the whitespace around it, so `Such | intrusions | by the middle class` reads as
+"Such intrusions by the middle class" in three chunks:
+
+```olx:code
+<SimpleTextSelection id="phrases" mode="immediate" separatorRegexp="\|" separatorHidden="true">
+Click the phrase that names who is intruding.
+---
+Such | intrusions | [by the middle class]
+</SimpleTextSelection>
+```
+
+Chunk boundaries come from the separator; **correctness still comes from the
+brackets**. A marked span that crosses a chunk boundary is an authoring error —
+the learner could never select it whole — and so are a regexp the `RegExp`
+constructor rejects and one that can match the empty string.
+
+**The "Dr. Jones" caveat.** `separatorRegexp="\."` is a naive sentence split: it
+breaks "Dr. Jones spoke." into "Dr." and "Jones spoke." When that bites, place
+your own markers and hide them (`separatorRegexp="\|" separatorHidden="true"`),
+or use a smarter pattern such as `separatorRegexp="(?<=[.!?])\s+"` with
+`separatorHidden="true"`, which splits on the whitespace after terminal
+punctuation. Neither knows an abbreviation from a sentence end; real sentence
+segmentation with NLP is a possible later addition, not this attribute.
+
 ### Targeted Feedback
 
 A fourth section keys per-term notes by label:
@@ -116,10 +165,14 @@ credit.
 | `id` | Yes | – | Unique identifier |
 | `mode` | No | `immediate` | One of `immediate`, `graded`, `selfcheck` |
 | `src` | No | – | Path to an external `.textSelectionpeg` passage file |
+| `separatorRegexp` | No | – | JavaScript regexp source dividing the passage into selectable chunks. Absent: the learner selects single words. |
+| `separatorHidden` | No | `false` | `true`: the match is consumed and never rendered. `false`: it stays at the end of the left chunk and renders as content. |
 
-Any other problem attribute (`title`, `maxAttempts`, `showanswer`, …) passes
-through to the generated CapaProblem. Passage content is provided inline **or**
-via `src` (not both).
+The problem attributes (`title`, `maxAttempts`, `showAnswer` — the deprecated
+`showanswer` spelling still parses — `answerReveal`, `lockInput`, `grade`) may
+be authored here and pass through to the generated CapaProblem; `mode` wins
+over any `grade`/`showAnswer` it sets. Passage content is provided
+inline **or** via `src` (not both).
 
 ## Generated Structure
 

@@ -39,10 +39,11 @@ function getArg(name: string): string | undefined {
 }
 
 const manifestFlag = getArg('--manifest');
+const outputFlag = getArg('--output');
 const serveFlag = getFlag('--serve');
 
 if (!manifestFlag) {
-  console.error('Usage: tsx scripts/build-static.ts --manifest <path-to-manifest.yaml> [--serve]');
+  console.error('Usage: tsx scripts/build-static.ts --manifest <path-to-manifest.yaml> [--output <dir>] [--serve]');
   process.exit(1);
 }
 
@@ -72,6 +73,7 @@ interface Manifest {
   content_notice?: string;
   content_root?: string;
   output?: string;
+  multi_namespace?: boolean;
   routes: Record<string, string>;
 }
 
@@ -85,12 +87,23 @@ if (!manifest.routes || Object.keys(manifest.routes).length === 0) {
   process.exit(1);
 }
 
-// Namespace: explicit or derived from manifest directory name.
-// Passed to xml2json via --ns: the static build treats its whole content
-// root as ONE namespace. (Per-file resolution can't be relied on here —
-// root-level OLX files have no namespace directory, and when content_root
-// points away from the manifest, the manifest isn't even in the provider's
-// tree for namespaceFor's walk to find.)
+// Namespace. Two modes:
+//
+// SINGLE (default). One course, one namespace: --ns is passed to xml2json and
+// FileStorageProvider's constructor override makes the whole content root that
+// namespace, manifests ignored. This is what makes root-level OLX files legal
+// (they have no namespace directory to fall back on) and what lets content_root
+// point somewhere the manifest itself doesn't live.
+//
+// MULTI (`multi_namespace: true` — PROTOTYPE, proto/multi-ns-static). Several
+// courses in one build. No --ns, so namespaceFor's per-file walk runs and each
+// subdirectory's own manifest.yaml names its namespace. The entry manifest is
+// then just one namespace among several: its `namespace:` still declares its
+// OWN directory (the walk reads it like any other), but it no longer names the
+// build, so `output`/--output becomes mandatory — there is no "the" namespace
+// to put in dist/<ns>. Root-level OLX files are errors in this mode; every
+// file must sit under a directory with a manifest.
+const multiNamespace = manifest.multi_namespace === true;
 const namespace = manifest.namespace
   || path.basename(manifestDir);
 if (!manifest.namespace) {
@@ -104,12 +117,17 @@ if (namespaceValid !== true) {
 }
 
 const contentRoot = path.resolve(manifestDir, manifest.content_root || '.');
-const outputDir = manifest.output
-  ? path.resolve(repoRoot, manifest.output)
+const outputSpec = outputFlag || manifest.output;
+if (multiNamespace && !outputSpec) {
+  console.error(`  multi_namespace builds must name their output: add 'output:' to the manifest or pass --output.`);
+  process.exit(1);
+}
+const outputDir = outputSpec
+  ? path.resolve(repoRoot, outputSpec)
   : path.resolve(repoRoot, 'dist', namespace);
 
 console.log(`  Manifest:     ${manifestPath}`);
-console.log(`  Namespace:    ${namespace}`);
+console.log(`  Namespace:    ${multiNamespace ? `${namespace} (+ siblings; per-file resolution)` : namespace}`);
 console.log(`  Content root: ${contentRoot}`);
 console.log(`  Output:       ${outputDir}`);
 console.log(`  Routes:       ${Object.keys(manifest.routes).length}`);
@@ -166,7 +184,10 @@ run('xml2json', sandboxSh, [
   tsxBin,
   'packages/shared/scripts/xml2json.ts',
   '--content', contentRoot,
-  '--ns', namespace,
+  // Omitting --ns is the whole multi-namespace switch: xml2json passes
+  // `ns: undefined` to FileStorageProvider, whose namespaceFor then walks
+  // manifests per file instead of short-circuiting on the forced namespace.
+  ...(multiNamespace ? [] : ['--ns', namespace]),
   '--manifest', tmpStaticConfig,
   '--static-dir', staticContentDir,
 ]);

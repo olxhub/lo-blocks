@@ -91,14 +91,32 @@ export interface AnnotationRange {
 }
 
 /**
+ * Build a valid CSS <custom-ident> without losing identity information.
+ * Instance IDs contain characters such as `/`, `.` and (from React's useId)
+ * `_` or `«»`, which are legal in the HighlightRegistry key but make an
+ * unescaped ::highlight() rule invalid.
+ */
+export function highlightName(instanceId: string, noteId: string): string {
+  const encoded = Array.from(`${instanceId}\0${noteId}`, char =>
+    char.codePointAt(0)!.toString(16)
+  ).join('-');
+  return `lo-ann-${encoded}`;
+}
+
+/**
  * Register CSS Custom Highlights for each annotation in the passage.
  *
  * Runs as a useEffect after render — the passage DOM must exist before we
  * can create Ranges. Re-runs when annotations or activeNoteId change.
  *
- * Each annotation gets a highlight named `lo-ann-{instanceId}-{noteId}`.
- * The instanceId (block ID) ensures multiple Annotate blocks on the same
- * page don't collide.
+ * Each annotation gets a highlight named from (instanceId, noteId). The
+ * instanceId identifies one MOUNT, not one block: CSS.highlights is a single
+ * document-wide registry and each entry's Ranges point into one copy of the
+ * passage DOM, so copies of the same block that are on screen together (a
+ * <Use> of it, a Tabs panel kept mounted behind display:none, an activity
+ * pane showing the same screen) must not share a name — the last effect in
+ * tree order would win and every other copy would paint nothing. The caller
+ * passes React's useId.
  *
  * The corresponding ::highlight() CSS rules are injected by the component
  * via a <style> element — this hook only manages the Highlight objects.
@@ -119,7 +137,7 @@ export function useHighlights(
     const registeredNames: string[] = [];
 
     for (const ann of annotations) {
-      const name = `lo-ann-${instanceId}-${ann.noteId}`;
+      const name = highlightName(instanceId, ann.noteId);
       const range = createRangeFromOffsets(container, ann.start, ann.end);
       if (range) {
         // Highlight is a browser global (not imported — it's a DOM API)

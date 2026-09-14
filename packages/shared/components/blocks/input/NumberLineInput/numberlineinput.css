@@ -1,0 +1,315 @@
+/* NumberLineInput — a native range input with a layer of labeled ticks.
+ *
+ * Everything is laid out with LOGICAL properties (inset-inline-start,
+ * margin-inline, padding-inline) so the line mirrors correctly under
+ * dir="rtl" along with the native range element itself. No `left`/`right`
+ * anywhere — a physical offset here would put the ticks on the wrong side
+ * of an RTL page while the thumb moved the other way.
+ *
+ * The control draws its OWN track and thumb (appearance: none). A native
+ * range is painted by the engine from `accent-color`, which colours the
+ * track fill AND the thumb together: recolouring it to say "unanswered"
+ * repainted the whole control in the page background and the line vanished,
+ * while the ::-webkit-slider-thumb overrides were ignored because the
+ * element still had its native appearance. Owning both pseudo-elements is
+ * what makes the unset, disabled and focus states separately stylable.
+ */
+
+.lo-tag-numberlineinput .lo-numberline {
+  /* The thumb's size is shared arithmetic: the marks layer is inset by half
+   * of it so a tick at 50% sits under the thumb at 50%. */
+  --lo-numberline-thumb: 1.25rem;
+  --lo-numberline-track: 4px;
+  padding-block: var(--lo-space-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 100%;
+  /* Taller than the track so the whole strip is a comfortable touch target. */
+  block-size: calc(var(--lo-numberline-thumb) + var(--lo-space-sm));
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ── Track ─────────────────────────────────────────────────────────────
+ * Visible in EVERY state, including unanswered and disabled: the line is
+ * the thing being read, and a learner who has not answered yet still has
+ * to see the scale they are answering on. */
+
+.lo-tag-numberlineinput .lo-numberline__input::-webkit-slider-runnable-track {
+  block-size: var(--lo-numberline-track);
+  background: var(--lo-border-strong);
+  border-radius: var(--lo-radius-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input::-moz-range-track {
+  block-size: var(--lo-numberline-track);
+  background: var(--lo-border-strong);
+  border-radius: var(--lo-radius-sm);
+}
+
+/* Firefox paints the span below the thumb separately; it is the same line. */
+.lo-tag-numberlineinput .lo-numberline__input::-moz-range-progress {
+  block-size: var(--lo-numberline-track);
+  background: var(--lo-border-strong);
+  border-radius: var(--lo-radius-sm);
+}
+
+/* ── Thumb ─────────────────────────────────────────────────────────── */
+
+.lo-tag-numberlineinput .lo-numberline__input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: var(--lo-numberline-thumb);
+  block-size: var(--lo-numberline-thumb);
+  /* WebKit stacks the thumb on top of the track box; pull it up by half the
+   * difference so its centre sits on the centre of the line. */
+  margin-block-start: calc((var(--lo-numberline-track) - var(--lo-numberline-thumb)) / 2);
+  border-radius: 50%;
+  background: var(--lo-primary);
+  border: 2px solid var(--lo-bg);
+  cursor: pointer;
+}
+
+.lo-tag-numberlineinput .lo-numberline__input::-moz-range-thumb {
+  inline-size: var(--lo-numberline-thumb);
+  block-size: var(--lo-numberline-thumb);
+  border-radius: 50%;
+  background: var(--lo-primary);
+  border: 2px solid var(--lo-bg);
+  cursor: pointer;
+}
+
+/* ── Focus ─────────────────────────────────────────────────────────────
+ * The ring is drawn twice: on the control (so the whole strip is obviously
+ * focused) and on the thumb itself, because with appearance: none the thumb
+ * is the part the keyboard actually moves. */
+.lo-tag-numberlineinput .lo-numberline__input:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+  box-shadow: var(--lo-focus-ring-shadow);
+  border-radius: var(--lo-radius-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 var(--lo-focus-ring-width) var(--lo-focus-ring), var(--lo-focus-ring-shadow);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 var(--lo-focus-ring-width) var(--lo-focus-ring), var(--lo-focus-ring-shadow);
+}
+
+/* ── Disabled ──────────────────────────────────────────────────────── */
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled {
+  cursor: not-allowed;
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled::-webkit-slider-runnable-track {
+  background: var(--lo-border);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled::-moz-range-track {
+  background: var(--lo-border);
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled::-webkit-slider-thumb {
+  background: var(--lo-text-muted);
+  cursor: not-allowed;
+}
+
+.lo-tag-numberlineinput .lo-numberline__input:disabled::-moz-range-thumb {
+  background: var(--lo-text-muted);
+  cursor: not-allowed;
+}
+
+/* ── Unanswered ────────────────────────────────────────────────────────
+ * The thumb rests at `initial=` but must not read as an answer, so it is
+ * hollow until the learner writes the field. The track keeps its colour:
+ * only the thumb changes, and nothing dims.
+ *
+ * To HIDE the thumb while unanswered instead of hollowing it, set
+ * `opacity: 0` on these two rules — nothing else has to move. */
+
+.lo-tag-numberlineinput .lo-numberline[data-unset="true"] .lo-numberline__input::-webkit-slider-thumb {
+  background: var(--lo-bg);
+  border: 2px solid var(--lo-border-strong);
+}
+
+.lo-tag-numberlineinput .lo-numberline[data-unset="true"] .lo-numberline__input::-moz-range-thumb {
+  background: var(--lo-bg);
+  border: 2px solid var(--lo-border-strong);
+}
+
+/* ── The tick layer ────────────────────────────────────────────────────
+ * Positioned, so every mark inside it (ticks, reference) resolves its inset
+ * against THIS box and not some scrolled ancestor. Inset by half a thumb on
+ * each side because that is where the thumb's CENTRE travels between: a
+ * tick at 0% then lines up with the thumb at min, and one at 50% with the
+ * thumb at the midpoint. */
+.lo-tag-numberlineinput .lo-numberline__marks {
+  position: relative;
+  min-block-size: var(--lo-space-2xl);
+  margin-inline: calc(var(--lo-numberline-thumb) / 2);
+}
+
+/* The renderer wraps each child block in its own element; it must not
+ * become the containing block for the tick's own absolute position. */
+.lo-tag-numberlineinput .lo-numberline__marks .lo-tag-tick {
+  position: static;
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick,
+.lo-tag-numberlineinput .lo-numberline__reference,
+.lo-tag-numberlineinput .lo-numberline__marker {
+  position: absolute;
+  inset-block-start: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* max-content keeps the box the same width wherever it sits (a shrink-to-
+   * fit box at 100% would have no room left to fit into); the max- clamp
+   * then makes long labels wrap rather than run off. */
+  inline-size: max-content;
+  max-inline-size: 8rem;
+  white-space: normal;
+  text-align: center;
+}
+
+/* translateX is physical; mirror it so a tick stays centred in RTL. */
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline-tick,
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__reference,
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline__marker {
+  transform: translateX(50%);
+}
+
+/* ── Endpoint ticks ────────────────────────────────────────────────────
+ * A centred tick at min or max hangs half its label outside the marks box
+ * and the panel clips it ("gly disagree … Strongly Ag"). The endpoints are
+ * therefore anchored: the MARK stays exactly on the position and the label
+ * grows inward from it.
+ *
+ * `inset-inline-start` already flips, so the start tick needs no transform
+ * in either direction: in LTR its inline-start edge sits at 0 and the box
+ * runs rightward; in RTL the same edge is the right one and the box runs
+ * leftward — inward both times. The end tick is the case that has to be
+ * mirrored by hand: the box must be pulled back along the inline axis by
+ * its whole width, which is physically leftward in LTR and rightward in
+ * RTL. `align-items` and `text-align` are logical, so one rule each does
+ * both directions: the mark lands on the anchored edge, the label under it. */
+.lo-tag-numberlineinput .lo-numberline-tick[data-edge="start"] {
+  transform: none;
+  align-items: flex-start;
+  text-align: start;
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick[data-edge="end"] {
+  transform: translateX(-100%);
+  align-items: flex-end;
+  text-align: end;
+}
+
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline-tick[data-edge="start"] {
+  transform: none;
+}
+
+[dir="rtl"] .lo-tag-numberlineinput .lo-numberline-tick[data-edge="end"] {
+  transform: translateX(100%);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__mark {
+  inline-size: 1px;
+  block-size: var(--lo-space-sm);
+  background: var(--lo-border-strong);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__label {
+  font-size: var(--lo-font-size-sm);
+  line-height: var(--lo-line-height-tight);
+  color: var(--lo-text-secondary);
+}
+
+.lo-tag-numberlineinput .lo-numberline-tick__label p {
+  margin: 0;
+}
+
+/* The fixed marker: "where you are now" while the thumb says something
+ * else. Visually distinct from a tick, and never draggable. */
+.lo-tag-numberlineinput .lo-numberline__reference-mark {
+  inline-size: 2px;
+  block-size: var(--lo-space-lg);
+  background: var(--lo-secondary);
+  border-radius: var(--lo-radius-sm);
+}
+
+.lo-tag-numberlineinput .lo-numberline__reference-label {
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text-muted);
+}
+
+.lo-tag-numberlineinput .lo-numberline__value {
+  display: inline-block;
+  margin-inline-start: var(--lo-space-sm);
+  font-size: var(--lo-font-size-sm);
+  color: var(--lo-text);
+}
+
+/* ── Display mode ──────────────────────────────────────────────────────
+ * `display="true"` draws a COMPUTED position and takes none, so there is no
+ * <input> in the tree — which means the track the native range was painting
+ * has to be drawn here instead. Same arithmetic as the control it replaces:
+ * a box as tall as the touch target with the line centred in it, so a
+ * display line and an input line sit at the same height in a column of both.
+ *
+ * Nothing is greyed. The unanswered and disabled styles above say "no answer
+ * yet" and "you cannot touch this"; a computed score is neither, and dimming
+ * it would make a real result read as a dead control. */
+
+.lo-tag-numberlineinput .lo-numberline__track {
+  display: flex;
+  align-items: center;
+  block-size: calc(var(--lo-numberline-thumb) + var(--lo-space-sm));
+}
+
+.lo-tag-numberlineinput .lo-numberline__track::before {
+  content: '';
+  inline-size: 100%;
+  block-size: var(--lo-numberline-track);
+  background: var(--lo-border-strong);
+  border-radius: var(--lo-radius-sm);
+}
+
+/* The computed position: a committed thumb, in the primary colour, drawn in
+ * the marks layer beside the ticks and the reference. That layer begins just
+ * under the track, so the mark is pulled back up by half the track box plus
+ * half its own height to put its centre on the line; the label then lands
+ * about where a tick label does. */
+.lo-tag-numberlineinput .lo-numberline__marker {
+  inset-block-start: calc((var(--lo-numberline-thumb) + var(--lo-space-sm) + var(--lo-numberline-thumb)) / -2);
+}
+
+.lo-tag-numberlineinput .lo-numberline__marker-mark {
+  inline-size: var(--lo-numberline-thumb);
+  block-size: var(--lo-numberline-thumb);
+  border-radius: 50%;
+  background: var(--lo-primary);
+  border: 2px solid var(--lo-bg);
+}
+
+.lo-tag-numberlineinput .lo-numberline__marker-label {
+  margin-block-start: calc((var(--lo-numberline-thumb) + var(--lo-space-sm)) / 2);
+  font-size: var(--lo-font-size-xs);
+  color: var(--lo-text);
+}
+
+/* No marker yet — the aggregate has nothing to average. The author's own
+ * words stand in for it, under the track where the marker would be. */
+.lo-tag-numberlineinput .lo-numberline__placeholder {
+  display: block;
+  font-size: var(--lo-font-size-sm);
+  color: var(--lo-text-muted);
+}

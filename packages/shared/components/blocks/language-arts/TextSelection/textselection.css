@@ -1,0 +1,24 @@
+/* packages/shared/components/blocks/language-arts/TextSelection/textselection.css
+ *
+ * Chunk-mode hover for TextSelectionInput.
+ *
+ * The dashed outline that says "this chunk is what a click would toggle" is
+ * presentation, so it is a `:hover` rule and no state at all — nothing about
+ * where the pointer is reaches the store. The component's remaining state is
+ * the selection and the gesture anchor, which are logic.
+ *
+ * Two interactions with the component's inline styles, both deliberate:
+ *   - A SELECTED chunk carries its solid outline inline, and an inline style
+ *     beats a stylesheet rule, so hovering a selected chunk keeps the solid
+ *     outline rather than flickering to dashed.
+ *   - `.text-chunk-live` is present only while the passage is unlocked; a
+ *     read-only passage, or one showing the answer, is a reference and gets no
+ *     hover affordance.
+ *
+ * Semantic theme tokens (styles/tokens/semantic.css), like everything else in
+ * this block, so the outline tracks light/dark.
+ */
+.text-highlight-container .text-chunk-live:hover {
+  outline: 2px dashed var(--lo-border-strong);
+  outline-offset: 1px;
+}

@@ -2,6 +2,14 @@
 description: State language expression parser - produces AST
 ---*/
 
+// ADDITIVE-ONLY RULE. Stored expressions are archival: z_expression persists
+// {expr, ast} and consumers evaluate the STORED ast. So a change to this
+// grammar may only give meaning to input that is a parse error today, or add
+// a name that is unbound today. No change may alter the AST of any input in
+// syntax.md. The proof is mechanical: dump expression -> AST for every
+// expression in the demos, the content repos and the tests with the old and
+// new parsers, and diff.
+
 // ============================================
 // Entry Point
 // ============================================
@@ -130,6 +138,7 @@ Primary
   / Number
   / String
   / TemplateLiteral
+  / ArrayLiteral
   / ObjectLiteral
   / MathObject
   / id:Identifier { return { type: 'Identifier', name: id }; }
@@ -145,6 +154,37 @@ BooleanLiteral
 
 IdentifierChar
   = [a-zA-Z0-9_]
+
+// ============================================
+// Array Literals
+// ============================================
+
+// A list written out by an author: [@s09.code, @s19.code, @s06.code].
+//
+// Sits at the Primary level, so everything PostfixExpr already does falls
+// out with no new rules: [...].length, [...].map(v => v), and `x in [...]`
+// via Comparison -> Additive -> ... -> Primary.
+//
+// Elements are Expression, not ArgumentExpr: an arrow is not a value in this
+// language, only a call argument, so [v => v] is deliberately a parse error.
+//
+// INDEXING IS RESERVED, NOT IMPLEMENTED. `x[0]` and `@list.value[0]` stay
+// parse errors: nothing needs them, and SigilRef greedily eats `.field`
+// segments, so indexing a ref would need a SigilRef change too. Leaving the
+// position an error keeps the spelling free for whenever there is a use.
+//
+// A trailing comma is allowed (JS, not JSON): these lists are hand-edited in
+// XML attributes and diffed line by line.
+
+ArrayLiteral "array literal"
+  = "[" _ elements:ArrayElements? _ "]" {
+      return { type: 'Array', elements: elements || [] };
+    }
+
+ArrayElements
+  = head:Expression tail:(_ "," _ Expression)* (_ ",")? {
+      return [head, ...tail.map(t => t[3])];
+    }
 
 // ============================================
 // Object Literals

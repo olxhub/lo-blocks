@@ -1,0 +1,8 @@
+<Vertical id="NumberLineInputDemo" title="How big is a frog?">
+<Markdown id="frog_prompt">Drag the marker to where a frog belongs, between the largest land animal and something too small to see.</Markdown>
+
+<NumberLineInput id="frog_size" min="0" max="100" step="1" snap="step" showValue="true">
+  <Tick value="0"   label="elephant" > 🐘 elephant </Tick>
+  <Tick value="100" label="virus"    > 🦠 virus    </Tick>
+</NumberLineInput>
+</Vertical>

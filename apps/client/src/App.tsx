@@ -5,6 +5,7 @@
 import React from 'react';
 
 import { store, extendSettings } from '@/lib/state';
+import { installGlobalErrorReporting } from '@/lib/state/errorEvents';
 import { editorFields } from '@/lib/state/editorFields';
 import { chatFields } from '@/lib/state/chatFields';
 import { editorMirrorFields } from '@/components/blocks/authoring/Studio/locals';
@@ -26,6 +27,10 @@ const reduxStore = store.init({
   websocket: resolveConfig({}, 'websocket') === 'true',
   tabSync: resolveConfig({}, 'tab-sync') === 'true',
 });
+
+// After store.init so a report emitted during boot has a pipeline to land on.
+// Client entry point only — the module is shared code and stays node-safe.
+installGlobalErrorReporting();
 
 export default function App({ route }: { route: Route }) {
   let page: React.ReactNode;
