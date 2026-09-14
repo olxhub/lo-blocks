@@ -8,7 +8,7 @@ import { DisplayError } from '@/lib/util/debug';
 import Spinner from '@/components/common/Spinner';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
-const VALID_FORMATS = ['code'];
+const VALID_FORMATS = ['code', 'text'];
 
 export default function Ref(props: RuntimeProps) {
   const { visible = true, fallback = '', format } = props;
@@ -38,6 +38,13 @@ export default function Ref(props: RuntimeProps) {
 
   if (format === 'code') {
     return <code style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{value}</code>;
+  }
+
+  // Prose a student typed, shown as they typed it: line and paragraph breaks
+  // kept, no Markdown parsing, ordinary font. The value is plain DOM text, so
+  // it is selectable and copyable and never editable.
+  if (format === 'text') {
+    return <span style={{ whiteSpace: 'pre-wrap' }}>{value}</span>;
   }
 
   return <span>{value}</span>;

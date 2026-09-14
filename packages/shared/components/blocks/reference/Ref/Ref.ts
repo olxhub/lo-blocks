@@ -56,7 +56,7 @@ const Ref = core({
     field: z.string().optional().describe('Specific field to access from target'),
     visible: z.enum(['true', 'false']).optional().describe('Set to "false" to hide the reference display'),
     fallback: z.string().optional().describe('Fallback value when target is empty'),
-    format: z.enum(['code']).optional().describe('Display format for the value'),
+    format: z.enum(['code', 'text']).optional().describe('Display format: "code" for monospace; "text" keeps a student\'s line and paragraph breaks in an ordinary font, with no Markdown parsing'),
   }),
   selectors: {
     value: withStatus((state: any, props: RuntimeProps, stateKey: StateKey): BlockDataResult & { value: any } => {
