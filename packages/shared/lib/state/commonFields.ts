@@ -17,6 +17,7 @@
 // it should use a field type constructor like docField('value') instead.
 //
 import { stateField } from './fieldTypes';
+import type { FieldInfo, LoBlock } from '../types';
 
 /**
  * Common field definitions used across multiple block types.
@@ -70,6 +71,26 @@ export const commonFields = {
 
 // Named exports for convenient destructuring
 export const { value, correct, message, score, lastSubmission, submitCount, showAnswer } = commonFields;
+
+/**
+ * The FieldInfo to decode a block's `value` through: the BLOCK'S OWN when it
+ * declares one, else the common LWW shape.
+ *
+ * Only the block's own FieldInfo carries the right `read`. A getter result is
+ * FINAL — level 3 never re-applies field.read (see useFieldSelector in
+ * state/fieldHooks.ts) — so whatever the default value read returns is what
+ * the component gets. Decoding a docField-valued input through
+ * commonFields.value (a plain LWW register with NO read) handed it the raw
+ * DocValue envelope instead of text, and the first string method on it threw:
+ * `value.trim is not a function` from Freewrite's word counter.
+ *
+ * Both default value reads go through here — the factory's default input
+ * `selectors.value` (blocks/factory.tsx) and the no-getter branch of
+ * valueSelector (state/blockValues.ts) — so the two cannot drift.
+ */
+export function valueFieldFor(loBlock: LoBlock): FieldInfo {
+  return loBlock.fields.value ?? commonFields.value;
+}
 
 /**
  * Standard grading fields as an array, for use in fields() group syntax:

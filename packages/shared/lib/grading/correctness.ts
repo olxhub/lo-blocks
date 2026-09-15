@@ -226,7 +226,7 @@ export const completionPriority = {
  *
  * VOCABULARY WARNING: "answered" is a legacy term with two conflicting
  * meanings in the wild. Here (for Explanation showWhen), it is an alias for
- * "attempted" — any valid submission exists. The showanswer attribute avoids
+ * "attempted" — any valid submission exists. The showAnswer attribute avoids
  * this ambiguous legacy name and uses the explicit modes "attempted" and
  * "correct" instead.
  * Prefer the unambiguous terms: "attempted" or "correct".

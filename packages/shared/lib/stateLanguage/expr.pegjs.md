@@ -194,6 +194,59 @@ Math.min(@a, @b)
 Math.max(@a, @b)
 ```
 
+## Aggregates
+
+`sum`, `countFilled` and `average` take ONE list and SKIP the elements the
+student hasn't answered ("missing" is `isMissing`: blanks plus `NaN`), so a
+running score over partly-answered items means something:
+
+```
+sum([@s09.code, @s19.code, @s06.code])            # total of what's answered
+countFilled([@s09.value, @s19.value]) >= 2        # answered at least 2 of these
+average([@s09.code, @s19.code, @s06.code])        # scale score so far
+average([@s09.code, @s19.code], {weights: [1, 2]})
+```
+
+| | empty list | missing elements | a non-number element | a non-list argument |
+|---|---|---|---|---|
+| `sum` | `0` | skipped | TypeError | TypeError |
+| `countFilled` | `0` | not counted | counted (any type) | TypeError |
+| `average` | `undefined` | skipped | TypeError | TypeError |
+
+`average([])` is `undefined` — absent — not `0` and not `NaN`, so a
+NumberLineInput `initial=` falls back to its midpoint. Weights are
+pair-dropped: a value and its weight are dropped together when either is
+missing; a length mismatch or an unknown option key is a TypeError.
+
+`.length` counts SLOTS (`COUNT(*)`); `countFilled` counts VALUES
+(`COUNT(col)`). `[1, @blank.value].length` is 2 while
+`countFilled([1, @blank.value])` is 1. For ONE CheckboxInput, "pick exactly
+2" is `@cb.value.length === 2`; `countFilled` is for ACROSS inputs.
+
+There is no unary minus: codes live on the item (`code="-1"`), and `-1`
+inside an expression is a syntax error. Write a subtraction where one is
+genuinely needed.
+
+## Array Literals
+
+Write a list out with `[...]`. Elements are full expressions, so refs,
+nested literals and calls all work, and a trailing comma is allowed:
+
+```
+[]                                   # empty
+[1, 2, 3]
+[@s09.code, @s19.code, @s06.code]    # the usual case: a scale's items
+[@s09.code, @s19.code,]              # trailing comma is fine
+@answer.value in ["agree", "strongly_agree"]
+[@a.value, @b.value].map(v => v + 1)
+```
+
+A literal is an ordinary array, so every array method below applies to one.
+
+**Indexing is not implemented.** `x[0]` and `@list.value[0]` are syntax
+errors; the spelling is reserved for whenever there is a use. For "which one
+did they pick first", use `find` or (when it lands) `indexOf`.
+
 ## Array Methods
 
 Array methods work on both `items` bindings (child component lists) and
@@ -296,11 +349,11 @@ attribute names. The full list is maintained in `keywords.ts`.
 
 **Enums:** `correctness`, `completion`
 
-**Functions:** `wordcount`, `isFilled`, `text2markdown`, `formatDuration`, `stringMatch`, `numericalMatch`, `Math`, `Object`
+**Functions:** `wordcount`, `isFilled`, `isTruthy`, `isNumber`, `isMissing`, `text2markdown`, `formatDuration`, `stringMatch`, `numericalMatch`, `sum`, `countFilled`, `average`, `Math`, `Object`
 
 **Active array/string methods:** `length`, `every`, `some`, `filter`, `map`, `find`, `includes`, `join`
 
-**Reserved for future use:** `reduce`, `indexOf`, `slice`, `concat`, `sort`, `reverse`, `flat`, `flatMap`, `trim`, `startsWith`, `endsWith`, `split`, `replace`, `toLowerCase`, `toUpperCase`, `keys`, `entries`, `of`, `typeof`, `instanceof`, `not`, `and`, `or`
+**Reserved for future use:** `isValid`, `isAnswered`, `mean`, `avg`, `median`, `stdev`, `variance`, `reduce`, `indexOf`, `slice`, `concat`, `sort`, `reverse`, `flat`, `flatMap`, `trim`, `startsWith`, `endsWith`, `split`, `replace`, `toLowerCase`, `toUpperCase`, `keys`, `entries`, `of`, `typeof`, `instanceof`, `not`, `and`, `or`
 
 Block field and attribute names are validated against this list at
 registration time. If a name collides, the block definition will throw.

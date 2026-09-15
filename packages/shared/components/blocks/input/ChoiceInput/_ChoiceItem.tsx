@@ -14,7 +14,7 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React, { useContext } from 'react';
+import React, { useContext, useId } from 'react';
 import * as state from '@/lib/state';
 import { value as valueFieldCommon } from '@/lib/state/commonFields';
 import { scopedStateKeyForBlock } from '@/lib/types/id-grammar';
@@ -34,6 +34,15 @@ export default function ChoiceItem(props: RuntimeProps) {
   // to DisplayError.
   const parentStateKey = group?.parentStateKey ?? scopedStateKeyForBlock(props);
   const isCheckbox = group?.isCheckbox ?? false;
+  // The lock belongs to the input, which decided it once for the whole group.
+  const readOnly = group?.readOnly ?? false;
+
+  // Fallback DOM name for the orphaned case only (we render a DisplayError
+  // below, but hooks must still run unconditionally). The real name comes
+  // from the group, so every radio in one mounted copy shares it — a useId()
+  // per ITEM would put each radio in its own group and break single-select.
+  const orphanName = useId();
+  const inputName = group?.inputName ?? orphanName;
 
   // The parent input's value field, read/written under the parent's StateKey.
   const valueField = group
@@ -91,11 +100,12 @@ export default function ChoiceItem(props: RuntimeProps) {
     <label className={labelClasses}>
       <input
         type={isCheckbox ? 'checkbox' : 'radio'}
-        // The parent's StateKey groups sibling radios (and is a stable,
-        // scoped name for checkboxes).
-        name={parentStateKey}
+        // Groups sibling radios within THIS mounted copy. Deliberately not
+        // parentStateKey — see ChoiceGroupInfo.inputName.
+        name={inputName}
         checked={checked}
         onChange={handleChange}
+        disabled={readOnly}
         className="lo-choice-item__input"
       />
       <span className="lo-choice-item__indicator" aria-hidden="true" />
