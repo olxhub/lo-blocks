@@ -392,6 +392,13 @@ export function targetedFeedbackItems(
 // rendered, and the whitespace around it is normalised so words do not run
 // together.
 //
+// Normalised, not erased: each chunk carries the spacing that precedes it as
+// `gap` -- a single space where the passage had ordinary spacing, and the
+// author's line break where the passage had one. Hiding a separator hides the
+// separator and not the line it ended, which is what lets a transcript marked
+// one turn per line still READ one turn per line (the passage container is
+// `white-space: pre-line`; see textselection.css).
+//
 // Chunk boundaries come from the separator; CORRECTNESS still comes from the
 // [required] / {optional} / <<decoy>> brackets, and the stored value is still the
 // array of selected word indices -- selecting a chunk writes all of its word
@@ -418,12 +425,46 @@ export interface Chunk {
   wordIndices: number[];
   /** The chunk as rendered -- the piece texts joined. */
   text: string;
+  /** The whitespace the passage had between the previous chunk and this one,
+   *  normalised for rendering: a single space, or the line break(s) the author
+   *  typed there. Empty for the first chunk. The separator's own glyphs are
+   *  never here -- hiding a separator hides the separator, not the line it
+   *  ended. */
+  gap: string;
 }
 
 export interface ChunkProjection {
   chunks: Chunk[];
   /** Word index to its chunk's index. A word consumed as a separator is absent. */
   chunkOfWord: Map<number, number>;
+}
+
+/**
+ * The whitespace between two chunks, as it should render. The passage's own
+ * spacing is preserved to the extent that matters: a run with no newline is a
+ * single space (so words never run together, whatever the separator swallowed),
+ * and a run that crossed a line stays a line break -- a transcript's one turn
+ * per line survives a hidden separator. More than one blank line collapses to
+ * one, the way a paragraph break does.
+ */
+function gapText(dropped: string): string {
+  const breaks = (dropped.match(/\n/g) ?? []).length;
+  return breaks === 0 ? ' ' : '\n'.repeat(Math.min(breaks, 2));
+}
+
+/**
+ * The tokens with the passage's leading and trailing whitespace dropped. The
+ * edges of a passage are not blank lines: the source's final newline before
+ * the closing tag is markup, not content. (Word mode; chunk mode trims at every
+ * chunk edge already.) Word indices are untouched -- only whitespace tokens,
+ * which carry index -1, are dropped.
+ */
+export function trimEdgeSpaces(tokens: Token[]): Token[] {
+  let first = 0;
+  let last = tokens.length;
+  while (first < last && tokens[first].isSpace) first++;
+  while (last > first && tokens[last - 1].isSpace) last--;
+  return tokens.slice(first, last);
 }
 
 /** A token with rewritten text; keeps the index, so the stored value is stable. */
@@ -489,25 +530,39 @@ export function projectChunks(
 
   const chunks: Chunk[] = [];
   let current: Token[] = [];
+  // Whitespace dropped since the last chunk closed: trailing whitespace of the
+  // chunk before, whitespace-only chunks in between, the leading whitespace of
+  // the chunk being closed, and the line breaks a hidden separator consumed. It
+  // becomes the next chunk's `gap`, which is how a transcript's line breaks
+  // survive a separator that is hidden.
+  let pendingGap = '';
 
   // Close the chunk under construction. Leading and trailing whitespace is
-  // dropped (the renderer puts a single space between chunks), and a chunk with
-  // no selectable word never reaches the learner.
+  // dropped from the chunk itself (it belongs to the gaps on either side), and a
+  // chunk with no selectable word never reaches the learner.
   const closeChunk = () => {
     let first = 0;
     let last = current.length;
     while (first < last && current[first].isSpace) first++;
     while (last > first && current[last - 1].isSpace) last--;
     const kept = current.slice(first, last);
+    const leading = current.slice(0, first).map(t => t.text).join('');
+    const trailing = current.slice(last).map(t => t.text).join('');
     current = [];
     const wordIndices = kept.filter((t): t is WordToken => !t.isSpace).map(t => t.index);
-    if (wordIndices.length === 0) return;
+    if (wordIndices.length === 0) {
+      // Nothing selectable here: every bit of it is spacing for the next chunk.
+      pendingGap += leading + trailing;
+      return;
+    }
     chunks.push({
       index: chunks.length,
       tokens: kept,
       wordIndices,
       text: kept.map(t => t.text).join(''),
+      gap: chunks.length === 0 ? '' : gapText(pendingGap + leading),
     });
+    pendingGap = trailing;
   };
 
   let next = 0;  // first match not yet consumed
@@ -541,6 +596,15 @@ export function projectChunks(
     if (opensChunk) closeChunk();
     if (kept !== '') current.push(withText(span.token, kept));
     if (!opensChunk) closeChunk();
+
+    // A hidden separator may have eaten whitespace along with its glyphs (a
+    // pattern like `(?<=[.!?])\s+`, or the newline after a marker). The glyphs
+    // are gone for good; the line breaks are the passage's layout, so they go on
+    // to the gap before the next chunk.
+    if (separatorHidden) {
+      const consumed = span.token.text.slice(before.length, span.token.text.length - trailing.length);
+      pendingGap += consumed.replace(/[^\n]/g, '');
+    }
 
     // A match that runs on past this token stays current for the next one.
     next = after;

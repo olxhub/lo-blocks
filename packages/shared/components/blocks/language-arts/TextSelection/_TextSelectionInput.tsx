@@ -35,7 +35,7 @@ import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import {
   projectParse, chunkProjection, targetedFeedbackItems, applyGesture, toggleChunks,
-  anchorChanged,
+  anchorChanged, trimEdgeSpaces,
   type Chunk, type ParsedDocument, type Token, type WordToken,
 } from './textSelectionModel';
 
@@ -78,6 +78,11 @@ export default function TextSelectionInput(props: RuntimeProps) {
     }
   }, [parsed, separatorRegexp, separatorHidden, props.id]);
   const chunks: Chunk[] | null = chunking.projection ? chunking.projection.chunks : null;
+
+  // Word mode renders the token stream as it stands, minus the passage's own
+  // leading/trailing whitespace: the newline before the closing tag is markup,
+  // and `white-space: pre-line` would otherwise print it as a blank line.
+  const renderTokens = useMemo(() => trimEdgeSpaces(projection?.tokens ?? []), [projection]);
 
   // Stored selection, held as a Set for membership tests, written back as an array.
   const [selectedArray, setSelectedArray] = useFieldState(props, props.fields.selections, EMPTY_SELECTIONS);
@@ -337,11 +342,14 @@ export default function TextSelectionInput(props: RuntimeProps) {
         style={{ WebkitUserSelect: 'text', MozUserSelect: 'text', userSelect: 'text' }}
       >
         {chunks
-          // Chunk mode. Chunks are separated by a single space: whichever
-          // whitespace the separator swallowed, the words never run together.
-          ? chunks.map((chunk, position) => (
+          // Chunk mode. `chunk.gap` is the passage's own spacing before the
+          // chunk -- a single space where the separator swallowed one, and the
+          // author's line break where the passage had one (the container is
+          // `white-space: pre-line`, textselection.css). Hiding a separator
+          // hides the separator, not the line it ended.
+          ? chunks.map(chunk => (
             <React.Fragment key={chunk.index}>
-              {position > 0 && ' '}
+              {chunk.gap}
               <span
                 // .text-chunk-live is the hover affordance: a locked passage is
                 // a reference, not an input, so it does not get one.
@@ -357,7 +365,7 @@ export default function TextSelectionInput(props: RuntimeProps) {
               </span>
             </React.Fragment>
           ))
-          : tokens.map(renderToken)}
+          : renderTokens.map(renderToken)}
       </div>
 
       {feedbackItems.length > 0 && (

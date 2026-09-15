@@ -5,6 +5,7 @@ import { parse } from './_textSelectionParser';
 import {
   expectedSelections, computeStats, scoreFromStats, targetedFeedbackItems,
   projectParse, projectChunks, applyGesture, toggleChunks, anchorChanged,
+  trimEdgeSpaces, tokenize,
   type ParsedDocument,
 } from './textSelectionModel';
 
@@ -454,6 +455,27 @@ const CHUNK_PROJECTION_TABLE: {
     ],
   },
   {
+    name: 'a transcript on a hidden "§", one turn per line: the chunk is the turn',
+    body: 'Alpha asks: why? §\nBeta says: because! Really. §\nGamma nods.',
+    separator: '§',
+    hidden: true,
+    chunks: [
+      ['Alpha asks: why?', [0, 1, 2]],
+      ['Beta says: because! Really.', [4, 5, 6, 7]],
+      ['Gamma nods.', [9, 10]],
+    ],
+  },
+  {
+    name: 'terminal punctuation inside a chunk never divides it',
+    body: 'One. Two? Three! §\nFour. Five? Six!',
+    separator: '§',
+    hidden: true,
+    chunks: [
+      ['One. Two? Three!', [0, 1, 2]],
+      ['Four. Five? Six!', [4, 5, 6]],
+    ],
+  },
+  {
     name: 'a required span wholly inside one chunk is fine',
     body: 'The cat sat. [The dog ran.] Birds flew.',
     separator: '\\.',
@@ -482,6 +504,88 @@ for (const row of CHUNK_PROJECTION_TABLE) {
     expect(chunksOf(row.body, row.separator, row.hidden)).toEqual(row.chunks);
   });
 }
+
+// --- The spacing BETWEEN chunks (`Chunk.gap`) -------------------------------
+//
+// A chunk drops the whitespace at its edges, so something has to say how the
+// next chunk is spaced from it. `gap` is that: a single space where the passage
+// had ordinary spacing (words must never run together, whatever the separator
+// swallowed), and the author's line break where the passage had one. A hidden
+// separator hides the separator, NOT the line it ended -- which is what makes a
+// transcript still read one turn per line.
+const CHUNK_GAP_TABLE: {
+  name: string;
+  body: string;
+  separator: string;
+  hidden: boolean;
+  gaps: string[];
+}[] = [
+  {
+    name: 'same-line chunks are spaced by one space',
+    body: 'The cat sat. The dog ran. Birds flew.',
+    separator: '\\.',
+    hidden: false,
+    gaps: ['', ' ', ' '],
+  },
+  {
+    name: 'a hidden separator at the end of a line keeps the line break',
+    body: 'Alpha asks: why? §\nBeta says: because! §\nGamma nods.',
+    separator: '§',
+    hidden: true,
+    gaps: ['', '\n', '\n'],
+  },
+  {
+    name: 'a blank line between turns stays a blank line',
+    body: 'Alpha. §\n\nBeta.',
+    separator: '§',
+    hidden: true,
+    gaps: ['', '\n\n'],
+  },
+  {
+    name: 'a hidden separator that ate the newline itself still yields the break',
+    body: 'The cat sat.\nThe dog ran!\nBirds flew?',
+    separator: '(?<=[.!?])\\s+',
+    hidden: true,
+    gaps: ['', '\n', '\n'],
+  },
+  {
+    name: 'markers with no newline anywhere are plain spaces',
+    body: 'Such | intrusions | by the class',
+    separator: '\\|',
+    hidden: true,
+    gaps: ['', ' ', ' '],
+  },
+];
+
+for (const row of CHUNK_GAP_TABLE) {
+  test(`chunk gap: ${row.name}`, () => {
+    const parsed = passage(row.body);
+    const { tokens, expected } = projectParse(parsed);
+    const { chunks } = projectChunks(tokens, expected, row.separator, row.hidden, BLOCK_ID);
+    expect(chunks.map(c => c.gap)).toEqual(row.gaps);
+  });
+}
+
+// --- Word mode keeps the passage's line breaks ------------------------------
+//
+// Nothing rewrites them: the newline is a whitespace token, rendered as it
+// stands under `white-space: pre-line`. Only the passage's own leading and
+// trailing whitespace is dropped -- the newline before the closing tag is
+// markup, not a blank line the author asked for.
+test('word mode: a newline between lines survives tokenization', () => {
+  const parsed = passage('Alpha one.\nBeta two.');
+  const { tokens } = projectParse(parsed);
+  expect(tokens.map(t => t.text).join('')).toBe('Alpha one.\nBeta two.');
+});
+
+test('trimEdgeSpaces drops the passage edges and nothing else', () => {
+  const tokens = tokenize([{ type: 'text', content: '\n  Alpha one.\nBeta two.  \n' }]);
+  const trimmed = trimEdgeSpaces(tokens);
+  expect(trimmed.map(t => t.text).join('')).toBe('Alpha one.\nBeta two.');
+  // Word indices are untouched: only index -1 whitespace tokens are dropped.
+  expect(trimmed.filter(t => !t.isSpace).map(t => (t as { index: number }).index))
+    .toEqual([0, 1, 2, 3]);
+});
 
 // --- Chunk projection: authoring errors ------------------------------------
 //

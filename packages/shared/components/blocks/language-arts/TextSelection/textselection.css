@@ -22,3 +22,16 @@
   outline: 2px dashed var(--lo-border-strong);
   outline-offset: 1px;
 }
+
+/* The passage keeps the line breaks the author typed.
+ *
+ * A TextSelection passage is laid-out prose -- a transcript is one turn per
+ * line -- so a newline in the source is a line break on screen, in word mode and
+ * chunk mode alike, while runs of spaces still collapse the way HTML collapses
+ * them. Chunk mode carries the same breaks across its boundaries through
+ * `Chunk.gap` (textSelectionModel.ts), so `separatorHidden` hides the separator
+ * and not the line it ended.
+ */
+.text-highlight-container .text-content {
+  white-space: pre-line;
+}

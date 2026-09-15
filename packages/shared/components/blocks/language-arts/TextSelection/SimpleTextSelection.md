@@ -103,9 +103,7 @@ Sentences — the period stays visible at the end of each chunk:
 <SimpleTextSelection id="antecedent" mode="graded" separatorRegexp="\.">
 Click the sentence that describes the intrusion.
 ---
-Temperance societies grew quickly in the 1830s. Members signed pledges and held
-public meetings. [Reformers from the middle class pressed their habits on
-lower-class workers.] Such intrusions sharpened class tensions.
+Temperance societies grew quickly in the 1830s. Members signed pledges and held public meetings. [Reformers from the middle class pressed their habits on lower-class workers.] Such intrusions sharpened class tensions.
 </SimpleTextSelection>
 ```
 
@@ -118,6 +116,22 @@ the whitespace around it, so `Such | intrusions | by the middle class` reads as
 Click the phrase that names who is intruding.
 ---
 Such | intrusions | [by the middle class]
+</SimpleTextSelection>
+```
+
+The passage keeps the line breaks you type: a newline in the source is a line
+break on screen, in word mode and chunk mode alike, and hiding a separator hides
+the separator and not the line it ended. A transcript written one turn per line,
+each turn closed by a hidden `§`, therefore reads as a transcript and selects a
+turn at a time — a `?` or a `!` inside a turn divides nothing:
+
+```olx:code
+<SimpleTextSelection id="turns" mode="graded" separatorRegexp="§" separatorHidden="true">
+Mark the turn that takes up what a child offered.
+---
+Ms. Boyd: Why does the ice float instead of sinking? §
+Marcus: My grandpa takes me ice fishing! The ice is only on the top. §
+[Ms. Boyd: Exactly, Marcus. So why only on top?]
 </SimpleTextSelection>
 ```
 
