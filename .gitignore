@@ -113,3 +113,7 @@ config/content-sources.local.yaml
 config/*.pat
 /apps/client/test-results/
 .#*
+
+# Build staging: content copied and corpus references resolved into it.
+# Never committed -- it holds resolved student text by construction.
+.stage/

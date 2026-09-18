@@ -39,6 +39,10 @@ import { store } from '@/lib/state/store';
 import { settings } from '@/lib/state/settings';
 import { LLM_STATUS } from '@/lib/llm/reduxClient';
 import { hasSettled, isReady, shouldRetry, backoffMs } from '@/lib/llm/runnerGuards';
+// The grader's OWN satisfaction decision and its OWN mapped verdict, so a
+// recorded computed verdict is the one that was scored rather than a
+// reimplementation of the rules that would drift from it.
+import { satisfiedMap, mappedVerdict } from '@/lib/llm/slotSheet';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import RenderOLX from '@/components/common/RenderOLX';
 import { initConfig } from '@/lib/config';
@@ -232,15 +236,42 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
       const fb = fbKey ? comp()[fbKey] : undefined;
       let slots: any[] = [];
       let verdicts: Record<string, any> = {};
+      let sheet: any = {};
       let explicitMax: number | undefined;
       if (fb?.checks) {
         try {
           const parsed = JSON.parse(String(fb.checks));
           slots = parsed.slots ?? [];
           verdicts = parsed.verdicts ?? {};
+          sheet = parsed;            // the RULES, for the computed families
           explicitMax = typeof parsed.max === 'number' ? parsed.max : undefined;
         } catch { /* leave empty; the caller sees no sheet */ }
       }
+      // A COMPUTED check is never asked, so `verdicts[key]` is absent and this
+      // file recorded null for it -- while the grader scored a verdict and the
+      // student read one. That made a computed slot invisible in the artifact and
+      // silently incomparable with the harness, which records the same slot.
+      //
+      // Filled from the grader's own decision, and in the SLOT'S OWN VOCABULARY
+      // rather than as a display phrase: `verdicts` holds met/absent/wrong_kind
+      // everywhere else, and `computedVerdict` answers 'matches'/'not reported',
+      // which no other consumer of this column could read. `maps` goes through
+      // `mappedVerdict` instead of satisfaction because it is the one family with
+      // more than two outcomes -- an empty box and a wrong one are both failures
+      // and must stay distinguishable.
+      const sat = satisfiedMap(
+        slots, verdicts, sheet.cover ?? [], sheet.equals ?? [], sheet.counts ?? [],
+        sheet.expect ?? [], sheet.requires ?? [], sheet.forbid ?? [], sheet.maps ?? [],
+      );
+      const computedFor = (key: string): string | undefined => {
+        const m = (sheet.maps ?? []).find((r: any) => r.key === key);
+        if (m) return mappedVerdict(m, verdicts);
+        const rule = [...(sheet.equals ?? []), ...(sheet.expect ?? []),
+                      ...(sheet.forbid ?? [])].find((r: any) => r.key === key);
+        if (!rule) return undefined;
+        const opts = slots.find((s: any) => s.key === key)?.options ?? ['met', 'absent'];
+        return sat[key] ? opts[0] : ((rule as any).fails ?? opts[1] ?? 'no');
+      };
       const gKey = job.grader ? keyFor(job.grader) : undefined;
 
       results.push({
@@ -260,7 +291,8 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
         verdicts: Object.fromEntries(
           slots.map((s: any) => [
             s.key,
-            verdicts[s.key]?.verdict ?? verdicts[s.key]?.count ?? null,
+            verdicts[s.key]?.verdict ?? verdicts[s.key]?.count
+              ?? computedFor(s.key) ?? null,
           ]),
         ),
         // `refers_to` is its OWN column rather than a fallback: a cover member

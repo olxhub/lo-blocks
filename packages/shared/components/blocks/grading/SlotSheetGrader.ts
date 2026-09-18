@@ -34,7 +34,7 @@ import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
 import type { CheckPayload, ExpectRule } from '@/lib/llm/slotSheet';
 import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
          type OnlyIfRule, type RequiresRule, type ForbidRule,
-         type CountGroup } from '@/lib/llm/slotSheet';
+         type CountGroup, type MapsRule } from '@/lib/llm/slotSheet';
 
 // `showChecks` records whether the student was shown these checks. The grader
 // does not read it — a hidden check still costs its points, which is the whole
@@ -43,7 +43,7 @@ import { scoreSlotSheet, type SlotSpec, type CoverGroup, type EqualsRule,
 type Payload = { slots: SlotSpec[]; verdicts: Record<string, CheckPayload>; max?: number;
                  cover?: CoverGroup[]; equals?: EqualsRule[]; onlyif?: OnlyIfRule[]; counts?: CountGroup[];
                  expect?: ExpectRule[]; requires?: RequiresRule[];
-                 forbid?: ForbidRule[]; showChecks?: boolean };
+                 forbid?: ForbidRule[]; maps?: MapsRule[]; showChecks?: boolean };
 
 /**
  * A stored sheet, as the grader needs it: parsed, with every rule defaulted.
@@ -69,6 +69,10 @@ export function sheetFromJson(raw: unknown): Payload | null {
       counts: parsed.counts ?? [],
       expect: parsed.expect ?? [],
       forbid: parsed.forbid ?? [],
+      // Defaulted here like the rest. The spread above would carry it, but
+      // `expect` was carried that way once, went missing, and cost four items
+      // their points silently -- so every rule the grader applies is named.
+      maps: parsed.maps ?? [],
     };
   } catch {
     return null;
@@ -102,10 +106,16 @@ function gradeSlotSheet(props: any) {
     return { correct: correctness.unsubmitted, message: '' };
   }
 
+  // `maps` IS THE ELEVENTH ARGUMENT AND WAS NOT PASSED, so the scorer defaulted
+  // it to `[]` and no mapped check was ever computed here: the score followed
+  // whatever verdict the model happened to answer for it, while `satisfiedMap`
+  // stood ready to compute one. That is why a mapped slot could be recorded
+  // disagreeing with its own map, and why removing the ask (b6d3f070) scored
+  // every cell flat -- the key then had no verdict from either source.
   const result = scoreSlotSheet(payload.slots, payload.verdicts, payload.max, payload.cover,
                               payload.equals, payload.onlyif,
                               payload.counts, payload.expect, payload.requires,
-                              payload.forbid);
+                              payload.forbid, payload.maps);
   if (!result) {
     return {
       correct: correctness.invalid,

@@ -174,3 +174,27 @@ describe('computedVerdict, for display', () => {
     expect(computedVerdict(equals[0], { named_type: { verdict: 'NR' } })).toBe('not reported');
   });
 });
+
+
+// WHAT THE STUDENT READ, which is not what the score was computed from.
+// `satisfiedMap` reads an operand as `refers_to ?? verdict`; `computedVerdict`
+// -- the DISPLAY path -- read only `.verdict`. Every shipped `equals` compares
+// two CLASSIFICATIONS, which answer `refers_to` and leave `verdict` empty, so
+// the line rendered `not reported` beside a tick the score had earned: 334
+// recorded lines on DAY1, DAY2, WK1 and WK2, plus 240 on D1/D2.
+describe('a computed check displays what it was computed from', () => {
+  const [rule] = parseEquals('matches_chosen_type:observed_type,named_type:unclear');
+
+  it('reads a classification from refers_to, as scoring does', () => {
+    expect(computedVerdict(rule, {
+      observed_type: { refers_to: 'PR' }, named_type: { refers_to: 'PR' },
+    })).toBe('matches');
+    expect(computedVerdict(rule, {
+      observed_type: { refers_to: 'PR' }, named_type: { refers_to: 'NR' },
+    })).toBe('PR vs NR');
+  });
+
+  it('still says `not reported` only when nothing was answered', () => {
+    expect(computedVerdict(rule, {})).toBe('not reported');
+  });
+});

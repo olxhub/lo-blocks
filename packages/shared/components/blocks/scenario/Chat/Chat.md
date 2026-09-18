@@ -232,7 +232,7 @@ Integrate student activities into conversation flow:
 
   <SplitPanel sizes="65,35">
     <LeftPane>
-      <Chat id="chat" title="Peer Discussion">
+      <Chat id="chat" title="Peer Discussion"><![CDATA[
 title: Peer Discussion
 ~~~~
 
@@ -245,7 +245,7 @@ Kim: Interesting! Let's see what the research says...
 Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention — especially when the spacing matches how long you need to remember.
 
 sidebar <- summary
-      </Chat>
+]]>      </Chat>
     </LeftPane>
     <RightPane>
       <UseHistory id="sidebar" initial="prediction" />

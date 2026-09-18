@@ -25,6 +25,22 @@ export type SlotSpec = {
   /** Allowed verdicts. The FIRST is the satisfied one. */
   options: string[];
   /**
+   * Verdicts that are NOT satisfying and still cost nothing.
+   *
+   * This runtime fails everything that is not the satisfying verdict, and the
+   * paper ledger charges only what a deduction CODE names. Those are opposite
+   * defaults, and they agree only while the two enumerations happen to be
+   * complements -- which nothing enforced. Q1's `utb_stated` answered `unclear`
+   * on one cell, this side took the whole 2 points, the ledger took none, and
+   * GOLD gave that cell full marks: the default here was the wrong one.
+   *
+   * Carried ON THE SLOT rather than as another sheet-level rule list, so it
+   * rides inside `slots` through publishedSheet and re-scores an old stored
+   * sheet by the rules in force when it was written. A sheet without it scores
+   * exactly as before.
+   */
+  free?: string[];
+  /**
    * A gating check: if this one is not satisfied, the rest are moot.
    *
    * Some rubric items have a single finding that costs the whole item rather
@@ -74,6 +90,24 @@ export type SlotSpec = {
  * is an escape hatch, and handing one to every check silently costs points —
  * 24 scored slots deliberately do without it. An item that wants it says so.
  */
+// Colons inside a `{{corpus:...}}` reference belong to the reference, not to the
+// colon-delimited attribute grammars below. `slots=` is
+// `name:description:verdicts@weight` split on EVERY colon, so a description
+// carrying `{{corpus:Q4b/p20:modify:17:40:sha=...}}` shifts every later field
+// and the verdict list is read as `Q4b`/`p20` instead of `met`/`absent`.
+//
+// `olx_prompts.parse_slots` is the mirror of this file and was fixed the same
+// way. Fixing one side only means the grader and the student see different
+// verdict vocabularies for the same slot, each side internally consistent and
+// neither complaining -- which is what `check_slot_grammars.py` now refuses.
+const REF_COLON = /\{\{corpus:[^}]*\}\}/g;
+const COLON_HOLD = '\u0000';
+
+function splitKeepingRefs(entry: string): string[] {
+  const held = (entry ?? '').replace(REF_COLON, m => m.split(':').join(COLON_HOLD));
+  return held.split(':').map(p => p.split(COLON_HOLD).join(':'));
+}
+
 export const DEFAULT_VERDICTS = ['met', 'absent'];
 
 /**
@@ -348,7 +382,7 @@ export function parseRequires(spec?: string): RequiresRule[] {
     .map(s => s.trim())
     .filter(Boolean)
     .map(entry => {
-      const parts = entry.split(':').map(p => (p ?? '').trim());
+      const parts = splitKeepingRefs(entry).map(p => p.trim());
       return {
         key: parts[0], cond: parts[1],
         lenient: (parts[2] ?? '').split(',').map(v => v.trim()).filter(Boolean),
@@ -368,7 +402,7 @@ export function parseOnlyIf(spec?: string): OnlyIfRule[] {
     .map(r => r.trim())
     .filter(Boolean)
     .map(entry => {
-      const [key, cond] = entry.split(':').map(p => (p ?? '').trim());
+      const [key, cond] = splitKeepingRefs(entry).map(p => p.trim());
       return { key, cond };
     })
     .filter(r => r.key && r.cond);
@@ -425,7 +459,7 @@ export function parseCounts(spec?: string): CountGroup[] {
     .map(g => g.trim())
     .filter(Boolean)
     .map(entry => {
-      const [key, members] = entry.split(':').map(p => (p ?? '').trim());
+      const [key, members] = splitKeepingRefs(entry).map(p => p.trim());
       return { key, slots: (members ?? '').split(',').map(m => m.trim()).filter(Boolean) };
     })
     .filter(g => g.key && g.slots.length > 0);
@@ -438,10 +472,13 @@ export function countedVerdicts(
 ): Record<string, { verdict: string }> {
   const out: Record<string, { verdict: string }> = {};
   for (const g of counts) {
-    // `count` where the item has been migrated, `verdict` where it has not.
-    // Read per check rather than per sheet so the two can coexist while the
-    // content moves over item by item.
-    const src = checks[g.key]?.count ?? checks[g.key]?.verdict ?? '';
+    // `count` ONLY. The legacy `verdict` fallback was removed 2026-09-13, once
+    // every counting slot's schema asked for `count` ("How many. A number, not a
+    // judgement.") and the harness-side mirror of this function dropped its own.
+    // The two sides must lose it together: while one tolerates a count in
+    // `verdict` and the other does not, the same recorded cell scores
+    // differently on each.
+    const src = checks[g.key]?.count ?? '';
     const raw = String(src).trim();
     const n = Number.parseInt(raw, 10);
     const got = Number.isFinite(n) ? n : 0;
@@ -520,7 +557,7 @@ export function parseDerived(spec?: string): DerivedRule[] {
     .map(r => r.trim())
     .filter(Boolean)
     .map(entry => {
-      const [key, kind, refs, tmpl] = entry.split(':').map(p => (p ?? '').trim());
+      const [key, kind, refs, tmpl] = splitKeepingRefs(entry).map(p => p.trim());
       return {
         key,
         kind,
@@ -563,7 +600,7 @@ export function parseEquals(spec?: string): EqualsRule[] {
     .map(r => r.trim())
     .filter(Boolean)
     .map(entry => {
-      const [key, operands, lenient] = entry.split(':').map(p => (p ?? '').trim());
+      const [key, operands, lenient] = splitKeepingRefs(entry).map(p => p.trim());
       const [left, right] = (operands ?? '').split(',').map(p => (p ?? '').trim());
       return {
         key, left, right,
@@ -621,11 +658,38 @@ export function computedVerdict(
   rule: EqualsRule,
   checks: Record<string, CheckPayload | undefined>,
 ): string {
-  const l = (checks[rule.left]?.verdict ?? '').trim();
-  const r = (checks[rule.right]?.verdict ?? '').trim();
+  // `refers_to` FIRST, exactly as satisfiedMap reads the same two operands. This
+  // read only `.verdict`, and both operands of every shipped `equals` are
+  // CLASSIFICATIONS -- `observed_type`, `named_type`, `defines_type` -- which
+  // answer `refers_to` and leave `verdict` empty. So this returned 'not reported'
+  // on every cell while the SCORE was computed correctly from the same answers:
+  // the student read `✓ Matches your first chosen type — not reported`, a tick
+  // against nothing, 334 times across four items.
+  const l = String(checks[rule.left]?.refers_to ?? checks[rule.left]?.verdict ?? '').trim();
+  const r = String(checks[rule.right]?.refers_to ?? checks[rule.right]?.verdict ?? '').trim();
   if (rule.lenient.includes(l) || rule.lenient.includes(r)) return 'not established';
   if (!l || !r) return 'not reported';
   return l === r ? 'matches' : `${l} vs ${r}`;
+}
+
+/**
+ * What an `expect` rule decided, for DISPLAY. The mirror of `computedVerdict`,
+ * which does the same job for `equals`.
+ *
+ * There was none, so an `expect` key fell through composeSlotFeedback to its own
+ * raw verdict -- which it never has, being computed -- and rendered as `not
+ * reported` beside a tick. That is `demonstrates_type` on all four operant items
+ * and `targets_own_behavior` on WK1: 472 recorded lines that told the student
+ * nothing about a check that had just scored them.
+ */
+export function expectedVerdict(
+  rule: ExpectRule,
+  checks: Record<string, CheckPayload | undefined>,
+): string {
+  const got = String(checks[rule.left]?.refers_to ?? checks[rule.left]?.verdict ?? '').trim();
+  if (rule.lenient.includes(got)) return 'not established';
+  if (!got) return 'not reported';
+  return got === rule.value ? 'matches' : `${got} vs ${rule.value}`;
 }
 
 /**
@@ -639,7 +703,7 @@ export function parseCover(spec?: string): CoverGroup[] {
     .map(g => g.trim())
     .filter(Boolean)
     .map(entry => {
-      const [rawKeys, rawLabels] = entry.split(':').map(p => (p ?? '').trim());
+      const [rawKeys, rawLabels] = splitKeepingRefs(entry).map(p => p.trim());
       return {
         keys: (rawKeys ?? '').split(',').map(s => s.trim()).filter(Boolean),
         labels: (rawLabels ?? '').split(',').map(s => s.trim()).filter(Boolean),
@@ -757,7 +821,7 @@ export function satisfiedMap(
 export function parseChoices(spec?: string): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const grp of (spec ?? '').split('|')) {
-    const [name, members] = grp.split(':').map(x => (x ?? '').trim());
+    const [name, members] = splitKeepingRefs(grp).map(x => x.trim());
     const vals = (members ?? '').split(',').map(v => v.trim()).filter(Boolean);
     if (name && vals.length) out[name] = vals;
   }
@@ -787,7 +851,7 @@ export type ExpectRule = { key: string; fails?: string; left: string; value: str
 export function parseExpect(spec?: string): ExpectRule[] {
   const out: ExpectRule[] = [];
   for (const rule of (spec ?? '').split('|')) {
-    const parts = rule.split(':').map(x => x.trim());
+    const parts = splitKeepingRefs(rule).map(x => x.trim());
     if (parts.length < 2) continue;
     const [rawKey, lhs, len] = parts;
     const { key, fails } = splitFailsVerdict(rawKey ?? '');
@@ -819,7 +883,23 @@ export function resolveOptions(segment: string | undefined, defaults: string[]):
   return tokens;
 }
 
-export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS): SlotSpec[] {
+/** `slot:verdict,verdict|slot:verdict` -> the verdicts each slot forgives. */
+export function parseFree(spec?: string): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const entry of (spec ?? '').split('|')) {
+    const t = entry.trim();
+    if (!t || !t.includes(':')) continue;
+    const i = t.indexOf(':');
+    const key = t.slice(0, i).trim();
+    const vs = t.slice(i + 1).split(',').map(v => v.trim()).filter(Boolean);
+    if (key && vs.length) out[key] = vs;
+  }
+  return out;
+}
+
+export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS,
+                           freeAttr?: string): SlotSpec[] {
+  const free = parseFree(freeAttr);
   return (spec ?? '')
     .split('|')
     .map(entry => entry.trim())
@@ -832,7 +912,7 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS):
         pts = Number(at[1]);
         entry = entry.slice(0, at.index).trim();
       }
-      const [rawKey, label, opts] = entry.split(':').map(part => (part ?? '').trim());
+      const [rawKey, label, opts] = splitKeepingRefs(entry).map(part => part.trim());
       const gates = rawKey.startsWith('!');
       const key = gates ? rawKey.slice(1).trim() : rawKey;
       const slot: SlotSpec = {
@@ -842,6 +922,7 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS):
         gates,
       };
       if (pts !== undefined) slot.pts = pts;
+      if (free[key]?.length) slot.free = free[key];
       const countMax = parseCountMax(opts);
       if (countMax !== undefined) slot.countMax = countMax;
       const picks = parsePick(opts);
@@ -906,6 +987,15 @@ export function publishedSheet(args: {
   const choices = args.choices ?? {}, expect = args.expect ?? [];
   const requires = args.requires ?? [];
   const forbid = args.forbid ?? [];
+  // `maps` WAS IN THE ARGUMENT TYPE AND NOT IN THE RETURN, so every stored sheet
+  // was written without it and no grader reading one could ever compute a mapped
+  // check. That is the root of the whole family: the app asked for a mapped
+  // verdict and scored whatever came back, `satisfiedMap` stood ready to compute
+  // one and was never given the rules, and b6d3f070 -- which stopped asking --
+  // left the key with no verdict from either source and scored every cell flat.
+  // Fixing the call sites alone did not reach it: the rules were already gone by
+  // the time the grader ran.
+  const maps = args.maps ?? [];
   return {
     slots,
     ...(cover.length ? { cover } : {}),
@@ -916,6 +1006,7 @@ export function publishedSheet(args: {
     ...(expect.length ? { expect } : {}),
     ...(requires.length ? { requires } : {}),
     ...(forbid.length ? { forbid } : {}),
+    ...(maps.length ? { maps } : {}),
     showChecks,
     verdicts,
     ...(max !== undefined && max !== null && String(max) !== ''
@@ -946,7 +1037,16 @@ export function scoreSlotSheet(
   const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires, forbid, maps);
   if (gate) return { score: 0, max, failed: [gate.key] };
 
-  const failed = scored.filter(s => !sat[s.key] && charged[s.key]);
+  // A DECLARED-FREE verdict is unsatisfied and costs nothing -- the one place
+  // this runtime's "anything that is not satisfying fails" default is wrong,
+  // and the only place the paper ledger and this one disagreed once every
+  // failing verdict had a code. Read off the slot, so a stored sheet keeps the
+  // rules it was written with.
+  const isFree = (s: SlotSpec): boolean => {
+    const v = String(checks[s.key]?.verdict ?? '').trim();
+    return !!v && !!s.free?.includes(v);
+  };
+  const failed = scored.filter(s => !sat[s.key] && charged[s.key] && !isFree(s));
   const lost = failed.reduce((n, s) => n + (s.pts as number), 0);
   return {
     score: Math.max(0, Math.min(max, max - lost)),
@@ -986,7 +1086,7 @@ export type MapsRule = {
 export function parseMaps(spec?: string): MapsRule[] {
   const out: MapsRule[] = [];
   for (const rule of (spec ?? '').split('|')) {
-    const parts = rule.split(':').map(x => x.trim());
+    const parts = splitKeepingRefs(rule).map(x => x.trim());
     if (parts.length < 3) continue;
     const [key, pick, rawPairs] = parts;
     if (!key || !pick) continue;
@@ -1093,9 +1193,23 @@ export function buildSlotSchema(
   forbid: ForbidRule[] = [],
   maps: MapsRule[] = [],
 ): Record<string, unknown> {
+  // `maps` BELONGS HERE like the other five: the verdict is computed from one
+  // pick, so asking for it too is paying a model call for an answer the sheet
+  // already determines -- and it let the two disagree, which is what
+  // `RECORDED VERDICT DISAGREES WITH ITS MAP` reported for months.
+  //
+  // b6d3f070 added it and was reverted as 44d5a818 because every cell scored
+  // flat (Q4a 1.00 on 120/120, Q4b 2.00 on 114). That was NOT this change
+  // failing: `SlotSheetGrader` passed ten arguments to an eleven-argument
+  // `scoreSlotSheet`, so `maps` never reached the scorer. Dropping the ask then
+  // left the key with no verdict from EITHER source and every mapped check was
+  // charged. The call sites are fixed now, so the map actually computes, and the
+  // corresponding design has been running on the python engine all along: over
+  // the four items that carry a `maps` rule it matches the asking engine cell for
+  // cell -- 70/76 by median and 415/456 by run, both ways.
   const computed = new Set([...equals.map(r => r.key), ...derived.map(r => r.key),
                             ...counts.flatMap(g => g.slots), ...expect.map(r => r.key),
-                            ...forbid.map(r => r.key)]);
+                            ...forbid.map(r => r.key), ...maps.map(r => r.key)]);
   // Which list each cover member has to choose from. The enum is the group's
   // own labels, so this generalises to any number of them — two, or twelve —
   // without the engine knowing how many. `none` is always available: "I named
@@ -1393,10 +1507,16 @@ export function composeSlotFeedback(
   const equals = opts.equals ?? [];
   const byKey = new Map(equals.map(r => [r.key, r]));
   const expect = opts.expect ?? [];
+  const expectByKey = new Map(expect.map(r => [r.key, r]));
   const requires = opts.requires ?? [];
   const forbid = opts.forbid ?? [];
   const forbidByKey = new Map(forbid.map(r => [r.key, r]));
   const maps = opts.maps ?? [];
+  const mapsByKey = new Map(maps.map(r => [r.key, r]));
+  // A pick a map READS hands its evidence and note up to the mapped check, which
+  // is the line that carries the tick and the points. Leaving them on both
+  // printed the same quote twice under two different labels.
+  const pickUsedByMap = new Set(maps.map(r => r.pick));
   const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid, maps);
   const charged = chargedMap(slots, sat, opts.onlyif ?? []);
   const gate = failedGate(slots, checks, cover, equals, opts.onlyif ?? [], counts, expect,
@@ -1409,13 +1529,23 @@ export function composeSlotFeedback(
     // show the operands it was computed from, which is what makes a zero on it
     // legible instead of arbitrary.
     const forbidRule = forbidByKey.get(slot.key);
+    // A MAPPED key has no verdict of its own either, for the same reason: it is
+    // computed from one pick. Without this it fell through to the raw verdict,
+    // which is empty, and the student read `✓ First example — not reported` --
+    // a tick against nothing, on a check that carries the item's points.
+    const mapRule = mapsByKey.get(slot.key);
+    const expectRule = expectByKey.get(slot.key);
     const verdict = rule
       ? computedVerdict(rule, checks)
+      : expectRule
+      ? expectedVerdict(expectRule, checks)
       : forbidRule
       ? forbidRule.conds
           .map(c => `${c.slot}=${String(checks[c.slot]?.refers_to
                                          ?? checks[c.slot]?.verdict ?? '').trim() || '?'}`)
           .join(', ')
+      : mapRule
+      ? (mappedVerdict(mapRule, checks) ?? '')
       : (checks[slot.key]?.verdict ?? '').trim();
     // A count is reported, not judged: it gets no tick, because there is no
     // sense in which "2 of 3" passed or failed on its own. What it feeds — the
@@ -1450,11 +1580,18 @@ export function composeSlotFeedback(
     // check none of its own, and a sheet published before per-check notes has no
     // note — each still renders as a plain checklist line.
     const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
-    const rawEvidence = flat(checks[slot.key]?.evidence ?? '');
+    // EVIDENCE AND NOTE COME FROM THE PICK on a mapped check. The grader wrote
+    // them there -- `b2_basis` carries `evidence`, `note` and `refers_to` -- so
+    // the quote that settles this check already exists; it was landing under the
+    // classification line, which shows `–` and reads as informational, while the
+    // scored line above it showed a tick and no words at all.
+    const src = mapRule && checks[mapRule.pick] ? checks[mapRule.pick] : checks[slot.key];
+    const promoted = pickUsedByMap.has(slot.key) && !mapRule;
+    const rawEvidence = promoted ? '' : flat(src?.evidence ?? '');
     // A model with nothing to cite sometimes writes the word rather than an
     // empty string; shown to a student that is worse than showing nothing.
     const evidence = /^(none|n\/?a|null)\.?$/i.test(rawEvidence) ? '' : rawEvidence;
-    const note = flat(checks[slot.key]?.note ?? '');
+    const note = promoted ? '' : flat(src?.note ?? '');
     return [line, evidence && `  *${evidence}*`, note && `  ${note}`]
       .filter(Boolean).join('\n\n');
   });

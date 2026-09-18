@@ -17,7 +17,7 @@
     "server": "./sandbox.sh ./node_modules/.bin/tsx --watch apps/server/src/index.ts",
     "server:legacy": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/event-server.ts",
     "start": "NODE_ENV=production ./sandbox.sh ./node_modules/.bin/tsx apps/server/src/index.ts",
-    "build": "npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry",
+    "build": "npm run build:check-corpus-refs && npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry",
     "build:client": "./sandbox.sh npx vite build apps/client",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build",
     "build:generate-docs": "./sandbox.sh node packages/shared/scripts/generate-docs.js",
@@ -26,7 +26,7 @@
     "build:parser-registry": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/generate-parser-registry.ts",
     "build:prod": "npm run build && npm run build:client && npm run build:sync-images",
     "build:static": "npm run build && npm run build:static-content && ./sandbox.sh npx vite build apps/static && ./sandbox.sh ./node_modules/.bin/tsx apps/static/scripts/stamp-pages.ts && ./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts --target apps/static/dist/content",
-    "build:static-content": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts --static-dir apps/static/public/static-content",
+    "build:static-content": "npm run build:stage-content && ./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts --content .stage/content --static-dir apps/static/public/static-content",
     "build:sync-images": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/sync-images.ts",
     "typecheck": "./sandbox.sh npx tsc --noEmit",
     "lint": "./sandbox.sh npx eslint packages apps",
@@ -43,7 +43,9 @@
     "serve:static": "./sandbox.sh npx serve apps/static/dist",
     "upgrade-olx": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/upgrade-olx.ts",
     "xml2json": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts",
-    "xml2graph": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js"
+    "xml2graph": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js",
+    "build:stage-content": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content ./content --out .stage/content",
+    "build:check-corpus-refs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content ./content --check"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",

@@ -21,7 +21,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   publishedSheet, scoreSlotSheet, parseSlots, parseCover, parseEquals,
-  parseOnlyIf, parseCounts, parseChoices, parseExpect, DEFAULT_VERDICTS,
+  parseOnlyIf, parseCounts, parseChoices, parseExpect, parseMaps, DEFAULT_VERDICTS,
 } from './slotSheet';
 import { sheetFromJson } from '@/components/blocks/grading/SlotSheetGrader';
 
@@ -33,15 +33,28 @@ const SLOTS = parseSlots(
   + '|n:How many reasons:count(2)|r1:First@1|r2:Second@1'
   + '|other:Which type they named:pick(operant_type)'
   + '|agrees:Names what it shows@1'
-  + '|extra:Something else@1',
-  DEFAULT_VERDICTS);
+  + '|extra:Something else@1'
+  // A MAPPED pair. `maps` was in publishedSheet's argument type and missing from
+  // its RETURN, so no stored sheet ever carried it and no grader could compute a
+  // mapped check -- the same class of loss as `expect` above, undetected because
+  // this sheet did not exercise it.
+  + '|box:What the box holds:pick(box_kind)'
+  + '|legend:Has a legend@2'
+  // A FORGIVEN verdict. Unlike every other rule here, `free` rides ON the slot
+  // rather than in its own list, so it survives only while `sheetFromJson` copies
+  // `slots` wholesale. The moment anyone reconstructs slots field by field -- the
+  // way `readChecks` once copied the payload, losing `expect` -- this is what
+  // goes missing, and a forgiven verdict would start costing its slot's points.
+  + '|maybe:Stated clearly?:met/absent/unclear@2',
+  DEFAULT_VERDICTS, 'maybe:unclear');
 const RULES = {
   cover: parseCover('a,b:first,second'),
   equals: parseEquals('agrees:t,other:unclear'),
   onlyif: parseOnlyIf('extra:right_type'),
   counts: parseCounts('n:r1,r2'),
-  choices: parseChoices('operant_type:PR,NR,PP,NP,unclear'),
+  choices: parseChoices('operant_type:PR,NR,PP,NP,unclear|box_kind:real,none'),
   expect: parseExpect('right_type:t=PR'),
+  maps: parseMaps('legend:box:real~met,none~absent,*~absent'),
 };
 const CHECKS: any = {
   a: { verdict: 'met', refers_to: 'first' },
@@ -50,6 +63,8 @@ const CHECKS: any = {
   other: { refers_to: 'PR' },
   n: { count: 2 },
   extra: { verdict: 'met' },
+  box: { refers_to: 'real' },   // the mapped verdict is NOT answered: it is computed
+  maybe: { verdict: 'unclear' }, // unsatisfied, and declared free: costs nothing
 };
 
 describe('a published sheet round-trips its rules to the grader', () => {
@@ -57,21 +72,27 @@ describe('a published sheet round-trips its rules to the grader', () => {
   const back = sheetFromJson(JSON.stringify(sheet));
 
   it('carries every rule it was published with', () => {
-    for (const key of ['cover', 'equals', 'onlyif', 'counts', 'expect'] as const) {
+    for (const key of ['cover', 'equals', 'onlyif', 'counts', 'expect', 'maps'] as const) {
       expect((back as any)?.[key], `rule '${key}' lost in the round trip`)
         .toEqual((RULES as any)[key]);
     }
     expect((back as any)?.choices).toEqual(RULES.choices);
+    // `free` is carried ON the slot, so it is checked there rather than in the
+    // rule list -- the same property, a different hiding place.
+    expect((back as any)?.slots?.find((x: any) => x.key === 'maybe')?.free,
+           "`free` lost in the round trip").toEqual(['unclear']);
   });
 
   it('scores the same after the round trip as with the rules in hand', () => {
     // The property that actually matters. If a rule is dropped, the checks it
     // satisfies come out unsatisfied and this number falls.
     const direct = scoreSlotSheet(SLOTS, CHECKS, undefined, RULES.cover, RULES.equals,
-                                  RULES.onlyif, RULES.counts, RULES.expect);
+                                  RULES.onlyif, RULES.counts, RULES.expect, [], [],
+                                  RULES.maps);
     const viaSheet = scoreSlotSheet(back!.slots, back!.verdicts as any, back!.max,
                                     back!.cover, back!.equals, back!.onlyif,
-                                    back!.counts, (back as any).expect);
+                                    back!.counts, (back as any).expect, [], [],
+                                    (back as any).maps);
     expect(viaSheet).toEqual(direct);
     expect(direct!.score).toBe(direct!.max);   // this fixture is a clean pass
   });

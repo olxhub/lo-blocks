@@ -724,15 +724,22 @@ describe('refers_to and count', () => {
     expect(sat.b).toBe(true);
   });
 
-  it('counts from count, and still from a numeric verdict', () => {
-    const slots = parseSlots('n:How many:3/2/1/0|r1:First@1|r2:Second@1|r3:Third@1');
+  it('counts from `count`, and NOT from a numeric verdict', () => {
+    const slots = parseSlots('n:How many:count(3)|r1:First@1|r2:Second@1|r3:Third@1');
     const counts = parseCounts('n:r1,r2,r3');
 
     const fromCount = satisfiedMap(slots, { n: { count: 2 } }, [], [], counts);
     expect([fromCount.r1, fromCount.r2, fromCount.r3]).toEqual([true, true, false]);
 
+    // THE LEGACY FALLBACK IS GONE, and this asserts its absence rather than
+    // merely not testing it. `countedVerdicts` read `count ?? verdict` while the
+    // content migrated; every counting slot's schema has asked for `count` since
+    // then ("How many. A number, not a judgement."), and the harness-side mirror
+    // dropped its own fallback at the same time. The two must stay in step: while
+    // one tolerates a count in `verdict` and the other does not, the same recorded
+    // cell scores differently on each engine.
     const fromVerdict = satisfiedMap(slots, { n: { verdict: '2' } }, [], [], counts);
-    expect([fromVerdict.r1, fromVerdict.r2, fromVerdict.r3]).toEqual([true, true, false]);
+    expect([fromVerdict.r1, fromVerdict.r2, fromVerdict.r3]).toEqual([false, false, false]);
   });
 });
 

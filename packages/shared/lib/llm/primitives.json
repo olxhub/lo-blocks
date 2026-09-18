@@ -36,7 +36,7 @@
     "verdicts",
     "max",
     "showChecks",
-    "choices"
+    "choices", "free"
   ],
   "primitives": [
     {

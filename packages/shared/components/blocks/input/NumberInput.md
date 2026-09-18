@@ -44,7 +44,7 @@ What proportion did they get wrong?
 <CapaProblem id="estimation" title="Testing Effect">
   <NumericalGrader answer="10" tolerance="0.5">
     <Markdown>
-In Roediger & Butler's study, students who were tested retained material for about how many times longer than those who restudied?
+In Roediger &amp; Butler's study, students who were tested retained material for about how many times longer than those who restudied?
 
 (Round to the nearest whole number)
     </Markdown>

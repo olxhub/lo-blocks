@@ -197,13 +197,24 @@ describe('a derived check is not asked for', () => {
 });
 
 describe('counts — a repeated element counted once', () => {
+  // `count(3)`, as every shipped count group is authored. This said `3/2/1/0` --
+  // an ENUMERATED count, where the number arrives as a verdict because the slot
+  // has an option list. No content has been authored that way since the counts
+  // migration, and that shape was the only thing `countedVerdicts`' legacy
+  // `verdict` fallback ever served. Testing it kept the fallback alive in the
+  // suite after production had stopped needing it.
   const sheet = parseSlots(
-    'utb_stated:UTB stated:met/absent@2|reasons_given:How many reasons:3/2/1/0|' +
+    'utb_stated:UTB stated:met/absent@2|reasons_given:How many reasons:count(3)|' +
     'reason_1:First reason:met/absent@1|reason_2:Second:met/absent@1|' +
     'reason_3:Third:met/absent@1');
   const counts = parseCounts('reasons_given:reason_1,reason_2,reason_3');
+  // A COUNT ARRIVES IN `count`. This read `verdict: n`, which worked only while
+  // `countedVerdicts` still fell back to the verdict field for content that had
+  // not migrated. That fallback is gone (both engines lost it together), so a
+  // count in `verdict` now reads as no count at all -- asserted directly in the
+  // last case here.
   const sheetOf = (n: string) => ({
-    utb_stated: { verdict: 'met' }, reasons_given: { verdict: n },
+    utb_stated: { verdict: 'met' }, reasons_given: { count: n },
   });
 
   it('reads groups', () => {
@@ -215,6 +226,16 @@ describe('counts — a repeated element counted once', () => {
   it('awards the first N members', () => {
     expect(satisfiedMap(sheet, sheetOf('2'), [], [], counts))
       .toMatchObject({ reason_1: true, reason_2: true, reason_3: false });
+  });
+
+  it('does NOT award members from a count left in `verdict`', () => {
+    // The removed fallback, pinned as a negative. Reintroducing it would split
+    // the engines: the harness mirror (`agreement.expand_counted`) reads `count`
+    // only, so a sheet that still honoured `verdict` would score the same
+    // recorded cell differently on the two sides.
+    expect(satisfiedMap(sheet, { utb_stated: { verdict: 'met' },
+                                 reasons_given: { verdict: '2' } }, [], [], counts))
+      .toMatchObject({ reason_1: false, reason_2: false, reason_3: false });
   });
 
   it('scores the count, not the members', () => {

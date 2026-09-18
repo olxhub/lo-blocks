@@ -88,7 +88,10 @@ async function llmAction({ props }) {
       const defaults = verdictsAttr
         ? verdictsAttr.split(',').map((v: string) => v.trim()).filter(Boolean)
         : DEFAULT_VERDICTS;
-      const slots = parseSlots(slotsAttr, defaults);
+      // `free` rides ON the slots, so every consumer of this sheet --
+      // scoring here, and publishedSheet for whatever re-scores it later --
+      // carries the forgiven verdicts without another parameter.
+      const slots = parseSlots(slotsAttr, defaults, props.free);
       const equals = parseEquals(props.equals);
       const onlyif = parseOnlyIf(props.onlyif);
       const derived = parseDerived(props.derived);
@@ -266,6 +269,18 @@ const LLMAction = blocks.test({
       '"|", each `key:condition` — e.g. "state_c2:link_c2". For a rubric whose ' +
       'slots come in pairs, where a fact established by one check decides whether ' +
       'the pair scored on OTHER checks was ever addressed at all.'
+    ),
+    free: z.string().optional().describe(
+      'Verdicts that are NOT satisfying and still cost NOTHING, as ' +
+      '"slot:verdict,verdict|slot:verdict" — e.g. "utb_stated:unclear". This ' +
+      'runtime fails anything that is not the satisfying verdict; the paper ' +
+      'scorer charges only what a deduction code names. Those are opposite ' +
+      'defaults and they agreed only while the two enumerations happened to be ' +
+      'complements, so a verdict neither side names is scored by one and ' +
+      'forgiven by the other. Declared here, never inferred from a missing ' +
+      'code: a code keyed on a counterpart name reads as missing and would ' +
+      'forgive a real failure. The verdicts ride ON the slots, so a published ' +
+      'sheet re-scores by the rules in force when it was written.'
     ),
     forbid: z.string().optional().describe(
       'A check that FAILS on a named COMBINATION of other answers, for a code the ' +

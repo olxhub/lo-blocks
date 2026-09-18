@@ -42,7 +42,10 @@ export function declaredSheet(attrs: any) {
   const defaults = attrs?.verdicts
     ? String(attrs.verdicts).split(',').map((v: string) => v.trim()).filter(Boolean)
     : DEFAULT_VERDICTS;
-  const slots = parseSlots(slotsAttr, defaults);
+  // `free` rides ON the slots, so every consumer of this sheet --
+  // scoring here, and publishedSheet for whatever re-scores it later --
+  // carries the forgiven verdicts without another parameter.
+  const slots = parseSlots(slotsAttr, defaults, attrs?.free ? String(attrs.free) : undefined);
   const maxAttr = attrs?.max;
   const explicit = maxAttr !== undefined && maxAttr !== null && String(maxAttr) !== ''
     ? Number(maxAttr) : undefined;
@@ -65,9 +68,14 @@ export function scoreOf(raw: unknown, declared: ReturnType<typeof declaredSheet>
   try {
     const p = JSON.parse(String(raw));
     if (!p || !Array.isArray(p.slots)) return null;
+    // THE LAST THREE WERE MISSING, so this table could show a score the grader
+    // did not give: `requires`, `forbid` and `maps` all defaulted to `[]` here
+    // while the grader applied them. A student reading a total that disagrees
+    // with their mark has no way to tell which one is wrong.
     const r = scoreSlotSheet(p.slots, p.verdicts ?? {}, p.max, p.cover ?? [],
                              p.equals ?? [], p.onlyif ?? [], p.counts ?? [],
-                             p.expect ?? []);
+                             p.expect ?? [], p.requires ?? [], p.forbid ?? [],
+                             p.maps ?? []);
     return r ? r.score : null;
   } catch {
     return null;

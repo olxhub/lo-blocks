@@ -6,13 +6,17 @@
 import { describe, it, expect } from 'vitest';
 import { readSheetValue, unquote } from './_SheetValue';
 
+// INVENTED FIXTURE TEXT. This test asserts that readSheetValue returns the
+// evidence string it was handed, so the content is irrelevant to what is being
+// tested. It previously carried a real psychology submission verbatim -- one
+// student's answer, in an engine package that is meant to be content-neutral.
 const sheet = JSON.stringify({
   slots: [{ key: 'utb_stated', label: 'x', options: ['met'], gates: false }],
   showChecks: true,
   verdicts: {
     utb_stated: {
       verdict: 'met',
-      evidence: '"My unwanted behavior is my lack of sleep."',
+      evidence: '"My unwanted behavior is skipping breakfast."',
       note: 'You name it directly.',
     },
   },
@@ -23,7 +27,7 @@ describe('readSheetValue', () => {
     expect(readSheetValue(sheet, 'utb_stated', 'verdict')).toBe('met');
     expect(readSheetValue(sheet, 'utb_stated', 'note')).toBe('You name it directly.');
     expect(readSheetValue(sheet, 'utb_stated', 'evidence'))
-      .toBe('"My unwanted behavior is my lack of sleep."');
+      .toBe('"My unwanted behavior is skipping breakfast."');
   });
 
   // Every shape of "not there" collapses to '', because the caller's fallback
