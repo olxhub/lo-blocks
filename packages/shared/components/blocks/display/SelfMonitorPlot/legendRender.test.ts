@@ -25,32 +25,68 @@ import { readFileSync } from 'fs';
 import { store } from '@/lib/state/store';
 import { settings } from '@/lib/state/settings';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
+import { preloadBlocks } from '@/lib/testing/preloadBlocks';
 import RenderOLX from '@/components/common/RenderOLX';
+// PMSS must be initialised before any block renders -- `runner.test.ts` and
+// `promptcapture.test.ts` do the same, and without it RenderOLX throws
+// "Config not initialized" before a plot is ever drawn.
+import { initConfig } from '@/lib/config';
+
+initConfig('* { allow-unsafe-content: true; }', { classes: ['client', 'test'] });
 
 const IDMAP = process.env.IDMAP_JSON;
-const NS = 'psych';
-const SCREEN = 'psych/bmod_h3_graph';
+// THE CONTENT NAMESPACE, which was renamed `psych` -> `edu.memphis.psych`. This
+// test kept the old one and therefore rendered nothing: `RenderOLX` found no such
+// screen, produced no plots, and the assertion counted 0 figures where it wanted
+// 2. It went unnoticed because the suite is `skipIf(!IDMAP)` and nothing in CI
+// supplies an idmap -- a skipped test cannot tell you it has rotted.
+const NS = 'edu.memphis.psych';
+const SCREEN = 'edu.memphis.psych/bmod_h3_graph';
 
 const DATA = {
-  bmod_h3_baseline: '5, 6, 5, 6, 4, 6, 7',
-  bmod_h3_wk1: '6, 7, 6, 7, 6, 7, 8',
-  bmod_h3_wk2: '7, 7, 8, 7, 8, 7, 8',
-  bmod_h3_wk3: '8, 8, 7, 8, 8, 7, 8',
+  bmod_h3_baseline: '4, 5, 4, 5, 3, 5, 6',
+  bmod_h3_wk1: '5, 6, 5, 6, 5, 6, 7',
+  bmod_h3_wk2: '6, 6, 7, 6, 7, 6, 7',
+  bmod_h3_wk3: '7, 7, 6, 7, 7, 6, 7',
   bmod_h3_graph_title: 'Hours of Sleep Over Four Weeks',
   bmod_h3_graph_x: 'Days of the Week',
   bmod_h3_graph_y: 'Hours of Sleep',
 };
 
+// KNOWN BLOCKED 2026-09-13, and skipped for a second reason now. Three real
+// defects in this test were found and fixed that day -- the content namespace had
+// been renamed (`psych` -> `edu.memphis.psych`), `initConfig()` was never called,
+// and the idMap was dispatched to the store but never passed to RenderOLX as
+// `baseIdMap`. With all three fixed it gets as far as
+// "Loading edu.memphis.psych/bmod_h3_graph..." and stays there, so the screen
+// never renders and both cases count 0 figures where they want 2.
+//
+// What is NOT the cause, each checked: jsdom cannot be blamed (a real
+// `Plot.plot()` call renders an <svg> under it); the idmap is not stale (it fails
+// identically on v143/v144/v145); the LOAD_OLXJSON dispatch shape is current
+// (runner.test.ts uses the same one and renders these screens every sweep); and a
+// SET_LOCALE dispatch does not move it, though the content IS locale-keyed.
+//
+// What remains is RenderOLX's loading pipeline under test. See BACKLOG.md.
 describe.skipIf(!IDMAP)('1c: the student writes their own legend', () => {
   let reduxStore: any;
+  // Held at describe scope because RenderOLX needs it as a PROP. Dispatching
+  // LOAD_OLXJSON alone puts the content in the store but leaves RenderOLX with no
+  // source of its own, and it renders "RenderOLX: No content source provided" --
+  // which is what this test was really asserting against when it counted 0
+  // figures.
+  let idMap: any;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     reduxStore = store.init({
       blockRegistry: BLOCK_REGISTRY,
       websocket: false,
       extraFields: settings,
     });
-    const idMap = JSON.parse(readFileSync(IDMAP!, 'utf-8')).idMap;
+    idMap = JSON.parse(readFileSync(IDMAP!, 'utf-8')).idMap;
+
+    // The gate will not open on its own under vitest; see preloadBlocks.
+    await preloadBlocks(BLOCK_REGISTRY);
     reduxStore.dispatch({
       redux_type: 'EMIT_EVENT', type: 'lo_event',
       payload: JSON.stringify({ event: 'LOAD_OLXJSON', source: 'content', blocks: idMap }),
@@ -72,7 +108,7 @@ describe.skipIf(!IDMAP)('1c: the student writes their own legend', () => {
       host = render(
         React.createElement(
           Provider, { store: reduxStore } as any,
-          React.createElement(RenderOLX as any, { id: SCREEN, ns: NS }),
+          React.createElement(RenderOLX as any, { id: SCREEN, ns: NS, baseIdMap: idMap }),
         ),
       );
       await new Promise(r => setTimeout(r, 500));
