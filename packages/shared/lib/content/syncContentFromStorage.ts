@@ -30,6 +30,31 @@ import { variantMapEntries } from '@/lib/types/i18n';
 import { toAppError } from '@/lib/types/errors';
 import { parseOLX, isAcceptableDuplicate } from '@/lib/content/parseOLX';
 import { copyAssetsToPublic } from '@/lib/content/staticAssetSync';
+import { resolve as resolveCorpusRefs, corpusDataPath }
+  from '@/scripts/resolveCorpusRefs';
+
+// CORPUS DATA IS READ ONCE PER PATH. A content sync touches every .olx, and the
+// export is megabytes; re-reading it per file would make the resolve cost scale
+// with the tree rather than with the number of distinct corpora.
+const _corpusDataCache = new Map<string, Record<string, string>>();
+
+async function resolveContentRefs(text: string, where: string): Promise<string> {
+  if (!text.includes('{{corpus:')) return text;          // the cheap reject
+  const path = corpusDataPath(text);
+  if (!path) {
+    throw new Error(
+      `${where}: carries {{corpus:...}} references but no \`corpus_data:\` in its ` +
+      `frontmatter, so nothing can resolve them. The page would show the ` +
+      `reference to a reader.`);
+  }
+  let data = _corpusDataCache.get(path);
+  if (!data) {
+    const fs = await import('node:fs/promises');
+    data = JSON.parse(await fs.readFile(path, 'utf-8')) as Record<string, string>;
+    _corpusDataCache.set(path, data);
+  }
+  return resolveCorpusRefs(text, data, where);
+}
 
 // =============================================================================
 // Types
@@ -470,7 +495,24 @@ async function parseAndIndexFiles(
       // Manifest edits invalidate their subtree via
       // promoteFilesAffectedByManifests (step 2a in applyFileChanges).
       const { ns, manifest } = await provider.namespaceFor(fileRecord.id);
-      const parseResult = await parseOLX(fileRecord.content, [fileRecord.id], provider, ns);
+      // CORPUS REFERENCES ARE RESOLVED HERE, BEFORE PARSING, so every consumer
+      // gets the same text: the page a reader sees and the `/api/olxjson` dump a
+      // comparison reads are then the same bytes by construction.
+      //
+      // WITHOUT THIS THE APP AND THE HARNESS DISAGREE. Since the history rewrite
+      // the .olx carry `{{corpus:...}}` where a worked example quotes a student,
+      // and the scoring harness resolves them (its modules carry the resolver
+      // shim) while the server served them raw -- 35 unresolved references in the
+      // dump, and a scorer-equivalence check reporting the app and the harness
+      // sending different prompts for 17 items. The build resolved into
+      // `.stage/content`; a dev server reading source did not.
+      //
+      // FAILS LOUDLY, like the build. A file carrying references whose
+      // `corpus_data:` cannot be read becomes a file_error rather than a page
+      // showing `{{corpus:...}}` to a reader -- which is what
+      // `resolveCorpusRefs.ts` already refuses at build time for the same reason.
+      const olxText = await resolveContentRefs(fileRecord.content, fileRecord.id);
+      const parseResult = await parseOLX(olxText, [fileRecord.id], provider, ns);
       const fileErrors: OLXLoadingError[] = parseResult.errors ?? [];
 
       // Namespace provenance: record which manifest declared this content's

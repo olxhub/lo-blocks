@@ -221,7 +221,31 @@ export function contentRoots(repoRoot: string): { dirs: string[]; unscanned: str
 // its version history and its dependencies. `.git` alone is hundreds of
 // megabytes, and it is the one directory guaranteed to hold every earlier
 // revision of everything the content was ever cleaned of.
-const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo', 'dist']);
+//
+// `scoring` IS A PACKAGE, NOT CONTENT, and it is excluded for the same reason
+// scaled down: it is 170 files of Python that this build cannot run, and since
+// the history rewrite it carries corpus REFERENCES in its data files --
+// PROSE_SPLIT_WORKSHEET.json alone holds 28. `resolveCorpusRefs` resolves .olx
+// and nothing else, by design, so those references reach the staged page with no
+// resolver behind them: the page ends up holding placeholder text where a
+// developer note used to be. Measured 2026-09-21, after the psych rewrite
+// landed: 3 staged files, 100 unresolved references, none of them renderable.
+//
+// THE ALTERNATIVE IS WORSE. Teaching the resolver to cover .json would expand a
+// student's sentence INTO an artifact that currently holds only an opaque
+// reference -- the rewrite's purpose, run backwards.
+// `courses` AND `migration` GO FOR THE SAME REASON. `courses/<id>/course.json` is
+// the rubric OF RECORD -- the destination of the Stage 5 migration, read by the
+// Python package out of the repository and never fetched as a page. It is also
+// the largest single carrier of unresolved placeholders in the stage: 65 of them.
+// `migration/` is stage scripts and their notes. Neither renders; both were
+// staged only because a mounted source is copied whole.
+//
+// WHAT IS LEFT IS CONTENT AND ITS DOCUMENTATION -- `psychology/`, `lo.yaml`, the
+// licence and the plans. That is the line: if a build resolves .olx and serves
+// pages, the stage should carry what becomes a page.
+const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo', 'dist',
+                             'scoring', 'courses', 'migration']);
 
 function copyTree(src: string, dest: string): void {
   fs.mkdirSync(dest, { recursive: true });
