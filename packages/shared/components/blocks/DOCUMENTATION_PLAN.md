@@ -80,9 +80,16 @@ attribute VALUE rather than an attribute were set aside as scan noise. **That wa
 wrong.** A block's children and its permitted values are part of what an author
 has to know to write the element; the scan's output is not "17 attribute bugs and
 some noise", it is three DIFFERENT documentation obligations tangled together.
-All three are in scope here.
+
+**And then the premise under §4a and §4c turned out to be wrong too.** See §8a:
+the doc page already renders an attribute table GENERATED from the schema, enum
+values included. A hand-written attribute table in a `.md` is a second
+implementation of it. §4a and §4c below are therefore mostly not edits to make —
+they are a list of tables to DELETE. What survives as real work is §4b, children,
+which the schema does not carry.
 
 ### 4a · Attributes missing from the table
+*(read §8a first — most of these rows are answered by deleting the table)*
 
 * `Item` — `ref` vs `scores` (§3 above)
 * `Slot`, `Deduction` — `ifDeclared` in the schema, absent from the docs
@@ -123,6 +130,9 @@ exactly the kind of thing an attribute table cannot carry and a reader cannot
 guess.
 
 ### 4c · Enumerated attribute values
+*(read §8a first — `extractAttributes` already emits `enumValues`, so the
+generated table shows every one of these; the table below is what the DUPLICATE
+is missing, not what an author cannot see)*
 
 Schema `z.enum` values that appear nowhere in the block's doc. Where a doc omits
 only the negative of a boolean-ish pair the fix may be one clause; where it omits
@@ -162,28 +172,129 @@ not blocks and carry no playgrounds, so nothing in the suite looks at them at al
 
 ## 6 · Order of work
 
+0. Settle §8d — whether the rubric family stays `internal: true`. It gates
+   step 1: docs the browser hides by default are most of the work for a
+   fraction of the benefit.
 1. The 14 undocumented rubric blocks, **`Credit` and `Slot` first** — they are
    what an author writes most.
 2. `Item.md`'s `ref`/`scores` row, because it is wrong rather than missing.
 3. Playgrounds for the four documented-but-unexercised blocks.
 4. `Item.md`'s children section (§4b) — 15 element types, none documented, and
    the reference an author needs most after the blocks themselves.
-5. The confirmed attribute drift (§4a), then the enumerated values (§4c).
-6. The unconfirmed leads, each verified against the schema before editing.
-7. `lib/llm` module docs.
+5. **Delete the 32 hand-written attribute tables (§8a)**, rehoming per table only
+   what the schema cannot carry. Do this BEFORE §4a/§4c: most of those rows stop
+   existing once the duplicate is gone, and editing a table you are about to
+   delete is wasted work.
+6. The nine missing `.describe()` calls (§8a) — in the schema, not the docs.
+7. Whatever §4a and §4c still have left after step 5, each verified individually.
+8. The 23 legacy blocks with no README (§8b), family-grouped, most-reached-for
+   first.
+9. `lib/llm` module docs.
 
 ## 7 · How the work is checked
 
 * `npx vitest run docPlaygrounds` — every new playground joins the 209 and must
   parse AND survive the semantic pass. A playground is the test.
-* Re-run the drift scan; it should shrink as rows are fixed and must not grow.
-  Extend it first so it covers all three obligations, not just attributes: it
-  already reads each `z.object`, so `z.enum` values are one more field to walk,
-  and the child map comes from parsing the built rubric. A scan that only sees
-  attributes is what let §4b and §4c sit unreported until asked for.
+* Re-run the audit, and **commit it** rather than re-deriving it each time. It
+  must read the registry through `extractAttributes`, not a regex over the
+  sources: the regex pass missed every attribute declared with a helper like
+  `z_olx_boolean` and reported eight false findings against `Freewrite` alone.
+  It should report, per block: no README, no example, an own attribute with no
+  `.describe()`, and — once §8a lands — a `.md` that has grown an attribute table
+  back. The child map (§4b) comes from parsing the built rubric.
 * **Do not treat a green suite as coverage.** It reports on the playgrounds that
   exist. The number to watch while this work proceeds is how many blocks have a
   playground at all — 7 of the 22 rubric blocks do today.
 * A playground cannot fail for an undocumented CHILD or VALUE either: it exercises
   the snippet an author was given, so anything left out of the doc is equally left
   out of the test. Children and values are checked by the scan or not at all.
+
+## 8 · Legacy documentation — what the cleanup actually is
+
+Asked for after the sections above: the same audit run over the blocks that
+pre-date this work. It found one structural thing that matters more than any
+individual doc, and three ordinary gaps.
+
+Measured with the app's own extractor (`extractAttributes` over `BLOCK_REGISTRY`,
+163 blocks, 116 public) rather than a regex over the sources. The first regex
+pass over-reported badly — it missed every attribute declared with a helper like
+`z_olx_boolean` instead of `z.`, which is why `Freewrite` appeared to have eight
+undocumented attributes it documents perfectly well. **Do not act on the earlier
+per-block numbers; act on these.**
+
+### 8a · The hand-written attribute tables are a SECOND IMPLEMENTATION
+
+`lib/docs/schemaUtils.ts:extractAttributes` walks a block's Zod schema and emits
+name, type, required, description, **enum values**, and which mixin each
+attribute comes from. `docPanels.tsx:AttributesSection` renders that as a table,
+grouped into own / base / input / grader. The Overview tab of every block's doc
+page shows it, `<DocAttributes>` embeds it beside the Studio cursor, and the MCP
+`get_blocks` tool serves the same structure to agents. It cannot drift: the
+mixin grouping is derived from the mixin shapes themselves, with a comment
+saying so.
+
+**32 `.md` files carry a hand-maintained attribute table anyway. 21 of them are
+legacy.** Every one is a copy of something already generated, and the copy is
+what rots:
+
+* 39 rows document something that is not an attribute of that block. Some are
+  real errors (`Item`'s `ref`, `DefaultGrader`'s `feedback`/`score`,
+  `TextSlot`'s `state`/`value`); others are child elements or values, which is
+  §4b/§4c's point again, this time in legacy docs.
+* 375 schema attributes are absent from the hand tables. That number is NOT a
+  defect list — it is almost entirely the base mixin (`class`, `lang`, `draft`,
+  `popout`, `launchable`, `print`, `grouped-by`, `initialPosition`, `id`), which
+  no hand table should ever have listed. It is the measurement that shows the
+  hand table is the wrong instrument rather than a badly-filled one.
+
+**The cleanup: delete the hand-written attribute tables.** Then, per table,
+rehome only what the schema cannot carry — a children section (§4b), a values
+table where the values belong to something other than an enum attribute, and any
+worked prose about how two attributes interact. This replaces "edit 32 tables and
+keep editing them forever" with one deletion and a much shorter list of things
+that genuinely have to be written by hand.
+
+Where a description is missing, **fix it in the schema, not the doc** — the
+generated table renders a blank cell. Nine attributes across six legacy blocks
+need a `.describe()`:
+
+| block | attributes with no `.describe()` |
+|---|---|
+| `FormulaGrader` | `caseSensitive`, `samples`, `tolerance` (3 of its 5) |
+| `StringGrader` | `ignoreCase`, `regexp` (both) |
+| `NumericalGrader` | `tolerance` |
+| `RatioGrader` | `tolerance` |
+| `Explanation` | `showWhen` — the same attribute §4c wants the values of |
+| `AvatarEditor` | `compact` |
+
+### 8b · 23 public legacy blocks have no README at all
+
+`Annotate`, `AnswerDistribution`, `Cast`, `CastEditor`, `Catalog`,
+`CharacterBuilder`, `CompactPopout`, `DocAttributes`, `DocFields`, `Flash`,
+`Hint`, `NavigatorDefaultDetail`, `NavigatorDefaultPreview`,
+`NavigatorReadingDetail`, `NavigatorTeamDetail`, `NavigatorTeamPreview`,
+`RepoCard`, `ShowAnswerButton`, `StateViewer`, `Transcript`, `Trigger`, `Video`,
+`VideoPlayer`.
+
+These are not equal in weight and should not be written in list order. `Annotate`,
+`CompactPopout`, `StateViewer` and `Flash` are authored surfaces a course writer
+reaches for; the five `Navigator*Detail`/`*Preview` blocks are one family and are
+one doc, not five; `DocAttributes`/`DocFields` document the doc system itself.
+
+### 8c · 17 public blocks have no example, so no playground
+
+Legacy (11): `Cast`, `Catalog`, `Hint`, the five `Navigator*` blocks, `RepoCard`,
+`ShowAnswerButton`, `VideoPlayer`.
+New, from this work (6): `DerivedChecks`, `OnChange`, `ScoreTable`,
+`SelfMonitorPlot`, `SheetValue`, `SlotSheetGrader` — these six are §2's list and
+take priority, being the ones nothing has ever exercised.
+
+### 8d · A question this audit cannot answer alone
+
+**All 22 rubric blocks are `internal: true`**, so the docs browser hides them
+unless the reader turns on "show internal". That was right while the rubric was a
+generated artifact nobody hand-wrote. It is questionable once the rubric is a
+hand-authored OLX component and `Credit`, `Slot` and `Guidance` are the
+vocabulary an author types — writing 14 new docs that the browser hides by
+default would be most of the work for a fraction of the benefit. Decide the flag
+before writing the docs, not after.
