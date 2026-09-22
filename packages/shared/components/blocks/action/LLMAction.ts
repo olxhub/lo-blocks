@@ -259,7 +259,7 @@ const LLMAction = blocks.test({
       'Checks that are only CHARGED when another check is satisfied, for rubrics ' +
       'that bill one deduction for either of two causes and never twice. Rules ' +
       'separated by "|", each `key:condition` — e.g. ' +
-      '"targets_goal_behavior:observed_type". The check is still answered and ' +
+      '"matches_request:observed_kind". The check is still answered and ' +
       'reported honestly; only its cost is suppressed, so the model is never asked ' +
       'to report a verdict that is false in order to make the arithmetic come out.'
     ),
@@ -272,7 +272,7 @@ const LLMAction = blocks.test({
     ),
     free: z.string().optional().describe(
       'Verdicts that are NOT satisfying and still cost NOTHING, as ' +
-      '"slot:verdict,verdict|slot:verdict" — e.g. "utb_stated:unclear". This ' +
+      '"slot:verdict,verdict|slot:verdict" — e.g. "claim_stated:unclear". This ' +
       'runtime fails anything that is not the satisfying verdict; the paper ' +
       'scorer charges only what a deduction code names. Those are opposite ' +
       'defaults and they agreed only while the two enumerations happened to be ' +
@@ -282,11 +282,24 @@ const LLMAction = blocks.test({
       'forgive a real failure. The verdicts ride ON the slots, so a published ' +
       'sheet re-scores by the rules in force when it was written.'
     ),
+    rubricDef: z.string().optional().describe(
+      'The rubric definition this sheet is generated FROM, as an element id — ' +
+      'e.g. "q4b". Its slots, verdicts and codes are one ' +
+      'projection of that definition; naming it lets a second consumer ' +
+      'derive its own projection from the same source instead of restating ' +
+      'it, so the two cannot drift. Named `rubricDef` and not `rubric` ' +
+      'because `rubric` is already an attribute of LLMGrader, where it ' +
+      'carries grading PROSE read by the model — the opposite kind of ' +
+      'value. Accepted and IGNORED until content sets it: the attribute ' +
+      'exists a full stage before anything relies on it, because the engine ' +
+      'and the content version separately and no step can land in both at ' +
+      'once.'
+    ),
     forbid: z.string().optional().describe(
       'A check that FAILS on a named COMBINATION of other answers, for a code the ' +
       'rubric charges only when several things are true at once. Rules separated ' +
       'by "|", each `key:slot=value,slot=value` — e.g. ' +
-      '"no_antecedents:antecedent_1=absent,antecedent_2=absent". Each operand stays ' +
+      '"no_examples:example_1=absent,example_2=absent". Each operand stays ' +
       'its own question, so the model is never asked to report the combination; the ' +
       'check is computed and left out of the response schema. Append `~verdict` to ' +
       'the key to name the failing verdict.'
@@ -295,7 +308,7 @@ const LLMAction = blocks.test({
       "A check COMPUTED by mapping one pick's value to a NAMED verdict, so a check " +
       'with more than one kind of failure can be derived rather than asked. Rules ' +
       'separated by "|", each `key:pick:value~verdict,…` with `*` as the fallback — ' +
-      'e.g. "behavior_1:b1_basis:activity~met,none~absent,*~wrong_kind". `~` and not ' +
+      'e.g. "item_1:i1_basis:direct~met,none~absent,*~wrong_kind". `~` and not ' +
       '">" because an opening tag is read as `[^>]*>`, and a ">" inside an attribute ' +
       'truncates the match.'
     ),

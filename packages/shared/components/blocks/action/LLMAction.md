@@ -48,6 +48,7 @@ overwrite invites the model to contradict it — and is resolved before scoring.
 | `counts` | a repeated element counted ONCE, its members derived from the count |
 | `onlyif` | charged only when another check is satisfied |
 | `requires` | credited only while another holds — the mirror of `onlyif` |
+| `rubricDef` | the rubric definition this sheet is generated FROM; lets a second consumer derive its own projection from the same source (distinct from `LLMGrader`'s `rubric`, which is grading prose) |
 
 They resolve in a fixed order — `equals`, `expect`, `forbid`, then **`maps` last**,
 so a mapped check may read a pick an earlier rule wrote.
@@ -64,14 +65,14 @@ Each rule names the key it computes. Worked examples of the three most common:
 
 <!-- `expect`: a classification compared against a value the item authored. -->
 <LLMAction target="feedback"
-  choices="operant_type:PR,NR,PP,NP,unclear"
-  slots="observed:Which type this shows:pick(operant_type)|right:Shows the type asked for@2"
+  choices="answer_kind:A,B,C,D,unclear"
+  slots="observed:Which kind this shows:pick(answer_kind)|right:Shows the kind asked for@2"
   expect="right:observed=PR" />
 
 <!-- `forbid`: fails only when a COMBINATION holds; each operand stays its own
      question, so the model is never asked to report the combination. -->
 <LLMAction target="feedback"
-  slots="a1:First antecedent:met/absent@1|a2:Second antecedent:met/absent@1|none:Gave an antecedent@2"
+  slots="a1:First example:met/absent@1|a2:Second example:met/absent@1|none:Gave an example@2"
   forbid="none:a1=absent,a2=absent" />
 ```
 
@@ -81,7 +82,7 @@ failure mode `forbid`'s "anything else passes" already risks.
 
 ## `free` — a verdict that is not satisfying and costs nothing
 
-`free="slot:verdict,verdict|slot:verdict"`, e.g. `free="utb_stated:unclear"`.
+`free="slot:verdict,verdict|slot:verdict"`, e.g. `free="claim_stated:unclear"`.
 
 This runtime credits only the satisfying verdict and **fails everything else**, so
 without `free` a third verdict such as `unclear` costs the slot its whole points.
@@ -107,8 +108,8 @@ and uncharged.
 ```olx:code
 <!-- `unclear` is offered, asked for, and costs nothing. `absent` still costs 2. -->
 <LLMAction target="feedback"
-  slots="utb_stated:Names the behaviour:met/absent/unclear@2|why:Says why@2"
-  free="utb_stated:unclear" />
+  slots="claim_stated:Names the claim:met/absent/unclear@2|why:Says why@2"
+  free="claim_stated:unclear" />
 ```
 
 | the model answers | satisfied? | charged? | item scores |
@@ -182,7 +183,7 @@ Two things worth knowing:
   honoured the block falls back to showing the unstructured text, so it degrades
   instead of breaking — but the checklist is not guaranteed on those providers.
 
-For a worked example see `content/psychology/bmod_handout1.olx` (question 6),
+For a worked example see the course content that uses this block,
 whose eight slots are ported from the item-by-item scorer in
 `~/code/molly_scoring`.
 

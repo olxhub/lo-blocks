@@ -12,6 +12,7 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 function CourseContent({ props, selectedChild }) {
   // selectedChild is a bare block id read out of the parsed section structure
@@ -71,8 +72,20 @@ function Course(props: RuntimeProps) {
     }
     return ids.map(id => ({ type: 'block', id }));
   }, [sections]);
+  // A course HOLDS content it never SHOWS. A rubric is the case this exists
+  // for: it is scoped to the course and belongs inside it, and a learner must
+  // never see a sidebar entry for it.
+  //
+  // FILTERED HERE, AT RENDER, AND NOT IN THE PARSER. The parser sees a child's
+  // TAG, which for `<Use ref="..."/>` is `Use` -- it cannot know what the
+  // reference points at, because the target may live in a file not yet parsed.
+  // By render time the reference is resolved, so the block's own `internal`
+  // flag can be read. That also generalises: every non-rendering block is
+  // covered, not a hardcoded list of tags.
   const visibleIds = new Set<string>(
-    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.id)
+    useKidsJson({ ...props, kids: childKids } as any)
+      .filter((k: any) => !BLOCK_REGISTRY[k?.tag]?.internal)
+      .map((k: any) => k.id)
   );
   const isVisible = (id: string) => visibleIds.has(id);
 
