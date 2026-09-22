@@ -1,112 +1,107 @@
-# Documentation and playgrounds for the blocks added since `main`
+# Bringing block documentation into line with the standard model
 
-**Status: a plan, not a record.** Nothing here is done. It is scheduled after
-items 3 and 4 of the rubric migration (ending the rubric duplication, and moving
-the criteria prose into the rubric).
+Notes from a component-by-component inspection, 2026-09-22. Every number here was
+measured against the running system — the block registry through the app's own
+`extractAttributes`, the real `parseOLX` over every documented playground, and
+the built `bmod_rubric.olx` for the child map. Where an earlier pass in this file
+reported something different, the correction is stated rather than silently
+replaced.
 
-## Why this exists
+**The rule for everything below: change only what brings a component into line
+with the standard model.** Docs that are merely terse are not defects.
 
-`lo-blocks` has diverged from `origin/main` by 27 commits at merge-base
-`3fffe156`. That work added **61** files and modified **15** under
-`components/blocks`, defining or changing **32 blocks** — most of them a whole new
-`rubric` family that lets a rubric live in the content as a component.
+## 1 · The standard model, as the system actually defines it
 
-Every playground that exists passes: `docPlaygrounds.test.ts` is green at
-**209/209**. That is a strong check — it parses each snippet with the real
-`parseOLX` and then runs `parseDerived`, `parseSlots`, `scoreSlotSheet` and
-`verdictFor` over it, which is how it caught every `derived=` in the grading docs
-being written `key:ref` when the grammar is `key:kind:refs`, a form `parseDerived`
-silently DROPS.
+`docs/README.md` ("Documentation files") states it, and
+`packages/shared/scripts/generateBlockRegistry.js` implements it:
 
-**But a passing suite cannot see a missing file or a wrong sentence.** 14 of the
-22 rubric blocks have no documentation at all, so they contribute no playground to
-that 209 and the green number says nothing about them.
-
-## 1 · Blocks with NO documentation — write it
-
-These 14 are the vocabulary an author writes a rubric in. They are the highest
-priority precisely because the end state is a HAND-AUTHORED rubric: without docs,
-the authoring step has no reference.
-
-| block | what it does | playground should show |
+| file | role | discovered by |
 |---|---|---|
-| `Credit` | a scored component: what it judges, what it is worth, what it charges | `what`/`pts`/`verdicts`/`codes`, and a row that scores nothing but is still reported |
-| `Slot` | one line of the judging sheet | `seg`, `pts`, and a gating slot with `charge`/`because` |
-| `Map` | value → verdict mapping with a fallback | `pairs="a~met,b~absent"` and `fallback` |
-| `Forbid` | a verdict forbidden when conditions hold | `conds="slot=value,slot=value"` |
-| `Expect` | a slot expected to take a given value | `left`/`value`, and `lenient` |
-| `Equals` | two slots that must agree | `left`/`right`/`lenient` |
-| `Onlyif` | a check that applies only when another is met | `key`/`cond` |
-| `Requires` | a check requiring another, leniently | `key`/`cond`/`lenient` |
-| `Derived` | a verdict computed from fields, not judged | `kind`, `fields`, `words`, and the `key:kind:refs` grammar |
-| `Cover` | one verdict covering several checks | `checks`/`labels`/`verdicts` |
-| `Counts` | a count over named slots | `key`/`slots` |
-| `Context` | another item's answer, shown as context | `item` |
-| `Question` | the question text the item scores | its relationship to the content element |
-| `Param` | a value for a frame placeholder | with `Frame`/`Segment` |
+| `X.md` | describes the block; may embed live examples | exact name match → `readme` |
+| `X.olx` | the **minimal** example — "as many features as possible, as concisely as possible" | prefix match; fallback for BOTH `template` and `demo` |
+| `X*.olx`, `X*.xml` | further examples: other contexts, advanced use | prefix match |
+| `X.template.olx` | overrides the editor insert template | exact |
+| `X.demo.olx` | overrides the docs marquee example | exact |
+| `X*.includes.olx` | shared fixtures reused via `<Use ref>` — synced, NOT run as examples | exact suffix |
 
-**Each needs at least one `olx:playground`,** which is what puts it under
-`docPlaygrounds.test.ts` — an undocumented block is also an unexercised one.
+Two more parts of the model are not in that README but are just as binding:
 
-## 2 · Documented but with NO playground — add one
+* **Attributes are GENERATED, not written.** `lib/docs/schemaUtils.ts:extractAttributes`
+  walks the block's Zod schema and emits name, type, required, description, enum
+  values and which mixin each attribute comes from;
+  `BlockDoc/docPanels.tsx:AttributesSection` renders it on the Overview tab,
+  `<DocAttributes>` embeds it beside the Studio cursor, and the MCP `get_blocks`
+  tool serves the same structure to agents. **The `.describe()` string in the
+  schema is the attribute's documentation.** A hand-written attribute table in a
+  `.md` is a second copy of a generated artefact.
+* **Examples are executable documentation.** `OLXCodeBlock` supports
+  ` ```olx:code `, ` ```olx:render ` and ` ```olx:playground `; a playground is
+  wrapped in a `<Vertical>` and run through the real parser. Across all block
+  docs: 206 playgrounds, 91 `olx:code`, 1 `olx:render`.
 
-| block | note |
-|---|---|
-| `Slot` | documented, zero playgrounds, and it is the most-used element in a rubric |
-| `PrintAction` | pre-existing gap, not from this work |
-| `OnChange` | new in this work |
-| `SelfMonitorPlot` | new in this work, and its schema has 8 undocumented attributes (below) |
+### The resulting per-component checklist
 
-## 3 · Documentation that is WRONG — fix it
+- **a** — `X.md` exists and describes the block
+- **b** — `X.olx` exists (the minimal example, and therefore the editor template)
+- **c** — every playground parses **and the parse reports no errors** (see §3)
+- **d** — no hand-written attribute table (§2)
+- **e** — children are documented where the block takes children
+- **f** — every own attribute has a `.describe()`, so the generated table has no
+  blank cell
 
-`Item.md` is confirmed wrong and actively misleading:
+## 2 · The correction that shrinks most of this work
 
-* its attribute table says the item names its content with **`ref`**
-* `Item.ts` takes **`scores`**, and says why: *"the platform reserves `ref` for
-  `<Use>` elements and the parser refuses it anywhere else. Worth knowing before
-  authoring, not after — the reserved name is the natural one to reach for."*
-* the playground below it uses `scores`, so the suite passes while the table
-  sends an author into a parser refusal
+**Delete the hand-written attribute tables.** 32 `.md` files carry one, 21 of them
+legacy. Each duplicates the generated table, and duplication is the whole reason
+this drift exists.
 
-`Item.md` also omits `use`, which is how an item cites an `ItemTemplate` — the
-mechanism the hand-authored rubric will lean on hardest.
+**Correcting an earlier count in this file:** a previous pass reported "39 rows
+document something that is not an attribute". That was my parser mistaking the
+header rows of *other* tables (Children, Modes, Syntax) for attribute rows. Scanned
+properly, against the registry, the true figure is **6 rows across 3 blocks**, and
+all six are named in §5. The earlier per-block numbers from the regex pass — which
+also missed every attribute declared with a helper like `z_olx_boolean`, and so
+invented eight findings against `Freewrite` — should not be acted on.
 
-## 4 · Drift in the reference tables — attributes, CHILDREN and VALUES
+The other number that pass produced, "375 schema attributes missing from the hand
+tables", is not a defect list either. It is almost entirely the base mixin —
+`class`, `lang`, `draft`, `popout`, `launchable`, `print`, `grouped-by`,
+`initialPosition`, `id` — which no hand table should ever have listed. It measures
+the instrument, not the docs.
 
-A mechanical scan compared each documented block's attribute table against its
-`z.object` schema and reported 17 blocks with differences. When that scan was
-first read, differences where the doc table listed a child ELEMENT or an
-attribute VALUE rather than an attribute were set aside as scan noise. **That was
-wrong.** A block's children and its permitted values are part of what an author
-has to know to write the element; the scan's output is not "17 attribute bugs and
-some noise", it is three DIFFERENT documentation obligations tangled together.
+`Rubric.md` is the clean illustration: its table has two rows, `id` and `title`,
+and **`Rubric` has no own attributes at all** — both are base-mixin, and the
+generated table already groups them under "Base attributes (all blocks)".
 
-**And then the premise under §4a and §4c turned out to be wrong too.** See §8a:
-the doc page already renders an attribute table GENERATED from the schema, enum
-values included. A hand-written attribute table in a `.md` is a second
-implementation of it. §4a and §4c below are therefore mostly not edits to make —
-they are a list of tables to DELETE. What survives as real work is §4b, children,
-which the schema does not carry.
+What to keep when a table goes: anything the schema cannot carry — a **Children**
+table (§4), a table of values belonging to something other than an enum attribute,
+and prose about how two attributes interact.
 
-### 4a · Attributes missing from the table
-*(read §8a first — most of these rows are answered by deleting the table)*
+## 3 · A gap in the test, and three playgrounds the engine rejects
 
-* `Item` — `ref` vs `scores` (§3 above)
-* `Slot`, `Deduction` — `ifDeclared` in the schema, absent from the docs
-* `SelfMonitorPlot` — 8 undocumented: `chartTitle`, `chartTitleTarget`,
-  `height`, `width`, `xlabel`, `xlabelTarget`, `ylabel`, `ylabelTarget`
-* `LLMAction` — `choices`, `free`, `max`, `showChecks`, `slots`, `target`,
-  `verdicts` reported missing from the table; some may be covered in prose, so
-  confirm each against the doc body before editing
-* `CodeInput`, `LiquidTemplate`, `OlxSlot`, `SimpleTextSelection`,
-  `TextSelectionInput` — `id` only, which is universal; no edit expected
-* `IntakeGate`, `TimedContainer`, `WordUsage`, `Freewrite` — pre-existing, not
-  from this work; record whether each is real before touching it
+`docPlaygrounds.test.ts` asserts that `parseOLX(...)` **resolves truthy**. It does
+not assert that the parse reported no errors. Running the same 206 playgrounds and
+reading `result.errors` finds three the engine rejects outright:
 
-### 4b · Child elements a block accepts
+| doc | error | what is actually wrong |
+|---|---|---|
+| `DefaultGrader.md` #1 | `Unrecognized key(s) in object: 'score', 'feedback'` | `score`/`feedback` are `RULE_ATTRIBUTES` (`createGrader.ts:56`) and belong on `DefaultMatch` **inside** `RulesGrader` — which this doc's own second playground shows correctly. `DefaultGrader` declares `attributes: {}`. |
+| `LineInput.md` #3 | `Unrecognized key(s) in object: 'caseInsensitive'` | the attribute is `ignoreCase`. A wrong name, nothing more. |
+| `MatchingGrader.md` #2 | `label: Required` | `<ActionButton target="...">Check Answer</ActionButton>` passes the text as a child; `label` is a required attribute — `label="Check Answer"`. |
 
-Measured on the built `bmod_rubric.olx`, which is the corpus these blocks exist
-for. Every count below is a real element an author will write:
+**The fix that matters is the assertion**, not the three snippets: change the
+suite to require an empty `errors` array. That converts the doc suite from "it
+parses" to "the engine accepts it", and it is the single highest-value change in
+this review — all three defects are worked examples a reader would copy.
+
+One caveat to record with it: 6 `CustomGrader` playgrounds cannot be validated in
+that harness at all — they fail with `Config not initialized. Call initConfig()
+first.` Either the suite's setup gains `initConfig()` or those six stay unchecked,
+and saying which is part of the change.
+
+## 4 · Children, which the schema does not carry
+
+Measured on the built `bmod_rubric.olx`:
 
 ```
 Rubric  -> Item x26, Verdicts x5, Frame x2
@@ -116,185 +111,160 @@ Item    -> Slot x217, Guidance x164, Credit x116, Deduction x107, Context x55,
 Frame   -> Segment x4
 ```
 
-`Item.md` documents **none** of its 15 child element types. That is the single
-largest gap in the rubric reference: an author reading `Item.md` learns the
-attributes of the element and nothing about what goes inside it, which is where
-all the content lives. `Rubric.md` and `Frame.md` name their children and need
-only checking, not writing.
+`Rubric.md` already has a Children table and is the model to copy. `Item.md` has
+none, and that is the largest single gap in the rubric reference: an author
+reading it learns the element's attributes and nothing about the fifteen kinds of
+thing that go inside it, which is where all the content lives.
 
-Also to document rather than assume: the seven rubric blocks that carry a TEXT
-BODY (`Credit`, `Deduction`, `Guidance`, `Param`, `Question`, `Segment`, `Slot`
-— they use `parsers.text.raw()`). For `Slot` the body is the judging description
-shown to the grader, which is distinct from its `label`; that distinction is
-exactly the kind of thing an attribute table cannot carry and a reader cannot
-guess.
+## 5 · `internal: true` comes off the rubric blocks — and what that requires
 
-### 4c · Enumerated attribute values
-*(read §8a first — `extractAttributes` already emits `enumValues`, so the
-generated table shows every one of these; the table below is what the DUPLICATE
-is missing, not what an author cannot see)*
+Decided 2026-09-22: rubric elements are author-facing, so they must not be
+`internal`. `lib/types/core.ts` agrees with that reading — it defines `internal`
+as "hidden from the main documentation navigation … not intended for direct use
+by course authors", which is exactly what a hand-authored rubric is not.
 
-Schema `z.enum` values that appear nowhere in the block's doc. Where a doc omits
-only the negative of a boolean-ish pair the fix may be one clause; where it omits
-a real vocabulary the doc is incomplete:
+**But one other thing reads the flag, and it is load-bearing.**
+`layout/Course/_Course.tsx:87` filters a course's children with
+`!BLOCK_REGISTRY[k?.tag]?.internal` so that a course can hold its rubric without
+showing the learner a sidebar entry for it. Clearing `internal` without replacing
+that predicate puts the rubric into the course navigation.
 
-| block | attribute | values not in the doc |
-|---|---|---|
-| `StateViewer` | `scope` | `component`, `componentSetting`, `system`, `storage` |
-| `CompactPopout` | `mode` | `fullscreen`, `window`, `target` |
-| `BadBlock` | `throws` / `kind` | `none`,`parse`,`render` / `native`,`apperror`,`undefined` |
-| `SortableInput` | `dragMode` | `whole`, `handle` |
-| `SortableGrader` | `algorithm` | `survey` |
-| `AggregatedInputs` | `aggregate` / `asObject` | `object` / `true`,`false` |
-| `LLMFeedback` | `render` | `markdown` |
-| `Credit` | `reported`, `gates` | `true`, `false` |
-| `Item` | `deriveFromClauses`, `deriveFromCredit` | `true`, `false` |
-| `Slot` | `gate`, `reported`, `gates` | `false` |
-| `Deduction` | `repeatable` | `false` |
-| `LLMAction` | `showChecks` | `true`, `false` |
-| `SheetValue` | `strip` | `false` |
-| `CheckboxGrader` | `partialCredit` | `false` |
-| `Navigator` | `searchable` | `false` |
-| `CodeInput` | `language` | expands from `PEG_CONTENT_EXTENSIONS` — document the list or point at it |
+The comment there already names the right predicate — "every non-rendering block
+is covered" — but `internal` is not that predicate: **25 internal blocks do
+render** (`Html`, `Spinner`, `Sidebar`, `StringMatch`, `Studio` …). The registry
+carries the real signal: a blueprint has `component` (eager) or `componentLoader`
+(lazy), and a block with neither renders nothing.
 
-Two earlier scan entries resolve here rather than as attribute bugs, and are
-still work: `DerivedChecks`' `complete`/`contains`/`plots`/`present` are `kind`
-VALUES and belong in a values table; `Explanation`'s `always`/`answered`/`never`
-are `showWhen` values. `CapaProblem`'s `ChoiceInput`/`LineInput`/… are children
-and belong in a children section like §4b's.
+Measured over the registry: **the 22 blocks with neither are exactly the 22 rubric
+blocks.** So swapping the filter to `!(component || componentLoader)` hides the
+same set today, survives the flag change, and makes the code match what
+`Rubric.md` already tells readers ("a course holds its rubric without showing
+it … non-rendering children stay out of the navigation").
 
-## 5 · `lib/llm` has two documented modules and several undocumented ones
+Order matters: **swap the predicate first, clear `internal` second.** Between
+those two edits the rubric would render in the course.
 
-`materialiseRubric.md` and `itemTemplate.md` exist. `promptAssembler.ts` (327
-lines), `promptAssembler.types.ts` (282), `attributeAssembler.ts` (222),
-`slotSheet.ts`, `derivedVerdicts.ts` and `runnerGuards.ts` have none. These are
-not blocks and carry no playgrounds, so nothing in the suite looks at them at all.
+## 6 · Component-by-component
 
-## 6 · Order of work
+### 6.1 The rubric family (22 blocks)
 
-0. Settle §8d — whether the rubric family stays `internal: true`. It gates
-   step 1: docs the browser hides by default are most of the work for a
-   fraction of the benefit.
-1. The 14 undocumented rubric blocks, **`Credit` and `Slot` first** — they are
-   what an author writes most.
-2. `Item.md`'s `ref`/`scores` row, because it is wrong rather than missing.
-3. Playgrounds for the four documented-but-unexercised blocks.
-4. `Item.md`'s children section (§4b) — 15 element types, none documented, and
-   the reference an author needs most after the blocks themselves.
-5. **Delete the 32 hand-written attribute tables (§8a)**, rehoming per table only
-   what the schema cannot carry. Do this BEFORE §4a/§4c: most of those rows stop
-   existing once the duplicate is gone, and editing a table you are about to
-   delete is wasted work.
-6. The nine missing `.describe()` calls (§8a) — in the schema, not the docs.
-7. Whatever §4a and §4c still have left after step 5, each verified individually.
-8. The 23 legacy blocks with no README (§8b), family-grouped, most-reached-for
-   first.
-9. `lib/llm` module docs.
+Once `internal` comes off, every one of these owes the full standard model. None
+of the 22 has an `X.olx`, so **none has an editor insert template** — which for a
+hand-authored rubric is the thing an author reaches for first.
 
-## 7 · How the work is checked
+They cannot be used in isolation: a `<Slot>` needs an `<Item>` needs a `<Rubric>`.
+`docs/README.md` anticipates exactly this case — "helpful mostly for blocks which
+can't be used in isolation (e.g. `<Key>` and `<Distractor>` need to be in the
+context of an MCQ)" — and `X.template.olx` is implemented, so the mechanism is
+already there. A shared `Rubric.includes.olx` fixture pulled in with `<Use ref>`
+is the other half.
 
-* `npx vitest run docPlaygrounds` — every new playground joins the 209 and must
-  parse AND survive the semantic pass. A playground is the test.
-* Re-run the audit, and **commit it** rather than re-deriving it each time. It
-  must read the registry through `extractAttributes`, not a regex over the
-  sources: the regex pass missed every attribute declared with a helper like
-  `z_olx_boolean` and reported eight false findings against `Freewrite` alone.
-  It should report, per block: no README, no example, an own attribute with no
-  `.describe()`, and — once §8a lands — a `.md` that has grown an attribute table
-  back. The child map (§4b) comes from parsing the built rubric.
-* **Do not treat a green suite as coverage.** It reports on the playgrounds that
-  exist. The number to watch while this work proceeds is how many blocks have a
-  playground at all — 7 of the 22 rubric blocks do today.
-* A playground cannot fail for an undocumented CHILD or VALUE either: it exercises
-  the snippet an author was given, so anything left out of the doc is equally left
-  out of the test. Children and values are checked by the scan or not at all.
+A playground for a non-rendering block has an established answer in this repo, in
+`Rubric.md`: show the element in context and add a `<Markdown>` note so the
+preview has something to show.
 
-## 8 · Legacy documentation — what the cleanup actually is
+**Documented already (8) — needs: attribute table deleted, `X.olx` written**
 
-Asked for after the sections above: the same audit run over the blocks that
-pre-date this work. It found one structural thing that matters more than any
-individual doc, and three ordinary gaps.
-
-Measured with the app's own extractor (`extractAttributes` over `BLOCK_REGISTRY`,
-163 blocks, 116 public) rather than a regex over the sources. The first regex
-pass over-reported badly — it missed every attribute declared with a helper like
-`z_olx_boolean` instead of `z.`, which is why `Freewrite` appeared to have eight
-undocumented attributes it documents perfectly well. **Do not act on the earlier
-per-block numbers; act on these.**
-
-### 8a · The hand-written attribute tables are a SECOND IMPLEMENTATION
-
-`lib/docs/schemaUtils.ts:extractAttributes` walks a block's Zod schema and emits
-name, type, required, description, **enum values**, and which mixin each
-attribute comes from. `docPanels.tsx:AttributesSection` renders that as a table,
-grouped into own / base / input / grader. The Overview tab of every block's doc
-page shows it, `<DocAttributes>` embeds it beside the Studio cursor, and the MCP
-`get_blocks` tool serves the same structure to agents. It cannot drift: the
-mixin grouping is derived from the mixin shapes themselves, with a comment
-saying so.
-
-**32 `.md` files carry a hand-maintained attribute table anyway. 21 of them are
-legacy.** Every one is a copy of something already generated, and the copy is
-what rots:
-
-* 39 rows document something that is not an attribute of that block. Some are
-  real errors (`Item`'s `ref`, `DefaultGrader`'s `feedback`/`score`,
-  `TextSlot`'s `state`/`value`); others are child elements or values, which is
-  §4b/§4c's point again, this time in legacy docs.
-* 375 schema attributes are absent from the hand tables. That number is NOT a
-  defect list — it is almost entirely the base mixin (`class`, `lang`, `draft`,
-  `popout`, `launchable`, `print`, `grouped-by`, `initialPosition`, `id`), which
-  no hand table should ever have listed. It is the measurement that shows the
-  hand table is the wrong instrument rather than a badly-filled one.
-
-**The cleanup: delete the hand-written attribute tables.** Then, per table,
-rehome only what the schema cannot carry — a children section (§4b), a values
-table where the values belong to something other than an enum attribute, and any
-worked prose about how two attributes interact. This replaces "edit 32 tables and
-keep editing them forever" with one deletion and a much shorter list of things
-that genuinely have to be written by hand.
-
-Where a description is missing, **fix it in the schema, not the doc** — the
-generated table renders a blank cell. Nine attributes across six legacy blocks
-need a `.describe()`:
-
-| block | attributes with no `.describe()` |
+| block | notes beyond the two common items |
 |---|---|
-| `FormulaGrader` | `caseSensitive`, `samples`, `tolerance` (3 of its 5) |
-| `StringGrader` | `ignoreCase`, `regexp` (both) |
-| `NumericalGrader` | `tolerance` |
-| `RatioGrader` | `tolerance` |
-| `Explanation` | `showWhen` — the same attribute §4c wants the values of |
-| `AvatarEditor` | `compact` |
+| `Rubric` | The exemplar: Children table, a one-of-everything playground, "why one source" prose. Its attribute table documents `id`/`title`, which are base-mixin — Rubric has no own attributes. Delete the table and nothing is lost. |
+| `Item` | Table says `ref`; the attribute is `scores`, and `Item.ts` records why — "the platform reserves `ref` for `<Use>` elements and the parser refuses it anywhere else". The table also omits `use`. Deleting it fixes both. Then **add the Children table (§4)** — 15 element types, the biggest gap in the family. |
+| `Slot` | 14 own attributes, the most-used element in a rubric, and **no playground and no example — nothing runnable anywhere**. Highest priority for `Slot.olx`. Its prose sections (`A gate that charges`, `Why charge is not codes`) are good and stay. |
+| `Deduction` | `ifDeclared` missing from the table; deleting the table settles it. Prose on `repeatable` and on wording travelling with the code stays. |
+| `Verdicts` | Table → delete. "Order is not cosmetic" is exactly the kind of prose the generated table cannot carry; keep. |
+| `Frame` | Table → delete. Keep "the unit is a segment, not a clause". |
+| `Segment` | Table → delete (one own attribute, `ifDeclared`). Keep the concatenation rationale. |
+| `ItemTemplate` | Table → delete. Keep "why this is separate from `Frame`" and the two-operations section. |
 
-### 8b · 23 public legacy blocks have no README at all
+**Undocumented (14) — need `X.md` and `X.olx` from nothing**
 
-`Annotate`, `AnswerDistribution`, `Cast`, `CastEditor`, `Catalog`,
-`CharacterBuilder`, `CompactPopout`, `DocAttributes`, `DocFields`, `Flash`,
-`Hint`, `NavigatorDefaultDetail`, `NavigatorDefaultPreview`,
-`NavigatorReadingDetail`, `NavigatorTeamDetail`, `NavigatorTeamPreview`,
-`RepoCard`, `ShowAnswerButton`, `StateViewer`, `Transcript`, `Trigger`, `Video`,
-`VideoPlayer`.
+`Credit`, `Guidance`, `Question`, `Context`, `Counts`, `Cover`, `Equals`,
+`Expect`, `Forbid`, `Map`, `Onlyif`, `Requires`, `Derived`, `Param`.
 
-These are not equal in weight and should not be written in list order. `Annotate`,
-`CompactPopout`, `StateViewer` and `Flash` are authored surfaces a course writer
-reaches for; the five `Navigator*Detail`/`*Preview` blocks are one family and are
-one doc, not five; `DocAttributes`/`DocFields` document the doc system itself.
+Write them in corpus-frequency order — `Guidance` (164 uses), `Credit` (116),
+`Context` (55), `Question` (26), then the rest, which appear 2–7 times each. Seven
+of these carry a **text body** (`Credit`, `Guidance`, `Question`, `Param`, plus
+`Slot`, `Deduction`, `Segment` above), and the body's meaning is per-block — for
+`Slot` it is the judging description shown to the grader, distinct from `label`,
+which is what the learner sees. An attribute table cannot carry that distinction
+and a reader cannot guess it, so each doc must say what its body is.
 
-### 8c · 17 public blocks have no example, so no playground
+`Credit` also needs the distinction its own source records — a slot is a line on
+the answer sheet, a credit component is a line in the scoring — because merging
+the two produced prompts that listed the right components in the wrong order.
 
-Legacy (11): `Cast`, `Catalog`, `Hint`, the five `Navigator*` blocks, `RepoCard`,
-`ShowAnswerButton`, `VideoPlayer`.
-New, from this work (6): `DerivedChecks`, `OnChange`, `ScoreTable`,
-`SelfMonitorPlot`, `SheetValue`, `SlotSheetGrader` — these six are §2's list and
-take priority, being the ones nothing has ever exercised.
+### 6.2 Changed non-rubric blocks
 
-### 8d · A question this audit cannot answer alone
+| block | state | what alignment needs |
+|---|---|---|
+| `ActionButton` | md, 5 examples, template, 4 playgrounds | Compliant. Delete the attribute table only. |
+| `Chat` | md, 6 examples, template, 2 playgrounds | Delete the table (its rows `fullscreen`/`window` are `popout` VALUES, not attributes). Keep the CDATA note — playground #2 is the regression case for `sidebar <- summary`. |
+| `Collapsible`, `NumberInput`, `Sequential`, `UseHistory`, `LLMFeedback` | md + template + playgrounds | Compliant. Table deletion only. |
+| `LLMAction` | md, 1 example, template, 3 playgrounds, 28 attributes | Table deletion. Its rows `absent`/`met`/`unclear` are verdict VALUES — if they need documenting they belong in a values section, not the attribute table. |
+| `Course` | md, 1 example, template, 0 playgrounds | Compliant — the model requires an example, not a playground. **Its prose must change with §5**: it should describe the non-rendering rule, not `internal`. |
+| `PrintAction` | md, 1 example, template, 0 playgrounds | Compliant. No change. |
+| `DerivedChecks` | md, 1 playground, **no example** | Needs `DerivedChecks.olx`. Its `complete`/`contains`/`plots`/`present` rows are `kind` values → a values section. |
+| `SheetValue` | md, 1 playground, **no example** | Needs `SheetValue.olx`. |
+| `ScoreTable` | md, 1 playground, **no example** | Needs `ScoreTable.olx`. |
+| `SlotSheetGrader` | md, 3 playgrounds, **no example** | Needs `SlotSheetGrader.olx`. Its presence claim is already asserted in the suite — the one place a doc's *prose* is tested. |
+| `OnChange` | md, **no example, no playground** | Needs `OnChange.olx`. |
+| `SelfMonitorPlot` | md, **no example, no playground**, 24 attributes | Needs `SelfMonitorPlot.olx`. Eight attributes are absent from its table (`chartTitle`, `chartTitleTarget`, `height`, `width`, `xlabel`, `xlabelTarget`, `ylabel`, `ylabelTarget`) — deleting the table settles it, provided each has a `.describe()`. |
 
-**All 22 rubric blocks are `internal: true`**, so the docs browser hides them
-unless the reader turns on "show internal". That was right while the rubric was a
-generated artifact nobody hand-wrote. It is questionable once the rubric is a
-hand-authored OLX component and `Credit`, `Slot` and `Guidance` are the
-vocabulary an author types — writing 14 new docs that the browser hides by
-default would be most of the work for a fraction of the benefit. Decide the flag
-before writing the docs, not after.
+### 6.3 Legacy blocks with a real defect
+
+| block | defect | fix |
+|---|---|---|
+| `DefaultGrader` | Documents `score`/`feedback` as its attributes, and playground #1 uses them; the engine rejects both (§3). `DefaultGrader.ts:6`'s header comment shows the same wrong usage. | Fix the playground, delete the table, fix the source comment. Three places, one error. |
+| `LineInput` | Playground #3 writes `caseInsensitive` for `ignoreCase` (§3). | One word. |
+| `MatchingGrader` | Playground #2 omits the required `label` on `<ActionButton>` (§3). | One attribute. |
+| `RulesGrader` | Table lists `score`/`feedback`/`feedbackBlock` — these ARE real, but on the `*Match` rules, not on `RulesGrader`. It also lists `DefaultMatch`/`NumericalMatch`/`RatioMatch`/`StringMatch`, which are children. | Delete the table; keep a Children table and a rule-attributes section, since that is genuinely where those three live. |
+| `FormulaGrader`, `StringGrader`, `NumericalGrader`, `RatioGrader`, `Explanation`, `AvatarEditor` | 9 own attributes have no `.describe()`, so the generated table renders a blank cell: `caseSensitive`/`samples`/`tolerance`, `ignoreCase`/`regexp`, `tolerance`, `tolerance`, `showWhen`, `compact`. | Add `.describe()` **in the schema**. This is the only class of doc fix that is a code edit. |
+
+### 6.4 Legacy blocks with no `X.md` (23)
+
+Not equal in weight, and not to be written in alphabetical order:
+
+* **Author-facing surfaces, first**: `Annotate`, `CompactPopout`, `StateViewer`,
+  `Flash`, `Hint`, `Transcript`, `Video`, `VideoPlayer`, `ShowAnswerButton`.
+* **One family, one doc — not five**: `NavigatorDefaultDetail`,
+  `NavigatorDefaultPreview`, `NavigatorReadingDetail`, `NavigatorTeamDetail`,
+  `NavigatorTeamPreview`. Writing five near-identical files would satisfy a
+  counter and help nobody.
+* **The doc system documenting itself**: `DocAttributes`, `DocFields` — small,
+  and worth doing because they are how everything else is read.
+* **Casting/authoring**: `Cast`, `CastEditor`, `CharacterBuilder`, `Catalog`,
+  `RepoCard`, `AnswerDistribution`, `Trigger`.
+
+11 of these also have no example: `Cast`, `Catalog`, `Hint`, the five
+`Navigator*`, `RepoCard`, `ShowAnswerButton`, `VideoPlayer`.
+
+## 7 · Order of work
+
+1. **Strengthen the playground assertion to require no parse errors** (§3), and
+   decide the `CustomGrader`/`initConfig` question. Everything after this is
+   checked by it.
+2. Fix the three rejected playgrounds (§3) plus the `DefaultGrader.ts` comment.
+3. **`_Course.tsx`: swap `internal` for `!(component || componentLoader)`** (§5).
+4. **Clear `internal: true` from the 22 rubric blocks** — after step 3, never before.
+5. Delete the 32 hand-written attribute tables (§2), rehoming per table only what
+   the schema cannot carry.
+6. `Item.md`'s Children table (§4).
+7. The 9 missing `.describe()` calls (§6.3) — in the schema.
+8. `X.olx` for the six changed blocks that lack one, then for the rubric family
+   (`Slot` first), using `X.template.olx` and a shared `Rubric.includes.olx`.
+9. The 14 undocumented rubric blocks, in corpus-frequency order (§6.1).
+10. The 23 legacy `.md` files, family-grouped (§6.4).
+11. `lib/llm`'s undocumented modules.
+
+## 8 · How this is checked
+
+* `npx vitest run docPlaygrounds` — with §3's stronger assertion, a playground is
+  a real test of the snippet.
+* **Commit the audit** rather than re-deriving it. It must read the registry
+  through `extractAttributes`, not a regex over the sources — the regex pass
+  produced false findings against `Freewrite`, `Rubric` and a dozen others, and
+  two rounds of this plan were written from them. It should report, per block:
+  no `.md`, no `X.olx`, an own attribute with no `.describe()`, and a `.md` that
+  has grown an attribute table back.
+* **A green suite is not coverage.** It reports on the playgrounds that exist, and
+  a missing child, value or whole document is exactly what it cannot see.
