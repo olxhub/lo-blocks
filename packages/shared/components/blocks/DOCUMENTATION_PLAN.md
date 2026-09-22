@@ -71,34 +71,87 @@ the authoring step has no reference.
 `Item.md` also omits `use`, which is how an item cites an `ItemTemplate` — the
 mechanism the hand-authored rubric will lean on hardest.
 
-## 4 · Attribute drift — LEADS, to be confirmed one at a time
+## 4 · Drift in the reference tables — attributes, CHILDREN and VALUES
 
 A mechanical scan compared each documented block's attribute table against its
-`z.object` schema. It reports 17 blocks with differences. **It is a lead
-generator, not a verdict list**: several differences are a doc table listing child
-ELEMENTS or attribute VALUES rather than attributes, which is not an error.
+`z.object` schema and reported 17 blocks with differences. When that scan was
+first read, differences where the doc table listed a child ELEMENT or an
+attribute VALUE rather than an attribute were set aside as scan noise. **That was
+wrong.** A block's children and its permitted values are part of what an author
+has to know to write the element; the scan's output is not "17 attribute bugs and
+some noise", it is three DIFFERENT documentation obligations tangled together.
+All three are in scope here.
 
-Confirmed real:
+### 4a · Attributes missing from the table
 
-* `Item` — `ref` vs `scores` (above)
+* `Item` — `ref` vs `scores` (§3 above)
 * `Slot`, `Deduction` — `ifDeclared` in the schema, absent from the docs
-* `SelfMonitorPlot` — 8 schema attributes undocumented: `chartTitle`,
-  `chartTitleTarget`, `height`, `width`, `xlabel`, `xlabelTarget`, `ylabel`,
-  `ylabelTarget`
-
-Needs confirming before acting (may be false positives of the scan):
-
+* `SelfMonitorPlot` — 8 undocumented: `chartTitle`, `chartTitleTarget`,
+  `height`, `width`, `xlabel`, `xlabelTarget`, `ylabel`, `ylabelTarget`
 * `LLMAction` — `choices`, `free`, `max`, `showChecks`, `slots`, `target`,
-  `verdicts` reported undocumented; check whether the doc covers them in prose
-  rather than in the table
-* `DerivedChecks` — `complete`/`contains`/`plots`/`present` are probably `kind`
-  VALUES, not attributes
-* `Explanation` — `always`/`answered`/`never` are probably `showWhen` values
-* `CapaProblem` — `ChoiceInput`/`LineInput`/… are child elements
+  `verdicts` reported missing from the table; some may be covered in prose, so
+  confirm each against the doc body before editing
 * `CodeInput`, `LiquidTemplate`, `OlxSlot`, `SimpleTextSelection`,
-  `TextSelectionInput` — `id` is universal and not per-block
+  `TextSelectionInput` — `id` only, which is universal; no edit expected
 * `IntakeGate`, `TimedContainer`, `WordUsage`, `Freewrite` — pre-existing, not
   from this work; record whether each is real before touching it
+
+### 4b · Child elements a block accepts
+
+Measured on the built `bmod_rubric.olx`, which is the corpus these blocks exist
+for. Every count below is a real element an author will write:
+
+```
+Rubric  -> Item x26, Verdicts x5, Frame x2
+Item    -> Slot x217, Guidance x164, Credit x116, Deduction x107, Context x55,
+           Question x26, Forbid x7, Map x6, Onlyif x6, Equals x6, Expect x5,
+           Counts x4, Derived x3, Requires x3, Cover x2
+Frame   -> Segment x4
+```
+
+`Item.md` documents **none** of its 15 child element types. That is the single
+largest gap in the rubric reference: an author reading `Item.md` learns the
+attributes of the element and nothing about what goes inside it, which is where
+all the content lives. `Rubric.md` and `Frame.md` name their children and need
+only checking, not writing.
+
+Also to document rather than assume: the seven rubric blocks that carry a TEXT
+BODY (`Credit`, `Deduction`, `Guidance`, `Param`, `Question`, `Segment`, `Slot`
+— they use `parsers.text.raw()`). For `Slot` the body is the judging description
+shown to the grader, which is distinct from its `label`; that distinction is
+exactly the kind of thing an attribute table cannot carry and a reader cannot
+guess.
+
+### 4c · Enumerated attribute values
+
+Schema `z.enum` values that appear nowhere in the block's doc. Where a doc omits
+only the negative of a boolean-ish pair the fix may be one clause; where it omits
+a real vocabulary the doc is incomplete:
+
+| block | attribute | values not in the doc |
+|---|---|---|
+| `StateViewer` | `scope` | `component`, `componentSetting`, `system`, `storage` |
+| `CompactPopout` | `mode` | `fullscreen`, `window`, `target` |
+| `BadBlock` | `throws` / `kind` | `none`,`parse`,`render` / `native`,`apperror`,`undefined` |
+| `SortableInput` | `dragMode` | `whole`, `handle` |
+| `SortableGrader` | `algorithm` | `survey` |
+| `AggregatedInputs` | `aggregate` / `asObject` | `object` / `true`,`false` |
+| `LLMFeedback` | `render` | `markdown` |
+| `Credit` | `reported`, `gates` | `true`, `false` |
+| `Item` | `deriveFromClauses`, `deriveFromCredit` | `true`, `false` |
+| `Slot` | `gate`, `reported`, `gates` | `false` |
+| `Deduction` | `repeatable` | `false` |
+| `LLMAction` | `showChecks` | `true`, `false` |
+| `SheetValue` | `strip` | `false` |
+| `CheckboxGrader` | `partialCredit` | `false` |
+| `Navigator` | `searchable` | `false` |
+| `CodeInput` | `language` | expands from `PEG_CONTENT_EXTENSIONS` — document the list or point at it |
+
+Two earlier scan entries resolve here rather than as attribute bugs, and are
+still work: `DerivedChecks`' `complete`/`contains`/`plots`/`present` are `kind`
+VALUES and belong in a values table; `Explanation`'s `always`/`answered`/`never`
+are `showWhen` values. `CapaProblem`'s `ChoiceInput`/`LineInput`/… are children
+and belong in a children section like §4b's.
 
 ## 5 · `lib/llm` has two documented modules and several undocumented ones
 
@@ -113,16 +166,24 @@ not blocks and carry no playgrounds, so nothing in the suite looks at them at al
    what an author writes most.
 2. `Item.md`'s `ref`/`scores` row, because it is wrong rather than missing.
 3. Playgrounds for the four documented-but-unexercised blocks.
-4. The confirmed attribute drift.
-5. The unconfirmed leads, each verified against the schema before editing.
-6. `lib/llm` module docs.
+4. `Item.md`'s children section (§4b) — 15 element types, none documented, and
+   the reference an author needs most after the blocks themselves.
+5. The confirmed attribute drift (§4a), then the enumerated values (§4c).
+6. The unconfirmed leads, each verified against the schema before editing.
+7. `lib/llm` module docs.
 
 ## 7 · How the work is checked
 
 * `npx vitest run docPlaygrounds` — every new playground joins the 209 and must
   parse AND survive the semantic pass. A playground is the test.
-* Re-run the attribute-drift scan; it should shrink as rows are fixed and must not
-  grow.
+* Re-run the drift scan; it should shrink as rows are fixed and must not grow.
+  Extend it first so it covers all three obligations, not just attributes: it
+  already reads each `z.object`, so `z.enum` values are one more field to walk,
+  and the child map comes from parsing the built rubric. A scan that only sees
+  attributes is what let §4b and §4c sit unreported until asked for.
 * **Do not treat a green suite as coverage.** It reports on the playgrounds that
   exist. The number to watch while this work proceeds is how many blocks have a
   playground at all — 7 of the 22 rubric blocks do today.
+* A playground cannot fail for an undocumented CHILD or VALUE either: it exercises
+  the snippet an author was given, so anything left out of the doc is equally left
+  out of the test. Children and values are checked by the scan or not at all.
