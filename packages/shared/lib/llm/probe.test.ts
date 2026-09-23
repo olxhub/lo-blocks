@@ -1,8 +1,21 @@
 // Enforcement probe: report what a slot sheet ENFORCES, by exercising it.
 //
-// Driven by ~/code/molly_scoring/scorer/equivalence.py --enforcement, which
-// compares the answers against the CLI scorer's. Gated on RUN_SLOT_PROBE so a
-// normal `vitest run` skips it, matching runner.test.ts.
+// ITS CALLER IS OUTSIDE THIS REPOSITORY: edu.memphis.psych/scoring/equivalence.py
+// --enforcement, which spawns it with `npx vitest run` (cwd = the lo-blocks root)
+// and compares the answers against the CLI scorer's. The path matters because
+// nothing in lo-blocks runs this file: it is a seam, like runner.test.ts, and an
+// unnamed or stale caller is how such a file comes to read as dead code. (It was
+// previously cited as ~/code/molly_scoring/scorer/equivalence.py, which is the
+// source-materials tree -- not a git repository, and not what runs this.)
+//
+// Gated on RUN_SLOT_PROBE so a normal `vitest run` skips it, matching
+// runner.test.ts. The caller supplies the whole contract by environment:
+//
+//   RUN_SLOT_PROBE=1 PROBE_JSON=in.json PROBE_OUT=out.json \
+//   npx vitest run packages/shared/lib/llm/probe.test.ts
+//
+// PROBE_JSON is the web attributes to exercise, one entry per item; PROBE_OUT is
+// where the answers are written, and the caller treats its ABSENCE as failure.
 //
 // Why probe rather than read the attributes. The CLI expresses the same rules in
 // Python — `derive_oc_ledger` computes its type comparison and uses `elif` for

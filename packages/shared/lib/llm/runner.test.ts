@@ -132,7 +132,7 @@ describe.skipIf(!ENABLED)('blocks over a job list', () => {
       // `value` field as its feedback, so a truthy value is not success. See
       // runnerGuards for why both the current and the pre-click status matter.
       // Kept at PARITY with the CLI harness, which is the whole point of this
-      // runner: molly_scoring/scorer/agreement.py calls complete(retries=6),
+      // runner: edu.memphis.psych/scoring/agreement.py calls complete(retries=6),
       // i.e. `range(retries + 1)` = 7 attempts, with 429 backoff
       // min(2**attempt * 5 + 2, 45) — up to ~173s of waiting.
       //

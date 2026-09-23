@@ -3,6 +3,15 @@
 //
 // Parse OLX *strings* (not files) into idMaps, using lo-blocks' own parser.
 //
+// ITS CALLER IS OUTSIDE THIS REPOSITORY. Nothing in lo-blocks imports or spawns
+// this script: the consumer is the event-log pipeline's process_events.py, which
+// runs it with `npx tsx` against a lo-blocks installation root (see its
+// _OLX_STRINGS_SCRIPT / build_parser_idmaps_for_olx). That is the same seam
+// shape as lib/llm/runner.test.ts, whose caller is likewise an external analysis
+// harness. Said here because "no in-repo callers" otherwise reads as dead code,
+// and deleting this silently removes dynamic-OLX id resolution from every
+// processed capture -- with no lo-blocks test failing to say so.
+//
 // This is the companion to xml2json.ts for dynamic, runtime-authored OLX: the
 // content an OlxSlot renders from a student- or LLM-authored string (see
 // OlxSlot/_OlxSlot.tsx, which calls parseOLX on the slot's target value). That
