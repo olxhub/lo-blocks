@@ -8,11 +8,10 @@ A deduction code, what it costs, and the canonical wording it is charged in.
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `code` | the code a rule charges |
-| `pts` | what it costs |
-| `repeatable` | chargeable more than once against one response |
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## The wording travels with the code
 

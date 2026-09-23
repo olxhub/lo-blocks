@@ -4,9 +4,10 @@ One piece of a `<Frame>`. Segments concatenate in document order.
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `ifDeclared` | include only when the item declares this condition; prefix `!` to include only when it does **not**; absent means always |
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## Why segments concatenate rather than joining with a separator
 

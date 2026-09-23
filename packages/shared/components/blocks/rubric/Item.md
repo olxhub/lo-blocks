@@ -2,23 +2,43 @@
 
 One rubric entry: everything a scorer needs to judge one thing.
 
-## Attributes
+## Children
 
-| attribute | meaning |
-|---|---|
-| `ref` | the content element this entry scores |
-| `max` | points available; omit to let the runtime total the slots |
-| `conditions` | condition names this item declares, `|`-separated, matched against a frame segment's `when` |
-| `params` | values for frame placeholders, as `name=value|name=value` |
-| `label` | how this entry is named to a human reader |
-| `increment` | the smallest step a score may move by |
-| `deriveFromClauses` | build the judging sheet from declared clauses |
-| `deriveFromCredit` | build it from the credit components instead — a different sheet, not a synonym |
-| `blankCode` | the deduction charged when nothing was answered |
-| `expectedType` | the answer this entry looks for, where one is fixed in advance |
-| `unreachableCodes` | codes declared here that nothing can charge, comma-separated |
+An item's attributes say what it is worth and how it is judged; everything it is
+judged *on* is a child. Measured on a real rubric of 26 items:
+
+| child | holds | seen |
+|---|---|---|
+| `<Slot>` | one check on the sheet: what is judged, what it may be answered with, what it is worth | 217 |
+| `<Guidance>` | judging prose for this item, shown to whoever grades | 164 |
+| `<Credit>` | one credit component: what earns points, and how to judge it | 116 |
+| `<Deduction>` | a deduction code, its cost, and the wording it is charged in | 107 |
+| `<Context>` | another item whose content this one is judged against | 55 |
+| `<Question>` | the question text this entry scores | 26 |
+| `<Forbid>` | a combination of verdicts that may not stand together | 7 |
+| `<Map>` | a verdict translated into another vocabulary | 6 |
+| `<Onlyif>` | a charge that applies only while another check holds | 6 |
+| `<Equals>` | two checks required to answer the same way | 6 |
+| `<Expect>` | the answer a check is expected to take | 5 |
+| `<Counts>` | a check answered with a number rather than a verdict | 4 |
+| `<Derived>` | a check computed from others rather than judged | 3 |
+| `<Requires>` | a check that only applies once another is satisfied | 3 |
+| `<Cover>` | a group of checks judged together for coverage | 2 |
+| `<Param>` | a value for a `{placeholder}` in a frame, where the prose is too long for the attribute form | — |
+
+Attributes are documented on the Overview tab, generated from the schema — they
+are not repeated here, because a hand-kept copy of a generated table is a second
+source that drifts. Two rows of the table that used to stand here were already
+wrong when it was removed: it called the content attribute `ref`, and it said
+`conditions` is matched against a frame segment's `when`.
 
 ## The item references its content by id
+
+The attribute is `scores`, and NOT `ref`: the platform reserves `ref` for `<Use>`
+elements and the parser refuses it anywhere else, which `Item.ts` records at the
+declaration. The table that used to stand above said `ref`, while the playground
+below it used `scores` — so the suite passed while the reference sent an author
+into a parser refusal.
 
 The content's own markup carries no rubric prose. That is the point of the model: a
 page can be rewritten without changing what it is scored against, and a rubric can be
@@ -27,7 +47,11 @@ retuned without touching the page.
 ## Names as data
 
 `conditions` and `params` are names the engine matches and substitutes — never
-interprets. The generator this model replaced carried a *named boolean per condition*,
+interprets. A condition is matched against a segment's **`ifDeclared`**, not its
+`when`: `when` is a BASE attribute on every block and already means something else
+— an expression gating whether a thing RENDERS — and `Segment.ts` records that
+reusing the word would have made one attribute mean two things depending on the
+tag it sat on. The generator this model replaced carried a *named boolean per condition*,
 which put subject vocabulary into the engine's own interface and meant every new
 variant needed engine code.
 

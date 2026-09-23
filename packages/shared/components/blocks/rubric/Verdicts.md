@@ -10,10 +10,10 @@ A slot then refers to it by name with a leading `@`, rather than repeating the l
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `name` | the name slots reference with a leading `@` |
-| `values` | the verdicts, `|`-separated, **satisfying one first** |
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## Order is not cosmetic
 

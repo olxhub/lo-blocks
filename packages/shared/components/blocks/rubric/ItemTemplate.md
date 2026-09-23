@@ -20,11 +20,10 @@ A template says *these items are the same shape*. The items say *how they differ
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `name` | the name items reference with a leading `@` |
-
-An item opts in with `use="@name"`, and supplies `params` and `conditions`.
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## Why this is separate from `Frame`
 

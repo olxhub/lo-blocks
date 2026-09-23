@@ -11,10 +11,10 @@ never sees a sidebar entry for it.
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `id` | identifier other blocks reference this rubric by |
-| `title` | human label, for authoring tools only |
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## Children
 

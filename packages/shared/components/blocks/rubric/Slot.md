@@ -5,21 +5,10 @@ they are asked.
 
 ## Attributes
 
-| attribute | meaning |
-|---|---|
-| `key` | the check's name on the sheet |
-| `label` | human label shown in feedback |
-| `verdicts` | verdicts it may take, `|`-separated or `@name` for a shared vocabulary |
-| `pts` | what it is worth; omit for a check that reports rather than scores |
-| `seg` | how the answer is collected, when it is not a plain verdict |
-| `gate` | an unsatisfied gate is the whole story for the item |
-| `charge` | the deduction charged when this gate is unsatisfied |
-| `because` | the reason given when `charge` is charged |
-| `codes` | which deduction each failing verdict charges, `verdict=CODE,verdict=CODE` |
-| `rule` | extra judging text |
-| `reported` | the model reports this value rather than being judged on it |
-| `gates` | this CREDIT line gates the item — a different fact from `gate` |
-| `free` | verdicts that are not satisfying and still cost nothing |
+Generated from the schema and shown on the block's Overview tab — `extractAttributes`
+walks the Zod definition and emits every attribute with its type, whether it is
+required, its description and its permitted values. A hand-kept copy here would be a
+second source of one table, and the copy is what rots.
 
 ## A gate that charges
 
