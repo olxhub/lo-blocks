@@ -17,7 +17,7 @@
     "server": "./sandbox.sh ./node_modules/.bin/tsx --watch apps/server/src/index.ts",
     "server:legacy": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/event-server.ts",
     "start": "NODE_ENV=production ./sandbox.sh ./node_modules/.bin/tsx apps/server/src/index.ts",
-    "build": "npm run build:check-corpus-refs && npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry",
+    "build": "npm run build:check-rubrics && npm run build:check-corpus-refs && npm run build:grammars && npm run build:parser-registry && npm run build:gen-block-registry",
     "build:client": "./sandbox.sh npx vite build apps/client",
     "build:clean": "npm run clean && npm run clean-zombies ; npm install && npm run build",
     "build:generate-docs": "./sandbox.sh node packages/shared/scripts/generate-docs.js",
@@ -44,8 +44,10 @@
     "upgrade-olx": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/upgrade-olx.ts",
     "xml2json": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2json.ts",
     "xml2graph": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/xml2graph.js",
-    "build:stage-content": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content ./content --out .stage/content",
-    "build:check-corpus-refs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content ./content --check"
+    "build:stage-content": "npm run build:expand-rubrics && ./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content .stage/expanded --out .stage/content --no-mount",
+    "build:check-corpus-refs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/resolveCorpusRefs.ts --content ./content --check",
+    "build:expand-rubrics": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/materialiseRubrics.ts --content ./content --out .stage/expanded",
+    "build:check-rubrics": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/materialiseRubrics.ts --content ./content --check"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",

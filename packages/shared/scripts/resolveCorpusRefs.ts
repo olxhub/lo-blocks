@@ -247,6 +247,43 @@ export function contentRoots(repoRoot: string): { dirs: string[]; unscanned: str
 const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo', 'dist',
                              'scoring', 'courses', 'migration']);
 
+/**
+ * Copy every MOUNTED source into `outDir` under its mount name.
+ *
+ * STAGE WHAT THE SERVER SERVES, NOT ONLY THE FALLBACK. `./content` is the
+ * FALLBACK source -- demos and transitional content. Real content is MOUNTED:
+ * content-sources.yaml mounts each source at its key, and that key is the path
+ * prefix an activity appears under. Staging only the fallback staged the demos
+ * and silently omitted every mounted course, so a reference in one was never
+ * resolved and `.stage/content` could be spotless while saying nothing about it.
+ *
+ * EXPORTED BECAUSE TWO BUILD STEPS STAGE. `materialiseRubrics` produces the
+ * expanded-but-unresolved tree and needs exactly this set of files; a second
+ * copy of the mounting rule is how the two would come to disagree about what
+ * "the content" is, which is the disagreement this function was written to end.
+ */
+export function stageSources(fallbackDir: string, outDir: string, who: string): void {
+  const staged = contentRoots(process.cwd());
+  const localCfg = path.join(process.cwd(), 'config/content-sources.local.yaml');
+  const baseCfg = path.join(process.cwd(), 'config/content-sources.yaml');
+  const cfgPath = fs.existsSync(localCfg) ? localCfg : baseCfg;
+  let cfg: any = {};
+  try { cfg = YAML.parse(fs.readFileSync(cfgPath, 'utf8')) || {}; } catch { cfg = {}; }
+  for (const [mount, val] of Object.entries(cfg.sources || {})) {
+    if (typeof val !== 'string') continue;          // repo form: reported below
+    const src = path.isAbsolute(val) ? val : path.join(process.cwd(), val);
+    if (!fs.existsSync(src)) continue;              // already reported as unscanned
+    if (path.resolve(src) === path.resolve(fallbackDir)) continue;
+    copyTree(src, path.join(outDir, mount));
+    console.error(`${who}: staged mounted source ${mount} from ${src}`);
+  }
+  // A SOURCE THAT CANNOT BE STAGED MUST SAY SO. A git-remote source is not on
+  // disk here, so the staged tree does not contain it and nothing in it has been
+  // resolved. Silence would read as "there was nothing to do".
+  for (const u of staged.unscanned) console.error(`${who}: NOT STAGED -- ${u}`);
+}
+
+
 function copyTree(src: string, dest: string): void {
   fs.mkdirSync(dest, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
@@ -267,6 +304,10 @@ function main(argv: string[]): number {
   const outIdx = argv.indexOf('--out');
   const outDir = outIdx >= 0 ? argv[outIdx + 1] : null;
   const check = argv.includes('--check');
+  // `--no-mount`: the input is ALREADY a staged tree. `materialiseRubrics` has
+  // mounted the sources and expanded the rubrics in them, so mounting again here
+  // would copy the unexpanded source straight over that work.
+  const noMount = argv.includes('--no-mount');
   if (outDir && check) {
     console.error('resolveCorpusRefs: --out and --check are alternatives');
     return 1;
@@ -330,28 +371,7 @@ function main(argv: string[]): number {
     //
     // Each source is staged under its MOUNT, which is what makes the staged ids
     // match the served ones.
-    {
-      const staged = contentRoots(process.cwd());
-      const localCfg = path.join(process.cwd(), 'config/content-sources.local.yaml');
-      const baseCfg = path.join(process.cwd(), 'config/content-sources.yaml');
-      const cfgPath = fs.existsSync(localCfg) ? localCfg : baseCfg;
-      let cfg: any = {};
-      try { cfg = YAML.parse(fs.readFileSync(cfgPath, 'utf8')) || {}; } catch { cfg = {}; }
-      for (const [mount, val] of Object.entries(cfg.sources || {})) {
-        if (typeof val !== 'string') continue;          // repo form: reported below
-        const src = path.isAbsolute(val) ? val : path.join(process.cwd(), val);
-        if (!fs.existsSync(src)) continue;              // already reported as unscanned
-        if (path.resolve(src) === path.resolve(dir)) continue;
-        copyTree(src, path.join(outDir, mount));
-        console.error(`resolveCorpusRefs: staged mounted source ${mount} from ${src}`);
-      }
-      // A SOURCE THAT CANNOT BE STAGED MUST SAY SO. A git-remote source is not
-      // on disk here, so the staged tree does not contain it and nothing in it
-      // has been resolved. Silence would read as "there was nothing to do".
-      for (const u of staged.unscanned) {
-        console.error(`resolveCorpusRefs: NOT STAGED -- ${u}`);
-      }
-    }
+    if (!noMount) stageSources(dir, outDir, 'resolveCorpusRefs');
     // DEREFERENCE. A content tree mounts other repositories by symlink, and a
     // plain copy reproduces the LINK -- so the "staged" tree points back at the
     // authoring checkout and resolving in it writes through to the source, which
