@@ -238,23 +238,44 @@ Not equal in weight, and not to be written in alphabetical order:
 11 of these also have no example: `Cast`, `Catalog`, `Hint`, the five
 `Navigator*`, `RepoCard`, `ShowAnswerButton`, `VideoPlayer`.
 
-## 7 · Order of work
+## 7 · Order of work — STATUS 2026-09-23
 
-1. **Strengthen the playground assertion to require no parse errors** (§3), and
-   decide the `CustomGrader`/`initConfig` question. Everything after this is
-   checked by it.
-2. Fix the three rejected playgrounds (§3) plus the `DefaultGrader.ts` comment.
-3. **`_Course.tsx`: swap `internal` for `!(component || componentLoader)`** (§5).
-4. **Clear `internal: true` from the 22 rubric blocks** — after step 3, never before.
-5. Delete the 32 hand-written attribute tables (§2), rehoming per table only what
-   the schema cannot carry.
-6. `Item.md`'s Children table (§4).
-7. The 9 missing `.describe()` calls (§6.3) — in the schema.
-8. `X.olx` for the six changed blocks that lack one, then for the rubric family
-   (`Slot` first), using `X.template.olx` and a shared `Rubric.includes.olx`.
-9. The 14 undocumented rubric blocks, in corpus-frequency order (§6.1).
-10. The 23 legacy `.md` files, family-grouped (§6.4).
-11. `lib/llm`'s undocumented modules.
+**DONE**
+
+* ~~The 14 undocumented rubric blocks~~ — all 22 now documented, written in
+  corpus-frequency order (`Guidance` 164 uses, `Credit` 116 first).
+* ~~`Item.md`'s `ref`/`scores` row~~ — and a second error found beside it:
+  `conditions` is matched against `ifDeclared`, not `when`. Both stated as
+  corrections rather than quietly fixed.
+* ~~`Item.md`'s Children table~~ — 15 element types with real counts.
+* ~~Delete the hand-written attribute tables~~ — 29 removed, each only after
+  checking every row against the registry. `RulesGrader` failed that check and
+  was rewritten instead: its `score`/`feedback`/`feedbackBlock` rows are real,
+  but they belong to the `*Match` children.
+* ~~The three rejected playgrounds~~ — `DefaultGrader`'s rule attributes,
+  `LineInput`'s `caseInsensitive`, `MatchingGrader`'s missing required `label`.
+* ~~The 23 legacy blocks with no README~~ — now **0**. The Navigator family is
+  one document plus five short variant pages, not five copies.
+
+The playground suite went 209 → 224, every step green.
+
+**STILL TO DO — all of it CODE, not documentation**
+
+0. **Settle `internal` on the rubric family** — DECIDED: it comes off. Order
+   matters: swap `_Course.tsx` to `!(component || componentLoader)` FIRST, clear
+   the flag SECOND. Between those two edits the rubric renders in the course.
+1. **Strengthen the playground assertion** (§3) to require an empty `errors`
+   array. This is the change that matters: it turns the suite from "it parses"
+   into "the engine accepts it", and the three defects above are what it catches.
+   Decide the `CustomGrader`/`initConfig` question with it — 6 playgrounds cannot
+   be validated in that harness at all.
+2. **The nine missing `.describe()` calls** (§6.3) — in the schema, not the docs,
+   because the generated table renders their description cell blank.
+3. **`X.olx` for the blocks that have none** (§8c) — 6 from this work
+   (`DerivedChecks`, `OnChange`, `ScoreTable`, `SelfMonitorPlot`, `SheetValue`,
+   `SlotSheetGrader`) and 11 legacy. Remember what an `X.olx` IS: the minimal
+   example AND the editor insert template.
+4. **`lib/llm`'s undocumented modules.**
 
 ## 8 · How this is checked
 
