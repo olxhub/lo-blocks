@@ -67,6 +67,20 @@ const Slot = core({
     rule: z.string().optional().describe(
       'Extra judging text. May contain {fail} for this check\'s failing ' +
       'verdict, or {fail:other} for a sibling\'s.'),
+    // WHY A SECOND JUDGING FIELD, when `rule` is right there. They sit at
+    // different heights: `rule` is what BOTH graders are told, and a note is
+    // what a checklist-style grader is told where the credit rule does not
+    // already say. Collapsing them would push every note into the shared text
+    // and change what one grader is asked -- the migration this attribute exists
+    // for is a RE-POINT, which moves where a note is stored and nothing else.
+    //
+    // LITERAL OR SHARED, the same two forms `verdicts` takes. A note that says
+    // the same thing on nine slots should be written once and referenced, and
+    // one that has to differ on a single item should be writable there without
+    // disturbing the other eight. Sharing by default, varying by exception.
+    note: z.string().optional().describe(
+      'What this check means, where the credit rule does not already say. ' +
+      'Literal text, or "@name" for a shared note.'),
     reported: z.enum(['true', 'false']).optional().describe(
       'The model reports this value rather than being judged on it.'),
     // A BOOLEAN, not a list. `gate` above marks a slot whose failure ends the
