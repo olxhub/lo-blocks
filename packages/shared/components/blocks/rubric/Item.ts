@@ -40,6 +40,27 @@ const Item = core({
     // the parser refuses it anywhere else. Worth knowing before authoring, not
     // after -- the reserved name is the natural one to reach for.
     scores: z.string().describe('The content element this entry scores.'),
+    // WHAT THE ITEM IS ASKED THROUGH, as against what it scores. `scores` names
+    // the rubric entry; this names the COMPONENT on the page whose answer it
+    // judges. They are different identifiers and were kept in different files
+    // until now -- which meant the link between an item and its component was
+    // written twice and agreed only by habit.
+    asks: z.string().optional().describe(
+      'The id of the component this item judges. Omit for an item scored '
+      + 'without a component of its own.'),
+    // THE PATTERN THIS ITEM WAS BUILT FROM. Items sharing a family share slot
+    // NAMES, and those names must therefore mean the same thing across it -- the
+    // property a sibling-structure check tests. Scoped by family rather than
+    // corpus-wide on purpose: the same slot name legitimately differs between
+    // items that are not siblings.
+    family: z.string().optional().describe(
+      'The pattern this item was built from. Items sharing a family share slot '
+      + 'names, which must mean the same thing across it.'),
+    // WHICH SCORING RULE RUNS, not how the sheet is built -- `deriveFrom*` above
+    // decides that. A name, never interpreted here: what any of these MEAN is the
+    // scorer's business, which is what keeps this engine free of the course.
+    grading: z.string().optional().describe(
+      'Which scoring rule this item takes, by name.'),
     max: z.coerce.number().optional().describe(
       'Points available. Omit to let the runtime total the slots.'),
     deriveFromClauses: z.enum(['true', 'false']).optional().describe(
