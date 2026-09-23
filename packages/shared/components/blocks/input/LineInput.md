@@ -31,7 +31,7 @@ Single-line text input for short student responses like names, single words, or 
 
 ```olx:playground
 <CapaProblem id="short_answer" title="Terminology">
-  <StringGrader answer="testing effect" caseInsensitive="true">
+  <StringGrader answer="testing effect" ignoreCase="true">
     <Markdown>What is the phenomenon called when taking a test improves later retention more than additional study?</Markdown>
     <LineInput id="effect_name" />
     <Explanation>

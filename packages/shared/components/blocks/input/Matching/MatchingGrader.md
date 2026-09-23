@@ -64,7 +64,7 @@ Unlike sorting (where one error cascades), matching is fundamentally pairwise. A
       <Markdown>Molecule that binds to an enzyme's active site</Markdown>
     </MatchingInput>
   </MatchingGrader>
-  <ActionButton target="biology_grader">Check Answer</ActionButton>
+  <ActionButton target="biology_grader" label="Check Answer"/>
 </CapaProblem>
 ```
 

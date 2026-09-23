@@ -30,22 +30,15 @@ Inside a TimedContainer for timed sessions:
 
 All constraints default to off. The teacher opts into each one.
 
-| Attribute   | Description |
-|-------------|-------------|
-| `invisible` | Hide text while writing. Students cannot see what they type. Text is revealed when the exercise ends (via Reveal button, pace decay, or TimedContainer expiry). |
-| `nodelete`  | Disable backspace, delete, and cut. Cursor is locked to the end of the text. Forward-only writing. |
-| `counter`   | Show a live word count. Displayed prominently when text is hidden (since it's the student's only progress feedback). |
-| `pace`      | Show a pace indicator bar that decays from green to red when the student pauses. Resets on each non-whitespace keystroke. When the bar reaches zero, the exercise auto-locks (textarea goes read-only). |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Other Attributes
 
-| Attribute   | Type     | Default      | Description |
-|-------------|----------|--------------|-------------|
-| `autofocus` | boolean  | `true`       | Focus the textarea when the exercise starts. Works with `hideuntilstart` on TimedContainer — the textarea focuses when it first appears. |
-| `reveal`    | boolean  | `false`      | Show a Reveal button that ends the exercise: text becomes visible and the textarea goes read-only. |
-| `pacedecay` | duration | `5 seconds`  | How long the pace bar takes to decay fully. Shorter values (e.g. `2 seconds`) create more pressure to keep writing. |
-| `rows`      | number   | `8`          | Number of visible text rows. |
-| `placeholder` | string | —           | Placeholder text shown in the empty textarea. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Pedagogical notes
 

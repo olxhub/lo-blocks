@@ -108,9 +108,9 @@ TextSlot renders with class `text-slot`. During loading, it has `text-slot--load
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `id` | Yes | Unique identifier (used as LLMAction target) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## State Fields
 

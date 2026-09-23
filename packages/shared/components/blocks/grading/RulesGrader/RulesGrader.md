@@ -47,11 +47,11 @@ Learning progresses through three phases (Hattie, Fisher and Frey):
 
 All Match blocks support:
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `score` | number (0-1) | Score to award if matched |
-| `feedback` | string | Feedback message |
-| `feedbackBlock` | string | ID of block to show as feedback |
+Attributes are generated from the schema and shown on this block's Overview tab.
+
+**`score`, `feedback` and `feedbackBlock` are RULE attributes**, not the grader's:
+they are shared by the `*Match` rules (`createGrader.ts`) and belong on the rule
+elements inside this grader. The engine rejects them on the grader itself.
 
 Plus their type-specific attributes (e.g., `answer`, `ignoreCase` for StringMatch).
 

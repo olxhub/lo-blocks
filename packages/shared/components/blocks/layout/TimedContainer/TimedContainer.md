@@ -11,13 +11,9 @@ Enforces a time limit. When time runs out, the content becomes non-interactive a
 
 ## Attributes
 
-| Attribute  | Type   | Default    | Description |
-|------------|--------|------------|-------------|
-| `duration` | string | (required) | Time limit: `"5 minutes"`, `"1 hour 30 minutes"`, `"90"` (seconds) |
-| `start`    | `"go"` \| `"render"` | `"go"` | `"go"`: student clicks Start. `"render"`: starts immediately. |
-| `label`    | string | `"Start"`  | Text on the start button |
-| `before`   | string | —          | Text shown on the start screen (above the duration and button) |
-| `after`    | string | —          | Text shown after time runs out |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Timer Display
 

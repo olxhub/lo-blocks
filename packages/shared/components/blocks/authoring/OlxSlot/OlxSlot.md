@@ -62,11 +62,9 @@ Content here.
 
 ## Attributes
 
-| Attribute | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `id` | Yes | | Unique identifier |
-| `target` | No | | ID of another block to read OLX from (e.g., a TextArea or CodeInput) |
-| `debounce` | No | 150 | How long to wait (in ms) after the student stops typing before updating the preview. Only used with `target`. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## How It Works
 

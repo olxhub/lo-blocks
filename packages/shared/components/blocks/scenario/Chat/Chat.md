@@ -256,14 +256,9 @@ sidebar <- summary
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `id` | Yes | Unique identifier |
-| `src` | No | Path to .chatpeg file |
-| `title` | No | Display title |
-| `clip` | No | Show only specific section(s) |
-| `history` | No | Include earlier sections as context |
-| `height` | No | Container height (e.g., `"400px"` or `"flex-1"`) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ### Clips
 

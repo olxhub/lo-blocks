@@ -99,9 +99,9 @@ the passage on reveal.
 
 ## Attributes
 
-| Attribute | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `target` | No | nested input | State key of the input to grade (auto-wired when nested) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 The `gradeMode` attribute is stamped by the enclosing problem at parse time; you
 don't set it by hand.

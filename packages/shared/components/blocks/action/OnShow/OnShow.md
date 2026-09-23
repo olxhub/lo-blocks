@@ -25,9 +25,9 @@ When the student advances to "Revise", the OnShow copies their draft into a new 
 
 ## Attributes
 
-| Attribute | Type   | Default | Description |
-|-----------|--------|---------|-------------|
-| `mode` | `"once"` \| `"each"` | `"once"` | `"once"` runs actions once (even if the student navigates back and forth). `"each"` runs them every time. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Examples
 

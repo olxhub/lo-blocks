@@ -4,7 +4,7 @@ Catch-all grader that accepts any answer with a specified score and feedback.
 
 ```olx:playground
 <CapaProblem id="reflection" title="Teaching Reflection">
-  <DefaultGrader score="1" feedback="Thank you for sharing your perspective.">
+  <DefaultGrader>
     How do you involve families in your students' learning?
     <TextArea rows="3" />
   </DefaultGrader>
@@ -13,10 +13,13 @@ Catch-all grader that accepts any answer with a specified score and feedback.
 
 ## Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `score` | number (0-1) | Score to award (default: 0) |
-| `feedback` | string | Feedback message to show |
+Generated from the schema and shown on the Overview tab. `DefaultGrader` declares
+NONE of its own — it accepts any answer, so there is nothing to configure.
+
+`score` and `feedback` are **rule** attributes and belong on `<DefaultMatch>`
+inside a `<RulesGrader>`, not on this block: they are shared by the `*Match`
+rules (`createGrader.ts`), and the engine rejects them here with "Unrecognized
+key(s) in object". The section below shows the form that works.
 
 ## When to Use
 

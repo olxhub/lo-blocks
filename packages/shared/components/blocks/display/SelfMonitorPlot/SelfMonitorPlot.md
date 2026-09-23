@@ -18,16 +18,9 @@ The chart updates as the student types. Nothing needs to be submitted.
 
 ## Attributes
 
-| Attribute | Required | Description |
-|---|---|---|
-| `target` | yes | Input IDs holding the data, comma-separated — one per series |
-| `labels` | no | Series names for the legend (defaults to `Series 1`, `Series 2`, …) |
-| `categories` | no | X-axis category names (defaults to `1`, `2`, `3`, … per data point) |
-| `type` | no | `bar` (default) or `line` |
-| `chartTitle` / `xlabel` / `ylabel` | no | Static label text. Note `chartTitle`, not `title` — every block has a structural `title` used by tabs and navigation |
-| `chartTitleTarget` / `xlabelTarget` / `ylabelTarget` | no | Read a label from an input instead, reactively |
-| `labelsTarget` | no | Read the series names from an input — this is how a student writes their own legend |
-| `width` / `height` | no | Pixels; height defaults to 320 |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Input format
 

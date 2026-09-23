@@ -37,18 +37,9 @@ A slot can be **computed** from other answers instead of asked. A computed check
 is left OUT of the response schema — asking for an answer the grader is going to
 overwrite invites the model to contradict it — and is resolved before scoring.
 
-| attribute | what it computes |
-|---|---|
-| `cover` | checks that between them must COVER a set of labels; the grader does the pairing |
-| `equals` | compares two classifications, with lenient operands that establish nothing |
-| `expect` | compares one classification against an authored value |
-| `forbid` | FAILS on a named COMBINATION of other answers; each operand stays its own question |
-| `maps` | maps one pick's value to a NAMED verdict, for a check with more than one kind of failure |
-| `derived` | read off the page — field contents — rather than asked of the model |
-| `counts` | a repeated element counted ONCE, its members derived from the count |
-| `onlyif` | charged only when another check is satisfied |
-| `requires` | credited only while another holds — the mirror of `onlyif` |
-| `rubricDef` | the rubric definition this sheet is generated FROM; lets a second consumer derive its own projection from the same source (distinct from `LLMGrader`'s `rubric`, which is grading prose) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 They resolve in a fixed order — `equals`, `expect`, `forbid`, then **`maps` last**,
 so a mapped check may read a pick an earlier rule wrote.

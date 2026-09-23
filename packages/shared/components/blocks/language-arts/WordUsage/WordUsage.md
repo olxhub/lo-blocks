@@ -39,14 +39,9 @@ Or from a file:
 
 ## Attributes
 
-| Attribute   | Type    | Default | Description |
-|-------------|---------|---------|-------------|
-| `target`    | string  | —       | **Required.** ID of the block whose text to analyze. |
-| `mode`      | string  | —       | **Required.** Analysis mode (see above). |
-| `summary`   | boolean | `true`  | Show summary strip at bottom with highlight counts. |
-| `highlight` | boolean | `true`  | Show highlighted text. |
-| `words`     | string  | —       | Comma-separated word/phrase list (for `transition_words` mode). Can be provided as inline text content or via `src` attribute. |
-| `src`       | string  | —       | Path to external file containing word list. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Summary strip
 
