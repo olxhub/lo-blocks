@@ -79,12 +79,22 @@ function Course(props: RuntimeProps) {
   // FILTERED HERE, AT RENDER, AND NOT IN THE PARSER. The parser sees a child's
   // TAG, which for `<Use ref="..."/>` is `Use` -- it cannot know what the
   // reference points at, because the target may live in a file not yet parsed.
-  // By render time the reference is resolved, so the block's own `internal`
-  // flag can be read. That also generalises: every non-rendering block is
-  // covered, not a hardcoded list of tags.
+  // By render time the reference is resolved, so the block itself can be read.
+  //
+  // THE TEST IS "DOES IT RENDER", NOT "IS IT INTERNAL". Those are different
+  // questions and this used to ask the wrong one. `internal` means "not
+  // author-facing" -- 25 internal blocks DO render, among them Html, Spinner,
+  // Sidebar and Studio -- so filtering on it would hide a rendering block from a
+  // course the day one of those appeared in one, and would stop hiding the
+  // rubric the day the rubric family became author-facing, which is what it is
+  // becoming. A block with neither `component` nor `componentLoader` renders
+  // nothing, which is the property actually wanted here.
   const visibleIds = new Set<string>(
     useKidsJson({ ...props, kids: childKids } as any)
-      .filter((k: any) => !BLOCK_REGISTRY[k?.tag]?.internal)
+      .filter((k: any) => {
+        const b: any = BLOCK_REGISTRY[k?.tag];
+        return !b || !!(b.component || b.componentLoader);
+      })
       .map((k: any) => k.id)
   );
   const isVisible = (id: string) => visibleIds.has(id);

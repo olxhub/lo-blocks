@@ -89,8 +89,25 @@ describe('documentation playgrounds parse', () => {
         // bare XML parse would call that a syntax error. Wrap the same way, so
         // this checks the SNIPPET rather than the absence of a wrapper.
         const wrapped = `<Vertical id="doc_snippet_${i}">\n${xml}\n</Vertical>`;
-        await expect(parseOLX(wrapped, [toMemoryRef(`/docs/${path.basename(rel)}-${i}.olx`)],
-                              undefined, TEST_NS)).resolves.toBeTruthy();
+        const parsed: any = await parseOLX(
+          wrapped, [toMemoryRef(`/docs/${path.basename(rel)}-${i}.olx`)], undefined, TEST_NS);
+        expect(parsed).toBeTruthy();
+        // PARSING IS NOT ACCEPTANCE, and asserting only that it RESOLVED let three
+        // worked examples ship that the engine rejects outright: DefaultGrader
+        // wrote `score`/`feedback` on the grader instead of on a `*Match` rule,
+        // LineInput wrote `caseInsensitive` for `ignoreCase`, and MatchingGrader
+        // passed ActionButton's REQUIRED `label` as a child. `parseOLX` returns
+        // its complaints rather than throwing them, so a resolved promise says
+        // nothing about whether the snippet is valid.
+        //
+        // CONFIG ERRORS ARE NOT THE SNIPPET'S FAULT. Six CustomGrader playgrounds
+        // need an initialised config to resolve their grader, which this harness
+        // does not provide; failing them here would report the harness, not the
+        // documentation. They are excluded by MESSAGE, not by file, so a real
+        // error in one of those files is still caught.
+        const errs = ((parsed.errors ?? []) as Array<{ message?: string }>)
+          .filter(e => !/Config not initialized/i.test(String(e?.message ?? '')));
+        expect(errs.map(e => String(e?.message ?? '').split('\n')[0])).toEqual([]);
       });
     });
   }

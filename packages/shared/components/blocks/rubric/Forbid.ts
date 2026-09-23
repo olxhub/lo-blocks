@@ -34,7 +34,11 @@ const Forbid = core({
     conds: z.string().optional().describe(
       'The conjunction, as "slot=value,slot=value". It fails only when ALL hold.'),
   }),
-  internal: true,
+  // NOT `internal`. These are author-facing: the end state is a HAND-AUTHORED
+  // rubric, and `internal` means "hidden from the docs, not for course authors",
+  // which is the opposite of what these are becoming. A course still does not
+  // SHOW them -- `_Course.tsx` filters on whether a block renders at all, which
+  // is the property that actually matters and is true of every block here.
 });
 
 export default Forbid;

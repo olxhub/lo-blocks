@@ -24,7 +24,8 @@ const Explanation = dev({
   requiresUniqueId: false,
   requiresGrader: true,
   attributes: z.object({
-    showWhen: z.enum(validShowWhen).default('correct'),
+    showWhen: z.enum(validShowWhen).default('correct').describe(
+        'When to reveal this explanation.'),
     target: z_stateRef.optional(),
   }).strict(),
 });

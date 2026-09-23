@@ -101,6 +101,8 @@ export function validateTolerance(tolerance: string | undefined): string | undef
  * Use as `ToleranceSchema.optional()` in grader attribute definitions.
  */
 export const ToleranceSchema = z.string()
+  .describe('How far from the expected value still counts as correct. '
+            + 'A number, or a percentage like "2%".')
   .superRefine((val, ctx) => {
     try {
       parseTolerance(val, 1);
@@ -304,6 +306,8 @@ const SamplesSpecObject = z.object({
  *
  * Use as `SamplesSpecSchema.optional()` in grader attribute definitions.
  */
+// Described HERE and not on each grader: the meaning is the same wherever it is
+// used, and a per-block copy is a second place for it to drift.
 export const SamplesSpecSchema = z.union([
   z.string().transform((spec, ctx) => {
     const { parsed, errors } = validateSamplesSpec(spec);
@@ -316,4 +320,6 @@ export const SamplesSpecSchema = z.union([
     return parsed!;
   }),
   SamplesSpecObject,
-]);
+])
+  .describe('Variable ranges to sample when comparing formulas, '
+            + 'as "x@-5:5#10" -- name, range, sample count.');

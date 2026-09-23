@@ -42,7 +42,11 @@ const Rubric = core({
   // NO ATTRIBUTES OF ITS OWN. `id` and `title` are BASE attributes every block
   // already has, and redeclaring one is a composition conflict the factory
   // refuses rather than letting a layer silently win.
-  internal: true,
+  // NOT `internal`. These are author-facing: the end state is a HAND-AUTHORED
+  // rubric, and `internal` means "hidden from the docs, not for course authors",
+  // which is the opposite of what these are becoming. A course still does not
+  // SHOW them -- `_Course.tsx` filters on whether a block renders at all, which
+  // is the property that actually matters and is true of every block here.
 });
 
 export default Rubric;

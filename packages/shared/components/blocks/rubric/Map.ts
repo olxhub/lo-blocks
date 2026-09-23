@@ -30,7 +30,11 @@ const Map = core({
       'Value-to-verdict pairs as "value~verdict,value~verdict".'),
     fallback: z.string().optional().describe('The verdict anything else gets.'),
   }),
-  internal: true,
+  // NOT `internal`. These are author-facing: the end state is a HAND-AUTHORED
+  // rubric, and `internal` means "hidden from the docs, not for course authors",
+  // which is the opposite of what these are becoming. A course still does not
+  // SHOW them -- `_Course.tsx` filters on whether a block renders at all, which
+  // is the property that actually matters and is true of every block here.
 });
 
 export default Map;
