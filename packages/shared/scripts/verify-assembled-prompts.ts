@@ -17,7 +17,11 @@ import { assembleBodyPrefix, assembleChecklist, assembleContextAndResponse }
   from '../lib/llm/promptAssembler'
 
 const inputs = JSON.parse(readFileSync(process.env.ASSEMBLER_INPUTS!, 'utf8'))
-const fragments = JSON.parse(readFileSync(process.env.FRAGMENTS!, 'utf8'))
+// FRAGMENTS COME FROM THE RUBRIC, via the dump -- `<Frame name="fragment:KEY">`.
+// They were literals in olx_prompts.py until the assembler's refusal to default
+// them made the case that they are the course's wording, not the engine's.
+const fragments = inputs._fragments
+delete inputs._fragments
 // THE FRAME COMES FROM THE RUBRIC, via the dump. The migration's frozen copy has
 // five segments; this rubric's `oc_criteria` has nine, and driving the assembler
 // from the stale one truncated the criteria list on every cadence item.
@@ -55,4 +59,4 @@ if (bad.length) {
   console.log('differing (' + bad.length + '):')
   for (const b of bad.slice(0, 8)) console.log('  ' + b)
 }
-console.log('FROM_OLD_SOURCE=fragments (the frame is now sourced from the rubric)')
+console.log('FROM_OLD_SOURCE=(nothing: frame and fragments both come from the rubric)')
