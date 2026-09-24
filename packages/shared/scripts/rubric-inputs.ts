@@ -28,9 +28,10 @@ import {
 const CONTENT = process.env.CONTENT_ROOT ?? '../edu.memphis.psych'
 const RUBRIC = process.env.RUBRIC_OLX
   ?? '.stage/expanded/edu.memphis.psych/psychology/bmod_rubric.olx'
-// BESIDE THE OLX IT DESCRIBES, since goal H moved it there: course metadata
-// belongs with the course's content. `courses/` no longer exists.
-const COURSE = process.env.COURSE_JSON ?? CONTENT + '/psychology/course.json'
+// FROM THE METADATA ROOT, which is outside the content tree on purpose: a file
+// inside it would be copied by staging, because `copyTree` excludes by top-level
+// name and a nested file is under none.
+const COURSE = process.env.COURSE_JSON ?? CONTENT + '/course_metadata/course.json'
 const HANDOUTS = process.env.HANDOUT_DIR ?? CONTENT + '/psychology'
 
 const xml = readFileSync(RUBRIC, 'utf8')

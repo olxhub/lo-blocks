@@ -244,8 +244,25 @@ export function contentRoots(repoRoot: string): { dirs: string[]; unscanned: str
 // WHAT IS LEFT IS CONTENT AND ITS DOCUMENTATION -- `psychology/`, `lo.yaml`, the
 // licence and the plans. That is the line: if a build resolves .olx and serves
 // pages, the stage should carry what becomes a page.
-const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo', 'dist',
-                             'scoring', 'courses', 'migration']);
+/**
+ * WHAT IS NOT CONTENT, and the ONE list that says so.
+ *
+ * Staging copies a mounted source wholesale, so anything a course keeps beside
+ * its .olx that is not content must be named here. The list excludes by top-level
+ * NAME and POSITION -- never by what a file holds -- so a directory is protected
+ * because of where it sits, and a file nested inside `psychology/` is under no
+ * name this can see.
+ *
+ * EXPORTED BECAUSE IT WAS DUPLICATED. `materialiseRubrics` carried its own
+ * identical copy as `NEVER_COPY`, which is exactly the divergence `stageSources`
+ * below was written to prevent -- its docstring says "a second copy of the
+ * mounting rule is how the two would come to disagree about what the content is",
+ * and the rule's own exclusion set was the second copy. Adding `course_metadata`
+ * to one of them fixed nothing: the mount is staged by THIS one.
+ */
+export const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo',
+                                    'dist', 'scoring', 'courses', 'migration',
+                                    'course_metadata']);
 
 /**
  * Copy every MOUNTED source into `outDir` under its mount name.

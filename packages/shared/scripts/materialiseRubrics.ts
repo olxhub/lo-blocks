@@ -42,12 +42,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { xmlParser, elementTag, elementKids, XML_META } from '@/lib/content/xmlParser';
 import type { RawXmlNode } from '@/lib/content/xmlParser';
-import { stageSources } from './resolveCorpusRefs';
+import { NEVER_STAGE, stageSources } from './resolveCorpusRefs';
 import { materialiseRubric, warnings, resetWarnings } from '@/lib/llm/materialiseRubric';
 import type { RubricNode } from '@/lib/llm/materialiseRubric';
 
-const NEVER_COPY = new Set(['.git', 'node_modules', '.stage', '.turbo', 'dist',
-                            'scoring', 'courses', 'migration']);
+// The one list, from the module that owns the mounting rule.
+const NEVER_COPY = NEVER_STAGE;
 
 /** A file worth opening: one that could contain a template. */
 export function mightHoldATemplate(src: string): boolean {
