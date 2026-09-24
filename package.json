@@ -54,7 +54,8 @@
     "build:check-rubrics": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/materialiseRubrics.ts --content ./content --check",
     "verify:assembled-prompts": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/verify-assembled-prompts.ts",
     "build:assemble-prompts": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/assemble-prompts.ts",
-    "verify:assembled-attrs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/verify-assembled-attrs.ts"
+    "verify:assembled-attrs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/verify-assembled-attrs.ts",
+    "build:rubric-inputs": "./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/rubric-inputs.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.958.0",

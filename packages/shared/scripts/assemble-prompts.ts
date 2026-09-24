@@ -71,6 +71,10 @@ for (const [id, d] of Object.entries<any>(inputs)) {
 /** Every generated attribute for one item, by name. */
 function attrsFor(id: string, d: any): Record<string, string | null> {
   const i = d.attrInputs
+  // BODIES ONLY when the inputs carry no attribute declarations. The TS-side
+  // producer builds bodies first; reporting every attribute as differing because
+  // it was not supplied would read as a regression in the assembler.
+  if (!i) return {}
   return {
     rubricDef: rubricDefAttr(id), free: freeAttr(i.credit),
     forbid: forbidAttr(i.forbid), expect: expectAttr(i.expect),

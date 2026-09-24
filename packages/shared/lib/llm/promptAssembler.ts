@@ -104,6 +104,23 @@ export function assembleBodyPrefix(o: {
  * names a subject -- the rule shapes are engine concepts (counts, equals,
  * expect, forbid, maps, derived), the slot names inside them are data.
  */
+/**
+ * A counting slot's ceiling, under EITHER spelling.
+ *
+ * `slotSheet.parseSlots` -- this engine's own parser -- emits `countMax`, and
+ * this file read `count_max`, the shape the python generator's dump happens to
+ * use. The two never met: the assembler had only ever been driven from that
+ * dump, so the engine's own parser could not drive its own assembler. Feeding it
+ * `parseSlots` output dropped the "a NUMBER from 0 to N" head from every
+ * counting slot on four items, and the prompt still read as prose.
+ *
+ * Both are accepted while both callers exist.
+ */
+function countMaxOf(s: any): number | null | undefined {
+  return s.countMax ?? s.count_max
+}
+
+
 export function assembleChecklist(o: {
   slots: AssemblerSlot[]
   rules: ComputedRules
@@ -148,8 +165,8 @@ export function assembleChecklist(o: {
     if (s.picks != null) {
       head = `- \`${s.key}\`${gate} — one of ${tick(choices[s.picks] ?? [], '/')} `
            + `in \`refers_to\` (WHICH it is, not whether it is right)`
-    } else if (s.count_max != null) {
-      head = `- \`${s.key}\`${gate} — a NUMBER from 0 to ${s.count_max} `
+    } else if (countMaxOf(s) != null) {
+      head = `- \`${s.key}\`${gate} — a NUMBER from 0 to ${countMaxOf(s)} `
            + `(how many, not a judgement)`
     } else {
       head = `- \`${s.key}\`${gate} — ${tick(s.options, '/')}`
