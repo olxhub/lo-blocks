@@ -39,6 +39,26 @@ export function equalsAttr(
     `${r.key}:${r.left},${r.right}` + (r.lenient?.length ? ':' + r.lenient.join(',') : '')))
 }
 
+/** `expect="key:left=value[:lenient,...]"` */
+export function expectAttr(
+  rules: Array<{ key: string; left: string; value: string; lenient?: string[] }>) {
+  return joinRules(rules.map(r =>
+    `${r.key}:${r.left}=${r.value}` + (r.lenient?.length ? ':' + r.lenient.join(',') : '')))
+}
+
+/**
+ * `rubricDef="Q1"` -- the rubric entry this generated sheet is a projection OF.
+ *
+ * THE VALUE IS THE ITEM ID because that is already the rubric entry's identity,
+ * and a function rather than a bare field access so the attribute has ONE
+ * producer: the point of naming the source is that a second consumer can derive
+ * its own projection instead of restating this one, which is undone if each
+ * consumer spells the derivation itself.
+ */
+export function rubricDefAttr(itemId: string | null | undefined): string | null {
+  return itemId ? itemId : null
+}
+
 /** `cover="keyA,keyB:labelA,labelB"` — `of` and `verdicts` are deliberately dropped. */
 export function coverAttr(rules: Array<{ keys: string[]; labels: string[] }>) {
   return joinRules(rules.map(r => `${r.keys.join(',')}:${r.labels.join(',')}`))
