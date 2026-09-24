@@ -83,6 +83,12 @@ const Item = core({
       'The deduction charged when nothing was answered.'),
     expectedType: z.string().optional().describe(
       'The answer this entry is looking for, where one is fixed in advance.'),
+    requiredMove: z.string().optional().describe(
+      'The stimulus move this entry demonstrates -- given/taken, desirable/' +
+      'undesirable. A fact about the ITEM rather than about a check, which is ' +
+      'why it is an attribute and not an <Expect>: the paper scorer reaches it ' +
+      'directly and the sheet reaches it through a computed check, so tying it ' +
+      'to one of them would make the other derive it.'),
     unreachableCodes: z.string().optional().describe(
       'Deduction codes declared here that nothing can charge, comma-separated. ' +
       'DECLARED so an audit can tell a dead code from an unnoticed one.'),
