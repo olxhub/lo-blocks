@@ -22,9 +22,15 @@ import {
   parseDerived, parseChoices,
 } from '../lib/llm/slotSheet'
 
-const RUBRIC = process.env.RUBRIC_OLX!
-const COURSE = process.env.COURSE_JSON!
-const HANDOUTS = process.env.HANDOUT_DIR!
+// DEFAULTS SO THE BUILD NEEDS NO ENVIRONMENT. The rubric is read from the STAGED
+// copy, like every other reader -- the authored file is the thing being built
+// from, and reading it directly would skip template expansion.
+const CONTENT = process.env.CONTENT_ROOT ?? '../edu.memphis.psych'
+const RUBRIC = process.env.RUBRIC_OLX
+  ?? '.stage/expanded/edu.memphis.psych/psychology/bmod_rubric.olx'
+const COURSE = process.env.COURSE_JSON
+  ?? CONTENT + '/courses/edu.memphis.psych/course.json'
+const HANDOUTS = process.env.HANDOUT_DIR ?? CONTENT + '/psychology'
 
 const xml = readFileSync(RUBRIC, 'utf8')
 const course = JSON.parse(readFileSync(COURSE, 'utf8'))
@@ -228,6 +234,41 @@ function noteFor(item: any, slots: any[], key: string,
   return c?.desc
 }
 
+const list = (v: string | undefined, sep = ',') =>
+  (v ?? '').split(sep).filter(Boolean)
+const pairs = (v: string | undefined) => list(v)
+  .filter(x => x.includes('~'))
+  .map(x => ({ value: x.slice(0, x.indexOf('~')), verdict: x.slice(x.indexOf('~') + 1) }))
+const conds = (v: string | undefined) => list(v)
+  .filter(x => x.includes('='))
+  .map(x => ({ slot: x.slice(0, x.indexOf('=')), value: x.slice(x.indexOf('=') + 1) }))
+const rows = (r: any, tag: string, f: (a: Record<string, string>) => any) =>
+  children(r.block, tag).map(c => f(c.a))
+
+/** set name -> the slots that pick from it. */
+function pickUsers(slots: any[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const sl of slots) if (sl.picks) (out[sl.picks] ??= []).push(sl.key)
+  return out
+}
+
+/**
+ * slot -> the members the RUBRIC sources for it, or null.
+ *
+ * `null` MEANS NOT DECLARED and is not the same as declared-empty: two sets exist
+ * only on the sheet, and a producer reading the first as the second would delete
+ * them from the attribute and break every item that picks from them.
+ */
+function pickSourced(r: any, slots: any[]): Record<string, string[] | null> {
+  const out: Record<string, string[] | null> = {}
+  for (const sl of slots) {
+    if (!sl.picks) continue
+    const c = r.credit.find((x: any) => x.what === sl.key && x.verdicts?.length)
+    out[sl.key] = c ? c.verdicts : (CHOICE_SETS[sl.key] ?? null)
+  }
+  return out
+}
+
 // ---- assemble the whole input set ------------------------------------------
 const out: any = { _fragments: fragments, _frame: frame, _handAuthoredAttrs: [] }
 for (const [id] of BLOCKS) {
@@ -316,13 +357,40 @@ for (const [id] of BLOCKS) {
       expect: parseExpect(a.expect), derived: parseDerived(a.derived),
       choices: parseChoices(a.choices),
     },
-    // ATTRIBUTES ARE NOT BUILT HERE YET, and the omission is deliberate rather
-    // than forgotten: `assemble-prompts` treats absent `attrInputs` as bodies-only.
-    // Each rubric child element needs shaping for its own assembler -- <Counts>
-    // carries `slots` as a comma string where `countsAttr` takes an array -- and a
-    // half-shaped one crashes rather than mis-writing, which is the right failure
-    // but not a finished job. The attribute path still runs from the python dump,
-    // where it is proved at 322 of 322.
+    // SHAPED PER ASSEMBLER, because each rubric child spells its rows its own
+    // way: `<Counts slots="a,b">` is a comma string where `countsAttr` takes an
+    // array, `<Map pairs="a~met">` is a mini-language, `<Derived template=>` is
+    // JSON. The mapping mirrors `rubric_component`'s element parser exactly --
+    // one shape, two readers, and the byte oracle says whether they agree.
+    attrInputs: {
+      counts: rows(r, 'Counts', x => ({ key: x.key, slots: list(x.slots) })),
+      cover: rows(r, 'Cover', x => ({ keys: list(x.checks), labels: list(x.labels) })),
+      requires: rows(r, 'Requires', x => ({ key: x.key, cond: x.cond,
+                                            lenient: list(x.lenient, '|') })),
+      equals: rows(r, 'Equals', x => ({ key: x.key, left: x.left, right: x.right,
+                                        lenient: list(x.lenient, '|') })),
+      onlyif: rows(r, 'Onlyif', x => ({ key: x.key, cond: x.cond })),
+      forbid: rows(r, 'Forbid', x => ({ key: x.key, conds: conds(x.conds) })),
+      maps: rows(r, 'Map', x => ({ key: x.key, pick: x.pick, pairs: pairs(x.pairs),
+                                   ...(x.fallback ? { fallback: x.fallback } : {}) })),
+      derived: rows(r, 'Derived', x => ({
+        key: x.key, kind: x.kind, fields: list(x.fields),
+        ...(x.words ? { words: list(x.words) } : {}),
+        ...(x.template ? { template: JSON.parse(x.template) } : {}) })),
+      expect: rows(r, 'Expect', x => ({ key: x.key, left: x.left, value: x.value,
+                                        lenient: list(x.lenient, '|') })),
+      credit: r.credit, max: r.max,
+      maxPresent: /\bmax="/.test(found.tag),
+      slotSpec: rows(r, 'Slot', x => ({
+        key: x.key,
+        ...(x.label !== undefined ? { label: x.label } : {}),
+        ...(x.seg !== undefined ? { seg: x.seg } : {}),
+        ...(x.pts !== undefined ? { pts: x.pts } : {}),
+        ...(x.gate !== undefined && TRUE.has(x.gate) ? { gate: true } : {}) })),
+      choicesDeclared: parseChoices(a.choices),
+      choicesUsers: pickUsers(slots),
+      choicesSourced: pickSourced(r, slots),
+    },
     sections, context, evidence: ev,
     response: (g.prompt_response ?? []).map(([l, t]: any) => ({ label: l, ...ref(t) })),
   }

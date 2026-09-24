@@ -26,7 +26,8 @@ import {
   choicesAttr,
 } from '../lib/llm/attributeAssembler'
 
-const inputs = JSON.parse(readFileSync(process.env.ASSEMBLER_INPUTS!, 'utf8'))
+const inputs = JSON.parse(readFileSync(
+  process.env.ASSEMBLER_INPUTS ?? '.stage/assembler-inputs.json', 'utf8'))
 const fragments = inputs._fragments
 const frame = inputs._frame
 delete inputs._fragments
@@ -38,7 +39,8 @@ delete inputs._frame
 const handAuthored = new Set<string>(
   (inputs._handAuthoredAttrs ?? []).map((p: string[]) => p.join('.')))
 delete inputs._handAuthoredAttrs
-const HANDOUTS = process.env.HANDOUT_DIR!
+const HANDOUTS = process.env.HANDOUT_DIR
+  ?? (process.env.CONTENT_ROOT ?? '../edu.memphis.psych') + '/psychology'
 const write = process.argv.includes('--write')
 
 const NUL = String.fromCharCode(0)
