@@ -20,6 +20,7 @@ import {
 const inputs = JSON.parse(readFileSync(process.env.ASSEMBLER_INPUTS!, 'utf8'))
 delete inputs._fragments
 delete inputs._frame
+delete inputs._handAuthoredAttrs
 
 const PORTED = ['counts', 'onlyif', 'requires', 'equals', 'cover', 'forbid',
                 'maps', 'free', 'slots', 'derived', 'max', 'expect', 'rubricDef',

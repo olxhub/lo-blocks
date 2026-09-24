@@ -27,6 +27,7 @@ delete inputs._fragments
 // from the stale one truncated the criteria list on every cadence item.
 const frame = inputs._frame
 delete inputs._frame
+delete inputs._handAuthoredAttrs
 
 let ok = 0
 const bad: string[] = []
