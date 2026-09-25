@@ -55,7 +55,27 @@ import { initConfig } from '@/lib/config';
 initConfig('* { allow-unsafe-content: true; }', { classes: ['client', 'test'] });
 
 const ENABLED = process.env.RUN_LLM_RUNNER === '1';
-const SERVER = process.env.LO_SERVER || 'http://localhost:8888';
+// REFUSED, NOT DEFAULTED -- BUT LAZILY. This read
+// `|| 'http://localhost:8888'`, the LIVE tree's dev server, so a runner run
+// from a COPY of the repo sent its requests to the original's server and said
+// nothing. agreement_app now passes `LO_SERVER` from `paths.LO_SERVER`.
+//
+// RESOLVED AT USE, NOT AT IMPORT. The first version threw at module scope, and
+// this file is `describe.skipIf(!ENABLED)` -- normally collected and skipped --
+// so the throw broke COLLECTION and took the whole file down: 2,639 tests
+// passing and one test FILE failing. A guard that fires when the module is
+// merely loaded is not guarding the request; it is breaking the suite.
+function server(): string {
+  const s = process.env.LO_SERVER;
+  if (!s) {
+    throw new Error(
+      'runner.test.ts: LO_SERVER is not set. Refusing to guess -- a default ' +
+      "sends this tree's requests to whatever server happens to be on 8888, " +
+      'which is how a dry-run sweep was shaped by the live tree for a whole ' +
+      'night. Set it to the server belonging to THIS checkout.');
+  }
+  return s.replace(/\/$/, '');
+}
 const JOBS = process.env.JOBS_JSON;
 const RESULTS = process.env.RESULTS_JSON;
 const IDMAP = process.env.IDMAP_JSON;
@@ -71,7 +91,7 @@ function routeFetchToServer() {
   const real = globalThis.fetch;
   globalThis.fetch = ((input: any, init?: any) =>
     typeof input === 'string' && input.startsWith('/')
-      ? real(SERVER + input, init)
+      ? real(server() + input, init)
       : real(input, init)) as typeof fetch;
 }
 

@@ -1,0 +1,330 @@
+// FIRE TESTS. Goal K's standing obligation: "a ported check must FIRE on the
+// case its python original fires on, proved by the same fire test, before the
+// original retires." A test that only asserts the clean corpus stays clean
+// certifies nothing — every one of these rules reports zero today, so a rule
+// deleted to `return []` would pass a corpus-only suite.
+
+import { describe, expect, it } from 'vitest';
+import { PROBES, RULES, caseNamesInPrompts } from './index';
+
+// The probe under its registry name, so the tests exercise the path python uses.
+const RULES_PROBE = (p: any) => PROBES.score_recorded_sheets(p) as any[];
+
+describe('no_case_names_in_prompts', () => {
+  it('FIRES on a prompt that names a cohort case', () => {
+    const f = caseNamesInPrompts([{ item: 'Q6', text: 'Unlike p10, be specific.' }]);
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('Q6');
+    expect(f[0]).toContain("['p10']");
+  });
+
+  it('reports every distinct case once, sorted', () => {
+    const f = caseNamesInPrompts([
+      { item: 'Q2', text: 'p3 did this, p3 again, and p12 did that.' },
+    ]);
+    expect(f[0]).toContain("['p12', 'p3']");   // sorted as strings, as Python sorts
+  });
+
+  it('is silent on a clean prompt', () => {
+    expect(caseNamesInPrompts([{ item: 'Q1', text: 'Name the behaviour.' }]))
+      .toEqual([]);
+  });
+
+  // THE TWO DETAILS THAT MAKE IT THE SAME CHECK. Both were wrong in the first
+  // draft of this port, and neither would have shown up against the live corpus.
+  it('does NOT fire on a corpus reference path', () => {
+    expect(caseNamesInPrompts([
+      { item: 'Q1', text: '{{corpus:Q1/p10:response:0:41:sha=c874ac86a7b2}}' },
+    ])).toEqual([]);
+  });
+
+  it('does NOT fire on p-digits inside a word', () => {
+    expect(caseNamesInPrompts([{ item: 'Q1', text: 'step3 and gap12 and xp4' }]))
+      .toEqual([]);
+  });
+
+  it('does NOT fire on a three-digit run the cohort cannot contain', () => {
+    expect(caseNamesInPrompts([{ item: 'Q1', text: 'p100 is not a participant' }]))
+      .toEqual([]);
+  });
+
+  it('reaches the rule through the registry name python uses', () => {
+    expect(RULES.no_case_names_in_prompts({
+      prompts: [{ item: 'Q6', text: 'see p10' }],
+    })).toHaveLength(1);
+  });
+
+  it('treats a missing payload as nothing to judge, not as a pass to invent', () => {
+    expect(RULES.no_case_names_in_prompts({})).toEqual([]);
+  });
+});
+
+describe('prompt_prose_names_only_offered_verdicts', () => {
+  const known = ['met', 'absent', 'unclear', 'not_reason', 'wrong_kind'];
+  const slot = (o: Partial<any> = {}) => ({
+    item: 'Q5', key: 'example_2', hasRule: false,
+    offered: ['met', 'absent', 'wrong_kind'],
+    offeredPaper: ['met', 'absent', 'wrong_kind'], ...o,
+  });
+
+  it('FIRES on the note that shipped: Q5:example_2 naming `not_reason`', () => {
+    const f = RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({ note: 'Answer `not_reason` when it is a restatement.' })],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('Q5.example_2');
+    expect(f[0]).toContain("['not_reason']");
+    expect(f[0]).toContain('inert');
+  });
+
+  it('is silent when the note names a verdict the slot DOES offer', () => {
+    expect(RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({ note: 'Answer `wrong_kind` when it is a restatement.' })],
+    })).toEqual([]);
+  });
+
+  // THE FIRST THING A NAIVE PORT GETS WRONG. `pick(NAME)` options live in the
+  // sheet's `choices=` map, not the slot spec; python resolves them into
+  // `offered` before calling. With them absent, D1/D2:named_type reads as
+  // naming `unclear` against a met/absent slot — two false positives on prose
+  // that is correct.
+  it('is silent when a pick group supplies the verdict', () => {
+    expect(RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({
+        item: 'D1', key: 'named_type',
+        offered: ['met', 'absent', 'unclear'],   // resolved from choices=
+        offeredPaper: ['met', 'absent', 'unclear'],
+        note: 'Answer `unclear` when no type is named.',
+      })],
+    })).toEqual([]);
+  });
+
+  it('leaves a slot with a `rule` to the check that owns it', () => {
+    expect(RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({ hasRule: true, note: 'Answer `not_reason`.' })],
+    })).toEqual([]);
+  });
+
+  it('FIRES on a `desc` naming a token only ONE side offers', () => {
+    const f = RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({
+        offered: ['met', 'absent', 'wrong_kind'],
+        offeredPaper: ['met', 'absent'],          // paper lacks it
+        desc: 'Mark `wrong_kind` if the example is of another type.',
+      })],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('BOTH prompts');
+  });
+
+  it('prefers the note over the desc: only one finding per slot', () => {
+    const f = RULES.prompt_prose_names_only_offered_verdicts({
+      knownVerdicts: known,
+      slots: [slot({ note: 'Answer `not_reason`.', desc: 'Also `not_reason`.' })],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('inert');     // the NOTE arm, not the desc arm
+  });
+});
+
+// PROBES ANSWER, THEY DO NOT JUDGE. A probe's failure mode is producing
+// nothing, or producing a shape python cannot compare — neither of which an
+// empty-findings assertion would catch. So each is pinned to a real answer.
+describe('probes', () => {
+  it('parse_slot_specs returns the compared fields, not the whole parse', () => {
+    const got = PROBES.parse_slot_specs({
+      specs: ['My unwanted target behavior:met/absent'],
+    }) as any[];
+    expect(got).toHaveLength(1);
+    expect(got[0][0]).toHaveProperty('key');
+    expect(got[0][0]).toHaveProperty('label');
+    expect(got[0][0]).toHaveProperty('options');
+    expect(got[0][0]).toHaveProperty('points');
+  });
+
+  it('parse_slot_specs keeps one entry per spec, in order', () => {
+    const got = PROBES.parse_slot_specs({
+      specs: ['a:met/absent', 'b:met/absent', 'c:met/absent'],
+    }) as any[];
+    expect(got).toHaveLength(3);
+  });
+
+  it('resolve_corpus_refs answers ERROR rather than throwing', () => {
+    // A probe that dies on the first bad case hides every case after it, so
+    // the contract is that a failure is a VALUE the python side can compare.
+    const got = PROBES.resolve_corpus_refs({
+      data: {}, refs: ['{{corpus:nope/p1:field:0:1:sha=deadbeefdead}}', 'plain'],
+    }) as string[];
+    expect(got).toHaveLength(2);
+    expect(got[0]).toBe('ERROR');
+  });
+
+  it('an unknown probe is not silently a passing rule', () => {
+    expect(PROBES.no_such_probe).toBeUndefined();
+  });
+});
+
+describe('computed_rules_do_not_share_a_key', () => {
+  const item = (kinds: Record<string, string[]>) =>
+    ({ handout: 2, id: 'Q4b', kinds });
+
+  it('FIRES on two rules of one kind writing one key', () => {
+    const f = RULES.computed_rules_do_not_share_a_key({
+      items: [item({ forbid: ['b2_basis', 'b2_basis'] })],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('H2 Q4b');
+    expect(f[0]).toContain('2 `forbid` rules write `b2_basis`');
+    expect(f[0]).toContain('do NOT combine as an OR');
+  });
+
+  it('is silent on two rules writing DIFFERENT keys', () => {
+    expect(RULES.computed_rules_do_not_share_a_key({
+      items: [item({ forbid: ['a', 'b'] })],
+    })).toEqual([]);
+  });
+
+  // The same key under two DIFFERENT primitives is not the trap: they are
+  // separate loops writing separate assignments, in a declared order.
+  it('is silent when the key repeats across kinds', () => {
+    expect(RULES.computed_rules_do_not_share_a_key({
+      items: [item({ forbid: ['k'], expect: ['k'] })],
+    })).toEqual([]);
+  });
+
+  it('counts three as three, and names the count', () => {
+    const f = RULES.computed_rules_do_not_share_a_key({
+      items: [item({ equals: ['k', 'k', 'k'] })],
+    });
+    expect(f[0]).toContain('3 `equals` rules write `k`');
+  });
+
+  it('ignores a primitive that does not ASSIGN', () => {
+    expect(RULES.computed_rules_do_not_share_a_key({
+      items: [item({ cover: ['k', 'k'] })],
+    })).toEqual([]);
+  });
+
+  it('skips a null key rather than counting it as one', () => {
+    expect(RULES.computed_rules_do_not_share_a_key({
+      items: [{ handout: 1, id: 'Q1', kinds: { forbid: [null, null] as any } }],
+    })).toEqual([]);
+  });
+});
+
+describe('score_recorded_sheets', () => {
+  // REAL SLOT SHAPE. `options` is load-bearing -- `isSatisfied` reads
+  // `slot.options.includes(MET)` -- and the artifact's recorded `slots`
+  // field does NOT carry it. That is why the sheet comes from the CURRENT
+  // <LLMAction> and only `checks`/`max`/`recorded` come from the record.
+  const slot = (key: string) =>
+    ({ key, label: key.toUpperCase(), options: ['met', 'absent'], pts: 2 });
+  const sheet = { slots: [slot('a'), slot('b')] };
+  const met = { a: { verdict: 'met' }, b: { verdict: 'met' } };
+
+  it('reproduces a cell the shipped scorer still scores the same', () => {
+    const [row] = RULES_PROBE({ sheets: { Q: sheet },
+      payloads: [{ id: 'x', item: 'Q', checks: met, max: 4, recorded: 4 }] });
+    expect(row.rescored).toBe(4);
+    expect(row.same).toBe(true);
+  });
+
+  it('REPORTS a cell whose recorded score the scorer no longer produces', () => {
+    const [row] = RULES_PROBE({ sheets: { Q: sheet },
+      payloads: [{ id: 'x', item: 'Q', checks: met, max: 4, recorded: 2 }] });
+    expect(row.rescored).toBe(4);
+    expect(row.same).toBe(false);
+  });
+
+  // THE TRAP THIS FILE EXISTS TO AVOID. `Math.abs(NaN - x) > 1e-9` is FALSE, so
+  // a NaN score once made every cell "match" and a whole run reported perfect
+  // agreement. Finiteness must be asserted BEFORE the comparison.
+  it('refuses a NaN score instead of calling it a match', () => {
+    const [row] = RULES_PROBE({ sheets: { Q: sheet },
+      payloads: [{ id: 'x', item: 'Q', checks: met,
+                   max: NaN as any, recorded: NaN as any }] });
+    expect(row.same).toBe(false);
+    expect(row.why ?? '').toContain('finite');
+  });
+
+  it('never silently drops a payload whose item has no sheet', () => {
+    const [row] = RULES_PROBE({ sheets: {},
+      payloads: [{ id: 'x', item: 'MISSING', checks: met, max: 4, recorded: 4 }] });
+    expect(row.same).toBe(false);
+    expect(row.why).toContain('no sheet');
+    expect(row.rescored).toBeNull();
+  });
+
+  it('returns one row per payload, so the denominator cannot shrink unseen', () => {
+    const rows = RULES_PROBE({ sheets: { Q: sheet }, payloads: [
+      { id: '1', item: 'Q', checks: met, max: 4, recorded: 4 },
+      { id: '2', item: 'NOPE', checks: met, max: 4, recorded: 4 },
+      { id: '3', item: 'Q', checks: met, max: 4, recorded: 0 },
+    ] });
+    expect(rows).toHaveLength(3);
+  });
+});
+
+describe('no_cell_is_both_corrected_and_declared', () => {
+  it('FIRES on a cell booked in both tables', () => {
+    const f = RULES.no_cell_is_both_corrected_and_declared({
+      corrected: [{ item: 'Q6', pid: 4, was: 6.0, score: 6.25 }],
+      divergences: [{ code: 'GOLD_ROUNDS', cells: [['Q6', 4]] }],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('Q6/p4');
+    expect(f[0]).toContain('GOLD_ROUNDS');
+    expect(f[0]).toContain('counts one finding twice');
+  });
+
+  it('is silent when the tables name different cells', () => {
+    expect(RULES.no_cell_is_both_corrected_and_declared({
+      corrected: [{ item: 'Q6', pid: 4 }],
+      divergences: [{ code: 'X', cells: [['Q6', 5]] }],
+    })).toEqual([]);
+  });
+
+  it('is silent when either table is empty', () => {
+    expect(RULES.no_cell_is_both_corrected_and_declared({
+      corrected: [{ item: 'Q6', pid: 4 }], divergences: [],
+    })).toEqual([]);
+  });
+});
+
+describe('no_recorded_run_is_verdictless', () => {
+  it('does not mistake an unreadable artifact for a clean one', () => {
+    // $COURSE_DATA is unset in the test environment, so courseData refuses —
+    // and that refusal must ARRIVE as a finding, never as silence.
+    const f = RULES.no_recorded_run_is_verdictless({
+      artifacts: [{ item: 'Q1', side: 'olx', path: 'nope/Q1.runs.json' }],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('could not be read');
+  });
+
+  it('is silent on no artifacts at all', () => {
+    expect(RULES.no_recorded_run_is_verdictless({ artifacts: [] })).toEqual([]);
+  });
+});
+
+describe('courseData', () => {
+  it('refuses an unset course variable rather than defaulting', async () => {
+    const { courseDir } = await import('./courseData');
+    const saved = process.env.COURSE_METADATA;
+    delete process.env.COURSE_METADATA;
+    expect(() => courseDir('COURSE_METADATA')).toThrow(/is not set/);
+    if (saved !== undefined) process.env.COURSE_METADATA = saved;
+  });
+
+  it('refuses a path that escapes the course directory', async () => {
+    const { readCourseJson } = await import('./courseData');
+    process.env.COURSE_METADATA = '/tmp/enforce-test-root';
+    expect(() => readCourseJson('COURSE_METADATA', '../../etc/passwd'))
+      .toThrow(/outside/);
+  });
+});
