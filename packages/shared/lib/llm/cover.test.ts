@@ -85,24 +85,24 @@ describe('scoreSlotSheet with a cover group', () => {
     scoreSlotSheet(slots, v(a, b), undefined, cover);
 
   it('is full marks either way round', () => {
-    expect(score('first', 'second')).toEqual({ score: 4, max: 4, failed: [] });
-    expect(score('second', 'first')).toEqual({ score: 4, max: 4, failed: [] });
+    expect(score('first', 'second')).toEqual({ score: 4, max: 4, failed: [], deductions: [] });
+    expect(score('second', 'first')).toEqual({ score: 4, max: 4, failed: [], deductions: [] });
   });
 
   it('charges one slot for naming the same thing twice', () => {
-    expect(score('first', 'first')).toEqual({ score: 2, max: 4, failed: ['state_a2'] });
+    expect(score('first', 'first')).toEqual({ score: 2, max: 4, failed: ['state_a2'], deductions: [] });
   });
 
   it('charges both when neither is named', () => {
     expect(score('neither', 'neither'))
-      .toEqual({ score: 0, max: 4, failed: ['state_a1', 'state_a2'] });
+      .toEqual({ score: 0, max: 4, failed: ['state_a1', 'state_a2'], deductions: [] });
   });
 
   it('scores identically to the old behaviour when no cover is declared', () => {
     // Without a group, only the FIRST verdict counts as satisfied — so `second`
     // would fail. This is what made the ordering leak into the score.
     expect(scoreSlotSheet(slots, v('first', 'second'), undefined, []))
-      .toEqual({ score: 2, max: 4, failed: ['state_a2'] });
+      .toEqual({ score: 2, max: 4, failed: ['state_a2'], deductions: [] });
   });
 });
 

@@ -85,17 +85,17 @@ describe('satisfiedMap with a computed check', () => {
 describe('scoreSlotSheet with a computed check', () => {
   it('charges the check when the operands differ', () => {
     expect(scoreSlotSheet(slots, v('NP', 'NR'), 4, [], equals))
-      .toEqual({ score: 2, max: 4, failed: ['matches_chosen_type'] });
+      .toEqual({ score: 2, max: 4, failed: ['matches_chosen_type'], deductions: [] });
   });
 
   it('charges nothing when they agree', () => {
     expect(scoreSlotSheet(slots, v('NR', 'NR'), 4, [], equals))
-      .toEqual({ score: 4, max: 4, failed: [] });
+      .toEqual({ score: 4, max: 4, failed: [], deductions: [] });
   });
 
   it('stacks with an ordinary check', () => {
     expect(scoreSlotSheet(slots, v('NP', 'NR', 'no'), 4, [], equals))
-      .toEqual({ score: 1, max: 4, failed: ['matches_chosen_type', 'targets_own_behavior'] });
+      .toEqual({ score: 1, max: 4, failed: ['matches_chosen_type', 'targets_own_behavior'], deductions: [] });
   });
 });
 

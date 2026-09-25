@@ -36,7 +36,8 @@
     "verdicts",
     "max",
     "showChecks",
-    "choices", "free", "rubricDef"
+    "choices", "free", "rubricDef",
+    "charge", "because"
   ],
   "primitives": [
     {

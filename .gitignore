@@ -117,3 +117,10 @@ config/*.pat
 # Build staging: content copied and corpus references resolved into it.
 # Never committed -- it holds resolved student text by construction.
 .stage/
+
+# MOUNTED COURSE REPOSITORIES. A course reaches the build as a SYMLINK under
+# content/ (materialiseRubrics prints "staged mounted source <ns>"), and the
+# link points at wherever that repo lives on THIS machine. Committing one would
+# hand everyone else a broken absolute path. Create your own with:
+#   ln -sfn /path/to/edu.memphis.psych content/edu.memphis.psych
+content/edu.memphis.*

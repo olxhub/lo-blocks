@@ -16,7 +16,17 @@ import { readFileSync } from 'node:fs'
 import { assembleBodyPrefix, assembleChecklist, assembleContextAndResponse }
   from '../lib/llm/promptAssembler'
 
-const inputs = JSON.parse(readFileSync(process.env.ASSEMBLER_INPUTS!, 'utf8'))
+// NAMED, not asserted. `process.env.X!` made an unset variable arrive at
+// readFileSync as `undefined`, which throws ERR_INVALID_ARG_TYPE and names the
+// node internals rather than the thing the caller forgot to do.
+const inputsPath = process.env.ASSEMBLER_INPUTS
+if (!inputsPath) {
+  console.error('ASSEMBLER_INPUTS is not set. Produce it first:\n' +
+    '  python3 scoring/olx_prompts.py --assembler-inputs <path>\n' +
+    'then run this script with ASSEMBLER_INPUTS=<path>.')
+  process.exit(2)
+}
+const inputs = JSON.parse(readFileSync(inputsPath, 'utf8'))
 // FRAGMENTS COME FROM THE RUBRIC, via the dump -- `<Frame name="fragment:KEY">`.
 // They were literals in olx_prompts.py until the assembler's refusal to default
 // them made the case that they are the course's wording, not the engine's.

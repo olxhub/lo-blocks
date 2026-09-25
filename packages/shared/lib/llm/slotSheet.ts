@@ -25,6 +25,23 @@ export type SlotSpec = {
   /** Allowed verdicts. The FIRST is the satisfied one. */
   options: string[];
   /**
+   * The DEDUCTION CODE this slot charges when it is not satisfied, and the
+   * wording that explains it.
+   *
+   * WHY THIS RUNTIME NEEDS THEM. Until now this side computed `{score, max,
+   * failed}` and the paper ledger computed `{code, pts, note}` entries -- two
+   * different objects from one rubric, agreeing only where their enumerations
+   * happened to be complements, which is the mismatch recorded at `free` above.
+   * The rubric ALREADY declares these: `<Slot gate="true" charge="NOT_OC"
+   * because="..."/>`, and the python side reads them into `oc_gates`. They were
+   * simply dropped on the way here, so this engine could gate but never say WHY.
+   *
+   * Carried per slot, like `free`, so a published sheet re-scores by the rules
+   * in force when it was written. A sheet without them scores exactly as before.
+   */
+  charge?: string;
+  because?: string;
+  /**
    * Verdicts that are NOT satisfying and still cost nothing.
    *
    * This runtime fails everything that is not the satisfying verdict, and the
@@ -897,9 +914,26 @@ export function parseFree(spec?: string): Record<string, string[]> {
   return out;
 }
 
+/** `slot:CODE|slot:CODE` -> the deduction code each slot charges. */
+export function parseCharge(spec?: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const entry of (spec ?? '').split('|')) {
+    const t = entry.trim();
+    if (!t || !t.includes(':')) continue;
+    const i = t.indexOf(':');
+    const key = t.slice(0, i).trim();
+    const code = t.slice(i + 1).trim();
+    if (key && code) out[key] = code;
+  }
+  return out;
+}
+
 export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS,
-                           freeAttr?: string): SlotSpec[] {
+                           freeAttr?: string, chargeAttr?: string,
+                           becauseAttr?: string): SlotSpec[] {
   const free = parseFree(freeAttr);
+  const charges = parseCharge(chargeAttr);
+  const becauses = parseCharge(becauseAttr);
   return (spec ?? '')
     .split('|')
     .map(entry => entry.trim())
@@ -923,6 +957,8 @@ export function parseSlots(spec: string, defaults: string[] = DEFAULT_VERDICTS,
       };
       if (pts !== undefined) slot.pts = pts;
       if (free[key]?.length) slot.free = free[key];
+      if (charges[key]) slot.charge = charges[key];
+      if (becauses[key]) slot.because = becauses[key];
       const countMax = parseCountMax(opts);
       if (countMax !== undefined) slot.countMax = countMax;
       const picks = parsePick(opts);
@@ -1027,15 +1063,25 @@ export function scoreSlotSheet(
   requires: RequiresRule[] = [],
   forbid: ForbidRule[] = [],
   maps: MapsRule[] = [],
-): { score: number; max: number; failed: string[] } | null {
+): { score: number; max: number; failed: string[];
+     deductions: { code: string; pts: number; note?: string }[] } | null {
   const scored = slots.filter(s => typeof s.pts === 'number');
   if (scored.length === 0 && explicitMax === undefined) return null;
   const max = explicitMax ?? scored.reduce((n, s) => n + (s.pts as number), 0);
   const sat = satisfiedMap(slots, checks, cover, equals, counts, expect, requires, forbid, maps);
   const charged = chargedMap(slots, sat, onlyif);
 
+  // THE CODED DEDUCTION, from the declaration this engine used to discard.
+  // A gate that names a `charge` now says WHICH rule it broke and why, so this
+  // side and the paper ledger compute the SAME object instead of two that agree
+  // where their enumerations happen to be complements.
+  const deduct = (s: SlotSpec, pts: number) =>
+    (s.charge ? [{ code: s.charge, pts, ...(s.because ? { note: s.because } : {}) }] : []);
+
   const gate = failedGate(slots, checks, cover, equals, onlyif, counts, expect, requires, forbid, maps);
-  if (gate) return { score: 0, max, failed: [gate.key] };
+  // A FAILED GATE COSTS THE WHOLE ITEM, so its charge is the whole max -- the
+  // same arithmetic the score line already does, named rather than implied.
+  if (gate) return { score: 0, max, failed: [gate.key], deductions: deduct(gate, max) };
 
   // A DECLARED-FREE verdict is unsatisfied and costs nothing -- the one place
   // this runtime's "anything that is not satisfying fails" default is wrong,
@@ -1052,6 +1098,10 @@ export function scoreSlotSheet(
     score: Math.max(0, Math.min(max, max - lost)),
     max,
     failed: failed.map(s => s.key),
+    // ONE ENTRY PER FAILING SLOT THAT NAMES A CODE. A slot with points but no
+    // `charge` still costs its points and reports no code -- silence here means
+    // "this rubric did not name one", never "nothing was charged".
+    deductions: failed.flatMap(s => deduct(s, s.pts as number)),
   };
 }
 

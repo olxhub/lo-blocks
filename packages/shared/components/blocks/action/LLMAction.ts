@@ -91,7 +91,13 @@ async function llmAction({ props }) {
       // `free` rides ON the slots, so every consumer of this sheet --
       // scoring here, and publishedSheet for whatever re-scores it later --
       // carries the forgiven verdicts without another parameter.
-      const slots = parseSlots(slotsAttr, defaults, props.free);
+      // `charge` and `because` ride on the slots for the same reason `free`
+      // does: every consumer of this sheet -- scoring here, and publishedSheet
+      // for whatever re-scores it later -- then carries the DEDUCTION CODE
+      // without another parameter. Until this, the rubric declared the code and
+      // only the paper scorer could see it.
+      const slots = parseSlots(slotsAttr, defaults, props.free,
+                               props.charge, props.because);
       const equals = parseEquals(props.equals);
       const onlyif = parseOnlyIf(props.onlyif);
       const derived = parseDerived(props.derived);
@@ -269,6 +275,19 @@ const LLMAction = blocks.test({
       '"|", each `key:condition` — e.g. "state_c2:link_c2". For a rubric whose ' +
       'slots come in pairs, where a fact established by one check decides whether ' +
       'the pair scored on OTHER checks was ever addressed at all.'
+    ),
+    charge: z.string().optional().describe(
+      'The DEDUCTION CODE each slot charges when it is not satisfied, as ' +
+      '"slot:CODE|slot:CODE" — e.g. "is_oc:NOT_OC". Without it this runtime ' +
+      'can say a slot failed and what it cost, but not WHICH RULE it broke, ' +
+      'so the score and the paper ledger were two different objects computed ' +
+      'from one rubric. A slot with points and no code still costs its points ' +
+      'and reports no deduction: silence means the rubric named none, never ' +
+      'that nothing was charged.'
+    ),
+    because: z.string().optional().describe(
+      'The wording that explains a charge, as "slot:text|slot:text". Paired ' +
+      'with `charge`; carried so feedback can say why rather than only what.'
     ),
     free: z.string().optional().describe(
       'Verdicts that are NOT satisfying and still cost NOTHING, as ' +

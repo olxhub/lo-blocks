@@ -388,7 +388,19 @@ for (const [id] of BLOCKS) {
         ...(x.label !== undefined ? { label: x.label } : {}),
         ...(x.seg !== undefined ? { seg: x.seg } : {}),
         ...(x.pts !== undefined ? { pts: x.pts } : {}),
-        ...(x.gate !== undefined && TRUE.has(x.gate) ? { gate: true } : {}) })),
+        // THE DECLARED DEDUCTION CODE AND ITS WORDING. Dropped here until now,
+        // which is why no handout ever carried a `charge=` attribute.
+        ...(x.charge !== undefined ? { charge: x.charge } : {}),
+        ...(x.because !== undefined ? { because: x.because } : {}),
+        // BOTH STAGES GATE. `gate="final"` is a gate that runs LATE, not a
+        // non-gate: this reader knew only the TRUE set when the stage attribute
+        // was added, so the first `final` gate declared silently lost its `!`
+        // in the generated `slots=` attribute -- the runtime reads that prefix,
+        // so the web would have STOPPED GATING on a check the rubric still
+        // gates on, while the handout body kept saying **GATE**. The Python
+        // reader (`rubric_component.as_view_slot_spec`) had the identical bug.
+        ...(x.gate !== undefined && (TRUE.has(x.gate) || x.gate === 'final')
+            ? { gate: true } : {}) })),
       choicesDeclared: parseChoices(a.choices),
       choicesUsers: pickUsers(slots),
       choicesSourced: pickSourced(r, slots),

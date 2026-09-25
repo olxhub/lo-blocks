@@ -1,0 +1,106 @@
+<Rubric id="stub_rubric" title="Stub scoring rubric">
+  <!-- The smallest rubric that READS: one item per declared handout, each with
+       one slot, one credit and one deduction. It exists so the engine can
+       initialise and be scored against without a real course. Edit it, or
+       repoint $COURSE_DATA at a real one. -->
+  <Frame name="fragment:askedFor">
+    <Segment>[stub askedFor] </Segment>
+  </Frame>
+  <Frame name="fragment:boxClose">
+    <Segment>[stub boxClose] </Segment>
+  </Frame>
+  <Frame name="fragment:boxOpen">
+    <Segment>[stub boxOpen] </Segment>
+  </Frame>
+  <Frame name="fragment:checklistPreamble">
+    <Segment>[stub checklistPreamble] </Segment>
+  </Frame>
+  <Frame name="fragment:contextHeading">
+    <Segment>[stub contextHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:contextPreamble">
+    <Segment>[stub contextPreamble] </Segment>
+  </Frame>
+  <Frame name="fragment:countsNote">
+    <Segment>[stub countsNote] </Segment>
+  </Frame>
+  <Frame name="fragment:creditHeading">
+    <Segment>[stub creditHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:deductionHeading">
+    <Segment>[stub deductionHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:derivedContains">
+    <Segment>[stub derivedContains] </Segment>
+  </Frame>
+  <Frame name="fragment:derivedNote">
+    <Segment>[stub derivedNote] </Segment>
+  </Frame>
+  <Frame name="fragment:derivedPlots">
+    <Segment>[stub derivedPlots] </Segment>
+  </Frame>
+  <Frame name="fragment:derivedPresent">
+    <Segment>[stub derivedPresent] </Segment>
+  </Frame>
+  <Frame name="fragment:endOfResponse">
+    <Segment>[stub endOfResponse] </Segment>
+  </Frame>
+  <Frame name="fragment:equalsLenient">
+    <Segment>[stub equalsLenient] </Segment>
+  </Frame>
+  <Frame name="fragment:equalsNote">
+    <Segment>[stub equalsNote] </Segment>
+  </Frame>
+  <Frame name="fragment:expectLenient">
+    <Segment>[stub expectLenient] </Segment>
+  </Frame>
+  <Frame name="fragment:expectNote">
+    <Segment>[stub expectNote] </Segment>
+  </Frame>
+  <Frame name="fragment:forbidNote">
+    <Segment>[stub forbidNote] </Segment>
+  </Frame>
+  <Frame name="fragment:gateNote">
+    <Segment>[stub gateNote] </Segment>
+  </Frame>
+  <Frame name="fragment:guidanceHeading">
+    <Segment>[stub guidanceHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:itemHeading">
+    <Segment>[stub itemHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:mapsNote">
+    <Segment>[stub mapsNote] </Segment>
+  </Frame>
+  <Frame name="fragment:questionHeading">
+    <Segment>[stub questionHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:responseHeading">
+    <Segment>[stub responseHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:responsePreamble">
+    <Segment>[stub responsePreamble] </Segment>
+  </Frame>
+  <Frame name="fragment:sectionHeading">
+    <Segment>[stub sectionHeading] </Segment>
+  </Frame>
+  <Frame name="fragment:webSystem">
+    <Segment>[stub webSystem] </Segment>
+  </Frame>
+  <Item scores="S1" max="1" label="Stub item 1" grading="slots">
+    <Question>A stub question, answered by a stub slot.</Question>
+    <Slot key="stub_slot" label="The stub slot" pts="1"/>
+    <Credit what="stub_slot" pts="1" verdicts="met|absent" codes="absent=STUB_MISS">The stub slot was met.</Credit>
+    <Deduction code="STUB_MISS" pts="1">The stub slot was not met.</Deduction>
+  </Item>
+  <Item scores="S2" max="1" label="Stub item 2" grading="slots" deriveFromClauses="true" deriveFrom="criteria">
+    <Question>A stub question, answered by a stub slot.</Question>
+    <Slot key="stub_slot" label="The stub slot" pts="1"/>
+    <Slot key="answered" label="The response says something" gate="true"
+          charge="STUB_MISS" because="Nothing was answered."/>
+    <Slot key="on_topic" label="What it says is about the question" gate="true"
+          charge="STUB_MISS" because="The answer is not about the question."/>
+    <Credit what="stub_slot" pts="1" verdicts="met|absent" codes="absent=STUB_MISS">The stub slot was met.</Credit>
+    <Deduction code="STUB_MISS" pts="1">The stub slot was not met.</Deduction>
+  </Item>
+</Rubric>

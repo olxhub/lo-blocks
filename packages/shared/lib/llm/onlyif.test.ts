@@ -59,30 +59,30 @@ describe('parseOnlyIf', () => {
 
 describe('the four causes, on a 4-point item', () => {
   it('right type, right target — full marks', () => {
-    expect(score('PR', 'yes')).toEqual({ score: 4, max: 4, failed: [] });
+    expect(score('PR', 'yes')).toEqual({ score: 4, max: 4, failed: [], deductions: [] });
   });
 
   it('right type, WRONG target — charges the target check', () => {
     expect(score('PR', 'no'))
-      .toEqual({ score: 2, max: 4, failed: ['targets_goal_behavior'] });
+      .toEqual({ score: 2, max: 4, failed: ['targets_goal_behavior'], deductions: [] });
   });
 
   it('WRONG type, right target — charges the type check', () => {
-    expect(score('NP', 'yes')).toEqual({ score: 2, max: 4, failed: ['observed_type'] });
+    expect(score('NP', 'yes')).toEqual({ score: 2, max: 4, failed: ['observed_type'], deductions: [] });
   });
 
   it('WRONG type AND wrong target — still charges only 2, the whole point', () => {
-    expect(score('NP', 'no')).toEqual({ score: 2, max: 4, failed: ['observed_type'] });
+    expect(score('NP', 'no')).toEqual({ score: 2, max: 4, failed: ['observed_type'], deductions: [] });
   });
 
   it('without the rule that last case charges 4 — the divergence this avoids', () => {
     expect(scoreSlotSheet(slots, v('NP', 'no'), 4, [], [], []))
-      .toEqual({ score: 0, max: 4, failed: ['observed_type', 'targets_goal_behavior'] });
+      .toEqual({ score: 0, max: 4, failed: ['observed_type', 'targets_goal_behavior'], deductions: [] });
   });
 
   it('a failed gate still zeroes the item', () => {
     expect(scoreSlotSheet(slots, v('PR', 'yes', 'no'), 4, [], [], onlyif))
-      .toEqual({ score: 0, max: 4, failed: ['names_behavior'] });
+      .toEqual({ score: 0, max: 4, failed: ['names_behavior'], deductions: [] });
   });
 });
 
@@ -129,7 +129,7 @@ describe('chargedMap edge cases', () => {
     expect(charged.c).toBe(false);          // b is UNSATISFIED, so c is moot too
     // c's suppression follows b's satisfaction, not b's chargeability.
     expect(scoreSlotSheet(three, checks, 3, [], [], rules))
-      .toEqual({ score: 2, max: 3, failed: ['a'] });
+      .toEqual({ score: 2, max: 3, failed: ['a'], deductions: [] });
   });
 });
 

@@ -1,0 +1,118 @@
+{
+  "course": "stub",
+  "declarations": {
+    "APP_ONLY_SLOTS": [],
+    "ASK_EQUIVALENT_PROMPTS": [],
+    "CONTEXT_SOURCE": [],
+    "COUNTABLE_EXEMPT": [],
+    "DECOMPOSITION_DIVERGENCES": [],
+    "DESIGNED_TEXT": [],
+    "GOLD_COMMENT_PHRASES": [],
+    "HANDOUT_FIELDS": [
+      [
+        "1",
+        {
+          "blurb": "the stub course, handout 1",
+          "capture_tail": true,
+          "exemplar_participants": [],
+          "outdir_name": "h1",
+          "submissions_dir": "h1",
+          "template_file": "stub_handout1_template.docx"
+        }
+      ],
+      [
+        "2",
+        {
+          "blurb": "the stub course, handout 2",
+          "capture_tail": true,
+          "exemplar_participants": [],
+          "outdir_name": "h2",
+          "submissions_dir": "h2",
+          "template_file": "stub_handout2_template.docx"
+        }
+      ]
+    ],
+    "HAND_AUTHORED_ATTRS": [],
+    "JOBS": [],
+    "MULTI_BLOCK_DECLARED": [],
+    "PAPER_ITEM_NOTES": [],
+    "PAPER_ITEM_NOTES_WHY": [],
+    "PROBE_UNREACHABLE_PAIRS": [],
+    "PROSE_ONLY_JUDGED_AGAINST": [],
+    "PROSE_ONLY_SLOTS": [],
+    "SELFTEST_NAMED_FIXTURES": [],
+    "UNCHARGED_VERDICTS": []
+  },
+  "generator": {
+    "CONTEXT_REFS": {},
+    "CONTEXT__non_item": {},
+    "PROBE_REACH_LIMITS": [],
+    "SCORING_DIVERGENCES": [],
+    "SEGMENT_MARKERS": {
+      "1": [
+        [
+          "S1",
+          "A stub question"
+        ]
+      ],
+      "2": [
+        [
+          "S2",
+          "A stub question"
+        ]
+      ]
+    },
+    "TABLE_ORDER": {}
+  },
+  "handouts": {
+    "1": {
+      "authored": {
+        "AVOIDANCE_SCORES": [],
+        "BARRIER_PICK_ITEMS": [],
+        "CADENCE_BARRIER_ITEMS": [],
+        "CONTINGENCY_GATE_ITEMS": [],
+        "FORBID": [],
+        "MAPS": [],
+        "MOVE_PICK_ITEMS": [],
+        "OC_FRAME": [],
+        "OC_GATES": [],
+        "POLARITY_GATE_ITEMS": [],
+        "READS_UTB_CHOICE": [],
+        "REQUIRED_MOVE": [],
+        "SLOT_OPTIONS": [],
+        "SLOT_SPEC": [],
+        "TYPE_MATCH_ITEMS": []
+      }
+    },
+    "2": {
+      "authored": {
+        "AVOIDANCE_SCORES": [],
+        "BARRIER_PICK_ITEMS": [],
+        "CADENCE_BARRIER_ITEMS": [],
+        "CONTINGENCY_GATE_ITEMS": [],
+        "FORBID": [],
+        "MAPS": [],
+        "MOVE_PICK_ITEMS": [],
+        "OC_FRAME": [],
+        "OC_GATES": [],
+        "POLARITY_GATE_ITEMS": [],
+        "READS_UTB_CHOICE": [],
+        "REQUIRED_MOVE": [],
+        "SLOT_OPTIONS": [],
+        "SLOT_SPEC": [],
+        "TYPE_MATCH_ITEMS": []
+      }
+    }
+  },
+  "items": [
+    {
+      "handout": 1,
+      "id": "S1"
+    },
+    {
+      "handout": 2,
+      "id": "S2"
+    }
+  ],
+  "schema_version": 1
+}

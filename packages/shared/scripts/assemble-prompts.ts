@@ -23,8 +23,7 @@ import { assembleBodyPrefix, assembleChecklist, assembleContextAndResponse }
 import {
   countsAttr, onlyifAttr, requiresAttr, equalsAttr, coverAttr, forbidAttr,
   mapsAttr, freeAttr, slotsAttr, derivedAttr, maxAttr, expectAttr, rubricDefAttr,
-  choicesAttr,
-} from '../lib/llm/attributeAssembler'
+  choicesAttr, slotPairsAttr } from '../lib/llm/attributeAssembler'
 
 const inputs = JSON.parse(readFileSync(
   process.env.ASSEMBLER_INPUTS ?? '.stage/assembler-inputs.json', 'utf8'))
@@ -87,6 +86,8 @@ function attrsFor(id: string, d: any): Record<string, string | null> {
     cover: coverAttr(i.cover), equals: equalsAttr(i.equals),
     onlyif: onlyifAttr(i.onlyif), max: maxAttr(i.max, i.maxPresent),
     slots: slotsAttr(i.slotSpec), derived: derivedAttr(i.derived),
+    charge: slotPairsAttr(i.slotSpec, 'charge'),
+    because: slotPairsAttr(i.slotSpec, 'because'),
   }
 }
 

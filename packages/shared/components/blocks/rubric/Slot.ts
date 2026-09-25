@@ -41,8 +41,16 @@ const Slot = core({
       'What it is worth. Omit for a check that reports rather than scores.'),
     seg: z.string().optional().describe(
       'How the answer is collected, when it is not a plain verdict.'),
-    gate: z.enum(['true', 'false']).optional().describe(
-      'An unsatisfied gate is the whole story for the item.'),
+    // THE STAGE IS PART OF THE VALUE. `true` is a DEFINITIONAL gate -- is this
+    // an instance at all -- and runs before the type rules; `final` is a
+    // PRESENTATIONAL one -- how is it phrased -- and runs after them. The enum
+    // admitted only true/false when the stage was added, so the content loader
+    // REFUSED the first `final` gate outright and aborted the static build:
+    // the schema is the fifth reader of this attribute and the only one that
+    // fails loudly. The other four failed silently, dropping the gate.
+    gate: z.enum(['true', 'false', 'final']).optional().describe(
+      'An unsatisfied gate is the whole story for the item. `final` gates on ' +
+      'presentation and runs after the type rules; `true` is definitional.'),
     // THE CREDIT SIDE of a slot. A slot that carries points is also a credit
     // component, and these are the fields that describes: which deduction
     // codes answer to it, the verdicts it may take, the judging rule, whether

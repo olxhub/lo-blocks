@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'fs';
 import {
   parseSlots,
+  parseCharge,
   buildSlotSchema,
   composeSlotFeedback,
   failedGate,
@@ -93,18 +94,18 @@ describe('scoreSlotSheet', () => {
     const r = scoreSlotSheet(sheet, {
       a: { verdict: 'met' }, b: { verdict: 'met' }, c: { verdict: 'met' },
     });
-    expect(r).toEqual({ score: 4, max: 4, failed: [] });
+    expect(r).toEqual({ score: 4, max: 4, failed: [], deductions: [] });
   });
 
   it('takes off exactly what each unsatisfied check is worth', () => {
     const r = scoreSlotSheet(sheet, {
       a: { verdict: 'absent' }, b: { verdict: 'met' }, c: { verdict: 'unclear' },
     });
-    expect(r).toEqual({ score: 1, max: 4, failed: ['a', 'c'] });
+    expect(r).toEqual({ score: 1, max: 4, failed: ['a', 'c'], deductions: [] });
   });
 
   it('treats a missing verdict as unsatisfied', () => {
-    expect(scoreSlotSheet(sheet, {})).toEqual({ score: 0, max: 4, failed: ['a', 'b', 'c'] });
+    expect(scoreSlotSheet(sheet, {})).toEqual({ score: 0, max: 4, failed: ['a', 'b', 'c'], deductions: [] });
   });
 
   it('zeroes the item on a failed gate, whatever else was met', () => {
@@ -112,7 +113,7 @@ describe('scoreSlotSheet', () => {
     const r = scoreSlotSheet(gated, {
       g: { verdict: 'absent' }, a: { verdict: 'met' }, b: { verdict: 'met' },
     });
-    expect(r).toEqual({ score: 0, max: 4, failed: ['g'] });
+    expect(r).toEqual({ score: 0, max: 4, failed: ['g'], deductions: [] });
   });
 
   it('ignores a passing gate when totalling, since a gate carries no points', () => {
@@ -120,7 +121,7 @@ describe('scoreSlotSheet', () => {
     const r = scoreSlotSheet(gated, {
       g: { verdict: 'met' }, a: { verdict: 'met' }, b: { verdict: 'absent' },
     });
-    expect(r).toEqual({ score: 2, max: 4, failed: ['b'] });
+    expect(r).toEqual({ score: 2, max: 4, failed: ['b'], deductions: [] });
   });
 
   it('reproduces a real rubric item: eight checks at 1.25, six unmet', () => {
@@ -150,23 +151,23 @@ describe('scoreSlotSheet', () => {
       ['yes', 'no'],
     );
     const met = { is_oc: { verdict: 'yes' }, matches_type: { verdict: 'yes' }, targets_own: { verdict: 'yes' } };
-    expect(scoreSlotSheet(oc, met, 4)).toEqual({ score: 4, max: 4, failed: [] });
+    expect(scoreSlotSheet(oc, met, 4)).toEqual({ score: 4, max: 4, failed: [], deductions: [] });
 
     // wrong type only -> 2
     expect(scoreSlotSheet(oc, { ...met, matches_type: { verdict: 'no' } }, 4))
-      .toEqual({ score: 2, max: 4, failed: ['matches_type'] });
+      .toEqual({ score: 2, max: 4, failed: ['matches_type'], deductions: [] });
 
     // wrong behaviour only -> 3
     expect(scoreSlotSheet(oc, { ...met, targets_own: { verdict: 'no' } }, 4))
-      .toEqual({ score: 3, max: 4, failed: ['targets_own'] });
+      .toEqual({ score: 3, max: 4, failed: ['targets_own'], deductions: [] });
 
     // both -> 1, because these two stack in the dictionary
     expect(scoreSlotSheet(oc, { ...met, matches_type: { verdict: 'no' }, targets_own: { verdict: 'no' } }, 4))
-      .toEqual({ score: 1, max: 4, failed: ['matches_type', 'targets_own'] });
+      .toEqual({ score: 1, max: 4, failed: ['matches_type', 'targets_own'], deductions: [] });
 
     // the gate voids the item whatever else is met
     expect(scoreSlotSheet(oc, { ...met, is_oc: { verdict: 'no' } }, 4))
-      .toEqual({ score: 0, max: 4, failed: ['is_oc'] });
+      .toEqual({ score: 0, max: 4, failed: ['is_oc'], deductions: [] });
   });
 
   it('an explicit max that equals the sum changes nothing — the readings coincide', () => {
@@ -994,5 +995,59 @@ describe('pick and expect', () => {
     });
     expect(sheet.choices).toEqual(CHOICES);
     expect(sheet.expect).toEqual([{ key: 'ok', left: 't', value: 'PP', lenient: [] }]);
+  });
+});
+
+describe('coded deductions', () => {
+  // THE FEATURE THIS ENGINE DID NOT HAVE. It computed {score, max, failed}
+  // while the paper ledger computed {code, pts, note}; the rubric declared the
+  // code all along (`<Slot gate="true" charge="NOT_OC" because="..."/>`) and it
+  // was dropped on the way here. These assert the codes are EMITTED, not merely
+  // that the key exists -- the ten assertions updated above only prove `[]`.
+  const sheet = parseSlots('a:A@2|b:B@2', undefined,
+                           undefined, 'a:CODE_A|b:CODE_B', 'a:why a|b:why b');
+
+  it('parses the charge and because attributes onto the slot', () => {
+    expect(sheet[0].charge).toBe('CODE_A');
+    expect(sheet[0].because).toBe('why a');
+    expect(parseCharge('x:C1|y:C2')).toEqual({ x: 'C1', y: 'C2' });
+  });
+
+  it('emits one coded deduction per failing slot that names a code', () => {
+    const r = scoreSlotSheet(sheet, { a: { verdict: 'absent' }, b: { verdict: 'met' } });
+    expect(r).toEqual({
+      score: 2, max: 4, failed: ['a'],
+      deductions: [{ code: 'CODE_A', pts: 2, note: 'why a' }],
+    });
+  });
+
+  it('charges the WHOLE max when a gate with a code fails', () => {
+    const gated = parseSlots('!g:G@1|b:B@3', undefined, undefined, 'g:NOT_OC', 'g:not an instance');
+    const r = scoreSlotSheet(gated, { g: { verdict: 'absent' }, b: { verdict: 'met' } });
+    expect(r).toEqual({
+      score: 0, max: 4, failed: ['g'],
+      deductions: [{ code: 'NOT_OC', pts: 4, note: 'not an instance' }],
+    });
+  });
+
+  it('a failing slot that names NO code costs its points and reports none', () => {
+    // Silence means "this rubric named no code", never "nothing was charged" --
+    // the score still falls, so the two facts must not be read off each other.
+    const plain = parseSlots('a:A@2|b:B@2');
+    const r = scoreSlotSheet(plain, { a: { verdict: 'absent' }, b: { verdict: 'met' } });
+    expect(r?.score).toBe(2);
+    expect(r?.deductions).toEqual([]);
+  });
+
+  it('a satisfied sheet charges nothing', () => {
+    const r = scoreSlotSheet(sheet, { a: { verdict: 'met' }, b: { verdict: 'met' } });
+    expect(r?.deductions).toEqual([]);
+  });
+
+  it('a declared-free verdict costs nothing AND charges nothing', () => {
+    const freed = parseSlots('a:A@2|b:B@2', undefined, 'a:unclear', 'a:CODE_A');
+    const r = scoreSlotSheet(freed, { a: { verdict: 'unclear' }, b: { verdict: 'met' } });
+    expect(r?.score).toBe(4);
+    expect(r?.deductions).toEqual([]);
   });
 });

@@ -100,6 +100,21 @@ export function freeAttr(credit: Array<{ what: string; free?: string[] }>) {
   return joinRules(out)
 }
 
+/**
+ * `charge="slot:CODE"` / `because="slot:text"`, '|'-separated.
+ *
+ * One emitter for both: the runtime parses each with `parseCharge`, which splits
+ * on the FIRST colon, so a value may contain colons of its own -- as every
+ * `because` sentence does.
+ *
+ * REPORTING, NOT ARITHMETIC. `scoreSlotSheet` computes score, max and failed
+ * without consulting `charge`; it only populates `deductions[]`. Emitting these
+ * gives the web the code the rubric already declared without moving a score.
+ */
+export function slotPairsAttr(rules: SlotClause[], field: 'charge' | 'because') {
+  return joinRules(rules.filter(r => r[field]).map(r => `${r.key}:${r[field]}`))
+}
+
 /** A slot clause as the rubric's SLOT_SPEC declares it. */
 export interface SlotClause {
   key: string
@@ -107,6 +122,8 @@ export interface SlotClause {
   label?: string
   seg?: string | null
   pts?: number | null
+  charge?: string | null
+  because?: string | null
 }
 
 /**
