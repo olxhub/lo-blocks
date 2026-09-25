@@ -11,6 +11,9 @@ import { readCourseJson } from './courseData';
 
 export type ArtifactRef = { item: string; side: string; path: string };
 
+/** Which course these artifacts belong to. Roots are resolved per course. */
+export type ArtifactPayload = { artifacts: ArtifactRef[]; ns: string };
+
 /**
  * Runs recorded with a score and NO VERDICTS AT ALL.
  *
@@ -19,12 +22,12 @@ export type ArtifactRef = { item: string; side: string; path: string };
  * English. This asks the structural question instead, so a failure that returns
  * politely is caught the same way.
  */
-export function verdictlessRuns(p: { artifacts: ArtifactRef[] }): string[] {
+export function verdictlessRuns(p: ArtifactPayload): string[] {
   const out: string[] = [];
   for (const a of p?.artifacts ?? []) {
     let doc: any;
     try {
-      doc = readCourseJson('COURSE_DATA', a.path);
+      doc = readCourseJson('COURSE_DATA', a.path, p.ns);
     } catch (e) {
       // REPORTED, NEVER SKIPPED. An unreadable artifact is a column this could
       // not examine, and silence there reads exactly like a clean column.

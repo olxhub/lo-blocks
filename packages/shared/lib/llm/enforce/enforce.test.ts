@@ -302,13 +302,14 @@ describe('no_recorded_run_is_verdictless', () => {
     // and that refusal must ARRIVE as a finding, never as silence.
     const f = RULES.no_recorded_run_is_verdictless({
       artifacts: [{ item: 'Q1', side: 'olx', path: 'nope/Q1.runs.json' }],
+      ns: 'edu.no.such.course',
     });
     expect(f).toHaveLength(1);
     expect(f[0]).toContain('could not be read');
   });
 
   it('is silent on no artifacts at all', () => {
-    expect(RULES.no_recorded_run_is_verdictless({ artifacts: [] })).toEqual([]);
+    expect(RULES.no_recorded_run_is_verdictless({ artifacts: [], ns: 'x' })).toEqual([]);
   });
 });
 
@@ -317,14 +318,20 @@ describe('courseData', () => {
     const { courseDir } = await import('./courseData');
     const saved = process.env.COURSE_METADATA;
     delete process.env.COURSE_METADATA;
-    expect(() => courseDir('COURSE_METADATA')).toThrow(/is not set/);
+    expect(() => courseDir('COURSE_METADATA', 'edu.no.such.course'))
+      .toThrow(/is not set|declares no/);
     if (saved !== undefined) process.env.COURSE_METADATA = saved;
+  });
+
+  it('refuses to answer without naming a course', async () => {
+    const { courseDir } = await import('./courseData');
+    expect(() => courseDir('COURSE_DATA', '')).toThrow(/naming a course/);
   });
 
   it('refuses a path that escapes the course directory', async () => {
     const { readCourseJson } = await import('./courseData');
     process.env.COURSE_METADATA = '/tmp/enforce-test-root';
-    expect(() => readCourseJson('COURSE_METADATA', '../../etc/passwd'))
+    expect(() => readCourseJson('COURSE_METADATA', '../../etc/passwd', 'edu.memphis.psych'))
       .toThrow(/outside/);
   });
 });
@@ -580,5 +587,20 @@ describe('maps_tables_are_attached', () => {
     expect(RULES.maps_tables_are_attached({ entries: [
       { handout: 1, item: 'Q4a', inSpec: true, attached: true },
     ] })).toEqual([]);
+  });
+});
+
+describe('recorded_sides_are_readable', () => {
+  it('FIRES when the artifact cannot be read', () => {
+    const f = RULES.recorded_sides_are_readable({ sides: [
+      { item: 'Q1', side: 'olx', numerator: 18, denominator: 20,
+        out: 'gone', path: 'out/gone/Q1.runs.json' },
+    ], ns: 'edu.no.such.course' });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('nothing wrong');
+  });
+
+  it('is silent on no recorded sides at all', () => {
+    expect(RULES.recorded_sides_are_readable({ sides: [], ns: 'x' })).toEqual([]);
   });
 });

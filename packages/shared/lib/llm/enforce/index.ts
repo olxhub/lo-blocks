@@ -27,6 +27,7 @@ import { cellsBothCorrectedAndDeclared } from './goldTables';
 import { mapsTablesAreAttached } from './mapsAttached';
 import { parkedEntriesStillApply } from './parked';
 import { ratchetsOnlyTighten } from './ratchet';
+import { recordedSidesAreReadable } from './recordedSides';
 import { verdictlessRuns } from './recordedRuns';
 import { everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration }
   from './sheetDiscovery';
@@ -44,13 +45,14 @@ export const RULES: Record<string, Rule> = {
     computedRulesDoNotShareAKey(p ?? { items: [] }),
   no_cell_is_both_corrected_and_declared: (p) =>
     cellsBothCorrectedAndDeclared(p ?? { corrected: [], divergences: [] }),
-  no_recorded_run_is_verdictless: (p) => verdictlessRuns(p ?? { artifacts: [] }),
+  no_recorded_run_is_verdictless: (p) => verdictlessRuns(p ?? { artifacts: [], ns: '' }),
   consensus_fixes_are_unique: (p) => consensusFixesAreUnique(p ?? { entries: [] }),
   every_item_has_a_findable_slot_sheet: (p) =>
     everyItemHasAFindableSlotSheet(p ?? { sheets: [], olx: '' }),
   generated_attributes_have_a_declaration: (p) =>
     generatedAttributesHaveADeclaration(p ?? { attrs: [] }),
   ratchets_only_tighten: (p) => ratchetsOnlyTighten(p ?? { ratchets: [] }),
+  recorded_sides_are_readable: (p) => recordedSidesAreReadable(p ?? { sides: [], ns: '' }),
   maps_tables_are_attached: (p) => mapsTablesAreAttached(p ?? { entries: [] }),
   parked_entries_still_apply: (p) =>
     parkedEntriesStillApply(p ?? { entries: [], budget: 0 }),
@@ -74,7 +76,7 @@ export {
   consensusFixesAreUnique, namedFixturesStillNameSomething,
   everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration,
   everyDesignedEntryShips, handAuthoredAttrsStillSuppressSomething,
-  parkedEntriesStillApply, mapsTablesAreAttached,
+  parkedEntriesStillApply, mapsTablesAreAttached, recordedSidesAreReadable,
   ratchetsOnlyTighten,
   verdictlessRuns,
   promptProseNamesOnlyOfferedVerdicts,
