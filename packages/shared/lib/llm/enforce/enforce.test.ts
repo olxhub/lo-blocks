@@ -555,3 +555,30 @@ describe('parked_entries_still_apply', () => {
       .toEqual([]);
   });
 });
+
+describe('maps_tables_are_attached', () => {
+  // THE ARM THE PYTHON ORIGINAL COULD NOT REACH. It interpolated an unbound
+  // `name` and raised NameError the moment either branch fired.
+  it('FIRES on a table defined but never attached', () => {
+    const f = RULES.maps_tables_are_attached({ entries: [
+      { handout: 2, item: 'Q4b', inSpec: true, attached: false },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('rubric_h2');
+    expect(f[0]).toContain('no route to its verdict');
+  });
+
+  it('FIRES on a table naming an item BY_ID does not have', () => {
+    const f = RULES.maps_tables_are_attached({ entries: [
+      { handout: 1, item: 'GONE', inSpec: false, attached: false },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('does not exist in BY_ID');
+  });
+
+  it('is silent on an attached table', () => {
+    expect(RULES.maps_tables_are_attached({ entries: [
+      { handout: 1, item: 'Q4a', inSpec: true, attached: true },
+    ] })).toEqual([]);
+  });
+});

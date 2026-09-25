@@ -24,6 +24,7 @@ import { consensusFixesAreUnique, namedFixturesStillNameSomething } from './decl
 import { everyDesignedEntryShips, handAuthoredAttrsStillSuppressSomething }
   from './designedText';
 import { cellsBothCorrectedAndDeclared } from './goldTables';
+import { mapsTablesAreAttached } from './mapsAttached';
 import { parkedEntriesStillApply } from './parked';
 import { ratchetsOnlyTighten } from './ratchet';
 import { verdictlessRuns } from './recordedRuns';
@@ -50,6 +51,7 @@ export const RULES: Record<string, Rule> = {
   generated_attributes_have_a_declaration: (p) =>
     generatedAttributesHaveADeclaration(p ?? { attrs: [] }),
   ratchets_only_tighten: (p) => ratchetsOnlyTighten(p ?? { ratchets: [] }),
+  maps_tables_are_attached: (p) => mapsTablesAreAttached(p ?? { entries: [] }),
   parked_entries_still_apply: (p) =>
     parkedEntriesStillApply(p ?? { entries: [], budget: 0 }),
   every_designed_entry_ships: (p) =>
@@ -72,7 +74,7 @@ export {
   consensusFixesAreUnique, namedFixturesStillNameSomething,
   everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration,
   everyDesignedEntryShips, handAuthoredAttrsStillSuppressSomething,
-  parkedEntriesStillApply,
+  parkedEntriesStillApply, mapsTablesAreAttached,
   ratchetsOnlyTighten,
   verdictlessRuns,
   promptProseNamesOnlyOfferedVerdicts,
