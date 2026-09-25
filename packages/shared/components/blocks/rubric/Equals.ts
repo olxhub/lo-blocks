@@ -28,6 +28,15 @@ const Equals = core({
     right: z.string().describe('The other.'),
     lenient: z.string().optional().describe(
       'Answers that establish no mismatch and are not charged, comma-separated.'),
+    // THE LEDGER'S WORDING for the charge, on the rule that decides it. Not
+    // emitted into the generated `equals=` attribute -- that is
+    // `key:left,right:lenient`, and the web takes its student-facing text from
+    // `<Deduction>` -- so this is the paper ledger's half of a rule the two
+    // engines otherwise share. `{left}` and `{right}` style placeholders are
+    // substituted by whichever scorer reads it.
+    note: z.string().optional().describe(
+      'How the charge reads when this comparison fails. Placeholders naming ' +
+      'the two answers are substituted by the scorer.'),
   }),
   // NOT `internal`. These are author-facing: the end state is a HAND-AUTHORED
   // rubric, and `internal` means "hidden from the docs, not for course authors",
