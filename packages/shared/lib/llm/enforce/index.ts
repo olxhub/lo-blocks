@@ -21,8 +21,12 @@ import { computedRulesDoNotShareAKey } from './computedKeys';
 import { promptProseNamesOnlyOfferedVerdicts } from './offeredVerdicts';
 import { parseSlotSpecs, resolveCorpusRefs } from './probes';
 import { consensusFixesAreUnique, namedFixturesStillNameSomething } from './declarations';
+import { everyDesignedEntryShips, handAuthoredAttrsStillSuppressSomething }
+  from './designedText';
 import { cellsBothCorrectedAndDeclared } from './goldTables';
 import { verdictlessRuns } from './recordedRuns';
+import { everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration }
+  from './sheetDiscovery';
 import { scoreRecordedSheets } from './rescore';
 
 export type Finding = string;
@@ -39,6 +43,14 @@ export const RULES: Record<string, Rule> = {
     cellsBothCorrectedAndDeclared(p ?? { corrected: [], divergences: [] }),
   no_recorded_run_is_verdictless: (p) => verdictlessRuns(p ?? { artifacts: [] }),
   consensus_fixes_are_unique: (p) => consensusFixesAreUnique(p ?? { entries: [] }),
+  every_item_has_a_findable_slot_sheet: (p) =>
+    everyItemHasAFindableSlotSheet(p ?? { sheets: [], olx: '' }),
+  generated_attributes_have_a_declaration: (p) =>
+    generatedAttributesHaveADeclaration(p ?? { attrs: [] }),
+  every_designed_entry_ships: (p) =>
+    everyDesignedEntryShips(p ?? { entries: [], prompts: {} }),
+  hand_authored_attrs_still_suppress_something: (p) =>
+    handAuthoredAttrsStillSuppressSomething(p ?? { entries: [] }),
   named_fixtures_still_name_something: (p) =>
     namedFixturesStillNameSomething(p ?? { fixtures: [], knownItems: [] }),
 };
@@ -53,6 +65,8 @@ export const PROBES: Record<string, Probe> = {
 export {
   caseNamesInPrompts, cellsBothCorrectedAndDeclared, computedRulesDoNotShareAKey,
   consensusFixesAreUnique, namedFixturesStillNameSomething,
+  everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration,
+  everyDesignedEntryShips, handAuthoredAttrsStillSuppressSomething,
   verdictlessRuns,
   promptProseNamesOnlyOfferedVerdicts,
   parseSlotSpecs, resolveCorpusRefs, scoreRecordedSheets,

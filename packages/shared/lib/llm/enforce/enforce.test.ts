@@ -381,3 +381,116 @@ describe('named_fixtures_still_name_something', () => {
     })).toEqual([]);
   });
 });
+
+describe('every_item_has_a_findable_slot_sheet', () => {
+  const olx = '<LLMAction id="bmod_q1" slots="a"/>\n<DerivedChecks id="bmod_1b" slots="b"/>';
+
+  it('finds a sheet on EITHER element type', () => {
+    expect(RULES.every_item_has_a_findable_slot_sheet({
+      sheets: [{ item: 'Q1', elementId: 'bmod_q1' },
+               { item: '1b', elementId: 'bmod_1b' }], olx,
+    })).toEqual([]);
+  });
+
+  it('FIRES on an id no element carries', () => {
+    const f = RULES.every_item_has_a_findable_slot_sheet({
+      sheets: [{ item: 'Q9', elementId: 'bmod_gone' }], olx,
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('blind on this item');
+  });
+
+  // An empty corpus must not read as "every sheet is findable".
+  it('refuses an empty olx rather than passing', () => {
+    const f = RULES.every_item_has_a_findable_slot_sheet({
+      sheets: [{ item: 'Q1', elementId: 'bmod_q1' }], olx: '',
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('cannot run');
+  });
+
+  it('does not match an id that merely shares a prefix', () => {
+    const f = RULES.every_item_has_a_findable_slot_sheet({
+      sheets: [{ item: 'Q1', elementId: 'bmod_q' }], olx,
+    });
+    expect(f).toHaveLength(1);
+  });
+});
+
+describe('generated_attributes_have_a_declaration', () => {
+  it('FIRES on an orphaned generated attribute', () => {
+    const f = RULES.generated_attributes_have_a_declaration({ attrs: [
+      { item: 'Q4b', name: 'forbid', value: 'x:y', backed: false, exempt: false },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('ORPHAN');
+  });
+
+  it('is silent when the rubric backs it', () => {
+    expect(RULES.generated_attributes_have_a_declaration({ attrs: [
+      { item: 'Q4b', name: 'forbid', value: 'x:y', backed: true, exempt: false },
+    ] })).toEqual([]);
+  });
+
+  it('is silent when it is a declared hand-authored attribute', () => {
+    expect(RULES.generated_attributes_have_a_declaration({ attrs: [
+      { item: 'Q4b', name: 'maps', value: 'x', backed: false, exempt: true },
+    ] })).toEqual([]);
+  });
+
+  it('is silent on an empty placeholder', () => {
+    expect(RULES.generated_attributes_have_a_declaration({ attrs: [
+      { item: 'Q4b', name: 'expect', value: '   ', backed: false, exempt: false },
+    ] })).toEqual([]);
+  });
+});
+
+describe('every_designed_entry_ships', () => {
+  it('FIRES when the designed wording is absent from the shipped prompt', () => {
+    const f = RULES.every_designed_entry_ships({
+      entries: [{ item: 'Q2', slot: 's', field: 'rule', want: 'answer unclear when' }],
+      prompts: { Q2: 'something else entirely' },
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('NOT in');
+  });
+
+  // A rebuild may rewrap a line without changing a word.
+  it('is whitespace-insensitive', () => {
+    expect(RULES.every_designed_entry_ships({
+      entries: [{ item: 'Q2', slot: 's', field: 'rule', want: 'answer  unclear\n  when' }],
+      prompts: { Q2: 'x answer unclear when y' },
+    })).toEqual([]);
+  });
+
+  it('reports an item whose prompt could not be built, rather than skipping it', () => {
+    const f = RULES.every_designed_entry_ships({
+      entries: [{ item: 'Q9', slot: 's', field: 'rule', want: 'text' }], prompts: {},
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('could not be checked');
+  });
+});
+
+describe('hand_authored_attrs_still_suppress_something', () => {
+  it('FIRES when the excused attribute is not present', () => {
+    const f = RULES.hand_authored_attrs_still_suppress_something({ entries: [
+      { item: 'Q4a', name: 'forbid', why: 'authored', isGenerated: true, present: false },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('excuses nothing');
+  });
+
+  it('FIRES when the name is not a generated attribute at all', () => {
+    const f = RULES.hand_authored_attrs_still_suppress_something({ entries: [
+      { item: 'Q4a', name: 'nonsense', why: 'x', isGenerated: false, present: true },
+    ] });
+    expect(f[0]).toContain('not a generated attribute');
+  });
+
+  it('is silent on an exemption that still does work', () => {
+    expect(RULES.hand_authored_attrs_still_suppress_something({ entries: [
+      { item: 'Q4a', name: 'maps', why: 'authored', isGenerated: true, present: true },
+    ] })).toEqual([]);
+  });
+});
