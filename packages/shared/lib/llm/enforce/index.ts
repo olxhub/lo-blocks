@@ -20,6 +20,7 @@ import { caseNamesInPrompts } from './caseNames';
 import { computedRulesDoNotShareAKey } from './computedKeys';
 import { promptProseNamesOnlyOfferedVerdicts } from './offeredVerdicts';
 import { parseSlotSpecs, resolveCorpusRefs } from './probes';
+import { consensusFixesAreUnique, namedFixturesStillNameSomething } from './declarations';
 import { cellsBothCorrectedAndDeclared } from './goldTables';
 import { verdictlessRuns } from './recordedRuns';
 import { scoreRecordedSheets } from './rescore';
@@ -37,6 +38,9 @@ export const RULES: Record<string, Rule> = {
   no_cell_is_both_corrected_and_declared: (p) =>
     cellsBothCorrectedAndDeclared(p ?? { corrected: [], divergences: [] }),
   no_recorded_run_is_verdictless: (p) => verdictlessRuns(p ?? { artifacts: [] }),
+  consensus_fixes_are_unique: (p) => consensusFixesAreUnique(p ?? { entries: [] }),
+  named_fixtures_still_name_something: (p) =>
+    namedFixturesStillNameSomething(p ?? { fixtures: [], knownItems: [] }),
 };
 
 export const PROBES: Record<string, Probe> = {
@@ -48,6 +52,7 @@ export const PROBES: Record<string, Probe> = {
 
 export {
   caseNamesInPrompts, cellsBothCorrectedAndDeclared, computedRulesDoNotShareAKey,
+  consensusFixesAreUnique, namedFixturesStillNameSomething,
   verdictlessRuns,
   promptProseNamesOnlyOfferedVerdicts,
   parseSlotSpecs, resolveCorpusRefs, scoreRecordedSheets,

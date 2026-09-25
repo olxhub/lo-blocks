@@ -328,3 +328,56 @@ describe('courseData', () => {
       .toThrow(/outside/);
   });
 });
+
+describe('consensus_fixes_are_unique', () => {
+  it('FIRES when one box is corrected twice', () => {
+    const f = RULES.consensus_fixes_are_unique({ entries: [
+      { item: 'Q6', pid: 9, fixes: [['trim', 'state_a2'], ['assign', 'state_a2']] },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('state_a2');
+    expect(f[0]).toContain('trim then assign');
+  });
+
+  // A `swap` names TWO boxes; reading only the first would miss a swap
+  // clobbering a box a later trim also names.
+  it('reads BOTH boxes of a swap', () => {
+    const f = RULES.consensus_fixes_are_unique({ entries: [
+      { item: 'Q6', pid: 9, fixes: [['swap', 'a', 'b'], ['trim', 'b']] },
+    ] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('`b` twice');
+  });
+
+  it('is silent when every fix names a different box', () => {
+    expect(RULES.consensus_fixes_are_unique({ entries: [
+      { item: 'Q6', pid: 9, fixes: [['trim', 'a'], ['trim', 'b']] },
+    ] })).toEqual([]);
+  });
+});
+
+describe('named_fixtures_still_name_something', () => {
+  it('FIRES on a fixture naming an item the course no longer has', () => {
+    const f = RULES.named_fixtures_still_name_something({
+      fixtures: [{ label: 'gate case', item: 'GONE', why: 'a gold-bound cell' }],
+      knownItems: ['Q1', 'Q6'],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('injecting into nothing');
+  });
+
+  it('FIRES on a named target with no reason given', () => {
+    const f = RULES.named_fixtures_still_name_something({
+      fixtures: [{ label: 'x', item: 'Q1', why: '   ' }], knownItems: ['Q1'],
+    });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('without a justification');
+  });
+
+  it('is silent on a live target with a reason', () => {
+    expect(RULES.named_fixtures_still_name_something({
+      fixtures: [{ label: 'x', item: 'Q1', why: 'a gold-bound cell' }],
+      knownItems: ['Q1'],
+    })).toEqual([]);
+  });
+});
