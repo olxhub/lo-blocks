@@ -494,3 +494,64 @@ describe('hand_authored_attrs_still_suppress_something', () => {
     ] })).toEqual([]);
   });
 });
+
+describe('ratchets_only_tighten', () => {
+  const r = (count: number, budget: number) => ({
+    table: 'HANDCODED_ITEM_RULES', budgetName: 'HANDCODED_BUDGET',
+    count, budget, unit: 'hand-coded rule',
+    advice: 'A declaration is a promise to convert it, not a licence to keep it',
+  });
+
+  it('FIRES when the table grew', () => {
+    const f = RULES.ratchets_only_tighten({ ratchets: [r(5, 3)] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('2 hand-coded rule(s) were ADDED');
+  });
+
+  // UNDER budget is a finding too: the slack is what lets the next entry in.
+  it('FIRES when the table shrank and the budget did not follow', () => {
+    const f = RULES.ratchets_only_tighten({ ratchets: [r(1, 3)] });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('lower it to 1');
+    expect(f[0]).toContain('without the audit noticing');
+  });
+
+  it('is silent when count equals budget', () => {
+    expect(RULES.ratchets_only_tighten({ ratchets: [r(3, 3)] })).toEqual([]);
+  });
+
+  it('reports each ratchet independently', () => {
+    expect(RULES.ratchets_only_tighten({ ratchets: [r(5, 3), r(3, 3), r(0, 2)] }))
+      .toHaveLength(2);
+  });
+});
+
+describe('parked_entries_still_apply', () => {
+  const good = { key: ['Q1', 'rate'], keyRepr: "('Q1', 'rate')",
+                 why: 'measured on 2026-09-01 and waiting on the Q44 rewrite' };
+
+  it('FIRES when the lot outgrew its budget', () => {
+    const f = RULES.parked_entries_still_apply({ entries: [good, good], budget: 1 });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('without raising the budget');
+  });
+
+  it('FIRES on a malformed key', () => {
+    const f = RULES.parked_entries_still_apply({
+      entries: [{ ...good, key: ['Q1'], keyRepr: "('Q1',)" }], budget: 9 });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('is not (item, kind)');
+  });
+
+  it('FIRES on a reason too short to say what would unpark it', () => {
+    const f = RULES.parked_entries_still_apply({
+      entries: [{ ...good, why: 'later' }], budget: 9 });
+    expect(f).toHaveLength(1);
+    expect(f[0]).toContain('never expires');
+  });
+
+  it('is silent on a well-formed entry inside budget', () => {
+    expect(RULES.parked_entries_still_apply({ entries: [good], budget: 1 }))
+      .toEqual([]);
+  });
+});
