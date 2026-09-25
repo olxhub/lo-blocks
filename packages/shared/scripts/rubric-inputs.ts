@@ -17,6 +17,7 @@
 // this emits the same shape rather than a nicer one: a shape difference would
 // hide a content difference.
 import { readFileSync, readdirSync } from 'node:fs'
+import primitives from '../lib/llm/primitives.json'
 import {
   parseSlots, parseCounts, parseMaps, parseForbid, parseEquals, parseExpect,
   parseDerived, parseChoices,
@@ -123,6 +124,13 @@ function children(block: string, tag: string): Array<{ a: Record<string, string>
 }
 
 const TRUE = new Set(['true', 'True', '1', 'yes'])
+
+// EVERY STAGE IS A GATE, and the stages come from the shared registry rather
+// than being spelled here. Hand-testing `=== 'final'` is what made this reader
+// drop the `!` from a shipped `slots=` attribute twice: once when `final` was
+// added and again when `scope` was.
+const GATE_STAGES: string[] = primitives.gateStages ?? []
+const isGate = (v: string) => TRUE.has(v) || GATE_STAGES.includes(v)
 const NUL = String.fromCharCode(0)
 
 /** The rubric item, in the shape `promptAssembler` takes. */
@@ -399,8 +407,7 @@ for (const [id] of BLOCKS) {
         // so the web would have STOPPED GATING on a check the rubric still
         // gates on, while the handout body kept saying **GATE**. The Python
         // reader (`rubric_component.as_view_slot_spec`) had the identical bug.
-        ...(x.gate !== undefined && (TRUE.has(x.gate) || x.gate === 'final')
-            ? { gate: true } : {}) })),
+        ...(x.gate !== undefined && isGate(x.gate) ? { gate: true } : {}) })),
       choicesDeclared: parseChoices(a.choices),
       choicesUsers: pickUsers(slots),
       choicesSourced: pickSourced(r, slots),

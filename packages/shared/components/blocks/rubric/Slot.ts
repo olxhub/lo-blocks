@@ -48,9 +48,11 @@ const Slot = core({
     // REFUSED the first `final` gate outright and aborted the static build:
     // the schema is the fifth reader of this attribute and the only one that
     // fails loudly. The other four failed silently, dropping the gate.
-    gate: z.enum(['true', 'false', 'final']).optional().describe(
-      'An unsatisfied gate is the whole story for the item. `final` gates on ' +
-      'presentation and runs after the type rules; `true` is definitional.'),
+    gate: z.enum(['true', 'false', 'final', 'scope']).optional().describe(
+      'An unsatisfied gate is the whole story for the item. `true` is ' +
+      'definitional -- is this an instance at all. `final` gates on presentation ' +
+      'and runs after the type rules. `scope` asks whether the answer addresses ' +
+      "THIS item's own terms and runs before them."),
     // THE CREDIT SIDE of a slot. A slot that carries points is also a credit
     // component, and these are the fields that describes: which deduction
     // codes answer to it, the verdicts it may take, the judging rule, whether

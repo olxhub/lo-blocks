@@ -29,6 +29,20 @@
     "sends omits them too. A registry that is only a declaration would rot the way",
     "every other hand-maintained mirror in this project has."
   ],
+  "_gateStagesComment": [
+    "The STAGES a `gate=` may name, beyond the plain boolean. A stage says what",
+    "the gate asks and therefore where it runs: `final` is presentational and",
+    "runs after the type rules; `scope` asks whether the answer addresses the",
+    "item's own terms and runs before them.",
+    "",
+    "HERE BECAUSE THE FIRST ONE COST FOUR READERS. `gate=\"final\"` was added to",
+    "the grammar and every reader that tested `in TRUE` silently stopped seeing",
+    "a gate -- one of them wrote the regression into a shipped handout, and the",
+    "zod enum refused the value and aborted the static build. Adding `scope`",
+    "repeated it in rubric-inputs.ts before this list existed. Read the list;",
+    "do not spell the values again."
+  ],
+  "gateStages": ["final", "scope"],
   "sheetAttributes": [
     "id",
     "target",
