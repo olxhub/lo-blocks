@@ -233,17 +233,81 @@ codes="absent=STUB_MISS">The stub slot was met.</Credit>
 # is that a course should not have to.
 
 
+# THE `<rubric id>_qc/` DIRECTORY, part of the standard structure of ANY course.
+#
+# A rubric keeps its quality-control documents in `<course>/<rubric id>_qc/`:
+# the rubric-specific halves of the split guides, its ledgers, and the records
+# of what was decided about it. The generic halves live once, with the
+# machinery, in `scoring/qc/`. The pairing is the point -- a document's ROLE is
+# read off its path, so neither half needs a declaration saying which it is.
+#
+# THE RUBRIC OWNS IT, NOT THE COURSE, which is why the name carries the rubric
+# id. A course may carry several rubrics; one shared `qc/` would have made them
+# compose each other's halves. `paths.qc_dirname` derives the name from the
+# rubric id -- `stub` here, so `stub_qc` -- and this builder asks rather than
+# spelling it, so the stub cannot drift from the rule the engine applies.
+#
+# THE STUB HAS ONE BECAUSE EVERY COURSE HAS ONE. The user's instruction of
+# 2026-09-26 was to treat `qc/` as standard structure "including the stub
+# course", and a fixture that omits part of the standard shape is a fixture
+# that cannot catch a reader assuming it. `paths._qc_documents` enumerates this
+# directory for whatever course is active; against the stub it answered `{}`
+# for the same reason the stub's other gaps were found -- nothing was there to
+# read, which is indistinguishable from nothing looking.
+#
+# WHAT IT HOLDS, and what it deliberately does not. One real document: the
+# course-specific half of README.md. The stub's OTHER three split documents
+# have no course half, which is a true statement about a course with no
+# measurements, no closed goals and no waived findings -- and
+# `compose_docs.NO_COURSE_HALF` is how an absence is declared rather than
+# sniffed. Writing three empty halves to fill the directory would make the
+# fixture assert a shape that no real course has at the start.
+QC_README = """# The stub course
+
+The course-specific half of `README.md`. The generic half is in `scoring/qc/`,
+and `compose_docs.compose` places the blocks below at its anchors.
+
+This half exists so that the stub carries the same `qc/` structure every course
+carries. It is a BUILD PRODUCT like everything else here: edit
+`build_stub_course.py`, not this file.
+"""
+
+
+RUBRIC_STEM = "stub_rubric"
+
+
+def _qc_dirname() -> str:
+    """`<rubric id>_qc`, asked of the engine rather than spelled here.
+
+    The stub exists to catch a reader assuming something the contract does not
+    promise, so it must not itself hardcode a name the contract derives. If
+    `paths` cannot be imported -- this builder runs standalone, with no course
+    configured -- it falls back to the same construction from this stub's own
+    rubric filename, which is what `_scoring_id` would derive anyway.
+    """
+    try:
+        import paths                                  # type: ignore
+        return paths.qc_dirname(ns=COURSE["course"])
+    except Exception:
+        return f'{RUBRIC_STEM.removesuffix("_rubric")}_qc'
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "course.json").write_text(json.dumps(COURSE, indent=2, sort_keys=True) + "\n")
     (OUT / "gold.json").write_text(json.dumps(GOLD, indent=2, sort_keys=True) + "\n")
     (OUT / "stub_rubric.olx").write_text(RUBRIC)
+    qc = OUT / _qc_dirname()
+    qc.mkdir(exist_ok=True)
+    (qc / "README.md").write_text(QC_README)
     print(f"  wrote {OUT}/course.json        "
           f"{len(DECLARATIONS)} declarations, {len(GENERATOR)} generator tables, "
           f"{len(COURSE['items'])} item(s), {len(DERIVED_EMPTY)} derived-empty")
     print(f"  wrote {OUT}/gold.json          {len(GOLD_DECLARATIONS)} gold declarations")
     print(f"  wrote {OUT}/stub_rubric.olx    {len(HANDOUTS_DECLARED)} item(s), "
           f"{len(FRAGMENTS)} fragments, criteria handout {CRITERIA_HANDOUT}")
+    print(f"  wrote {qc}/README.md   the rubric-specific half; the "
+          f"other three split documents have no rubric half yet")
     return 0
 
 

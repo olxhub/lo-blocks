@@ -41,6 +41,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 import * as YAML from 'yaml';
+import { courseDir } from '../lib/llm/enforce/courseData';
 
 // KEPT IN STEP WITH `scoring/corpus_resolve.py`. Two implementations of one
 // grammar, and nothing used to check they agreed: `shape=` and `alt=` were added
@@ -139,18 +140,89 @@ export function sha12(s: string): string {
   return createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 12);
 }
 
-/** The `corpus_data:` path from an .olx's frontmatter, with $VARS expanded. */
-export function corpusDataPath(olx: string): string | null {
+/**
+ * The `corpus_data:` path from an .olx's frontmatter, with $VARS expanded.
+ *
+ * ENVIRONMENT FIRST, THEN THE COURSE'S OWN DECLARATION -- which is python's
+ * precedence (`paths._course_root`), and this had only the first half. A
+ * course that declares `course_data:` in its rubric rather than exporting a
+ * variable is the arrangement the project is moving to, and on 2026-09-26 the
+ * dry run became the first tree to use it: every handout here says
+ * `corpus_data: $COURSE_DATA/corpus_refs.json`, the variable was deliberately
+ * unset, and the build died on a course that had in fact said where its data
+ * was. Reading the declaration is not a new mechanism -- `courseDir` is the
+ * same reader the enforce checks use.
+ *
+ * STILL THROWS WHEN NEITHER ANSWERS, because a corpus path that silently
+ * resolves to nothing produces a build with every reference unresolved, and
+ * that looks like a tree with no references at all.
+ */
+export function corpusDataPath(olx: string, ns?: string): string | null {
   const head = olx.slice(0, 4000);
   const m = head.match(/^\s*corpus_data:\s*(\S+)\s*$/m);
   if (!m) return null;
   return m[1].replace(/\$([A-Z_][A-Z0-9_]*)/g, (_all, name) => {
-    const v = process.env[name];
+    const v = process.env[name] || declaredRoot(name, ns);
     if (!v) throw new Error(
-      `resolveCorpusRefs: ${name} is not set, and corpus_data needs it to find ` +
-      `the referenced spans. Set it to the corpus directory.`);
+      `resolveCorpusRefs: ${name} is not set and no course declares it ` +
+      `(namespace ${ns ?? '<not supplied>'}), and corpus_data needs it to ` +
+      `find the referenced spans. Set it to the corpus directory, or declare ` +
+      `it in the rubric's frontmatter.`);
     return v;
   });
+}
+
+/** What a course declares for `COURSE_DATA` / `COURSE_METADATA`, or ''. */
+function declaredRoot(name: string, ns?: string): string {
+  if (name !== 'COURSE_DATA' && name !== 'COURSE_METADATA') return '';
+  if (!ns) return '';
+  try {
+    return courseDir(name as 'COURSE_DATA' | 'COURSE_METADATA', ns) || '';
+  } catch {
+    // The reader REFUSES when nothing declares the root and no variable is
+    // set, which is the same answer as '' here -- the caller then throws with
+    // the message that names both ways to fix it. (It was `require` at first,
+    // which is simply absent in an ES module: the call threw, the catch ate
+    // it, and the fallback reported "no course declares it" about a course
+    // that does. A lazy import to avoid a hard dependency is not worth a
+    // silent wrong answer.)
+    return '';
+  }
+}
+
+/**
+ * Which mounted course a file belongs to, or undefined.
+ *
+ * NOT `relative(contentRoot, file)`. The walk collects from the tree it was
+ * given AND from the mounted sources it dereferences, so a file is often not
+ * under the directory named on the command line at all -- `relative()` then
+ * returns a path beginning `..` and its first segment is a namespace no course
+ * has. That reported "no course declares it" about a course that does, which
+ * is the failure mode this whole fallback exists to avoid.
+ *
+ * ASK THE MOUNTS INSTEAD. `content/<ns>` is how a course is mounted,
+ * `<staged>/<ns>` is how it is staged, and `<out>/<ns>` is where this script
+ * writes what it resolved -- it walks its OWN OUTPUT, which is the root that
+ * was missing when this was first written. A file belongs to whichever of
+ * those real roots contains it; longest match wins, so a nested mount cannot
+ * be shadowed by the tree that holds it.
+ */
+function namespaceOf(file: string, ...roots: (string | null)[]): string | undefined {
+  const real = (p: string) => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
+  const target = real(file);
+  let best: { ns: string; len: number } | undefined;
+  const candidates = ['content', ...roots.filter(Boolean) as string[]];
+  for (const root of candidates.map(r => path.resolve(r))) {
+    let entries: string[];
+    try { entries = fs.readdirSync(root); } catch { continue; }
+    for (const ns of entries) {
+      const base = real(path.join(root, ns));
+      if (target === base || target.startsWith(base + path.sep)) {
+        if (!best || base.length > best.len) best = { ns, len: base.length };
+      }
+    }
+  }
+  return best?.ns;
 }
 
 export function resolve(olx: string, data: Record<string, string>, where: string): string {
@@ -262,7 +334,40 @@ export function contentRoots(repoRoot: string): { dirs: string[]; unscanned: str
  */
 export const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo',
                                     'dist', 'scoring', 'courses', 'migration',
-                                    'course_metadata']);
+                                    'course_metadata',
+                                    // `course_data` IS THE DATA STORE, and a
+                                    // course may now keep its own inside the
+                                    // repository (declared as `course_data:`,
+                                    // gitignored) so that it cannot collide
+                                    // with another tree's. It holds gold,
+                                    // submissions and the reconstructed
+                                    // response fixtures: student writing keyed
+                                    // by participant, which must never be
+                                    // copied into a tree the site is built
+                                    // from. Measured 2026-09-26: the walk
+                                    // descended it and created 983 empty
+                                    // directories, copying no file only
+                                    // because `MOUNT_FILES` happens not to
+                                    // name any of them -- protection by
+                                    // coincidence, one filename away from
+                                    // being none.
+                                    'course_data',
+                                    // `scorers` AND `fixture` HOLD PYTHON, and
+                                    // were staged only because a mounted source
+                                    // is copied whole. `scorers/` is this
+                                    // course's scoring package -- the new home
+                                    // for course python, created 2026-09-26 --
+                                    // and `fixture/` holds the segmenter. Both
+                                    // are read by the Python package OUT OF THE
+                                    // REPOSITORY (`paths.roots().scorers`,
+                                    // `.fixture`) and neither is ever fetched
+                                    // as a page; measured, nothing reads either
+                                    // one from the stage. They also dragged
+                                    // `__pycache__/*.pyc` in behind them, which
+                                    // this list cannot exclude on its own
+                                    // because it excludes by TOP-LEVEL name and
+                                    // a `__pycache__` sits one level down.
+                                    'scorers', 'fixture']);
 
 /**
  * Copy every MOUNTED source into `outDir` under its mount name.
@@ -301,16 +406,90 @@ export function stageSources(fallbackDir: string, outDir: string, who: string): 
 }
 
 
-function copyTree(src: string, dest: string): void {
+/**
+ * WHAT THE STAGE IS FOR: the CONTENT COLLECTION, and the mount metadata.
+ *
+ * The stage holds OLX with templates expanded and references resolved. Its only
+ * consumer is `xml2json`, which loads the content tree and emits
+ * `all.json`/`activities.json`/`manifest.json`.
+ *
+ * IT WAS A DENY-LIST, AND A DENY-LIST STAGES EVERY NEW DIRECTORY BY DEFAULT.
+ * That failed silently twice: `course_metadata` had to be added after the fact,
+ * and `scorers/` -- this course's python, created 2026-09-26 -- was copied into
+ * the build tree with `fixture/` and three `__pycache__/*.pyc` until somebody
+ * looked. Measured before this change: 8.3 MB staged, 7.0 MB of it never
+ * reaching a page, most of it planning documents.
+ *
+ * ENUMERATING EXTENSIONS IS THE WRONG AXIS, and trying it proved the point: an
+ * allow-list of `.olx` failed the build on 28 missing files, adding `.mmd`,
+ * `.cast`, `.json` and `.textSelectionpeg` left 14, inheriting content-ness
+ * into asset subdirectories left 2, and the next was `.liquid`. Every asset
+ * kind an author invents would be another build failure and another entry here.
+ *
+ * SO THE UNIT IS THE COLLECTION. A course's content lives in ONE directory --
+ * the one holding `manifest.yaml`, which is also the one holding the `.olx` --
+ * and everything under it is content by construction: templates, diagrams,
+ * casts, grammars, images, whatever comes next. Stage that subtree whole, plus
+ * the mount metadata beside it, and nothing else.
+ *
+ * BY SHAPE, NOT BY NAME. The collection is found by looking for its manifest,
+ * never by spelling `psychology` -- the engine must not know one course's
+ * directory names, which is what `manifest.yaml` exists to end.
+ */
+const MOUNT_FILES = new Set(['lo.yaml', '.lo-blocks', '.lo-server',
+                             'static.config.json']);
+
+/** Is this directory a content collection root? */
+export function isCollectionRoot(dir: string): boolean {
+  try {
+    if (fs.existsSync(path.join(dir, 'manifest.yaml'))) return true;
+    return fs.readdirSync(dir, { withFileTypes: true }).some(
+      e => !e.isDirectory() && path.extname(e.name).toLowerCase() === '.olx');
+  } catch { return false; }
+}
+
+/**
+ * Copy a mounted source, keeping only its content collections.
+ *
+ * `inCollection` is set once the walk enters a collection root and then
+ * everything below is copied; above it, only the mount metadata is.
+ */
+export function copyTree(src: string, dest: string, inCollection = false): void {
+  const here = inCollection || isCollectionRoot(src);
   fs.mkdirSync(dest, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
     if (NEVER_STAGE.has(e.name)) continue;
+    // A RUBRIC'S QC DIRECTORY IS NOT CONTENT. `<rubric id>_qc/` holds the
+    // quality-control documents -- the goal ledger, the backlog, the override
+    // log, the approved closures, the guides -- which are ABOUT the course and
+    // are never fetched as a page. Staged, they reached `.stage/content` and
+    // the built page: 3.4 MB of override log, and an approvals record that
+    // tripped the unresolved-reference check because a JSON note looked like a
+    // corpus reference. Matched by suffix rather than by name, because the
+    // directory is named for whichever rubric owns it.
+    if (e.isDirectory() && e.name.endsWith('_qc')) continue;
     const from = path.join(src, e.name);
     const to = path.join(dest, e.name);
     let st: fs.Stats;
     try { st = fs.statSync(from); } catch { continue; }   // dangling link: skip
-    if (st.isDirectory()) copyTree(from, to);
-    else fs.copyFileSync(from, to);
+    if (st.isDirectory()) { copyTree(from, to, here); continue; }
+    if (!here && !MOUNT_FILES.has(e.name)) continue;
+    // WRITE BESIDE, THEN RENAME. `copyFileSync` truncates the destination and
+    // fills it, so a reader that opens the path mid-copy sees a SHORT file; and
+    // the caller used to `rm -rf` the whole tree first, so it saw no file at
+    // all. Rename within a directory is atomic, so every reader sees either the
+    // complete old file or the complete new one, never a gap and never a
+    // fragment.
+    //
+    // NOT HYPOTHETICAL. `check_the_forms_agree_with_the_assembler` shells out to
+    // `npm run build:assemble-prompts`, which runs this -- and EVERY audit runs
+    // that check. Under `--selftest` with 16 forked audits, sixteen rebuilds
+    // raced each other and fifteen readers: two runs died on
+    // `FileNotFoundError: .../bmod_rubric.olx` before one happened to win the
+    // timing. Measured 2026-09-26.
+    const tmp = `${to}.tmp-${process.pid}`;
+    fs.copyFileSync(from, tmp);
+    fs.renameSync(tmp, to);
   }
 }
 
@@ -408,7 +587,20 @@ function main(argv: string[]): number {
     const olx = fs.readFileSync(f, 'utf8');
     CORPUS_REF.lastIndex = 0;
     if (!CORPUS_REF.test(olx)) continue;
-    const dataPath = corpusDataPath(olx);
+    // THE NAMESPACE IS THE MOUNT THE FILE CAME THROUGH: `<content>/<ns>/...`.
+    // Needed so a course that DECLARES its data root rather than exporting one
+    // can be asked -- see `corpusDataPath`.
+    const ns = namespaceOf(f, dir, outDir);
+    // NAME THE FILE. `corpusDataPath` cannot: it is handed the text, not the
+    // path. Every failure here is "which course is this and where is its
+    // data", and an error that answers neither sends the reader hunting.
+    let dataPath: string | null;
+    try {
+      dataPath = corpusDataPath(olx, ns);
+    } catch (e: any) {
+      console.error(`${f}: ${e?.message ?? e}`);
+      return 1;
+    }
     if (!dataPath) {
       console.error(
         `${f}: carries {{corpus:...}} references and no \`corpus_data:\` in its ` +

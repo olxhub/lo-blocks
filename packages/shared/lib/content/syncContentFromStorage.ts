@@ -38,9 +38,29 @@ import { resolve as resolveCorpusRefs, corpusDataPath }
 // with the tree rather than with the number of distinct corpora.
 const _corpusDataCache = new Map<string, Record<string, string>>();
 
+/**
+ * The namespace in a content address, or undefined.
+ *
+ * Addresses look like `file:content/<ns>://<path>`; the namespace is the
+ * segment after `content/`. Undefined when the address has another shape, so
+ * the caller falls back to the environment rather than guessing a course.
+ */
+function namespaceFromAddress(where: string): string | undefined {
+  const m = /content\/([^/:]+)/.exec(where || '');
+  return m ? m[1] : undefined;
+}
+
 async function resolveContentRefs(text: string, where: string): Promise<string> {
   if (!text.includes('{{corpus:')) return text;          // the cheap reject
-  const path = corpusDataPath(text);
+  // THE NAMESPACE COMES FROM `where`, which is the file's own address --
+  // `file:content/<ns>://<path>`. `corpusDataPath` needs it to ask what a
+  // course DECLARES as its data root, and this called without it: a course
+  // that declares `course_data:` instead of exporting `$COURSE_DATA` then got
+  // "no course declares it" about a course that does, and every handout
+  // carrying a corpus reference failed to parse. The server answered 503 for
+  // the whole content tree, which reads as a broken server rather than as one
+  // unresolved declaration.
+  const path = corpusDataPath(text, namespaceFromAddress(where));
   if (!path) {
     throw new Error(
       `${where}: carries {{corpus:...}} references but no \`corpus_data:\` in its ` +

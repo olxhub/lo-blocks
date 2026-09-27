@@ -415,8 +415,31 @@ export class FileStorageProvider implements StorageProvider {
     const changed: Record<LofsRef, XmlFileInfo> = {};
     const unchanged: Record<LofsRef, XmlFileInfo> = {};
 
+    // A DIRECTORY CAN VANISH BETWEEN BEING LISTED AND BEING READ, and that is
+    // not an error about the tree -- it is a tree that changed while we walked
+    // it. The content root is written by other things: the staging step, a
+    // build, another process. Treating the race as fatal made a whole content
+    // load die with `ENOENT: scandir`, which is a report about a directory that
+    // is no longer part of the tree at all.
+    //
+    // IT COST FIVE DIAGNOSES. A test creating a scratch directory under
+    // `content/` (it must: the provider refuses a root outside it) removed the
+    // directory while two sibling suites were walking the same root, and both
+    // failed -- intermittently, in the full suite only, passing in isolation
+    // every time. The visible symptom was an unrelated esbuild message printed
+    // nearby, so it was read as build contention four times running.
+    //
+    // A VANISHED ENTRY IS SKIPPED, NOT SWALLOWED WHOLESALE: only ENOENT, and
+    // only for the entry being descended into. Any other error still throws,
+    // and a permission problem or a corrupt directory is still fatal.
     const walk = async (currentDir: string) => {
-      const entries = await fs.readdir(currentDir, { withFileTypes: true });
+      let entries;
+      try {
+        entries = await fs.readdir(currentDir, { withFileTypes: true });
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === 'ENOENT') return;
+        throw e;
+      }
       for (const entry of entries) {
         const fullPath = path.join(currentDir, entry.name);
         if (entry.isDirectory()) {
@@ -424,7 +447,15 @@ export class FileStorageProvider implements StorageProvider {
         } else if (isContentFile(entry, fullPath)) {
           // path.relative returns OS-native separators; refs must be POSIX.
           const ref = this.toRef(windowsToPosix(path.relative(this.baseDir, fullPath)));
-          const stat = await fs.stat(fullPath);
+          // The same race, one level down: a FILE listed a moment ago can be
+          // gone before it is stat'd.
+          let stat;
+          try {
+            stat = await fs.stat(fullPath);
+          } catch (e) {
+            if ((e as NodeJS.ErrnoException).code === 'ENOENT') continue;
+            throw e;
+          }
           const ext = path.extname(fullPath).slice(1);
           const type = (fileTypes as any)[ext] ?? ext;
           const id = toLofsCanonical(withVersion(ref, toLofsVersion(String(stat.mtimeMs))));

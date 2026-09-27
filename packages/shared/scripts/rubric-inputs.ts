@@ -22,18 +22,29 @@ import {
   parseSlots, parseCounts, parseMaps, parseForbid, parseEquals, parseExpect,
   parseDerived, parseChoices,
 } from '../lib/llm/slotSheet'
+import { join } from 'path'
+import { courseDir, courseLocation } from '../lib/llm/enforce/courseData'
+import { expandedRubricPath } from '../lib/llm/enforce/native'
 
 // DEFAULTS SO THE BUILD NEEDS NO ENVIRONMENT. The rubric is read from the STAGED
 // copy, like every other reader -- the authored file is the thing being built
 // from, and reading it directly would skip template expansion.
+// ASKED, NOT SPELLED. Every default here named this course's directories --
+// `psychology/bmod_rubric.olx`, `course_metadata/course.json`, `/psychology`
+// -- so the build knew one course's layout by heart. When that course's
+// material moved into a folder of its own and its records moved under the
+// rubric, all three defaults pointed at nothing and the assembler died with
+// ENOENT; the audit reported it as "the handouts were NOT compared against the
+// rubric", which is the right words for a real gap and says nothing about why.
+//
+// `courseData` is the reader the enforce checks already use, and
+// `expandedRubricPath` is how they find the staged rubric. One resolution, and
+// a second course needs no edit here.
+const NS = process.env.COURSE_NS ?? 'edu.memphis.psych'
 const CONTENT = process.env.CONTENT_ROOT ?? '../edu.memphis.psych'
-const RUBRIC = process.env.RUBRIC_OLX
-  ?? '.stage/expanded/edu.memphis.psych/psychology/bmod_rubric.olx'
-// FROM THE METADATA ROOT, which is outside the content tree on purpose: a file
-// inside it would be copied by staging, because `copyTree` excludes by top-level
-// name and a nested file is under none.
-const COURSE = process.env.COURSE_JSON ?? CONTENT + '/course_metadata/course.json'
-const HANDOUTS = process.env.HANDOUT_DIR ?? CONTENT + '/psychology'
+const RUBRIC = process.env.RUBRIC_OLX ?? expandedRubricPath(NS)
+const COURSE = process.env.COURSE_JSON ?? join(courseDir('COURSE_METADATA', NS), 'course.json')
+const HANDOUTS = process.env.HANDOUT_DIR ?? (courseLocation(NS) ?? CONTENT)
 
 const xml = readFileSync(RUBRIC, 'utf8')
 const course = JSON.parse(readFileSync(COURSE, 'utf8'))

@@ -257,3 +257,41 @@ export function choicesAttr(o: {
   }
   return out.join('|')
 }
+
+/**
+ * EVERY generated attribute for one item, by name -- the one computation.
+ *
+ * Lifted out of `scripts/assemble-prompts.ts`, where it was a local `attrsFor`.
+ * A second copy is what this package has been bitten by before (`copyTree`,
+ * `EXTRA_VERDICTS`, the corpus-data path): two callers computing the same
+ * attribute set, agreeing today, drifting the day one gains an attribute. The
+ * writer and the check that asks whether every authored attribute is GENERATED
+ * must be looking at the same sixteen names.
+ *
+ * FIFTEEN FUNCTIONS, SIXTEEN ATTRIBUTES: `slotPairsAttr` serves both `charge`
+ * and `because`, which is why counting exports against python's
+ * `GENERATED_ATTRS` looks off by one and is not.
+ *
+ * BODIES ONLY when the inputs carry no attribute declarations. The producer
+ * builds bodies first; reporting every attribute as differing because it was
+ * not supplied would read as a regression in the assembler.
+ */
+export function generatedAttrs(
+  id: string, attrInputs: any,
+): Record<string, string | null> {
+  const i = attrInputs;
+  if (!i) return {};
+  return {
+    rubricDef: rubricDefAttr(id), free: freeAttr(i.credit),
+    forbid: forbidAttr(i.forbid), expect: expectAttr(i.expect),
+    maps: mapsAttr(i.maps),
+    choices: choicesAttr({ declared: i.choicesDeclared, users: i.choicesUsers,
+                           sourced: i.choicesSourced, itemId: id }),
+    counts: countsAttr(i.counts), requires: requiresAttr(i.requires),
+    cover: coverAttr(i.cover), equals: equalsAttr(i.equals),
+    onlyif: onlyifAttr(i.onlyif), max: maxAttr(i.max, i.maxPresent),
+    slots: slotsAttr(i.slotSpec), derived: derivedAttr(i.derived),
+    charge: slotPairsAttr(i.slotSpec, 'charge'),
+    because: slotPairsAttr(i.slotSpec, 'because'),
+  };
+}

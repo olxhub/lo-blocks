@@ -42,7 +42,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { xmlParser, elementTag, elementKids, XML_META } from '@/lib/content/xmlParser';
 import type { RawXmlNode } from '@/lib/content/xmlParser';
-import { NEVER_STAGE, stageSources } from './resolveCorpusRefs';
+import { NEVER_STAGE, copyTree, stageSources } from './resolveCorpusRefs';
 import { materialiseRubric, warnings, resetWarnings } from '@/lib/llm/materialiseRubric';
 import type { RubricNode } from '@/lib/llm/materialiseRubric';
 
@@ -140,16 +140,13 @@ export function expandFile(src: string, where: string): string | null {
   return text === src ? null : text;
 }
 
-function copyTree(src: string, dest: string): void {
-  fs.mkdirSync(dest, { recursive: true });
-  for (const e of fs.readdirSync(src, { withFileTypes: true })) {
-    if (NEVER_COPY.has(e.name)) continue;
-    const from = path.join(src, e.name), to = path.join(dest, e.name);
-    let st: fs.Stats;
-    try { st = fs.statSync(from); } catch { continue; }
-    if (st.isDirectory()) copyTree(from, to); else fs.copyFileSync(from, to);
-  }
-}
+// THE COPY ITSELF CAME FROM `resolveCorpusRefs` TOO. `NEVER_STAGE` was
+// exported to this module because the exclusion SET had been duplicated --
+// "a second copy of the mounting rule is how the two would come to disagree
+// about what the content is" -- but the FUNCTION around it stayed duplicated,
+// and the two did exactly that: the resolver learned to stage only a content
+// collection and this copy went on taking the whole tree, symlinks and all, so
+// the trimmed stage refilled itself the moment both had run. One function now.
 
 function main(argv: string[]): number {
   const ci = argv.indexOf('--content');
@@ -187,7 +184,31 @@ function main(argv: string[]): number {
   walk(dir);
 
   if (outDir) {
-    fs.rmSync(outDir, { recursive: true, force: true });
+    // NO `rm -rf` HERE. Deleting the tree and repopulating it leaves a window,
+    // hundreds of milliseconds wide, in which the staged rubric DOES NOT EXIST
+    // -- and a concurrent reader gets `FileNotFoundError` rather than a stale
+    // answer. `copyTree` now writes each file beside its destination and
+    // renames it into place, which is atomic, so the tree is continuously
+    // readable and a re-stage is invisible to anyone reading it.
+    //
+    // STALE FILES ARE STILL REMOVED, below, once the new set is known: a file
+    // that left the source must leave the stage, which is what the `rm -rf` was
+    // really for. Doing it afterwards costs one extra walk and removes the
+    // window.
+    const before = new Set<string>();
+    if (fs.existsSync(outDir)) {
+      const seenBefore = new Set<string>();
+      const walkOut = (d: string) => {
+        const real = fs.realpathSync(d);
+        if (seenBefore.has(real)) return;
+        seenBefore.add(real);
+        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+          const q = path.join(d, e.name);
+          if (e.isDirectory()) walkOut(q); else before.add(q);
+        }
+      };
+      walkOut(outDir);
+    }
     fs.mkdirSync(outDir, { recursive: true });
     // THE SAME SET OF FILES THE RESOLVER STAGES, from the same function. The
     // mounted courses are where the rubrics actually live -- the fallback tree
@@ -198,6 +219,24 @@ function main(argv: string[]): number {
     files.length = 0;
     seen.clear();
     walk(outDir);
+    // THE DELETE, MOVED AFTER THE WRITE. Anything that was in the stage and is
+    // not in it now is stale and goes; everything else was overwritten in place
+    // by an atomic rename and was never missing.
+    const now = new Set<string>();
+    const seenAfter = new Set<string>();
+    const walkNow = (d: string) => {
+      const real = fs.realpathSync(d);
+      if (seenAfter.has(real)) return;
+      seenAfter.add(real);
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const q = path.join(d, e.name);
+        if (e.isDirectory()) walkNow(q); else now.add(q);
+      }
+    };
+    walkNow(outDir);
+    for (const stale of before) {
+      if (!now.has(stale)) { try { fs.rmSync(stale); } catch { /* raced */ } }
+    }
   }
   let changed = 0, withTemplates = 0;
   for (const f of files) {

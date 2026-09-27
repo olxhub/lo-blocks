@@ -342,3 +342,40 @@ export function renderFrame(
   }
   return out.join('')
 }
+
+
+/**
+ * Every item's FULL RUNTIME PROMPT, by id -- what the grader is actually sent.
+ *
+ * The three `assemble*` functions above build the parts; this is the one
+ * composition of them, and it is python's `build_web_prompt` exactly: measured
+ * 2026-09-26, all 23 prompts byte-identical.
+ *
+ * WHY IT IS HERE AND NOT IN A SCRIPT. It was spelled out in two scripts
+ * (`assemble-prompts`, `verify-assembled-prompts`), which is fine while the
+ * only readers are build steps. The enforcement checks that ask questions ABOUT
+ * the shipped prompt need the same string, and a third copy of a nine-line
+ * composition is how the joins drift -- the `parts.join('\n')` and the trailing
+ * newline are both load-bearing, and neither is obvious.
+ *
+ * `inputs` is the `assembler-inputs.json` document, fragments and frame
+ * included; it is consumed non-destructively, unlike the scripts' `delete`.
+ */
+export function webPrompts(inputs: Record<string, any>): Record<string, string> {
+  const { _fragments: fragments, _frame: frame } = inputs;
+  const out: Record<string, string> = {};
+  for (const [id, d] of Object.entries<any>(inputs)) {
+    if (id.startsWith('_')) continue;
+    const parts: string[] = [assembleBodyPrefix({
+      item: d.item, blurb: d.blurb, webSystem: d.webSystem, fragments, frame })];
+    if (d.item.itemNotes) parts.push(d.item.itemNotes);
+    parts.push(assembleChecklist({
+      slots: d.slots, credit: d.item.credit, notes: d.notes,
+      fragments, rules: d.rules }));
+    parts.push(assembleContextAndResponse({
+      itemId: id, context: d.context, evidence: d.evidence ?? undefined,
+      response: d.response, fragments, sections: d.sections }));
+    out[id] = parts.join('\n').replace(/\s+$/, '') + '\n';
+  }
+  return out;
+}

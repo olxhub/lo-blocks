@@ -8,11 +8,17 @@
 // and a reason saying what would unpark it. An entry with neither is a
 // permanent silence for a finding nobody remembers.
 
+import { pyRepr } from './pythonRepr';
+
 export type ParkedEntry = {
   /** The (item, kind) key, as a pair. Anything else is malformed. */
   key: unknown[];
-  /** Rendered exactly as python renders the tuple, for the finding text. */
-  keyRepr: string;
+  // NO PRE-RENDERED KEY. This carried a `keyRepr` that python produced with
+  // `repr(k)`, which made the rule uncallable from inside lo-blocks -- a native
+  // caller has no python to ask. It renders the structured key itself now, with
+  // `pyRepr`, verified against CPython on 142 keys. Same defect as the
+  // shared-prose port had; found by re-auditing after the first scan reported
+  // all clear, because that scan sliced the function body and missed payloads.
   why: string;
 };
 
@@ -32,11 +38,11 @@ export function parkedEntriesStillApply(
   }
   for (const e of p?.entries ?? []) {
     if (!Array.isArray(e.key) || e.key.length !== 2) {
-      out.push(`PARKED_UNDECLARED key ${e.keyRepr} is not (item, kind)`);
+      out.push(`PARKED_UNDECLARED key ${pyRepr(e.key as never)} is not (item, kind)`);
     }
     if (String(e.why ?? '').trim().length < MIN_REASON) {
       out.push(
-        `PARKED_UNDECLARED[${e.keyRepr}] gives no usable reason. Say what the ` +
+        `PARKED_UNDECLARED[${pyRepr(e.key as never)}] gives no usable reason. Say what the ` +
         `issue is and what would unpark it -- a park with no reason is an ` +
         `override that never expires`);
     }

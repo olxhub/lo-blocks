@@ -20,10 +20,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { assembleBodyPrefix, assembleChecklist, assembleContextAndResponse }
   from '../lib/llm/promptAssembler'
-import {
-  countsAttr, onlyifAttr, requiresAttr, equalsAttr, coverAttr, forbidAttr,
-  mapsAttr, freeAttr, slotsAttr, derivedAttr, maxAttr, expectAttr, rubricDefAttr,
-  choicesAttr, slotPairsAttr } from '../lib/llm/attributeAssembler'
+import { generatedAttrs } from '../lib/llm/attributeAssembler'
+import { courseLocation } from '../lib/llm/enforce/courseData'
 
 const inputs = JSON.parse(readFileSync(
   process.env.ASSEMBLER_INPUTS ?? '.stage/assembler-inputs.json', 'utf8'))
@@ -38,8 +36,11 @@ delete inputs._frame
 const handAuthored = new Set<string>(
   (inputs._handAuthoredAttrs ?? []).map((p: string[]) => p.join('.')))
 delete inputs._handAuthoredAttrs
+// THE COURSE'S OWN FOLDER, asked rather than spelled -- see `rubric-inputs`
+// for the same change and the ENOENT it was found by.
 const HANDOUTS = process.env.HANDOUT_DIR
-  ?? (process.env.CONTENT_ROOT ?? '../edu.memphis.psych') + '/psychology'
+  ?? (courseLocation(process.env.COURSE_NS ?? 'edu.memphis.psych')
+      ?? (process.env.CONTENT_ROOT ?? '../edu.memphis.psych') + '/psychology')
 const write = process.argv.includes('--write')
 
 const NUL = String.fromCharCode(0)
@@ -70,26 +71,7 @@ for (const [id, d] of Object.entries<any>(inputs)) {
 }
 
 /** Every generated attribute for one item, by name. */
-function attrsFor(id: string, d: any): Record<string, string | null> {
-  const i = d.attrInputs
-  // BODIES ONLY when the inputs carry no attribute declarations. The TS-side
-  // producer builds bodies first; reporting every attribute as differing because
-  // it was not supplied would read as a regression in the assembler.
-  if (!i) return {}
-  return {
-    rubricDef: rubricDefAttr(id), free: freeAttr(i.credit),
-    forbid: forbidAttr(i.forbid), expect: expectAttr(i.expect),
-    maps: mapsAttr(i.maps),
-    choices: choicesAttr({ declared: i.choicesDeclared, users: i.choicesUsers,
-                           sourced: i.choicesSourced, itemId: id }),
-    counts: countsAttr(i.counts), requires: requiresAttr(i.requires),
-    cover: coverAttr(i.cover), equals: equalsAttr(i.equals),
-    onlyif: onlyifAttr(i.onlyif), max: maxAttr(i.max, i.maxPresent),
-    slots: slotsAttr(i.slotSpec), derived: derivedAttr(i.derived),
-    charge: slotPairsAttr(i.slotSpec, 'charge'),
-    because: slotPairsAttr(i.slotSpec, 'because'),
-  }
-}
+const attrsFor = (id: string, d: any) => generatedAttrs(id, d.attrInputs)
 
 let same = 0, changed = 0, attrSame = 0, attrChanged = 0
 const notes: string[] = []
