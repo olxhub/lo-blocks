@@ -1064,6 +1064,7 @@ export const NATIVE: Record<string, Assembler> = {
   // THE RECORDED RUNS THEMSELVES, not just their paths. The sibling rule
   // `no_recorded_run_is_verdictless` sends paths because python re-reads them;
   // this one needs the feedback text, so the assembler carries it.
+
   no_recorded_run_is_an_api_error: (ns) => {
     const ledger = readJson(metadataFile(ns, 'MEASURED.json')) as
       Record<string, Record<string, Record<string, Record<string, unknown>>>>;
@@ -3026,6 +3027,19 @@ export function rubricPath(ns: string): string {
  * keeps the coverage check from passing on silence.
  */
 export const NATIVE_BLOCKED: Record<string, string> = {
+  paper_prompt_has_no_box_deixis:
+    'needs `score.build_prompt`, the paper prompt generator, which stays in ' +
+    'python: the shipped paper prompt IS the artifact under test, so ' +
+    'assembling it here would check a prompt this engine built rather than ' +
+    'the one that ships.',
+
+  count_scaffolds_are_arithmetic:
+    'needs `measured.web_code_sha`, which gates the recorded artifacts by ERA: ' +
+    'one scored by different code is not attributable to today\'s scorer. ' +
+    'Walking the archive here instead reported two historical contradictions ' +
+    'python deliberately no longer claims -- 104 of 1,023 artifacts pass the ' +
+    'gate, so the gate is the check, not an optimisation.',
+
   generated_attributes_have_a_declaration:
     'MEASURED 2026-09-25, and the measurement is the reason to be careful. The ' +
     'payload is 125 rows over 16 attributes, and `backed` is FALSE in exactly ' +
