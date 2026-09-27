@@ -1065,6 +1065,51 @@ export const NATIVE: Record<string, Assembler> = {
   // `no_recorded_run_is_verdictless` sends paths because python re-reads them;
   // this one needs the feedback text, so the assembler carries it.
 
+  // THE TWO DECLARATIONS THIS PAIRS. `cited_participants` lives in the handout
+  // fields, `CITATION_NECESSITY` in the course declarations; both are read here
+  // so the rule compares two tables rather than a table against a memory.
+  // THE COMPOSED LEDGER AND THE PROSE-ONLY TABLE. The ledger is the composed
+  // copy, not the generic half: a subgoal naming a slot is course work, and
+  // course work lives in the course half.
+  convertible_prose_rules_have_subgoals: (ns) => {
+    const decl = (courseJson(ns).declarations ?? {}) as Record<string, unknown>;
+    const slots: Array<{ item: string; slot: string; why: string }> = [];
+    for (const { key, value } of decodeTable(decl.PROSE_ONLY_SLOTS)) {
+      const pair = Array.isArray(key) ? key : [key, ''];
+      slots.push({ item: String(pair[0]), slot: String(pair[1]),
+                   why: String(decodeValue(value) ?? '') });
+    }
+    slots.sort((a, b) => (a.item + '\u0000' + a.slot).localeCompare(b.item + '\u0000' + b.slot));
+    const path = splitComposedPath(ns, 'GOALS.md');
+    let goalsText: string | null = null;
+    let goalsError: string | null = null;
+    try { goalsText = readFileSync(path, 'utf8'); }
+    catch (e) { goalsError = (e as Error)?.message ?? String(e); }
+    return { goalsText, goalsError, slots };
+  },
+
+  citation_necessity_is_recorded: (ns) => {
+    const decl = (courseJson(ns).declarations ?? {}) as Record<string, unknown>;
+    const handouts: Record<string, Record<string, number[]>> = {};
+    for (const { key, value } of decodeTable(decl.HANDOUT_FIELDS)) {
+      const spec = (decodeValue(value) ?? {}) as Record<string, unknown>;
+      const cited = (spec.cited_participants ?? {}) as Record<string, unknown>;
+      const per: Record<string, number[]> = {};
+      for (const [item, pids] of Object.entries(cited)) {
+        per[item] = (Array.isArray(pids) ? pids : []).map(Number);
+      }
+      handouts[String(key)] = per;
+    }
+    const necessity: Record<string, string> = {};
+    for (const { key, value } of decodeTable(decl.CITATION_NECESSITY)) {
+      // PYTHON KEYS IT `(item, pid)`; the bridge renders a tuple key as the
+      // pair, so it is flattened to `item/pid` on both sides of this rule.
+      const k = Array.isArray(key) ? `${key[0]}/${key[1]}` : String(key);
+      necessity[k] = String(decodeValue(value) ?? '');
+    }
+    return { handouts, necessity };
+  },
+
   no_recorded_run_is_an_api_error: (ns) => {
     const ledger = readJson(metadataFile(ns, 'MEASURED.json')) as
       Record<string, Record<string, Record<string, Record<string, unknown>>>>;

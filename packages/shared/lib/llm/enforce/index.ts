@@ -97,6 +97,8 @@ import { refTargetsResolve } from './refTargetsResolve';
 import { recordedRunApiError } from './recordedRunApiError';
 import { paperPromptBoxDeixis } from './paperPromptBoxDeixis';
 import { countScaffoldArithmetic } from './countScaffoldArithmetic';
+import { citationNecessityRecorded } from './citationNecessityRecorded';
+import { convertibleProseHasSubgoal } from './convertibleProseHasSubgoal';
 import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
 
 export type Finding = string;
@@ -197,6 +199,10 @@ export const RULES: Record<string, Rule> = {
     fixtureAgreesWithGold(p ?? { cells: [], feedback: {}, boxWords: {}, overrides: {} }),
   rule_examples_are_not_corpus: (p) =>
     ruleExamplesAreNotCorpus(p ?? { corpus: {}, items: [], backlog: [] }),
+  convertible_prose_rules_have_subgoals: (p) =>
+    convertibleProseHasSubgoal(p as never),
+  citation_necessity_is_recorded: (p) =>
+    citationNecessityRecorded(p as never),
   count_scaffolds_are_arithmetic: (p) =>
     countScaffoldArithmetic(p as never),
   paper_prompt_has_no_box_deixis: (p) =>

@@ -62,6 +62,8 @@ export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
   'derived_fields_resolve',
   'ref_targets_resolve',
   'no_recorded_run_is_an_api_error',
+  'citation_necessity_is_recorded',
+  'convertible_prose_rules_have_subgoals',
   'consensus_fixes_have_no_duplicate_cells',
   // ADDED AFTER RECONCILIATION, 2026-09-25. Six became payload-IDENTICAL once
   // three assembler defects were fixed -- two writing `handout: null`, one
