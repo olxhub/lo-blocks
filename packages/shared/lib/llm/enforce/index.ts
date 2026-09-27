@@ -89,6 +89,13 @@ import { everyItemHasAFindableSlotSheet, generatedAttributesHaveADeclaration }
   from './sheetDiscovery';
 import { scoreRecordedSheets } from './rescore';
 import { NATIVE } from './native';
+import { documentsWhereReadersLook } from './documentsWhereReadersLook';
+import { documentSentencesDuplicated } from './documentSentencesDuplicated';
+import { composedDocumentsCurrent } from './composedDocumentsCurrent';
+import { derivedFieldsResolve } from './derivedFieldsResolve';
+import { refTargetsResolve } from './refTargetsResolve';
+import { recordedRunApiError } from './recordedRunApiError';
+import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
 
 export type Finding = string;
 export type Rule = (payload: any) => Finding[];
@@ -188,6 +195,18 @@ export const RULES: Record<string, Rule> = {
     fixtureAgreesWithGold(p ?? { cells: [], feedback: {}, boxWords: {}, overrides: {} }),
   rule_examples_are_not_corpus: (p) =>
     ruleExamplesAreNotCorpus(p ?? { corpus: {}, items: [], backlog: [] }),
+  no_recorded_run_is_an_api_error: (p) =>
+    recordedRunApiError(p as never),
+  ref_targets_resolve: (p) =>
+    refTargetsResolve(p as never),
+  derived_fields_resolve: (p) =>
+    derivedFieldsResolve(p as never),
+  composed_documents_are_current: (p) =>
+    composedDocumentsCurrent(p as never),
+  no_composed_document_repeats_itself: (p) =>
+    documentSentencesDuplicated(p as never),
+  every_document_is_where_its_readers_look: (p) =>
+    documentsWhereReadersLook(p as never),
   records_carry_no_machine_path: (p) =>
     recordsCarryNoMachinePath(p ?? { records: [] }),
   prose_only_claims_are_current: (p) =>
@@ -262,6 +281,16 @@ export const PROBES: Record<string, Probe> = {
   // was no better -- it promptly produced a garbage token by letting a `//`
   // comment run into the item after it. A probe hands back the real value of
   // the real module, so there is nothing to parse and nothing to drift.
+  // THE SPLIT DOCUMENTS, evaluated rather than restated. `compose_docs` used to
+  // declare this list on the python side and the rule carried a second copy;
+  // one value now answers both, for the reason the vocabulary probe above
+  // exists -- a list that drifts stops a document being checked while it still
+  // looks checked.
+  split_documents: () => ({
+    SPLIT_DOCS: [...SPLIT_DOCUMENTS],
+    NO_COURSE_HALF: { ...NO_COURSE_HALF_DECL },
+  }),
+
   verdict_vocabulary: () => ({
     WEB_EXTRAS: [...EXTRA_VERDICTS],
     HEDGES: [...VERDICT_HEDGES],

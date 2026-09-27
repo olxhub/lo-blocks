@@ -47,6 +47,21 @@ async function readStdin(): Promise<string> {
 // IT RATCHETS UPWARD ONLY BY MEASUREMENT: a name is added when the comparison
 // test says its payload equals python's, never because it looks right.
 export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
+  // PORTED 2026-09-27, self-assembling from the start: python hands no payload
+  // because there is nothing for it to hand. The rule asks where three files
+  // are -- the generic half beside these rules, the course half under the
+  // rubric, the composed copy readers open -- and the assembler answers from
+  // the tree. A payload from python would be python's view of the same
+  // filesystem, which is a second reading, not a check.
+  'every_document_is_where_its_readers_look',
+  // Same reason: the assembler reads both halves off the tree.
+  'no_composed_document_repeats_itself',
+  // Same again: the three texts come off the tree, not from python.
+  'composed_documents_are_current',
+  // The rubric, the handouts and the course file are all on the tree.
+  'derived_fields_resolve',
+  'ref_targets_resolve',
+  'no_recorded_run_is_an_api_error',
   'consensus_fixes_have_no_duplicate_cells',
   // ADDED AFTER RECONCILIATION, 2026-09-25. Six became payload-IDENTICAL once
   // three assembler defects were fixed -- two writing `handout: null`, one

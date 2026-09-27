@@ -39,6 +39,10 @@ import {
   sheetSlots,
   rubricChoices,
 } from './rubricSource';
+import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
+import { fileURLToPath } from 'url';
+import { parseDerived } from '../slotSheet';
+import { resultCell } from './resultCell';
 
 /** The measured columns, in the ledger's own order. */
 const SIDES = ['olx', 'paper', 'paper_opus'] as const;
@@ -617,6 +621,38 @@ function webSlotOptions(blob: string, element: string | undefined):
  * Each reads only the course's own records, through `courseDir`, so it works
  * for whichever course is named and refuses for one that is not mounted.
  */
+/**
+ * The documents that are SPLIT: a generic half here, a course half with the
+ * rubric, and a composed copy that readers open.
+ *
+ * THE LIST OF RECORD IS `splitDocuments.ts`, and python reads it from there
+ * through the `split_documents` probe. One value, two engines, nothing to
+ * drift.
+ */
+const SPLIT_DOCS = SPLIT_DOCUMENTS;
+const NO_COURSE_HALF_SET = new Set(Object.keys(NO_COURSE_HALF_DECL));
+
+/** The course half: `rubrics/<rubric id>/authored/<name>`. */
+function splitSpecificPath(ns: string, name: string): string {
+  return join(rubricDir(ns), 'authored', name);
+}
+
+/** The composed copy every reader opens: `rubrics/<id>/derived/composed/<name>`. */
+function splitComposedPath(ns: string, name: string): string {
+  return join(rubricDerived(ns), 'composed', name);
+}
+
+/** The generic half, which lives beside these rules.
+ *
+ * `import.meta.url`, NOT `__dirname`: this package is ESM, where `__dirname`
+ * simply does not exist -- the assembler threw `ReferenceError` the first time
+ * a rule asked for the generic half, and the bridge reported it as a refusal
+ * rather than as a finding, which is the right way round but still a defect.
+ */
+function splitGenericPath(name: string): string {
+  return join(dirname(fileURLToPath(import.meta.url)), name);
+}
+
 export const NATIVE: Record<string, Assembler> = {
   // THE RUBRIC IS THE ONLY SOURCE HERE. Python groups by the FORM each item
   // declares and hands over one entry per form; this reads the same rubric and
@@ -1025,6 +1061,38 @@ export const NATIVE: Record<string, Assembler> = {
   // THE SAME LEDGER, but only the columns whose artifact EXISTS: python asks
   // `os.path.exists` before adding one, because a column naming a file that is
   // not there is the OTHER check's finding, not this one's.
+  // THE RECORDED RUNS THEMSELVES, not just their paths. The sibling rule
+  // `no_recorded_run_is_verdictless` sends paths because python re-reads them;
+  // this one needs the feedback text, so the assembler carries it.
+  no_recorded_run_is_an_api_error: (ns) => {
+    const ledger = readJson(metadataFile(ns, 'MEASURED.json')) as
+      Record<string, Record<string, Record<string, Record<string, unknown>>>>;
+    const artifacts: unknown[] = [];
+    for (const item of Object.keys(ledger.items ?? {}).sort()) {
+      for (const side of SIDES) {
+        const e = (ledger.items[item] ?? {})[side];
+        if (!e) continue;
+        const abs = join(outDir(ns), String(e.out), `${item}.runs.json`);
+        if (!existsSync(abs)) continue;
+        type RunDoc = { runs?: Array<{ results?: Array<Record<string, unknown>> }> };
+        let doc: RunDoc | null = null;
+        try { doc = readJson(abs) as RunDoc; } catch { continue; }
+        const runs = (doc?.runs ?? []).map(run => ({
+          // THROUGH `resultCell`, which is where the app's fractional score is
+          // multiplied back to points. Reading `score` directly gave `None` for
+          // every app result and `pnull` for every participant.
+          results: (run.results ?? []).map(r => {
+            const c = resultCell(r);
+            return { pid: c?.pid ?? null, score: c?.points ?? null,
+                     feedback: String(r.feedback ?? '') };
+          }),
+        }));
+        artifacts.push({ item, side, runs });
+      }
+    }
+    return { artifacts };
+  },
+
   no_recorded_run_is_verdictless: (ns) => {
     const ledger = readJson(metadataFile(ns, 'MEASURED.json')) as
       Record<string, Record<string, Record<string, Record<string, unknown>>>>;
@@ -1798,6 +1866,120 @@ export const NATIVE: Record<string, Assembler> = {
   // THE FOUR RECORDS THIS SIDE CAN REACH, read as parsed documents so the rule
   // walks values rather than grepping text -- a path inside a `why` is a
   // quotation, and the walk is what tells the two apart.
+  // THE ACTION'S REFS AGAINST ONE REAL RECONSTRUCTION. The frozen response
+  // record is what the harness actually hands a grader, so a target absent
+  // from it is a target no cell can fill. One participant is enough: a ref
+  // resolves for all of them or for none.
+  ref_targets_resolve: (ns) => {
+    const forms = itemForms(ns);
+    const acts = actionMap(readRubric(rubricPath(ns)));
+    const items: Array<{ item: string; targets: string[]; fixtureKeys: string[]; error: string | null }> = [];
+    for (const item of Object.keys(acts).sort()) {
+      const form = String(forms[item] ?? '');
+      const src = form ? handoutSrc(ns, form) : '';
+      if (!src) continue;
+      // THE FROZEN RECORD FOR THIS ITEM, not the 8-item summary. `fixtureCells`
+      // scopes to `fixture_cells.json`, which names the cells a DIFFERENT check
+      // measures; reading it here saw 8 items of 23 and reported zero refs,
+      // which is an empty payload wearing a clean answer's clothes.
+      let boxes: Record<string, string> | null = null;
+      try {
+        const doc = readJson(join(instrumentDerived(ns), 'responses', `${item}.json`)) as
+          { cells?: Record<string, { boxes?: Record<string, string> }> } | null;
+        const cells = doc?.cells ?? {};
+        const first = Object.keys(cells).sort()[0];
+        if (first !== undefined) boxes = cells[first]?.boxes ?? {};
+      } catch { boxes = null; }
+      if (!boxes) continue;            // no record: another check's business
+      const body = actionBody(src, acts[item]) ?? '';
+      const targets = [...new Set(
+        [...body.matchAll(/<Ref\b[^>]*target="([^"]*)"/g)].map(m => m[1]))];
+      items.push({ item, targets, fixtureKeys: Object.keys(boxes), error: null });
+    }
+    return { items };
+  },
+
+  // EACH ITEM'S `derived` RULES AGAINST THE FIELDS ITS REFS CAN RESOLVE.
+  // `CONTEXT_REFS` is a generator table in the course file, keyed by form; the
+  // harness joins a field id to a section through it, so a field absent from it
+  // is a field the harness cannot read.
+  derived_fields_resolve: (ns) => {
+    const forms = itemForms(ns);
+    const ctx = (((courseJson(ns).generator ?? {}) as Record<string, unknown>)
+                 .CONTEXT_REFS ?? {}) as Record<string, Record<string, string>>;
+    const acts = actionMap(readRubric(rubricPath(ns)));
+    const items = Object.keys(acts).sort().map(item => {
+      const form = String(forms[item] ?? '');
+      const refFields = Object.keys(ctx[form] ?? {});
+      const src = handoutSrc(ns, form);
+      let derived: Array<{ key: string; fields: string[] }> = [];
+      let error: string | null = null;
+      if (!src) error = `cannot read handout ${form}`;
+      else {
+        // THE OPENING TAG, not the body. `derived=` is an ATTRIBUTE of the
+        // action element; python reads it off `open_tag`. Reading the body
+        // instead found nothing at all -- three items carry the rule and the
+        // assembler reported zero, which is the empty payload agreeing with
+        // python's empty answer for the wrong reason.
+        const tag = sheetTag(src, acts[item]) ?? '';
+        derived = parseDerived(tagAttr(tag, 'derived') ?? '')
+          .map(r => ({ key: String((r as { key?: string }).key ?? ''),
+                       fields: ((r as { fields?: string[] }).fields ?? []).map(String) }));
+      }
+      return { item, hasBlock: Boolean(form), error, refFields, derived };
+    });
+    return { items };
+  },
+
+  // ALL THREE TEXTS, and a null composed copy for one never built.
+  composed_documents_are_current: (ns) => {
+    const docs = SPLIT_DOCS.map(name => {
+      const g = splitGenericPath(name);
+      const s = splitSpecificPath(ns, name);
+      const c = splitComposedPath(ns, name);
+      return {
+        name,
+        generic: existsSync(g) ? readFileSync(g, 'utf8') : '',
+        specific: existsSync(s) ? readFileSync(s, 'utf8') : '',
+        composedPath: c,
+        composed: existsSync(c) ? readFileSync(c, 'utf8') : null,
+      };
+    });
+    return { docs };
+  },
+
+  // BOTH HALVES, only where both are on disk. A document with one half has
+  // nothing to compare and is the other rule's business, not this one's.
+  no_composed_document_repeats_itself: (ns) => {
+    const docs: Array<{ name: string; generic: string; specific: string }> = [];
+    for (const name of SPLIT_DOCS) {
+      const g = splitGenericPath(name);
+      const s = splitSpecificPath(ns, name);
+      if (!existsSync(g) || !existsSync(s)) continue;
+      docs.push({ name, generic: readFileSync(g, 'utf8'), specific: readFileSync(s, 'utf8') });
+    }
+    return { docs };
+  },
+
+  // THE THREE PLACES A SPLIT DOCUMENT CAN BE, and whether each is there. The
+  // generic half moved into this package on 2026-09-27, so both halves and the
+  // composed copy are readable from here.
+  every_document_is_where_its_readers_look: (ns) => {
+    const docs = SPLIT_DOCS.map(name => {
+      const specificPath = splitSpecificPath(ns, name);
+      const readerPath = splitComposedPath(ns, name);
+      return {
+        name,
+        specificPath,
+        specificExists: existsSync(specificPath),
+        readerPath,
+        readerExists: existsSync(readerPath),
+        declaredNoCourseHalf: NO_COURSE_HALF_SET.has(name),
+      };
+    });
+    return { docs };
+  },
+
   records_carry_no_machine_path: (ns) => {
     const targets: Array<[string, string]> = [
       ['course.json', metadataFile(ns, 'course.json')],
