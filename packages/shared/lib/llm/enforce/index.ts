@@ -95,6 +95,7 @@ import { composedDocumentsCurrent } from './composedDocumentsCurrent';
 import { derivedFieldsResolve } from './derivedFieldsResolve';
 import { refTargetsResolve } from './refTargetsResolve';
 import { recordedRunApiError } from './recordedRunApiError';
+import { paperPromptBoxDeixis } from './paperPromptBoxDeixis';
 import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
 
 export type Finding = string;
@@ -195,6 +196,8 @@ export const RULES: Record<string, Rule> = {
     fixtureAgreesWithGold(p ?? { cells: [], feedback: {}, boxWords: {}, overrides: {} }),
   rule_examples_are_not_corpus: (p) =>
     ruleExamplesAreNotCorpus(p ?? { corpus: {}, items: [], backlog: [] }),
+  paper_prompt_has_no_box_deixis: (p) =>
+    paperPromptBoxDeixis(p as never),
   no_recorded_run_is_an_api_error: (p) =>
     recordedRunApiError(p as never),
   ref_targets_resolve: (p) =>
