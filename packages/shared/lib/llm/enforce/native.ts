@@ -3072,6 +3072,11 @@ export function rubricPath(ns: string): string {
  * keeps the coverage check from passing on silence.
  */
 export const NATIVE_BLOCKED: Record<string, string> = {
+  rule_fail_tokens_agree:
+    'needs `score._fail_verdict`, which renders `{fail}` into the PAPER prompt: ' +
+    'the paper generator stays in python, and what that token becomes there is ' +
+    'exactly the thing under comparison.',
+
   paper_prompt_has_no_box_deixis:
     'needs `score.build_prompt`, the paper prompt generator, which stays in ' +
     'python: the shipped paper prompt IS the artifact under test, so ' +
