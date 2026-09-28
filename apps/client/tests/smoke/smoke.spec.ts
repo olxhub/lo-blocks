@@ -91,14 +91,44 @@ async function fetchJSON(request: APIRequestContext, path: string) {
 
 // -- Tests --------------------------------------------------------------------
 
+// 42 ACTIVITIES AT UP TO A MINUTE EACH. The default budget was survivable only
+// while the loop ABORTED at the first failure; walking them all has to be paid
+// for. A test that times out reports nothing about what it never reached, which
+// is the blindness fixed below.
+test.setTimeout(45 * 60_000);
+
 test('activities render', async ({ page, request }) => {
   const { activities } = await fetchJSON(request, '/api/activities');
   const ids = Object.keys(activities);
   expect(ids.length).toBeGreaterThan(0);
 
+  // WALK ALL OF THEM, THEN FAIL ONCE WITH THE WHOLE LIST.
+  //
+  // This asserted INSIDE the loop, so the first broken activity ended the test
+  // and everything after it went unvisited. That is not a shorter report, it is
+  // a BLIND one. Measured 2026-09-27: the 8th of 42 failed -- a course
+  // installed in the dev server's store, whose <Tabs> carries print="no-chrome"
+  // where the schema wants a boolean -- and the 18 activities of the course
+  // actually under certification were never reached. The run reported one
+  // failure having verified NOTHING about them, which reads exactly like a run
+  // that checked them and found them fine.
+  //
+  // Collecting means a broken activity costs its own line and nobody else's
+  // coverage.
+  const failures: string[] = [];
   for (const id of ids) {
-    await test.step(id, () => expectPageOk(page, `/preview/${id}`));
+    await test.step(id, async () => {
+      const url = `/preview/${id}`;
+      const result = await loadPage(page, url);
+      if (!result.ok) failures.push(`${url}: ${result.error}`);
+      else if (result.jsErrors.length) {
+        failures.push(`${url}: JS errors:\n  ${result.jsErrors.join('\n  ')}`);
+      }
+    });
   }
+  expect(failures,
+    `${failures.length} of ${ids.length} activities failed to render:\n`
+    + failures.join('\n')).toEqual([]);
 });
 
 test('main page loads', async ({ page }) => {
