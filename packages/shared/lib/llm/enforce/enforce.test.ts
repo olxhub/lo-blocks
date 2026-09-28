@@ -37,6 +37,7 @@ import { newSlotsWereProbed } from './newSlotsProbed';
 import { writtenRulesReachTheShippedPrompt } from './writtenRulesShipped';
 import { questionFor, entries as checklistEntries, derivation } from './probeQuestion';
 import { NATIVE, NATIVE_BLOCKED, emptyPayloads, nativeCoverage } from './native';
+import { SELF_ASSEMBLING } from './runner';
 
 // The probe under its registry name, so the tests exercise the path python uses.
 const RULES_PROBE = (p: any) => PROBES.score_recorded_sheets(p) as any[];
@@ -132,6 +133,25 @@ describe('native callability', () => {
   it('every assembler is for a rule that exists', () => {
     const orphans = Object.keys(NATIVE).filter(r => !(r in RULES));
     expect(orphans).toEqual([]);
+  });
+
+  // A CLEARED RULE MUST HAVE SOMETHING TO CLEAR, which is the converse of the
+  // test above and closes the ring. `SELF_ASSEMBLING` is the allowlist of rules
+  // the runner may assemble for itself, and it is consulted BEFORE the
+  // assembler is looked up: a name on the list with no entry in NATIVE makes a
+  // null-payload request come back as an error string instead of findings, and
+  // nothing notices while python still passes that rule a payload. A gate's
+  // SILENCE IS NOT A CLEARANCE.
+  //
+  // THIS FOUND NOTHING WHEN IT WAS WRITTEN, and that is recorded deliberately:
+  // all 75 cleared rules have assemblers. An earlier draft of this note claimed
+  // `link_c2` was in that broken state -- it is not, and it is not a rule at
+  // all. It is a SLOT KEY appearing inside a COMMENT in the SELF_ASSEMBLING
+  // block, which a scraper that did not strip comments read as a member. The
+  // test is PREVENTION, not a repair.
+  it('every cleared rule has an assembler', () => {
+    const missing = [...SELF_ASSEMBLING].filter(r => !(r in NATIVE));
+    expect(missing).toEqual([]);
   });
 });
 

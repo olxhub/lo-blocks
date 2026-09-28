@@ -504,6 +504,58 @@ export function sheetSlots(olxPath: string): Record<string, Array<{ key: string;
   return out;
 }
 
+/**
+ * Direct-child `<Slot key=>` per `<Item scores=>`, items with NONE kept.
+ *
+ * NOT `sheetSlots`, and both differences are deliberate. python's
+ * `rubric_component.load` builds an item's slots with `item.findall("Slot")` --
+ * DIRECT CHILDREN -- while `sheetSlots` recurses through `slotsUnder`; and
+ * `load` keeps every `<Item scores=>` while `sheetSlots` drops the slotless
+ * ones (`if (iid && acc.length)`).
+ *
+ * MEASURED ON THIS CORPUS, 2026-09-27: 0 items carry a nested `<Slot>`, and 3
+ * carry none at all (T1, T2, 1b). So the recursion difference is INERT today
+ * and the drop is unreachable from the caller that exists -- which is exactly
+ * why this is a separate reader rather than a reuse. A reader that silently
+ * omits an entry makes its caller report `entryExists: false`, and that is a
+ * FALSE finding, not a missing one.
+ *
+ * Verified against python: 26 items both sides, no item on one side only, 0
+ * differing key lists.
+ */
+export function stagedRubricSlots(olxPath: string): Record<string, string[]> {
+  const parser = new XMLParser({
+    ignoreAttributes: false, attributeNamePrefix: '@_',
+    processEntities: true, trimValues: false,
+  });
+  const doc = parser.parse(
+    `<__root__>${stripFrontmatter(readFileSync(olxPath, 'utf8'))}</__root__>`);
+  const out: Record<string, string[]> = {};
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+      if (k.startsWith('@_')) continue;
+      for (const child of asArray(v)) {
+        if (k === 'Item') {
+          const iid = attrs(child).scores;
+          if (iid) {
+            const keys: string[] = [];
+            for (const sl of asArray((child as Record<string, unknown>)?.Slot)) {
+              const a = attrs(sl);
+              if (a.key) keys.push(a.key);
+            }
+            out[iid] = keys;            // KEPT even when empty
+          }
+        }
+        walk(child);
+      }
+    }
+  };
+  walk(doc);
+  return out;
+}
+
+
 export function slotNotes(olxPath: string): Record<string, string> {
   const xml = readFileSync(olxPath, 'utf8');
   const parser = new XMLParser({

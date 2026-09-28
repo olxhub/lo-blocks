@@ -47,6 +47,15 @@ async function readStdin(): Promise<string> {
 // IT RATCHETS UPWARD ONLY BY MEASUREMENT: a name is added when the comparison
 // test says its payload equals python's, never because it looks right.
 export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
+  // PORTED AND CLEARED 2026-09-28. Both projections were compared against THE
+  // PAYLOAD PYTHON ACTUALLY SENDS, captured by wrapping the bridge: 23 rows,
+  // identical `sheetKeys` and `rubricDef` on every one, and the rubric side
+  // identical to `rubric_component.load()`'s keys across all 26 items.
+  // PROVEN ON FIRING DATA, not just at rest: with one `<Slot>` removed from a
+  // COPY of the staged rubric, both readers moved the same way and the rule
+  // produced exactly one finding naming the dropped key. Agreement at zero was
+  // never the evidence.
+  'sheet_matches_rubric',
   // PORTED 2026-09-27, self-assembling from the start: python hands no payload
   // because there is nothing for it to hand. The rule asks where three files
   // are -- the generic half beside these rules, the course half under the

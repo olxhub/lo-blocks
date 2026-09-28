@@ -37,6 +37,7 @@ import {
   actionBody, actionMap, promptRemainder, readRubric, sheetTag, slotBasis,
   slotNotes, tagAttr, toRefPlaceholders,
   sheetSlots,
+  stagedRubricSlots,
   rubricChoices,
 } from './rubricSource';
 import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
@@ -2539,6 +2540,87 @@ export const NATIVE: Record<string, Assembler> = {
     };
   },
 
+  // TWO PROJECTIONS OF ONE DEFINITION, compared on their slot KEYS.
+  //
+  // THE POPULATION IS python's `sorted(ACTION)` -- 23 of 26 -- and that is
+  // VERIFIED, not assumed: `actionMap` keys on the rubric's `asks`, which the
+  // three sheet-only items do not carry (their sheets live on `<DerivedChecks>`
+  // and `prompt_sheet_only` names the element instead). Measured: 26 rubric
+  // items, 23 actionMap keys, missing exactly T1, T2, 1b. Those three are NOT a
+  // coverage gap -- the staged rubric declares no `<Slot>` for them either, so
+  // there is nothing to compare.
+  //
+  // THE RUBRIC SIDE USES `stagedRubricSlots`, NOT `sheetSlots`: see that
+  // function for why reusing the other reader would report `entryExists: false`
+  // -- a FALSE finding -- for any item it silently drops.
+  sheet_matches_rubric: (ns) => {
+    const items = readRubric(rubricPath(ns));
+    const action = actionMap(items);
+    const forms = itemForms(ns);
+    const staged = stagedRubricPath(ns);
+
+    // A MISSING BUILD IS NOT A PASS. python raises FileNotFoundError here and
+    // turns it into a finding: an unbuilt artifact is not evidence that the
+    // sheet and the rubric agree.
+    if (!existsSync(staged)) {
+      return { rubricError: { kind: 'unstaged', detail:
+        `the rubric component has not been staged (${staged}); run ` +
+        '`npm run build:stage-content` -- an unbuilt artifact is not ' +
+        'evidence that the sheet and the rubric agree' }, items: [] };
+    }
+    let rubric: Record<string, string[]>;
+    try {
+      rubric = stagedRubricSlots(staged);
+    } catch (e) {
+      return { rubricError: { kind: 'unparsable', detail:
+        `the staged rubric component will not parse: ` +
+        `${(e as Error).name}: ${(e as Error).message}` }, items: [] };
+    }
+
+    const out: Array<Record<string, unknown>> = [];
+    for (const item of Object.keys(action).sort()) {
+      const row: Record<string, unknown> = { item };
+      const tag = sheetTag(handoutSrc(ns, forms[item]), action[item]);
+      // EVERY FAILURE TRAVELS AS DATA. This check's own first version used a
+      // bare `except: continue`, reported 0 findings while comparing NOTHING,
+      // and passed two injected failures.
+      if (!tag) {
+        row.error = `no <LLMAction id="${action[item]}"> in the handout`;
+        out.push(row);
+        continue;
+      }
+      const named = tagAttr(tag, 'rubricDef');
+      row.rubricDef = named ?? null;
+      if (named) {
+        const entry = rubric[named];
+        row.entryExists = entry !== undefined;
+        if (entry !== undefined) {
+          // THE TAG'S OWN `verdicts=`, falling back to `met|absent` -- python's
+          // `_slots_attr` default. An EMPTY list instead makes `parseSlots`
+          // drop every slot relying on the default: 10 keys where python reads
+          // 18, on a character-identical spec.
+          const declared = (tagAttr(tag, 'verdicts') ?? '').split('|').filter(Boolean);
+          const defaults = declared.length ? declared : ['met', 'absent'];
+          let parsed: Array<Record<string, unknown>>;
+          try {
+            parsed = parseSlots(tagAttr(tag, 'slots') ?? '', defaults) as
+                     Array<Record<string, unknown>>;
+          } catch (e) {
+            row.error = `its slots= will not parse: ${(e as Error).message}`;
+            out.push(row);
+            continue;
+          }
+          const sheetKeys = parsed.map(x => String(x.key)).filter(Boolean);
+          // python sorts a SET on both sides: membership, not order or count.
+          row.sheetKeys = [...new Set(sheetKeys)].sort();
+          row.rubricKeys = [...new Set(entry)].sort();
+        }
+      }
+      out.push(row);
+    }
+    return { rubricError: null, items: out };
+  },
+
   sheet_slots_reach_the_rubric: (ns) => {
     const items = readRubric(rubricPath(ns));
     const byId = new Map(items.map(it => [it.id, it]));
@@ -3129,9 +3211,17 @@ export function olxSlotVerdicts(ns: string, itemId: string, slot: string):
   return null;                            // the slot was never found
 }
 
-export function expandedRubricPath(ns: string): string {
-  const override = process.env.COURSE_RUBRIC_OLX;
-  if (override) return override;
+/**
+ * One stage tree's copy of the authored rubric: `.stage/<kind>/<ns>/<tail>`.
+ *
+ * MIRRORS python's `rubric_component._staged_under`, including its fix. Both
+ * sides once built the tail as `<collection>/<rubric>`, which assumed the
+ * rubric sits directly in the collection -- true until this course's material
+ * moved into a folder of its own and both paths started naming a file one
+ * directory above the real one. THE TWO SIDES MUST AGREE ON WHERE A STAGED
+ * FILE IS, so the tail is DERIVED here exactly as it is there.
+ */
+export function stagedUnder(ns: string, kind: string): string {
   const root = loBlocksRoot();
   if (!root) {
     throw new Error(
@@ -3162,7 +3252,30 @@ export function expandedRubricPath(ns: string): string {
     // built to point outside the stage.
     tail = basename(authored);
   }
-  return join(root, '.stage', 'expanded', ns, tail);
+  return join(root, '.stage', kind, ns, tail);
+}
+
+/**
+ * python's `rubric_component.expanded_path()` -- the template-expansion tree.
+ *
+ * THE OVERRIDE LIVES HERE AND NOT ON THE STAGED COPY, because python's
+ * `staged_path()` has none: adding one would give this side an escape the
+ * audit of record does not have.
+ */
+export function expandedRubricPath(ns: string): string {
+  const override = process.env.COURSE_RUBRIC_OLX;
+  if (override) return override;
+  return stagedUnder(ns, 'expanded');
+}
+
+/**
+ * python's `rubric_component.staged_path()` -- the build's RESOLVED copy, with
+ * templates already expanded. A reader that went to the AUTHORED file instead
+ * would have to understand the template grammar, and that second
+ * implementation of one rule is the drift this whole model exists to end.
+ */
+export function stagedRubricPath(ns: string): string {
+  return stagedUnder(ns, 'content');
 }
 
 export function rubricPath(ns: string): string {
@@ -3298,9 +3411,6 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'needs `agreement.checklist_guidance`, the python MIRROR whose composed ' +
     'order this compares against the app\'s. A native assembler could read ' +
     'slotSheet.ts and would have nothing to compare it to',
-  sheet_matches_rubric:
-    'needs `agreement.load_action` and `rubric_component.load`, the two ' +
-    'readers that build the sheet and rubric projections being compared',
   engines_offer_same_verdicts:
     'needs `olx_prompts.parse_slots` AND `agreement.load_action` -- each ' +
     'engine\'s verdict list must come through ITS OWN reader, or the ' +
