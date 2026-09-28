@@ -34,6 +34,16 @@ export type SweepRecordedPayload = {
     newer: string[];
     /** Candidate names with their failed-cell counts, newer but unrecordable. */
     incomplete: string[];
+    /**
+     * How many candidates the glob returned for this (item, side), and how many
+     * PASSED THE SHAPE TEST -- counted before the recency filter, because
+     * counting after it reads zero on a healthy tree where nothing is newer.
+     *
+     * Optional so an older payload still validates; a payload carrying none at
+     * all says so rather than skipping the test silently.
+     */
+    considered?: number;
+    inspected?: number;
   }>;
 };
 
@@ -62,5 +72,50 @@ export function everySweepIsRecorded(p: SweepRecordedPayload): string[] {
         'that has already moved on');
     }
   }
+
+  // A CHECK ARM THAT INSPECTED NOTHING IS NOT A PASSING ARM.
+  //
+  // `check_every_check_is_invoked` already reports CHECK NEVER RUNS for a
+  // verifier "registered but never invoked -- it reads as coverage and enforces
+  // nothing". An ARM of a check can be dead the same way while the check as a
+  // whole looks healthy, and this one WAS: the side contract held a TUPLE of
+  // programs for the web column and a bare STRING for the paper ones, and the
+  // shape test compared a string against the field with `!=`. Paper passed 26
+  // candidates and looked fine; the web column skipped all 147 and reported no
+  // unrecorded sweep because nothing reached the test -- on the side whose
+  // staleness this check exists to catch.
+  //
+  // PER SIDE, NOT PER ROW: one item legitimately having no candidates says
+  // nothing, and 26 identical findings train a reader to skim.
+  const rows = p?.rows ?? [];
+  const counted = rows.some(r => r.considered !== undefined || r.inspected !== undefined);
+  if (rows.length && !counted) {
+    // A SKIP IS NOT A PASS: say the test could not run rather than passing it.
+    out.push(
+      'this payload carries no `considered`/`inspected` counters, so whether ' +
+      'each side INSPECTED anything could not be checked. The arm that hid a ' +
+      'live defect was invisible for exactly this reason');
+  } else if (counted) {
+    const bySide = new Map<string, { considered: number; inspected: number }>();
+    for (const r of rows) {
+      const acc = bySide.get(r.side) ?? { considered: 0, inspected: 0 };
+      acc.considered += r.considered ?? 0;
+      acc.inspected += r.inspected ?? 0;
+      bySide.set(r.side, acc);
+    }
+    for (const [side, acc] of [...bySide.entries()].sort()) {
+      if (acc.considered > 0 && acc.inspected === 0) {
+        out.push(
+          `[${side}]: considered ${acc.considered} candidate artifact(s) and ` +
+          `accepted NONE of them. This side reports no unrecorded sweep ` +
+          `because nothing reached the test, not because nothing was newer -- ` +
+          `an arm that examined nothing has not passed. Either the side ` +
+          `contract's shape disagrees with what the artifacts declare, or this ` +
+          `column has never been swept; both are worth knowing and neither is ` +
+          `a clean result`);
+      }
+    }
+  }
+
   return out;
 }
