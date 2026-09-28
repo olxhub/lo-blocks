@@ -3397,12 +3397,6 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'needs `coursedata._load` and `coursedata.items`, for the reason ' +
     '`course_schema_fields` records: both halves of the 3d split or the ' +
     'stale-declaration list is nonsense',
-  same_shape:
-    'needs `migrated_tables._shape_form`, which encodes a PYTHON value so the ' +
-    'boundary keeps what this rule measures -- ordered dict pairs (never an ' +
-    'object, because JS reorders integer-like keys), a tag on every tuple and ' +
-    'frozenset, and both spellings of a `{{corpus:...}}` string. The types ' +
-    'only exist on the python side, so the encoder must run there',
   peg_formats_declared:
     'needs `olx_corpus.default_roots` and `peg_formats.course_files`, which ' +
     'walk the COURSE roots for authored peg content. The registry half is the ' +
@@ -3463,13 +3457,6 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'FEEDBACK TEXT each run rendered. What a student SAW is a fact about a ' +
     'recorded run; re-deriving it from today\'s code would report what they ' +
     'would see now, which is the opposite of the question',
-  web_code_sha:
-    'needs `measured._web_parts`, which resolves WHICH app functions an item ' +
-    'passes through by reading that item\'s authored primitives. The ' +
-    'extraction and the hash are HERE -- they read lo-blocks\' own source -- ' +
-    'and the name resolution is the caller\'s. The two must stay one ' +
-    'implementation: artifacts already on disk carry stamps this produced, ' +
-    'and a second implementation would make every one of them unattributable',
   paper_feedback_explains_its_deductions:
     'needs `measured.paper_render_sha` and a walk of the paper RUN ARCHIVE. ' +
     'The fingerprint is score.py\'s own feedback wording -- the writer of ' +
@@ -3501,7 +3488,7 @@ export const NATIVE_BLOCKED: Record<string, string> = {
 export function runNative(rule: string, ns: string): unknown {
   const assemble = NATIVE[rule];
   if (!assemble) {
-    const why = NATIVE_BLOCKED[rule];
+    const why = NATIVE_BLOCKED[rule] ?? ARGUMENT_FED[rule];
     throw new Error(
       why
         ? `enforce/native: ${rule} cannot be fed from inside lo-blocks yet — ${why}`
@@ -3524,6 +3511,36 @@ export function runNative(rule: string, ns: string): unknown {
  * assembler that read nothing. Callers pass the rules whose tables are KNOWN to
  * be non-empty for this course, and anything reporting empty is a fault.
  */
+/**
+ * Rules whose INPUTS ARE ARGUMENTS, not facts about the course.
+ *
+ * `Assembler` is `(ns) => payload`: it is handed a NAMESPACE and must derive
+ * everything else. These rules are not asked a question about a course -- they
+ * are handed one (kind, item) pair, or two tables, and asked to reduce them.
+ * There is nothing for an assembler to READ, so they can never enter
+ * SELF_ASSEMBLING, and naming a python reader as their blocker MISLEADS: it
+ * invites someone to port that reader and then find the rule still cannot
+ * self-assemble. `web_code_sha` sat in NATIVE_BLOCKED saying it needed
+ * `measured._web_parts` while `webParts()` was already here.
+ *
+ * THEY ARE NOT BLOCKED FROM TYPESCRIPT. What SELF_ASSEMBLING buys -- a
+ * lo-blocks caller running the rule without python -- these already have by a
+ * simpler route: the functions are exported and a TS caller calls them
+ * directly. The tell that they are FUNCTIONS rather than checks is on the
+ * python side, which takes element 0 and uses it as a VALUE:
+ * `lo_enforce.run("web_code_sha", payload)[0]`.
+ */
+export const ARGUMENT_FED: Record<string, string> = {
+  web_code_sha:
+    'its inputs are ARGUMENTS: python calls it per (kind, item) -- ' +
+    '`web_code_sha("ask", it)` and `("score", it)` for every item -- and takes ' +
+    'the value, not findings. A TS caller calls `webCodeSha()`/`webParts()` ' +
+    'directly; there is no payload to assemble from a namespace.',
+  same_shape:
+    'its inputs are ARGUMENTS: two tables to compare, handed in by the caller. ' +
+    'Nothing about the course decides which two.',
+};
+
 export const LEGITIMATELY_EMPTY: Record<string, string> = {
   // AN EMPTY TABLE IS A REAL STATE, and this one is empty on this course:
   // `HAND_AUTHORED_ATTRS` has no entries, so an empty payload is the right
@@ -3570,7 +3587,7 @@ export function emptyPayloads(ns: string, rules: string[]): string[] {
  */
 export function nativeCoverage(ruleNames: string[]): string[] {
   return ruleNames
-    .filter(r => !(r in NATIVE) && !(r in NATIVE_BLOCKED))
+    .filter(r => !(r in NATIVE) && !(r in NATIVE_BLOCKED) && !(r in ARGUMENT_FED))
     .map(r =>
       `${r} can be run from python but has no native assembler and no declared ` +
       `reason it cannot have one. Add one to NATIVE, or say in NATIVE_BLOCKED ` +

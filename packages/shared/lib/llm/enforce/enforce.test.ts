@@ -36,7 +36,7 @@ import { probeReceiptsMatchShipping } from './probeReceiptsShipping';
 import { newSlotsWereProbed } from './newSlotsProbed';
 import { writtenRulesReachTheShippedPrompt } from './writtenRulesShipped';
 import { questionFor, entries as checklistEntries, derivation } from './probeQuestion';
-import { NATIVE, NATIVE_BLOCKED, emptyPayloads, nativeCoverage } from './native';
+import { ARGUMENT_FED, NATIVE, NATIVE_BLOCKED, emptyPayloads, nativeCoverage } from './native';
 import { SELF_ASSEMBLING } from './runner';
 
 // The probe under its registry name, so the tests exercise the path python uses.
@@ -149,6 +149,17 @@ describe('native callability', () => {
   // all. It is a SLOT KEY appearing inside a COMMENT in the SELF_ASSEMBLING
   // block, which a scraper that did not strip comments read as a member. The
   // test is PREVENTION, not a repair.
+  // ARGUMENT_FED IS A CLAIM THAT CAN GO STALE (QUALITY_CONTROL §5: every
+  // declaration table needs a ratchet, or its entries outlive their reason).
+  // The claim is that python calls these with ARGUMENTS rather than once per
+  // namespace. If one ever acquires an assembler, or gets cleared, the claim
+  // was wrong and the rule may be portable after all.
+  it('an argument-fed rule has no assembler and is not cleared', () => {
+    const wrong = Object.keys(ARGUMENT_FED)
+      .filter(r => (r in NATIVE) || SELF_ASSEMBLING.has(r));
+    expect(wrong).toEqual([]);
+  });
+
   it('every cleared rule has an assembler', () => {
     const missing = [...SELF_ASSEMBLING].filter(r => !(r in NATIVE));
     expect(missing).toEqual([]);
