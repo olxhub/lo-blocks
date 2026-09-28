@@ -20,9 +20,10 @@
  * passed, which is the failure this project has paid for repeatedly.
  */
 import { RULES } from '../lib/llm/enforce/index';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { assemblerFor } from '../lib/llm/enforce/native';
-import { loBlocksRoot, rubricDir, rubricFile } from '../lib/llm/enforce/courseData';
+import { loBlocksRoot, rubricFile } from '../lib/llm/enforce/courseData';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -87,19 +88,21 @@ function auditNamespace(ns: string):
  * baseline on text would make every wording change a baseline edit, and a
  * baseline that is edited constantly stops being read.
  *
- * It lives beside the rubric's other tracked records rather than under
- * `derived/`, which is gitignored -- a baseline nobody commits cannot say what
- * changed since the last commit, which is its only job.
+ * IT LIVES IN LO-BLOCKS, NOT IN THE COURSE. The first version put it beside the
+ * rubric's other records under `course_data/`, and git refused to add it: that
+ * tree is gitignored wholesale, with only each rubric's `authored` subtree
+ * negated back in. The files already tracked there predate the rule.
  *
- * TRACKING ANYTHING UNDER `course_data/` IS A TEMPORARY CONCESSION. The
- * directory is gitignored wholesale and `rubrics/` is negated back in, which is
- * how this file and MEASURED.json and the rest come to be committed at all.
- * Refactor step L brings proper archiving of course_data; when it lands, this
- * location has to be revisited and taken back out rather than left as a
- * precedent that quietly grows.
+ * Adding another negation would have GROWN a concession that is already
+ * temporary -- refactor step L brings proper archiving of course_data, and the
+ * records tracked there now have to be revisited then. So this baseline is kept
+ * where it belongs anyway: it describes what THIS AUDIT can check, the audit is
+ * lo-blocks', and one lo-blocks may hold baselines for several mounted courses.
  */
 function baselinePath(ns: string): string {
-  return join(rubricDir(ns), 'AUDIT_BASELINE.json');
+  const dir = join(fileURLToPath(new URL('.', import.meta.url)), 'audit-baselines');
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return join(dir, `${ns}.json`);
 }
 
 type Baseline = { rules: Record<string, number>; refusedThen?: string[] };
