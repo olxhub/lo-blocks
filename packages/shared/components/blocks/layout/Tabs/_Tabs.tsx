@@ -40,7 +40,11 @@ export default function Tabs(props: RuntimeProps) {
   return (
     <div className="tabs-component border rounded-lg bg-background overflow-hidden">
       {/* Tab Headers */}
-      <div className="flex border-b bg-surface">
+      {/* `lo-chrome` MARKS THIS AS THE BLOCK'S OWN FURNITURE, not its content.
+          `print="no-chrome"` hides it in print and leaves the panels; a block
+          that has chrome to drop says so here rather than the print stylesheet
+          guessing from structure. */}
+      <div className="lo-chrome flex border-b bg-surface">
         {filteredKids.map((kid, index) => {
           const isActive = index === currentTab;
 

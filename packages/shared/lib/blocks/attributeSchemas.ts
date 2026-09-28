@@ -267,8 +267,18 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
-  print: z_olx_boolean.optional()
-    .describe('Set to "false" to hide this block from print/PDF output'),
+  // `no-chrome` IS A THIRD STATE, not a boolean, and authored content asks for
+  // it: "the print pages live in a tab, so the tab strip would otherwise head
+  // every exported PDF. Screen behavior is unchanged." Neither `true` nor
+  // `false` can say that -- both keep or drop the block WHOLE, and what is
+  // wanted is the block's content without its own furniture.
+  //
+  // `z_olx_boolean` TRANSFORMS its input, so a parsed value here is
+  // `true | false | 'no-chrome'` and the renderer tells the third apart by
+  // identity rather than by truthiness.
+  print: z.union([z_olx_boolean, z.literal('no-chrome')]).optional()
+    .describe('Print/PDF output: "false" hides this block; "no-chrome" prints '
+      + 'its content without its own chrome (e.g. a Tabs strip)'),
   'grouped-by': z.string().optional()
     .describe('Partition shared/server fields by a field of each user\'s own state: "pickerBlockId.fieldName" (e.g. "topic_picker.activeIndex"). The server resolves each user\'s group from their committed choice; users who haven\'t chosen share the unpartitioned bucket. See docs/fields-design.md "Groups".'),
 }).strict();

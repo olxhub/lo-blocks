@@ -285,7 +285,10 @@ export function render({ node, nodeInfo, runtime }: {
   // TODO: We might add lo-id-... and other classes as well, to refer to specific components
   // later
   const userClassName = parsedAttributes.class || '';
-  const printClass = parsedAttributes.print === false ? 'print-hide' : '';
+  // THREE STATES. `no-chrome` prints the block's CONTENT while dropping its own
+  // furniture; compared by identity because the other two are already booleans.
+  const printClass = parsedAttributes.print === false ? 'print-hide'
+    : parsedAttributes.print === 'no-chrome' ? 'print-no-chrome' : '';
   const combinedClassName = `${blockClassName} ${userClassName} ${printClass}`.trim();
 
   // Wrap logEvent to include context from OLX DOM hierarchy

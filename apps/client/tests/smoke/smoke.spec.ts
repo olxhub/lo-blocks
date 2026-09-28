@@ -29,6 +29,8 @@ import { test, expect, type Page, type APIRequestContext } from '@playwright/tes
 
 // -- Page loading abstraction -------------------------------------------------
 
+const INSTRUMENTED = new WeakSet<Page>();
+
 type PageResult =
   | { ok: true, jsErrors: string[] }
   | { ok: false, error: string, jsErrors: string[] };
@@ -52,11 +54,25 @@ async function loadPage(page: Page, url: string): Promise<PageResult> {
   // code runs tracks the last DOM change; the spinner check covers loads
   // whose slow part is a quiet network wait (spinners animate via CSS, so
   // they mutate nothing while spinning).
-  await page.addInitScript(() => {
-    (window as any).__lastDomChange = Date.now();
-    new MutationObserver(() => { (window as any).__lastDomChange = Date.now(); })
-      .observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
-  });
+  // ONCE PER PAGE, NOT ONCE PER NAVIGATION. `addInitScript` ACCUMULATES: every
+  // call adds another script that runs on every subsequent load. Called from
+  // here, a 42-activity walk installed 42 MutationObservers, and by the end each
+  // one fired on every DOM change in the app.
+  //
+  // THAT IS WHAT "Max challenge attempts exceeded" WAS. The failure appeared
+  // only in the full walk, only on the heaviest activity, and never in
+  // isolation -- not at 12 pages, not across all 42 with a fixed dwell, not
+  // after 60s on the page alone. It was the test's own instrumentation loading
+  // the page until the app's retry gave up, and it was reported as a defect in
+  // the course under certification.
+  if (!INSTRUMENTED.has(page)) {
+    INSTRUMENTED.add(page);
+    await page.addInitScript(() => {
+      (window as any).__lastDomChange = Date.now();
+      new MutationObserver(() => { (window as any).__lastDomChange = Date.now(); })
+        .observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+    });
+  }
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(
     () => Date.now() - (window as any).__lastDomChange > 800 && !document.querySelector('.spinner'),
@@ -115,20 +131,41 @@ test('activities render', async ({ page, request }) => {
   //
   // Collecting means a broken activity costs its own line and nobody else's
   // coverage.
+  // THE COURSE UNDER CERTIFICATION FAILS THE RUN; OTHERS ARE REPORTED.
+  //
+  // The dev server serves every course INSTALLED in its store, not only the one
+  // mounted here -- 42 activities across five namespaces, of which 18 are ours.
+  // A run that fails on another course's content is not certifying this one, it
+  // is reporting someone else's build; a run that IGNORES the others throws
+  // away a real signal. So both are collected and only ours is fatal, the same
+  // authoritative/advisory split the build audit uses.
+  //
+  // CERTIFIED_NS is set by certify.sh. UNSET, EVERYTHING IS FATAL: a plain
+  // `npm run smoke` is not certifying anything and has no reason to forgive.
+  const mine = process.env.CERTIFIED_NS ?? '';
   const failures: string[] = [];
+  const others: string[] = [];
   for (const id of ids) {
     await test.step(id, async () => {
       const url = `/preview/${id}`;
       const result = await loadPage(page, url);
-      if (!result.ok) failures.push(`${url}: ${result.error}`);
+      let problem = '';
+      if (!result.ok) problem = `${url}: ${result.error}`;
       else if (result.jsErrors.length) {
-        failures.push(`${url}: JS errors:\n  ${result.jsErrors.join('\n  ')}`);
+        problem = `${url}: JS errors:\n  ${result.jsErrors.join('\n  ')}`;
       }
+      if (!problem) return;
+      (!mine || id.split('/')[0] === mine ? failures : others).push(problem);
     });
   }
+  if (others.length) {
+    console.log(`\n${others.length} activity(ies) in OTHER courses failed to `
+      + `render. Reported, not fatal -- this run certifies ${mine || '(all)'}:\n`
+      + others.join('\n'));
+  }
   expect(failures,
-    `${failures.length} of ${ids.length} activities failed to render:\n`
-    + failures.join('\n')).toEqual([]);
+    `${failures.length} of ${ids.length} activities failed to render in `
+    + `${mine || 'any course'}:\n` + failures.join('\n')).toEqual([]);
 });
 
 test('main page loads', async ({ page }) => {

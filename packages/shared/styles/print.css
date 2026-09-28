@@ -47,6 +47,16 @@
     display: none !important;
   }
 
+  /* `print="no-chrome"`: keep the block, drop its own furniture.
+     A block declares what its furniture IS by marking it `lo-chrome`; this rule
+     does not guess from structure, so a block with no chrome to drop is simply
+     unaffected. Authored for Tabs, where "the print pages live in a tab, so the
+     tab strip would otherwise head every exported PDF". */
+  .print-no-chrome > .lo-chrome,
+  .print-no-chrome > * > .lo-chrome {
+    display: none !important;
+  }
+
   /* ===== Clean up content elements ===== */
 
   /* Textarea: show as plain text */
