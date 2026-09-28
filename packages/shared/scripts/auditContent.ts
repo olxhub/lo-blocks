@@ -20,7 +20,7 @@
  * passed, which is the failure this project has paid for repeatedly.
  */
 import { RULES } from '../lib/llm/enforce/index';
-import { NATIVE } from '../lib/llm/enforce/native';
+import { assemblerFor } from '../lib/llm/enforce/native';
 import { loBlocksRoot, rubricFile } from '../lib/llm/enforce/courseData';
 import { readdirSync } from 'fs';
 import { join } from 'path';
@@ -41,11 +41,19 @@ function mountedNamespaces(): string[] {
   }
 }
 
-function auditNamespace(ns: string): { ran: Result[]; refused: string[] } {
+function auditNamespace(ns: string):
+    { ran: Result[]; advisory: Result[]; refused: string[] } {
   const ran: Result[] = [];
+  // FINDINGS FROM AN UNCLEARED ASSEMBLER ARE REPORTED SEPARATELY, not dropped.
+  // `assemblerFor` is the gate the runner uses too; the runner REFUSES what is
+  // uncleared because its caller is the audit of record, and this one runs it
+  // and labels it, because a refusal is information. What must not happen is
+  // the build being SILENTLY more permissive than the bridge, which is what it
+  // was: it keyed off the assembler table alone.
+  const advisory: Result[] = [];
   const refused: string[] = [];
   for (const rule of Object.keys(RULES).sort()) {
-    const assemble = (NATIVE as Record<string, (ns: string) => unknown>)[rule];
+    const { fn: assemble, cleared } = assemblerFor(rule);
     if (!assemble) {
       refused.push(`${rule}: no native assembler -- this rule is only reachable `
                  + `from the python audit, which supplies its payload`);
@@ -63,12 +71,12 @@ function auditNamespace(ns: string): { ran: Result[]; refused: string[] } {
     }
     try {
       const findings = (RULES as Record<string, (p: unknown) => string[]>)[rule](payload) ?? [];
-      if (findings.length) ran.push({ rule, findings });
+      if (findings.length) (cleared ? ran : advisory).push({ rule, findings });
     } catch (e) {
       refused.push(`${rule}: the rule itself threw -- ${(e as Error)?.message ?? String(e)}`);
     }
   }
-  return { ran, refused };
+  return { ran, advisory, refused };
 }
 
 function main(): number {
@@ -83,13 +91,21 @@ function main(): number {
 
   let totalFindings = 0;
   for (const ns of withRubric) {
-    const { ran, refused } = auditNamespace(ns);
+    const { ran, advisory, refused } = auditNamespace(ns);
     const count = ran.reduce((n, r) => n + r.findings.length, 0);
     totalFindings += count;
 
     console.log(`\naudit: ${ns}`);
     for (const r of ran) {
       for (const f of r.findings) console.log(`  warning  ${r.rule}: ${f}`);
+    }
+    if (advisory.length) {
+      console.log(`  -- ${advisory.length} rule(s) ran with an assembler NOT `
+                + `cleared against python's payload. Their findings may be `
+                + `about the assembler rather than the tree:`);
+      for (const r of advisory) {
+        for (const f of r.findings) console.log(`     advisory  ${r.rule}: ${f}`);
+      }
     }
     if (refused.length) {
       console.log(`  -- ${refused.length} rule(s) could NOT be checked here:`);
