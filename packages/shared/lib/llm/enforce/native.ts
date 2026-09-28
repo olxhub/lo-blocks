@@ -44,7 +44,8 @@ import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitD
 import { fileURLToPath } from 'url';
 import { parseDerived } from '../slotSheet';
 import { resultCell } from './resultCell';
-import { eraStamp, ledger, resultValues, runsDoc, runsFiles } from './archive';
+import { SIDE_CONTRACT, artifactProgram, entry, eraStamp, ledger, resultValues,
+         runsDoc, runsFiles, runsPath, wantShapes } from './archive';
 import { WEB_BY_PRIMITIVE, webCodeSha, webParts } from './webCodeSha';
 
 /** The measured columns, in the ledger's own order. */
@@ -2553,6 +2554,93 @@ export const NATIVE: Record<string, Assembler> = {
   // THE RUBRIC SIDE USES `stagedRubricSlots`, NOT `sheetSlots`: see that
   // function for why reusing the other reader would report `entryExists: false`
   // -- a FALSE finding -- for any item it silently drops.
+  // THE ARCHIVE, READ NATIVELY. The split that left this payload in python was
+  // justified on the grounds that none of it is "reconstructible from the tree"
+  // -- but all of it is READ from the tree, and archive.ts reads it now:
+  // entry/runsPath/runsDoc/eraStamp/runsFiles, plus artifactProgram and the
+  // side contract.
+  //
+  // `runsFiles` WALKS BOTH LAYOUTS (`foo/<item>.runs.json` and
+  // `foo/runs/<item>.runs.json`). A first native walk that knew only one found
+  // 52 of 104 artifacts.
+  every_sweep_is_recorded: (ns) => {
+    const cj = courseJson(ns);
+    const decl = (cj.declarations ?? {}) as Record<string, unknown>;
+    const jobs = decodeTable(decl.JOBS)
+      .map(({ key }) => String(key)).sort();
+    const files = runsFiles(ns);
+    const rows: Array<Record<string, unknown>> = [];
+
+    for (const item of jobs) {
+      for (const side of Object.keys(SIDE_CONTRACT)) {
+        const rec = entry(ns, item, side);
+        if (!rec || !Object.keys(rec).length) continue;
+
+        // DATE THE RUNS, NOT THE FILE. `era.measured_at` says when the grader
+        // ran; mtime says when someone last wrote the file, and for a pooled or
+        // folded artifact those differ. Preferring mtime once made an assembly
+        // containing a FAILED cell-fill look newer than the clean measurement it
+        // superseded. Fall back to mtime only when there is no stamp.
+        const recorded = runsPath(ns, item, side);
+        let floor = 0;
+        let floorDated = false;
+        if (recorded && existsSync(recorded)) {
+          floor = statSync(recorded).mtimeMs / 1000;
+          const at = eraStamp(runsDoc(ns, item, side), item, 'measured_at');
+          if (at) { floor = Date.parse(String(at)) / 1000; floorDated = true; }
+        }
+
+        const want = wantShapes(side);
+        const model = SIDE_CONTRACT[side].model;
+        const newer: string[] = [];
+        const incomplete: string[] = [];
+        let considered = 0;
+        let inspected = 0;
+
+        for (const cand of files.filter(f => basename(f) === `${item}.runs.json`)) {
+          considered += 1;
+          let doc: Record<string, unknown> | null = null;
+          try { doc = readJson(cand) as Record<string, unknown>; } catch { doc = null; }
+          if (!doc) continue;
+
+          // LIVENESS IS COUNTED BEFORE THE RECENCY FILTER. After it, a healthy
+          // tree reads zero -- nothing is newer -- and the arm would look dead
+          // on every run.
+          if (want.includes(artifactProgram(doc))) inspected += 1;
+
+          const at = (((doc.era ?? {}) as Record<string, unknown>).measured_at ?? '') as string;
+          let when: number;
+          if (at) when = Date.parse(String(at)) / 1000;
+          else {
+            // UNDATEABLE: it cannot show it is newer, so it does not displace a
+            // dated measurement. If the RECORDED one is undated either, neither
+            // can claim recency and mtime is all there is.
+            if (floorDated) continue;
+            when = statSync(cand).mtimeMs / 1000;
+          }
+          if (when <= floor) continue;
+          if (!want.includes(artifactProgram(doc))) continue;
+          const got = String(((doc.era ?? {}) as Record<string, unknown>).model ?? '');
+          if (!got.includes(model)) continue;      // right shape, wrong model
+
+          // A SWEEP WITH FAILED CELLS IS NOT A RECORDABLE SWEEP: saying "record
+          // this" about one sends the reader at a refusal.
+          let dead = 0;
+          for (const run of ((doc.runs as Array<Record<string, unknown>>) ?? [])) {
+            for (const c of ((run?.results as Array<Record<string, unknown>>) ?? [])) {
+              if (c.score === null && !(c.checks || c.verdicts)) dead += 1;
+            }
+          }
+          const name = basename(dirname(cand));
+          (dead ? incomplete : newer).push(dead ? `${name} (${dead} failed cell(s))` : name);
+        }
+        rows.push({ item, side, recordedOut: rec.out ?? null,
+                    newer, incomplete, considered, inspected });
+      }
+    }
+    return { rows };
+  },
+
   sheet_matches_rubric: (ns) => {
     const items = readRubric(rubricPath(ns));
     const action = actionMap(items);
@@ -3334,6 +3422,11 @@ export function rubricPath(ns: string): string {
 // IT RATCHETS UPWARD ONLY BY MEASUREMENT: a name is added when the comparison
 // test says its payload equals python's, never because it looks right.
 export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
+  // CLEARED 2026-09-28, against the payload python actually sends: 53 rows --
+  // 26 olx, 26 paper, 1 paper_opus -- every one identical, counters included.
+  // It carries an assembler-reach case that mutates a recorded ARTIFACT (not
+  // the rubric), because the archive is what this payload is built from.
+  'every_sweep_is_recorded',
   // PORTED AND CLEARED 2026-09-28. Both projections were compared against THE
   // PAYLOAD PYTHON ACTUALLY SENDS, captured by wrapping the bridge: 23 rows,
   // identical `sheetKeys` and `rubricDef` on every one, and the rubric side
@@ -3641,12 +3734,6 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'CURRENT prompt fingerprint and cell set, per side. Both halves of that ' +
     'comparison live in the run archive and the ledger; the tree holds only ' +
     'one of them',
-  every_sweep_is_recorded:
-    'needs `measured.entry`, `measured._runs_path` and `measured.SIDE_CONTRACT` ' +
-    'plus a walk of the run archive. It dates artifacts by `era.measured_at` -- ' +
-    'when the GRADER ran -- and falls back to mtime only when there is no ' +
-    'stamp, because preferring mtime once made a pooled artifact containing a ' +
-    'failed cell-fill look newer than the clean measurement it superseded',
   probe_reach_limits_still_apply:
     'needs `agreement.load_action` and `measured._computed_slots` -- the ' +
     'harness\'s reading of the sheet, and its notion of which keys the scorer ' +

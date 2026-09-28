@@ -198,3 +198,58 @@ export function resultValues(r: Record<string, unknown>): Record<string, unknown
   }
   return values;
 }
+
+
+/**
+ * Which program wrote this artifact: the three are told apart by SHAPE.
+ *
+ * Mirrors `measured._artifact_program`. THE LANGUAGE IS NOT THE DISCRIMINATOR
+ * -- agreement.py and score.py are both Python, so a contract demanding
+ * "python" would accept a paper-scorer artifact into a web column. What
+ * separates them is the PROMPT SOURCE.
+ *
+ * Verified against python across the whole archive: 4366 artifacts, 0
+ * mismatches, every decision path witnessed by real data -- 405 olx_app, 501
+ * olx_python, 117 rubric_python via the folded branch, 3323 via the no-runs
+ * path and 20 reaching the empty answer.
+ */
+export function artifactProgram(doc: Record<string, unknown>): string {
+  if (!('runs' in doc)) {
+    if ('items' in doc || 'scored_total' in doc) return 'rubric_python';
+    return '';
+  }
+  for (const run of (doc.runs as Array<Record<string, unknown>> ?? [])) {
+    for (const r of ((run?.results as Array<Record<string, unknown>>) ?? [])) {
+      // score.py FOLDED by paper_runs.py grows a `runs` array, so the no-runs
+      // test above cannot see it, and its results are keyed neither `cell` nor
+      // `participant_id`. Without this branch a folded paper artifact returned
+      // '' -- and '' SKIPS the program check, so the shape most likely to be
+      // filed under the wrong side was the one nothing objected to.
+      if ('credit_checks' in r || ('_pid' in r && 'item_id' in r)) return 'rubric_python';
+      if ('cell' in r) return 'olx_app';
+      if ('participant_id' in r) return 'olx_python';
+    }
+  }
+  return '';
+}
+
+/**
+ * Which program may write each column, and which model.
+ *
+ * THE SHAPE IS UNIFORM -- a tuple of programs even where there is one. python's
+ * table was polymorphic (a tuple for the web column, a bare string for the
+ * paper ones) and that CONCEALED a live defect: a comparison written as
+ * `!=` against the field worked for the paper columns and silently skipped
+ * every web candidate. Keeping one shape here means the same mistake would
+ * fail on all three at once.
+ */
+export const SIDE_CONTRACT: Record<string, { programs: string[]; model: string }> = {
+  olx: { programs: ['olx_app', 'olx_python'], model: 'gpt-5-mini' },
+  paper: { programs: ['rubric_python'], model: 'gpt-5-mini' },
+  paper_opus: { programs: ['rubric_python'], model: 'opus' },
+};
+
+/** The artifact programs admissible for `side`. python's `measured.want_shapes`. */
+export function wantShapes(side: string): string[] {
+  return SIDE_CONTRACT[side]?.programs ?? [];
+}
