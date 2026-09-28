@@ -100,13 +100,66 @@ import { countScaffoldArithmetic } from './countScaffoldArithmetic';
 import { citationNecessityRecorded } from './citationNecessityRecorded';
 import { convertibleProseHasSubgoal } from './convertibleProseHasSubgoal';
 import { ruleFailTokensAgree } from './ruleFailTokensAgree';
+import { divergenceArithmetic } from './divergenceArithmetic';
 import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitDocuments';
+import { goalsRecordIntact } from './goalsRecordIntact';
+import { systemPromptsParallel } from './systemPromptsParallel';
+import { designedTextIsMeasured } from './designedTextIsMeasured';
+import { propertyVocabularyRatchet } from './propertyVocabularyRatchet';
+import { courseSchemaFields, courseSchemaCleanups } from './courseSchemaFields';
+import { sameShape } from './sameShape';
+import { pegFormatsDeclared } from './pegFormatsDeclared';
+import { cliSendsTheAppsPrompt } from './cliSendsTheAppsPrompt';
+import { sheetMatchesRubric } from './sheetMatchesRubric';
+import { enginesOfferSameVerdicts } from './enginesOfferSameVerdicts';
+import { webCodeStamped } from './webCodeStamped';
+import { paperPromptStamped } from './paperPromptStamped';
+import { paperReproducesWebScores } from './paperReproducesWeb';
+import { askEquivalencesStillHold } from './askEquivalences';
+import { itemsMeasuredAsConfigured } from './itemsMeasuredAsConfigured';
+import { everySweepIsRecorded } from './everySweepRecorded';
+import { probeReachLimitsStillApply } from './probeReachLimits';
+import { mappedSlotsAgreeWithTheirMap } from './mappedSlotsAgree';
+import { studentsSeeWhatEachCheckDecided } from './studentsSeeDecisions';
+import { webCodeSha } from './webCodeSha';
+import { paperFeedbackExplainsItsDeductions } from './paperFeedbackExplains';
+import { wrongCellsWithoutAnOwner } from './wrongCellsOwner';
+import { proseClaims } from './proseClaims';
+import { goldSlotDisagreements } from './goldSlotDisagreements';
+import { declarationConflicts } from './declarationConflicts';
 
 export type Finding = string;
 export type Rule = (payload: any) => Finding[];
 export type Probe = (payload: any) => unknown;
 
 export const RULES: Record<string, Rule> = {
+  declaration_conflicts: declarationConflicts,
+  gold_slot_disagreements: goldSlotDisagreements,
+  prose_claims: proseClaims,
+  wrong_cells_without_an_owner: wrongCellsWithoutAnOwner,
+  paper_feedback_explains_its_deductions: paperFeedbackExplainsItsDeductions,
+  web_code_sha: (p: never) => [webCodeSha(p)],
+  students_see_what_each_check_decided: studentsSeeWhatEachCheckDecided,
+  mapped_slots_agree_with_their_map: mappedSlotsAgreeWithTheirMap,
+  probe_reach_limits_still_apply: probeReachLimitsStillApply,
+  every_sweep_is_recorded: everySweepIsRecorded,
+  items_measured_as_configured: itemsMeasuredAsConfigured,
+  ask_equivalences_still_hold: askEquivalencesStillHold,
+  paper_reproduces_web_scores: paperReproducesWebScores,
+  paper_prompt_is_stamped: paperPromptStamped,
+  web_code_is_stamped: webCodeStamped,
+  peg_formats_declared: pegFormatsDeclared,
+  cli_sends_the_apps_prompt: cliSendsTheAppsPrompt,
+  sheet_matches_rubric: sheetMatchesRubric,
+  engines_offer_same_verdicts: enginesOfferSameVerdicts,
+  same_shape: (p: { a: unknown; b: unknown; path?: string }) =>
+    sameShape(p?.a, p?.b, p?.path ?? ''),
+  course_schema_fields: courseSchemaFields,
+  course_schema_cleanups: courseSchemaCleanups,
+  property_vocabulary_ratchet: propertyVocabularyRatchet,
+  designed_text_is_the_measured_text: designedTextIsMeasured,
+  system_prompts_are_parallel: systemPromptsParallel,
+  goals_record_is_intact: goalsRecordIntact,
   no_case_names_in_prompts: (p) => caseNamesInPrompts(p?.prompts ?? []),
   prompts_carry_no_process_history: (p) =>
     processHistoryFindings(p?.blocks ?? []),
@@ -200,6 +253,8 @@ export const RULES: Record<string, Rule> = {
     fixtureAgreesWithGold(p ?? { cells: [], feedback: {}, boxWords: {}, overrides: {} }),
   rule_examples_are_not_corpus: (p) =>
     ruleExamplesAreNotCorpus(p ?? { corpus: {}, items: [], backlog: [] }),
+  divergence_arithmetic_is_still_true: (p) =>
+    divergenceArithmetic(p as never),
   rule_fail_tokens_agree: (p) =>
     ruleFailTokensAgree(p as never),
   convertible_prose_rules_have_subgoals: (p) =>

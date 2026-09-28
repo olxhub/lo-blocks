@@ -59,6 +59,27 @@ export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
   // Same again: the three texts come off the tree, not from python.
   'composed_documents_are_current',
   // The rubric, the handouts and the course file are all on the tree.
+  //
+  // NATIVE-ONLY, AND PYTHON MUST PASS A PAYLOAD. Being on this list means the
+  // runner CAN build this rule's payload, not that every caller should let it.
+  // `enforcement.check_derived_fields_resolve` asked with `null` and the
+  // assembler read `refs` from the course record ON DISK -- while the
+  // enforcement self-test injects by popping a field from
+  // `agreement.BLOCKS[...]["refs"]` IN MEMORY. The mutation was invisible, the
+  // rule answered clean, and the case reported NOTHING FIRED (2026-09-27).
+  // Python assembles and passes now; this entry stays so `auditContent.ts`,
+  // which has no python to ask, keeps the rule at build time.
+  // ADDED 2026-09-27, when the RUN ARCHIVE reader moved here. Its payload was
+  // python's for one reason -- python held the only reader -- and the archive
+  // is JSON on disk. PROVEN, not assumed: the native assembler builds the same
+  // 26 rows python passes, field for field, which is what earns a place here.
+  'web_code_is_stamped',
+  // ADDED 2026-09-27. Its first native walk found HALF the artifacts, because
+  // it globbed one level -- the same bug `_runs_files` was written to end, and
+  // the one that once made a correctly-stamped sweep of all 26 items invisible.
+  // The walker covers both layouts now, and the payload is identical over all
+  // 104 artifacts.
+  'count_scaffolds_are_arithmetic',
   'derived_fields_resolve',
   'ref_targets_resolve',
   'no_recorded_run_is_an_api_error',

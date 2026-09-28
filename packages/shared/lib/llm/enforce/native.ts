@@ -43,6 +43,8 @@ import { SPLIT_DOCUMENTS, NO_COURSE_HALF as NO_COURSE_HALF_DECL } from './splitD
 import { fileURLToPath } from 'url';
 import { parseDerived } from '../slotSheet';
 import { resultCell } from './resultCell';
+import { eraStamp, ledger, resultValues, runsDoc, runsFiles } from './archive';
+import { WEB_BY_PRIMITIVE, webCodeSha, webParts } from './webCodeSha';
 
 /** The measured columns, in the ledger's own order. */
 const SIDES = ['olx', 'paper', 'paper_opus'] as const;
@@ -651,6 +653,51 @@ function splitComposedPath(ns: string, name: string): string {
  */
 function splitGenericPath(name: string): string {
   return join(dirname(fileURLToPath(import.meta.url)), name);
+}
+
+/**
+ * The app-code fingerprint for one (kind, item), taken HERE.
+ *
+ * WHICH PRIMITIVES THE ITEM AUTHORS decides which functions its answer passes
+ * through, and an item whose shape cannot be read falls back to the
+ * corpus-wide set -- assuming all of it, which is the conservative answer: a
+ * fingerprint covering too little is one that fails to move.
+ */
+const SCORE_CALL_SITES = [
+  'packages/shared/components/blocks/grading/SlotSheetGrader.ts',
+  'packages/shared/components/blocks/grading/ScoreTable/_ScoreTable.tsx',
+];
+
+function shaFor(ns: string, kind: string, item: string): string {
+  // THE ENGINE'S OWN FILES, through `loBlocksRoot` rather than named by a
+  // caller -- python reached across the repo boundary for these; this side
+  // does not have to.
+  const lo = loBlocksRoot() ?? '';
+  const src = readOrEmpty(join(lo, 'packages/shared/lib/llm/slotSheet.ts'));
+  let declared: string[] | null = null;
+  try {
+    const acts = actionMap(readRubric(rubricPath(ns)));
+    const form = String(itemForms(ns)[item] ?? '');
+    const tag = sheetTag(handoutSrc(ns, form) ?? '', acts[item]) ?? '';
+    declared = Object.keys(WEB_BY_PRIMITIVE)
+      .filter(p => (tagAttr(tag, p) ?? '').trim());
+  } catch {
+    declared = null;
+  }
+  const payload: Parameters<typeof webCodeSha>[0] = {
+    kind, names: webParts(kind, declared), slotSheet: src,
+  };
+  if (kind === 'score') {
+    payload.callSites = SCORE_CALL_SITES.map(rel => {
+      const name = rel.split('/').pop() ?? rel;
+      const text = readOrEmpty(join(lo, rel));
+      // A FILE THAT CANNOT BE READ CONTRIBUTES `<missing NAME>`, as python
+      // does, so its absence still MOVES the fingerprint rather than being
+      // silently equivalent to its presence.
+      return { name, text: text || null };
+    });
+  }
+  return webCodeSha(payload);
 }
 
 export const NATIVE: Record<string, Assembler> = {
@@ -2568,6 +2615,70 @@ export const NATIVE: Record<string, Assembler> = {
     };
   },
 
+  // MOVED OFF PYTHON 2026-09-27, with the archive reader. It walks EVERY
+  // recorded artifact rather than the ledger's one-per-column view, because
+  // the question is "does any recorded artifact contain an impossible triple",
+  // and the corpus keeps every artifact it has written.
+  //
+  // THE ERA GATE IS THE WHOLE OF THE FILTERING, and it is not optional: an
+  // artifact scored by code that has since changed is not evidence about
+  // today's behaviour. Python kept this gate when the rest of the check was
+  // ported for exactly that reason; it is native now because the fingerprint is.
+  count_scaffolds_are_arithmetic: (ns) => {
+    const artifacts: Array<Record<string, unknown>> = [];
+    for (const path of runsFiles(ns)) {
+      const name = path.split('/').pop() ?? path;
+      const item = name.slice(0, -'.runs.json'.length);
+      let doc: Record<string, unknown>;
+      try {
+        doc = JSON.parse(readFileSync(path, 'utf8'));
+      } catch { continue; }
+      const got = eraStamp(doc, item, 'web_score_sha');
+      let want: string;
+      try { want = shaFor(ns, 'score', item); } catch { continue; }
+      if (!got || got !== want) continue;
+      const runs = ((doc.runs ?? []) as Array<Record<string, unknown>>).map(run => ({
+        results: ((run?.results ?? []) as Array<Record<string, unknown>>).map(r => ({
+          // `?? null`, NOT bare `??`. python writes `"cell": null` when a
+          // result names neither; `undefined` makes JSON.stringify DROP the
+          // key, so the payload differs by an absent field rather than a null
+          // one -- invisible in a length check and fatal to a byte comparison.
+          cell: r.participant_id ?? r.cell ?? null,
+          values: resultValues(r),
+        })),
+      }));
+      const dir = path.split('/').slice(-2)[0];
+      artifacts.push({ label: `${dir}/${name}`, runs });
+    }
+    return { artifacts };
+  },
+
+  // MOVED OFF PYTHON 2026-09-27. It needed the RUN ARCHIVE and the app-code
+  // fingerprint; the fingerprint came here first, and `archive.ts` brings the
+  // rest. Nothing about a JSON artifact on disk needed python -- what it needed
+  // was a reader, and python happened to own the only one.
+  //
+  // PROVEN AGAINST PYTHON'S PAYLOAD before it was listed in SELF_ASSEMBLING,
+  // which is what that list means.
+  web_code_is_stamped: (ns) => {
+    const items: Array<Record<string, unknown>> = [];
+    for (const item of Object.keys(ledger(ns).items ?? {}).sort()) {
+      const doc = runsDoc(ns, item, 'olx');
+      if (!doc) continue;
+      const gotAsk = eraStamp(doc, item, 'web_ask_sha');
+      const gotScore = eraStamp(doc, item, 'web_score_sha');
+      const row: Record<string, unknown> = { item, gotAsk, gotScore };
+      if (gotAsk || gotScore) {
+        row.wantAsk = shaFor(ns, 'ask', item);
+        row.wantScore = shaFor(ns, 'score', item);
+        row.scoreNeutral = false;
+        row.archiveNote = '';
+      }
+      items.push(row);
+    }
+    return { fingerprintError: null, items };
+  },
+
   olx_corpus_references: (ns) => {
     const forms = [...new Set(Object.values(itemForms(ns)))]
       .filter(Boolean)
@@ -2589,6 +2700,16 @@ export const NATIVE: Record<string, Assembler> = {
         }
       }),
       budget: budget(ns, 'OLX_CORPUS_REF_BUDGET'),
+      // THE APPROVED TEACHING-TEXT REFERENCES. Keyed (item, pid, field); the
+      // rule honours them only OUTSIDE `<LLMAction>`, because the approval was
+      // about what a class reads and the same cell also appears in prompts.
+      declared: decodeTable(((courseJson(ns).declarations ?? {}) as
+                             Record<string, unknown>).OLX_TEACHING_REFS)
+        .map(({ key, value }) => {
+          const k = key as [string, number, string];
+          return { item: String(k[0]), pid: Number(k[1]), field: String(k[2]),
+                   why: String(value ?? '') };
+        }),
     };
   },
 
@@ -3072,6 +3193,12 @@ export function rubricPath(ns: string): string {
  * keeps the coverage check from passing on silence.
  */
 export const NATIVE_BLOCKED: Record<string, string> = {
+  divergence_arithmetic_is_still_true:
+    'needs `enforcement._maxes`, which computes a slot sheet\'s web max against ' +
+    'its rubric max the way the SCORER does; the declaration being checked is a ' +
+    'claim about those two numbers, so they must come from the same reader that ' +
+    'produced the claim.',
+
   rule_fail_tokens_agree:
     'needs `score._fail_verdict`, which renders `{fail}` into the PAPER prompt: ' +
     'the paper generator stays in python, and what that token becomes there is ' +
@@ -3083,12 +3210,6 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'assembling it here would check a prompt this engine built rather than ' +
     'the one that ships.',
 
-  count_scaffolds_are_arithmetic:
-    'needs `measured.web_code_sha`, which gates the recorded artifacts by ERA: ' +
-    'one scored by different code is not attributable to today\'s scorer. ' +
-    'Walking the archive here instead reported two historical contradictions ' +
-    'python deliberately no longer claims -- 104 of 1,023 artifacts pass the ' +
-    'gate, so the gate is the check, not an optimisation.',
 
   generated_attributes_have_a_declaration:
     'MEASURED 2026-09-25, and the measurement is the reason to be careful. The ' +
@@ -3131,6 +3252,139 @@ export const NATIVE_BLOCKED: Record<string, string> = {
     'and not taken: python could RECORD the signatures for this side to read, ' +
     'which buys native callability at the cost of judging a recorded product ' +
     'that can go stale — a bad trade for a rule whose subject python owns.',
+  goals_record_is_intact:
+    'needs `goals._before`, which reads the COMMITTED prior ledger with ' +
+    '`git show HEAD:GOALS.md`. A rule that shells out behaves differently ' +
+    'under a build, a hook and a test, so python reads it and passes it; a ' +
+    'missing baseline travels as `before: null` and is REPORTED rather than ' +
+    'passed over, which is the distinction rules 3 and 4 depend on',
+  system_prompts_are_parallel:
+    'needs `score.SYSTEM_TMPL`, the PAPER scorer\'s system prompt, which is a ' +
+    'python constant. Python is one of the two voices this rule compares, so ' +
+    'it holds both prompts, splits them into numbered rules and passes them; ' +
+    'a native assembler could read only the web half and would compare it ' +
+    'against nothing',
+  designed_text_is_the_measured_text:
+    'needs `corpus_resolve.expand`, which resolves a `{{corpus:...}}` ' +
+    'reference against the RESPONSE RECORDS before the field is hashed. ' +
+    'Since the history rewrite a design that quotes a student holds the ' +
+    'reference where the registered text held the sentence, and hashing it ' +
+    'raw reported seven unchanged fields as CHANGED across three handouts',
+  property_vocabulary_ratchet:
+    'needs `property_ratchet.scan`, which AST-parses the engine\'s own python ' +
+    'modules to find the subscripts that branch on a course property. The ' +
+    'scan is narrow on purpose -- subscripts only, because `coursedata` hands ' +
+    'out dicts -- and its premise is checked separately in python',
+  course_schema_fields:
+    'needs `coursedata._load` AND `coursedata.items`, which serve the two ' +
+    'halves of the 3d split -- the generator\'s rows and the rubric ' +
+    'component\'s. Comparing against `items[]` alone reported all 28 rubric ' +
+    'names as stale declarations, which is the opposite of true',
+  course_schema_cleanups:
+    'needs `coursedata._load` and `coursedata.items`, for the reason ' +
+    '`course_schema_fields` records: both halves of the 3d split or the ' +
+    'stale-declaration list is nonsense',
+  same_shape:
+    'needs `migrated_tables._shape_form`, which encodes a PYTHON value so the ' +
+    'boundary keeps what this rule measures -- ordered dict pairs (never an ' +
+    'object, because JS reorders integer-like keys), a tag on every tuple and ' +
+    'frozenset, and both spellings of a `{{corpus:...}}` string. The types ' +
+    'only exist on the python side, so the encoder must run there',
+  peg_formats_declared:
+    'needs `olx_corpus.default_roots` and `peg_formats.course_files`, which ' +
+    'walk the COURSE roots for authored peg content. The registry half is the ' +
+    'engine\'s and could be read here; the file census is not',
+  cli_sends_the_apps_prompt:
+    'needs `agreement.checklist_guidance`, the python MIRROR whose composed ' +
+    'order this compares against the app\'s. A native assembler could read ' +
+    'slotSheet.ts and would have nothing to compare it to',
+  sheet_matches_rubric:
+    'needs `agreement.load_action` and `rubric_component.load`, the two ' +
+    'readers that build the sheet and rubric projections being compared',
+  engines_offer_same_verdicts:
+    'needs `olx_prompts.parse_slots` AND `agreement.load_action` -- each ' +
+    'engine\'s verdict list must come through ITS OWN reader, or the ' +
+    'comparison is one reader agreeing with itself',
+  paper_prompt_is_stamped:
+    'needs `measured.prompt_sha` for BOTH sides. One half is IMPOSSIBLE here ' +
+    'and the other is merely WRONG to recompute, and the difference matters. ' +
+    'The paper sha hashes `score.fingerprint_text`, python\'s paper scorer, ' +
+    'which has no counterpart on this side. The OLX sha could be computed ' +
+    'natively -- it is just the served .olx -- and doing so would BREAK THE ' +
+    'CHECK: its subject is one function returning the SAME value for two ' +
+    'different `side` arguments, which is the bug it caught (no paper branch, ' +
+    'so the web hash came back for both). Two independently computed shas ' +
+    'would differ for implementation reasons, the equality would never fire, ' +
+    'and the borrowed stamp would go undetected',
+  paper_reproduces_web_scores:
+    'needs `measured.web_judgments_through_paper`, which re-runs every ' +
+    'recorded WEB judgment through `score.py`\'s arithmetic. The paper ' +
+    'scorer is python; running its arithmetic is the measurement, and there ' +
+    'is nothing on this side to run it with',
+  ask_equivalences_still_hold:
+    'needs `measured.ask_sha`, which re-derives the QUESTION an item asks on a ' +
+    'given side. The declared half is a literal in the table and could be read ' +
+    'here; the derived half cannot, and a row judged against only its own ' +
+    'literal would agree with itself',
+  items_measured_as_configured:
+    'needs `measured.status`, which compares each recorded number against the ' +
+    'CURRENT prompt fingerprint and cell set, per side. Both halves of that ' +
+    'comparison live in the run archive and the ledger; the tree holds only ' +
+    'one of them',
+  every_sweep_is_recorded:
+    'needs `measured.entry`, `measured._runs_path` and `measured.SIDE_CONTRACT` ' +
+    'plus a walk of the run archive. It dates artifacts by `era.measured_at` -- ' +
+    'when the GRADER ran -- and falls back to mtime only when there is no ' +
+    'stamp, because preferring mtime once made a pooled artifact containing a ' +
+    'failed cell-fill look newer than the clean measurement it superseded',
+  probe_reach_limits_still_apply:
+    'needs `agreement.load_action` and `measured._computed_slots` -- the ' +
+    'harness\'s reading of the sheet, and its notion of which keys the scorer ' +
+    'DERIVES rather than asks. The shape facts are computed from those two, ' +
+    'and computing them from a second reading would test a different sheet',
+  mapped_slots_agree_with_their_map:
+    'needs `measured.slot_answer` and `measured.slot_verdict` plus a walk of ' +
+    'the RUN ARCHIVE. They are the canonical readers, not a hand-rolled ' +
+    'lookup: a python result stores a pick\'s value in `answers` and an EMPTY ' +
+    'STRING for the same key in `checks`, and only `slot_answer` tries the ' +
+    'pick fields first. The archive is not reconstructible from the tree',
+  students_see_what_each_check_decided:
+    'needs `measured.web_code_sha` and a walk of the RUN ARCHIVE reading the ' +
+    'FEEDBACK TEXT each run rendered. What a student SAW is a fact about a ' +
+    'recorded run; re-deriving it from today\'s code would report what they ' +
+    'would see now, which is the opposite of the question',
+  web_code_sha:
+    'needs `measured._web_parts`, which resolves WHICH app functions an item ' +
+    'passes through by reading that item\'s authored primitives. The ' +
+    'extraction and the hash are HERE -- they read lo-blocks\' own source -- ' +
+    'and the name resolution is the caller\'s. The two must stay one ' +
+    'implementation: artifacts already on disk carry stamps this produced, ' +
+    'and a second implementation would make every one of them unattributable',
+  paper_feedback_explains_its_deductions:
+    'needs `measured.paper_render_sha` and a walk of the paper RUN ARCHIVE. ' +
+    'The fingerprint is score.py\'s own feedback wording -- the writer of ' +
+    'every stamp being compared against -- and the artifacts are the record ' +
+    'of what a student actually read',
+  wrong_cells_without_an_owner:
+    'needs `measured._wrong_cells` and `measured._live_subgoal_owners` -- ' +
+    'which cells the recorded runs get wrong, and which OPEN subgoals name ' +
+    'each one, per side. The first is the run archive and the second is the ' +
+    'goals ledger read against it',
+  prose_claims:
+    'needs `measured.records` for EVERY recorded side and ' +
+    '`measured._goals_record_lines`, which says which ledger lines are CLOSED ' +
+    'entries and when each was written. The prose is on the tree; what it is ' +
+    'checked against is the ledger, and a line\'s write date is git history',
+  gold_slot_disagreements:
+    'needs `measured._table_hits` and `measured._our_typical_failing_slots` -- ' +
+    'the phrase table that maps a grader\'s written charge to slots, and the ' +
+    'pooled run distribution it is compared against. Gold\'s comments and the ' +
+    'recorded runs are both records; neither is on the tree',
+  declaration_conflicts:
+    'needs `measured.records` per side and the declaration tables themselves ' +
+    '-- which cells are corrected, which diverge, which ceilings are ' +
+    'unreachable, which are excluded. The claim is a prediction and the ' +
+    'recorded runs are what tests it; neither is on the tree',
 };
 
 /** Run a rule natively for one course. Throws if it cannot be fed. */
