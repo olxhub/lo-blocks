@@ -63,6 +63,9 @@ export const LaunchableSchema: z.ZodType<Launchable> = z.object({
   title: z.string(),
   type: z.string().describe('Block tag'),
   index: z.number().optional().describe('Author-declared ordering hint within its collection; absent when undeclared'),
+  members: z.array(z.string()).optional().describe(
+    "For role: 'course', the qualified ids of its sections — which activities belong to it. " +
+    'A namespace may hold several courses, so this, not the namespace, is the membership.'),
   path: z.string().describe('Repo-relative path; opens in Studio as ?file='),
   description: z.string().optional().describe('Only when include: launchables.description'),
   forgeLink: ForgeLinkSchema.nullable().describe('Link to this file on its forge, or null'),

@@ -39,6 +39,11 @@ export interface ActivityCard {
   role: 'course' | 'activity' | 'internal' | 'other';
   /** Draft vs usable, from the `draft` attribute. Catalog hides drafts by default. */
   status: 'draft' | 'usable';
+  /** For role: 'course', the qualified ids it declares as its sections — the
+   *  course's membership. Absent on every other role. A namespace may hold
+   *  more than one course, so membership (not namespace) is what says which
+   *  activities belong to which course. */
+  members?: string[];
 }
 
 /** A content warning from buildActivityCards — not fatal, but should be
@@ -119,6 +124,14 @@ export function buildActivityCards(
           : 'activity';
         const status: 'draft' | 'usable' =
           bestEntry.attributes?.draft ? 'draft' : 'usable';
+        // A course's sections are its membership. Read them from the variant
+        // we picked; non-course blocks get no members at all, so a consumer
+        // can tell "declares no sections" from "is not a course".
+        const members: string[] | undefined = role === 'course'
+          ? (bestEntry.kids?.sections ?? [])
+              .filter((k: any) => k?.type === 'block' && typeof k.id === 'string')
+              .map((k: any) => k.id as string)
+          : undefined;
 
         return [
           id,
@@ -129,6 +142,7 @@ export function buildActivityCards(
             tag: bestEntry.tag,
             role,
             status,
+            ...(members ? { members } : {}),
             // Split the block's provenance ref into the origin to edit in and
             // the repo-relative path within it — Studio's ?source= and ?file=.
             editSource: String(source(bestEntry.source)),

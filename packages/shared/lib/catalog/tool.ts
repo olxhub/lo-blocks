@@ -167,6 +167,7 @@ async function getRepositories(
         title: pickTitle(card),
         type: card.tag,
         index: card.index,
+        ...(card.members ? { members: card.members } : {}),
         path: card.editPath,
         forgeLink: provider.forgeLink?.(toOlxRelativePath(card.editPath)) ?? null,
       };

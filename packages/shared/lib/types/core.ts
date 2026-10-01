@@ -1805,6 +1805,10 @@ export interface Launchable {
   type: string;
   /** Author-declared ordering hint; absent when undeclared. */
   index?: number;
+  /** For role: 'course', the qualified ids of its sections. A namespace may
+   *  hold more than one course, so this is what says which activities belong
+   *  to which course. Absent on every other role. */
+  members?: string[];
   /** Repo-relative path; opens in Studio as ?file=. */
   path: string;
   /** Only present when include: launchables.description is requested. */
