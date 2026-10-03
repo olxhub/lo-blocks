@@ -59,5 +59,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      // Two HTML entries: the course page (index.html, stamped per-route) and
+      // the static session-replay viewer (replay.html). Both share the bundle.
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        replay: path.resolve(__dirname, 'replay.html'),
+      },
+    },
   },
 });

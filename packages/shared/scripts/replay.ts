@@ -30,6 +30,13 @@ import {
   AppState,
   LoggedEvent,
 } from '../lib/replay';
+import { initReducers } from '../lib/state/store';
+import { BLOCK_REGISTRY } from '../components/blockRegistry';
+
+// Register field reducers before any replay so custom/CRDT field reducers are
+// used instead of the legacy-spread fallback. Mirrors store.init()'s internal
+// call; safe to run headless (no lo_event / websocket / Redux store created).
+initReducers(BLOCK_REGISTRY);
 
 // =============================================================================
 // Event log loading
@@ -294,10 +301,15 @@ async function main() {
   const unwrap = args.includes('--unwrap');
   const queryIdx = args.indexOf('--query');
   const queryArg = queryIdx !== -1 ? args[queryIdx + 1] : null;
+  const blobIdx = args.indexOf('--blob');
+  const blobArg = blobIdx !== -1 ? args[blobIdx + 1] : null;
 
-  // Non-flag args (skip the value after --query)
+  // Non-flag args (skip the value after --query / --blob)
+  const flagValueIdxs = new Set<number>();
+  if (queryIdx !== -1) flagValueIdxs.add(queryIdx + 1);
+  if (blobIdx !== -1) flagValueIdxs.add(blobIdx + 1);
   const positionalArgs = args.filter((a, i) =>
-    !a.startsWith('-') && (queryIdx === -1 || i !== queryIdx + 1)
+    !a.startsWith('-') && !flagValueIdxs.has(i)
   );
   const fileArg = positionalArgs[0];
 
@@ -334,6 +346,97 @@ async function main() {
 
   // Replay
   const state = replayToEvent(eventLog.events);
+
+  // Blob validation mode: diff replayed state against a saved blob JSON.
+  // The blob wraps state as { application_state: {...} }; unwrap before diffing.
+  if (blobArg) {
+    const blobRaw = JSON.parse(readFile(blobArg));
+    const blobState = (blobRaw.application_state ?? blobRaw) as Partial<AppState>;
+    // Only the persisted scopes are meaningful (serializeForSave persists
+    // system/component/componentSetting).
+    const blobAsAppState: AppState = {
+      component: blobState.component ?? {},
+      componentSetting: blobState.componentSetting ?? {},
+      system: blobState.system ?? {},
+      storage: blobState.storage ?? {},
+      olxjson: {},
+      chat: {},
+    };
+
+    // Canonical (key-order-insensitive) stringify. The shared diffStates uses a
+    // plain JSON.stringify whose output depends on key insertion order, so a
+    // perfectly-reconstructed field can be flagged as "changed" purely because
+    // the replayed reducer inserted keys in a different order than the client.
+    // We compare canonically here to report only true value divergence.
+    const canon = (v: any): string => {
+      const seen = (x: any): any => {
+        if (Array.isArray(x)) return x.map(seen);
+        if (x && typeof x === 'object') {
+          const o: any = {};
+          for (const k of Object.keys(x).sort()) o[k] = seen(x[k]);
+          return o;
+        }
+        return x;
+      };
+      return JSON.stringify(seen(v));
+    };
+
+    // Some events without an `id` (e.g. save_blob in the current tree) get
+    // reduced into component["undefined"]; that's replay/reducer drift, not
+    // real user state. Track it separately rather than as a field mismatch.
+    const reducerArtifacts: string[] = [];
+
+    const scopes = ['component', 'componentSetting', 'storage', 'system'] as const;
+    const report: any = { match: true, scopes: {} };
+    for (const scope of scopes) {
+      const r = ((state as any)[scope] ?? {}) as Record<string, any>;
+      const b = ((blobAsAppState as any)[scope] ?? {}) as Record<string, any>;
+      const onlyInReplay: string[] = [];
+      const onlyInBlob: string[] = [];
+      const changed: string[] = [];
+      for (const k of Object.keys(r)) {
+        if (k === 'undefined') { reducerArtifacts.push(`${scope}.undefined`); continue; }
+        if (!(k in b)) onlyInReplay.push(k);
+        else if (canon(r[k]) !== canon(b[k])) changed.push(k);
+      }
+      for (const k of Object.keys(b)) {
+        if (!(k in r)) onlyInBlob.push(k);
+      }
+      if (onlyInReplay.length || onlyInBlob.length || changed.length) {
+        report.match = false;
+        report.scopes[scope] = {
+          onlyInBlob,       // replay is missing these keys (blob ahead / later sessions)
+          onlyInReplay,     // replay has extra keys
+          changed,          // same key, genuinely different value
+        };
+        if (changed.length) {
+          const k = changed[0];
+          report.scopes[scope].example = { key: k, replay: r[k], blob: b[k] };
+          // Full per-key, per-subfield deltas so callers can adjudicate loss vs
+          // drift without a second replay run. For object-valued fields we emit
+          // only the differing sub-keys; for scalars we emit the whole value.
+          const deltas: Record<string, any> = {};
+          for (const k2 of changed) {
+            const rv = r[k2], bv = b[k2];
+            if (rv && bv && typeof rv === 'object' && typeof bv === 'object'
+                && !Array.isArray(rv) && !Array.isArray(bv)) {
+              const sub: Record<string, any> = {};
+              for (const fk of new Set([...Object.keys(rv), ...Object.keys(bv)])) {
+                if (canon(rv[fk]) !== canon(bv[fk])) sub[fk] = { replay: rv[fk], blob: bv[fk] };
+              }
+              deltas[k2] = sub;
+            } else {
+              deltas[k2] = { replay: rv, blob: bv };
+            }
+          }
+          report.scopes[scope].deltas = deltas;
+        }
+      }
+    }
+    if (reducerArtifacts.length) report.reducerArtifacts = reducerArtifacts;
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
 
   // JSON mode
   if (json) {

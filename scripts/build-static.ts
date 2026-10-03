@@ -222,6 +222,16 @@ for (const [urlPath, olxKey] of Object.entries(builtManifest.routes)) {
 }
 
 console.log(`  Stamped ${stampCount} page(s).`);
+
+// Session replay viewer: Vite emits dist/replay.html (a second HTML entry).
+// Also expose it at the clean URL /replay/ by copying to replay/index.html.
+const replayHtml = path.join(outputDir, 'replay.html');
+if (fs.existsSync(replayHtml)) {
+  const replayDir = path.join(outputDir, 'replay');
+  fs.mkdirSync(replayDir, { recursive: true });
+  fs.copyFileSync(replayHtml, path.join(replayDir, 'index.html'));
+  console.log('  Replay viewer available at /replay.html and /replay/.');
+}
 console.log();
 
 // ---------------------------------------------------------------------------

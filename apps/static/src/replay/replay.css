@@ -1,0 +1,205 @@
+/* apps/static/src/replay/replay.css
+ *
+ * Styling for the teacher-facing session replay viewer. Uses the course's own
+ * design tokens where available (via CSS custom properties on :root set by the
+ * app), falling back to a calm neutral palette. Kept self-contained so the
+ * viewer reads as a considered product, not a debug tool.
+ */
+
+.rv-app {
+  --rv-bg: #f7f8fa;
+  --rv-surface: #ffffff;
+  --rv-border: #e4e7ec;
+  --rv-border-strong: #d0d5dd;
+  --rv-text: #1d2433;
+  --rv-muted: #667085;
+  --rv-faint: #98a2b3;
+  --rv-accent: #3b5bdb;
+  --rv-accent-soft: #eef2ff;
+  --rv-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+  min-height: 100vh;
+  background: var(--rv-bg);
+  color: var(--rv-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---- Header / breadcrumb ------------------------------------------------- */
+
+.rv-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--rv-surface);
+  border-bottom: 1px solid var(--rv-border);
+  box-shadow: var(--rv-shadow);
+  flex-wrap: wrap;
+}
+
+.rv-crumbs { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; min-width: 0; }
+.rv-crumb {
+  background: none; border: none; padding: 0.15rem 0.35rem; border-radius: 0.35rem;
+  color: var(--rv-accent); cursor: pointer; font-size: inherit; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 22ch;
+}
+.rv-crumb:hover { background: var(--rv-accent-soft); }
+.rv-crumb-current { color: var(--rv-text); font-weight: 600; cursor: default; }
+.rv-crumb-current:hover { background: none; }
+.rv-crumb-sep { color: var(--rv-faint); }
+
+.rv-header-spacer { flex: 1; }
+
+.rv-session-nav { display: flex; align-items: center; gap: 0.35rem; }
+.rv-session-nav .rv-iconbtn { width: 2rem; height: 2rem; }
+
+/* ---- Generic buttons ----------------------------------------------------- */
+
+.rv-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.9rem; height: 1.9rem; border-radius: 0.45rem;
+  border: 1px solid var(--rv-border-strong); background: var(--rv-surface);
+  color: var(--rv-text); cursor: pointer; transition: background 0.12s, border-color 0.12s;
+}
+.rv-iconbtn:hover:not(:disabled) { background: var(--rv-accent-soft); border-color: var(--rv-accent); }
+.rv-iconbtn:disabled { opacity: 0.4; cursor: default; }
+
+/* ---- Landing: run cards -------------------------------------------------- */
+
+.rv-page { max-width: 1040px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.rv-title { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+.rv-subtitle { color: var(--rv-muted); margin-top: 0.25rem; font-size: 0.95rem; }
+.rv-section-gap { margin-top: 2rem; }
+
+.rv-run-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.rv-run-card {
+  text-align: left; background: var(--rv-surface); border: 1px solid var(--rv-border);
+  border-radius: 0.9rem; padding: 1.25rem; cursor: pointer; box-shadow: var(--rv-shadow);
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+.rv-run-card:hover { transform: translateY(-2px); border-color: var(--rv-accent); box-shadow: 0 6px 18px rgba(16,24,40,0.10); }
+.rv-run-card-label { font-size: 1.1rem; font-weight: 650; }
+.rv-run-card-meta { color: var(--rv-muted); font-size: 0.85rem; margin-top: 0.5rem; }
+.rv-run-card-arrow { color: var(--rv-accent); margin-top: 0.9rem; font-size: 0.85rem; font-weight: 600; }
+
+/* ---- Response Data (downloadable CSVs) ----------------------------------- */
+
+.rv-section-heading { font-size: 1.2rem; font-weight: 650; letter-spacing: -0.01em; }
+.rv-section-note { color: var(--rv-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+/* ---- Student table ------------------------------------------------------- */
+
+.rv-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--rv-surface);
+  border: 1px solid var(--rv-border); border-radius: 0.75rem; overflow: hidden; box-shadow: var(--rv-shadow); }
+.rv-table th {
+  text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--rv-muted); font-weight: 600; padding: 0.7rem 1rem; background: #fafbfc;
+  border-bottom: 1px solid var(--rv-border);
+}
+.rv-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--rv-border); font-size: 0.92rem; }
+.rv-table tr:last-child td { border-bottom: none; }
+.rv-table tr.rv-row-click { cursor: pointer; }
+.rv-table tr.rv-row-click:hover td { background: var(--rv-accent-soft); }
+.rv-table td.rv-num { color: var(--rv-muted); font-variant-numeric: tabular-nums; }
+.rv-student-name { font-weight: 600; }
+
+/* ---- Session list -------------------------------------------------------- */
+
+.rv-day-heading { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--rv-muted); font-weight: 600; margin: 1.5rem 0 0.6rem; }
+.rv-session-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.rv-session-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 0.7rem;
+  padding: 0.9rem 1.1rem; cursor: pointer; text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+.rv-session-item:hover { border-color: var(--rv-accent); background: var(--rv-accent-soft); }
+.rv-session-when { font-weight: 600; }
+.rv-session-meta { color: var(--rv-muted); font-size: 0.85rem; margin-top: 0.2rem; }
+.rv-session-badge { color: var(--rv-faint); font-size: 0.78rem; }
+
+/* ---- Viewer: scrubber ---------------------------------------------------- */
+
+.rv-scrubber {
+  position: sticky; top: 3.4rem; z-index: 20;
+  background: var(--rv-surface); border-bottom: 1px solid var(--rv-border);
+  padding: 0.7rem 1.25rem 0.9rem; box-shadow: var(--rv-shadow);
+}
+.rv-scrubber-controls { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+
+/* Events / Time axis toggle (segmented control). */
+.rv-axis-toggle {
+  display: inline-flex; border: 1px solid var(--rv-border-strong); border-radius: 0.5rem;
+  overflow: hidden; background: var(--rv-surface); flex: none;
+}
+.rv-axis-btn {
+  border: none; background: none; cursor: pointer; padding: 0.3rem 0.7rem;
+  font-size: 0.8rem; font-weight: 600; color: var(--rv-muted);
+  transition: background 0.12s, color 0.12s;
+}
+.rv-axis-btn + .rv-axis-btn { border-left: 1px solid var(--rv-border); }
+.rv-axis-btn:hover:not(.rv-axis-btn-active) { background: var(--rv-accent-soft); }
+.rv-axis-btn-active { background: var(--rv-accent); color: #fff; }
+.rv-scrubber-readout { display: flex; align-items: baseline; gap: 0.75rem; margin-left: 0.25rem; }
+.rv-frame { font-size: 0.85rem; font-weight: 600; }
+.rv-elapsed { font-size: 0.82rem; color: var(--rv-muted); font-variant-numeric: tabular-nums; }
+.rv-elapsed-total { color: var(--rv-faint); }
+
+.rv-track { position: relative; height: 1.4rem; cursor: pointer; display: flex; align-items: center; }
+.rv-track-rail { position: absolute; left: 0; right: 0; height: 5px; border-radius: 999px; background: var(--rv-border-strong); }
+.rv-track-fill { position: absolute; left: 0; height: 5px; border-radius: 999px; background: var(--rv-accent); }
+.rv-track-gap {
+  position: absolute; top: 50%; width: 3px; height: 14px; transform: translate(-50%, -50%);
+  background: repeating-linear-gradient(to bottom, var(--rv-faint) 0 2px, transparent 2px 4px);
+  border-radius: 2px;
+}
+.rv-track-thumb {
+  position: absolute; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%);
+  background: var(--rv-surface); border: 3px solid var(--rv-accent); border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(16,24,40,0.2);
+}
+
+/* ---- Viewer: gap overlay ------------------------------------------------- */
+
+.rv-stage { position: relative; }
+.rv-gap-overlay {
+  position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 15;
+  background: #fffdf5; border: 1px solid #f2e6c4; color: #7a6316;
+  padding: 0.55rem 0.95rem; border-radius: 0.6rem; font-size: 0.85rem;
+  box-shadow: var(--rv-shadow); display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* ---- Misc ---------------------------------------------------------------- */
+
+.rv-note { color: var(--rv-muted); font-size: 0.9rem; padding: 2rem 0; text-align: center; }
+.rv-error { color: #b42318; font-size: 0.9rem; padding: 2rem 0; text-align: center; }
+.rv-loading { padding: 4rem 0; display: flex; justify-content: center; }
+
+.rv-generated {
+  font-size: 0.8rem;
+  color: #8a8f98;
+  margin-top: -0.25rem;
+}
+
+/* Response data: deliberately subtle — replay is the main event. */
+.rv-data-section { margin-top: 3rem; }
+.rv-data-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a8f98;
+  margin-bottom: 0.4rem;
+}
+.rv-data-bullets {
+  list-style: disc;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.rv-data-bullets li { margin: 0.15rem 0; }
+.rv-data-bullet-link { color: inherit; text-decoration: underline; }
+.rv-data-bullet-link:hover { color: var(--rv-accent, #2563eb); }

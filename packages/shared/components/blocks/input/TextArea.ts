@@ -22,9 +22,18 @@ const TextArea = core({
     rows: z.string().default('4').describe('Number of visible text rows'),
     readonly: z_olx_boolean.optional().describe('Make textarea read-only'),
   }).strict(),
-  // Read Redux value, falling back to initial text from OLX children
-  selectValue: (props: RuntimeProps, reduxState: any, _stateKey: StateKey) => {
-    const value = state.getField(props, fields.value, { fallback: undefined });
+  // Read Redux value, falling back to initial text from OLX children.
+  //
+  // Must read from the `reduxState` argument, NOT the global singleton store.
+  // selectValue is invoked with an arbitrary state — e.g. a frozen replay store
+  // when a <Ref> reads this TextArea during session replay. The previous
+  // getField() call read the live singleton store instead, so any value
+  // referenced through this TextArea came back empty in replay (the live store
+  // is empty there). Select from the passed state and decode, mirroring how
+  // other blocks' selectValue read state (e.g. SortableInput).
+  selectValue: (props: RuntimeProps, reduxState: any, stateKey: StateKey) => {
+    const raw = state.fieldSelector(reduxState, props, fields.value, { stateKey, fallback: undefined });
+    const value = state.decodeField(fields.value, raw);
     if (value !== undefined) {
       return value;
     }

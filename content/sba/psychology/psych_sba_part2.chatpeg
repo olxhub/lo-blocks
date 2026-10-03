@@ -8,46 +8,46 @@ authors: "TODO -- fill this in"
 Reinforcement vs. Punishment
 ----------------------------
 
-Annie: Well, we're making progress! We can tell Lin's friend to use positive
-reinforcement as her bedtime strategy.
+Sierra: Well, we're making progress! We can tell my sister to use positive
+reinforcement as her strategy for getting Logan to clean up.
 
-JJ: It's a great idea, but maybe we should make sure we really understand
+Krish: It's a great idea, but maybe we should make sure we really understand
 positive reinforcement, to make sure we give good advice.
 
 ::lecture_notes_1 [display=target:psych_sba_sidebar2 label="Lecture notes: reinforcement"]
 
-JJ: Don't you think this is where we can bring in the things we're studying in Psych class? Here are my lecture notes... I've got a definition of "reinforcement." It's from our textbook.
+Krish: Don't you think this is where we can bring in the things we're studying in Psych class? Here are my lecture notes... I've got a definition of "reinforcement." It's from our textbook.
 
 Lin: I'm not quite sure I get this. In the class, we learned about both **positive** and **negative** reinforcement. Isn't that basically just reward vs. punishment?
 
-JJ: Uh, no ... punishment isn't the same thing as negative reinforcement. Let me look up my notes.
+Krish: Uh, no ... punishment isn't the same thing as negative reinforcement. Let me look up my notes.
 
 ::lecture_notes_2 [display=target:psych_sba_sidebar2 label="Lecture notes: punishment"]
 
-JJ: Here we go. Here's how my notes say punishment is defined.
+Krish: Here we go. Here's how my notes say punishment is defined.
 
-Annie: Looking at the examples confuses me a little. It seems to include unintentional consequences! I mean, in the second example, Amelia's teacher wasn't trying to punish her.
+Sierra: Looking at the examples confuses me a little. It seems to include unintentional consequences! I mean, in the second example, Amelia's teacher wasn't trying to punish her.
 
 Lin: **Reinforcement** and **punishment** are being used as technical terms. _Anything that makes a preceding behavior more likely_ is a **reinforcement**. _Anything that makes it less likely_ is a **punishment**.
 
 Lin: I'm still a bit confused. Why are the examples with Ella and Nathan classified as punishment instead of reinforcement?
 
-Annie: This **is** tricky: "following classroom rules" is just "not breaking them" and "withdrawing from group activities" is just "not participating in them".
+Sierra: This **is** tricky: "following classroom rules" is just "not breaking them" and "withdrawing from group activities" is just "not participating in them".
 
-Annie: So, what behavior is really being changed? Being sent to the principal's office is caused by rule-breaking, not rule following, and you can't be laughed at unless you're participating in group activities!
+Sierra: So, what behavior is really being changed? Being sent to the principal's office is caused by rule-breaking, not rule following, and you can't be laughed at unless you're participating in group activities!
 
-Annie: Since the behaviors of rule-breaking and participating are decreasing, these scenarios are examples of punishment.
+Sierra: Since the behaviors of rule-breaking and participating are decreasing, these scenarios are examples of punishment.
 
-JJ: It sounds like we may still be a bit confused on these concepts. I don't think we should give Annie's friend any advice until we're sure we know exactly what positive reinforcement is!
+Krish: It sounds like we may still be a bit confused on these concepts. I don't think we should give Sierra's sister any advice until we're sure we know exactly what positive reinforcement is!
 
 Lin: You're right!
 
 Practice Quiz 1
 ---------------
 
-JJ: Hey, everyone, I've got an idea.
+Krish: Hey, everyone, I've got an idea.
 
-JJ: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don't we try to answer those questions? Then, we can discuss them ...
+Krish: Do you remember when the TA gave us that practice page with twenty extra questions on it to help us practice telling the difference between reinforcement and punishment, before we took the quiz? Why don't we try to answer those questions? Then, we can discuss them ...
 
 ::reinforce_punish_practice_1 [display=target:psych_sba_sidebar2 label="Reinforcement or Punishment Practice 1: Sticker"]
 
@@ -131,7 +131,7 @@ JJ: Do you remember when the TA gave us that practice page with twenty extra que
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1c
 
-JJ: I got #3 wrong. I was confused by "accidentally". It didn't matter if it was an accident. It reduced the likelihood that Lucas would touch the stove to zero, so in terms of psychological theory, it was a punishment.
+Krish: I got #3 wrong. I was confused by "accidentally". It didn't matter if it was an accident. It reduced the likelihood that Lucas would touch the stove to zero, so in terms of psychological theory, it was a punishment.
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1e
 
@@ -139,7 +139,7 @@ Lin: #5 confused me, because the dad's actions are making it MORE likely that Mi
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1i
 
-Annie: #9 confused me. But I guess you can paraphrase it as "Whenever his mom gets upset, that makes Matthew more likely to make his bed in the morning," so it's a reinforcer.
+Sierra: #9 confused me. But I guess you can paraphrase it as "Whenever his mom gets upset, that makes Matthew more likely to make his bed in the morning," so it's a reinforcer.
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1j
 
@@ -147,81 +147,81 @@ Lin: #10 confused me because I didn't think NOT doing something would count as p
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1k
 
-JJ: #11 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer.
+Krish: #11 confused me because the sister is probably calling her an artist to be sarcastic. She wants her to stop! But the sarcastic praise is still making her more likely to scribble on the walls, so it's a reinforcer.
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1o
 
-Annie: #15 confused me, because dessert was taken away only once. But that one time had a big impact, and took the probability that Jackson will try new foods down to zero, so it counts as punishment psychologically.
+Sierra: #15 confused me, because dessert was taken away only once. But that one time had a big impact, and took the probability that Jackson will try new foods down to zero, so it counts as punishment psychologically.
 
 psych_sba_sidebar2 -> reinforce_punish_practice_1q
 
-JJ: #17 confused me, because the teacher giving Chloe an order didn't seem like a punishment to me! But it counts as one, because it made Chloe less likely to play with scissors.
+Krish: #17 confused me, because the teacher giving Chloe an order didn't seem like a punishment to me! But it counts as one, because it made Chloe less likely to play with scissors.
 
 psych_sba_sidebar2 -> operant_conditioning_clear_screen_1
 
-Annie: Well, I think we've cleared all of that up now!
+Sierra: Well, I think we've cleared all of that up now!
 
 Understanding Types
 -------------------
 
-Lin: Yes, I think we're getting a lot closer to helping your roommate out,
-Annie, but can you text her to see what she and the parents have
-been doing recently to try to get the kid to go to bed?
+Lin: Yes, I think we're getting a lot closer to helping your sister out,
+Sierra, but can you text her to see what she's been doing
+recently to try to get Logan to clean up?
 
-JJ: Good idea. We know it was sometimes "do nothing," but maybe not every time.
+Krish: Good idea. We know it was sometimes "do nothing," but maybe not every time.
 
-Annie: Sure, I'll text her now and let you know what she says.
+Sierra: Sure, I'll text her now and let you know what she says.
 
-// Note: This shows screenshot of messages between Annie's roommate and parents
-::messages_image [display=target:psych_sba_sidebar2 label="Texts from the babysitter"]
+// Note: This shows screenshot of messages between Sierra and her sister
+::messages_image [display=target:psych_sba_sidebar2 label="Texts from Sierra's sister"]
 
-Annie: She texted right back. See for yourselves.
+Sierra: She texted right back. See for yourselves.
 
 Lin: So what is this? Punishment or reinforcement?
 
-JJ: You'd think yelling was punishment! But it doesn't seem to have worked as punishment,
-because his refusing to go to sleep got worse. So in this case, yelling was a reinforcer.
+Krish: You'd think yelling was punishment! But it doesn't seem to have worked as punishment,
+because his refusing to clean up got worse. So in this case, yelling was a reinforcer.
 If yelling worked as a punisher, we would expect that he would stop the problem behaviors
 after being yelled at.
 
-Annie: In other words, their attempt to control his behavior gave him something he wanted, probably attention,
+Sierra: In other words, their attempt to control his behavior gave him something he wanted, probably attention,
 so every time they tried to bring the problem under control, they were only making it worse.
 
 Lin: That means we need to figure out things to suggest that will reinforce cooperation. We don't want to accidentally reinforce the wrong thing!
 
-Annie: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my roommate. The most effective behavior modification technique, according to what we learned earlier, is **positive**  reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
+Sierra: Hey guys, there's still something we need to get clear in our own heads before we offer any solutions to my sister. The most effective behavior modification technique, according to what we learned earlier, is **positive**  reinforcement. But I'm not really clear yet on the difference between positive and negative reinforcement.
 
 ::operant_conditioning_reinforcement_notes [display=target:psych_sba_sidebar2 label="Notes: positive vs. negative reinforcement"]
 
-JJ: I just checked back through my notes ... here's what I have.
+Krish: I just checked back through my notes ... here's what I have.
 
-JJ: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative means taking something away! And it's the same for punishment.
+Krish: So, positive doesn't mean good, and negative doesn't mean bad. Instead, positive means adding something, and negative means taking something away! And it's the same for punishment.
 
 ::operant_conditioning_reinforcement_notes2 [display=target:psych_sba_sidebar2 label="Notes: positive vs. negative punishment"]
 
-JJ: Look! Here's what I have in my notes.
+Krish: Look! Here's what I have in my notes.
 
-Lin: So positive punishment would be like spanking the child every time he tries to avoid bedtime. The adult is **adding** spanking, something that is **undesirable**, to **decrease** the child's behavior of avoiding bedtime.
+Lin: So positive punishment would be like spanking the child every time he refuses to clean up. The adult is **adding** spanking, something that is **undesirable**, to **decrease** the child's behavior of refusing to clean up.
 
-Annie: And negative punishment would be like taking away his favorite toy whenever he avoids bedtime. The adult is **taking away** the toy, something **desirable**, to decrease the child's behavior of avoiding bedtime.
+Sierra: And negative punishment would be like taking away his favorite toy whenever he refuses to clean up. The adult is **taking away** the toy, something **desirable**, to decrease the child's behavior of refusing to clean up.
 
 ::operant_conditioning_poster [display=target:psych_sba_sidebar2 label="Reinforcement & punishment chart"]
 
-JJ: I found this chart on the Internet. I think it sums things up nicely!
+Krish: I found this chart on the Internet. I think it sums things up nicely!
 
 Lin: I'm still not as clear on this as I would like to be. Maybe some practice would help!
 
-JJ: Maybe we can take some of the things that the parents have already tried or that we suggested early on and figure out what category they fit into? I don't know about you, but that would help me.
+Krish: Maybe we can take some of the things that the parents have already tried or that we suggested early on and figure out what category they fit into? I don't know about you, but that would help me.
 
 ::conditioning_example_chart [display=target:psych_sba_sidebar2 label="Categorize the examples"]
 
-Annie: OK, let's give it a try!
+Sierra: OK, let's give it a try!
 
 --- wait @positive_reinforcement_example.value && @positive_punishment_example.value && @negative_reinforcement_example.value && @negative_punishment_example.value ---
 
-::filled_out_poster [display=target:psych_sba_sidebar2 label="Annie's completed chart"]
+::filled_out_poster [display=target:psych_sba_sidebar2 label="Sierra's completed chart"]
 
-Annie: Here is how I filled out my chart.
+Sierra: Here is how I filled out my chart.
 
 Lin: I think we're making progress here! It's a bit clearer to me now.
 
@@ -233,9 +233,9 @@ Lin: Hey everyone -- the TA just told me the quiz we took is a simplified versio
 Let's try the full version of the quiz, where we have to decide not only if something is reinforcement or punishment,
 but if it's positive reinforcement, negative reinforcement, positive punishment, or negative punishment.
 
-JJ: I'm game.
+Krish: I'm game.
 
-Annie: I am, too. Let's give it a try!
+Sierra: I am, too. Let's give it a try!
 
 ::four_types_practice_1 [display=target:psych_sba_sidebar2 label="Four Types Practice 1: Sticker"]
 
@@ -321,34 +321,34 @@ psych_sba_sidebar2 -> clear_screen_after_quiz
 
 Lin: Phew...we've covered a lot of ground.
 
-JJ: For real. I think we have the difference between positive and negative reinforcement and positive and negative punishment down.
+Krish: For real. I think we have the difference between positive and negative reinforcement and positive and negative punishment down.
 
-Writing the Final Email to Lin's Friend
----------------------------------------
+Writing the Final Email to Sierra's Sister
+------------------------------------------
 
-Annie: Don't forget that the whole **point** of this was to figure out what to tell my friend! We still have to solve her babysitting problem.
+Sierra: Don't forget that the whole **point** of this was to figure out what to tell my sister! We still have to solve her problem with Logan.
 
-::norulesparenting_summary [display=target:psych_sba_sidebar2 label="The opening to the message we wrote to Annie's roommate"]
+::norulesparenting_summary [display=target:psych_sba_sidebar2 label="The opening to the message we wrote to Sierra's sister"]
 
 Lin: So, here's what we already wrote ... What do we need to do next?
 
-Annie: Well, we had better tell her that we're recommending she use positive reinforcement, and explain why.
+Sierra: Well, we had better tell her that we're recommending she use positive reinforcement, and explain why.
 
 Lin: And we should probably explain what positive reinforcement is. It gave us all a lot of trouble, and we're taking a psychology class. She isn't.
 
 ::outline_of_full_email [display=target:psych_sba_sidebar2 label="Outline of the full email"]
 
-JJ: Most important of all, we need a list of specific positive reinforcement techniques we should suggest to her. Let's give her some good ideas!
+Krish: Most important of all, we need a list of specific positive reinforcement techniques we should suggest to her. Let's give her some good ideas!
 
 ::draft_full_email [display=target:psych_sba_sidebar2 label="Draft the full email"]
 
-Annie: Let's go!
+Sierra: Let's go!
 
 --- wait @email_draft.value && @recommended_technique.value && @explanation_of_positive_reinforcement.value && @technique1.value && @technique2.value && @technique3.value && @technique4.value && @technique5.value && @final_paragraph.value ---
 
-Annie: I'm done!
+Sierra: I'm done!
 
-JJ: So am I!
+Krish: So am I!
 
 Lin: I am, too.
 
@@ -360,15 +360,15 @@ You: I'm going to go ahead and pull together the final email. I'll pull the best
 
 You: OK. I've finished the email!
 
-Annie: Ok. I'm so excited! I sent the email to my roommate and have been waiting eagerly to hear how things went. I just now got an answer back.
+Sierra: Ok. I'm so excited! I sent the email to my sister and have been waiting eagerly to hear how things went. I just now got an answer back.
 
-::roommate_response [display=target:psych_sba_sidebar2 label="The roommate's reply"]
+::roommate_response [display=target:psych_sba_sidebar2 label="Sierra's sister's reply"]
 
-Annie: Positive reinforcement worked!
+Sierra: Positive reinforcement worked!
 
 ::psych_sba_part_2_completion_page [display=target:psych_sba_sidebar2 label="Confirm you are done."]
 
-Annie: Thank YOU so much! I'm glad we were able to help my roommate by sharing what we have been learning in psych. So cool. Applying psych to our own lives pays off... Let's get together and study for our exam. I think we work really well together!
+Sierra: Thank YOU so much! I'm glad we were able to help my sister by sharing what we have been learning in psych. So cool. Applying psych to our own lives pays off... Let's get together and study for our exam. I think we work really well together!
 
 ::psych_sba_part2_review [display=target:psych_sba_sidebar2 label="Review all your answers."]
 

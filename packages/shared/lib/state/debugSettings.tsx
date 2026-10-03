@@ -22,6 +22,12 @@ export interface DebugSettings {
   setReplayMode: (mode: boolean) => void;
   setReplayEventIndex: (index: number | ((prev: number) => number)) => void;
   getEvents: () => LoggedEvent[];
+  /**
+   * Hide the "Return to Live" button in the replay scrubber. Set by the static
+   * replay viewer (there is no live session to return to); defaults to false
+   * for the in-app debug panel.
+   */
+  hideReturnToLive?: boolean;
 }
 
 // =============================================================================

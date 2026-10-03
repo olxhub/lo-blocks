@@ -168,6 +168,21 @@ export function replayToEvent(events: LoggedEvent[], upTo?: number): AppState {
 }
 
 /**
+ * Apply a single logged event to a state, returning the next state.
+ *
+ * This is the per-event step used internally by replayToEvent, exposed so
+ * callers can build incremental scrubbers: precompute checkpoint states at a
+ * stride, then step forward from the nearest checkpoint instead of re-reducing
+ * the whole prefix on every scrub position.
+ */
+export function applyEvent(state: AppState, event: LoggedEvent): AppState {
+  if (event.event === 'fetch_blob_response') {
+    return applyFetchBlobResponse(state, event.data);
+  }
+  return updateResponseReducer(state, event);
+}
+
+/**
  * Replay all events, returning snapshots at each step.
  *
  * Useful for:

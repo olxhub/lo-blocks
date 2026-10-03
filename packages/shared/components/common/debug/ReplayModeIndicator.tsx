@@ -45,7 +45,7 @@ function getEventTimestamp(event: LoggedEvent): number | null {
 }
 
 export default function ReplayModeIndicator() {
-  const { replayMode, replayEventIndex, setReplayMode, setReplayEventIndex, getEvents } = useDebugSettings();
+  const { replayMode, replayEventIndex, setReplayMode, setReplayEventIndex, getEvents, hideReturnToLive } = useDebugSettings();
   const [scrubberMode, setScrubberMode] = useState<ScrubberMode>('event');
   const scrubberRef = useRef<HTMLDivElement>(null);
 
@@ -276,9 +276,11 @@ export default function ReplayModeIndicator() {
           </button>
         </div>
 
-        <button className="replay-mode-exit" onClick={clearReplay}>
-          Return to Live
-        </button>
+        {!hideReturnToLive && (
+          <button className="replay-mode-exit" onClick={clearReplay}>
+            Return to Live
+          </button>
+        )}
       </div>
 
       {/* Scrubber bar */}

@@ -95,3 +95,17 @@ lofs/runtime/
 /apps/static/out/
 apps/static/dist/
 apps/client/dist/
+
+# Static site build output (repo-root dist/<namespace>). Contains built
+# courses AND — for the replay viewer — copies of student event logs under
+# replay-data/. NEVER commit: this repo is public and logs are student data.
+/dist/
+
+# Temp build scratch dirs (git-archive extraction of historical content, etc.)
+.tmp-build-*/
+.tmp-pilot-*/
+.tmp-replay-*/
+
+# Scratch dir: test fixtures (copied student logs), validation reports, blobs.
+# Student data + machine-local scratch — never committed.
+tmp/
