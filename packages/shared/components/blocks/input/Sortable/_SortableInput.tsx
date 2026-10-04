@@ -45,8 +45,28 @@ export default function SortableInput(props: RuntimeProps) {
 
   // State management
   const [arrangement, setArrangement] = useFieldState(props, fields.arrangement, []);
-  const [draggedItem, setDraggedItem] = useFieldState(props, fields.draggedItem, null);
-  const [dragOverIndex, setDragOverIndex] = useFieldState(props, fields.dragOverIndex, null);
+  const [draggedItem, writeDraggedItem] = useFieldState(props, fields.draggedItem, null);
+  const [dragOverIndex, writeDragOverIndex] = useFieldState(props, fields.dragOverIndex, null);
+
+  // Every field write is logged as an event, and the browser fires dragover
+  // about every 17ms whether or not the hover slot changed. Write only when
+  // the value changes. The refs hold the last value written because handlers
+  // can run again before the write is rendered (drop is followed at once by
+  // dragend), when the rendered value is still the old one.
+  const lastDraggedItem = useRef(draggedItem);
+  lastDraggedItem.current = draggedItem;
+  const lastDragOverIndex = useRef(dragOverIndex);
+  lastDragOverIndex.current = dragOverIndex;
+  const setDraggedItem = (index) => {
+    if (lastDraggedItem.current === index) return;
+    lastDraggedItem.current = index;
+    writeDraggedItem(index);
+  };
+  const setDragOverIndex = (index) => {
+    if (lastDragOverIndex.current === index) return;
+    lastDragOverIndex.current = index;
+    writeDragOverIndex(index);
+  };
   const { showAnswer } = useGraderAnswer(props);
   const readOnly = useInputReadOnly(props);
 
