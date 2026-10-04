@@ -1,8 +1,8 @@
 {
  "rules": {
-  "every_prompt_field_is_designed": 7,
+  "every_prompt_field_is_designed": 6,
   "olx_attributes_are_all_generated": 1,
-  "olx_corpus_references": 31
+  "olx_corpus_references": 40
  },
  "refusedThen": [
   "ask_equivalences_still_hold",
@@ -13,7 +13,6 @@
   "designed_text_is_the_measured_text",
   "divergence_arithmetic_is_still_true",
   "engines_offer_same_verdicts",
-  "every_sweep_is_recorded",
   "generated_attributes_have_a_declaration",
   "goals_record_is_intact",
   "gold_slot_disagreements",

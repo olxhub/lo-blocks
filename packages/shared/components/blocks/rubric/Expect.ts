@@ -33,6 +33,15 @@ const Expect = core({
     value: z.string().describe('The value it must equal.'),
     lenient: z.string().optional().describe(
       'Answers that establish nothing and are not charged, comma-separated.'),
+      // WHICH ITEM'S EXPECT IS THE EXPORTED TABLE'S. Five items carry an
+      // <Expect>; handout 2's builder assigned ONE of them from the `EXPECT`
+      // table it exports and the rest from a private table it does not, so the
+      // component held the merged result and could not say which was which.
+      // That was the last fact the course file still needed the builder for.
+      // Marking it here lets the reader derive the table from the component.
+      authored: z.string().optional().describe(
+        'Set "true" on the one Expect that belongs to the exported EXPECT ' +
+        'table, so the table can be derived from the component.'),
   }),
   // NOT `internal`. These are author-facing: the end state is a HAND-AUTHORED
   // rubric, and `internal` means "hidden from the docs, not for course authors",

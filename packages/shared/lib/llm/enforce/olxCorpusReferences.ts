@@ -36,7 +36,17 @@ export type CorpusRefPayload = {
   declared?: Array<{ item: string; pid: number; field: string; why: string }>;
 };
 
-const REF = /\{\{corpus:([A-Za-z0-9]+)\/p(\d+):([A-Za-z0-9_]+):(\d+):(\d+)(?::sha=[0-9a-f]+)?\}\}/g;
+// THE GRAMMAR IS `corpus_resolve.OLX`'s, NOT A SUBSET OF IT. This stopped at
+// `:sha=` and then demanded `}}`, so every reference carrying the optional
+// `:alt=` or `:shape=` suffix failed to match and was not counted -- 20 of the
+// 63 in the three handouts, including an UNDECLARED one on a page a class
+// reads, which is the single case the teaching-ref approval exists to gate.
+// The rule's own arithmetic stayed self-consistent throughout (43 matched = 29
+// blocking + 14 approved), which is why nothing looked wrong. Keep this in step
+// with `corpus_resolve.OLX`; a checker narrower than the grammar it polices
+// reports a clean subset as a clean whole.
+const REF =
+  /\{\{corpus:([A-Za-z0-9]+)\/p(\d+):([A-Za-z0-9_]+):(\d+):(\d+)(?::sha=[0-9a-f]{6,64})?(?::alt=[A-Za-z0-9/,_]+)?(?::shape=[0-9A-Za-z,-]+)?\}\}/g;
 
 /** `<LLMAction>...</LLMAction>` spans: inside is the PROMPT, outside is the PAGE. */
 function actionSpans(src: string): Array<[number, number]> {
@@ -44,6 +54,24 @@ function actionSpans(src: string): Array<[number, number]> {
   const re = /<LLMAction\b[\s\S]*?<\/LLMAction>/g;
   for (let m = re.exec(src); m; m = re.exec(src)) spans.push([m.index, m.index + m[0].length]);
   return spans;
+}
+
+/**
+ * The source with every `<!-- ... -->` blanked to spaces, OFFSETS PRESERVED.
+ *
+ * Two faults, one cause. A reference inside a comment never renders, so it is
+ * neither a reason the page needs `$COURSE_DATA` nor a sentence anybody reads.
+ * And a comment that merely MENTIONS `<LLMAction>` -- each handout's header
+ * says "EVERY <LLMAction> PROMPT BODY IN THIS FILE IS GENERATED" -- opened a
+ * phantom span that ran to the first real `</LLMAction>` and swallowed the
+ * page markup in between, so page references were judged to be inside the
+ * prompt. That silently voided their teaching-ref approval, which is honoured
+ * only outside the prompt: `NR/p1` was declared and counted as blocking
+ * anyway. Masking first makes both the span scan and the reference scan read
+ * what actually ships; blanking rather than deleting keeps every index valid.
+ */
+function withoutComments(src: string): string {
+  return src.replace(/<!--[\s\S]*?-->/g, m => ' '.repeat(m.length));
 }
 
 export function olxCorpusReferences(p: CorpusRefPayload): string[] {
@@ -59,10 +87,11 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
       out.push(`handout ${f.form}: cannot read the .olx (${f.error ?? ''})`);
       continue;
     }
-    const spans = actionSpans(f.src);
+    const src = withoutComments(f.src);
+    const spans = actionSpans(src);
     // REPORTED PER REFERENCE, with its cell named, so the readout says WHICH
     // student's words are still load-bearing rather than only how many.
-    for (const m of f.src.matchAll(REF)) {
+    for (const m of src.matchAll(REF)) {
       const key = `${m[1]}/p${m[2]}:${m[3]}`;
       const at = m.index ?? 0;
       const inPrompt = spans.some(([a, b]) => a <= at && at < b);
