@@ -71,8 +71,28 @@ function assetRoots(provider: StorageProvider): { dir: string }[] {
   return [];
 }
 
-export async function copyAssetsToPublic(provider: StorageProvider, targetDir = './apps/server/public/content') {
-  const publicContentDir = targetDir;
+/**
+ * The default target, which is SHARED MUTABLE STATE under test.
+ *
+ * `syncContentFromStorage` calls this unconditionally, so every test that loads
+ * content writes into one process-relative directory -- seven test files here,
+ * one of them (`xml2graph.test.ts`) from a SEPARATE SPAWNED PROCESS, so the
+ * contention is cross-process and no in-process lock would see it.
+ *
+ * UNDER VITEST EACH PROCESS GETS ITS OWN. Nothing asserts on this directory --
+ * no test reads `public/content` and none fetches `/content/*` -- so where it
+ * lands does not matter, only that two writers never share it. The copy is kept
+ * rather than skipped so the code path under test stays the one that ships.
+ */
+function defaultTarget(): string {
+  const shared = './apps/server/public/content';
+  if (!process.env.VITEST) return shared;
+  return path.join(process.env.TMPDIR || '/tmp',
+                   `lo-blocks-assets-${process.pid}`, 'content');
+}
+
+export async function copyAssetsToPublic(provider: StorageProvider, targetDir?: string) {
+  const publicContentDir = targetDir ?? defaultTarget();
 
   try {
     await fs.mkdir(publicContentDir, { recursive: true });

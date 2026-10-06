@@ -12,6 +12,7 @@ import ExpandIcon from '@/components/common/ExpandIcon';
 import ResizableSidebar from '@/components/common/ResizableSidebar';
 import { assertNamedObject } from '@/lib/types/kids';
 import { useBlockTranslation } from '@/lib/i18n/blockI18n';
+import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 
 function CourseContent({ props, selectedChild }) {
   // selectedChild is a DefinitionKey read from the parsed section structure.
@@ -81,8 +82,33 @@ function Course(props: RuntimeProps) {
     }
     return entries;
   }, [sections]);
+  // A course HOLDS content it never SHOWS. A rubric is the case this exists
+  // for: it is scoped to the course and belongs inside it, and a learner must
+  // never see a sidebar entry for it.
+  //
+  // FILTERED HERE, AT RENDER, AND NOT IN THE PARSER. The parser sees a child's
+  // TAG, which for `<Use ref="..."/>` is `Use` -- it cannot know what the
+  // reference points at, because the target may live in a file not yet parsed.
+  // By render time the reference is resolved, so the block itself can be read.
+  //
+  // THE TEST IS "DOES IT RENDER", NOT "IS IT INTERNAL". Those are different
+  // questions and this used to ask the wrong one. `internal` means "not
+  // author-facing" -- 25 internal blocks DO render, among them Html, Spinner,
+  // Sidebar and Studio -- so filtering on it would hide a rendering block from a
+  // course the day one of those appeared in one, and would stop hiding the
+  // rubric the day the rubric family became author-facing, which is what it is
+  // becoming. A block with neither `component` nor `componentLoader` renders
+  // nothing, which is the property actually wanted here.
+  //
+  // KEYED BY definitionKey (upstream #294), which is what `isVisible` below
+  // now asks with.
   const visibleDefinitionKeys = new Set<string>(
-    useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.definitionKey)
+    useKidsJson({ ...props, kids: childKids } as any)
+      .filter((k: any) => {
+        const b: any = BLOCK_REGISTRY[k?.tag];
+        return !b || !!(b.component || b.componentLoader);
+      })
+      .map((k: any) => k.definitionKey)
   );
   const isVisible = (definitionKey: string) => visibleDefinitionKeys.has(definitionKey);
 

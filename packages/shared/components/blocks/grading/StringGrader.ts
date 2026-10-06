@@ -46,8 +46,9 @@ const StringGrader = createGrader({
   inputSchema: z.string(),  // Single string input
   attributes: {
     answer: z.string({ required_error: 'answer is required' }),
-    regexp: strictBoolean,
-    ignoreCase: strictBoolean,
+    regexp: strictBoolean.describe(
+      'Treat `answer` as a regular expression rather than a literal string.'),
+    ignoreCase: strictBoolean.describe('Compare without regard to case.'),
   },
   validateAttributes: validateStringAttributes,
 });

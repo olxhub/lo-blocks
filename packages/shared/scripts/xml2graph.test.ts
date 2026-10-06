@@ -14,12 +14,26 @@ afterEach(async () => {
 });
 
 test('xml2graph script outputs edges and issues', async () => {
+  // STDERR IS CAPTURED AND REPORTED. It was `stdio: 'ignore'`, so a failure
+  // said only "Script failed" -- and this test fails intermittently under the
+  // full suite. The cause took FIVE diagnoses to find, because the child's own
+  // message (`ENOENT: scandir content/_test_dep_...`, a sibling suite's
+  // scratch directory disappearing mid-walk) was thrown away, and an unrelated
+  // esbuild line printed nearby was read as the reason four times running.
+  //
+  // A test that spawns a process and discards its output cannot explain its
+  // own failure, and an intermittent one is exactly where that costs most.
   const proc = spawn('npx', ['tsx', 'packages/shared/scripts/xml2graph.js', '--out', OUTPUT_FILE], {
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
+  let stdout = '';
+  let stderr = '';
+  proc.stdout.on('data', (d) => { stdout += d.toString(); });
+  proc.stderr.on('data', (d) => { stderr += d.toString(); });
 
   await new Promise((resolve, reject) => {
-    proc.on('exit', code => code === 0 ? resolve() : reject(new Error('Script failed')));
+    proc.on('exit', code => code === 0 ? resolve() : reject(new Error(
+      `xml2graph exited ${code}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`)));
     proc.on('error', reject);
   });
 

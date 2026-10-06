@@ -41,12 +41,9 @@ ChoiceInput, Key, and Distractor blocks.
 
 ## Attributes
 
-| Attribute | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `id` | Yes | | Unique identifier |
-| `language` | No | `olx` | Syntax highlighting language (`olx`, `xml`, `md`, `markdown`, and others) |
-| `height` | No | `300px` | Editor height (any CSS value) |
-| (children) | No | | Initial content shown in the editor |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Related Blocks
 

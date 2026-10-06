@@ -24,7 +24,8 @@ const FormulaGrader = createGrader({
     // and generate a concrete, copy-pasteable samples example when samples is missing.
     samples: SamplesSpecSchema.optional(),
     tolerance: ToleranceSchema.optional(),
-    caseSensitive: z.string().optional(),
+    caseSensitive: z.string().optional().describe(
+        'Compare variable names case-sensitively.'),
     additionalAnswers: z.string().optional().describe('Semicolon-separated alternative correct formulas'),
     checkVariables: z.string().optional().describe('Set to "false" to allow any variable names in student input'),
   },

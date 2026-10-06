@@ -33,12 +33,9 @@ The framework pushes back against the tendency to dismiss surface learning as "m
 
 ## Attributes
 
-| Attribute  | Type    | Default | Description |
-|------------|---------|---------|-------------|
-| `id`       | string  | required | Unique identifier |
-| `wrap`     | boolean | false   | Circular navigation (wrap around at ends) |
-| `readonly` | boolean | false   | Hide navigation arrows (view-only mode) |
-| `src`      | string  | -       | Path to external file containing item IDs |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## ID List Format
 

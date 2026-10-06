@@ -1,0 +1,37 @@
+{
+ "rules": {
+  "every_prompt_field_is_designed": 6,
+  "olx_attributes_are_all_generated": 1,
+  "olx_corpus_references": 40
+ },
+ "refusedThen": [
+  "ask_equivalences_still_hold",
+  "cli_sends_the_apps_prompt",
+  "course_schema_cleanups",
+  "course_schema_fields",
+  "declaration_conflicts",
+  "designed_text_is_the_measured_text",
+  "divergence_arithmetic_is_still_true",
+  "engines_offer_same_verdicts",
+  "generated_attributes_have_a_declaration",
+  "goals_record_is_intact",
+  "gold_slot_disagreements",
+  "items_measured_as_configured",
+  "mapped_slots_agree_with_their_map",
+  "paper_feedback_explains_its_deductions",
+  "paper_prompt_has_no_box_deixis",
+  "paper_prompt_is_stamped",
+  "paper_reproduces_web_scores",
+  "peg_formats_declared",
+  "probe_reach_limits_still_apply",
+  "probe_unreachable_pairs_still_apply",
+  "property_vocabulary_ratchet",
+  "prose_claims",
+  "rule_fail_tokens_agree",
+  "same_shape",
+  "students_see_what_each_check_decided",
+  "system_prompts_are_parallel",
+  "web_code_sha",
+  "wrong_cells_without_an_owner"
+ ]
+}

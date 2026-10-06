@@ -22,6 +22,14 @@ const ActionButton = blocks.dev({
     action: z.string().optional().describe('Named action to invoke (currently unused; reserved for multi-action targets)'),
     dependsOn: z.string().optional().describe('Prerequisite conditions (comma-separated element IDs with optional operators)'),
     disabled: z.string().optional().describe('Explicitly disable the button (set to "true" to disable)'),
+    confirm: z.string().optional().describe(
+      'Message shown in the confirmation dialog. Only reached by a button that ' +
+      'freezes the activity (one whose SetFieldAction sets `submitted`) — those ' +
+      'always confirm, whether or not this is set; this only rewords it.'),
+    ignoreSubmitLock: z.string().optional().describe(
+      'Keep this button live after the surrounding activity is submitted (set ' +
+      'to "true"). Buttons are disabled once an activity is handed in; the ' +
+      'button that DOES the submitting needs this so it can still be pressed.'),
   }).strict(),
 });
 

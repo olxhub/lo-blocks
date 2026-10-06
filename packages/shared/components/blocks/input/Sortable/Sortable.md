@@ -52,7 +52,7 @@ CapaProblem
 <SimpleSortable id="per_history" title="PER Milestones">
 Put these physics education research milestones in order:
 ===
-1. Force Concept Inventory developed by Halloun & Hestenes (1985)
+1. Force Concept Inventory developed by Halloun &amp; Hestenes (1985)
 2. Hake's study of 6000 students finds interactive > traditional (1998)
 3. Freeman meta-analysis confirms active learning benefits (2014)
 </SimpleSortable>

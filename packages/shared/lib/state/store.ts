@@ -103,6 +103,7 @@ const _fieldReducers = new Map<string, FieldReducerEntry>();
 const WS_PORT_MAP = new Map([
   [8810, 0],    // local nginx (Basic Auth)
   [8888, 0],    // app server direct
+  [8899, 0],    // dry-run acceptance server (stage 08), same origin
 ]);
 
 const isBrowser = typeof window !== 'undefined';

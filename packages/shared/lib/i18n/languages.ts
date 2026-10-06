@@ -103,6 +103,14 @@ export function getLanguageLabel(code: string, displayLocale: string = 'en', for
 
   // format === 'short': extract language and region
   // e.g., "English (United States)" -> "English (US)"
+
+  // A code Intl could not name comes back from getDisplayName AS ITSELF, and
+  // the "Name (region)" template then prints it twice — a locale of
+  // "undefined" rendered as the notorious "undefined (undefined)". There is no
+  // name and no region to show, so show the code once and let it look like the
+  // raw code it is.
+  if (displayName === code) return code;
+
   const codeParts = code.split('-');
   const region = codeParts[codeParts.length - 1]; // Last part is region
   const langMatch = displayName.match(/^([^(]+)/); // Text before parentheses

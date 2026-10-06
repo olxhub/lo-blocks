@@ -75,7 +75,8 @@ const AvatarEditor = dev({
   description: 'Toy/prototype: Visual avatar editor for picking Open Peeps features',
   fields,
   attributes: z.object({
-    compact: z_olx_boolean.optional(),
+    compact: z_olx_boolean.optional().describe(
+        'Render in the reduced-height layout.'),
   }).strict(),
   locals: { buildYaml, isValidCastIdInput, isValidGroupInput, isValidHexInput },
 

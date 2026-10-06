@@ -20,11 +20,9 @@ Renders a [Liquid](https://liquidjs.com/) template with a data file at **parse t
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `data`    | Yes      | Path to YAML or JSON data file |
-| `src`     | No       | Path to `.liquid` template file (alternative to inline CDATA) |
-| `id`      | Yes      | Block ID (standard) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Data format
 

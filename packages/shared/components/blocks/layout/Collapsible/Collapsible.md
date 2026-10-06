@@ -39,7 +39,7 @@ Hide readings and references that some learners may want:
 <Collapsible id="readings" title="Further Reading">
   <Markdown>
 - Freeman, S. et al. (2014). Active learning increases student performance in science, engineering, and mathematics. *PNAS*, 111(23), 8410-8415.
-- Chi, M. T. H., & Wylie, R. (2014). The ICAP framework: Linking cognitive engagement to active learning outcomes. *Educational Psychologist*, 49(4), 219-243.
+- Chi, M. T. H., &amp; Wylie, R. (2014). The ICAP framework: Linking cognitive engagement to active learning outcomes. *Educational Psychologist*, 49(4), 219-243.
   </Markdown>
 </Collapsible>
 ```

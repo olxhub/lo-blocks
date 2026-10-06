@@ -37,7 +37,7 @@ Select different panels, then use the navigation dots to browse your history.
 
 <SplitPanel sizes="65,35">
   <LeftPane>
-    <Chat id="discussion">
+    <Chat id="discussion"><![CDATA[
 title: Discussion
 ~~~~
 
@@ -50,7 +50,7 @@ Kim: Good point! Here's another angle.
 sidebar <- activity_two
 
 Alex: That makes sense.
-    </Chat>
+]]>    </Chat>
   </LeftPane>
   <RightPane>
     <UseHistory id="sidebar" initial="sidebar_intro" />

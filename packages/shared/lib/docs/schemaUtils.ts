@@ -97,7 +97,21 @@ function isOptional(schema: z.ZodTypeAny): boolean {
  * Get the description from a Zod schema (set via .describe()).
  */
 function getDescription(schema: z.ZodTypeAny): string | undefined {
-  return schema._def?.description || schema.description;
+  // UNWRAP FIRST. `getTypeName` already descends through ZodOptional/Nullable/
+  // Default to find the type; this did not, so a description set on a SHARED
+  // schema became invisible the moment a block wrote `Shared.optional()`. That
+  // hit every `ToleranceSchema.optional()` in the grading family: the schema
+  // carried the words and the docs rendered a blank cell, which reads as "this
+  // attribute is undocumented" rather than "the tool did not look".
+  let cur: any = schema;
+  for (let i = 0; i < 8 && cur; i++) {
+    const d = cur._def?.description ?? cur.description;
+    if (d) return d;
+    const inner = cur._def?.innerType ?? cur._def?.schema ?? cur._def?.type;
+    if (!inner) break;
+    cur = inner;
+  }
+  return undefined;
 }
 
 /**

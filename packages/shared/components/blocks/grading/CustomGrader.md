@@ -39,11 +39,9 @@ For simple cases, prefer declarative graders:
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `id` | Yes | Unique identifier for the grader |
-| `target` | Yes | Comma-separated IDs of input blocks to grade |
-| `src` | No | Path to external `.js` file containing grading code |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 **Note:** Unlike other graders, `target` is required because CustomGrader's children contain code, not input blocks.
 

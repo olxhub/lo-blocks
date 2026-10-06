@@ -976,6 +976,30 @@ const assetSrcFactory = function assetSrc() {
       if (source && provider?.resolveRelativePath) {
         resolvedSrc = provider.resolveRelativePath(source, src);
 
+        // RE-ROOT THE PATH AT THE `content` MOUNT. `resolveRelativePath`
+        // returns a path relative to THE PROVIDER'S OWN MOUNT, while
+        // `resolveContentPath` builds `/content/<path>` -- which is only right
+        // when that mount IS `content`. A course mounted at its own root loses
+        // its course id in between, and the URL 404s.
+        //
+        // THE MOUNT IS IN THE REF, which is why this reads `source` rather than
+        // `provider.mountPoint` -- the provider reaching this parser is a union
+        // and has no such field (measured: undefined). A ref is
+        // `file:<mount>://<path>#<version>`, and for this course the mount is
+        // `content/edu.memphis.psych` while the resolved path is
+        // `psychology/images/x.png`. Stripping the leading `content/` from the
+        // mount and prefixing it yields exactly the URL that serves.
+        //
+        // A provider already mounted AT `content` has nothing left after the
+        // strip, so its paths are unchanged -- they already carry the course id.
+        const m = /^file:([^:]+):\/\//.exec(String(source));
+        const mountPath = m ? m[1].replace(/^content\/?/, '') : '';
+        if (mountPath && resolvedSrc
+            && !String(resolvedSrc).startsWith(mountPath + '/')) {
+          resolvedSrc = `${mountPath}/${resolvedSrc}` as typeof resolvedSrc;
+        }
+
+
         // HACK: This ref has no real version because the parser is synchronous
         // and can't call provider.read(). We use a placeholder version so it's
         // structurally valid as LofsCanonical. Making the parser async would

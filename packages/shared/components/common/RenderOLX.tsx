@@ -226,11 +226,13 @@ export default function RenderOLX({
     olxJsonSources: [source],
     idPrefix: initialIdPrefix ?? ('' as IdPrefix),
     ns,
-    // Local source text (inline/files) is parsed HERE; blocks this tree
-    // cannot find were not produced by that parse and must not be
-    // server-fetched (the declared-source gate — see LoBlockRuntimeContext).
-    localContent: !!(inline || (files && Object.keys(files).length > 0)),
-    locale: runtimeContext.locale,
+      // The root this render was asked for: what the student launched.
+      activityId: typeof id === 'string' ? id : undefined,
+      // Local source text (inline/files) is parsed HERE; blocks this tree
+      // cannot find were not produced by that parse and must not be
+      // server-fetched (the declared-source gate — see LoBlockRuntimeContext).
+      localContent: !!(inline || (files && Object.keys(files).length > 0)),
+      locale: runtimeContext.locale,
     cast: {},
   };
 

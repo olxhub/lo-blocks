@@ -242,7 +242,7 @@ Integrate student activities into conversation flow:
 
   <SplitPanel sizes="65,35">
     <LeftPane>
-      <Chat id="chat" title="Peer Discussion">
+      <Chat id="chat" title="Peer Discussion"><![CDATA[
 title: Peer Discussion
 ~~~~
 
@@ -255,7 +255,7 @@ Kim: Interesting! Let's see what the research says...
 Kim: Cepeda et al. found that spacing study sessions produces dramatically better retention — especially when the spacing matches how long you need to remember.
 
 sidebar <- summary
-      </Chat>
+]]>      </Chat>
     </LeftPane>
     <RightPane>
       <UseHistory id="sidebar" initial="prediction" />
@@ -266,14 +266,9 @@ sidebar <- summary
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `id` | Yes | Unique identifier |
-| `src` | No | Path to .chatpeg file |
-| `title` | No | Display title |
-| `clip` | No | Show only specific section(s) |
-| `history` | No | Include earlier sections as context |
-| `height` | No | Container height (e.g., `"400px"` or `"flex-1"`) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ### Clips
 

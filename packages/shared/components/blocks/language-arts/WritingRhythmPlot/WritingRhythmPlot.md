@@ -17,14 +17,9 @@ etc.) via the `target` attribute.
 
 ## Attributes
 
-| Attribute | Type   | Description |
-|-----------|--------|-------------|
-| target    | string | **Required.** ID of the block whose value to analyze |
-| mode      | string | `characters` (default): segment height = letter count. `words`: uniform height, so bar height = word count |
-| xrange    | number | Fix x-axis to this many sentence slots (for common axes across multiple plots) |
-| yrange    | number | Fix y-axis maximum (for common axes across multiple plots) |
-| width     | number | Chart width in pixels (auto if omitted) |
-| height    | number | Chart height in pixels (default 200) |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## How to read the chart
 

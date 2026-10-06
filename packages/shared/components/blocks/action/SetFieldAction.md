@@ -15,11 +15,9 @@ Sets a field value on a target component when triggered. A generic action for dy
 
 ## Attributes
 
-| Attribute | Type   | Required | Description |
-|-----------|--------|----------|-------------|
-| `target`  | string | yes      | ID of the component to update |
-| `field`   | string | yes      | Field name to set on the target |
-| `value`   | string | yes      | Value to set |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Value Parsing
 

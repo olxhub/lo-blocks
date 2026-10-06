@@ -114,5 +114,25 @@ config/*.pat
 /apps/client/test-results/
 .#*
 
+# Build staging: content copied and corpus references resolved into it.
+# Never committed -- it holds resolved student text by construction.
+.stage/
+
+# MOUNTED COURSE REPOSITORIES. A course reaches the build as a SYMLINK under
+# content/ (materialiseRubrics prints "staged mounted source <ns>"), and the
+# link points at wherever that repo lives on THIS machine. Committing one would
+# hand everyone else a broken absolute path. Create your own with:
+#   ln -sfn /path/to/edu.memphis.psych content/edu.memphis.psych
+content/edu.memphis.*
+
+# BUILD SCRATCH DIRECTORIES. `scripts/build-static.ts` writes into a
+# `.tmp-build-XXXXXX` beside the repository root and is meant to clear it; an
+# interrupted run leaves one behind, and the leftover then shows up as
+# untracked content indistinguishable from work someone forgot to commit.
+#
+# THE SAME SHAPE AS A DEFECT ALREADY PAID FOR: a scratch directory under
+# `content/` that vanished mid-walk produced five wrong diagnoses of a flaky
+# suite, because nothing said it was scratch. Naming the pattern says so.
+.tmp-build-*
 # Agent/session working directory — local tooling state, never shared.
 .claude/

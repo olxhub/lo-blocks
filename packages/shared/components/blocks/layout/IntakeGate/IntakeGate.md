@@ -44,9 +44,9 @@ The `targets` attribute lists TextSlot IDs to watch. When all targets have value
 
 ## Attributes
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `targets` | Yes | Comma-separated list of TextSlot IDs to watch |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Pedagogical Applications
 

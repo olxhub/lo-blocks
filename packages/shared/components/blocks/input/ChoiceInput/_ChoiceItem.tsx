@@ -68,6 +68,7 @@ export default function ChoiceItem(props: RuntimeProps) {
     : selected === itemValue;
 
   const handleChange = () => {
+    if (readOnly) return;
     if (isCheckbox) {
       // Toggle: add or remove from the array.
       const currentSelection: any[] = Array.isArray(selected) ? selected : [];
@@ -92,6 +93,7 @@ export default function ChoiceItem(props: RuntimeProps) {
   const labelClasses = [
     'lo-choice-item',
     checked && 'lo-choice-item--selected',
+    readOnly && 'lo-choice-item--locked',
     isCheckbox ? 'lo-choice-item--checkbox' : 'lo-choice-item--radio',
     showCorrectHighlight && 'lo-choiceinput-show-answer',
   ].filter(Boolean).join(' ');

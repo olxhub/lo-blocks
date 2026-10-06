@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { correctness } from '../grading/correctness';
 import { inferRelatedNodes } from '../blocks/dynamicDom';
 import { selectGradingState } from '@/lib/grading';
+import { useSubmitLocked } from './submitLock';
 import { isInputLocked } from '../grading/problemModes';
 import { useEnclosingProblem } from './useEnclosingProblem';
 
@@ -39,7 +40,18 @@ export function useInputReadOnly(props): boolean {
     graderIds.some(id =>
       selectGradingState(state, props, id).correct === correctness.submitted));
 
+  // BOTH HOOKS BEFORE EITHER DECISION. Keeping the two locks meant keeping two
+  // hook calls, and the obvious resolution -- our early `return true` where it
+  // used to sit -- would have left `useEnclosingProblem` called conditionally.
+  // Rules of hooks: the call order has to be the same on every render.
+  const submitted = useSubmitLocked(props);
   const problem = useEnclosingProblem(props);
+
+  // Handed-in work is frozen. This one OUTRANKS an explicit readOnly prop
+  // rather than deferring to it: a container passing readOnly={false} is saying
+  // "I am not the thing gating this input", not "let students edit a submitted
+  // handout".
+  if (submitted) return true;
 
   if (explicit) return Boolean(props.readOnly);
   return anyPending

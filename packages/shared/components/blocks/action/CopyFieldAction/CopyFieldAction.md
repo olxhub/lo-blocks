@@ -16,10 +16,9 @@ Copies a field value from one block to one or more others when triggered.
 
 ## Attributes
 
-| Attribute | Type   | Default   | Description |
-|-----------|--------|-----------|-------------|
-| `target`  | block.field | (required) | Source to read from. Field defaults to `value` if omitted. |
-| `output`  | block.field list | (required) | Destination(s) to write to, comma-separated. Field defaults to `value`. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 ## Examples
 

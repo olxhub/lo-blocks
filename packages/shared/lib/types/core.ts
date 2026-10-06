@@ -1330,6 +1330,16 @@ export interface LoBlockRuntimeContext {
   olxJsonSources?: string[];  // Redux source names in priority order for OlxJson lookup
   idPrefix?: IdPrefix;  // Scope prefix for Redux state (changes at list boundaries)
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
+  /**
+   * The launchable activity being rendered — the root RenderOLX was given.
+   *
+   * Quotas are charged per user PER ACTIVITY, so an LLM call has to say which
+   * activity it belongs to. Nothing else in scope identifies one: `ns` is the
+   * whole course, and a block id only names a screen. Optional because a block
+   * can be rendered outside any activity (docs, playground); such a call falls
+   * back to the shared per-user budget.
+   */
+  activityId?: string;
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
   /** INTERIM (see the declared-source gate note in lib/state/content.ts).
@@ -2010,6 +2020,10 @@ export interface Launchable {
   type: string;
   /** Author-declared ordering hint; absent when undeclared. */
   index?: number;
+  /** For role: 'course', the qualified ids of its sections. A namespace may
+   *  hold more than one course, so this is what says which activities belong
+   *  to which course. Absent on every other role. */
+  members?: string[];
   /** Repo-relative path; opens in Studio as ?file=. */
   path: string;
   /** Only present when include: launchables.description is requested. */

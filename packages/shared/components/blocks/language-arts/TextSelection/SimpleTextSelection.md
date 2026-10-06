@@ -174,13 +174,9 @@ credit.
 
 ## Attributes
 
-| Attribute | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `id` | Yes | – | Unique identifier |
-| `mode` | No | `immediate` | One of `immediate`, `graded`, `selfcheck` |
-| `src` | No | – | Path to an external `.textSelectionpeg` passage file |
-| `separatorRegexp` | No | – | JavaScript regexp source dividing the passage into selectable chunks. Absent: the learner selects single words. |
-| `separatorHidden` | No | `false` | `true`: the match is consumed and never rendered. `false`: it stays at the end of the left chunk and renders as content. |
+Attributes are generated from the schema and shown on this block's Overview tab —
+name, type, whether it is required, the description, and the permitted values.
+A hand-kept copy here is a second source of one table, and the copy is what rots.
 
 The problem attributes (`title`, `maxAttempts`, `showAnswer` — the deprecated
 `showanswer` spelling still parses — `answerReveal`, `lockInput`, `grade`) may

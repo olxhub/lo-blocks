@@ -8,7 +8,11 @@ import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { placeholder } from '@/lib/blocks/attributeSchemas';
 
-export const fields = state.fields(['value', 'state']);
+// `checks` carries the structured verdict sheet when the LLMAction that feeds
+// this block declared one: the slot specs plus the model's verdict for each, as
+// JSON. The displayed feedback stays in `value`; this is the machine-readable
+// half, so a grader can score the sheet without re-parsing prose.
+export const fields = state.fields(['value', 'state', 'checks']);
 
 const LLMFeedback = dev({
   ...parsers.ignore(), // no kids expected yet... later

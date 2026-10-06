@@ -55,9 +55,15 @@ export const MATCH_BLOCKS: Record<string, any> = {};
 
 // Shared attributes for rules (score, feedback, feedbackBlock)
 const RULE_ATTRIBUTES = {
-  score: z.coerce.number().min(0).max(1).optional(),
-  feedback: z.string().optional(),
-  feedbackBlock: z_stateRef.optional(),
+  // DESCRIBED HERE, once, for every `*Match` rule that shares them. These are
+  // author-facing -- a RulesGrader is written as a list of rules carrying them --
+  // and each block that spread them rendered three blank cells in its reference.
+  score: z.coerce.number().min(0).max(1).optional()
+    .describe('What this rule awards when it matches, from 0 to 1.'),
+  feedback: z.string().optional()
+    .describe('The message shown when this rule matches.'),
+  feedbackBlock: z_stateRef.optional()
+    .describe('A block to show as feedback instead of a message.'),
 };
 
 /**

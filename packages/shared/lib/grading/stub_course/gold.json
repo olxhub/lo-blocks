@@ -1,0 +1,27 @@
+{
+  "course": "stub",
+  "declaration_notes": {},
+  "declarations": {
+    "CONSENSUS_OVERLAP_BACKLOG": [],
+    "CORRECTED_GOLD": [],
+    "DECLARED_CEILING_CELLS": [],
+    "FIXTURE_GOLD_OVERRIDES": [],
+    "GOLD_CEILINGS": [],
+    "GOLD_CODE_CHARGES": [],
+    "GOLD_CODE_KNOWN": [],
+    "GOLD_DIVERGENCES": [],
+    "GOLD_SLOT_BOUNDS_KNOWN": [],
+    "GOLD_SLOT_CHARGES": [],
+    "GOLD_SLOT_DISAGREEMENTS_KNOWN": [],
+    "GOLD_SLOT_UNMAPPABLE": [],
+    "PER_ITEM_EXCLUDE": [],
+    "SILENT_GOLD_DIVERGENCES": [],
+    "UNSCORED_GOLD_CRITERIA": [],
+    "_1C_GATE_CEILING": []
+  },
+  "handout_participants": {
+    "1": [],
+    "2": []
+  },
+  "schema_version": 1
+}
