@@ -96,6 +96,22 @@ function withoutComments(src: string): string {
   return src.replace(/<!--[\s\S]*?-->/g, m => ' '.repeat(m.length));
 }
 
+/**
+ * The marker that makes a finding REPORTED BUT NOT BLOCKING.
+ *
+ * Every string a rule returns is a divergence to `equivalence.py`, and the
+ * pre-commit gate refuses a commit for any of them. Two of the lines here are
+ * not divergences: they state a standing fact about the course that no commit
+ * will ever clear. Without a marker they would refuse every commit forever, and
+ * "a check that is always red is a check nobody reads" is this project's own
+ * reason for caring.
+ *
+ * A SENTINEL, NOT A PHRASE. The gate matches a substring of the whole line, so
+ * matching on wording would mean a reworded finding silently starts blocking.
+ * `precommit_gate.ADVISORY` carries the same literal.
+ */
+export const NOT_BLOCKING = 'NOT BLOCKING:';
+
 export function olxCorpusReferences(p: CorpusRefPayload): string[] {
   const out: string[] = [];
   const declared = new Map(
@@ -157,7 +173,7 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
   // -- the same reason a parked finding is still printed.
   if (approved) {
     out.push(
-      `${approved} teaching-text corpus reference(s) are DECLARED and not ` +
+      `${NOT_BLOCKING} ${approved} teaching-text corpus reference(s) are DECLARED and not ` +
       `counted: approved as worked examples a class reads. They still keep ` +
       `the page from rendering without $COURSE_DATA`);
   }
@@ -170,7 +186,7 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
   // absorb a new rendered reference in its place.
   if (commented.length) {
     out.push(
-      `${commented.length} corpus reference(s) sit in COMMENTS and are not ` +
+      `${NOT_BLOCKING} ${commented.length} corpus reference(s) sit in COMMENTS and are not ` +
       `counted: nothing renders them, so no reader sees the sentence. The ` +
       `build still resolves them, so these files still cannot be built ` +
       `without $COURSE_DATA -- ${commented.join(', ')}`);
