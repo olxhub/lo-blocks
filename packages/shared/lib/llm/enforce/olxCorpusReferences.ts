@@ -16,14 +16,20 @@
 
 export type CorpusRefPayload = {
   /**
-   * Each handout's form number and its .olx source.
+   * Each served .olx: its form number and its source.
    *
    * `error` CARRIES THE READ FAILURE'S OWN WORDS. python interpolates the
    * exception -- `cannot read the .olx ({exc})` -- so a payload that only said
    * "null" would produce a finding two-thirds the length of python's and
    * indistinguishable, in a baseline diff, from a new fault.
+   *
+   * `label` NAMES A FILE THAT IS NOT A HANDOUT. The rubric component is served
+   * and resolved like any other .olx, and "handout rubric_component" would be a
+   * false description of it. Absent, the label is `handout <form>`, which is
+   * what every existing finding says and what their wording must stay.
    */
-  forms: Array<{ form: number | string; src: string | null; error?: string | null }>;
+  forms: Array<{ form: number | string; src: string | null; error?: string | null;
+                 label?: string }>;
   budget: number;
   /**
    * TEACHING-TEXT references the instructor has approved, with the reason.
@@ -47,6 +53,22 @@ export type CorpusRefPayload = {
 // reports a clean subset as a clean whole.
 const REF =
   /\{\{corpus:([A-Za-z0-9]+)\/p(\d+):([A-Za-z0-9_]+):(\d+):(\d+)(?::sha=[0-9a-f]{6,64})?(?::alt=[A-Za-z0-9/,_]+)?(?::shape=[0-9A-Za-z,-]+)?\}\}/g;
+
+/** How a finding names this file. See `label` on the payload. */
+function nameOf(f: { form: number | string; label?: string }): string {
+  return f.label ?? `handout ${f.form}`;
+}
+
+/** `<!-- ... -->` spans, so a reference can be told it is inside one. */
+function commentSpans(src: string): Array<[number, number]> {
+  const spans: Array<[number, number]> = [];
+  const re = /<!--[\s\S]*?-->/g;
+  for (let m = re.exec(src); m; m = re.exec(src)) spans.push([m.index, m.index + m[0].length]);
+  return spans;
+}
+
+const inSpan = (spans: Array<[number, number]>, at: number) =>
+  spans.some(([a, b]) => a <= at && at < b);
 
 /** `<LLMAction>...</LLMAction>` spans: inside is the PROMPT, outside is the PAGE. */
 function actionSpans(src: string): Array<[number, number]> {
@@ -81,20 +103,34 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
   const usedDecl = new Set<string>();
   let approved = 0;
   let blocking = 0;
+  const commented: string[] = [];
 
   for (const f of p?.forms ?? []) {
     if (f.src === null) {
-      out.push(`handout ${f.form}: cannot read the .olx (${f.error ?? ''})`);
+      out.push(`${nameOf(f)}: cannot read the .olx (${f.error ?? ''})`);
       continue;
     }
-    const src = withoutComments(f.src);
-    const spans = actionSpans(src);
+    // SPANS OFF THE MASKED TEXT, REFERENCES OFF THE RAW TEXT. Masking still
+    // decides what is prompt and what is page -- a comment MENTIONING
+    // <LLMAction> would otherwise open a phantom span. But the references are
+    // matched in the original, because a commented one now has to be COUNTED
+    // rather than to disappear: masked out, it was invisible to this loop and
+    // the build's dependency on it went unreported.
+    const masked = withoutComments(f.src);
+    const spans = actionSpans(masked);
+    const comments = commentSpans(f.src);
     // REPORTED PER REFERENCE, with its cell named, so the readout says WHICH
     // student's words are still load-bearing rather than only how many.
-    for (const m of src.matchAll(REF)) {
+    for (const m of f.src.matchAll(REF)) {
       const key = `${m[1]}/p${m[2]}:${m[3]}`;
       const at = m.index ?? 0;
-      const inPrompt = spans.some(([a, b]) => a <= at && at < b);
+      // IN A COMMENT: COUNTED, NEVER BLOCKING. Nothing renders it, so no reader
+      // sees the sentence -- the privacy half is genuinely won. The BUILD still
+      // resolves it, though, so the file still cannot be built without
+      // $COURSE_DATA, and that is the half this rule also claims to measure.
+      // Silently exempting it reported a dependency of zero against a real one.
+      if (inSpan(comments, at)) { commented.push(`${nameOf(f)} ${key}`); continue; }
+      const inPrompt = inSpan(spans, at);
       // APPROVED ON THE PAGE, NOT IN THE PROMPT. The instructor's reason --
       // these do not affect how the scorer performs, and the scoring set was
       // chosen partly for teaching -- is about what a CLASS READS. It says
@@ -108,7 +144,7 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
       }
       blocking += 1;
       out.push(
-        `handout ${f.form} still quotes ${m[1]}/p${m[2]} ` +
+        `${nameOf(f)} still quotes ${m[1]}/p${m[2]} ` +
         `${m[3]} through a corpus reference: the page cannot ` +
         `render without $COURSE_DATA, and a student's sentence is ` +
         `still the worked example. Replace it with an invented ` +
@@ -124,6 +160,20 @@ export function olxCorpusReferences(p: CorpusRefPayload): string[] {
       `${approved} teaching-text corpus reference(s) are DECLARED and not ` +
       `counted: approved as worked examples a class reads. They still keep ` +
       `the page from rendering without $COURSE_DATA`);
+  }
+  // IN COMMENTS: ONE LINE, NOT BLOCKING, AND NOT SILENT. A reference inside a
+  // comment renders to nobody, so it is not a sentence anybody reads and it does
+  // not count against the budget. It is still resolved at BUILD time, so the
+  // file it sits in cannot be built without $COURSE_DATA -- which is the other
+  // thing this rule exists to say. Reporting it here keeps the dependency
+  // visible without letting it block, and without the budget being able to
+  // absorb a new rendered reference in its place.
+  if (commented.length) {
+    out.push(
+      `${commented.length} corpus reference(s) sit in COMMENTS and are not ` +
+      `counted: nothing renders them, so no reader sees the sentence. The ` +
+      `build still resolves them, so these files still cannot be built ` +
+      `without $COURSE_DATA -- ${commented.join(', ')}`);
   }
   // A DECLARATION THAT MATCHES NOTHING is the next thing to be silenced by it.
   for (const [key, why] of declared) {

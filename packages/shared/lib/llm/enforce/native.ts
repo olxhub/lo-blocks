@@ -23,7 +23,7 @@
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 
-import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile } from './courseData';
+import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile, collectionDeclaresAll } from './courseData';
 import { corpusDataPath, resolve as resolveCorpusRefs, sha12 } from '../../../scripts/resolveCorpusRefs';
 import { decodeKey, decodeTable, decodeValue, type PyKey } from './pythonRepr';
 import { parseSlots, resolveOptions } from '../slotSheet';
@@ -1471,12 +1471,16 @@ export const NATIVE: Record<string, Assembler> = {
     // the COURSE FOLDER: a course file is named relative to its own folder, not to the collection, which holds several courses
     const dir = courseLocation(ns) ?? '';
     const courseOlx = collectionDeclares(ns, 'course_olx') ?? '';
-    const rubric = collectionDeclares(ns, 'rubric_component') ?? '';
+    // EVERY RUBRIC THE COURSE DECLARES, not the first one. A course may
+    // reference more than one, and a course file that linked only one of them
+    // would have satisfied this check while leaving the rest unreachable.
+    const rubrics = collectionDeclaresAll(ns, 'rubric_component');
     const pattern = collectionDeclares(ns, 'handout_olx') ?? '';
     const stem = (f: string) => f.replace(/\.olx$/, '');
     const forms = [...new Set(Object.values(itemForms(ns)))]
       .filter(Boolean).sort((a, b) => Number(a) - Number(b));
-    const want = [stem(rubric), ...forms.map(f => stem(pattern.replace('%d', String(f))))];
+    const want = [...rubrics.map(stem),
+                  ...forms.map(f => stem(pattern.replace('%d', String(f))))];
     const full = join(dir, courseOlx);
     if (!existsSync(full)) {
       return { courseOlx, exists: false, relPath: join(basename(dir), courseOlx), refs: [], want };
@@ -2853,6 +2857,13 @@ export const NATIVE: Record<string, Assembler> = {
     const forms = [...new Set(Object.values(itemForms(ns)))]
       .filter(Boolean)
       .sort((a, b) => Number(a) - Number(b));
+    // THE RUBRIC COMPONENT IS A SERVED .olx TOO, and it was not in this payload.
+    // It is staged and corpus-resolved exactly like a handout, so it carries the
+    // same dependency on $COURSE_DATA -- and it held 13 of the course's 19
+    // remaining references while the rule, reading handouts alone, reported on
+    // six of them. A rule that polices a subset of its own subject reports a
+    // clean part as a clean whole.
+    const rubricOlx = collectionDeclaresAll(ns, 'rubric_component');
     return {
       forms: forms.map((form) => {
         const f2 = /^-?\d+$/.test(String(form)) ? Number(form) : form;
@@ -2868,7 +2879,19 @@ export const NATIVE: Record<string, Assembler> = {
         } catch (e) {
           return { form: f2, src: null, error: (e as Error).message };
         }
-      }),
+      }).concat(rubricOlx.map((name) => {
+        // NAMED BY ITS FILE, not "the rubric component". With more than one
+        // declared, a finding that said only "the rubric component" would not
+        // say WHICH -- and the readout exists to name the file to open.
+        const dir = courseLocation(ns) ?? '';
+        try {
+          return { form: name, src: readFileSync(join(dir, name), 'utf8'),
+                   error: null, label: `rubric ${name}` };
+        } catch (e) {
+          return { form: name, src: null,
+                   error: (e as Error).message, label: `rubric ${name}` };
+        }
+      })),
       budget: budget(ns, 'OLX_CORPUS_REF_BUDGET'),
       // THE APPROVED TEACHING-TEXT REFERENCES. Keyed (item, pid, field); the
       // rule honours them only OUTSIDE `<LLMAction>`, because the approval was

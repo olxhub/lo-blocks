@@ -285,6 +285,58 @@ export function collectionDeclares(ns: string, key: string): string | null {
 }
 
 /**
+ * EVERY value a collection declares for a key, for keys that may repeat.
+ *
+ * A COURSE CAN REFERENCE MORE THAN ONE RUBRIC. `rubric_component` reads as a
+ * single file today because every collection here has one, and a reader that
+ * returns `string | null` makes that accidental fact permanent: a second rubric
+ * would be declared, parse, and then be audited by nothing. The cost of
+ * discovering that is a rule reporting a clean subset as a clean whole, which
+ * is the failure this family of checks is most prone to.
+ *
+ * BOTH SPELLINGS, because YAML has two and a course should not have to know
+ * which one the reader happens to implement:
+ *
+ *     rubric_component: one.olx
+ *     rubric_component:
+ *       - one.olx
+ *       - two.olx
+ *
+ * STILL NOT A YAML PARSER, for the reason given above: the block form is read
+ * as `  - value` lines following a key with nothing after the colon, and
+ * anything else reads as undeclared -- the same safe answer a missing key gives.
+ */
+export function collectionDeclaresAll(ns: string, key: string): string[] {
+  const dir = collectionDir(ns);
+  if (!dir) return [];
+  try { return parseDeclaredList(readFileSync(resolve(dir, 'manifest.yaml'), 'utf8'), key); }
+  catch { return []; }
+}
+
+/**
+ * The parse behind `collectionDeclaresAll`, SEPARATE SO IT CAN BE TESTED.
+ *
+ * Every collection in this tree declares exactly one rubric, so the list form
+ * has no live example and would be code that never runs -- which reads exactly
+ * like code that works. Taking the text as an argument lets a test state both
+ * spellings outright instead of waiting for a second rubric to exist.
+ */
+export function parseDeclaredList(text: string, key: string): string[] {
+  const lines = text.split('\n');
+  const at = lines.findIndex(l => new RegExp(`^${key}:`).test(l));
+  if (at < 0) return [];
+  const inline = new RegExp(`^${key}:\\s*(\\S+)\\s*$`).exec(lines[at]);
+  if (inline) return [inline[1]];
+  const out: string[] = [];
+  for (let i = at + 1; i < lines.length; i++) {
+    const m = /^\s+-\s*(\S+)\s*$/.exec(lines[i]);
+    if (!m) break;
+    out.push(m[1]);
+  }
+  return out;
+}
+
+/**
  * The id of the RUBRIC, or of the INSTRUMENT it scores.
  *
  * THE NAMESPACE WAS DOING THIS JOB AND IS NOT THE RIGHT THING FOR IT: it names

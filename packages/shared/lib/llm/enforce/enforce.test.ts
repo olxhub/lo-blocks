@@ -10,6 +10,8 @@ import { processHistoryFindings } from './processHistory';
 import { siblingSlotsShareTheirStructure } from './siblingSlots';
 import { verdictSpacesAreDeclared } from './verdictSpaces';
 import { consensusDuplicates } from './consensusDuplicates';
+import { olxCorpusReferences } from './olxCorpusReferences';
+import { parseDeclaredList } from './courseData';
 import { proseOnlySlotsAreDeclared } from './proseOnlySlots';
 import { probeUnreachablePairsStillApply } from './probeUnreachable';
 import { handsplitRowsAreDisjoint } from './handsplitDisjoint';
@@ -1460,6 +1462,102 @@ describe('shipped_text_matches_design', () => {
 
   it('reads an empty payload as no findings', () => {
     expect(shippedTextMatchesDesign({ designed: [], credit: {} })).toEqual([]);
+  });
+});
+
+describe('parseDeclaredList (a course may reference more than one rubric)', () => {
+  it('reads the inline form, which is what every collection writes today', () => {
+    expect(parseDeclaredList('namespace: x\nrubric_component: bmod_rubric.olx\n',
+                             'rubric_component')).toEqual(['bmod_rubric.olx']);
+  });
+
+  it('reads the LIST form, which nothing in this tree uses yet', () => {
+    const y = 'namespace: x\nrubric_component:\n  - one_rubric.olx\n  - two_rubric.olx\nhandout_olx: h%d.olx\n';
+    expect(parseDeclaredList(y, 'rubric_component')).toEqual(['one_rubric.olx', 'two_rubric.olx']);
+  });
+
+  it('stops at the end of the list rather than swallowing the next key', () => {
+    const y = 'rubric_component:\n  - one.olx\ncourse_olx: c.olx\n';
+    expect(parseDeclaredList(y, 'rubric_component')).toEqual(['one.olx']);
+  });
+
+  it('an absent key declares nothing -- the safe answer', () => {
+    expect(parseDeclaredList('namespace: x\n', 'rubric_component')).toEqual([]);
+  });
+});
+
+describe('olx_corpus_references', () => {
+  const REF = (cell: string) => `{{corpus:${cell}:0:9:sha=abcdef123456}}`;
+  const run = (src: string, budget = 0, declared: Array<{item: string; pid: number; field: string; why: string}> = []) =>
+    olxCorpusReferences({ forms: [{ form: 2, src }], budget, declared });
+
+  it('FIRES on a rendered reference, naming the cell', () => {
+    const out = run(`<p>worked example: ${REF('DAY1/p8:day1')}</p>`);
+    expect(out.some(f => f.includes('handout 2 still quotes DAY1/p8 day1'))).toBe(true);
+  });
+
+  // THE CASE THIS RULE EXISTED TO MISS. A reference in a comment renders to
+  // nobody -- so it must not block -- but the BUILD still resolves it, so the
+  // file still cannot be built without $COURSE_DATA. Reported, never counted.
+  it('does NOT block on a reference inside a comment, but DOES report it', () => {
+    const out = run(`<!-- design note: ${REF('DAY1/p8:day1')} -->`);
+    expect(out.some(f => f.includes('still quotes'))).toBe(false);
+    expect(out.some(f => f.includes('sit in COMMENTS'))).toBe(true);
+    expect(out.some(f => f.includes('cannot be built'))).toBe(true);
+    expect(out.some(f => f.includes('handout 2 DAY1/p8:day1'))).toBe(true);
+  });
+
+  it('counts a commented reference against NOTHING -- the budget stays spendable at zero', () => {
+    const out = run(`<!-- ${REF('DAY1/p8:day1')} -->`, 0);
+    expect(out.some(f => f.includes('against a budget of'))).toBe(false);
+  });
+
+  // The phantom-span regression: a COMMENT mentioning <LLMAction> must not open
+  // a span that swallows the page markup after it.
+  it('does not let a comment mentioning <LLMAction> hide a rendered reference', () => {
+    const out = run(`<!-- every <LLMAction> body is generated -->\n<p>${REF('NR/p1:nr')}</p>`);
+    expect(out.some(f => f.includes('still quotes NR/p1 nr'))).toBe(true);
+  });
+
+  it('honours a teaching declaration on the PAGE and not in the PROMPT', () => {
+    const decl = [{ item: 'NR', pid: 1, field: 'nr', why: 'a class reads it' }];
+    const page = run(`<p>${REF('NR/p1:nr')}</p>`, 0, decl);
+    expect(page.some(f => f.includes('still quotes'))).toBe(false);
+    expect(page.some(f => f.includes('DECLARED and not'))).toBe(true);
+    const prompt = run(`<LLMAction>${REF('NR/p1:nr')}</LLMAction>`, 0, decl);
+    expect(prompt.some(f => f.includes('still quotes NR/p1 nr'))).toBe(true);
+  });
+
+  // A rubric component is a served .olx and was outside this rule's reach
+  // entirely until 2026-10-07. It is named BY ITS FILE because a course may
+  // declare more than one, and "the rubric component" would not say which.
+  it('names each rubric by its file rather than calling it a handout', () => {
+    const out = olxCorpusReferences({
+      forms: [{ form: 'a_rubric.olx', label: 'rubric a_rubric.olx',
+                src: `<p>${REF('Q6/p6:state_a1')}</p>` },
+              { form: 'b_rubric.olx', label: 'rubric b_rubric.olx',
+                src: `<p>${REF('NR/p1:nr')}</p>` }],
+      budget: 0, declared: [] });
+    expect(out.some(f => f.includes('rubric a_rubric.olx still quotes Q6/p6 state_a1'))).toBe(true);
+    expect(out.some(f => f.includes('rubric b_rubric.olx still quotes NR/p1 nr'))).toBe(true);
+    expect(out.some(f => f.includes('handout'))).toBe(false);
+  });
+
+  // A SECOND RUBRIC MUST NOT BE INVISIBLE. The reach failure this whole change
+  // is about: a rule reading one file of several reports a clean part as a
+  // clean whole, and says nothing at all about the rest.
+  it('reports comment-held references in EVERY rubric, not just the first', () => {
+    const out = olxCorpusReferences({
+      forms: [{ form: 'a_rubric.olx', label: 'rubric a_rubric.olx',
+                src: `<!-- ${REF('Q6/p6:state_a1')} -->` },
+              { form: 'b_rubric.olx', label: 'rubric b_rubric.olx',
+                src: `<!-- ${REF('NR/p1:nr')} -->` }],
+      budget: 0, declared: [] });
+    const line = out.find(f => f.includes('sit in COMMENTS'));
+    expect(line).toBeDefined();
+    expect(line).toContain('2 corpus reference(s)');
+    expect(line).toContain('rubric a_rubric.olx Q6/p6:state_a1');
+    expect(line).toContain('rubric b_rubric.olx NR/p1:nr');
   });
 });
 
