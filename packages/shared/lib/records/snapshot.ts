@@ -121,6 +121,44 @@ export function snapshot(storeRoot: string, spec: RemoteSpec, units: Unit[],
   }
 }
 
+/**
+ * Give every unit a `.prev` equal to its current state.
+ *
+ * THE BOOTSTRAP LEAVES NO PAIR, and that is not a detail. A first snapshot has
+ * nothing to rotate, so every unit lands with a current and no previous -- and
+ * the checks that read the previous state then get `null`, which they correctly
+ * report as "no prior state to compare against". That is true but useless: it
+ * is the same answer they gave when the records had no git history at all.
+ *
+ * Seeding prev = current makes the pair valid from the first moment. The
+ * comparison it supports is "nothing has changed since the archive was
+ * created", which is an honest answer and a usable one, where "no prior state"
+ * is neither.
+ *
+ * UPLOADED, NOT SERVER-SIDE COPIED. A copy per unit costs ~3.5s of latency and
+ * there are a thousand of them; building both names into one staging tree and
+ * sending it in a single parallel pass is the same work in a fraction of the
+ * time. Rotation on a LATER change still uses the server-side copy, where it is
+ * one object and the bytes are already there.
+ */
+export function seedPairs(storeRoot: string, spec: RemoteSpec, units: Unit[],
+                          log: (s: string) => void = () => {}): number {
+  const present = remoteKeys(spec);
+  const need = units.filter(u => present.has(u.key) && !present.has(prevKey(u.key)));
+  log(`${need.length} unit(s) need a .prev seeded`);
+  if (!need.length) return 0;
+  const stage = mkdtempSync(join(tmpdir(), 'records-seed-'));
+  try {
+    for (const u of need) buildUnitArchive(storeRoot, u, join(stage, prevKey(u.key)));
+    execFileSync('rclone', ['copy', stage, spec.path, ...rcloneArgs(spec),
+                            ...PIN, ...TRANSFERS],
+                 { stdio: 'pipe', timeout: 3_600_000 });
+    return need.length;
+  } finally {
+    rmSync(stage, { recursive: true, force: true });
+  }
+}
+
 /** `a/b.tar.gz` -> `a/b.prev.tar.gz`, keeping the pair side by side. */
 export function prevKey(key: string): string {
   return key.replace(/\.tar\.gz$/, '.prev.tar.gz');
