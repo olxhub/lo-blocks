@@ -19,21 +19,45 @@
 // failure this whole archive exists to make impossible.
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
-import { basename, join } from 'path';
-import { mountedCourses, rubricFile, rubricDir, instrumentDir } from '@/lib/llm/enforce/courseData';
+import { join } from 'path';
+import { mountedCourses, scoringId, loBlocksRoot } from '@/lib/llm/enforce/courseData';
 import { restoreUnitArchive } from './archive';
 import { reachable, rcloneArgs, remoteFor, TRANSFERS, type RemoteSpec } from './remote';
 
 export interface Need { kind: 'rubrics' | 'instruments'; id: string; dir: string; }
 
-/** The `<kind>/<id>` directories this install needs, from what is mounted. */
+/**
+ * Where this install's record store belongs, whether or not it is there yet.
+ *
+ * NOT `courseDir`, which RESOLVES the store and therefore refuses when it is
+ * absent -- the exact state restore exists to fix. Asking the resolver would
+ * make the first restore impossible: it could not find out what to restore
+ * without the thing it was about to restore.
+ */
+export function storeRootFor(): string {
+  const root = loBlocksRoot();
+  if (!root) throw new Error('records: cannot find the lo-blocks root');
+  return join(root, '..', 'course_data');
+}
+
+/**
+ * The `<kind>/<id>` directories this install needs.
+ *
+ * THE IDS COME FROM THE COURSE REPO, BY SHAPE, not from the store. `scoringId`
+ * reads them off the rubric file -- `bmod_rubric.olx` gives rubric `bmod_rubric`
+ * and instrument `bmod` -- so a clone with no records at all can still say what
+ * it is missing. The first cut asked `rubricDir`/`instrumentDir`, which go
+ * through the store resolver and threw "no course_data/ sits beside the
+ * lo-blocks checkout" before restore could do anything about it.
+ */
 export function neededFor(ns: string): Need[] {
+  const store = storeRootFor();
   const out: Need[] = [];
-  const rf = rubricFile(ns);
-  if (rf) out.push({ kind: 'rubrics', id: basename(rf).replace(/\.olx$/, ''),
-                     dir: rubricDir(ns) });
-  const idir = instrumentDir(ns);
-  if (idir) out.push({ kind: 'instruments', id: basename(idir), dir: idir });
+  for (const [kind, key] of [['rubrics', 'rubric_id'], ['instruments', 'instrument_id']] as const) {
+    let id = '';
+    try { id = scoringId(ns, key); } catch { continue; }
+    if (id) out.push({ kind, id, dir: join(store, kind, id) });
+  }
   return out;
 }
 
