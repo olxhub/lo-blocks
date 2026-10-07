@@ -23,7 +23,7 @@ import { existsSync, readdirSync, readFileSync, realpathSync } from 'fs';
 import { homedir } from 'os';
 import { basename, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { resolve, sep } from 'path';
+import { resolve, sep, isAbsolute } from 'path';
 
 // THE COURSE'S OWN DECLARATION, read the same way python reads it.
 //
@@ -490,9 +490,19 @@ function declaredRoot(ns: string, key: string): string | null {
   const raw = declaredValue(ns, key);
   if (raw === null) return null;
   if (raw.startsWith('~')) return resolve(homedir(), raw.slice(1).replace(/^\//, ''));
-  // `./` is relative to the COURSE REPOSITORY, which the mount points at.
-  if (raw.startsWith('./')) return resolve(dir, '..', raw.slice(2));
   if (raw.startsWith('$')) return null;      // an env reference is not a declaration
+  // EVERY RELATIVE FORM IS RELATIVE TO THE COURSE REPOSITORY, which the mount
+  // points at -- not only `./`. This handled `./` and let everything else fall
+  // through to `resolve(raw)`, which is relative to the WORKING DIRECTORY.
+  //
+  // That became live on 2026-10-07, when the data store moved out of the course
+  // repo to sit beside it and the rubric began declaring `../course_data`. The
+  // build still worked -- because it runs from the lo-blocks root, where
+  // `../course_data` happens to name the right directory. Correct by
+  // coincidence: run the same build from anywhere else and it resolves
+  // somewhere else, silently. python's `_rubric_declares` carried the identical
+  // omission and was fixed the same day.
+  if (!isAbsolute(raw)) return resolve(repoRootOf(dir), raw);
   return resolve(raw);
 }
 
@@ -522,6 +532,21 @@ export function courseDir(
 // missing directory belongs to the caller that tried to read it, and a
 // `realpath` failure here would replace that caller's specific message with a
 // less useful one.
+/**
+ * The course repository a mount points at, as a REAL path.
+ *
+ * THE MOUNT IS A SYMLINK and `resolve` is purely lexical, so climbing out of it
+ * with `..` walks the LINK's path, not the repository's: from
+ * `content/<ns>/...` it lands in `content/`, not beside the course repo. That
+ * is invisible for `./course_data`, which never leaves the link, and wrong the
+ * moment a declaration says `../course_data` -- which is what the store's move
+ * out of the repo on 2026-10-07 made it say. Measured before fixing: it
+ * returned `lo-blocks/content/course_data`.
+ */
+function repoRootOf(dir: string): string {
+  return resolve(real(resolve(dir, '..')));
+}
+
 function real(p: string): string {
   try {
     return realpathSync(p);
@@ -550,11 +575,42 @@ function courseDirRaw(
       `(${mounted.join(', ')}) and one variable cannot name them all. ` +
       `Declare it in ${ns}'s rubric frontmatter.`);
   }
+  // ANCHORED TO THE ENGINE, which is the one checkout every course here is
+  // built against. The store moved out of the course repos on 2026-10-07 to sit
+  // beside lo-blocks and be SHARED, so a course repo that lives somewhere else
+  // entirely still finds it.
+  //
+  // THIS USED TO REFUSE, and the refusal was right for what a root then meant:
+  // "a default would read some other course's records and report confidently
+  // about a corpus this check never saw". That hazard belonged to a PER-COURSE
+  // root, where guessing lands on a neighbour's data. A shared store has no
+  // neighbour to confuse it with -- there is one, and its location is a
+  // property of the engine, not of whoever asked.
+  // ONLY FOR A COURSE THAT ACTUALLY EXISTS HERE. An unknown namespace still
+  // gets the refusal: `rubricOf` returns null for it, and answering
+  // `<store>/rubrics` for a course nobody mounted is precisely the guess the
+  // refusal below exists to prevent. The enforce suite asserts this, and caught
+  // the first cut of this change doing exactly that.
+  const root = loBlocksRoot();
+  const rubric = rubricOf(ns);
+  if (root && rubric) {
+    const data = resolve(root, '..', 'course_data');
+    if (existsSync(data)) {
+      return name === 'COURSE_DATA' ? data : resolve(data, 'rubrics', rubric);
+    }
+  }
   throw new Error(
-    `enforce/courseData: ${name} is not set and ${ns}'s rubric declares no ` +
-    `${name.toLowerCase()}:. Refusing to guess a location — a default would ` +
-    `read some other course's records and report confidently about a corpus ` +
-    `this check never saw.`);
+    `enforce/courseData: ${name} is not set, ${ns}'s rubric declares no ` +
+    `${name.toLowerCase()}:, and no course_data/ sits beside the lo-blocks ` +
+    `checkout. Set $${name}, declare it, or put the store beside the engine.`);
+}
+
+/** The rubric id a namespace scores, for the per-rubric records directory. */
+function rubricOf(ns: string): string | null {
+  const dir = collectionDir(ns);
+  if (!dir) return null;
+  const f = rubricFile(ns);
+  return f ? basename(f).replace(/\.olx$/, '') : null;
 }
 
 /**

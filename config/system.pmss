@@ -32,6 +32,20 @@
      * their own sockets. Running both double-applies events (RGA splices
      * duplicate text). Retire tab-sync fully once fan-out soaks. */
     tab-sync: false;
+
+    /* WHERE A COURSE'S RECORDS ARE ARCHIVED. The LOCATION is a setting and is
+     * committed, so a clone has a working default and moving provider is one
+     * line. CREDENTIALS ARE NEVER HERE -- rclone keeps them in
+     * ~/.config/rclone/rclone.conf, outside the tree. A course may name its own
+     * location in its rubric frontmatter, which wins over this.
+     *
+     * NO FOLDER ID, deliberately. The remote authenticates with the `drive.file`
+     * scope, which can see only files rclone itself created -- so it cannot
+     * reach a pre-existing folder by id, and does not need to: it makes its own
+     * root on first write. The narrower scope is also why a colleague
+     * authorising this app grants access to the archive alone rather than to
+     * their whole Drive. */
+    archive-remote: "coursedata:lo-blocks-archive/courses";
 }
 
 /* Server-backed apps: websocket + session persistence */
