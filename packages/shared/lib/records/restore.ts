@@ -18,7 +18,7 @@
 // an empty store would measure nothing and report it as a result, which is the
 // failure this whole archive exists to make impossible.
 import { execFileSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { mountedCourses, scoringId, loBlocksRoot } from '@/lib/llm/enforce/courseData';
 import { restoreUnitArchive } from './archive';
@@ -178,6 +178,41 @@ export function restore(storeRoot: string, ns: string,
     }
   }
   return { pulled, present, created };
+}
+
+/**
+ * Does this install need anything pulled before it can build?
+ *
+ * ASKED LOCALLY, AND ONLY LOCALLY. A build must not need the network to find
+ * out that it already has everything: a developer on a plane, or on a machine
+ * with no archive credentials, has a complete store and every right to build
+ * from it. Listing the remote on every build would also charge a round trip per
+ * build to learn "nothing to do" -- the common case by far.
+ *
+ * The test is therefore PLAUSIBLE PRESENCE, not verified completeness, which
+ * only the archive can settle:
+ *   - every `<kind>/<id>` this install needs exists and is not empty, and
+ *   - every store-root object the manifest knows about is on disk.
+ *
+ * The manifest clause is what catches a store whose course trees are all there
+ * but whose root is not -- the state that got a fully restored clone to fail
+ * its build on one 192 KB file. A fresh clone has no manifest and fails the
+ * first clause anyway, so nothing rests on the manifest being there.
+ */
+export function needsRestore(storeRoot: string): boolean {
+  for (const { need } of needed()) {
+    let n = 0;
+    try { n = readdirSync(need.dir).length; } catch { return true; }
+    if (!n) return true;
+  }
+  let m: { units?: Record<string, unknown> };
+  try { m = JSON.parse(readFileSync(join(storeRoot, '.archive', 'manifest.json'), 'utf8')); }
+  catch { return false; }
+  for (const key of Object.keys(m.units || {})) {
+    if (key.includes('/')) continue;                       // scoped, covered above
+    if (!existsSync(join(storeRoot, targetOf(key)))) return true;
+  }
+  return false;
 }
 
 /** Restore for every mounted course. The build's entry point. */
