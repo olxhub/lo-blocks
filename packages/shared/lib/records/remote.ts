@@ -67,6 +67,13 @@ function ensureConfig(): void {
  * when the whole project moves provider.
  */
 export function remoteFor(ns: string, declared?: RemoteSpec | null): RemoteSpec | null {
+  // THE OPERATOR WINS OVER BOTH. $ARCHIVE_REMOTE redirects this install wherever
+  // it is told, whatever the course or the setting say: it is how a run points
+  // at a test archive, and how someone recovers when the configured location is
+  // wrong in a way that stops them editing the configuration.
+  const env = (process.env.ARCHIVE_REMOTE || '').trim();
+  if (env) return { path: `${env.replace(/\/+$/, '')}/${ns}`,
+                    folderId: (process.env.ARCHIVE_ROOT_FOLDER_ID || '').trim() || null };
   if (declared?.path) return declared;
   ensureConfig();
   const base = unquote(resolveConfig({}, 'archive-remote'));

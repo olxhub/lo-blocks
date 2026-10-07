@@ -69,6 +69,9 @@ function doDoctor(): void {
   const spec = ns.length ? remoteFor(ns[0]) : null;
   if (!spec) { say('archive        NOT CONFIGURED'); return; }
   say(`archive        ${spec.path}`);
+  if ((process.env.ARCHIVE_REMOTE || '').trim()) {
+    say('               (from $ARCHIVE_REMOTE, overriding the configuration)');
+  }
   const live = reachable(spec);
   say(`reachable      ${live.ok ? 'yes' : `NO -- ${live.why || 'no detail'}`}`);
   if (!live.ok) {
