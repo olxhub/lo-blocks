@@ -23,7 +23,7 @@
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 
-import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile, collectionDeclaresAll, rubricFiles } from './courseData';
+import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile, collectionDeclaresAll, rubricFiles, withRubric } from './courseData';
 import { corpusDataPath, resolve as resolveCorpusRefs, sha12 } from '../../../scripts/resolveCorpusRefs';
 import { decodeKey, decodeTable, decodeValue, type PyKey } from './pythonRepr';
 import { parseSlots, resolveOptions } from '../slotSheet';
@@ -473,6 +473,62 @@ export function budget(ns: string, name: string): number {
   return got;
 }
 
+
+/**
+ * A ceiling that bounds something the COURSE owns, read from every rubric.
+ *
+ * `course.json` lives in the RUBRIC's directory, so every budget in it is
+ * stored per rubric. Some of them bound per-rubric things and belong there. This
+ * one does not: `OLX_CORPUS_REF_BUDGET` counts references in the handouts and
+ * the rubric components together, which every rubric of the course shares. Read
+ * from one rubric it would be whichever rubric the pass happened to be about.
+ *
+ * AGREEMENT IS THE INVARIANT, not "take the first". Two rubrics declaring
+ * different ceilings for one shared thing is a contradiction, and picking either
+ * silently enforces one of them -- so this refuses and says which rubrics
+ * disagree. With one rubric it is exactly the old lookup.
+ */
+export function courseWideBudget(ns: string, name: string): number {
+  const files = rubricFiles(ns);
+  if (files.length <= 1) return budget(ns, name);
+  const seen = new Map<number, string[]>();
+  for (const f of files) {
+    const v = withRubric(ns, f, () => budget(ns, name));
+    seen.set(v, [...(seen.get(v) ?? []), basename(f)]);
+  }
+  if (seen.size === 1) return [...seen.keys()][0];
+  const detail = [...seen.entries()]
+    .map(([v, rs]) => `${v} (${rs.join(', ')})`).join(' vs ');
+  throw new Error(
+    `enforce/native: ${ns}'s rubrics declare different ${name} ceilings -- ` +
+    `${detail}. The budget bounds the course's .olx files, which they share, ` +
+    `so one of these is wrong. Picking either would enforce it silently.`);
+}
+
+/**
+ * A declaration table about the COURSE's files, read from every rubric.
+ *
+ * Same argument as `courseWideBudget`: `OLX_TEACHING_REFS` approves a quotation
+ * on a page a class reads, and the page belongs to the course rather than to the
+ * rubric whose directory happens to hold the file. Agreement is required for the
+ * same reason -- a reference approved in one rubric's declarations and not in
+ * another's has no answer, and taking either invents one.
+ */
+export function courseWideTable(ns: string, key: string): unknown {
+  const files = rubricFiles(ns);
+  const read = () => ((courseJson(ns).declarations ?? {}) as Record<string, unknown>)[key];
+  if (files.length <= 1) return read();
+  const seen = new Map<string, string[]>();
+  for (const f of files) {
+    const v = JSON.stringify(withRubric(ns, f, read) ?? null);
+    seen.set(v, [...(seen.get(v) ?? []), basename(f)]);
+  }
+  if (seen.size === 1) return JSON.parse([...seen.keys()][0]);
+  throw new Error(
+    `enforce/native: ${ns}'s rubrics declare different ${key} tables ` +
+    `(${[...seen.values()].map(r => r.join('+')).join(' vs ')}). It is about ` +
+    `the course's own files, which they share.`);
+}
 
 /** Every `.olx` under a directory, recursively, as paths relative to it. */
 function olxUnder(dir: string, prefix = ''): string[] {
@@ -2897,12 +2953,11 @@ export const NATIVE: Record<string, Assembler> = {
                    error: (e as Error).message, label: `rubric ${name}` };
         }
       })),
-      budget: budget(ns, 'OLX_CORPUS_REF_BUDGET'),
+      budget: courseWideBudget(ns, 'OLX_CORPUS_REF_BUDGET'),
       // THE APPROVED TEACHING-TEXT REFERENCES. Keyed (item, pid, field); the
       // rule honours them only OUTSIDE `<LLMAction>`, because the approval was
       // about what a class reads and the same cell also appears in prompts.
-      declared: decodeTable(((courseJson(ns).declarations ?? {}) as
-                             Record<string, unknown>).OLX_TEACHING_REFS)
+      declared: decodeTable(courseWideTable(ns, 'OLX_TEACHING_REFS'))
         .map(({ key, value }) => {
           const k = key as [string, number, string];
           return { item: String(k[0]), pid: Number(k[1]), field: String(k[2]),
@@ -3471,6 +3526,13 @@ export function rubricPath(ns: string): string {
  * one of those is recoverable by reading the output.
  */
 export const COURSE_LEVEL: ReadonlySet<string> = new Set([
+  // MOVED HERE DELIBERATELY, not by measurement. Its subject was always the
+  // course -- which served .olx needs the corpus -- but it read its budget and
+  // its teaching-reference approvals from one rubric's course.json, so the
+  // measurement saw a payload that changed with the rubric and filed it as
+  // rubric-level. Reading both course-wide is what makes the classification
+  // true rather than merely asserted.
+  'olx_corpus_references',
   'every_reference_has_the_data_that_resolves_it',
   'codes_reachable',
   'no_unresolved_reference_reaches_the_page',
