@@ -18,10 +18,12 @@
 // an empty store would measure nothing and report it as a result, which is the
 // failure this whole archive exists to make impossible.
 import { execFileSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
 import { mountedCourses, scoringId, loBlocksRoot } from '@/lib/llm/enforce/courseData';
 import { restoreUnitArchive } from './archive';
+import { filesUnder, unitHash } from './units';
+import { readManifest, writeManifest, record, type Manifest } from './manifest';
 import { reachable, rcloneArgs, remoteFor, TRANSFERS, type RemoteSpec } from './remote';
 
 export interface Need { kind: 'rubrics' | 'instruments'; id: string; dir: string; }
@@ -103,6 +105,34 @@ export function targetOf(key: string): string {
   return key.replace(/\.tar\.gz$/, '');
 }
 
+/**
+ * Write a restored unit into the manifest.
+ *
+ * A RESTORED INSTALL REALLY DOES HAVE THESE OBJECTS ARCHIVED -- it has them
+ * BECAUSE they are archived. Until this existed, only an install that had
+ * uploaded knew that, and a clone's manifest stayed empty forever, with two
+ * consequences. The write gate, which asks `everArchived`, refused every edit
+ * on a freshly restored machine: the files were durable and the gate had no way
+ * to find out. And `needsRestore` could not tell that a store-root file had
+ * gone missing, because its manifest clause had no manifest to read -- the test
+ * for that case passed by vacuum, which is how the hole showed itself.
+ *
+ * The hash is computed from what is now ON DISK, not taken on trust from the
+ * archive. If an extraction ever produced something other than what was
+ * uploaded, the next snapshot sees a changed unit and re-uploads, rather than
+ * the manifest asserting a match nobody checked.
+ */
+function noteRestored(storeRoot: string, m: Manifest, key: string): void {
+  const target = join(storeRoot, targetOf(key));
+  let files: string[];
+  try {
+    files = statSync(target).isDirectory() ? filesUnder(target) : [target];
+  } catch { return; }                       // nothing landed; leave it unarchived
+  if (!files.length) return;
+  const bytes = files.reduce((n, f) => n + statSync(f).size, 0);
+  record(m, key, unitHash(storeRoot, files), bytes);
+}
+
 export interface RestoreResult { pulled: number; present: number; created: string[]; }
 
 export function restore(storeRoot: string, ns: string,
@@ -115,6 +145,7 @@ export function restore(storeRoot: string, ns: string,
       + `unreachable: ${live.why || 'no detail'}. A build cannot invent them.`);
   }
   const created: string[] = [];
+  const m = readManifest(storeRoot);
   let pulled = 0, present = 0;
 
   // THE ROOT FIRST. Its files are owned by no course and read by every build;
@@ -132,6 +163,7 @@ export function restore(storeRoot: string, ns: string,
                               ...rcloneArgs(spec)],
                    { stdio: 'pipe', timeout: 600_000 });
       restoreUnitArchive(join(stage, key), storeRoot);
+      noteRestored(storeRoot, m, key);
       pulled++;
     } finally {
       rmSync(stage, { recursive: true, force: true });
@@ -171,12 +203,14 @@ export function restore(storeRoot: string, ns: string,
                    { stdio: 'pipe', timeout: 3_600_000 });
       for (const k of missing) {
         restoreUnitArchive(join(stage, k), storeRoot);
+        noteRestored(storeRoot, m, k);
         pulled++;
       }
     } finally {
       rmSync(stage, { recursive: true, force: true });
     }
   }
+  if (pulled) writeManifest(storeRoot, m);
   return { pulled, present, created };
 }
 
