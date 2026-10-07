@@ -121,6 +121,34 @@ export function unitsFor(storeRoot: string, kind: string, id: string): Unit[] {
   return units;
 }
 
+/**
+ * The units of the store ROOT: its loose files, one archive each.
+ *
+ * `corpus_refs.json` LIVES HERE, owned by neither an instrument nor a rubric,
+ * and every build of every course resolving a corpus reference reads it. It is
+ * not reached by `unitsFor`, which only ever walks `<kind>/<id>`, so before this
+ * existed the root was the one part of the store the archive could not see --
+ * and a clone restored all 1,082 course objects, then failed to build on the one
+ * 192 KB file nothing had uploaded. The cloned-course test is what found it;
+ * no install that already had the file could have.
+ *
+ * DEPTH ONE, FILES ONLY. `instruments/`, `rubrics/` and `.archive/` are
+ * directories and are skipped by that alone -- the first two have their own
+ * units and the third is the bookkeeping, which must never archive itself.
+ */
+export function rootUnits(storeRoot: string): Unit[] {
+  const units: Unit[] = [];
+  let names: string[] = [];
+  try { names = readdirSync(storeRoot).sort(); } catch { return units; }
+  for (const n of names) {
+    const p = join(storeRoot, n);
+    let st; try { st = statSync(p); } catch { continue; }
+    if (!st.isFile()) continue;
+    units.push({ key: `${n}.tar.gz`, kind: 'perfile', source: p, files: [p], bytes: st.size });
+  }
+  return units;
+}
+
 /** Every `<kind>/<id>` in a store, as `[kind, id]`. */
 export function storeDirs(storeRoot: string): Array<[string, string]> {
   const out: Array<[string, string]> = [];

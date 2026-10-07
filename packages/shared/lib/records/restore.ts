@@ -77,6 +77,22 @@ function remoteObjects(spec: RemoteSpec, prefix: string): string[] {
 }
 
 /**
+ * The archive's ROOT objects -- the store's loose files, `corpus_refs.json`
+ * among them.
+ *
+ * NO `-R`. The listing has to stop at depth one: recursing would return every
+ * object in the archive and the root pass would try to restore the whole store
+ * before the scoped passes ran at all.
+ */
+function remoteRootObjects(spec: RemoteSpec): string[] {
+  const out = execFileSync('rclone',
+    ['lsf', '--files-only', spec.path, ...rcloneArgs(spec)],
+    { stdio: 'pipe', timeout: 300_000 });
+  return String(out).split('\n').filter(Boolean)
+    .filter(p => !p.endsWith('.prev.tar.gz'));
+}
+
+/**
  * The local path an object restores to: the key minus its `.tar.gz`.
  *
  * For an add-only unit that is a DIRECTORY, which is why presence is tested
@@ -100,6 +116,27 @@ export function restore(storeRoot: string, ns: string,
   }
   const created: string[] = [];
   let pulled = 0, present = 0;
+
+  // THE ROOT FIRST. Its files are owned by no course and read by every build;
+  // a store whose `<kind>/<id>` trees are all present is still unbuildable
+  // without them.
+  if (!existsSync(storeRoot)) { mkdirSync(storeRoot, { recursive: true }); created.push(storeRoot); }
+  for (const key of remoteRootObjects(spec)) {
+    if (existsSync(join(storeRoot, targetOf(key)))) { present++; continue; }
+    log(`${ns}: restoring store-root ${targetOf(key)}`);
+    const stage = join(storeRoot, '.archive', 'restore-stage');
+    rmSync(stage, { recursive: true, force: true });
+    mkdirSync(stage, { recursive: true });
+    try {
+      execFileSync('rclone', ['copyto', `${spec.path}/${key}`, join(stage, key),
+                              ...rcloneArgs(spec)],
+                   { stdio: 'pipe', timeout: 600_000 });
+      restoreUnitArchive(join(stage, key), storeRoot);
+      pulled++;
+    } finally {
+      rmSync(stage, { recursive: true, force: true });
+    }
+  }
 
   for (const need of neededFor(ns)) {
     const prefix = `${need.kind}/${need.id}`;

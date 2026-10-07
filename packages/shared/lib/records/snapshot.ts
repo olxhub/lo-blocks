@@ -13,7 +13,7 @@ import { execFileSync } from 'child_process';
 import { mkdtempSync, rmSync, statSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { unitsFor, unitHash, storeDirs, type Unit } from './units';
+import { unitsFor, unitHash, storeDirs, rootUnits, type Unit } from './units';
 import { buildUnitArchive } from './archive';
 import { readManifest, writeManifest, record, isArchived, type Manifest } from './manifest';
 import { reachable, ensureCourseDir, rcloneArgs, remoteRoot, TRANSFERS, PIN,
@@ -55,8 +55,11 @@ export function remoteKeys(spec: RemoteSpec): Set<string> {
  */
 export function unitsForInstall(storeRoot: string, want: Array<[string, string]>): Unit[] {
   const have = new Set(storeDirs(storeRoot).map(([k, i]) => `${k}/${i}`));
-  return want.filter(([k, i]) => have.has(`${k}/${i}`))
+  const scoped = want.filter(([k, i]) => have.has(`${k}/${i}`))
              .flatMap(([k, i]) => unitsFor(storeRoot, k, i));
+  // THE ROOT IS NOT SCOPED TO AN INSTALL. Its files belong to no course, and
+  // every build reads them, so they go wherever the store goes.
+  return [...rootUnits(storeRoot), ...scoped];
 }
 
 export function plan(storeRoot: string, units: Unit[], m: Manifest,
