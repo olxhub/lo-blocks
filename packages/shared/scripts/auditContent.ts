@@ -22,7 +22,7 @@
 import { RULES } from '../lib/llm/enforce/index';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { assemblerFor } from '../lib/llm/enforce/native';
+import { assemblerFor, COURSE_LEVEL } from '../lib/llm/enforce/native';
 import { loBlocksRoot, rubricFiles, withRubric } from '../lib/llm/enforce/courseData';
 import { readdirSync } from 'fs';
 import { basename, join } from 'path';
@@ -43,7 +43,14 @@ function mountedNamespaces(): string[] {
   }
 }
 
-function auditNamespace(ns: string):
+/**
+ * `tier` SELECTS WHICH RULES RUN, so a course rule is not asked once per rubric.
+ *
+ * A rule not about a rubric would otherwise report the same finding in every
+ * pass -- counted once per rubric, and a baseline that doubles when a course
+ * gains a second rubric that has nothing to do with it.
+ */
+function auditNamespace(ns: string, tier: 'course' | 'rubric'):
     { ran: Result[]; advisory: Result[]; refused: string[] } {
   const ran: Result[] = [];
   // FINDINGS FROM AN UNCLEARED ASSEMBLER ARE REPORTED SEPARATELY, not dropped.
@@ -55,6 +62,7 @@ function auditNamespace(ns: string):
   const advisory: Result[] = [];
   const refused: string[] = [];
   for (const rule of Object.keys(RULES).sort()) {
+    if ((COURSE_LEVEL.has(rule) ? 'course' : 'rubric') !== tier) continue;
     const { fn: assemble, cleared } = assemblerFor(rule);
     if (!assemble) {
       refused.push(`${rule}: no native assembler -- this rule is only reachable `
@@ -206,9 +214,33 @@ function main(): number {
 
   let totalFindings = 0;
   let regressions = 0;
+  // A TYPO IN THE TIER LIST WOULD RUN NOTHING AND SAY NOTHING. A name that
+  // matches no rule silently files its rule as rubric-level and leaves a dead
+  // entry behind; both are invisible in the output.
+  const unknown = [...COURSE_LEVEL].filter(r => !(r in RULES)).sort();
+  if (unknown.length) {
+    console.error(`audit: COURSE_LEVEL names ${unknown.length} rule(s) that do `
+                + `not exist: ${unknown.join(', ')}`);
+    return 1;
+  }
+
   for (const { ns, file } of passes) {
     const several = rubricFiles(ns).length > 1;
-    const { ran, advisory, refused } = withRubric(ns, file, () => auditNamespace(ns));
+    // THE COURSE TIER RUNS ONCE, on the first pass for this namespace. It still
+    // runs INSIDE a selection: `courseLocation` is itself derived from a rubric
+    // file, so without one there is no course to locate. Which rubric cannot
+    // matter -- that these rules return the same payload under either is what
+    // put them in COURSE_LEVEL, and it was measured rather than assumed.
+    const firstForNs = passes.find(x => x.ns === ns)!.file === file;
+    const courseTier = firstForNs
+      ? withRubric(ns, file, () => auditNamespace(ns, 'course'))
+      : { ran: [], advisory: [], refused: [] };
+    const rubricTier = withRubric(ns, file, () => auditNamespace(ns, 'rubric'));
+    const { ran, advisory, refused } = {
+      ran: [...courseTier.ran, ...rubricTier.ran],
+      advisory: [...courseTier.advisory, ...rubricTier.advisory],
+      refused: [...courseTier.refused, ...rubricTier.refused],
+    };
     const count = ran.reduce((n, r) => n + r.findings.length, 0);
     totalFindings += count;
 

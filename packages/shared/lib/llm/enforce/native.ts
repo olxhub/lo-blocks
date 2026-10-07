@@ -23,7 +23,7 @@
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 
-import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile, collectionDeclaresAll } from './courseData';
+import { collectionDeclares, collectionDir, courseDir, courseLocation, instrumentDerived, instrumentDir, loBlocksRoot, outDir, recordPath, refuseRawDocument, rubricDerived, rubricDir, rubricFile, collectionDeclaresAll, rubricFiles } from './courseData';
 import { corpusDataPath, resolve as resolveCorpusRefs, sha12 } from '../../../scripts/resolveCorpusRefs';
 import { decodeKey, decodeTable, decodeValue, type PyKey } from './pythonRepr';
 import { parseSlots, resolveOptions } from '../slotSheet';
@@ -2863,7 +2863,12 @@ export const NATIVE: Record<string, Assembler> = {
     // remaining references while the rule, reading handouts alone, reported on
     // six of them. A rule that polices a subset of its own subject reports a
     // clean part as a clean whole.
-    const rubricOlx = collectionDeclaresAll(ns, 'rubric_component');
+    // THE SAME RUBRICS THE AUDIT ITSELF ITERATES, found BY SHAPE. Reading the
+    // manifest declaration instead made the two disagree: a rubric present in
+    // the collection but not named in manifest.yaml got a pass of its own from
+    // the driver and was invisible to this rule inside it. Measured on a clone
+    // carrying an undeclared second rubric.
+    const rubricOlx = rubricFiles(ns);
     return {
       forms: forms.map((form) => {
         const f2 = /^-?\d+$/.test(String(form)) ? Number(form) : form;
@@ -2879,13 +2884,13 @@ export const NATIVE: Record<string, Assembler> = {
         } catch (e) {
           return { form: f2, src: null, error: (e as Error).message };
         }
-      }).concat(rubricOlx.map((name) => {
-        // NAMED BY ITS FILE, not "the rubric component". With more than one
-        // declared, a finding that said only "the rubric component" would not
-        // say WHICH -- and the readout exists to name the file to open.
-        const dir = courseLocation(ns) ?? '';
+      }).concat(rubricOlx.map((full) => {
+        // NAMED BY ITS FILE, not "the rubric component". With more than one,
+        // a finding that said only "the rubric component" would not say WHICH --
+        // and the readout exists to name the file to open.
+        const name = basename(full);
         try {
-          return { form: name, src: readFileSync(join(dir, name), 'utf8'),
+          return { form: name, src: readFileSync(full, 'utf8'),
                    error: null, label: `rubric ${name}` };
         } catch (e) {
           return { form: name, src: null,
@@ -3444,6 +3449,37 @@ export function rubricPath(ns: string): string {
 //
 // IT RATCHETS UPWARD ONLY BY MEASUREMENT: a name is added when the comparison
 // test says its payload equals python's, never because it looks right.
+/**
+ * Rules whose subject is the COURSE, not one of its rubrics.
+ *
+ * A course may carry several rubrics, and the audit runs one pass per rubric so
+ * that each is examined against its own items, gold and store. A rule that is
+ * not about a rubric would then run once per rubric and say the same thing every
+ * time -- the same finding counted twice, and a baseline that doubles when a
+ * course gains a rubric it has nothing to do with.
+ *
+ * MEASURED, NOT CLASSIFIED BY READING. A second rubric was put beside the first
+ * in a throwaway clone and every assembler was run under each selection in turn;
+ * these seven returned a byte-identical payload and the other 72 did not. A
+ * hand-written reading of "what does this assembler touch" had got it wrong in
+ * both directions -- it missed rules that reach the store through helpers, and
+ * it named rules that look course-wide but read a per-rubric budget.
+ *
+ * THE DEFAULT IS RUBRIC-LEVEL, and deliberately. Mis-filing a course rule as
+ * rubric-level duplicates a finding; mis-filing a rubric rule as course-level
+ * examines one rubric and reports the answer as if it covered all of them. Only
+ * one of those is recoverable by reading the output.
+ */
+export const COURSE_LEVEL: ReadonlySet<string> = new Set([
+  'every_reference_has_the_data_that_resolves_it',
+  'codes_reachable',
+  'no_unresolved_reference_reaches_the_page',
+  'fails_verdict_is_mirrored_in_the_app',
+  'action_attributes_are_declared_in_the_block',
+  'response_boxes_are_bounded',
+  'no_judging_field_states_what_a_verdict_costs',
+]);
+
 export const SELF_ASSEMBLING: ReadonlySet<string> = new Set([
   // CLEARED 2026-09-28, against the payload python actually sends: 53 rows --
   // 26 olx, 26 paper, 1 paper_opus -- every one identical, counters included.

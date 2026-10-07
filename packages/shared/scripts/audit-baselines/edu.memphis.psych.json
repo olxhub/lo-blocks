@@ -1,8 +1,7 @@
 {
  "rules": {
-  "every_prompt_field_is_designed": 6,
   "olx_attributes_are_all_generated": 1,
-  "olx_corpus_references": 40
+  "olx_corpus_references": 1
  },
  "refusedThen": [
   "ask_equivalences_still_hold",

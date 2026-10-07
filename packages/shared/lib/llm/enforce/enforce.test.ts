@@ -6,6 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { PROBES, RULES, caseNamesInPrompts } from './index';
+import { COURSE_LEVEL } from './native';
 import { processHistoryFindings } from './processHistory';
 import { siblingSlotsShareTheirStructure } from './siblingSlots';
 import { verdictSpacesAreDeclared } from './verdictSpaces';
@@ -1463,6 +1464,33 @@ describe('shipped_text_matches_design', () => {
 
   it('reads an empty payload as no findings', () => {
     expect(shippedTextMatchesDesign({ designed: [], credit: {} })).toEqual([]);
+  });
+});
+
+describe('COURSE_LEVEL (which rules are about the course, not a rubric)', () => {
+  it('names only rules that exist', () => {
+    // A NAME THAT MATCHES NOTHING IS INVISIBLE TWICE OVER: it files its intended
+    // rule as rubric-level, and leaves a dead entry nobody will question. The
+    // audit refuses to run on this; the test is so the refusal is never reached.
+    const unknown = [...COURSE_LEVEL].filter(r => !(r in RULES));
+    expect(unknown).toEqual([]);
+  });
+
+  it('is a strict subset -- every other rule is rubric-level by default', () => {
+    expect(COURSE_LEVEL.size).toBeGreaterThan(0);
+    expect(COURSE_LEVEL.size).toBeLessThan(Object.keys(RULES).length);
+  });
+
+  it('keeps the rules measured to be rubric-dependent OUT of it', () => {
+    // These were measured to return a different payload under a second rubric.
+    // Filing any of them as course-level would examine one rubric and report
+    // the answer as though it covered them all -- the failure that does not
+    // show up in the output.
+    for (const r of ['sheet_matches_rubric', 'sheet_slots_reach_the_rubric',
+                     'rubric_slots_reach_the_sheet', 'every_prompt_field_is_designed',
+                     'composed_documents_are_current']) {
+      expect(COURSE_LEVEL.has(r)).toBe(false);
+    }
   });
 });
 
