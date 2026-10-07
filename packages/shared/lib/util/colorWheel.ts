@@ -5,6 +5,15 @@
 
 const PHI = 1.618033988749895;
 
+/** Stable unsigned index for assigning colors to opaque string IDs. */
+export function stringColorIndex(value: string): number {
+  let index = 0;
+  for (const char of value) {
+    index = (Math.imul(index, 31) + char.codePointAt(0)!) >>> 0;
+  }
+  return index;
+}
+
 /**
  * Compute a hue (0-360) for a given group index using golden ratio spacing.
  *

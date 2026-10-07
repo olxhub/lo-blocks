@@ -5,7 +5,7 @@
 // The arrow points INTO the destination (assignment); the field defaults to
 // `value`, and leading dots encode scope (named ref / self `.` / parent `..`).
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { parse as parseChat } from './_chatParser';
 
 const entriesOf = (src: string) => (parseChat(src + '\n') as any).body;
@@ -45,5 +45,25 @@ describe('SetCommand parsing', () => {
     const entry = firstSet('Lin: write A -> B -> C as a sequence.');
     expect(entry.type).toBe('Line');
     expect(entry.text).toContain('A -> B -> C');
+  });
+});
+
+// Runtime: the value a set command writes goes through the destination
+// field's declared schema, so a numeric field receives a number.
+import { z } from 'zod';
+import { coerceSetValue } from './Chat';
+
+describe('set command value coercion', () => {
+  it('applies the field schema (Tabs.activeTab is z.coerce.number())', () => {
+    expect(coerceSetValue({ name: 'activeTab', schema: z.coerce.number() }, '3')).toBe(3);
+  });
+  it('passes text through when the field has no schema', () => {
+    expect(coerceSetValue({ name: 'value' }, 'intro_panel')).toBe('intro_panel');
+  });
+  it('writes the text as is, with a warning, when the schema rejects it', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(coerceSetValue({ name: 'activeTab', schema: z.number() }, 'three')).toBe('three');
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });
