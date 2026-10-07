@@ -441,7 +441,7 @@ export function gold(ns: string): Record<string, unknown> {
 }
 
 export function courseJson(ns: string): Record<string, unknown> {
-  return readJson(metadataFile(ns, 'course.json')) as Record<string, unknown>;
+  return readJson(metadataFile(ns, 'rubric.json')) as Record<string, unknown>;
 }
 
 /**
@@ -2137,7 +2137,7 @@ export const NATIVE: Record<string, Assembler> = {
 
   records_carry_no_machine_path: (ns) => {
     const targets: Array<[string, string]> = [
-      ['course.json', metadataFile(ns, 'course.json')],
+      ['rubric.json', metadataFile(ns, 'rubric.json')],
       ['PROBED.json', metadataFile(ns, 'PROBED.json')],
       ['PROBE_RECEIPTS.json', metadataFile(ns, 'PROBE_RECEIPTS.json')],
       ['MEASURED.json', metadataFile(ns, 'MEASURED.json')],

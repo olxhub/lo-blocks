@@ -136,7 +136,7 @@ HANDOUT_DATA = {h: {"template_file": f"stub_handout{h}_template.docx",
 COURSE = {
     "schema_version": 1,
     "course": "stub",
-    "handouts": {str(h): {"authored": {k: [] for k in DERIVED_EMPTY}}
+    "forms": {str(h): {"authored": {k: [] for k in DERIVED_EMPTY}}
                  for h in HANDOUTS_DECLARED},
     "items": [_item(f"S{h}", h) for h in HANDOUTS_DECLARED],
     "generator": dict(GENERATOR),
@@ -294,7 +294,7 @@ def _qc_dirname() -> str:
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "course.json").write_text(json.dumps(COURSE, indent=2, sort_keys=True) + "\n")
+    (OUT / "rubric.json").write_text(json.dumps(COURSE, indent=2, sort_keys=True) + "\n")
     (OUT / "gold.json").write_text(json.dumps(GOLD, indent=2, sort_keys=True) + "\n")
     (OUT / "stub_rubric.olx").write_text(RUBRIC)
     qc = OUT / _qc_dirname()

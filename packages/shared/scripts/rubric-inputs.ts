@@ -43,7 +43,7 @@ import { expandedRubricPath } from '../lib/llm/enforce/native'
 const NS = process.env.COURSE_NS ?? 'edu.memphis.psych'
 const CONTENT = process.env.CONTENT_ROOT ?? '../edu.memphis.psych'
 const RUBRIC = process.env.RUBRIC_OLX ?? expandedRubricPath(NS)
-const COURSE = process.env.COURSE_JSON ?? join(courseDir('COURSE_METADATA', NS), 'course.json')
+const COURSE = process.env.COURSE_JSON ?? join(courseDir('COURSE_METADATA', NS), 'rubric.json')
 const HANDOUTS = process.env.HANDOUT_DIR ?? (courseLocation(NS) ?? CONTENT)
 
 const xml = readFileSync(RUBRIC, 'utf8')

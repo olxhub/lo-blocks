@@ -2164,7 +2164,7 @@ describe('rule_examples_are_not_corpus', () => {
 });
 
 describe('records_carry_no_machine_path', () => {
-  const rec = (doc: unknown) => ({ records: [{ label: 'course.json', doc }] });
+  const rec = (doc: unknown) => ({ records: [{ label: 'rubric.json', doc }] });
 
   it('is silent on a record that names only root tokens', () => {
     expect(recordsCarryNoMachinePath(rec({
@@ -2179,7 +2179,7 @@ describe('records_carry_no_machine_path', () => {
     const out = recordsCarryNoMachinePath(rec({
       probe: '/home/pdeane/molly_data/rubrics/bmod/derived/out/x.json' }));
     expect(out).toHaveLength(1);
-    expect(out[0]).toContain('course.json.probe carries');
+    expect(out[0]).toContain('rubric.json.probe carries');
     expect(out[0]).toContain('must not name a directory on one machine');
   });
 
@@ -2197,7 +2197,7 @@ describe('records_carry_no_machine_path', () => {
     const out = recordsCarryNoMachinePath(rec({
       a: [{ b: { c: '/tmp/claude-1000/somewhere/deep.json' } }] }));
     expect(out).toHaveLength(1);
-    expect(out[0]).toContain('course.json.a[0].b.c');
+    expect(out[0]).toContain('rubric.json.a[0].b.c');
   });
 
   it('ignores a bare root prefix, which is not a location', () => {
