@@ -75,9 +75,19 @@ function doDoctor(): void {
   const live = reachable(spec);
   say(`reachable      ${live.ok ? 'yes' : `NO -- ${live.why || 'no detail'}`}`);
   if (!live.ok) {
+    const name = spec.path.split(':')[0];
     say('');
-    say('  Most often this is an expired login rather than a wrong address.');
-    say(`  Re-authorise with:  rclone config reconnect ${spec.path.split(':')[0]}:`);
+    // THE TWO CAUSES NEED OPPOSITE ACTIONS, and rclone says which it is. Telling
+    // someone with no remote configured to re-authorise sends them to a prompt
+    // for a remote that does not exist.
+    if (/didn't find section/.test(live.why || '')) {
+      say(`  rclone has no remote named "${name}". Create it with:`);
+      say('      rclone config');
+      say(`  and name it ${name}, or point elsewhere with $ARCHIVE_REMOTE.`);
+    } else {
+      say('  Most often this is an expired login rather than a wrong address.');
+      say(`  Re-authorise with:  rclone config reconnect ${name}:`);
+    }
     return;
   }
   let objects = '?';
