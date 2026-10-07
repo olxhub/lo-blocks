@@ -314,6 +314,65 @@ describe('object literals', () => {
   });
 });
 
+describe('array literals', () => {
+  const ctx = () => createContext({
+    componentState: {
+      s09: { code: 1, value: 'agree' },
+      s19: { code: -2, value: 'strongly_disagree' },
+      blank: { value: '' },
+    },
+  });
+
+  it('evaluates an empty literal', () => {
+    expect(evaluate(parse('[]'), createContext())).toEqual([]);
+  });
+
+  it('evaluates elements in order', () => {
+    expect(evaluate(parse('[1, 2, 3]'), createContext())).toEqual([1, 2, 3]);
+    expect(evaluate(parse('[1, "two", true]'), createContext())).toEqual([1, 'two', true]);
+  });
+
+  it('evaluates a trailing comma as no extra element', () => {
+    expect(evaluate(parse('[1, 2,]'), createContext())).toEqual([1, 2]);
+  });
+
+  it('evaluates elements that are full expressions', () => {
+    expect(evaluate(parse('[@s09.code, @s19.code]'), ctx())).toEqual([1, -2]);
+    expect(evaluate(parse('[1 + 1, @s09.code * 2]'), ctx())).toEqual([2, 2]);
+    expect(evaluate(parse('[[1, 2], [3]]'), createContext())).toEqual([[1, 2], [3]]);
+    expect(evaluate(parse('[{a: 1}]'), createContext())).toEqual([{ a: 1 }]);
+  });
+
+  it('returns a fresh array each evaluation', () => {
+    const ast = parse('[1, 2]');
+    const first = evaluate(ast, createContext());
+    const second = evaluate(ast, createContext());
+    expect(first).toEqual(second);
+    expect(first).not.toBe(second);
+  });
+
+  it('is an ordinary array to the member table', () => {
+    expect(evaluate(parse('[1, 2, 3].length'), createContext())).toBe(3);
+    expect(evaluate(parse('[1, 2, 3].map(v => v * 2)'), createContext())).toEqual([2, 4, 6]);
+    expect(evaluate(parse('[1, 2, 3].filter(v => v > 1).length'), createContext())).toBe(2);
+    expect(evaluate(parse('[@s09.code, @s19.code].map(v => v + 1)'), ctx())).toEqual([2, -1]);
+  });
+
+  it('works as the right side of `in`', () => {
+    expect(evaluate(parse('@s09.value in ["agree", "strongly_agree"]'), ctx())).toBe(true);
+    expect(evaluate(parse('@s09.value in ["disagree"]'), ctx())).toBe(false);
+  });
+
+  it('carries missing values through as elements (length counts slots)', () => {
+    // The literal does not filter — that is the aggregates' job. An
+    // unanswered item is a slot with a blank in it.
+    expect(evaluate(parse('[1, @blank.value]'), ctx())).toEqual([1, '']);
+    expect(evaluate(parse('[1, @blank.value].length'), ctx())).toBe(2);
+    expect(evaluate(parse('[@gone.code].length'), ctx())).toBe(1);
+    expect(evaluate(parse('[@gone.code]'), ctx())).toEqual([undefined]);
+  });
+});
+
 describe('in operator', () => {
   it('checks array membership', () => {
     const ctx = createContext({
@@ -543,5 +602,72 @@ describe('id() helper', () => {
 
   it('explains itself when the context has no namespace', () => {
     expect(() => evaluate(parse("id('foo')"), createContext())).toThrow(/no content namespace/);
+  });
+});
+
+describe('DefinitionKey() helper', () => {
+  // DefinitionKey() normalizes a definition ref to its canonical, qualified
+  // form so that a pane VALUE (written qualified by a display=target: embed)
+  // and an author-written bare ref compare equal. Registered as a
+  // context-aware DSL function — the registry hands it the evaluation
+  // context, from which it takes ns.
+  const NS = 'edu.memphis.writing.sba';
+  const ctx = (extra = {}) => createContext({ ns: asContentNamespace(NS), ...extra });
+
+  it('qualifies a bare ref against the context namespace', () => {
+    expect(evaluate(parse("DefinitionKey('tut_welcome')"), ctx()))
+      .toBe(`${NS}/tut_welcome`);
+  });
+
+  it('passes an already-qualified ref through unchanged', () => {
+    expect(evaluate(parse(`DefinitionKey('${NS}/tut_welcome')`), ctx()))
+      .toBe(`${NS}/tut_welcome`);
+    // Cross-namespace refs are not re-qualified either.
+    expect(evaluate(parse("DefinitionKey('ee101/hw1')"), ctx())).toBe('ee101/hw1');
+  });
+
+  it('passes null/undefined/empty through as falsy', () => {
+    const c = ctx({ componentState: { sidebar: { value: null } } });
+    expect(evaluate(parse('DefinitionKey(@sidebar.value)'), c)).toBe(null);
+    // An unset field entirely (no bucket) → undefined, still no throw.
+    expect(evaluate(parse('DefinitionKey(@missing.value)'), ctx())).toBe(undefined);
+    expect(evaluate(parse("DefinitionKey('')"), ctx())).toBe('');
+  });
+
+  it('normalizes both sides of a comparison (the motivating case)', () => {
+    // The pane holds the QUALIFIED ref, as the target embed writes it.
+    const c = ctx({
+      componentState: { tut_sidebar: { value: `${NS}/tut_welcome` } },
+    });
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_welcome')"), c
+    )).toBe(true);
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_other')"), c
+    )).toBe(false);
+    // Unnormalized, the same comparison is the bug this fixes.
+    expect(evaluate(parse("@tut_sidebar.value === 'tut_welcome'"), c)).toBe(false);
+  });
+
+  it('normalizes a bare stored value too (arrow-syntax legacy writes)', () => {
+    const c = ctx({ componentState: { tut_sidebar: { value: 'tut_welcome' } } });
+    expect(evaluate(
+      parse("DefinitionKey(@tut_sidebar.value) === DefinitionKey('tut_welcome')"), c
+    )).toBe(true);
+  });
+
+  it('degrades to the raw string when the context has no namespace', () => {
+    // Render paths always supply ns; hand-built contexts may not. Returning
+    // the input keeps the comparison working as it did before normalization
+    // rather than throwing and killing every Trigger on the page.
+    expect(evaluate(parse("DefinitionKey('tut_welcome')"), createContext()))
+      .toBe('tut_welcome');
+    expect(evaluate(
+      parse("DefinitionKey('tut_welcome') === DefinitionKey('tut_welcome')"), createContext()
+    )).toBe(true);
+  });
+
+  it('rejects non-string arguments', () => {
+    expect(() => evaluate(parse('DefinitionKey(42)'), ctx())).toThrow(/needs a ref string/);
   });
 });

@@ -306,7 +306,7 @@ With metadata:
 
 ### Pause
 
-Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.**
+Separates commands that would otherwise execute together on one click. **Rarely needed.**
 
 Normal flow: each "Continue" click reveals the next batch of dialogue messages and simultaneously executes any commands (sets, embeds, waits) adjacent to them. You do **not** need `--- pause ---` between dialogue lines — the user already clicks Continue to advance.
 
@@ -320,6 +320,20 @@ sidebar <- intro_panel
 sidebar <- activity_panel
 --- wait @activity.done ---
 ```
+
+**A pause costs a click only when it has something to hold back.** Written straight after a dialogue line — the common "closing beat, then hand off" shape —
+
+```
+Alma: that's the end of this part — tap Continue and it'll take you to the meeting
+
+--- pause ---
+
+wj_course.selectedChild <- edu.memphis.writing.sba/wj2b_sba_part1
+```
+
+the click that revealed the line has already stopped there, so the pause has nothing to separate: the **next** Continue steps over it and runs the set command. The commands after a pause run on the next Continue; a pause immediately after a line does not itself consume a click.
+
+A pause at the very end of a script has nothing after it, so it is a no-op: the chat is finished at its last line and shows no further Continue.
 
 ### Wait
 

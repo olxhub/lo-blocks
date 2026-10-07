@@ -1,0 +1,8 @@
+<SimpleTextSelection id="sentence_antecedent" mode="graded" separatorRegexp="\.">
+"Such intrusions" points back to an earlier sentence. Click the sentence that describes those intrusions — its antecedent.
+---
+Temperance societies grew quickly in the 1830s. Members signed pledges and held public meetings. [Reformers from the middle class pressed their habits on lower-class workers, many of them recent immigrants.] Such intrusions sharpened class and religious tensions. The movement still counted itself a success.
+---
+all: Yes — that sentence names the intrusion "Such intrusions" refers back to.
+: Look for the sentence that describes someone intruding, just before "Such intrusions."
+</SimpleTextSelection>

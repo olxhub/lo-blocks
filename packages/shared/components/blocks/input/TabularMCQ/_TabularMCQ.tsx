@@ -2,10 +2,11 @@
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { useFieldState } from '@/lib/state';
 import { DisplayError } from '@/lib/util/debug';
 import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { assertNamedObject } from '@/lib/types/kids';
 
 export default function TabularMCQ(props: RuntimeProps) {
@@ -17,6 +18,20 @@ export default function TabularMCQ(props: RuntimeProps) {
 
   // Show answer support - displayAnswer is { rowId: number[] }
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
+
+  // Locked mid-grade, or by the enclosing problem's lockInput: the cells stop
+  // accepting clicks, so the grid keeps showing what was scored.
+  const readOnly = useInputReadOnly(props);
+
+  // DOM identity is PER MOUNTED COPY, not per block. Radio `name` is a
+  // document-wide grouping key in HTML, so if the same block is mounted twice
+  // (a <Use> reference, or a Tabs panel that stays mounted while hidden), a
+  // block-derived name would put both copies' radios in ONE browser group —
+  // the browser then unchecks the visible copy when React marks the hidden
+  // one, and the learner watches their selection vanish. useId() is stable
+  // across re-renders and distinct per mounted copy, which is exactly the
+  // scoping the DOM needs; state identity still comes from props/fields.
+  const domScope = useId();
 
   // Check for parse failure (YAML or validation error)
   if (props.parseError) {
@@ -98,7 +113,7 @@ export default function TabularMCQ(props: RuntimeProps) {
   };
 
   return (
-    <div className="tabular-mcq">
+    <div className={readOnly ? 'tabular-mcq disabled' : 'tabular-mcq'}>
       <table>
         <thead>
           <tr>
@@ -115,7 +130,7 @@ export default function TabularMCQ(props: RuntimeProps) {
             <tr key={row.id}>
               <td>{row.text}</td>
               {cols.map((col, colIndex) => {
-                const inputId = `${props.id}-${row.id}-${colIndex}`;
+                const inputId = `${domScope}${props.id}-${row.id}-${colIndex}`;
                 const correctIndices = showAnswer ? displayAnswer?.[row.id] : undefined;
                 const isCorrectCell = correctIndices !== undefined && correctIndices.includes(colIndex);
                 const isWrongSelection = correctIndices !== undefined && !isCorrectCell && isChecked(row.id, colIndex);
@@ -126,8 +141,9 @@ export default function TabularMCQ(props: RuntimeProps) {
                       <input
                         id={inputId}
                         type={mode === 'checkbox' ? 'checkbox' : 'radio'}
-                        name={mode === 'radio' ? `tabular-mcq-row-${props.id}-${row.id}` : undefined}
+                        name={mode === 'radio' ? `${domScope}tabular-mcq-row-${props.id}-${row.id}` : undefined}
                         checked={isChecked(row.id, colIndex)}
+                        disabled={readOnly}
                         onChange={() =>
                           mode === 'checkbox'
                             ? handleCheckboxChange(row.id, colIndex)
