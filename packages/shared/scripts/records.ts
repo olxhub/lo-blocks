@@ -56,8 +56,11 @@ function doDoctor(): void {
   say(`store          ${store}${existsSync(store) ? '' : '   (NOT PRESENT)'}`);
 
   let rclone = 'missing -- install rclone';
-  try { rclone = String(execFileSync('rclone', ['version'], { stdio: 'pipe' })).split('\n')[0]; }
-  catch { /* keep the message */ }
+  let haveRclone = false;
+  try {
+    rclone = String(execFileSync('rclone', ['version'], { stdio: 'pipe' })).split('\n')[0];
+    haveRclone = true;
+  } catch { /* keep the message */ }
   say(`rclone         ${rclone}`);
 
   const ns = [...new Set(needed().map(n => n.ns))];
@@ -77,10 +80,17 @@ function doDoctor(): void {
   if (!live.ok) {
     const name = spec.path.split(':')[0];
     say('');
-    // THE TWO CAUSES NEED OPPOSITE ACTIONS, and rclone says which it is. Telling
-    // someone with no remote configured to re-authorise sends them to a prompt
-    // for a remote that does not exist.
-    if (/didn't find section/.test(live.why || '')) {
+    // THE CAUSES NEED OPPOSITE ACTIONS, and the probes above say which it is.
+    // Every one of these used to print the same "re-authorise" line: it sent
+    // someone with no remote configured to a prompt for a remote that does not
+    // exist, and someone with no rclone at all to a command they cannot run.
+    if (!haveRclone) {
+      say('  rclone is not installed, so nothing here can reach the archive.');
+      say('  Install it from https://rclone.org/install/ and then run:');
+      say('      rclone config          # create a remote named ' + name);
+      say('  A build does NOT need it while the store is complete -- only when');
+      say('  records are missing and have to be fetched.');
+    } else if (/didn't find section/.test(live.why || '')) {
       say(`  rclone has no remote named "${name}". Create it with:`);
       say('      rclone config');
       say(`  and name it ${name}, or point elsewhere with $ARCHIVE_REMOTE.`);

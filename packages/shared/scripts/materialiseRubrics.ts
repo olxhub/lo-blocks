@@ -214,29 +214,29 @@ function main(argv: string[]): number {
     // mounted courses are where the rubrics actually live -- the fallback tree
     // is demos -- so staging only `dir` would expand nothing and report a clean
     // zero, which is exactly what a tree with no templates also looks like.
-    stageSources(dir, outDir, 'materialiseRubrics');
-    copyTree(dir, outDir);
+    const written = new Set<string>();
+    stageSources(dir, outDir, 'materialiseRubrics', written);
+    copyTree(dir, outDir, false, written);
+    // THE DELETE RUNS BEFORE THE WALK. The walk builds the list of files to
+    // expand, so pruning after it collected a stale file and then removed it,
+    // and the expansion opened a path that was no longer there -- ENOENT on the
+    // very file the prune had just correctly identified as stale. The build then
+    // failed on the run that fixed the stage and succeeded on the next one.
+    // THE DELETE, AGAINST WHAT THIS RUN ACTUALLY WROTE. Anything that was in the
+    // stage and was not written again is stale and goes.
+    //
+    // IT USED TO COMPARE AGAINST A WALK OF THE STAGE ITSELF, taken after the
+    // copy -- and a copy only ADDS, so a file left by an earlier run was still
+    // sitting there and appeared in both sets. The difference was always empty
+    // and the delete could not fire for any input. A removed .olx went on being
+    // built: deleting a second rubric left its copy staged, and the build failed
+    // with nine phantom DUPLICATE_ID errors against a file no longer in the tree.
+    for (const stale of before) {
+      if (!written.has(stale)) { try { fs.rmSync(stale); } catch { /* raced */ } }
+    }
     files.length = 0;
     seen.clear();
     walk(outDir);
-    // THE DELETE, MOVED AFTER THE WRITE. Anything that was in the stage and is
-    // not in it now is stale and goes; everything else was overwritten in place
-    // by an atomic rename and was never missing.
-    const now = new Set<string>();
-    const seenAfter = new Set<string>();
-    const walkNow = (d: string) => {
-      const real = fs.realpathSync(d);
-      if (seenAfter.has(real)) return;
-      seenAfter.add(real);
-      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-        const q = path.join(d, e.name);
-        if (e.isDirectory()) walkNow(q); else now.add(q);
-      }
-    };
-    walkNow(outDir);
-    for (const stale of before) {
-      if (!now.has(stale)) { try { fs.rmSync(stale); } catch { /* raced */ } }
-    }
   }
   let changed = 0, withTemplates = 0;
   for (const f of files) {

@@ -431,7 +431,8 @@ export const NEVER_STAGE = new Set(['.git', 'node_modules', '.stage', '.turbo',
  * copy of the mounting rule is how the two would come to disagree about what
  * "the content" is, which is the disagreement this function was written to end.
  */
-export function stageSources(fallbackDir: string, outDir: string, who: string): void {
+export function stageSources(fallbackDir: string, outDir: string, who: string,
+                             written?: Set<string>): void {
   const staged = contentRoots(process.cwd());
   const localCfg = path.join(process.cwd(), 'config/content-sources.local.yaml');
   const baseCfg = path.join(process.cwd(), 'config/content-sources.yaml');
@@ -443,7 +444,7 @@ export function stageSources(fallbackDir: string, outDir: string, who: string): 
     const src = path.isAbsolute(val) ? val : path.join(process.cwd(), val);
     if (!fs.existsSync(src)) continue;              // already reported as unscanned
     if (path.resolve(src) === path.resolve(fallbackDir)) continue;
-    copyTree(src, path.join(outDir, mount));
+    copyTree(src, path.join(outDir, mount), false, written);
     console.error(`${who}: staged mounted source ${mount} from ${src}`);
   }
   // A SOURCE THAT CANNOT BE STAGED MUST SAY SO. A git-remote source is not on
@@ -501,7 +502,15 @@ export function isCollectionRoot(dir: string): boolean {
  * `inCollection` is set once the walk enters a collection root and then
  * everything below is copied; above it, only the mount metadata is.
  */
-export function copyTree(src: string, dest: string, inCollection = false): void {
+/**
+ * `written` COLLECTS EVERY DESTINATION PATH, so a caller can tell what this run
+ * put there and delete whatever it did not. Walking the destination afterwards
+ * cannot answer that: a copy only adds, so a file left over from a previous run
+ * is still sitting there and reads as current. See the prune in
+ * materialiseRubrics, which was computed that way and could never fire.
+ */
+export function copyTree(src: string, dest: string, inCollection = false,
+                         written?: Set<string>): void {
   const here = inCollection || isCollectionRoot(src);
   fs.mkdirSync(dest, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
@@ -519,7 +528,7 @@ export function copyTree(src: string, dest: string, inCollection = false): void 
     const to = path.join(dest, e.name);
     let st: fs.Stats;
     try { st = fs.statSync(from); } catch { continue; }   // dangling link: skip
-    if (st.isDirectory()) { copyTree(from, to, here); continue; }
+    if (st.isDirectory()) { copyTree(from, to, here, written); continue; }
     if (!here && !MOUNT_FILES.has(e.name)) continue;
     // WRITE BESIDE, THEN RENAME. `copyFileSync` truncates the destination and
     // fills it, so a reader that opens the path mid-copy sees a SHORT file; and
@@ -537,6 +546,7 @@ export function copyTree(src: string, dest: string, inCollection = false): void 
     const tmp = `${to}.tmp-${process.pid}`;
     fs.copyFileSync(from, tmp);
     fs.renameSync(tmp, to);
+    written?.add(to);
   }
 }
 
