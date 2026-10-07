@@ -29,18 +29,11 @@
 // IT RUNS OUTSIDE sandbox.sh, alone among the build steps. It is the one step
 // that must reach the network and read the archive credentials; a sandbox tight
 // enough to be worth having would deny it both.
-import { needsRestore, restoreAll, storeRootFor, needed } from '@/lib/records/restore';
+import { needsRestore, restoreAll, storeRootFor, needed, passes }
+  from '@/lib/records/restore';
 import { materialise, type Made } from '@/lib/records/required';
 import { snapshot, unitsForInstall } from '@/lib/records/snapshot';
 import { remoteFor } from '@/lib/records/remote';
-import { scoringId } from '@/lib/llm/enforce/courseData';
-
-function dirsOf(ns: string): { instrument: string; rubric: string } | null {
-  const mine = needed().filter(n => n.ns === ns).map(n => n.need);
-  const instrument = mine.find(n => n.kind === 'instruments')?.dir;
-  const rubric = mine.find(n => n.kind === 'rubrics')?.dir;
-  return instrument && rubric ? { instrument, rubric } : null;
-}
 
 function main(): void {
   let store: string;
@@ -62,14 +55,18 @@ function main(): void {
   for (const p of r.fresh) console.log(`  ${p} has no records yet; starting it`);
 
   // WHAT THE ARCHIVE DOES NOT HAVE, THIS COURSE HAS NEVER HAD.
+  //
+  // PER RUBRIC, because the ledgers are the RUBRIC's and a course may carry
+  // several. Scaffolding per namespace would create one rubric's starting files
+  // and leave the others' missing -- and the ids come from the pass rather than
+  // from `scoringId(ns, ...)`, which cannot answer for a course with more than
+  // one rubric unless it is told which.
   const made: Made[] = [];
   const courses = [...new Set(want.map(n => n.ns))];
-  for (const ns of courses) {
-    const d = dirsOf(ns);
-    if (!d) continue;
-    const ctx = { ns, instrumentId: scoringId(ns, 'instrument_id'),
-                  rubricId: scoringId(ns, 'rubric_id') };
-    made.push(...materialise(ctx, d.instrument, d.rubric, s => console.log(`  ${s}`)));
+  for (const p of passes()) {
+    const ctx = { ns: p.ns, instrumentId: p.instrument.id, rubricId: p.rubric.id };
+    made.push(...materialise(ctx, p.instrument.dir, p.rubric.dir,
+                             s => console.log(`  ${s}`)));
   }
   if (!made.length) return;
 

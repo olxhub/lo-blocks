@@ -20,7 +20,8 @@
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
-import { mountedCourses, scoringId, loBlocksRoot } from '@/lib/llm/enforce/courseData';
+import { mountedCourses, scoringId, loBlocksRoot, rubricFiles, withRubric }
+  from '@/lib/llm/enforce/courseData';
 import { restoreUnitArchive } from './archive';
 import { filesUnder, unitHash } from './units';
 import { readManifest, writeManifest, record, type Manifest } from './manifest';
@@ -54,14 +55,49 @@ export function storeRootFor(): string {
  * lo-blocks checkout" before restore could do anything about it.
  */
 export function neededFor(ns: string): Need[] {
+  return passesFor(ns).flatMap(p => [p.rubric, p.instrument]).filter(
+    (n, i, all) => all.findIndex(o => o.kind === n.kind && o.id === n.id) === i);
+}
+
+/**
+ * One pass per rubric: the rubric's own directory and the instrument it scores.
+ *
+ * ASKED PER RUBRIC, because `scoringId` reaches the rubric through `rubricFile`
+ * and `rubricFile` REFUSES when a course has several and none is selected. The
+ * first version called it once per namespace inside a `catch { continue }`, so
+ * on a two-rubric course the refusal was swallowed, `needed()` came back EMPTY,
+ * `needsRestore` said false, and the build went ahead with no records restored
+ * and nothing created -- silently. That is the exact failure the archive exists
+ * to prevent, reintroduced by making the AUDIT plural without making this
+ * plural with it.
+ *
+ * PAIRED, NOT TWO FLAT LISTS. A required file lands relative to BOTH directories
+ * -- corpus_refs.json in the instrument, the ledgers in the rubric -- so the
+ * caller needs to know which instrument goes with which rubric. Two rubrics may
+ * also name the SAME instrument, which is why `neededFor` de-duplicates: the
+ * store directory is one directory however many rubrics point at it.
+ */
+export interface Pass { ns: string; rubricFile: string; rubric: Need; instrument: Need; }
+
+export function passesFor(ns: string): Pass[] {
   const store = storeRootFor();
-  const out: Need[] = [];
-  for (const [kind, key] of [['rubrics', 'rubric_id'], ['instruments', 'instrument_id']] as const) {
-    let id = '';
-    try { id = scoringId(ns, key); } catch { continue; }
-    if (id) out.push({ kind, id, dir: join(store, kind, id) });
+  const out: Pass[] = [];
+  for (const f of rubricFiles(ns)) {
+    const id = (key: 'rubric_id' | 'instrument_id') =>
+      withRubric(ns, f, () => scoringId(ns, key));
+    let r = '', i = '';
+    try { r = id('rubric_id'); i = id('instrument_id'); } catch { continue; }
+    if (!r || !i) continue;
+    out.push({ ns, rubricFile: f,
+               rubric: { kind: 'rubrics', id: r, dir: join(store, 'rubrics', r) },
+               instrument: { kind: 'instruments', id: i, dir: join(store, 'instruments', i) } });
   }
   return out;
+}
+
+/** Every rubric pass this install carries, across every mounted course. */
+export function passes(): Pass[] {
+  return mountedCourses().flatMap(passesFor);
 }
 
 /** Everything this install needs, across every mounted course. */
@@ -275,10 +311,8 @@ export function needsRestore(storeRoot: string): boolean {
   // starting file without asking would put a blank ledger where the real one
   // belongs. Asking here is what makes the build-time policy safe for a course
   // that already exists, not just for a clone.
-  for (const { need } of needed()) {
-    const other = needed().find(o => o.need.kind !== need.kind)?.need;
-    if (need.kind !== 'instruments' || !other) continue;
-    if (missingRequired(need.dir, other.dir).length) return true;
+  for (const p of passes()) {
+    if (missingRequired(p.instrument.dir, p.rubric.dir).length) return true;
   }
 
   let m: { units?: Record<string, unknown> };

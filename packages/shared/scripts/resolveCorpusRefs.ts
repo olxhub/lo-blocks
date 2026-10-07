@@ -41,7 +41,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 import * as YAML from 'yaml';
-import { courseDir, instrumentDir, rubricDir } from '../lib/llm/enforce/courseData';
+import { courseDir, instrumentDir, rubricDir, rubricFiles, withRubric }
+  from '../lib/llm/enforce/courseData';
 
 // KEPT IN STEP WITH `scoring/corpus_resolve.py`. Two implementations of one
 // grammar, and nothing used to check they agreed: `shape=` and `alt=` were added
@@ -157,12 +158,12 @@ export function sha12(s: string): string {
  * resolves to nothing produces a build with every reference unresolved, and
  * that looks like a tree with no references at all.
  */
-export function corpusDataPath(olx: string, ns?: string): string | null {
+export function corpusDataPath(olx: string, ns?: string, file?: string): string | null {
   const head = olx.slice(0, 4000);
   const m = head.match(/^\s*corpus_data:\s*(\S+)\s*$/m);
   if (!m) return null;
   return m[1].replace(/\$([A-Z_][A-Z0-9_]*)/g, (_all, name) => {
-    const v = process.env[name] || declaredRoot(name, ns);
+    const v = process.env[name] || declaredRoot(name, ns, file);
     if (!v) throw new Error(
       `resolveCorpusRefs: ${name} is not set and no course declares it ` +
       `(namespace ${ns ?? '<not supplied>'}), and corpus_data needs it to ` +
@@ -183,13 +184,47 @@ export function corpusDataPath(olx: string, ns?: string): string | null {
  * directories -- `paths.INSTRUMENT_DIR`, `instrumentDir(ns)` -- rather than
  * introducing a third vocabulary for one variable.
  */
-function declaredRoot(name: string, ns?: string): string {
+function declaredRoot(name: string, ns?: string, file?: string): string {
   if (!ns) return '';
-  try {
+  const read = () => {
     if (name === 'INSTRUMENT_DIR') return instrumentDir(ns) || '';
     if (name === 'RUBRIC_DIR') return rubricDir(ns) || '';
     if (name !== 'COURSE_DATA' && name !== 'COURSE_METADATA') return '';
     return courseDir(name as 'COURSE_DATA' | 'COURSE_METADATA', ns) || '';
+  };
+  try {
+    // WITH SEVERAL RUBRICS THESE ROOTS NEED TO KNOW WHICH ONE. They all resolve
+    // through `rubricFile`, which refuses to pick among several -- correctly, but
+    // it meant a two-rubric course could not resolve $INSTRUMENT_DIR for any file
+    // at all, and the build died on the first reference.
+    //
+    // A RUBRIC RESOLVES AGAINST ITSELF. `bmod2_rubric.olx` asking for its own
+    // instrument has exactly one answer, and matching on BASENAME is what makes
+    // that work: the file being processed is the STAGED copy, under .stage, while
+    // `rubricFiles` lists the authored originals.
+    //
+    // ANYTHING ELSE IS SHARED, so the rubrics must AGREE. A handout belongs to an
+    // instrument, and if two rubrics name different ones there is no answer to
+    // give -- refusing names both rather than picking the first and resolving
+    // every quotation in the handout against the wrong store.
+    const all = ns ? rubricFiles(ns) : [];
+    if (all.length > 1) {
+      const base = file ? file.split('/').pop() : undefined;
+      const own = base && all.find(r => r.split('/').pop() === base);
+      if (own) return withRubric(ns, own, read);
+      const seen = new Map<string, string[]>();
+      for (const r of all) {
+        const v = withRubric(ns, r, read);
+        seen.set(v, [...(seen.get(v) ?? []), r.split('/').pop()!]);
+      }
+      if (seen.size === 1) return [...seen.keys()][0];
+      throw new Error(
+        `resolveCorpusRefs: ${ns} has ${all.length} rubrics and they do not agree ` +
+        `on ${name} (${[...seen.entries()].map(([v, rs]) => `${rs.join('+')} -> ${v || '(none)'}`).join('; ')}). ` +
+        `${file ?? 'this file'} is not one of them, so there is no rubric to ` +
+        `resolve it against.`);
+    }
+    return read();
   } catch {
     // The reader REFUSES when nothing declares the root and no variable is
     // set, which is the same answer as '' here -- the caller then throws with
@@ -608,7 +643,7 @@ function main(argv: string[]): number {
     // data", and an error that answers neither sends the reader hunting.
     let dataPath: string | null;
     try {
-      dataPath = corpusDataPath(olx, ns);
+      dataPath = corpusDataPath(olx, ns, f);
     } catch (e: any) {
       console.error(`${f}: ${e?.message ?? e}`);
       return 1;
