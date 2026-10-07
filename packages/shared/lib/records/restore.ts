@@ -24,6 +24,7 @@ import { mountedCourses, scoringId, loBlocksRoot } from '@/lib/llm/enforce/cours
 import { restoreUnitArchive } from './archive';
 import { filesUnder, unitHash } from './units';
 import { readManifest, writeManifest, record, type Manifest } from './manifest';
+import { missing as missingRequired } from './required';
 import { reachable, rcloneArgs, remoteFor, TRANSFERS, type RemoteSpec } from './remote';
 
 export interface Need { kind: 'rubrics' | 'instruments'; id: string; dir: string; }
@@ -133,7 +134,11 @@ function noteRestored(storeRoot: string, m: Manifest, key: string): void {
   record(m, key, unitHash(storeRoot, files), bytes);
 }
 
-export interface RestoreResult { pulled: number; present: number; created: string[]; }
+export interface RestoreResult {
+  pulled: number; present: number; created: string[];
+  /** Prefixes the archive holds nothing for: a course not yet archived. */
+  fresh: string[];
+}
 
 export function restore(storeRoot: string, ns: string,
                         log: (s: string) => void = () => {}): RestoreResult {
@@ -145,6 +150,7 @@ export function restore(storeRoot: string, ns: string,
       + `unreachable: ${live.why || 'no detail'}. A build cannot invent them.`);
   }
   const created: string[] = [];
+  const fresh: string[] = [];
   const m = readManifest(storeRoot);
   let pulled = 0, present = 0;
 
@@ -172,16 +178,31 @@ export function restore(storeRoot: string, ns: string,
 
   for (const need of neededFor(ns)) {
     const prefix = `${need.kind}/${need.id}`;
-    let keys: string[];
-    try {
-      keys = remoteObjects(spec, prefix);
-    } catch {
-      throw new Error(`records: ${ns} needs ${prefix}, and the archive holds `
-        + `nothing under it. Snapshot the records from an install that has `
-        + `them, or correct the archive location.`);
-    }
+    let keys: string[] = [];
+    try { keys = remoteObjects(spec, prefix); } catch { /* no such prefix yet */ }
+
+    // NOTHING ARCHIVED UNDER THIS PREFIX MEANS ONE OF TWO OPPOSITE THINGS, and
+    // the local tree is what tells them apart.
+    //
+    // No objects AND nothing on disk: a course being built for the first time.
+    // It has no records because none have been made yet, and refusing would
+    // make the first build of every new course impossible. Its archive folder
+    // gets created by the first snapshot.
+    //
+    // No objects BUT files on disk: a real store that has never been archived.
+    // Here the build must stop. Carrying on would invent starting files beside
+    // a course's actual records, and the next snapshot would archive the
+    // mixture as though it were the course.
     if (!keys.length) {
-      throw new Error(`records: the archive holds no objects for ${prefix}`);
+      let onDisk = 0;
+      try { onDisk = readdirSync(need.dir).length; } catch { /* absent */ }
+      if (onDisk) {
+        throw new Error(`records: ${prefix} exists here but the archive holds `
+          + `nothing for it. Archive it before building: npm run records:snapshot`);
+      }
+      fresh.push(prefix);
+      if (!existsSync(need.dir)) { mkdirSync(need.dir, { recursive: true }); created.push(need.dir); }
+      continue;
     }
     if (!existsSync(need.dir)) { mkdirSync(need.dir, { recursive: true }); created.push(need.dir); }
 
@@ -211,7 +232,7 @@ export function restore(storeRoot: string, ns: string,
     }
   }
   if (pulled) writeManifest(storeRoot, m);
-  return { pulled, present, created };
+  return { pulled, present, created, fresh };
 }
 
 /**
@@ -239,6 +260,17 @@ export function needsRestore(storeRoot: string): boolean {
     try { n = readdirSync(need.dir).length; } catch { return true; }
     if (!n) return true;
   }
+  // A MISSING REQUIRED FILE IS A RESTORE QUESTION BEFORE IT IS A SCAFFOLDING
+  // ONE. On an established course the archive probably holds it, and creating a
+  // starting file without asking would put a blank ledger where the real one
+  // belongs. Asking here is what makes the build-time policy safe for a course
+  // that already exists, not just for a clone.
+  for (const { need } of needed()) {
+    const other = needed().find(o => o.need.kind !== need.kind)?.need;
+    if (need.kind !== 'instruments' || !other) continue;
+    if (missingRequired(need.dir, other.dir).length) return true;
+  }
+
   let m: { units?: Record<string, unknown> };
   try { m = JSON.parse(readFileSync(join(storeRoot, '.archive', 'manifest.json'), 'utf8')); }
   catch { return false; }
@@ -251,10 +283,11 @@ export function needsRestore(storeRoot: string): boolean {
 
 /** Restore for every mounted course. The build's entry point. */
 export function restoreAll(storeRoot: string, log: (s: string) => void = () => {}): RestoreResult {
-  const all: RestoreResult = { pulled: 0, present: 0, created: [] };
+  const all: RestoreResult = { pulled: 0, present: 0, created: [], fresh: [] };
   for (const ns of mountedCourses()) {
     const r = restore(storeRoot, ns, log);
-    all.pulled += r.pulled; all.present += r.present; all.created.push(...r.created);
+    all.pulled += r.pulled; all.present += r.present;
+    all.created.push(...r.created); all.fresh.push(...r.fresh);
   }
   return all;
 }
