@@ -23,9 +23,9 @@ import { RULES } from '../lib/llm/enforce/index';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { assemblerFor } from '../lib/llm/enforce/native';
-import { loBlocksRoot, rubricFile } from '../lib/llm/enforce/courseData';
+import { loBlocksRoot, rubricFiles, withRubric } from '../lib/llm/enforce/courseData';
 import { readdirSync } from 'fs';
-import { join } from 'path';
+import { basename, join } from 'path';
 
 type Result = { rule: string; findings: string[] };
 
@@ -99,16 +99,27 @@ function auditNamespace(ns: string):
  * where it belongs anyway: it describes what THIS AUDIT can check, the audit is
  * lo-blocks', and one lo-blocks may hold baselines for several mounted courses.
  */
-function baselinePath(ns: string): string {
+/**
+ * PER RUBRIC WHEN THERE ARE SEVERAL, per namespace when there is one.
+ *
+ * A course with two rubrics has two sets of findings, and one record keyed only
+ * by namespace would hold whichever ran last -- every run would then read as a
+ * regression against the other rubric. A course with one rubric keeps the file
+ * it already has: renaming those would be a diff over every baseline in the
+ * tree to express a distinction the tree does not yet make.
+ */
+function baselinePath(ns: string, rubric?: string): string {
   const dir = join(fileURLToPath(new URL('.', import.meta.url)), 'audit-baselines');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  return join(dir, `${ns}.json`);
+  const several = rubric && rubricFiles(ns).length > 1;
+  const stem = several ? `${ns}__${basename(rubric!).replace(/\.olx$/, '')}` : ns;
+  return join(dir, `${stem}.json`);
 }
 
 type Baseline = { rules: Record<string, number>; refusedThen?: string[] };
 
-function readBaseline(ns: string): Baseline | null {
-  const p = baselinePath(ns);
+function readBaseline(ns: string, rubric?: string): Baseline | null {
+  const p = baselinePath(ns, rubric);
   if (!existsSync(p)) return null;
   try {
     return JSON.parse(readFileSync(p, 'utf8')) as Baseline;
@@ -132,9 +143,9 @@ function readBaseline(ns: string): Baseline | null {
  * being read as a pass.
  */
 function compareToBaseline(
-  ns: string, ran: Result[], refused: string[],
+  ns: string, ran: Result[], refused: string[], rubric?: string,
 ): { failures: string[]; improved: string[] } {
-  const base = readBaseline(ns);
+  const base = readBaseline(ns, rubric);
   const failures: string[] = [];
   const improved: string[] = [];
   if (!base) return { failures, improved };
@@ -163,10 +174,11 @@ function compareToBaseline(
   return { failures, improved };
 }
 
-function writeBaseline(ns: string, ran: Result[], refused: string[]): void {
+function writeBaseline(ns: string, ran: Result[], refused: string[],
+                       rubric?: string): void {
   const rules: Record<string, number> = {};
   for (const r of ran) rules[r.rule] = r.findings.length;
-  writeFileSync(baselinePath(ns),
+  writeFileSync(baselinePath(ns, rubric),
     JSON.stringify({ rules, refusedThen: refused.map(w => w.split(':')[0]).sort() },
       null, 1) + '\n', 'utf8');
   console.log(`  baseline written: ${Object.keys(rules).length} rule(s) with findings`);
@@ -179,9 +191,14 @@ function main(): number {
   // entries outlive their reason and nobody ever sees the diff.
   const rewriting = process.argv.includes('--baseline');
   const namespaces = mountedNamespaces();
-  const withRubric = namespaces.filter(ns => rubricFile(ns) !== null);
+  // ONE PASS PER RUBRIC, not per namespace. A course may carry several, and each
+  // has its own items, its own gold and its own store directory -- so each is a
+  // separate subject to audit, not a part of one bigger one. Auditing the
+  // namespace meant auditing whichever rubric `rubricFile` happened to answer
+  // with, and when there were two it refused rather than answered at all.
+  const passes = namespaces.flatMap(ns => rubricFiles(ns).map(file => ({ ns, file })));
 
-  if (!withRubric.length) {
+  if (!passes.length) {
     // Nothing to say. A tree with no rubric is not a tree with a problem.
     console.log('audit: no mounted course carries a rubric; nothing to audit.');
     return 0;
@@ -189,12 +206,14 @@ function main(): number {
 
   let totalFindings = 0;
   let regressions = 0;
-  for (const ns of withRubric) {
-    const { ran, advisory, refused } = auditNamespace(ns);
+  for (const { ns, file } of passes) {
+    const several = rubricFiles(ns).length > 1;
+    const { ran, advisory, refused } = withRubric(ns, file, () => auditNamespace(ns));
     const count = ran.reduce((n, r) => n + r.findings.length, 0);
     totalFindings += count;
 
-    console.log(`\naudit: ${ns}`);
+    console.log(`\naudit: ${ns}`
+              + (several ? `  [${basename(file).replace(/\.olx$/, '')}]` : ''));
     for (const r of ran) {
       for (const f of r.findings) console.log(`  warning  ${r.rule}: ${f}`);
     }
@@ -215,10 +234,10 @@ function main(): number {
               + `${refused.length} not checkable in this context.`);
 
     if (rewriting) {
-      writeBaseline(ns, ran, refused);
+      writeBaseline(ns, ran, refused, file);
       continue;
     }
-    const { failures, improved } = compareToBaseline(ns, ran, refused);
+    const { failures, improved } = compareToBaseline(ns, ran, refused, file);
     if (improved.length) {
       console.log(`  ${improved.length} rule(s) IMPROVED since the baseline:`);
       for (const line of improved) console.log(`     ${line}`);
@@ -235,7 +254,7 @@ function main(): number {
   // lives here; the measurement ledger, the graders' workbooks and the live
   // model are not reachable from a build, and the checks that read them are
   // not represented above at all.
-  console.log(`\naudit: ${totalFindings} warning(s) across ${withRubric.length} `
+  console.log(`\naudit: ${totalFindings} warning(s) across ${passes.length} `
             + `course(s). This is the TypeScript-reachable subset of the `
             + `enforcement audit, not the whole of it.`);
 

@@ -11,7 +11,8 @@ import { siblingSlotsShareTheirStructure } from './siblingSlots';
 import { verdictSpacesAreDeclared } from './verdictSpaces';
 import { consensusDuplicates } from './consensusDuplicates';
 import { olxCorpusReferences } from './olxCorpusReferences';
-import { parseDeclaredList } from './courseData';
+import { parseDeclaredList, rubricFile, rubricFiles, withRubric, scoringId,
+         collectionDir } from './courseData';
 import { proseOnlySlotsAreDeclared } from './proseOnlySlots';
 import { probeUnreachablePairsStillApply } from './probeUnreachable';
 import { handsplitRowsAreDisjoint } from './handsplitDisjoint';
@@ -1462,6 +1463,60 @@ describe('shipped_text_matches_design', () => {
 
   it('reads an empty payload as no findings', () => {
     expect(shippedTextMatchesDesign({ designed: [], credit: {} })).toEqual([]);
+  });
+});
+
+describe('withRubric (a course may CARRY more than one rubric)', () => {
+  const NS = 'edu.memphis.psych';
+
+  it('selects the rubric a pass is about, and puts it back afterwards', () => {
+    const real = rubricFile(NS);
+    expect(real).toBeTruthy();
+    const fake = '/nowhere/other_rubric.olx';
+    const seen = withRubric(NS, fake, () => rubricFile(NS));
+    expect(seen).toBe(fake);
+    // RESTORED. A selection that outlived its pass would answer later questions
+    // about the wrong rubric -- quietly, and about a course that looks right.
+    expect(rubricFile(NS)).toBe(real);
+  });
+
+  it('moves the ids derived from the rubric file', () => {
+    const real = scoringId(NS, 'rubric_id');
+    const seen = withRubric(NS, '/nowhere/other_rubric.olx',
+                            () => scoringId(NS, 'rubric_id'));
+    expect(seen).toBe('other_rubric');
+    expect(seen).not.toBe(real);
+    expect(scoringId(NS, 'rubric_id')).toBe(real);
+  });
+
+  // THE MEMOISED ROOTS MOVE TOO, which is a separate claim and needs its own
+  // case. `scoringId` asks `rubricFile` on every call, so it follows a selection
+  // whether or not anything is invalidated -- a test built on it passes with the
+  // cache reset deleted, and says nothing. `collectionDir` memoises PER
+  // NAMESPACE, so without the reset it keeps answering about the rubric that was
+  // selected first and a pass audits one rubric against another's directory.
+  it('invalidates the memoised collection directory', () => {
+    const real = collectionDir(NS);
+    expect(real).toBeTruthy();
+    const seen = withRubric(NS, '/nowhere/deeper/other_rubric.olx',
+                            () => collectionDir(NS));
+    expect(seen).not.toBe(real);
+    expect(collectionDir(NS)).toBe(real);
+  });
+
+  it('restores the selection even when the pass throws', () => {
+    const real = rubricFile(NS);
+    expect(() => withRubric(NS, '/nowhere/x_rubric.olx', () => {
+      throw new Error('a rule blew up mid-pass');
+    })).toThrow('blew up');
+    expect(rubricFile(NS)).toBe(real);
+  });
+
+  it('a selection for ANOTHER namespace does not leak into this one', () => {
+    const real = rubricFile(NS);
+    const seen = withRubric('edu.example.other', '/nowhere/x_rubric.olx',
+                            () => rubricFile(NS));
+    expect(seen).toBe(real);
   });
 });
 

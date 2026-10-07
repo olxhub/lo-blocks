@@ -211,13 +211,63 @@ function rubricsUnder(dir: string): string[] {
 }
 
 /**
+ * EVERY rubric component a namespace carries, by SHAPE -- never by filename.
+ *
+ * A COURSE MAY HAVE MORE THAN ONE. `rubricFile` could only ever answer about one
+ * and refused outright when it found two, so a second rubric did not get audited
+ * badly -- it stopped the audit dead. This is the accessor that can say what is
+ * there; `withRubric` is how a caller picks which of them it is asking about.
+ *
+ * NAMESPACE-MATCHED, for the reason `_rubricFileUncached` gives: `content/<ns>`
+ * can hold another collection's rubric below it, and that one is not this
+ * course's to audit.
+ */
+export function rubricFiles(ns: string): string[] {
+  const root = loBlocksRoot();
+  if (!root) return [];
+  const found = rubricsUnder(resolve(root, 'content', ns)).sort();
+  if (found.length <= 1) return found;
+  const matched = found.filter(f => collectionNamespace(nearestManifestDir(f)) === ns);
+  return matched.length ? matched : [];
+}
+
+/**
+ * Which rubric the current pass is about, when a course has several.
+ *
+ * EVERY DERIVED ROOT FOLLOWS IT. `collectionDir`, `courseLocation`, `scoringId`
+ * and `rubricPath` all reach the rubric through `rubricFile`, so selecting here
+ * moves the whole derivation -- the rubric's id, its store directory, the
+ * instrument it scores -- onto the rubric being audited. Setting it anywhere
+ * else would move some of those and not others.
+ *
+ * SCOPED AND RESTORED, never set-and-leave: a selection that outlived its pass
+ * would silently answer later questions about the wrong rubric, which is the
+ * failure mode the refusal it replaces was protecting against.
+ */
+let _selected: { ns: string; file: string } | null = null;
+
+export function withRubric<T>(ns: string, file: string, fn: () => T): T {
+  const was = _selected;
+  _selected = { ns, file };
+  __resetCourseDataCaches();
+  try {
+    return fn();
+  } finally {
+    _selected = was;
+    __resetCourseDataCaches();
+  }
+}
+
+/**
  * A course's rubric component, by SHAPE -- never by filename.
  *
- * ONE PER COLLECTION, and more than one is a refusal for the same reason
- * `collectionDir` refuses: a rubric chosen by sort order is a course chosen by
- * sort order.
+ * ONE PER COLLECTION UNLESS A PASS HAS SELECTED ONE. More than one and no
+ * selection is still a refusal, for the reason `collectionDir` refuses: a rubric
+ * chosen by sort order is a course chosen by sort order. `withRubric` is how a
+ * caller says which, and `rubricFiles` is how it learns what there is to choose.
  */
 export function rubricFile(ns: string): string | null {
+  if (_selected && _selected.ns === ns) return _selected.file;
   const hit = _rubricFileCache.get(ns);
   if (hit !== undefined) return hit;
   const found = _rubricFileUncached(ns);
@@ -246,7 +296,8 @@ function _rubricFileUncached(ns: string): string | null {
     `enforce/courseData: content/${ns} holds ${found.length} rubrics ` +
     `(${found.join(', ')}) and ${matched.length} declare the namespace ` +
     `${ns}. Refusing to pick one -- a rubric chosen by sort order is a ` +
-    `course chosen by sort order.`);
+    `course chosen by sort order. A caller that means to audit each of them ` +
+    `asks rubricFiles(ns) and runs inside withRubric(ns, file, ...).`);
 }
 
 /** The directory of the nearest `manifest.yaml` at or above a file. */
