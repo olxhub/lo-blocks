@@ -88,9 +88,19 @@ function remoteObjects(spec: RemoteSpec, prefix: string): string[] {
  * before the scoped passes ran at all.
  */
 function remoteRootObjects(spec: RemoteSpec): string[] {
-  const out = execFileSync('rclone',
-    ['lsf', '--files-only', spec.path, ...rcloneArgs(spec)],
-    { stdio: 'pipe', timeout: 300_000 });
+  let out: Buffer;
+  try {
+    out = execFileSync('rclone',
+      ['lsf', '--files-only', spec.path, ...rcloneArgs(spec)],
+      { stdio: 'pipe', timeout: 300_000 }) as Buffer;
+  } catch {
+    // THE COURSE'S FOLDER NEED NOT EXIST YET. On the first build of a course
+    // nothing has ever created it, and rclone calls that "directory not found"
+    // -- a legitimate empty answer here, not a failure. Liveness is settled
+    // separately, against the archive ROOT, so a genuinely dead remote is
+    // already refused before this runs and is not what gets swallowed here.
+    return [];
+  }
   return String(out).split('\n').filter(Boolean)
     .filter(p => !p.endsWith('.prev.tar.gz'));
 }
