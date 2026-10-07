@@ -41,7 +41,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 import * as YAML from 'yaml';
-import { courseDir } from '../lib/llm/enforce/courseData';
+import { courseDir, instrumentDir, rubricDir } from '../lib/llm/enforce/courseData';
 
 // KEPT IN STEP WITH `scoring/corpus_resolve.py`. Two implementations of one
 // grammar, and nothing used to check they agreed: `shape=` and `alt=` were added
@@ -148,7 +148,7 @@ export function sha12(s: string): string {
  * course that declares `course_data:` in its rubric rather than exporting a
  * variable is the arrangement the project is moving to, and on 2026-09-26 the
  * dry run became the first tree to use it: every handout here says
- * `corpus_data: $COURSE_DATA/corpus_refs.json`, the variable was deliberately
+ * `corpus_data: $INSTRUMENT_DIR/corpus_refs.json`, the variable was deliberately
  * unset, and the build died on a course that had in fact said where its data
  * was. Reading the declaration is not a new mechanism -- `courseDir` is the
  * same reader the enforce checks use.
@@ -172,11 +172,23 @@ export function corpusDataPath(olx: string, ns?: string): string | null {
   });
 }
 
-/** What a course declares for `COURSE_DATA` / `COURSE_METADATA`, or ''. */
+/**
+ * What a course declares for a root variable, or ''.
+ *
+ * `INSTRUMENT_DIR` AND `RUBRIC_DIR` ARE HERE SO A HANDOUT NEED NOT NAME ITS OWN
+ * INSTRUMENT. `corpus_data: $INSTRUMENT_DIR/corpus_refs.json` is the same line
+ * in every course; spelling it `$COURSE_DATA/instruments/bmod/...` would put an
+ * id that the rubric already states into three more files, to drift out of
+ * agreement with it later. The names match what both sides already call these
+ * directories -- `paths.INSTRUMENT_DIR`, `instrumentDir(ns)` -- rather than
+ * introducing a third vocabulary for one variable.
+ */
 function declaredRoot(name: string, ns?: string): string {
-  if (name !== 'COURSE_DATA' && name !== 'COURSE_METADATA') return '';
   if (!ns) return '';
   try {
+    if (name === 'INSTRUMENT_DIR') return instrumentDir(ns) || '';
+    if (name === 'RUBRIC_DIR') return rubricDir(ns) || '';
+    if (name !== 'COURSE_DATA' && name !== 'COURSE_METADATA') return '';
     return courseDir(name as 'COURSE_DATA' | 'COURSE_METADATA', ns) || '';
   } catch {
     // The reader REFUSES when nothing declares the root and no variable is
