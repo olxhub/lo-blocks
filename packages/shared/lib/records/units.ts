@@ -8,7 +8,12 @@
 //   ADD-ONLY   a run DIRECTORY under derived/out/ -> one .tar.gz for the whole
 //              directory. Runs are added, never revised, so each is uploaded
 //              once and never again.
-//   PER FILE   every other file -> its own .zip at the MIRRORED path.
+//   PER FILE   every other file -> its own .tar.gz at the MIRRORED path.
+//
+// BOTH ARE .tar.gz, including the single-file ones, where the obvious choice is
+// a bare .gz and the name says "zip". A gzip of one file carries no name, no
+// mode and no directory, so restore would have to rebuild all three from the
+// object's path and would silently drop an executable bit. See archive.ts.
 //
 // WHY PER FILE. An edit to GOALS.md must cost GOALS.md compressed and nothing
 // else. Bundling a directory's fixed-name files into one archive would charge
@@ -108,7 +113,7 @@ export function unitsFor(storeRoot: string, kind: string, id: string): Unit[] {
   for (const f of filesUnder(base)) {
     if (claimed.has(f)) continue;
     units.push({
-      key: `${posix(relative(storeRoot, f))}.zip`,
+      key: `${posix(relative(storeRoot, f))}.tar.gz`,
       kind: 'perfile', source: f, files: [f],
       bytes: statSync(f).size,
     });
