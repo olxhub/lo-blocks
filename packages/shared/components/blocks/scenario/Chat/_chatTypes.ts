@@ -104,6 +104,12 @@ export interface SectionHeader extends HasMetadata {
  *   sidebar <- intro_panel
  *   --- pause ---
  *   sidebar <- activity_panel
+ *
+ * The commands after a pause run on the next Continue. A pause written
+ * immediately after a dialogue line does not itself consume a click — that
+ * click already stopped on the line, so the pause has nothing to hold back
+ * and advance() steps over it. A trailing pause (nothing after it) is a
+ * no-op: the chat is finished at its last line.
  */
 export interface PauseCommand {
   type: 'PauseCommand';

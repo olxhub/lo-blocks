@@ -111,7 +111,7 @@ function deriveImmediateState(
 
   // submitCount is derived attempted-ness (there are no submit events in
   // immediate mode): any live-graded interaction counts as one attempt, so
-  // completion (problemCompletion → inProgress) and showanswer="attempted"
+  // completion (problemCompletion → inProgress) and showAnswer="attempted"
   // behave.
   return { ...result, correct, submitCount: countsAsAttempt(correct) ? 1 : 0 };
 }

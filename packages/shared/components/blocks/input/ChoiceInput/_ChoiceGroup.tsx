@@ -19,18 +19,25 @@
 // who it is.
 //
 'use client';
-import React, { createContext } from 'react';
+import React, { createContext, useId } from 'react';
 import { useKids } from '@/lib/player/client/render';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import type { RuntimeProps, StateKey } from '@/lib/types';
 
 export interface ChoiceGroupInfo {
   /** The parent input's StateKey. Scopes the value field the item reads and
-   *  writes, and is the radio group `name` that binds sibling radios. */
+   *  writes. */
   parentStateKey: StateKey;
+  /** DOM radio-group name, unique to this mounted copy. */
+  radioName: string;
   /** Radio (ChoiceInput) vs. checkbox (CheckboxInput): single- vs.
    *  multi-select. Decided by which input provides this context — no more
    *  two-pass ancestor sniffing to tell the two apart. */
   isCheckbox: boolean;
+  /** Is the input locked (mid-grade, or the enclosing problem's lockInput)?
+   *  Asked ONCE here, on the input's own props, rather than per item: the
+   *  items are the DOM controls, but the input is what is locked. */
+  readOnly: boolean;
 }
 
 // null when a Key/Distractor is rendered outside any choice input; the item
@@ -40,13 +47,22 @@ export const ChoiceGroupContext = createContext<ChoiceGroupInfo | null>(null);
 export default function ChoiceGroup(props: RuntimeProps) {
   const { kids } = useKids(props);
 
+  // StateKey may be shared by mounted copies; HTML radio groups may not be.
+  const domScope = useId();
+
+  // Asked here, on the input's own props: the group is what is locked, the
+  // items are only the controls that go grey.
+  const readOnly = useInputReadOnly(props);
+
   const group: ChoiceGroupInfo = {
     // nodeInfo.stateKey is this input's own scoped StateKey (assigned by
     // render() — the same key inferRelatedNodes used to return for the parent).
     parentStateKey: props.nodeInfo.stateKey,
+    radioName: `${domScope}${props.nodeInfo.stateKey}`,
     // isCheckbox is decided HERE, from this input's own block name — the one
     // place that unambiguously knows which input this is.
     isCheckbox: props.loBlock.name === 'CheckboxInput',
+    readOnly,
   };
 
   return (

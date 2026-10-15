@@ -16,7 +16,7 @@ import {
 } from '@/lib/stateLanguage';
 import type { ConversationEntry, WaitCommand, ParsedConversation, SetField, LlmCommand } from './_chatTypes';
 import type { PeggyKids } from '@/lib/types';
-import { canAdvanceToContent, evaluateWaitEntry, interludeExitAllowed } from './waitConditions';
+import { canAdvanceToContent, evaluateWaitEntry, interludeExitAllowed, hasContentAfter } from './waitConditions';
 import { scopedStateKeyForBlock, splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId, qualifyDefinitionRef, parseDefinitionRef } from '@/lib/types/id-grammar';
 import type { DefinitionKey, DefinitionRef, RuntimeProps } from '@/lib/types';
 import * as cp from './_chatParser';
@@ -124,12 +124,29 @@ function applySetField(props: RuntimeProps, block: SetField): void {
       stateKey = scopedStateKeyForBlock({ ...props, id: block.ref as DefinitionRef });
   }
   const field = state.componentFieldByStateKey(props, stateKey, block.field);
-  state.updateField(props, field, block.value, { stateKey });
+  state.updateField(props, field, coerceSetValue(field, block.value), { stateKey });
+}
+
+/**
+ * A set command's value arrives as text. A field that declares a schema
+ * (Tabs' activeTab is z.coerce.number()) has it applied, so content can
+ * write `tabs.activeTab <- 3` and the block reads the number it declared.
+ * A value the schema rejects is written as text, with a warning, rather
+ * than dropped: the author sees the effect and the message.
+ */
+export function coerceSetValue(field: { name: string; schema?: { safeParse: (v: unknown) => any } }, raw: string): unknown {
+  if (!field.schema) return raw;
+  const parsed = field.schema.safeParse(raw);
+  if (parsed.success) return parsed.data;
+  console.warn(`[Chat] set ${field.name} <- ${JSON.stringify(raw)}: ${parsed.error?.message ?? 'rejected by schema'}; writing the text as is`);
+  return raw;
 }
 
 function canAdvance(props: RuntimeProps, reduxState: any): boolean {
-  const { windowedIndex, clipEnd } = getState(props, reduxState);
-  return windowedIndex < clipEnd;
+  const { allEntries, windowedIndex, clipEnd } = getState(props, reduxState);
+  // A script that ends in a pause has nothing left to reveal: the pause
+  // separates commands, and there are none after it (see hasContentAfter).
+  return windowedIndex < clipEnd && hasContentAfter(allEntries, windowedIndex, clipEnd);
 }
 
 function advance(props: RuntimeProps, reduxState: any): boolean {
@@ -163,8 +180,20 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
     return true; // blocked on wait — still active, don't let parent advance past us
   }
 
-  // Step through entries, executing commands and stopping at content
+  // Step through entries, executing commands and stopping at content.
+  //
+  // `executed` tracks whether THIS walk has already done something the user
+  // can see the effect of — a set command written, a section header changed.
+  // It is what gives `--- pause ---` its meaning: a pause separates commands
+  // that would otherwise run on one click, so it holds the walk only when
+  // there is something to hold back. Reached with nothing executed yet (the
+  // previous click stopped on the line above it, which is how content
+  // actually writes a closing beat followed by a pause and a set command),
+  // stopping would cost a click that reveals nothing — so step over it and
+  // run what follows. A satisfied wait is not progress: it skips, it does
+  // not execute.
   let nextIndex = windowedIndex;
+  let executed = false;
   while (nextIndex < clipEnd) {
     const block = allEntries[nextIndex + 1];
     if (!block) break;
@@ -172,6 +201,7 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
     switch (block.type) {
       case 'SetField':
         applySetField(props, block);
+        executed = true;
         nextIndex += 1;
         continue;
 
@@ -185,11 +215,17 @@ function advance(props: RuntimeProps, reduxState: any): boolean {
 
       case 'SectionHeader':
         state.updateField(props, fields.sectionHeader, block.title);
+        executed = true;
         nextIndex += 1;
         continue;
 
-      case 'Line':
       case 'PauseCommand':
+        nextIndex += 1;
+        if (!executed) continue; // nothing to hold back — costs no click
+        state.updateField(props, fields.value, Math.min(nextIndex, clipEnd));
+        return true;
+
+      case 'Line':
       case 'EmbedCommand':
       case 'LlmCommand':  // stop ON the interlude — the floor opens in the UI
         nextIndex += 1;

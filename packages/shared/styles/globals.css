@@ -87,3 +87,13 @@
   --font-mono: var(--lo-font-mono);
 }
 
+
+/* Non-visual blocks (Trigger, Hidden, standalone actions) render null, but
+ * render.tsx still emits their data-block-id wrapper div. An empty wrapper is
+ * zero-height yet still a flex ITEM — in gapped containers (Vertical), each
+ * one adds a gap, and a row of Triggers becomes a band of white space.
+ * :empty removes them from layout entirely; a block that later renders
+ * content stops matching and reappears. */
+[data-block-id]:empty {
+  display: none;
+}

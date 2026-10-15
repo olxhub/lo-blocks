@@ -291,6 +291,10 @@ export function olxjsonReducer(
       const { source, id } = action;
       if (!source || !id) return state;
 
+      // Loaded content takes precedence over a stale loading event.
+      const prior = state[source]?.[id];
+      if (prior?.olxJson && Object.keys(prior.olxJson).length > 0) return state;
+
       return {
         ...state,
         [source]: {
@@ -429,7 +433,7 @@ export function selectBlock(
 
   for (const source of sources) {
     const entry = olxjson[source]?.[id];
-    if (entry?.loadingState.status === 'ready' && entry.olxJson) {
+    if (entry?.olxJson) {
       const langVariant = extractLocalizedVariant(entry.olxJson, locale);
       if (langVariant?.tag) {
         return langVariant;

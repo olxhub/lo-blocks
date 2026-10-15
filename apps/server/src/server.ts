@@ -9,6 +9,7 @@
 //                 ├→ /mcp           → MCP tools (StreamableHTTP, raw Node)
 //                 ├→ /api/olxjson   → content API (Hono)
 //                 ├→ /api/config    → PMSS configuration (Hono)
+//                 ├→ /api/deploy-info → what is deployed here (Hono)
 //                 ├→ /api/translate → content translation (Hono)
 //                 ├→ /assets/*      → Vite-built client (Hono serveStatic)
 //                 ├→ /preview/*     → SPA fallback (Hono serveStatic)
@@ -41,6 +42,7 @@ import { BLOCK_REGISTRY } from '@/components/blockRegistry';
 import { syncContentFromStorage } from '@/lib/content/syncContentFromStorage';
 import { createOlxJsonHandler } from './routes/olxjson.js';
 import { handleConfig } from './routes/config.js';
+import { handleDeployInfo } from './routes/deployInfo.js';
 import { resolveConfig } from '@/lib/config';
 import { createLLMHandler } from './routes/llm.js';
 import { handleTranslate } from './routes/translate.js';
@@ -48,6 +50,7 @@ import { handleActivities } from './routes/activities.js';
 import { handleShutdown } from './routes/admin.js';
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from './mcp.js';
 import { ToolRegistry } from '@/lib/mcp/registry';
+import { readContentRescanMs, indexTtlFor } from './contentRescan.js';
 
 // --- Constants ---------------------------------------------------------------
 // Overridable for tests (the smoke test boots a second instance beside a
@@ -60,7 +63,7 @@ const WS_PATH = '/wsapi/in/';
 // MCP tools too (lib/storage/lofs/tools.ts); the /api/file|files|grep|sources REST
 // routes are retired.
 const SERVER_PREFIXES = [
-  '/api/olxjson', '/api/config', '/api/translate', '/api/llm/',
+  '/api/olxjson', '/api/config', '/api/deploy-info', '/api/translate', '/api/llm/',
   '/api/activities', '/api/admin/', '/boot-status',
   '/assets/', '/content/', '/preview/', '/repo/', '/docs', '/studio',
 ];
@@ -124,22 +127,67 @@ export async function startServer(
   // Content fetches subscribe connections to the blocks they serve;
   // shared/server fan-out targets subscribers only (subscriptions.ts).
   const subscriptions = new SubscriptionRegistry();
-  // Grouping index (specs + picker reverse map), TTL-cached from content.
-  const grouping = makeGroupingIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
-  );
+  // ONE content scan behind all three routing indexes below.
+  //
+  // Each index caches its own maps and rebuilds them by loading the
+  // content idMap; router.ts asks all three about every field write. A
+  // load means syncContentFromStorage() — re-stat and re-read every
+  // content file in every mounted source, ~80ms across the fall-pilot
+  // repos — so this closure owns WHEN that is allowed to happen and
+  // hands all three indexes the same answer. Without it their caches
+  // expired independently and one keystroke paid three scans.
+  //
+  // content-rescan-ms (config/server.pmss) is the interval; 0 means
+  // scan once at boot and serve that forever, which is the production
+  // default because a deployed host's content changes only in a deploy,
+  // and a deploy restarts the server. Read once here: it decides the
+  // shape of the event path, so changing it is a restart.
+  const rescanMs = readContentRescanMs();
+  console.log(`  Content re-scan: ${rescanMs === 0
+    ? 'off (content is static until restart)' : `every ${rescanMs}ms`}`);
+  let cachedIdMap: Record<string, Record<string, any>> | null = null;
+  let cachedAt = 0;
+  let scans = 0;
+  let scanInflight: Promise<Record<string, Record<string, any>>> | null = null;
+  const loadIdMap = async (): Promise<Record<string, Record<string, any>>> => {
+    const stale = rescanMs > 0 && Date.now() - cachedAt >= rescanMs;
+    if (cachedIdMap && !stale) return cachedIdMap;
+    // Single-flight: two indexes expiring in the same tick share one scan.
+    // Concurrent syncs would each diff against the same stale snapshot and
+    // re-parse the whole tree (seconds, not milliseconds).
+    scanInflight ??= (async () => {
+      const started = Date.now();
+      const { idMap } = await syncContentFromStorage();
+      cachedIdMap = idMap as any;
+      cachedAt = Date.now();
+      // Announced because a re-scan is real work on the event path: if
+      // these are scrolling past while someone types, that is the cost
+      // content-rescan-ms exists to bound.
+      if (++scans > 1) console.log(`[content] re-scan ${scans} (${cachedAt - started}ms)`);
+      return cachedIdMap!;
+    })().finally(() => { scanInflight = null; });
+    return scanInflight;
+  };
+  // All three indexes expire on the same schedule as the scan behind
+  // them: re-deriving the maps from an idMap that cannot have changed
+  // is work with no possible new answer.
+  const indexTtl = indexTtlFor(rescanMs);
+  // Grouping index (specs + picker reverse map), cached from content.
+  const grouping = makeGroupingIndex(loadIdMap, indexTtl);
   // Aggregation index: view blocks whose blueprints fold other blocks'
-  // answers (aggregations.ts), TTL-cached from content + registry.
+  // answers (aggregations.ts), cached from content + registry.
   const aggregations = makeAggregationIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+    indexTtl,
   );
   // Trusted level declarations (fieldLevels.ts): routing derives a
   // field's level from content + registry, never from the wire's
   // authority stamp — without this index every field is level 'user'.
   const fieldLevels = makeSharedFieldPolicyIndex(
-    async () => (await syncContentFromStorage()).idMap as any,
+    loadIdMap,
     (tag) => (BLOCK_REGISTRY as any)[tag]?.fields,
+    indexTtl,
   );
 
   // --- Hono app (HTTP only) ------------------------------------------------
@@ -151,6 +199,9 @@ export async function startServer(
   app.get('/boot-status', (c) => c.json({ ready: true, tasks: [] }));
   app.get('/api/olxjson', createOlxJsonHandler(stateRegistry, subscriptions));
   app.get('/api/config', handleConfig);
+  // Deploy identity for the debug panel. Same exposure as /api/config:
+  // session-resolved and behind the deployment's htpasswd, not public.
+  app.get('/api/deploy-info', handleDeployInfo);
   app.post('/api/translate', handleTranslate);
   app.post('/api/llm/chat/completions', createLLMHandler(kvs));
   app.get('/api/activities', handleActivities);

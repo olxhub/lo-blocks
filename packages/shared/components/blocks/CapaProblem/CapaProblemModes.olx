@@ -1,38 +1,38 @@
 <Vertical>
   <!-- Test 1: Limited attempts with 'finished' mode (default) -->
-  <CapaProblem id="test_attempts" title="Limited Attempts (3 max, showanswer=finished)" maxAttempts="3">
+  <CapaProblem id="test_attempts" title="Limited Attempts (3 max, showAnswer=finished)" maxAttempts="3">
     What is 2 + 2?
     <NumericalGrader answer="4">
       <NumberInput placeholder="Enter answer" />
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 2: showanswer="never" -->
-  <CapaProblem id="test_never" title="Show Answer Never" maxAttempts="2" showanswer="never">
+  <!-- Test 2: showAnswer="never" -->
+  <CapaProblem id="test_never" title="Show Answer Never" maxAttempts="2" showAnswer="never">
     What is 3 + 3?
     <NumericalGrader answer="6">
       <NumberInput placeholder="Enter answer" />
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 3: showanswer="always" -->
-  <CapaProblem id="test_always" title="Show Answer Always" showanswer="always">
+  <!-- Test 3: showAnswer="always" -->
+  <CapaProblem id="test_always" title="Show Answer Always" showAnswer="always">
     What is 5 + 5?
     <NumericalGrader answer="10">
       <NumberInput placeholder="Enter answer" />
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 4: showanswer="attempted" -->
-  <CapaProblem id="test_attempted" title="Show Answer After Attempted" maxAttempts="3" showanswer="attempted">
+  <!-- Test 4: showAnswer="attempted" -->
+  <CapaProblem id="test_attempted" title="Show Answer After Attempted" maxAttempts="3" showAnswer="attempted">
     What is 7 + 7?
     <NumericalGrader answer="14">
       <NumberInput placeholder="Enter answer" />
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 5: showanswer="correct" (only after correct) -->
-  <CapaProblem id="test_correct" title="Show Answer After Correct" showanswer="correct">
+  <!-- Test 5: showAnswer="correct" (only after correct) -->
+  <CapaProblem id="test_correct" title="Show Answer After Correct" showAnswer="correct">
     What is 8 + 8?
     <NumericalGrader answer="16">
       <NumberInput placeholder="Enter answer" />
@@ -47,8 +47,8 @@
     </NumericalGrader>
   </CapaProblem>
 
-  <!-- Test 7: showanswer="closed" (only after attempts exhausted) -->
-  <CapaProblem id="test_closed" title="Show Answer When Closed (2 attempts)" maxAttempts="2" showanswer="closed">
+  <!-- Test 7: showAnswer="closed" (only after attempts exhausted) -->
+  <CapaProblem id="test_closed" title="Show Answer When Closed (2 attempts)" maxAttempts="2" showAnswer="closed">
     What is 10 + 10?
     <NumericalGrader answer="20">
       <NumberInput placeholder="Enter answer" />
