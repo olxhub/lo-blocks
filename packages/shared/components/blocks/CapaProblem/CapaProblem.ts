@@ -27,7 +27,10 @@
 
 import { z } from 'zod';
 import { dev } from '@/lib/blocks';
-import { splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
+import {
+  splitNs, qualifyDefinitionRef, parseDefinitionRef, asDefinitionRef, joinDefinitionRef, parseLeafId,
+  parseStateRef, stateKeyForGlobalRef, leafDefinitionKeyFromStateKey,
+} from '@/lib/types/id-grammar';
 import { isPascalCase } from '@/lib/util';
 import * as state from '@/lib/state';
 import { problemAttributes } from '@/lib/blocks/attributeSchemas';
@@ -125,6 +128,17 @@ async function capaParser({ definitionKey, tag, attributes, source, parseDeps, r
     const childAttrs = node[':@'] ?? {};
 
     // TODO: Handle Open edX OLX cases: Label, Description, ResponseParam
+
+    if (childTag === 'Use') {
+      // <Use> borrows another block's definition and state identity, so it
+      // gets no generated id, no grading role and owns no kids. The frontier
+      // walk below hands it to parseNode, which validates it and rejects an
+      // authored id. Mirrors the <Use> branch in parseOLX.
+      const { ref, ...overrides } = childAttrs;
+      if (!ref) return null;
+      const stateKey = stateKeyForGlobalRef(parseStateRef(String(ref)), ns);
+      return { type: 'block', definitionKey: leafDefinitionKeyFromStateKey(stateKey), stateKey, overrides };
+    }
 
     if (isPascalCase(childTag)) {
       // Role flags only — see the HACK note at the parser-context call site
