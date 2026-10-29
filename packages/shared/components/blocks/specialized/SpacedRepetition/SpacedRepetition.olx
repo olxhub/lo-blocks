@@ -1,0 +1,56 @@
+<SpacedRepetition id="learningScienceDeck" title="Learning Science Flashcards" algorithm="leitner" boxes="5" baseInterval="1 minute">
+
+<CapaProblem id="ebbinghausYear" title="The forgetting curve">
+Hermann Ebbinghaus memorized lists of nonsense syllables and measured how quickly he forgot them. In what year did he publish the forgetting curve?
+<NumericalGrader id="ebbinghausYearGrader" answer="1885">
+  <NumberInput id="ebbinghausYearInput" />
+</NumericalGrader>
+</CapaProblem>
+
+<CapaProblem id="spacingEffect" title="The spacing effect">
+<KeyGrader id="spacingEffectGrader">
+Two students each study a word list for one hour. Who remembers more a month later?
+<ChoiceInput id="spacingEffectInput">
+  <Distractor id="spacingMassed">The one who studied for one hour the night before</Distractor>
+  <Key id="spacingSpread">The one who studied in four 15-minute sessions over two weeks</Key>
+  <Distractor id="spacingSame">Neither; total study time is what matters</Distractor>
+</ChoiceInput>
+</KeyGrader>
+</CapaProblem>
+
+<CapaProblem id="leitnerBoxes" title="The Leitner system">
+<KeyGrader id="leitnerBoxesGrader">
+In Sebastian Leitner's 1972 card-box system, where does a card go when you answer it wrong?
+<ChoiceInput id="leitnerBoxesInput">
+  <Key id="leitnerFirstBox">Back to the first box</Key>
+  <Distractor id="leitnerDownOne">Down one box</Distractor>
+  <Distractor id="leitnerStays">It stays where it is</Distractor>
+  <Distractor id="leitnerRetired">It is removed from the deck</Distractor>
+</ChoiceInput>
+</KeyGrader>
+</CapaProblem>
+
+<CapaProblem id="desirableDifficulties" title="Desirable difficulties">
+<KeyGrader id="desirableDifficultiesGrader">
+Robert Bjork calls some obstacles to learning "desirable difficulties": they slow practice down but improve long-term retention. Which of these is one?
+<ChoiceInput id="desirableDifficultiesInput">
+  <Distractor id="difficultyReread">Rereading the chapter until it feels familiar</Distractor>
+  <Key id="difficultyInterleave">Mixing different problem types in one session</Key>
+  <Distractor id="difficultyHighlight">Highlighting key sentences</Distractor>
+</ChoiceInput>
+</KeyGrader>
+</CapaProblem>
+
+<MarkupProblem id="testingEffect" title="The testing effect"><![CDATA[
+>>Roediger and Karpicke (2006) had students either reread a passage or recall it from memory. On a test one week later, which group remembered more?<<
+
+( ) The students who reread the passage
+(x) The students who practiced recalling it
+( ) Both groups remembered about the same
+
+[explanation]
+Retrieval is itself a learning event. Flashcards work because they make you retrieve.
+[/explanation]
+]]></MarkupProblem>
+
+</SpacedRepetition>
