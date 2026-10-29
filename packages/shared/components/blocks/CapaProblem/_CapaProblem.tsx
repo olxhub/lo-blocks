@@ -30,6 +30,7 @@ function getHeaderStateClass(correctnessValue: string) {
     case correctness.partiallyCorrect: return 'lo-problem__header--partial';
     case correctness.invalid: return 'lo-problem__header--invalid';
     case correctness.incorrect: return 'lo-problem__header--incorrect';
+    case correctness.gaveUp: return 'lo-problem__header--gave-up';
     default: return '';
   }
 }
@@ -181,11 +182,13 @@ export default function CapaProblem(props: RuntimeProps) {
       grade={props.grade}
       submitCount={submitCount}
       correct={problemCorrectness}
+      dontKnow={props.dontKnow}
+      problem={props.nodeInfo.stateKey}
     />
   );
 
   return (
-    <div className="lo-problem">
+    <div className="lo-problem" tabIndex={-1}>
       <CapaHeader title={title} correctness={problemCorrectness} headerNode={headerNode} />
       <CapaContent>{content}</CapaContent>
       <FooterWrapper>{footerNode}</FooterWrapper>

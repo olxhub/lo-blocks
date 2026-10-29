@@ -8,17 +8,20 @@ import type { RuntimeProps } from '@/lib/types';
 import React from 'react';
 import { correctness } from '@/lib/blocks';
 import { useGradingState } from '@/lib/grading';
+import { useBlockTranslation } from '@/lib/i18n/blockI18n';
 
 function Correctness(props: RuntimeProps) {
   // graderId is a StateKey injected by render (requiresGrader: true).
   // submitCount drives the flash animation — it increments on each submit,
   // so re-submitting the same answer still re-triggers the pulse.
   const { correct: correctnessValue, submitCount } = useGradingState(props, props.graderId);
+  const { t } = useBlockTranslation(props);
 
   const icons = {
     [correctness.correct]: '✅',
     [correctness.partiallyCorrect]: '🟡',
     [correctness.incorrect]: '❌',
+    [correctness.gaveUp]: '🏳️',
     [correctness.incomplete]: '⚠️',
     [correctness.invalid]: '⚠️',
     [correctness.submitted]: '⏳',
@@ -49,7 +52,8 @@ function Correctness(props: RuntimeProps) {
           animation: lo-correctness-pulse-b 0.2s ease-out;
         }
       `}</style>
-      <span className={flashClass} style={{ display: 'inline-block' }}>
+      <span className={flashClass} style={{ display: 'inline-block' }}
+        {...(correctnessValue === correctness.gaveUp && { role: 'img', 'aria-label': t('gaveUp') })}>
         {icons[correctnessValue] || icons[correctness.unsubmitted]}
       </span>
     </>

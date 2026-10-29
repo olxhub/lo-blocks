@@ -83,8 +83,8 @@ function stampGeneratedGraderAttributes(
 // StatusText inside CapaProblem find CapaProblem as their grader and read it
 // through useGradingState/selectGradingState (lib/grading), which aggregates
 // the child graders' stored fields on read. Only genuine state (the
-// showAnswer toggle) is declared here.
-export const fields = state.fields([state.commonFields.showAnswer]);
+// showAnswer toggle and the "Don't know" fact, gaveUp) is declared here.
+export const fields = state.fields([state.commonFields.showAnswer, state.commonFields.gaveUp]);
 
 // CapaProblem parser:
 // 1. Assigns scoped IDs to descendant inputs and graders

@@ -42,3 +42,24 @@
   border-color: var(--lo-success);
   color: var(--lo-success);
 }
+
+/* "Don't know" button: same weight as Show Answer, so it does not compete with Check */
+.lo-capafooter__dont-know {
+  padding: 0.375rem 0.75rem;
+  font-size: var(--lo-font-size-sm);
+  border: 1px solid var(--lo-border-strong);
+  border-radius: var(--lo-radius-md);
+  background-color: var(--lo-bg-surface);
+  color: var(--lo-text);
+  cursor: pointer;
+  transition: background-color var(--lo-motion-fast) var(--lo-ease-default);
+}
+
+.lo-capafooter__dont-know:hover {
+  background-color: var(--lo-bg-muted);
+}
+
+.lo-capafooter__dont-know:focus-visible {
+  outline: var(--lo-focus-ring-width) solid var(--lo-focus-ring);
+  outline-offset: var(--lo-focus-ring-offset);
+}

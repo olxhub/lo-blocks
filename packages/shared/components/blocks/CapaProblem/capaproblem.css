@@ -28,6 +28,9 @@
 .lo-problem__header--invalid {
   color: var(--lo-warning);
 }
+.lo-problem__header--gave-up {
+  color: var(--lo-text-muted);
+}
 
 .lo-problem__title {
   font-weight: 600;

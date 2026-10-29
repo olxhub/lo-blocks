@@ -73,7 +73,8 @@ const ORDER_MODES = {
 function isGradedAnswer(value) {
   return value === correctness.correct ||
          value === correctness.incorrect ||
-         value === correctness.partiallyCorrect;
+         value === correctness.partiallyCorrect ||
+         value === correctness.gaveUp;
 }
 
 /**
@@ -122,10 +123,11 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
     const advanceToNext = () => {
       setFirstSubmissionResult(null);
       const { newState, completedFullCycle } = orderMode.nextItem(problemIds.length, modeState);
-      setModeState(newState);
+      // Scope first: the new item must never render under the old attempt's answers.
       if (completedFullCycle) {
         setAttemptNumber(attemptNumber + 1);
       }
+      setModeState(newState);
     };
 
     if (currentCorrectness === correctness.correct) {
@@ -146,13 +148,15 @@ function MasteryProblem({ props, problemId, attemptNumber, masteryState, handler
         advanceToNext();
       }
     } else {
-      // INCORRECT or PARTIALLY_CORRECT
+      // INCORRECT, PARTIALLY_CORRECT, or GAVE_UP
       if (firstSubmissionResult === null) {
         // First try wrong - reset streak, stay on problem
         setFirstSubmissionResult(correctness.incorrect);
         setCorrectStreak(0);
         setCorrect(correctness.incomplete);
       }
+      // A give-up ends the problem
+      if (currentCorrectness === correctness.gaveUp) advanceToNext();
     }
   }, [currentCorrectness, firstSubmissionResult, correctStreak, goalNum, problemIds.length, modeState, orderMode, attemptNumber, setCorrectStreak, setModeState, setCompleted, setCorrect, setFirstSubmissionResult, setAttemptNumber]);
 
