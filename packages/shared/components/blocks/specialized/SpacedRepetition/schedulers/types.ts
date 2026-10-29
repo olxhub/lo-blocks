@@ -6,7 +6,11 @@
 // always passed in, so they are deterministic and unit-testable. Per-card
 // state `S` must be plain JSON — it is stored in a field and replayed.
 
-export type ReviewResult = 'correct' | 'incorrect';
+// The problem's correctness, reduced to what a scheduler acts on. 'gaveUp'
+// is a "Don't know" give-up. The project's default ordering (see
+// correctnessPriority) is incorrect < gaveUp < correct; a scheduler may
+// act on it differently, and the Leitner one does not yet distinguish them.
+export type ReviewResult = 'correct' | 'incorrect' | 'gaveUp';
 
 export interface Scheduler<S> {
   name: string;

@@ -1,13 +1,13 @@
 <SpacedRepetition id="learningScienceDeck" title="Learning Science Flashcards" algorithm="leitner" boxes="5" baseInterval="1 minute">
 
-<CapaProblem id="ebbinghausYear" title="The forgetting curve">
+<CapaProblem id="ebbinghausYear" dontKnow="true" title="The forgetting curve">
 Hermann Ebbinghaus memorized lists of nonsense syllables and measured how quickly he forgot them. In what year did he publish the forgetting curve?
 <NumericalGrader id="ebbinghausYearGrader" answer="1885">
   <NumberInput id="ebbinghausYearInput" />
 </NumericalGrader>
 </CapaProblem>
 
-<CapaProblem id="spacingEffect" title="The spacing effect">
+<CapaProblem id="spacingEffect" dontKnow="true" title="The spacing effect">
 <KeyGrader id="spacingEffectGrader">
 Two students each study a word list for one hour. Who remembers more a month later?
 <ChoiceInput id="spacingEffectInput">
@@ -18,7 +18,7 @@ Two students each study a word list for one hour. Who remembers more a month lat
 </KeyGrader>
 </CapaProblem>
 
-<CapaProblem id="leitnerBoxes" title="The Leitner system">
+<CapaProblem id="leitnerBoxes" dontKnow="true" title="The Leitner system">
 <KeyGrader id="leitnerBoxesGrader">
 In Sebastian Leitner's 1972 card-box system, where does a card go when you answer it wrong?
 <ChoiceInput id="leitnerBoxesInput">
@@ -30,7 +30,7 @@ In Sebastian Leitner's 1972 card-box system, where does a card go when you answe
 </KeyGrader>
 </CapaProblem>
 
-<CapaProblem id="desirableDifficulties" title="Desirable difficulties">
+<CapaProblem id="desirableDifficulties" dontKnow="true" title="Desirable difficulties">
 <KeyGrader id="desirableDifficultiesGrader">
 Robert Bjork calls some obstacles to learning "desirable difficulties": they slow practice down but improve long-term retention. Which of these is one?
 <ChoiceInput id="desirableDifficultiesInput">
@@ -41,7 +41,7 @@ Robert Bjork calls some obstacles to learning "desirable difficulties": they slo
 </KeyGrader>
 </CapaProblem>
 
-<MarkupProblem id="testingEffect" title="The testing effect"><![CDATA[
+<MarkupProblem id="testingEffect" dontKnow="true" title="The testing effect"><![CDATA[
 >>Roediger and Karpicke (2006) had students either reread a passage or recall it from memory. On a test one week later, which group remembered more?<<
 
 ( ) The students who reread the passage

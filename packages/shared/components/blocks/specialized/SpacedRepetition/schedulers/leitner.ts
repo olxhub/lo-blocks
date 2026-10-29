@@ -1,8 +1,8 @@
 // packages/shared/components/blocks/specialized/SpacedRepetition/schedulers/leitner.ts
 //
 // Leitner system (Sebastian Leitner, 1972). Cards live in boxes 1..N.
-// Correct moves a card up one box (capped at N); incorrect sends it back
-// to box 1. A card in box k is due baseInterval * 2^(k-1) after review.
+// Correct moves a card up one box (capped at N); incorrect or gaveUp
+// sends it back to box 1. A card in box k is due baseInterval * 2^(k-1) after review.
 // New cards start in box 1 and are due immediately.
 
 import type { Scheduler, SchedulerFactory } from './types';

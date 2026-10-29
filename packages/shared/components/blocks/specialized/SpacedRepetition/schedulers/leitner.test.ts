@@ -24,9 +24,10 @@ describe('leitner', () => {
     expect(seen).toEqual([[2, 2], [3, 4], [3, 4], [3, 4]]);
   });
 
-  it('returns to box 1 on incorrect', () => {
+  it('returns to box 1 on incorrect or gaveUp', () => {
     const card = s.record({ box: 3, dueAt: 0 }, 'incorrect', 5 * DAY);
     expect(card).toEqual({ box: 1, dueAt: 6 * DAY });
+    expect(s.record({ box: 3, dueAt: 0 }, 'gaveUp', 5 * DAY)).toEqual(card);
     expect(s.priority(card)).toBe(1);
   });
 

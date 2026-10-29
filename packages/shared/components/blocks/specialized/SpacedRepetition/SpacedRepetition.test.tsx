@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 // packages/shared/components/blocks/specialized/SpacedRepetition/SpacedRepetition.test.tsx
 //
-// Smoke test of the review loop: grades observed through a scoped child,
-// recorded with the scheduler, and a fresh scope for every presentation.
+// Smoke test of the review loop: grades and give-ups observed through a scoped
+// child, recorded with the scheduler, and a fresh scope for every presentation.
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { act, fireEvent, waitFor, cleanup } from '@testing-library/react';
 // Importing the harness also installs the jsdom shims + fetch mock.
@@ -13,7 +13,7 @@ import { updateField } from '@/lib/state';
 import { fields } from './SpacedRepetition';
 
 const card = (id: string, question: string, attrs = '') => `
-<CapaProblem id="${id}" title="${question}"${attrs}>
+<CapaProblem id="${id}" title="${question}" dontKnow="true"${attrs}>
 ${question}
 <KeyGrader id="${id}_grader">
 <ChoiceInput id="${id}_input">
@@ -64,6 +64,12 @@ describe('SpacedRepetition', () => {
     await answer(view, 1);
     expect(deckState(view).cards.testing).toMatchObject({ reps: 1, state: { box: 1 } });
     expect(container.textContent).toContain('Not yet.');
+
+    // The first graded result of a presentation is the one recorded.
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(container.querySelector('.lo-problem__header--gave-up')).toBeTruthy());
+    expect(deckState(view).current.result).toBe('incorrect');
+    expect(deckState(view).cards.testing.reps).toBe(1);
     fireEvent.click(getByText('Next card'));
 
     await waitFor(() => expect(container.textContent).toContain('Nothing is due right now.'));
@@ -75,6 +81,14 @@ describe('SpacedRepetition', () => {
     const radios = [...container.querySelectorAll('input[type="radio"]')] as HTMLInputElement[];
     expect(radios.some(r => r.checked)).toBe(false);
     expect(deckState(view).current).toMatchObject({ cardKey: 'testing', rep: 2, result: null });
+
+    // "Don't know" is recorded as gaveUp: back to box 1, then on to the next card.
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(container.textContent).toContain('Gave up.'));
+    expect(deckState(view).cards.testing).toMatchObject({ reps: 2, state: { box: 1 } });
+    expect(deckState(view).current).toMatchObject({ cardKey: 'testing', result: 'gaveUp' });
+    fireEvent.click(getByText('Next card'));
+    await waitFor(() => expect(container.textContent).toContain('Nothing is due right now.'));
   });
 
   it('re-picks when the stored card is no longer in the deck', async () => {

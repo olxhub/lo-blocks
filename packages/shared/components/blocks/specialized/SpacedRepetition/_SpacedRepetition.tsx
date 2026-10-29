@@ -2,8 +2,8 @@
 //
 // Shows one due card at a time. Each presentation renders the child under a
 // fresh scope (`deck:card:#rep_N`) so it starts blank; the first graded result
-// of that presentation is recorded with the scheduler. Date.now() is read
-// only in effects and handlers.
+// (or "Don't know" give-up) of that presentation is recorded with the
+// scheduler. Date.now() is read only in effects and handlers.
 'use client';
 import type { RuntimeProps } from '@/lib/types';
 import type { BlockReference } from '@/lib/types/core';
@@ -25,10 +25,17 @@ import type { ReviewResult } from './schedulers';
 import { reconcileCards, selectNext, selectSoonest, countDue, recordReview } from './deck';
 import type { Cards, Current } from './deck';
 
+const FEEDBACK_KEYS: Record<ReviewResult, string> = {
+  correct: 'reviewCorrect',
+  incorrect: 'reviewIncorrect',
+  gaveUp: 'reviewGaveUp',
+};
+
 // setTimeout's ceiling (~24.8 days).
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 
 function resultOf(value: string): ReviewResult | null {
+  if (value === correctness.gaveUp) return 'gaveUp';
   if (value === correctness.correct) return 'correct';
   if (value === correctness.incorrect || value === correctness.partiallyCorrect) return 'incorrect';
   return null;
@@ -220,9 +227,8 @@ export default function SpacedRepetition(props: RuntimeProps) {
       <div className="lo-spaced-repetition__footer" aria-live="polite">
         {current.result !== null && (
           <>
-            <p className={`lo-spaced-repetition__feedback lo-spaced-repetition__feedback--${current.result}`}>
-              {t(current.result === 'correct' ? 'reviewCorrect' : 'reviewIncorrect',
-                { when: formatWhen(scheduler.dueAt(cards[cardKey].state)) })}
+            <p className={`lo-spaced-repetition__feedback lo-spaced-repetition__feedback--${current.result === 'gaveUp' ? 'gave-up' : current.result}`}>
+              {t(FEEDBACK_KEYS[current.result], { when: formatWhen(scheduler.dueAt(cards[cardKey].state)) })}
             </p>
             <button type="button" className="lo-spaced-repetition__button" onClick={handleNext}
               aria-label={t('nextCardLabel')}>
