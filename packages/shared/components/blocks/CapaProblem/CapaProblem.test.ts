@@ -262,3 +262,26 @@ it('rejects OLX variant language on raw HTML inside CapaProblem', async () => {
   );
   expect(getOlxJson(idMap, 'q')?.tag).toBe('ErrorNode');
 });
+
+it('passes <Use> through without assigning it a generated id', async () => {
+  const xml = [
+    '<Vertical id="lesson">',
+    '  <Markdown id="shared_note">Spacing beats cramming.</Markdown>',
+    '  <CapaProblem id="p">',
+    '    <NumericalGrader answer="1">',
+    '      <NumberInput />',
+    '      <Explanation><Use ref="shared_note" /></Explanation>',
+    '    </NumericalGrader>',
+    '    <Use ref="shared_note" />',
+    '  </CapaProblem>',
+    '</Vertical>',
+  ].join('\n');
+  const { idMap } = await parseOLX(xml, [toMemoryRef('test.xml')], undefined, TEST_NS);
+  const entries = Object.values(idMap).map(byLang => byLang['*' as keyof typeof byLang]);
+  expect(entries.filter(e => e?.tag === 'ErrorNode')).toEqual([]);
+
+  const useRef = { type: 'block', definitionKey: testKey('shared_note'), stateKey: testKey('shared_note'), overrides: {} };
+  expect(getOlxJson(idMap, 'p').kids.filter(k => k.type === 'block').at(-1)).toEqual(useRef);
+  const explanation = entries.find(e => e?.tag === 'Explanation');
+  expect(explanation?.kids).toEqual([useRef]);
+});

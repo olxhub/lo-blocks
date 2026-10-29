@@ -65,6 +65,31 @@ In problems with multiple graders, nest each Explanation inside its grader:
 </CapaProblem>
 ```
 
+## Shared Explanations
+
+When several problems share background, write it once and pull it in with `<Use>`. The shared block can live anywhere in the namespace, including another file; a problem's Explanation can mix a problem-specific note, one or more shared blocks and a citation.
+
+```olx:playground
+<Vertical id="shared_demo">
+  <Markdown id="spacing_background">
+**Spacing effect.** Cepeda et al. (2008) found the best gap between study sessions shrinks as a share of the time until the test: about 20–40% of a week, 5–10% of a year. For a test in two months, a gap of one to two weeks.
+  </Markdown>
+
+  <CapaProblem id="spacing_q1" dontKnow="true">
+    <NumericalGrader answer="10" tolerance="4">
+      <Markdown>You have a test in two months. Roughly how many days should separate your study sessions?</Markdown>
+      <NumberInput />
+      <Explanation>
+        <Markdown>Two months is about 60 days; between the one-week and one-year figures, 10–20% of that is 6 to 12 days.</Markdown>
+        <Use ref="spacing_background" />
+      </Explanation>
+    </NumericalGrader>
+  </CapaProblem>
+</Vertical>
+```
+
+Repeated exposure to the same short summary across many problems is the point: each retrieval attempt ends with the same compact reference, so keep shared blocks to a table or a few bullets.
+
 ## Styling
 
 The component uses these CSS classes:
