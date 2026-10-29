@@ -9,7 +9,9 @@
 //   metagrader (isGrader, no grading descriptor — CapaProblem)
 //     → aggregate direct child graders on read. No stored mirror state,
 //       no replay problem; orchestrators (MasteryBank) observe child
-//       grading without a submit round-trip.
+//       grading without a submit round-trip. One exception to the
+//       principle: a problem's own stored `gaveUp` fact overrides the
+//       aggregate (deriveMetagraderState).
 //   immediate leaf (sync grader inside a grade="immediate" problem)
 //     → evaluate the grade function over the LIVE input values, right in
 //       the selector. No events, no submit button, no race against the
@@ -32,9 +34,14 @@ import { schedulePendingTimeout } from './pendingTimeout';
 import { childGraderStateKeys, gradeModeOf } from './topology';
 import { staticEntryForStateKey, blueprintFor } from '../blocks/staticDom';
 import type { GraderInput, GradingResult, GradingState } from './model';
+import { decodedFieldSelector } from '../state/fieldReads';
+import { commonFields } from '../state/commonFields';
 import type { LoBlock, RuntimeProps, StateKey } from '../types';
 
 export type { GradingState };
+
+/** The whole Redux store, as selectors receive it. Not a block's state. */
+type StoreSnapshot = unknown;
 
 // ---------------------------------------------------------------------------
 // Grader classification — all from the static DOM + registry (topology.ts)
@@ -49,12 +56,22 @@ function isMetagrader(loBlock: LoBlock): boolean {
 // The three strategies
 // ---------------------------------------------------------------------------
 
-function deriveMetagraderState(state: unknown, props: RuntimeProps, metagraderKey: StateKey): GradingState {
+/**
+ * A problem's grading state is the worst case of its graders, unless the
+ * learner gave up. A metagrader is a grader with child graders and no grade
+ * function of its own; every problem block is one.
+ */
+function deriveMetagraderState(state: StoreSnapshot, props: RuntimeProps, metagraderKey: StateKey): GradingState {
   const directChildGraderStateKeys = childGraderStateKeys(state, props, metagraderKey);
-  if (directChildGraderStateKeys.length === 0) return UNGRADED;
-  return aggregateGradingStates(
+  const aggregate = directChildGraderStateKeys.length === 0 ? UNGRADED : aggregateGradingStates(
     directChildGraderStateKeys.map(stateKey => selectGradingState(state, props, stateKey)),
   );
+  // Giving up is a stored fact on the problem (commonFields.gaveUp); the
+  // derived correctness is then gaveUp whatever the graders say, so checking
+  // the revealed answer afterwards cannot change it. `score` is 0; any credit
+  // for a give-up is the consumer's policy.
+  const gaveUp = decodedFieldSelector<boolean>(state, props, commonFields.gaveUp, { stateKey: metagraderKey, fallback: false });
+  return gaveUp ? { ...aggregate, correct: correctness.gaveUp, score: 0 } : aggregate;
 }
 
 /**
@@ -73,7 +90,7 @@ function softenLiveIncorrectResult(
 }
 
 function deriveImmediateState(
-  state: unknown, props: RuntimeProps, graderKey: StateKey, loBlock: LoBlock,
+  state: StoreSnapshot, props: RuntimeProps, graderKey: StateKey, loBlock: LoBlock,
 ): GradingState {
   const descriptor = loBlock.grading!;
   const preparation = prepareGrade(props, state, graderKey, descriptor);
@@ -148,7 +165,7 @@ function deriveImmediateState(
  * already is — documented, bounded, not a bug.
  */
 function readStoredLeafState(
-  state: unknown, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
+  state: StoreSnapshot, props: RuntimeProps, stateKey: StateKey, loBlock: LoBlock | undefined,
 ): GradingState {
   const stored = readStoredGradingState(state, props, stateKey, loBlock);
   if (stored.correct !== correctness.submitted) return stored;
@@ -175,7 +192,7 @@ function readStoredLeafState(
 // Dispatch + memoization
 // ---------------------------------------------------------------------------
 
-function computeGradingState(state: unknown, props: RuntimeProps, stateKey: StateKey): GradingState {
+function computeGradingState(state: StoreSnapshot, props: RuntimeProps, stateKey: StateKey): GradingState {
   const entry = staticEntryForStateKey(state, props, stateKey);
   // Content not loaded yet: stored fields are the only truth available
   // (heals on the content dispatch).
@@ -207,7 +224,7 @@ function computeGradingState(state: unknown, props: RuntimeProps, stateKey: Stat
  * again if profiling ever wants it.
  */
 export function selectGradingState(
-  state: unknown,
+  state: StoreSnapshot,
   props: RuntimeProps,
   graderStateKey: StateKey,
 ): GradingState {
@@ -245,10 +262,10 @@ const _memo = new WeakMap<object, WeakMap<object, Map<StateKey, GradingState>>>(
  * A constant derived from GRADING_STATE_FIELDS (the declarations are static;
  * every grader block shares this one object).
  */
-export const gradingSelectors: Record<string, (state: unknown, props: RuntimeProps, stateKey: StateKey) => unknown> =
+export const gradingSelectors: Record<string, (state: StoreSnapshot, props: RuntimeProps, stateKey: StateKey) => unknown> =
   Object.fromEntries(
     GRADING_STATE_FIELDS.map(name => [
       name,
-      (state: unknown, props: RuntimeProps, stateKey: StateKey) => selectGradingState(state, props, stateKey)[name],
+      (state: StoreSnapshot, props: RuntimeProps, stateKey: StateKey) => selectGradingState(state, props, stateKey)[name],
     ]),
   );

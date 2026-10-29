@@ -35,7 +35,7 @@
 // and the per-field CRDT event contract (correct, message, score, submitCount,
 // and lastSubmission rather than the legacy compound UPDATE_CORRECT event).
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
-import { fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { fireEvent, waitFor, cleanup, within } from '@testing-library/react';
 // Importing the harness also installs the jsdom shims + fetch mock.
 import { mountOLXString } from './demoRenderHarness';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -414,5 +414,112 @@ The [cat] sat on the [mat].
         expect(bucket.correct, `stored correctness on ${key}`).toBeUndefined();
       }
     }
+  });
+  it('"Don\'t know" records a give-up, reveals the answer, and fixes the outcome', async () => {
+    const DONT_KNOW_OLX = `<CapaProblem id="GiveUpDemo" title="Geography" dontKnow="true">
+      Capital of France?
+      <KeyGrader>
+        <ChoiceInput>
+          <Key>Paris</Key>
+          <Distractor>London</Distractor>
+        </ChoiceInput>
+        <Explanation>GIVE_UP_EXPLANATION</Explanation>
+      </KeyGrader>
+      SCORE=<StatusText field="score"/>
+    </CapaProblem>`;
+    const { reduxStore, container, getByText, queryByText } = await mountProblem(DONT_KNOW_OLX);
+    expect(container.textContent).not.toContain('GIVE_UP_EXPLANATION');
+    const header = () => container.querySelector('.lo-problem__header')!;
+
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(queryByText("Don't know")).toBeNull());
+    const comp = reduxStore.getState().application_state.component;
+    expect(comp[componentKey(reduxStore, '/GiveUpDemo')!].gaveUp).toBe(true);
+    expect(comp[componentKey(reduxStore, 'GiveUpDemo_grader_0')!].showAnswer).toBe(true);
+    await waitFor(() => expect(header().className).toContain('lo-problem__header--gave-up'));
+    expect(document.activeElement).toBe(getByText('Hide Answer').closest('button'));
+    // The explanation sits inside the leaf grader; the give-up is on the problem.
+    expect(container.textContent).toContain('GIVE_UP_EXPLANATION');
+
+    // Checking the revealed answer does not turn the give-up into a success.
+    const paris = container.querySelector('input[type="radio"]') as HTMLInputElement;
+    fireEvent.click(paris);
+    await waitFor(() => expect(paris.checked).toBe(true));
+    fireEvent.click(getByText(/Check|Submit/));
+    await waitFor(() => expect(graderState(reduxStore).correct).toBe('correct'));
+    expect(header().className).toContain('lo-problem__header--gave-up');
+    expect(container.textContent).toMatch(/SCORE=\s*0/);
+  });
+  it('"Don\'t know" after a wrong answer ends the problem; showanswer="never" reveals nothing', async () => {
+    const OLX_NEVER = `<CapaProblem id="GiveUpLate" title="Geography" dontKnow="true" showanswer="never">
+      Capital of France?
+      <KeyGrader>
+        <ChoiceInput>
+          <Key>Paris</Key>
+          <Distractor>London</Distractor>
+        </ChoiceInput>
+        <Explanation>LATE_EXPLANATION</Explanation>
+      </KeyGrader>
+    </CapaProblem>`;
+    const { reduxStore, container, getByText, queryByText } = await mountProblem(OLX_NEVER);
+    const header = () => container.querySelector('.lo-problem__header')!;
+    fireEvent.click(container.querySelectorAll('input[type="radio"]')[1]); // London
+    await waitFor(() => expect(getByText(/Check|Submit/)).toBeTruthy());
+    fireEvent.click(getByText(/Check|Submit/));
+    await waitFor(() => expect(header().className).toContain('lo-problem__header--incorrect'));
+    // Wrong, attempts unlimited: the learner can still stop here.
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(header().className).toContain('lo-problem__header--gave-up'));
+    expect(queryByText("Don't know")).toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('.lo-problem'));
+    const comp = reduxStore.getState().application_state.component;
+    expect(comp[componentKey(reduxStore, 'GiveUpLate_grader_0')!]?.showAnswer).not.toBe(true);
+    expect(queryByText('Hide Answer')).toBeNull();
+    // The explanation follows its own showWhen (default "correct"), not showanswer.
+    expect(container.textContent).toContain('LATE_EXPLANATION');
+  });
+  it('"Don\'t know" on a MarkupProblem reveals its [explanation]', async () => {
+    const MARKUP_OLX = `<MarkupProblem id="GiveUpMarkup" title="Speed" dontKnow="true"><![CDATA[
+>>Speed limit in a built-up area, in km/h?<<
+= 50
+[explanation]
+MARKUP_GIVE_UP_EXPLANATION
+[/explanation]
+]]></MarkupProblem>`;
+    const { container, getByText } = await mountProblem(MARKUP_OLX);
+    expect(container.textContent).not.toContain('MARKUP_GIVE_UP_EXPLANATION');
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(container.textContent).toContain('MARKUP_GIVE_UP_EXPLANATION'));
+    // showanswer unset (attempted) and no submission: the toggle still appears.
+    expect(getByText('Hide Answer')).toBeTruthy();
+  });
+  it('MarkupProblem with showanswer="never" keeps its [explanation] hidden after "Don\'t know"', async () => {
+    const { container, getByText } = await mountProblem(`<MarkupProblem id="GiveUpExam" title="Speed" dontKnow="true" showanswer="never"><![CDATA[
+>>Speed limit in a built-up area, in km/h?<<
+= 50
+[explanation]
+EXAM_EXPLANATION
+[/explanation]
+]]></MarkupProblem>`);
+    fireEvent.click(getByText("Don't know"));
+    await waitFor(() => expect(container.querySelector('.lo-problem__header--gave-up')).toBeTruthy());
+    expect(container.textContent).not.toContain('EXAM_EXPLANATION');
+  });
+  it('MasteryBank counts "Don\'t know" as a broken streak and moves on', async () => {
+    const q = (id: string) => `<CapaProblem id="${id}" title="${id}" dontKnow="true"><KeyGrader>
+      <ChoiceInput><Key>Yes</Key><Distractor>No</Distractor></ChoiceInput></KeyGrader></CapaProblem>`;
+    const { container } = await mountProblem(`<Vertical id="Bank">
+      <MasteryBank id="bank" goal="3">mbFirst mbSecond</MasteryBank>${q('mbFirst')}${q('mbSecond')}</Vertical>`);
+    const bank = () => within(container.querySelector('.lo-mastery-bank') as HTMLElement);
+    await waitFor(() => expect(bank().getByText('mbFirst')).toBeTruthy());
+    const yes = container.querySelector('.lo-mastery-bank input[type="radio"]') as HTMLInputElement;
+    fireEvent.click(yes);
+    await waitFor(() => expect(yes.checked).toBe(true));
+    fireEvent.click(bank().getByText(/Check|Submit/));
+    await waitFor(() => expect(bank().getByText('Streak: 1 / 3')).toBeTruthy());
+    expect(bank().getByText('mbSecond')).toBeTruthy();
+    fireEvent.click(bank().getByText("Don't know"));
+    await waitFor(() => expect(bank().getByText('Streak: 0 / 3')).toBeTruthy());
+    await waitFor(() => expect(bank().getByText('mbFirst')).toBeTruthy());
   });
 });

@@ -175,6 +175,35 @@ By default the action button reads "Check" (or "Submit" on the final attempt). U
 </CapaProblem>
 ```
 
+## Don't Know
+
+With `dontKnow="true"`, the footer adds a **Don't know** button beside Check. It reveals the answer without the learner producing one, which avoids rehearsing a wrong guess. The problem's correctness becomes `gaveUp`, its own state between `incorrect` and `correct` (no wrong association was rehearsed, but nothing was answered), and its completion `done`; checking the revealed answer afterwards does not change that. The button is also there after a wrong answer while attempts remain, so a learner who has tried can stop and be done without a correct answer. The button goes away after a correct answer, a give-up, or while a grade is pending, and once attempts are exhausted.
+
+```olx:playground
+<CapaProblem id="dontknowdemo" title="Retrieval practice" dontKnow="true">
+  <KeyGrader>
+    <Markdown>Which study strategy produces better retention a week later?</Markdown>
+    <ChoiceInput>
+      <Distractor>Rereading the material</Distractor>
+      <Key>Practicing recall from memory</Key>
+    </ChoiceInput>
+  </KeyGrader>
+</CapaProblem>
+```
+
+## Attributes
+
+| Attribute     | Type    | Default    | Description |
+|---------------|---------|------------|-------------|
+| `title`       | string  | `id`       | Shown in the header |
+| `grade`       | `"submit"` \| `"immediate"` | `"submit"` | Grade on Check, or as the learner answers |
+| `maxAttempts` | integer | unlimited  | Maximum submissions |
+| `showanswer`  | `always`, `never`, `attempted`, `correct`, `closed`, `finished` | `attempted` | When the Show Answer button appears |
+| `dontKnow`    | boolean | `false`    | Show a "Don't know" button; the problem's correctness becomes `gaveUp` and, unless `showanswer="never"`, the answer is revealed |
+| `submitLabel` | string  | Check / Submit | Override the action button's label |
+
+`MarkupProblem` accepts the same `grade`, `maxAttempts`, `showanswer`, and `dontKnow` attributes.
+
 ## How It Works
 
 1. **Parsing**: CapaProblem's parser walks child nodes, identifying inputs (`getValue`) and graders (`isGrader`)
