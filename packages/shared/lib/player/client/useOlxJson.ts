@@ -123,8 +123,7 @@ export function ensureBlock(
     })
     .then(data => {
       if (!data.ok) {
-        // API error (404 missing content, 500 server error) — don't retry.
-        // Key stays in ensuredIds to prevent retry storms.
+        // API errors remain terminal until the page reloads.
         dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`);
       } else {
         // Field state rides the content response (fields-design 2b):
@@ -134,13 +133,16 @@ export function ensureBlock(
         dispatchOlxJson(props, source, data.idMap);
         // Recursively ensure blocks referenced by ref-typed attributes
         ensureReferencedBlocks(props, data.idMap, source);
+        // LOAD_OLXJSON cannot clear this block's marker if it was omitted.
+        if (!data.idMap?.[definitionKey]) {
+          dispatchOlxJsonError(
+            props, source, definitionKey,
+            `Content fetch for "${definitionKey}" succeeded but the response did not contain that block`,
+          );
+        }
       }
     })
     .catch(err => {
-      // Network failure — remove from dedup set so ensuredIds won't block.
-      // However, the Redux error state (set below) is a second gate: selectBlockState
-      // returns truthy, so ensureBlock returns early at line 94. In practice, retry
-      // requires clearing both gates — currently only a page reload does that.
       ensuredIds.delete(dedupKey);
       dispatchOlxJsonError(props, source, definitionKey, err.message || `Failed to load ${definitionKey}`);
     });
@@ -231,6 +233,14 @@ export function selectOlxJson(
   }
 
   const status = blockState.loadingState?.status;
+  const stored = blockState.olxJson;
+  const userLocale = props.runtime.locale.code;
+  const langVariant = stored ? extractLocalizedVariant(stored, userLocale) : null;
+
+  // Accept old or replayed state in which a stale marker accompanies content.
+  if (langVariant) {
+    return { olxJson: langVariant, ...blockData('ready') };
+  }
 
   if (status === 'loading') {
     return { olxJson: null, ...blockData('loading') };
@@ -243,15 +253,7 @@ export function selectOlxJson(
     };
   }
 
-  const stored = blockState.olxJson;
-  if (!stored) {
-    return { olxJson: null, ...blockData('ready') };
-  }
-
-  const userLocale = props.runtime.locale.code;
-  const langVariant = extractLocalizedVariant(stored, userLocale);
-
-  return { olxJson: langVariant || null, ...blockData('ready') };
+  return { olxJson: null, ...blockData('ready') };
 }
 
 /**
@@ -383,12 +385,12 @@ export function selectOlxJsonMultiple(
     const entry = selectBlockState(state, sources, definitionKey);
     if (!entry) return { olxJson: null, status: 'missing' as const };
     const status = entry.loadingState?.status;
+    const stored = entry.olxJson;
+    const langVariant = stored ? extractLocalizedVariant(stored, userLocale) : null;
+    if (langVariant) return { olxJson: langVariant, status: 'ready' as const };
     if (status === 'loading') return { olxJson: null, status: 'loading' as const };
     if (status === 'error') return { olxJson: null, status: 'error' as const, error: entry.error?.message };
-    const stored = entry.olxJson;
-    if (!stored) return { olxJson: null, status: 'ready' as const };
-    const langVariant = extractLocalizedVariant(stored, userLocale);
-    return { olxJson: langVariant || null, status: 'ready' as const };
+    return { olxJson: null, status: 'ready' as const };
   });
 
   const allReady = results.every(r => r.status === 'ready' && r.olxJson !== null);

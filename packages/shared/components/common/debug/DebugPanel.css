@@ -576,3 +576,94 @@
   background: var(--lo-debug-accent);
   color: var(--lo-debug-bg);
 }
+
+/* --- Deploy tab ---------------------------------------------------------
+   "What is running here?" — reads /api/deploy-info. Dense key/value rows,
+   monospace, so a stale SHA is obvious at a glance. */
+
+.debug-deploy {
+  padding: 8px;
+  font-family: var(--lo-font-mono);
+  font-size: 11px;
+  color: var(--lo-debug-text);
+}
+
+.debug-deploy-summary {
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border-radius: 3px;
+  border-left: 3px solid var(--lo-debug-success);
+  background: var(--lo-debug-elevated);
+  font-weight: bold;
+}
+
+.debug-deploy-summary.dev {
+  border-left-color: var(--lo-debug-warning);
+  color: var(--lo-debug-warning);
+}
+
+.debug-deploy-summary-detail {
+  display: block;
+  margin-top: 2px;
+  font-weight: normal;
+  color: var(--lo-debug-muted);
+  word-break: break-all;
+}
+
+.debug-deploy-heading {
+  margin: 10px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  color: var(--lo-debug-muted);
+  border-bottom: 1px solid var(--lo-debug-border);
+}
+
+.debug-deploy-row {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  align-items: baseline;
+}
+
+.debug-deploy-label {
+  flex: 0 0 auto;
+  min-width: 9em;
+  color: var(--lo-debug-muted);
+}
+
+.debug-deploy-value {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  word-break: break-all;
+}
+
+.debug-deploy-sha {
+  color: var(--lo-debug-accent);
+}
+
+.debug-deploy-branch {
+  color: var(--lo-debug-text);
+}
+
+.debug-deploy-branch::before {
+  content: '@';
+  color: var(--lo-debug-muted);
+}
+
+.debug-deploy-when,
+.debug-deploy-url {
+  color: var(--lo-debug-muted);
+}
+
+.debug-deploy-dirty {
+  color: var(--lo-debug-warning);
+  font-weight: bold;
+}
+
+.debug-deploy-note {
+  margin-top: 10px;
+  color: var(--lo-debug-muted);
+}

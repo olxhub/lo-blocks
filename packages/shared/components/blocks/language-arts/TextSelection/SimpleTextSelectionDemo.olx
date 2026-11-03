@@ -34,9 +34,7 @@ scoring rules pick the feedback message.
       <TextSelectionInput>
 Identify examples of positive reinforcement:
 ---
-The parents tried [giving extra screen time|screen] when the child behaved well.
-They also tried &lt;&lt;yelling&gt;&gt; when frustrated. Later they used [a sticker chart|stickers]
-to track progress. Sometimes they would &lt;&lt;take away toys|toys&gt;&gt; as punishment.
+The parents tried [giving extra screen time|screen] when the child behaved well. They also tried &lt;&lt;yelling&gt;&gt; when frustrated. Later they used [a sticker chart|stickers] to track progress. Sometimes they would &lt;&lt;take away toys|toys&gt;&gt; as punishment.
 ---
 all: Perfect! You found both positive reinforcement examples! (2/2)
 &gt;1: Good start! There's one more example. (1/2)
@@ -67,9 +65,7 @@ Per-term notes appear as the learner selects specific labeled segments.
   <SimpleTextSelection id="demo_advanced" mode="immediate">
 Identify the behavioral techniques:
 ---
-They used [positive reinforcement|pos_reinf] by giving rewards. They tried
-[negative punishment|neg_punish] by removing toys. The &lt;&lt;yelling&gt;&gt; actually
-became {unintentional} [reinforcement|accident].
+They used [positive reinforcement|pos_reinf] by giving rewards. They tried [negative punishment|neg_punish] by removing toys. The &lt;&lt;yelling&gt;&gt; actually became {unintentional} [reinforcement|accident].
 ---
 all: Excellent! All techniques identified. (3/3)
 &gt;2: Good work! You found most techniques. (2/3)
@@ -80,6 +76,61 @@ pos_reinf: That's right! Adding something pleasant.
 neg_punish: Correct! Removing something the child wants.
 accident: Tricky one - the yelling reinforced bad behavior!
 yelling: Careful - what effect did the yelling actually have?
+  </SimpleTextSelection>
+
+  <Markdown>
+## 5. Sentence Mode
+
+`separatorRegexp` changes the selectable unit. Here `\.` divides the passage into
+sentences, so the learner clicks a whole sentence rather than assembling one word
+by word. The period stays visible at the end of each chunk; the stored value is
+still the array of word indices, so grading is untouched.
+  </Markdown>
+
+  <SimpleTextSelection id="demo_sentences" mode="graded" separatorRegexp="\.">
+"Such intrusions" points back to an earlier sentence. Click the sentence that describes those intrusions — its antecedent.
+---
+Temperance societies grew quickly in the 1830s. Members signed pledges and held public meetings. [Reformers from the middle class pressed their habits on lower-class workers, many of them recent immigrants.] Such intrusions sharpened class and religious tensions. The movement still counted itself a success.
+---
+all: Yes — that sentence names the intrusion "Such intrusions" refers back to.
+: Look for the sentence that describes someone intruding, just before "Such intrusions."
+  </SimpleTextSelection>
+
+  <Markdown>
+## 6. Hidden Markers
+
+`separatorHidden="true"` consumes the separator: the author places `|` markers to
+carve the passage into phrases, and the learner never sees them.
+  </Markdown>
+
+  <SimpleTextSelection id="demo_markers" mode="immediate" separatorRegexp="\|" separatorHidden="true">
+Click the phrase that names who is intruding.
+---
+Such | intrusions | [by the middle class] | on private lives
+  </SimpleTextSelection>
+
+  <Markdown>
+## 7. A Transcript: One Turn per Line
+
+The passage keeps the line breaks the author typed, so a transcript reads as a
+transcript in both modes. Here each turn ends with a hidden `§`: the marker is
+consumed, the line break it ended is not, and the chunk is the turn — a `?` or a
+`!` inside a turn never divides it.
+  </Markdown>
+
+  <SimpleTextSelection id="demo_transcript" mode="graded" separatorRegexp="§" separatorHidden="true">
+Mark the turns where the teacher takes up what a child offered.
+---
+Ms. Boyd: Why does the ice float instead of sinking? §
+Marcus: My grandpa takes me ice fishing! The ice is only on the top. §
+[Ms. Boyd: Exactly, Marcus. So why only on top?|marcus] §
+Aaliyah: Our pipes busted in the big freeze. §
+{Ms. Boyd: We'll get to pipes later. Let's stay with our lake.} §
+---
+all: Yes — that is the turn that takes a child's story and builds on it.
+: Look for the turn that repeats what a child said and asks the next question.
+---
+marcus: Marcus's story is taken up and praised on the spot.
   </SimpleTextSelection>
 
   <Markdown>

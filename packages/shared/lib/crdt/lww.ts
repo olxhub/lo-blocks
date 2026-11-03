@@ -78,6 +78,58 @@ export function lwwReduce(componentState: Record<string, any>, action: any, fiel
   };
 }
 
+/** Is `key` one of LWW's own bookkeeping siblings (`value.ts`/`value.actor`)
+ * rather than a field in its own right? Field names are identifiers — the
+ * dot is this module's own convention, so the suffix test is exact. */
+function isLwwSibling(key: string): boolean {
+  return key.endsWith('.ts') || key.endsWith('.actor');
+}
+
+/**
+ * Reconcile two whole buckets FIELD BY FIELD under the same rule
+ * `lwwReduce` applies to a single write: newer timestamp wins, ties broken
+ * by the higher actor, and `incoming` wins when neither side is stamped.
+ *
+ * This is the "two copies met without seeing each other's events" path —
+ * a snapshot landing on a live store (fetch_blob), a materialization being
+ * seeded after it has already folded events (ServerState.seed). Picking a
+ * side wholesale is what those call sites used to do, and it is how a
+ * STALE copy silently reverts a newer one: a client that reconnects after
+ * a day flushes its durable outbox before it asks for state, so the
+ * server's materialization holds day-old writes at the moment the stored
+ * (newer) snapshot arrives — "live wins" then throws away the newer work.
+ * Comparing timestamps costs nothing here and makes the merge agree with
+ * every other fold in the system.
+ *
+ * Returns `base` itself when nothing changed, so callers keep their
+ * same-object-when-unchanged guarantees.
+ */
+export function lwwMergeBuckets<T extends Record<string, any>>(
+  base: T | undefined,
+  incoming: Record<string, any> | undefined,
+): T {
+  if (!incoming) return (base ?? {}) as T;
+  if (!base) return incoming as T;
+  let result: Record<string, any> | undefined;
+  for (const [field, value] of Object.entries(incoming)) {
+    // Siblings ride with the field they belong to; they are never merged
+    // on their own (a bare `value.ts` has no value to order).
+    if (isLwwSibling(field)) continue;
+    const ts = incoming[`${field}.ts`] ?? 0;
+    const baseTs = base[`${field}.ts`] ?? 0;
+    if (baseTs > ts) continue;
+    if (baseTs === ts && (base[`${field}.actor`] ?? '') > (incoming[`${field}.actor`] ?? '')) continue;
+    if (field in base && base[field] === value
+      && base[`${field}.ts`] === incoming[`${field}.ts`]
+      && base[`${field}.actor`] === incoming[`${field}.actor`]) continue;
+    result ??= { ...base };
+    result[field] = value;
+    if (`${field}.ts` in incoming) result[`${field}.ts`] = incoming[`${field}.ts`];
+    if (`${field}.actor` in incoming) result[`${field}.actor`] = incoming[`${field}.actor`];
+  }
+  return (result ?? base) as T;
+}
+
 /**
  * Default display: produce a human/LLM-readable string from a raw value.
  *

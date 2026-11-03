@@ -195,16 +195,30 @@ SetCommandStart
 
 /* Pause command
  *
- * Inserts a hard stop between commands that would otherwise execute together.
+ * Separates commands that would otherwise execute together on one click.
  *
  * Normal flow: each "Continue" click reveals the next batch of messages AND
  * executes any commands (arrows, embeds, waits) that precede them. Multiple
  * consecutive commands run simultaneously.
  *
- * --- pause --- forces a break: commands before the pause execute, the user
- * must click Continue, and only then do commands after the pause execute.
- * This is rarely needed — it is NOT a progressive reveal between dialogue
- * lines (the user already clicks Continue for each new batch of dialogue).
+ * --- pause --- forces a break BETWEEN commands: the commands before it run,
+ * the user clicks Continue, and only then do the commands after it run.
+ * Rarely needed — it is NOT a progressive reveal between dialogue lines (the
+ * user already clicks Continue for each new batch of dialogue).
+ *
+ * A pause costs a click only when it has something to hold back. Written
+ * straight after a dialogue line —
+ *
+ *   Alma: that's the end of this part — tap Continue [face=smile]
+ *   --- pause ---
+ *   wj_course.selectedChild <- .../wj2b_sba_part1
+ *
+ * — the click that revealed the line has already stopped there, so the pause
+ * has nothing to separate: the NEXT Continue steps over it and runs the set
+ * command. The commands after a pause always run on the next Continue; a
+ * pause immediately after a line does not itself consume a click. A pause at
+ * the very end of a script has nothing after it at all, so it is a no-op —
+ * the chat is finished at its last line.
  *
  * Matches any line of the form:
  *   --- pause ---

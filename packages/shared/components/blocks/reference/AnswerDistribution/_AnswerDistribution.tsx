@@ -3,8 +3,7 @@
 import type { RuntimeProps } from '@/lib/types';
 
 import React from 'react';
-import { useFieldState } from '@/lib/state';
-import { commonFields } from '@/lib/state/commonFields';
+import { useFieldState, useValue } from '@/lib/state';
 import type { StateKey } from '@/lib/types';
 
 /** Sibling-qualify the target id, same rule as every target attribute. */
@@ -21,8 +20,8 @@ export default function AnswerDistribution(props: RuntimeProps) {
   // sharedComponent + lo_server_state patches); the viewer's own answer
   // lives in the TARGET's per-user bucket.
   const [distribution] = useFieldState(props, fields.distribution, undefined);
-  const [ownAnswer] = useFieldState(props, commonFields.value, undefined, {
-    stateKey: targetKey(props, target),
+  const { value: ownAnswer } = useValue(props, {
+    stateKey: targetKey(props, target), fallback: undefined,
   });
 
   const counts: Record<string, number> =
