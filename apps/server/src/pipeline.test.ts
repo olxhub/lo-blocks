@@ -861,6 +861,102 @@ test('an event arriving BEFORE fetch_blob survives the seed', async () => {
   expect(fetch.data.application_state.component.stored.value).toBe('from-store');
 });
 
+test('the unkeyed system bucket seeds without exploding its primitives', async () => {
+  // The captured 2026-08-24 corruption. `system` is ONE bucket, but seed()
+  // walked it as an id-keyed map: every FIELD looked like a bucket and
+  // every VALUE like a field map. Object-spreading a timestamp gave {},
+  // and spreading an actor uuid gave {0:'c',1:'5',…}.
+  //
+  // The blob is CLIENT-shaped and perfectly healthy here — no envelope
+  // junk anywhere — which is the point: the corruption is generated
+  // server-side, on the way back out.
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
+    application_state: {
+      system: {
+        locale: { code: 'fr', dir: 'ltr' },
+        'locale.ts': 1, 'locale.actor': 'stored-actor',
+      },
+    },
+  }));
+  const setLocale = {
+    event: 'SET_LOCALE', scope: 'system', field: 'locale',
+    locale: { code: 'en', dir: 'ltr' }, ts: 2, actor: 'live-actor',
+  };
+  const { sent } = await drive({ kvs, canonical: 'blob' },
+    [setLocale, { event: 'fetch_blob' }]);
+  const system = sent.find(m => m.status === 'fetch_blob').data.application_state.system;
+
+  expect(system).toEqual({
+    locale: { code: 'en', dir: 'ltr' },
+    'locale.ts': 2,
+    'locale.actor': 'live-actor',
+  });
+});
+
+test('canonical: blob is NOT an escape hatch — it seeds through the same path', async () => {
+  // Worth its own test because it is the launch-contingency question:
+  // `canonical` picks the seed SOURCE only. Both modes seed the shared
+  // materialization and both serve liveState(), so flipping to blob does
+  // not route around a seed bug.
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
+    application_state: { system: { themeBrand: 'memphis', 'themeBrand.ts': 1 } },
+  }));
+  const { sent } = await drive({ kvs, canonical: 'blob' }, [{ event: 'fetch_blob' }]);
+  const system = sent.find(m => m.status === 'fetch_blob').data.application_state.system;
+  expect(system.themeBrand).toBe('memphis');
+  expect(system).not.toHaveProperty('0');
+});
+
+test('a stale outbox replay does not beat newer stored state', async () => {
+  // lo_event drains its durable outbox BEFORE it asks for the snapshot
+  // (the flush barrier in websocketLogger gates askIfReady), so a tab
+  // reconnecting after a day replays day-old events into a fresh
+  // materialization and only THEN triggers the seed. seed() used to let
+  // those stale values win as "live", discarding the newer stored answers
+  // — and liveState() served the regression straight back to the tab.
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
+    application_state: {
+      component: {
+        board: {
+          value: { row1: 0, row2: 1, row3: 2 },
+          'value.ts': 5000, 'value.actor': 'learner',
+        },
+      },
+    },
+  }));
+  const stale = {
+    event: 'UPDATE_VALUE', scope: 'component', id: 'board', field: 'value',
+    value: { row1: 0 }, ts: 100, actor: 'learner',
+  };
+  const { sent } = await drive({ kvs, canonical: 'blob' },
+    [stale, { event: 'fetch_blob' }]); // replay FIRST, snapshot second
+  const board = sent.find(m => m.status === 'fetch_blob')
+    .data.application_state.component.board;
+  expect(board.value).toEqual({ row1: 0, row2: 1, row3: 2 });
+  expect(board['value.ts']).toBe(5000);
+});
+
+test('a NEWER event before the seed still wins', async () => {
+  // The other side of the same rule — the 2026-07 case must keep working.
+  const kvs = new MemoryKVStore();
+  await kvs.set(kvsKey.blob(USER.safe_user_id), JSON.stringify({
+    application_state: {
+      component: { board: { value: 'old', 'value.ts': 1, 'value.actor': 'learner' } },
+    },
+  }));
+  const fresh = {
+    event: 'UPDATE_VALUE', scope: 'component', id: 'board', field: 'value',
+    value: 'new', ts: 9000, actor: 'learner',
+  };
+  const { sent } = await drive({ kvs, canonical: 'blob' },
+    [fresh, { event: 'fetch_blob' }]);
+  expect(sent.find(m => m.status === 'fetch_blob')
+    .data.application_state.component.board.value).toBe('new');
+});
+
 test('a content fetch that raced the socket still subscribes it', async () => {
   const kvs = new MemoryKVStore();
   const registry = new UserStateRegistry(kvs);

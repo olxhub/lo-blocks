@@ -42,7 +42,7 @@ import { toLofsCanonical, withVersion, toLofsVersion } from '@/lib/types/address
 import { variantMapKeys } from '@/lib/types/i18n';
 import { hashContent } from '@/lib/util';
 
-import { baseAttributes } from '@/lib/blocks/attributeSchemas';
+import { baseAttributes, normalizeDeprecatedAttributes, z_expression } from '@/lib/blocks/attributeSchemas';
 import { isZodCompatible, describeZodType } from '@/lib/blocks/zodCompat';
 import { OLXMetadataSchema, type OLXMetadata } from '@/lib/content/metadata';
 import { stableStringify } from '@/lib/util';
@@ -554,6 +554,22 @@ export async function parseOLX(
       }
 
       const { ref, ...overrides } = attributes;
+
+      // <Use> overrides skip the per-tag zod pass below (the referenced block
+      // was validated at ITS definition site), so `when=` would stay a raw
+      // string while every other block's `when=` arrives pre-parsed as
+      // { expr, ast } — the shape staticDynamicDom's filter evaluates.
+      // Pre-parse it here, at compile time, through the same z_expression
+      // schema baseAttributes uses, so nothing re-parses per render.
+      // A syntactically bad expression must not abort the whole file: leave
+      // the raw string, and render.tsx's attribute validation reports it.
+      if (typeof overrides.when === 'string') {
+        const whenResult = z_expression.safeParse(overrides.when);
+        if (whenResult.success) {
+          (overrides as Record<string, unknown>).when = whenResult.data;
+        }
+      }
+
       const stateKey = stateKeyForGlobalRef(parseStateRef(ref), ns);
       return {
         type: 'block',
@@ -637,8 +653,10 @@ export async function parseOLX(
         sourceOffset, metadata,
       });
     } else {
-      // Use transformed attributes (e.g., "true" -> true for booleans)
-      parsedAttributes = result.data;
+      // Use transformed attributes (e.g., "true" -> true for booleans), with
+      // deprecated attribute spellings rewritten onto their current names so
+      // no reader downstream has to know the old ones.
+      parsedAttributes = normalizeDeprecatedAttributes(result.data, tag, definitionKey);
 
       // Re-resolve lang from transformed attributes (Zod canonicalizes e.g. "EN-us" → "en-US")
       if (parsedAttributes.lang) {

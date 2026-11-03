@@ -5,6 +5,7 @@ import type { RuntimeProps } from '@/lib/types';
 import React, { useCallback, useMemo } from 'react';
 import { useFieldSelector, updateField } from '@/lib/state';
 import { useGraderAnswer } from '@/lib/player/useGraderAnswer';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import { assertNamedObject } from '@/lib/types/kids';
 
@@ -49,6 +50,10 @@ export default function DropdownSelect(props: RuntimeProps) {
   // Check if grader is showing the answer
   const { showAnswer, displayAnswer } = useGraderAnswer(props);
 
+  // Locked mid-grade, or by the enclosing problem's lockInput: the selection
+  // stays the one that was graded.
+  const readOnly = useInputReadOnly(props);
+
   const handleChange = useCallback((e) => {
     updateField(props, fields.value, e.target.value);
   }, [props, fields]);
@@ -73,6 +78,7 @@ export default function DropdownSelect(props: RuntimeProps) {
       <select
         value={value}
         onChange={handleChange}
+        disabled={readOnly}
         className="border rounded px-2 py-1"
       >
         {placeholder && (
