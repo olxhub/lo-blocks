@@ -119,6 +119,19 @@ test.each(['alias', ''])('<Use> rejects id="%s" because ref owns its state ident
   );
 });
 
+test('platform-internal ("_"-prefixed) attributes cannot be authored', async () => {
+  const xml = '<Vertical id="root"><Chat id="chat" _setTargets="board_ready">Lin: hi</Chat></Vertical>';
+  const { idMap, errors } = await parseOLX(xml, PROV, undefined, TEST_NS);
+
+  expect(errors).toHaveLength(1);
+  expect(errors[0].type).toBe('attribute_validation');
+  expect(errors[0].message).toContain('_setTargets=');
+  expect(errors[0].message).toContain('platform-internal and cannot be authored');
+  expect(errors[0].location.provenance[0]).toContain('test.xml');
+  expect(errors[0].location).toMatchObject({ line: 1, column: 21 });
+  expect(getOlxJson(idMap, 'chat')?.tag).toBe('ErrorNode');
+});
+
 test('<Use> cannot be a document root', async () => {
   await expect(parseOLX(
     '<Use ref="answer"/>',
