@@ -21,18 +21,24 @@
   position: absolute;
   inset-inline-start: 8px;
   width: 16px;
-  animation: spinner 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
-  background: var(--lo-border, lightgrey);
+  /* Resting shape. Also what remains when prefers-reduced-motion cancels
+   * the animation: without it the bars collapse to height 0. */
+  top: 24px;
+  height: 32px;
+  animation: spinner 1.2s ease-in-out infinite;
+  /* Muted text, not a border tone: border tones vanish on the surface
+   * backgrounds spinners sit on (LLMFeedback). */
+  background: var(--lo-text-muted, lightgrey);
 }
 
 .spinner div:nth-child(1) {
   inset-inline-start: 8px;
-  animation-delay: -0.24s;
+  animation-delay: -0.4s;
 }
 
 .spinner div:nth-child(2) {
   inset-inline-start: 32px;
-  animation-delay: -0.12s;
+  animation-delay: -0.2s;
 }
 
 .spinner div:nth-child(3) {
@@ -40,13 +46,17 @@
   animation-delay: 0s;
 }
 
+/* A continuous wave: rest, rise, rest. The stock lds-facebook keyframes
+ * (tall at 0%, short from 50% on) jump at the loop boundary and leave all
+ * three bars identical and still for half of every cycle, which reads as
+ * one bar blinking rather than three bars moving. */
 @keyframes spinner {
-  0% {
-    top: 8px;
-    height: 64px;
-  }
-  50%, 100% {
+  0%, 50%, 100% {
     top: 24px;
     height: 32px;
+  }
+  25% {
+    top: 8px;
+    height: 64px;
   }
 }
