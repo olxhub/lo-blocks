@@ -8,7 +8,17 @@ import { renderBlockStatus } from '@/lib/player/client/renderBlockStatus';
 import { DisplayError } from '@/lib/util/debug';
 import { fields } from './Mermaid';
 
-mermaid.initialize({ startOnLoad: false, theme: 'default' });
+// Use the site's web font, not mermaid's default system-font stack
+// ("trebuchet ms", verdana, arial). Firefox font-visibility (fingerprinting
+// protection / strict ETP) blocks those system fonts; a web font is never
+// blocked, and it matches the site typography. Same family as --lo-font-ui.
+const MERMAID_FONT = "'Geist Sans', system-ui, sans-serif";
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  fontFamily: MERMAID_FONT,
+  themeVariables: { fontFamily: MERMAID_FONT },
+});
 
 export default function Mermaid(props: RuntimeProps) {
   const { text, ...status } = useTextWithTemplate(props);
@@ -27,6 +37,8 @@ export default function Mermaid(props: RuntimeProps) {
 
     (async () => {
       try {
+        // Labels are measured at render time; wait for the web font.
+        await document.fonts?.ready;
         // parse() is async in mermaid v11
         await mermaid.parse(text.trim());
         const { svg } = await mermaid.render(`mermaid${rendererId}`, text.trim());
