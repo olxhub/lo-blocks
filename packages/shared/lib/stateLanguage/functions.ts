@@ -13,7 +13,7 @@
 
 import { wordcount, text2markdown, isFilled } from './evaluate';
 import { isTruthy, isNumber, isMissing } from './valuePredicates';
-import { sum, countFilled, average } from './aggregates';
+import { sum, countFilled, average, toMarkdownBullets } from './aggregates';
 import { formatDuration } from '@/lib/util/duration';
 
 /**
@@ -43,6 +43,7 @@ export const dslFunctions: Record<string, Function> = {
   sum,
   countFilled,
   average,
+  toMarkdownBullets,
 };
 
 /**

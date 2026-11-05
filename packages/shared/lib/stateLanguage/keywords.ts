@@ -111,6 +111,8 @@ export const RESERVED_KEYWORDS = new Set([
   'sum',
   'countFilled',
   'average',
+  // A list formatter sharing the aggregates' list contract (aggregates.ts).
+  'toMarkdownBullets',
   // Future aggregates, reserved ahead of implementation so no block can
   // claim the name meanwhile. NOT min/max/mode/range — those are live
   // attributes on several blocks today, and Math.min/Math.max already serve.

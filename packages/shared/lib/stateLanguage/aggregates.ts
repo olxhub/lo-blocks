@@ -1,6 +1,8 @@
 // packages/shared/lib/stateLanguage/aggregates.ts
 //
-// Aggregates over a list: sum, countFilled, average.
+// Aggregates over a list: sum, countFilled, average -- and one list
+// formatter, toMarkdownBullets, which shares their list contract (one list
+// argument; missing elements skipped; a non-list is an author error).
 //
 // These exist so a running score over partially-answered items is
 // expressible without the author writing a conditional per item:
@@ -232,4 +234,54 @@ export function average(list: unknown, options?: unknown): number | undefined {
   }
 
   return totalWeight === 0 ? undefined : weighted / totalWeight;
+}
+
+// ─── Formatting a list ─────────────────────────────────────────────────
+
+/**
+ * Backslash-escape every ASCII punctuation character. CommonMark lets any
+ * of them be escaped and renders the escaped character literally, so a
+ * student's `*`, `_`, `#`, `` ` ``, `[`, `<` or `$` (math) prints as typed
+ * instead of becoming emphasis, a heading, code, a link, HTML or a formula.
+ * Escaping all of them, rather than a hand-picked set, leaves no
+ * context-dependent case (a leading `1.` or `-`, a `|` in a table) to get
+ * wrong.
+ */
+function escapeMarkdown(text: string): string {
+  return text.replace(/[!-/:-@[-`{-~]/g, '\\$&');
+}
+
+/**
+ * toMarkdownBullets(list) — the list as a Markdown bullet list, one
+ * `- item` line per element, in order. For readbacks of what a student
+ * selected or wrote:
+ *
+ *   toMarkdownBullets(["One.", "Two *b*"])  → "- One\\.\n- Two \\*b\\*"
+ *   toMarkdownBullets([@blank.value, 0])    → "- 0"   (missing skipped; 0 is a value)
+ *   toMarkdownBullets([])                   → ""
+ *   toMarkdownBullets("One.")               → TypeError   (one list argument)
+ *   toMarkdownBullets([{a: 1}])             → TypeError   (no object coercion)
+ *
+ * Same list contract as the aggregates: missing elements (isMissing) are
+ * skipped, and a non-list argument -- a bare string, null, an unknown ref --
+ * is an author error, not a one-item or empty list. Strings, numbers and
+ * booleans are items, converted with String(); anything else is a
+ * TypeError rather than "[object Object]".
+ *
+ * Every item is escaped (escapeMarkdown), so the result renders the
+ * student's text literally. A line break inside an item continues the item
+ * (the next line is indented under its bullet) rather than ending the list.
+ */
+export function toMarkdownBullets(list: unknown): string {
+  const items = requireList(list, 'toMarkdownBullets');
+  const lines: string[] = [];
+  for (const item of items) {
+    if (isMissing(item)) continue;
+    if (typeof item !== 'string' && typeof item !== 'number' && typeof item !== 'boolean') {
+      throw new TypeError(`toMarkdownBullets() expects strings, numbers or booleans, got ${describe(item)}`);
+    }
+    const text = String(item).split(/\r?\n/).map(line => escapeMarkdown(line.trim())).join('\n  ');
+    lines.push(`- ${text}`);
+  }
+  return lines.join('\n');
 }

@@ -363,6 +363,33 @@ genuinely needed. A leading `-` is a syntax error:
 !!! sum([-1, 1])
 !!! -@x.value
 
+### toMarkdownBullets — a list as Markdown bullets
+
+`toMarkdownBullets(list)` turns a list into a Markdown bullet list, one
+`- item` line per element, for readbacks inside a Markdown block:
+
+```
+{{toMarkdownBullets(@inputId.selectedSegments)}}
+```
+
+It shares the aggregates' list contract: missing elements are skipped, and a
+non-list argument (a bare string, an unknown ref) is a TypeError. Strings,
+numbers and booleans are items; any other element is a TypeError. Every item
+is Markdown-escaped, so a student's `*`, `_`, `#`, `` ` ``, `[` or `<` prints
+literally. Pinned in `aggregates.test.ts`:
+
+```
+toMarkdownBullets(["One.", "Two"])    → "- One\.\n- Two"
+toMarkdownBullets([@blank.value, 0])  → "- 0"        missing skipped
+toMarkdownBullets([])                 → ""
+toMarkdownBullets("One.")             → TypeError  one list, like sum
+```
+
+(parse only):
+
+>>> toMarkdownBullets(@inputId.selectedSegments)
+>>> toMarkdownBullets([@a.value, @b.value])
+
 ## String Literals
 
 Strings produce String nodes:
