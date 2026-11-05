@@ -1,6 +1,7 @@
 // packages/shared/lib/stateLanguage/aggregates.test.ts
 //
-// The semantics contract for sum / countFilled / average.
+// The semantics contract for sum / countFilled / average, and for the list
+// formatter toMarkdownBullets, which shares their list contract.
 //
 // These run THROUGH THE EXPRESSION LANGUAGE, not against the exported
 // functions directly, because the contract is what an author writes in an
@@ -222,5 +223,44 @@ describe('direct calls match the expression path', () => {
     expect(average([1, null, 3])).toBe(2);
     expect(average([])).toBeUndefined();
     expect(() => sum('nope' as unknown)).toThrow(TypeError);
+  });
+});
+
+describe('toMarkdownBullets', () => {
+  // [expression, expected Markdown]. Expected strings are written as JS
+  // literals: '\\*' is the two characters backslash, asterisk.
+  const ROWS: [string, string][] = [
+    ['toMarkdownBullets(["One.", "Two"])', '- One\\.\n- Two'],
+    ['toMarkdownBullets([])', ''],
+    // Missing elements are skipped (the aggregates' rule); 0 and false are values.
+    ['toMarkdownBullets([@blank.value, @gone.value, @spaces.value, @n.value])', ''],
+    ['toMarkdownBullets([@zero.value, @no.value, @a.value])', '- 0\n- false\n- agree'],
+    // A student's Markdown prints literally.
+    ['toMarkdownBullets(["*bold* _em_ # h `c` [l](u) <b> $x$"])',
+      '- \\*bold\\* \\_em\\_ \\# h \\`c\\` \\[l\\]\\(u\\) \\<b\\> \\$x\\$'],
+    // Text that would start a nested list, a numbered item or a heading stays text.
+    ['toMarkdownBullets(["- not nested", "1. not numbered", "# not a heading"])',
+      '- \\- not nested\n- 1\\. not numbered\n- \\# not a heading'],
+    // A line break inside an item continues that item instead of ending the list.
+    ['toMarkdownBullets(["line one\nline two"])', '- line one\n  line two'],
+  ];
+  it.each(ROWS)('%s', (expr, expected) => {
+    expect(ev(expr)).toBe(expected);
+  });
+
+  it('reads a list-valued field directly', () => {
+    const c = createContext({ componentState: { hl: { selectedSegments: ['First.', 'Second.'] } } });
+    expect(evaluate(parse('toMarkdownBullets(@hl.selectedSegments)'), c)).toBe('- First\\.\n- Second\\.');
+  });
+
+  it('throws on a non-list argument, like the aggregates', () => {
+    expect(() => ev('toMarkdownBullets("One.")')).toThrow(/expects a list, got string "One."/);
+    expect(() => ev('toMarkdownBullets(@gone.value)')).toThrow(/expects a list, got undefined/);
+    expect(() => ev('toMarkdownBullets(3)')).toThrow(/expects a list/);
+  });
+
+  it('throws on an element it cannot print as text', () => {
+    expect(() => ev('toMarkdownBullets([{a: 1}])')).toThrow(/expects strings, numbers or booleans, got an object/);
+    expect(() => ev('toMarkdownBullets([[1]])')).toThrow(TypeError);
   });
 });
