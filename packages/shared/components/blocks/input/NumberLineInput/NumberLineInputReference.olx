@@ -1,0 +1,24 @@
+<Vertical id="NumberLineInputReferenceDemo" title="Now, and a year from now">
+<Markdown id="reference_now_prompt">**Where are you now** with spaced practice?</Markdown>
+
+<NumberLineInput id="reference_now" min="0" max="10" step="1" snap="step" showValue="true">
+  <Tick value="0"  label="never"  > never         </Tick>
+  <Tick value="10" label="always" > every session </Tick>
+</NumberLineInput>
+
+<Markdown id="reference_goal_prompt">**Where would you like to be a year from now?** The thin marker shows where you are today.</Markdown>
+
+<NumberLineInput id="reference_goal" min="0" max="10" step="1" snap="step" showValue="true"
+                 initial="@reference_now.value" reference="@reference_now.value" referenceLabel="now">
+  <Tick value="0"  label="never"  > never         </Tick>
+  <Tick value="10" label="always" > every session </Tick>
+</NumberLineInput>
+
+<Markdown id="reference_readonly_prompt">Today's answer, shown but not editable:</Markdown>
+
+<NumberLineInput id="reference_readonly" min="0" max="10" step="1" snap="step" readonly="true"
+                 initial="@reference_now.value" showValue="true">
+  <Tick value="0"  label="never"  > never         </Tick>
+  <Tick value="10" label="always" > every session </Tick>
+</NumberLineInput>
+</Vertical>

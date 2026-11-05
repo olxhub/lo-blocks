@@ -21,6 +21,14 @@ interface DocTest {
  *   >>> expression
  *   { "expected": "ast" }  // optional - if missing, just verify parse
  */
+interface ErrorTest {
+  expression: string;
+  line: number;
+}
+
+/** Populated by extractDocTests from `!!!` lines. */
+const errorTests: ErrorTest[] = [];
+
 function extractDocTests(markdown: string): DocTest[] {
   const lines = markdown.split('\n');
   const tests: DocTest[] = [];
@@ -28,6 +36,15 @@ function extractDocTests(markdown: string): DocTest[] {
 
   while (i < lines.length) {
     const line = lines[i];
+    if (line.startsWith('!!! ')) {
+      // A syntax error, asserted. Reserved spellings (indexing) and
+      // malformed literals are part of the contract too: if one of these
+      // ever starts parsing, the grammar has taken a position it did not
+      // mean to take, and the doc says so out loud.
+      errorTests.push({ expression: line.slice(4).trim(), line: i + 1 });
+      i++;
+      continue;
+    }
     if (line.startsWith('>>> ')) {
       const expression = line.slice(4).trim();
       const lineNum = i + 1;
@@ -94,6 +111,23 @@ describe('State Language (syntax.md doctests)', () => {
   }
 });
 
+describe('State Language (syntax.md error cases)', () => {
+  it(`found ${errorTests.length} error cases`, () => {
+    expect(errorTests.length).toBeGreaterThan(0);
+  });
+
+  for (const test of errorTests) {
+    it(`line ${test.line}: ${test.expression} (must not parse)`, () => {
+      const result = parseResult(test.expression);
+      if (result.success) {
+        throw new Error(
+          `Expected a syntax error, but it parsed: ${JSON.stringify(result.ast)}`
+        );
+      }
+    });
+  }
+});
+
 // Reference extraction tests (still useful to have explicit tests)
 describe('extractReferences', () => {
   it('extracts @ reference', () => {
@@ -124,6 +158,35 @@ describe('extractReferences', () => {
     expect(extractReferences('children.every(c => c.id === @selected)')).toEqual([
       { sigil: '@', id: 'selected', fields: [] }
     ]);
+  });
+
+  it('extracts from array literals', () => {
+    // The whole point of the literal: average([@s09.code, @s19.code]) has to
+    // re-render when either item is answered.
+    expect(extractReferences('[@s09.code, @s19.code]')).toEqual([
+      { sigil: '@', id: 's09', fields: ['code'] },
+      { sigil: '@', id: 's19', fields: ['code'] }
+    ]);
+    // Nested, and inside an arrow body over a literal.
+    expect(extractReferences('[[@a.value], {k: @b.value}]')).toEqual([
+      { sigil: '@', id: 'a', fields: ['value'] },
+      { sigil: '@', id: 'b', fields: ['value'] }
+    ]);
+    expect(extractReferences('[1, 2].map(v => v === @sel.value)')).toEqual([
+      { sigil: '@', id: 'sel', fields: ['value'] }
+    ]);
+    expect(extractReferences('[]')).toEqual([]);
+  });
+
+  it('extracts from object literals', () => {
+    expect(extractReferences('{a: @x.value}')).toEqual([
+      { sigil: '@', id: 'x', fields: ['value'] }
+    ]);
+    expect(extractReferences("stringMatch(@answer.value, 'paris', { ignoreCase: @strict.value })"))
+      .toEqual([
+        { sigil: '@', id: 'answer', fields: ['value'] },
+        { sigil: '@', id: 'strict', fields: ['value'] }
+      ]);
   });
 });
 

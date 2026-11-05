@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { store, extendSettings, useLoaded } from '@/lib/state';
+import { installGlobalErrorReporting } from '@/lib/state/errorEvents';
 import { chatFields } from '@/lib/state/chatFields';
 import { initConfig, resolveConfig } from '@/lib/config';
 import { BLOCK_REGISTRY } from '@/components/blockRegistry';
@@ -43,6 +44,10 @@ const reduxStore = store.init({
   tabSync: resolveConfig({}, 'tab-sync') === 'true',
   eventServerUrl,
 });
+
+// After store.init so a report emitted during boot has a pipeline to land on.
+// Client entry point only — the module is shared code and stays node-safe.
+installGlobalErrorReporting();
 
 /**
  * Gate content on store hydration when persistence is active.

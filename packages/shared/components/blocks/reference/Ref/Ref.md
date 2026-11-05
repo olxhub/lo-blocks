@@ -30,7 +30,7 @@ Or with child text:
 - `target`: ID of the block to reference
 - `visible` (optional): Set to `false` for hidden references (useful in LLM prompts)
 - `field` (optional): Access a specific field instead of `getValue()`
-- `format` (optional): `"code"` for monospace code block display
+- `format` (optional): `"code"` for monospace code display; `"text"` to show typed prose as typed, with line and paragraph breaks kept and no Markdown parsing (the idiom for showing a student's own writing back to them, or on a print page)
 
 ## Common Use Cases
 

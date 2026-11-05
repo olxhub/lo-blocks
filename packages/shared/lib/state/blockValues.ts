@@ -4,7 +4,7 @@
 // decoded `value` field) with the loading/error/ready status layer. Pure (no
 // React); the hook wrapper useValue lives in fieldHooks.ts.
 
-import { commonFields } from './commonFields';
+import { valueFieldFor } from './commonFields';
 import { leafDefinitionKeyFromStateKey } from '../types/id-grammar';
 import { RuntimeProps, StateKey, BlockDataResult } from '../types';
 import { asObservableValue } from '../types/fieldValues';
@@ -70,9 +70,14 @@ export function valueSelector(
     };
   }
 
-  // No value getter: the decoded common 'value' field, stamped observable.
+  // No value getter: the decoded 'value' field, stamped observable — the
+  // TARGET block's own when it declares one (see valueFieldFor). Read with
+  // targetProps, not the caller's props: the field is the target's, and a
+  // componentSetting-scoped one buckets by props.loBlock.name.
   return {
-    value: asObservableValue(decodedFieldSelector(state, props, commonFields.value, { stateKey, fallback })),
+    value: asObservableValue(
+      decodedFieldSelector(state, target.targetProps, valueFieldFor(target.loBlock), { stateKey, fallback })
+    ),
     ...blockData('ready'),
   };
 }

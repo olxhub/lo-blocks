@@ -306,7 +306,8 @@ export const xml = {
 //   text: 'error' (default)    - throw on non-whitespace text or HTML tags
 //   text: 'passthrough'        - include HTML tags and text as mixed content (legacy allowHTML)
 //                                 Returns: [{ type: 'block', definitionKey }, { type: 'html', tag, ... }, { type: 'text', text }, ...]
-//   text: 'wrap', wrapTag: tag - auto-wrap bare text segments in the given block (e.g. 'Markdown')
+//   text: 'wrap', wrapTag: tag - auto-wrap bare text segments in the given block (e.g. 'Markdown');
+//                                 the wrapped text is trimmed on both ends (label text)
 //                                 Returns: [{ definitionKey }, { definitionKey }, ...] (text wrapped in synthetic blocks)
 // Options (on factory call, e.g. blocks({ requiredChildren: 2 })):
 //   requiredChildren: N - enforce exactly N block children at parse time.
@@ -383,8 +384,12 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
           if (allowHTML) {
             results.push({ type: 'text', text });
           } else if (textMode === 'wrap' && wrapTag) {
-            // Auto-wrap text in a synthetic block (e.g. Markdown)
-            const syntheticNode = { [wrapTag]: [{ '#text': text }] };
+            // Auto-wrap text in a synthetic block (e.g. Markdown), trimmed both
+            // ends: bare text here is a label, and the whitespace around it is
+            // literate-XML column padding, not content (docs/literate-xml.md).
+            // So <Key id="rf"      > Positive Reinforcement          </Key>
+            // yields "Positive Reinforcement", not a trailing run of spaces.
+            const syntheticNode = { [wrapTag]: [{ '#text': text.trim() }] };
             const result = await parseNode(syntheticNode, null, -1);
             if (result?.definitionKey) {
               results.push(result);
@@ -471,7 +476,8 @@ blocksFactory.staticKids = directKidDefinitionKeys;
 export const blocks = Object.assign(blocksFactory, {
   // blocks.allowHTML() returns parser that includes HTML/text as mixed content
   allowHTML: () => createBlocksParser({ text: 'passthrough' })(),
-  // blocks.wrapText('Markdown') auto-wraps bare text segments in the given block tag
+  // blocks.wrapText('Markdown') auto-wraps bare text segments in the given
+  // block tag, trimmed both ends (labels; surrounding whitespace is layout).
   wrapText: (tag: string) => createBlocksParser({ text: 'wrap', wrapTag: tag })(),
 });
 

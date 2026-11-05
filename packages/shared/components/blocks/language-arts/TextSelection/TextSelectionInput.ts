@@ -10,29 +10,64 @@
 // `getExpectedSelections` local (the getChoices pattern: static, callable from
 // graders and analytics with no rendered DOM).
 //
+// `separatorRegexp` / `separatorHidden` change only the selectable UNIT — word
+// (the default) or chunk — not the value: a chunk writes the word indices it
+// spans, so the grader and the analytics read both modes identically.
+//
 import { z } from 'zod';
 import { test, input, src } from '@/lib/blocks';
+import { z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
-import { expectedSelections, type ParsedDocument } from './textSelectionModel';
+import {
+  expectedSelections, projectParse, chunkProjection, isSeparatorHidden, selectedSegments,
+  type Chunk, type ParsedDocument,
+} from './textSelectionModel';
 import type { RuntimeProps } from '@/lib/types';
 
 // The field is named `selections` (not `value`) because that names what the
 // value IS — the array of selected word indices. `value` would also collide with
 // the selector namespace below, where the `value` getter reads this very field.
-export const fields = state.fields(['selections']);
+//
+// `gestureAnchor` holds the word index a mousedown began on, or null when the
+// gesture began on whitespace or no gesture is in flight. It decides whether a
+// token-mode drag SELECTS or CLEARS the span it touches, and it clears when the
+// gesture ends.
+//
+// It is a FIELD, not React local state, because that is the platform's
+// contract: block state lives in Redux through declared fields, so every value
+// is persisted and every change is logged. The anchor is logic — which end of a
+// span a drag started from is what makes a corrective drag corrective, and it
+// is exactly what a reader of the event log needs to replay the gesture. Local
+// state would drop it on the floor. Drag bookkeeping in the same shape:
+// SortableInput.ts:11-15 (`draggedItem` / `dragOverIndex`).
+//
+// Hover is deliberately NOT here: the chunk outline under the pointer is
+// presentation, so it is a `:hover` rule in textselection.css and reaches no
+// store at all.
+export const fields = state.fields(['selections', 'gestureAnchor']);
 
 // Getters run inside useSelector subscriptions; a fresh [] per call would
 // defeat the equality gate and re-render every dispatch while unanswered.
 const EMPTY_SELECTIONS: number[] = [];
+const EMPTY_SEGMENTS: string[] = [];
 
 /** The parsed passage from this input's kids (peggyParser stores it as .parsed). */
 function parsedOf(props: RuntimeProps): ParsedDocument {
   return (props.kids as { parsed?: ParsedDocument })?.parsed ?? {
     prompt: '', segments: [], scoring: [], targetedFeedback: {},
   };
+}
+
+/** This input's chunks in chunk mode; null in word mode. Throws on an unusable
+ *  separator (see compileSeparator). */
+function chunksOf(props: RuntimeProps, parsed: ParsedDocument): Chunk[] | null {
+  if (!props.separatorRegexp) return null;
+  return chunkProjection(
+    parsed, props.separatorRegexp, isSeparatorHidden(props.separatorHidden), String(props.id),
+  ).chunks;
 }
 
 const TextSelectionInput = test({
@@ -49,8 +84,39 @@ const TextSelectionInput = test({
     // value === the stored selection; the field is the value (level 3 == level 2).
     value: (state, props: RuntimeProps, _stateKey) =>
       decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS }),
+    // The selected SEGMENTS as text, in passage order. A segment is the
+    // selectable unit: a chunk in chunk mode, a word in word mode, where
+    // consecutive selected words merge into one string. The rule is
+    // selectedSegments in the model. Read as `@inputId.selectedSegments`, e.g.
+    // {{toMarkdownBullets(@inputId.selectedSegments)}}; empty when nothing is selected.
+    //
+    // An unusable separatorRegexp reads as empty rather than throwing: the
+    // renderer already reports that authoring error, and the expression
+    // language materializes every getter of a block whenever any of its fields
+    // is referenced, so a throw here would also break `@inputId.value`.
+    selectedSegments: (state, props: RuntimeProps, _stateKey) => {
+      const selections = decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS });
+      if (selections.length === 0) return EMPTY_SEGMENTS;
+      const parsed = parsedOf(props);
+      let chunks: Chunk[] | null;
+      try {
+        chunks = chunksOf(props, parsed);
+      } catch {
+        return EMPTY_SEGMENTS;
+      }
+      return selectedSegments(projectParse(parsed).tokens, chunks, selections);
+    },
   },
-  attributes: z.object({ ...src }).strict(),  // Optional external passage file.
+  attributes: z.object({
+    ...src,  // Optional external passage file.
+    // The selectable unit. Absent, it is the word (the passage is split on
+    // whitespace). Given, the passage is divided into chunks at every match of
+    // this regexp and the chunk is what the learner selects.
+    separatorRegexp: z.string().optional()
+      .describe('JavaScript regexp source dividing the passage into selectable chunks (e.g. "\\." for sentences, "\\|" for hand-placed markers). Absent: the learner selects single words.'),
+    separatorHidden: z_olx_boolean.optional()
+      .describe('true: the matched separator is consumed and never rendered. false (default): it stays at the end of the left chunk and renders as content.'),
+  }).strict(),
   locals: {
     // Projects the answer key off the parsed passage for the grader. Bound at
     // grade time to this input's own (props, state, id); ignores state/id —

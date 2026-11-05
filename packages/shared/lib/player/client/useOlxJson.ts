@@ -113,7 +113,12 @@ export function ensureBlock(
   const state = props.runtime.store.getState();
 
   const blockState = selectBlockState(state, [source], definitionKey);
-  if (blockState) return; // Already known (loading, ready, or error)
+  // Already known (loading or ready) — nothing to do. An ERRORED entry is not
+  // "known", it is a failed attempt: re-arming is the only way a block that
+  // failed for a transport reason ever comes back without a page reload. The
+  // storm guard is `ensuredIds` above, which the fetch path clears only for
+  // failures worth retrying.
+  if (blockState && blockState.loadingState?.status !== 'error') return;
 
   ensuredIds.add(dedupKey);
   dispatchOlxJsonLoading(props, source, definitionKey);
@@ -123,8 +128,12 @@ export function ensureBlock(
     })
     .then(data => {
       if (!data.ok) {
-        // API error (404 missing content, 500 server error) — don't retry.
-        // Key stays in ensuredIds to prevent retry storms.
+        // API error (404 missing content, 500 server error, non-JSON body).
+        // The marker MUST move to 'error' — an unclearable 'loading' marker is
+        // a permanent spinner. Transport-shaped failures (5xx, HTML instead of
+        // JSON) release the dedup key so the block can be attempted again;
+        // a definitive 404 keeps it, to prevent retry storms.
+        if (data.retryable) ensuredIds.delete(dedupKey);
         dispatchOlxJsonError(props, source, definitionKey, data.error || `Failed to load ${definitionKey}`);
       } else {
         // Field state rides the content response (fields-design 2b):
@@ -134,13 +143,24 @@ export function ensureBlock(
         dispatchOlxJson(props, source, data.idMap);
         // Recursively ensure blocks referenced by ref-typed attributes
         ensureReferencedBlocks(props, data.idMap, source);
+        // A "successful" response that doesn't actually contain the block we
+        // asked for clears nothing: dispatchOlxJson no-ops on an empty idMap,
+        // and LOAD_OLXJSON only touches the ids it carries — so the marker we
+        // wrote at the top of this function would sit there as 'loading'
+        // forever. Say so instead. (Harmless when the block arrived by some
+        // other route in the meantime: the ERROR fold no-clobbers content.)
+        if (!data.idMap?.[definitionKey]) {
+          dispatchOlxJsonError(
+            props, source, definitionKey,
+            `Content fetch for "${definitionKey}" succeeded but the response did not contain that block`,
+          );
+        }
       }
     })
     .catch(err => {
-      // Network failure — remove from dedup set so ensuredIds won't block.
-      // However, the Redux error state (set below) is a second gate: selectBlockState
-      // returns truthy, so ensureBlock returns early at line 94. In practice, retry
-      // requires clearing both gates — currently only a page reload does that.
+      // Network failure — release the dedup key AND land an error marker (never
+      // leave 'loading' behind). Both gates are now retry-permeable: the early
+      // return above ignores errored entries, so the next mount re-attempts.
       ensuredIds.delete(dedupKey);
       dispatchOlxJsonError(props, source, definitionKey, err.message || `Failed to load ${definitionKey}`);
     });
@@ -231,6 +251,18 @@ export function selectOlxJson(
   }
 
   const status = blockState.loadingState?.status;
+  const stored = blockState.olxJson;
+  const userLocale = props.runtime.locale.code;
+  const langVariant = stored ? extractLocalizedVariant(stored, userLocale) : null;
+
+  // DATA WINS. A loading/error marker sitting beside content we already have is
+  // stale — the reducer refuses to write one (NO-SHADOW in lib/state/olxjson.ts),
+  // but state can also arrive from replay, a server fold, or an older client, so
+  // the read path refuses to honour one too. Rendering the content we hold beats
+  // spinning forever next to it.
+  if (langVariant) {
+    return { olxJson: langVariant, ...blockData('ready') };
+  }
 
   if (status === 'loading') {
     return { olxJson: null, ...blockData('loading') };
@@ -243,15 +275,7 @@ export function selectOlxJson(
     };
   }
 
-  const stored = blockState.olxJson;
-  if (!stored) {
-    return { olxJson: null, ...blockData('ready') };
-  }
-
-  const userLocale = props.runtime.locale.code;
-  const langVariant = extractLocalizedVariant(stored, userLocale);
-
-  return { olxJson: langVariant || null, ...blockData('ready') };
+  return { olxJson: null, ...blockData('ready') };
 }
 
 /**
@@ -383,12 +407,13 @@ export function selectOlxJsonMultiple(
     const entry = selectBlockState(state, sources, definitionKey);
     if (!entry) return { olxJson: null, status: 'missing' as const };
     const status = entry.loadingState?.status;
+    const stored = entry.olxJson;
+    const langVariant = stored ? extractLocalizedVariant(stored, userLocale) : null;
+    // DATA WINS over a stale marker — see selectOlxJson above.
+    if (langVariant) return { olxJson: langVariant, status: 'ready' as const };
     if (status === 'loading') return { olxJson: null, status: 'loading' as const };
     if (status === 'error') return { olxJson: null, status: 'error' as const, error: entry.error?.message };
-    const stored = entry.olxJson;
-    if (!stored) return { olxJson: null, status: 'ready' as const };
-    const langVariant = extractLocalizedVariant(stored, userLocale);
-    return { olxJson: langVariant || null, status: 'ready' as const };
+    return { olxJson: null, status: 'ready' as const };
   });
 
   const allReady = results.every(r => r.status === 'ready' && r.olxJson !== null);

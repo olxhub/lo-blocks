@@ -1,0 +1,58 @@
+<Vertical id="NumberLineInputDisplayDemo" title="A position the learner does not set">
+<Markdown id="display_intro">
+### A running position, drawn on the same scale
+
+`display="true"` turns the block around: it **shows** a position computed by
+`initial=` instead of taking one. There is no control to drag — the marker is
+a picture of a number — and the field is never written.
+
+Answer either item below and the marker appears; answer both and it moves to
+the average. Items nobody has answered are skipped by `average()`, so the
+position means something from the first answer on.
+</Markdown>
+
+<ChoiceInput id="d1">
+  <Key id="d1_strongly_agree" value="strongly_agree" code="2">Strongly agree</Key>
+  <Key id="d1_agree" value="agree" code="1">Agree</Key>
+  <Key id="d1_disagree" value="disagree" code="-1">Disagree</Key>
+  <Key id="d1_strongly_disagree" value="strongly_disagree" code="-2">Strongly disagree</Key>
+</ChoiceInput>
+<Markdown id="d1_prompt">*I write to show what I already know.* — recorded as **{{@d1.code}}**</Markdown>
+
+<ChoiceInput id="d2" reverseCoded="true">
+  <Key id="d2_strongly_agree" value="strongly_agree" code="-2">Strongly agree</Key>
+  <Key id="d2_agree" value="agree" code="-1">Agree</Key>
+  <Key id="d2_disagree" value="disagree" code="1">Disagree</Key>
+  <Key id="d2_strongly_disagree" value="strongly_disagree" code="2">Strongly disagree</Key>
+</ChoiceInput>
+<Markdown id="d2_prompt">*I write to work out what I think.* (reverse-coded) — recorded as **{{@d2.code}}**</Markdown>
+
+<!-- The arithmetic, written once in the content that depends on it:
+
+       code   average   50 + 25 * average
+        -2      -2              0    both items at the first pole
+        -1      -1             25
+         0       0             50    the middle of the line
+         1       1             75
+         2       2            100    both items at the second pole
+
+     Codes run -2..2 and the line runs 0..100, so the map is a scale of 25
+     and a shift of 50. The reversed item already carries reversed codes
+     (d2 is reverseCoded), so a PLAIN average is correct — nothing is
+     negated here. `average()` skips unanswered items, and is absent when
+     none are answered: that absence is what draws the placeholder instead
+     of a marker. -->
+<NumberLineInput id="display_why" min="0" max="100" step="1" snap="step" showValue="true"
+                 title="Why I write" display="true" markerLabel="you"
+                 initial="50 + 25 * average([@d1.code, @d2.code])"
+                 placeholder="Your position appears as you answer.">
+  <Tick value="0">Thinking</Tick>
+  <Tick value="100">Showing</Tick>
+</NumberLineInput>
+
+<Markdown id="display_outro">
+The same block without `display=` is the input the learner answers on, so a
+course can show a computed position on exactly the scale its questions were
+asked on — one visual vocabulary, not two.
+</Markdown>
+</Vertical>
