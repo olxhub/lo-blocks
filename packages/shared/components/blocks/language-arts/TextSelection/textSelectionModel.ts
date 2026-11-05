@@ -638,6 +638,14 @@ export function projectChunks(
   return { chunks, chunkOfWord };
 }
 
+/**
+ * The `separatorHidden` attribute as a boolean. OLX attributes arrive as raw
+ * strings; hand-built props may carry a real boolean. Both read the same.
+ */
+export function isSeparatorHidden(raw: unknown): boolean {
+  return raw === true || raw === 'true';
+}
+
 // Memoized per (Document, separator, hidden), alongside the token projection, so
 // the renderer's re-renders cost one Map lookup.
 const chunksByParse = new WeakMap<ParsedDocument, Map<string, ChunkProjection>>();
@@ -726,4 +734,44 @@ export function toggleChunks(committed: Set<number>, touched: Chunk[]): Set<numb
  */
 export function anchorChanged(current: number | null, next: number | null): boolean {
   return current !== next;
+}
+
+// --- The selected segments as text -------------------------------------------
+
+/**
+ * The learner's selected segments as text, in passage order -- what a readback
+ * prints (`{{@id.selectedSegments.join(", ")}}`). A segment here is the input's
+ * selectable unit, so the text reads the way the learner selected it:
+ *
+ *   - CHUNK mode (`chunks` given): one string per chunk the selection covers
+ *     whole, exactly as rendered (a hidden separator stays hidden). A partly
+ *     covered chunk -- possible only for a selection stored before the passage
+ *     was chunked -- is not reported, by the same rule that outlines a chunk.
+ *   - WORD mode (`chunks` null): the word is the segment, and consecutive
+ *     selected words are merged into one string, joined by single spaces.
+ *     Punctuation attached to a word travels with it; the passage's own
+ *     whitespace between them (line breaks included) does not.
+ *
+ * Nothing selected reads as []. An index that names no word is ignored.
+ */
+export function selectedSegments(
+  tokens: Token[],
+  chunks: Chunk[] | null,
+  selections: readonly number[],
+): string[] {
+  const selected = new Set(selections);
+  if (chunks) {
+    return chunks
+      .filter(chunk => isSegmentSelected(chunk.wordIndices, selected))
+      .map(chunk => chunk.text);
+  }
+  const runs: string[][] = [];
+  let previous = -2;
+  for (const token of tokens) {
+    if (token.isSpace || !selected.has(token.index)) continue;
+    if (token.index === previous + 1) runs[runs.length - 1].push(token.text);
+    else runs.push([token.text]);
+    previous = token.index;
+  }
+  return runs.map(words => words.join(' '));
 }

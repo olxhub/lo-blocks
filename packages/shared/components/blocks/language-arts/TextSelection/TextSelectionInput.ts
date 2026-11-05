@@ -21,7 +21,10 @@ import * as state from '@/lib/state';
 import { decodedFieldSelector } from '@/lib/state';
 import { peggyParser } from '@/lib/content/parsers';
 import * as parser from './_textSelectionParser';
-import { expectedSelections, type ParsedDocument } from './textSelectionModel';
+import {
+  expectedSelections, projectParse, chunkProjection, isSeparatorHidden, selectedSegments,
+  type Chunk, type ParsedDocument,
+} from './textSelectionModel';
 import type { RuntimeProps } from '@/lib/types';
 
 // The field is named `selections` (not `value`) because that names what the
@@ -49,12 +52,22 @@ export const fields = state.fields(['selections', 'gestureAnchor']);
 // Getters run inside useSelector subscriptions; a fresh [] per call would
 // defeat the equality gate and re-render every dispatch while unanswered.
 const EMPTY_SELECTIONS: number[] = [];
+const EMPTY_SEGMENTS: string[] = [];
 
 /** The parsed passage from this input's kids (peggyParser stores it as .parsed). */
 function parsedOf(props: RuntimeProps): ParsedDocument {
   return (props.kids as { parsed?: ParsedDocument })?.parsed ?? {
     prompt: '', segments: [], scoring: [], targetedFeedback: {},
   };
+}
+
+/** This input's chunks in chunk mode; null in word mode. Throws on an unusable
+ *  separator (see compileSeparator). */
+function chunksOf(props: RuntimeProps, parsed: ParsedDocument): Chunk[] | null {
+  if (!props.separatorRegexp) return null;
+  return chunkProjection(
+    parsed, props.separatorRegexp, isSeparatorHidden(props.separatorHidden), String(props.id),
+  ).chunks;
 }
 
 const TextSelectionInput = test({
@@ -71,6 +84,28 @@ const TextSelectionInput = test({
     // value === the stored selection; the field is the value (level 3 == level 2).
     value: (state, props: RuntimeProps, _stateKey) =>
       decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS }),
+    // The selected SEGMENTS as text, in passage order. A segment is the
+    // selectable unit: a chunk in chunk mode, a word in word mode, where
+    // consecutive selected words merge into one string. The rule is
+    // selectedSegments in the model. Read as `@inputId.selectedSegments`, e.g.
+    // {{toMarkdownBullets(@inputId.selectedSegments)}}; empty when nothing is selected.
+    //
+    // An unusable separatorRegexp reads as empty rather than throwing: the
+    // renderer already reports that authoring error, and the expression
+    // language materializes every getter of a block whenever any of its fields
+    // is referenced, so a throw here would also break `@inputId.value`.
+    selectedSegments: (state, props: RuntimeProps, _stateKey) => {
+      const selections = decodedFieldSelector(state, props, fields.selections, { fallback: EMPTY_SELECTIONS });
+      if (selections.length === 0) return EMPTY_SEGMENTS;
+      const parsed = parsedOf(props);
+      let chunks: Chunk[] | null;
+      try {
+        chunks = chunksOf(props, parsed);
+      } catch {
+        return EMPTY_SEGMENTS;
+      }
+      return selectedSegments(projectParse(parsed).tokens, chunks, selections);
+    },
   },
   attributes: z.object({
     ...src,  // Optional external passage file.

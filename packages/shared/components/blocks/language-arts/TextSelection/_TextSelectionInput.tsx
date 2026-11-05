@@ -35,7 +35,7 @@ import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import { DisplayError } from '@/lib/util/debug';
 import {
   projectParse, chunkProjection, targetedFeedbackItems, applyGesture, toggleChunks,
-  anchorChanged, trimEdgeSpaces,
+  anchorChanged, trimEdgeSpaces, isSeparatorHidden,
   type Chunk, type ParsedDocument, type Token, type WordToken,
 } from './textSelectionModel';
 
@@ -45,10 +45,8 @@ const EMPTY_SELECTIONS: number[] = [];
 
 export default function TextSelectionInput(props: RuntimeProps) {
   const parsed = (props.kids as { parsed?: ParsedDocument })?.parsed;
-  // OLX attributes arrive as raw strings; `separatorHidden` accepts either the
-  // string or a real boolean so hand-built props behave the same as markup.
   const separatorRegexp: string | undefined = props.separatorRegexp;
-  const separatorHidden = props.separatorHidden === true || props.separatorHidden === 'true';
+  const separatorHidden = isSeparatorHidden(props.separatorHidden);
 
   // One projection of the parse — render tokens AND the grader's segment facts
   // (types, word indices, labels, feedback map) — from a single tokenization,
