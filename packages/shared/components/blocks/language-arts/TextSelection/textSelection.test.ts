@@ -5,7 +5,7 @@ import { parse } from './_textSelectionParser';
 import {
   expectedSelections, computeStats, scoreFromStats, targetedFeedbackItems,
   projectParse, projectChunks, applyGesture, toggleChunks, anchorChanged,
-  trimEdgeSpaces, tokenize,
+  trimEdgeSpaces, tokenize, selectedSegments,
   type ParsedDocument,
 } from './textSelectionModel';
 
@@ -851,5 +851,74 @@ for (const row of GRADING_PARITY_TABLE) {
     expect(withSeparator).toEqual(withoutSeparator);
     expect(withSeparator.requiredFound).toBe(row.found);
     expect(withSeparator.wrongSelected).toBe(row.errors);
+  });
+}
+
+// --- The selected segments as text ------------------------------------------
+//
+// `selectedSegments` reads the stored word indices back in the input's own unit:
+// whole chunks in chunk mode, words in word mode (consecutive ones merged),
+// always in passage order whatever order the indices were stored in.
+
+const SELECTED_TEXT_ROWS: {
+  name: string;
+  body: string;
+  separator: string | null;
+  hidden: boolean;
+  selections: number[];
+  text: string[];
+}[] = [
+  {
+    name: 'word mode: nothing selected reads as empty',
+    body: 'Alpha one.\nBeta two. Gamma three.',
+    separator: null, hidden: false,
+    selections: [],
+    text: [],
+  },
+  {
+    name: 'word mode: one string per run; a run crossing a line break joins with a space',
+    body: 'Alpha one.\nBeta two. Gamma three.',
+    separator: null, hidden: false,
+    selections: [1, 2, 4],
+    text: ['one. Beta', 'Gamma'],
+  },
+  {
+    name: 'word mode: passage order, not storage order; a stray index is ignored',
+    body: 'Alpha one.\nBeta two. Gamma three.',
+    separator: null, hidden: false,
+    selections: [4, 99, 0],
+    text: ['Alpha', 'Gamma'],
+  },
+  {
+    name: 'chunk mode: each selected chunk as rendered, in passage order',
+    body: 'The cat sat. The dog ran. Birds flew.',
+    separator: '\\.', hidden: false,
+    selections: [6, 7, 0, 1, 2],
+    text: ['The cat sat.', 'Birds flew.'],
+  },
+  {
+    name: 'chunk mode: a hidden separator stays hidden',
+    body: 'One fish § two fish §',
+    separator: '§', hidden: true,
+    selections: [3, 4],
+    text: ['two fish'],
+  },
+  {
+    name: 'chunk mode: a partly covered chunk is not reported',
+    body: 'The cat sat. The dog ran. Birds flew.',
+    separator: '\\.', hidden: false,
+    selections: [0, 1, 3, 4, 5],
+    text: ['The dog ran.'],
+  },
+];
+
+for (const row of SELECTED_TEXT_ROWS) {
+  test(`selectedSegments -- ${row.name}`, () => {
+    const parsed = passage(row.body);
+    const { tokens, expected } = projectParse(parsed);
+    const chunks = row.separator === null
+      ? null
+      : projectChunks(tokens, expected, row.separator, row.hidden, BLOCK_ID).chunks;
+    expect(selectedSegments(tokens, chunks, row.selections)).toEqual(row.text);
   });
 }

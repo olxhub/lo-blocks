@@ -28,6 +28,8 @@ Highlight all the nouns:
   instead of inverting the correct words underneath.
 - Stores the selection under the `selections` field (its value) — an array of
   the selected word indices.
+- Exposes the same selection as text under `selectedSegments` — see
+  [Reading the selected segments](#reading-the-selected-segments).
 - Shows per-term targeted feedback for selected labeled segments.
 - On Show Answer (driven by the grader), overlays the answer key in the passage.
 
@@ -127,6 +129,24 @@ punctuation, which keeps the punctuation attached and is worth pairing with
 here; the match is found in the passage text, not inside one word.) It still does
 not know "Dr." from a sentence end. Real sentence segmentation — an NLP-backed
 `sentences` mode — is a possible later addition, not this attribute.
+
+## Reading the selected segments
+
+`@inputId.selectedSegments` is the selection as an array of strings, one per
+selected segment, in passage order — computed from `selections` and the
+passage, never stored. A segment is the selectable unit: a chunk in chunk mode,
+a word in word mode. Use it for readbacks:
+
+```
+{{toMarkdownBullets(@inputId.selectedSegments)}}
+```
+
+- **Chunk mode:** one string per selected chunk, as rendered (a hidden
+  separator stays hidden).
+- **Word mode:** consecutive selected words are merged into one string,
+  joined by single spaces. Punctuation attached to a word stays with it; line breaks
+  between the words of a run do not.
+- **Nothing selected:** an empty array, so the example prints nothing.
 
 ## Passage grammar
 
