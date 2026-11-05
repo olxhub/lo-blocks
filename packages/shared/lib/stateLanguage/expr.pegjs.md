@@ -227,6 +227,14 @@ There is no unary minus: codes live on the item (`code="-1"`), and `-1`
 inside an expression is a syntax error. Write a subtraction where one is
 genuinely needed.
 
+`toMarkdownBullets(list)` is a list formatter on the same contract (one list;
+missing elements skipped; a non-list is a TypeError): one `- item` line per
+element, each Markdown-escaped, for readbacks in a Markdown block:
+
+```
+{{toMarkdownBullets(@inputId.selectedSegments)}}
+```
+
 ## Array Literals
 
 Write a list out with `[...]`. Elements are full expressions, so refs,
@@ -349,7 +357,7 @@ attribute names. The full list is maintained in `keywords.ts`.
 
 **Enums:** `correctness`, `completion`
 
-**Functions:** `wordcount`, `isFilled`, `isTruthy`, `isNumber`, `isMissing`, `text2markdown`, `formatDuration`, `stringMatch`, `numericalMatch`, `sum`, `countFilled`, `average`, `Math`, `Object`
+**Functions:** `wordcount`, `isFilled`, `isTruthy`, `isNumber`, `isMissing`, `text2markdown`, `formatDuration`, `stringMatch`, `numericalMatch`, `sum`, `countFilled`, `average`, `toMarkdownBullets`, `Math`, `Object`
 
 **Active array/string methods:** `length`, `every`, `some`, `filter`, `map`, `find`, `includes`, `join`
 
