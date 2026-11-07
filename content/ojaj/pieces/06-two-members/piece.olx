@@ -1,0 +1,130 @@
+<Sequential id="uk_06">
+
+  <Vertical id="uk_06_s01" title="A name underfoot">
+    <Markdown id="uk_06_s01_text">
+Grace stopped before Zofia did. Someone ahead had stopped to look down, and the people behind them had to divide around a pair of school bags.
+
+Inside the Abbey, a shoe scraped. Zofia pulled her folder against her coat.
+
+Grace's phone showed the Palace booking: named visitors, an escort, an end time. Zofia checked the last part again.
+
+She had asked to come here first. Now she could see Darwin at his grave, and the little folded list of sources in her hand suddenly looked very little.
+
+Ada and Hale had travelled with her. Neither could hold a page steady. Grace could, but she wanted to know how many more journeys it would take to get an answer.
+
+Zofia put the Workshop caption on top.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_06_s02" title="Alone on the caption">
+    <Markdown id="uk_06_s02_text">
+At Darwin's grave in the Abbey, Zofia unfolded the Workshop caption.
+
+**Checked source card — Charles Robert Darwin:** Born at The Mount, Shrewsbury, 12 February 1809; died at Down House, Downe, Kent, 19 April 1882; buried in Westminster Abbey, 26 April 1882.
+    </Markdown>
+    <Chat id="uk_06_at_the_grave" src="two-members.chatpeg" clip="at-the-grave"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="darwin-life darwin-wallace darwin-beagle darwin-origin darwin-books"-->
+
+  <Vertical id="uk_06_s03" title="Who comes to whom">
+    <Markdown id="uk_06_s03_text">In the booked Palace meeting room, Kit held a chair clear of the table.</Markdown>
+    <Chat id="uk_06_three_parts" src="two-members.chatpeg" clip="three-parts"/>
+  </Vertical>
+
+  <Vertical id="uk_06_s04" title="Biscuits between parties">
+    <Markdown id="uk_06_s04_text">At the meeting table, Mara moved her bag off the chair beside her.</Markdown>
+    <Chat id="uk_06_opposite_benches" src="two-members.chatpeg" clip="opposite-benches"/>
+  </Vertical>
+
+  <Vertical id="uk_06_s05" title="The sentence Hugh won't sign">
+    <Markdown id="uk_06_s05_text">Hugh flattened the draft on the meeting table, keeping his pen capped.</Markdown>
+    <Chat id="uk_06_belief_clause" src="two-members.chatpeg" clip="belief-clause"/>
+  </Vertical>
+
+  <Vertical id="uk_06_s06" title="Two covers, one account">
+    <Markdown id="uk_06_s06_text">Beside the draft, Hugh laid two accounts of the maintenance rescue.</Markdown>
+    <Chat id="uk_06_one_source" src="two-members.chatpeg" clip="one-source"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="ada-legacy"-->
+
+  <Vertical id="uk_06_s07" title="One appointment left">
+    <Markdown id="uk_06_s07_intro">
+The escort checked the clock. Mara pulled the historical folder towards her. Niamh put her mother's envelope beside it.
+
+“Ten minutes,” Mara said. “Hugh and I can settle this draft. Or I can help Niamh find where her request belongs. I can't do both.”
+
+The folder had four loose slips: **Government historical accounts: proposed duty. Workshop and Association: public requests. House records: separate House route. Belfast care record: recipient still to check.**
+
+“She's waiting now,” Niamh said.
+    </Markdown>
+
+    <CapaProblem id="uk_06_packet" title="What does Zofia ask Mara to do with the ten minutes?" maxAttempts="1" submitLabel="Choose">
+      <CorrectGrader id="uk_06_packet_grader">
+        <Markdown id="uk_06_packet_prompt">**What does Zofia ask Mara to do with the ten minutes?**</Markdown>
+        <ChoiceInput id="uk_06_packet_input">
+          <Distractor id="uk_06_packet_a" value="a">**A — Finish the historical draft.** Keep the separate routes and evidence requirement; get both members' support while they are here.</Distractor>
+          <Distractor id="uk_06_packet_b" value="b">**B — Open Niamh's envelope.** Use the appointment to check her mother's next step; leave the historical draft unsigned.</Distractor>
+          <Distractor id="uk_06_packet_c" value="c">**C — Insist on guaranteed corrections.** Restore Mara's original belief clause so nobody can search and still refuse.</Distractor>
+        </ChoiceInput>
+        <Explanation id="uk_06_packet_explanation" showWhen="answered">
+          <Markdown id="uk_06_packet_explanation_text">Belief cannot guarantee a correction: this proposal requires evidence and reasons, including a possible refusal. Its duty concerns designated UK-government historical accounts; private, House and devolved care records need their separate routes. A Commons member presents the paper petition. Presentation does not book a debate or pass a Bill. The Commons and Lords consider legislation; Royal Assent follows agreement on the text. A custodian answers the records request. Choosing an envelope gives Zofia none of those powers.</Markdown>
+        </Explanation>
+      </CorrectGrader>
+    </CapaProblem>
+
+    <Markdown id="uk_06_s07_outro_a" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('a') : false">
+Zofia left the folder open between the members. Hugh uncapped his pen. “I'll find you afterwards,” she told Niamh. “Don't thank me for understanding,” Niamh said, taking her envelope back. She left without her appointment.
+    </Markdown>
+    <Markdown id="uk_06_s07_outro_b" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('b') : false">
+Zofia shut the folder. Mara pulled a chair beside Niamh and began with the address on the returned letter. Hugh put his pen away: he had another meeting. “You can send me the draft,” he said. Zofia watched the unsigned sheet disappear under her friend's envelope. Niamh had her appointment; the historical cases had no joint endorsement yet.
+    </Markdown>
+    <Markdown id="uk_06_s07_outro_c" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('c') : false">
+“You believed me before,” Zofia told Mara. “Put it back.” Hugh stood. “Then I cannot support it.” Mara spent the remaining minutes striking out the restored sentence with Zofia. Niamh took her envelope away unopened. They had lost both the appointment and Hugh's signature.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_06_s08" title="Both say rehearsal">
+    <Markdown id="uk_06_s08_text">In the meeting room doorway, Morwenna held two pages by their corners.</Markdown>
+    <Chat id="uk_06_report" src="two-members.chatpeg" clip="report"/>
+  </Vertical>
+
+  <Vertical id="uk_06_s09" title="The fold stays">
+    <Markdown id="uk_06_s09_text">
+Outside, the air caught the warm patch under Zofia's scarf. A bus hissed at the kerb.
+
+Morwenna had given her two plastic sleeves. They kept sliding apart. Grace walked on Zofia's other side, leaving a space where Morwenna had been walking before.
+
+At the crossing, Zofia bent one sleeve to fit it into the folder. The copied time disappeared behind a fold. She flattened it again with her thumb.
+
+That evening she checked the crossed-out belief clause. The line about a searched refusal remained. She hated how much room it occupied.
+    </Markdown>
+    <Markdown id="uk_06_s09_if_a" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('a') : false">Hugh's signature was confirmed that evening. Niamh sent nothing.</Markdown>
+    <Markdown id="uk_06_s09_if_b" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('b') : false">Hugh's emailed conditions took two evenings after school to settle. Niamh had appointment notes, still no answer for Mum.</Markdown>
+    <Markdown id="uk_06_s09_if_c" when="@uk_06_packet_grader.lastSubmission ? (@uk_06_packet_grader.lastSubmission).includes('c') : false">Zofia sent Hugh the draft without the belief clause. Agreement took two more days. Niamh's envelope remained unopened.</Markdown>
+    <Markdown id="uk_06_s09_text2">
+The later sitting had its own booking. They waited for that booking; they did not follow Mara through a door. Ollie checked his message so often that Grace asked whether the seat number was trying to escape.
+
+Zofia brought the petition and both rehearsal pages. She also brought the unanswered caption requests. There was still no reply for Ada. Niamh had kept her own envelope.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_06_s10" title="The permitted place">
+    <Markdown id="uk_06_s10_text">Outside the gallery entrance at the later sitting, Samuel checked Ollie's booking.</Markdown>
+    <Chat id="uk_06_later_sitting" src="two-members.chatpeg" clip="later-sitting"/>
+  </Vertical>
+
+  <Vertical id="uk_06_s11" title="In writing">
+    <Markdown id="uk_06_s11_text">
+Mara presented the petition. Afterwards, Samuel handed Zofia the decision.
+
+**To Zofia Kowalczyk**
+
+**Further access under the supervised family arrangement is suspended pending review. Requests for attendance at any response sitting must be submitted in writing.**
+
+Zofia looked up at the door she needed to get through.
+
+“Where do I send it?”
+    </Markdown>
+  </Vertical>
+
+</Sequential>

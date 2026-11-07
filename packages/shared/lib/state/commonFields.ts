@@ -55,6 +55,10 @@ export const commonFields = {
   /** Show answer toggle - controls answer display */
   showAnswer: stateField('showAnswer'),
 
+  /** Learner revealed the answer without producing one ("Don't know").
+   *  Stored on a problem (metagrader); grading derives it as gaveUp. */
+  gaveUp: stateField('gaveUp'),
+
   /** Popout expanded state - tracks whether a block's popout overlay is open */
   popoutExpanded: stateField('popoutExpanded'),
 

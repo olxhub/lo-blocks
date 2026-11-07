@@ -1,0 +1,109 @@
+<Sequential id="uk_11">
+
+<Vertical id="uk_11_s1" title="Written notice">
+<Markdown id="uk_11_s1_intro">
+At the edge of Members' Lobby, their escort pointed out where they must stop. Beyond it, the arch into the Commons had broken edges in its stone. Zofia tucked her fingers inside her cuffs. Shoes clicked past; nobody else seemed cold. Kit's wrist card scraped his coat whenever he moved.
+
+“Churchill's Arch,” Grace said. “They kept the bomb-damaged stones.”
+
+Zofia looked at the rough bits again. People had put those back on purpose.
+</Markdown>
+<Chat id="uk_11_wrist" src="three-knocks.chatpeg" clip="wrist"/>
+</Vertical>
+
+<Vertical id="uk_11_s2" title="Before the cue">
+<Markdown id="uk_11_s2_intro">
+Kit laid the loose sequence cards beside his wrist card. The string allowed him to reach the first row, but not the last. Grace moved the last row closer.
+
+“The speech card keeps ending up too early,” Kit said. “Everyone calls it the King’s Speech. I keep putting it straight after his arrival.”
+</Markdown>
+<CapaProblem id="uk_11_order" title="Before the cue" dontKnow="true" showanswer="attempted">
+<SortableGrader id="uk_11_order_grader" algorithm="adjacent">
+<Markdown id="uk_11_order_prompt">
+Arrange the ceremony from first to last. The King has reached the Lords. Who still needs to get there before he speaks?
+</Markdown>
+<SortableInput id="uk_11_order_input">
+<Markdown id="uk_11_order_item_1" initialPosition="1">The monarch arrives in the Lords; Black Rod receives the instruction to summon the Commons.</Markdown>
+<Markdown id="uk_11_order_item_2" initialPosition="3">Black Rod approaches the Commons chamber.</Markdown>
+<Markdown id="uk_11_order_item_3" initialPosition="5">The Commons door is slammed shut before Black Rod.</Markdown>
+<Markdown id="uk_11_order_item_4" initialPosition="4">Black Rod knocks three times.</Markdown>
+<Markdown id="uk_11_order_item_5" initialPosition="6">The door opens; Black Rod enters and delivers the summons.</Markdown>
+<Markdown id="uk_11_order_item_6" initialPosition="7">The Commons procession goes to the Lords.</Markdown>
+<Markdown id="uk_11_order_item_7" initialPosition="2">The monarch delivers the King's Speech in the Lords.</Markdown>
+</SortableInput>
+<Explanation id="uk_11_order_explanation">
+<Markdown id="uk_11_order_explanation_text">
+The Commons reaches the Lords before the speech. Kit puts his cue beside Black Rod's approach, after the instruction and before the slam. There is no spare turn.
+</Markdown>
+</Explanation>
+</SortableGrader>
+</CapaProblem>
+<Markdown id="uk_11_fb_speech" when="(@uk_11_order.correct === correctness.incorrect || @uk_11_order.correct === correctness.partiallyCorrect) &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v > 4.5).join(',') === '6,5'">
+The King is ready, but the Commons has not arrived to hear him. Black Rod must bring the summons first.
+</Markdown>
+<Markdown id="uk_11_fb_door" when="(@uk_11_order.correct === correctness.incorrect || @uk_11_order.correct === correctness.partiallyCorrect) &amp;&amp; (@uk_11_order_input.value.arrangement.filter(v => v > 1.5 &amp;&amp; v &lt; 3.5).join(',') === '3,2' || @uk_11_order_input.value.arrangement.filter(v => v > 2.5 &amp;&amp; v &lt; 4.5).join(',') === '4,3')">
+The door is shut in Black Rod's face to show Commons independence from the Crown. The three knocks follow that refusal; then the door opens.
+</Markdown>
+<Markdown id="uk_11_fb_message" when="(@uk_11_order.correct === correctness.incorrect || @uk_11_order.correct === correctness.partiallyCorrect) &amp;&amp; (@uk_11_order_input.value.arrangement.filter(v => v > 3.5 &amp;&amp; v &lt; 5.5).join(',') === '5,4' || @uk_11_order_input.value.arrangement.filter(v => v &lt; 1.5).join(',') === '1,0')">
+Black Rod carries the summons from the Lords to the Commons. Follow the summons: instruction, journey, admission and summons, then the MPs' walk back to the Lords.
+</Markdown>
+<Markdown id="uk_11_fb_default" when="(@uk_11_order.correct === correctness.incorrect || @uk_11_order.correct === correctness.partiallyCorrect) &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v > 4.5).join(',') !== '6,5' &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v > 1.5 &amp;&amp; v &lt; 3.5).join(',') !== '3,2' &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v > 2.5 &amp;&amp; v &lt; 4.5).join(',') !== '4,3' &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v > 3.5 &amp;&amp; v &lt; 5.5).join(',') !== '5,4' &amp;&amp; @uk_11_order_input.value.arrangement.filter(v => v &lt; 1.5).join(',') !== '1,0'">
+Track Black Rod: instruction in the Lords, approach to the Commons, shut door, knocks, admission. Which event is out of place?
+</Markdown>
+<Markdown id="uk_11_s2_after" when="@uk_11_order.correct === correctness.correct || @uk_11_order.correct === correctness.gaveUp">
+“Once,” Kit said, pulling the loose cards into a stack. “We check it now, and I send the cue once.”
+
+“Not once more for someone who wasn't ready?” Zofia asked.
+
+He pressed the stack flat. “No.”
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_11_s3" title="Only the undertaking" when="@uk_11_order.correct === correctness.correct || @uk_11_order.correct === correctness.gaveUp">
+<Markdown id="uk_11_s3_before">
+Black Rod was coming. Shoes stopped clicking near the chamber entrance. Kit turned his small card towards their supervisor. Zofia could see the door through a gap between shoulders; she shifted, and the escort's hand went up. Far enough. The rough stone above the doorway caught the light. She pressed the folder's metal clip until it hurt.
+</Markdown>
+<Chat id="uk_11_cue" src="three-knocks.chatpeg" clip="cue"/>
+<Markdown id="uk_11_s3_after">
+After the third knock the door began to open. Zofia's thumb was still pressed against Mara's recorded undertaking. Nothing had been added beneath the signature.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_11_s4" title="Silence" when="@uk_11_order.correct === correctness.correct || @uk_11_order.correct === correctness.gaveUp">
+<Chat id="uk_11_reply" src="three-knocks.chatpeg" clip="reply"/>
+<Markdown id="uk_11_s4_mid">
+Zofia lifted her elbow for the horse's weight. The folder slipped, and she caught it against her knee.
+
+“Your bag,” Grace said. “Give me the strap.”
+
+Grace took it. Zofia held her empty palm low a moment longer, then straightened the sheet marked OPEN.
+
+Grace stepped aside for someone passing. Zofia watched her shoe settle. Nothing pulled her after it. The dog, she thought.
+
+Grace held out her free hand.
+
+“I'm staying here,” she said.
+
+Zofia kept her hands by her sides. Grace stayed within reach.
+
+Zofia turned towards the corridor, waiting for the pigeon's urge to go home. Her feet stayed flat on the tiles.
+
+“The reply,” she said to Kit. “You know how to get something from one person to the next.”
+
+“Paper,” he said. “I know where to take our paper.”
+
+“Back to them.”
+
+“I don't know a route for that.”
+
+He turned his cue card over between his hands. Zofia pressed a nail beneath the animal claim's unanswered line.
+</Markdown>
+<Chat id="uk_11_reasons" src="three-knocks.chatpeg" clip="reasons"/>
+<Markdown id="uk_11_s4_after">
+Grace's fingers closed around Zofia's sleeve. Ollie's pencil was moving beside Len's reply address. Zofia felt Grace's grip tighten.
+
+Grace's lips moved without sound.
+</Markdown>
+</Vertical>
+
+</Sequential>

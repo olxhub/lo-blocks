@@ -1,0 +1,134 @@
+<Sequential id="uk_02">
+
+  <Vertical id="uk_02_s01" title="The word he wants removed">
+    <Chat id="uk_02_accusation" src="steps.chatpeg" clip="accusation"/>
+  </Vertical>
+
+  <Vertical id="uk_02_s02" title="An address, not a destination for the dead">
+    <Markdown id="uk_02_s02_text">
+Zofia closed the folder before leaving the Monument. Will stayed beside the column. He had not given her the quantity, and she had not invited him to come.
+
+She went with Grace to Upper Wimpole Street, carrying the Workshop sheet and a second caption saved on her phone. On the journey she typed out the editor's address. Every time the bus moved, her thumb landed on the wrong letter. She checked the address against the photograph before saving it.
+
+Grace had brought lunch. She gave Zofia the sandwich with the less flattened corner and asked whether there was someone at this next address who could actually receive an email. Zofia showed her the second caption instead. Grace read it, then handed the phone back without agreeing to another journey after this one.
+
+At 2 Upper Wimpole Street, Zofia looked up at the green plaque to Arthur Conan Doyle. A man stood below it. Grace stepped past him to let someone along the pavement. He did not move out of her way; she did not move out of his.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_02_s03" title="Something inconvenient">
+    <Chat id="uk_02_plaque" src="steps.chatpeg" clip="plaque"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="doyle-other"-->
+
+  <Vertical id="uk_02_s04" title="The author outside the caption">
+    <Chat id="uk_02_otherwork" src="steps.chatpeg" clip="otherwork"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="doyle-life doyle-knight"-->
+
+  <Vertical id="uk_02_s05" title="Back to the column">
+    <Markdown id="uk_02_s05_text">
+“Come with me,” Zofia said. Doyle agreed. Once she left the plaque, she could hear him but the pavement beside her was empty. On the bus back she read him the Workshop sentence. Grace looked over her shoulder at the phone.
+
+At the Monument, shoes scuffed round the base. Someone backed into Zofia while trying to fit the gilded urn into a photograph. She stepped aside. The stone stayed cold against her knuckles. Above her, gold flashed between the buildings.
+
+Will stood where she had left him, watching her folder. No quantity yet. She kept it shut.
+
+He offered to talk while she climbed. Grace checked the time and sent a message home. Inside, footsteps rang up the spiral. Zofia gripped the rail. If he wanted her breathless before he answered, fine. She could still ask.
+    </Markdown>
+    <!-- image: the whole Monument, base to gilded urn. alt="The Monument's stone column rises from its inscribed base to a gilded urn of fire." Licence: a checked public-domain or own image, with license (and authors) attributes recorded on the Image. -->
+  </Vertical>
+
+  <Vertical id="uk_02_s06" title="The price of stairs">
+    <Chat id="uk_02_climb" src="steps.chatpeg" clip="climb"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="monument-what monument-designers monument-built monument-height monument-steps"-->
+
+  <Vertical id="uk_02_s07" title="Leave the door in the account">
+    <Markdown id="uk_02_s07_text">
+Wind caught Zofia’s coat as she stepped onto the gallery. Through the mesh, roofs crowded together below her. She turned east towards Pudding Lane: 202 feet away at ground level. All those stairs, and the bakery site was still almost underneath her.
+
+Will peered down. “So near. There was a door I could find with a sack across my shoulder.” He looked back at her. “You have brought paper instead.”
+
+She pulled the folder out of her bag. Grace caught a loose page before the wind could take it.
+
+The source sheet lay beside the Workshop’s sentence: the Great Fire ran from 2 to 5 September 1666, beginning shortly after midnight in Thomas Farriner’s bakery in Pudding Lane.
+    </Markdown>
+    <Chat id="uk_02_origin" src="steps.chatpeg" clip="origin"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="gfl-dates-start gfl-blame-hubert"-->
+
+  <Vertical id="uk_02_s08" title="What the stone cannot settle">
+    <Chat id="uk_02_carving" src="steps.chatpeg" clip="carving"/>
+    <Markdown id="uk_02_s08_text">
+On the next page of the source sheet: brick and stone replaced timber; the old street plan was largely recreated. Wren designed the new St Paul’s. Zofia’s thumb hovered over “deliberately” in the message. She left it in quotation marks.
+    </Markdown>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="monument-inscription gfl-rebuilding"-->
+
+  <Vertical id="uk_02_s09" title="What can go in the request?">
+    <Markdown id="uk_02_s09_intro">
+The wind kept lifting the folder’s corner. Grace held it down while Zofia found the published English translations of the Monument’s Latin inscriptions on her phone.
+
+**Schematic:** column → pedestal → north inscription panel.
+
+A. “202 feet” — north panel.
+
+B. “in the year 1671” — east panel, describing when building began.
+
+C. “But Popish frenzy, which wrought such horrors, is not yet quenched.” — later addition to the north panel. “Popish” is a hostile term for Catholic; “wrought” means caused here.
+
+[Source: Monument restoration project, Inscriptions](https://www.themonument.info/history/inscriptions.html)
+
+“That last one. They’re saying Catholics did it.” Zofia enlarged the line. “Fifteen years afterwards.”
+
+“And taking it off proves what?” Grace asked.
+
+“That they stopped saying it there. It doesn’t move the bakery.”
+    </Markdown>
+
+    <CapaProblem id="uk_02_request" title="What can go in the request?" dontKnow="true" showanswer="attempted">
+      <RulesGrader id="uk_02_request_grader">
+        <StringMatch answer="1" score="0" feedback="The accusation was added in 1681, fifteen years after the Fire; carving it supplied no eyewitness evidence."/>
+        <StringMatch answer="2" score="0" feedback="Removing blame does not move the Fire’s origin from Farriner’s bakery."/>
+        <StringMatch answer="3" score="1" feedback="Yes. Preserve the accusation’s history without treating it as proof."/>
+        <Markdown id="uk_02_request_prompt">**What can go in the request?**</Markdown>
+        <ChoiceInput id="uk_02_request_input">
+          <Distractor id="uk_02_request_1" value="1">The carving confirms who caused the Fire.</Distractor>
+          <Distractor id="uk_02_request_2" value="2">Removing the accusation proves the bakery was not the starting place.</Distractor>
+          <Key id="uk_02_request_3" value="3">The inscription records later blame; its removal records a later change.</Key>
+        </ChoiceInput>
+        <Explanation id="uk_02_request_explanation" showWhen="answered">
+          <Markdown id="uk_02_request_explanation_text">Added in 1681, the accusation was removed under James II in 1685, restored in 1689 and finally removed in 1830. These changes record later decisions, not evidence of deliberate ignition in 1666.</Markdown>
+        </Explanation>
+      </RulesGrader>
+    </CapaProblem>
+
+    <Markdown id="uk_02_s09_outro" when="@uk_02_request.correct === correctness.correct || @uk_02_request.correct === correctness.incorrect || @uk_02_request.correct === correctness.gaveUp">
+“Keep the old sentence beside the correction?” Grace asked.
+
+Zofia copied the inscription’s dates into the message and attached the source. Will still had not given her the weight.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_02_s10" title="The missing measure">
+    <Markdown id="uk_02_s10_text">
+Zofia showed Grace the message before sending it.
+
+“Please identify the evidence for the word ‘deliberately’ in your teaching sheet. The starting place does not prove someone meant to light it. Please preserve the original sentence beside any correction and explain the evidence for the change. I can supply sources for the Fire's chronology, Robert Hubert's false confession and the Monument's later inscription.”
+
+She sent a separate request about Doyle's omitted work. Then she put the phone away and started down. Will stayed in sight. Doyle was still only a voice on the stairs.
+
+At the bottom, her phone lit up.
+
+“Thank you. Your message has been received.”
+
+No editor's name. No evidence. No answer to either request.
+
+Will was still there. Zofia opened the notebook to the blank beneath “delivery”.
+
+“I've sent it without promising your conclusion. Now I need the quantity you remember.”
+    </Markdown>
+  </Vertical>
+
+</Sequential>

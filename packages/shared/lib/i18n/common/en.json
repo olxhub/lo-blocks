@@ -1,6 +1,7 @@
 {
   "check": "Check",
   "clickToExpand": "Click to expand",
+  "gaveUp": "Gave up",
   "next": "Next",
   "previous": "Previous",
   "progress": "{{current}} of {{total}}",

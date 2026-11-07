@@ -55,6 +55,10 @@ export const correctness = {
   correct: 'correct',              // Full credit (maps to xAPI/cmi5: passed)
   partiallyCorrect: 'partiallyCorrect',  // Partial credit
   incorrect: 'incorrect',          // No credit (maps to xAPI/cmi5: failed)
+  gaveUp: 'gaveUp',                // Learner chose "Don't know": no response was
+                                   // produced. Distinct from incorrect (no wrong
+                                   // association to unlearn) and from unsubmitted
+                                   // (the problem is over). Maps to xAPI/cmi5: failed.
 
   // Edge cases
   incomplete: 'incomplete',        // Partial submission (1 of 3 blanks filled)
@@ -165,6 +169,11 @@ export function countsAsAttempt(correct: Correctness): boolean {
 /**
  * Ordering for worst-case aggregation (lower = worse).
  * Used by grading aggregators to determine priority.
+ *
+ * gaveUp sits above incorrect: a wrong answer usually leaves a misconception
+ * to unlearn, a give-up leaves nothing. This is the project default, not a
+ * law; an olympiad coach may rank a failed attempt above a glance-and-quit,
+ * and schedulers or graders may order differently.
  */
 export const correctnessPriority = {
   [correctness.invalid]: 0,
@@ -172,8 +181,9 @@ export const correctnessPriority = {
   [correctness.incomplete]: 2,
   [correctness.submitted]: 3,
   [correctness.incorrect]: 4,
-  [correctness.partiallyCorrect]: 5,
-  [correctness.correct]: 6,
+  [correctness.gaveUp]: 5,
+  [correctness.partiallyCorrect]: 6,
+  [correctness.correct]: 7,
 } as const;
 
 // =============================================================================

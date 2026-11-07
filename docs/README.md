@@ -354,7 +354,7 @@ In most cases, graders are inferred from `match` and `validateInputs`. However, 
 
 Which one is based on the zod signature `inputSchema`. In contrast to a match function, they also receive `options`, consisting of: `{ props, attributes, inputApi | inputApis /* Bound locals from input or inputs, based on zod signature*/ }
 
-Correctness states are defined in `packages/shared/lib/grading/correctness.ts` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
+Correctness states are defined in `packages/shared/lib/grading/correctness.ts` and currently include:  UNSUBMITTED, SUBMITTED, CORRECT, PARTIALLY_CORRECT, INCORRECT, GAVE_UP (`gaveUp`, a "Don't know" give-up), INCOMPLETE, and INVALID. This is inspired by Open edX, but may extend in the future.
 
 When actions execute, they inherit the `idPrefix` from the triggering component. This ensures that graders in scoped contexts (like a problem inside a MasteryBank) update the correct scoped state rather than global state. See "ID Prefixes for Scoped State" below.
 

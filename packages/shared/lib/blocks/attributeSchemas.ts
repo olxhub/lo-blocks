@@ -339,6 +339,8 @@ export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
   showanswer: showAnswerAttr,
   grade: gradeAttr,
+  dontKnow: z_olx_boolean.optional()
+    .describe('Show a "Don\'t know" button (default false): the problem\'s correctness becomes gaveUp, and the answer is revealed unless showanswer is never'),
 });
 
 // =============================================================================

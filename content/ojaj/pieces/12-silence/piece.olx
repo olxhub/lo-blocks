@@ -1,0 +1,146 @@
+<Sequential id="uk_12">
+
+<Vertical id="uk_12_s1" title="Months later">
+<Markdown id="uk_12_s1_text">
+Months later, Zofia flattens the letter on the kitchen table. There is a tea ring across the signature. She checks that she can still read the name.
+
+Ewa puts a clean mug on a saucer beside it. Zofia moves the letter away from both.
+
+“The animals?” Ewa asks.
+
+Zofia turns the page. Len's application number. Hale's. Nothing from the private publisher about the words “all service was voluntary”. She checks the back.
+
+The Records (Correction) Act—the law they campaigned for—covers designated UK-government historical accounts. It cannot make that publisher answer. The Workshop's animal-service claim is still with its named voluntary reviewer.
+
+But the Historical Accounts Office must now search and answer applications from living representatives for Len and Hale, giving evidence and reasons, with independent review and appeal. Zofia puts a finger beside each number.
+
+It took months, a new session and a reintroduced Bill. Mara, a Labour government backbencher, still had to negotiate government support and time. The first reading before the slam had introduced a Bill, not made a law.
+
+Zofia can put those months between two paragraphs. Mara couldn't put them between two knocks.
+
+Under the letter, Ewa has left a shopping list. Its last item shows through the thin paper: bread.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s2" title="Versions">
+<Markdown id="uk_12_versions_scene">
+*During those months, in Mara's campaign meeting room, Morwenna lays two versions of the Bill across the table.*
+</Markdown>
+<Chat id="uk_12_versions_1" src="silence.chatpeg" clip="[1, 9]"/>
+<Markdown id="uk_12_versions_transition" when="@uk_12_versions_1.value &gt;= 9">
+*Mara goes back to her party's organisers without accepting their offer. Committee stage follows, then report and third reading in the Commons. The search duty survives. In the Lords, written reasons and an appeal are added; the argument over staff time starts again.*
+</Markdown>
+<Chat id="uk_12_versions_2" src="silence.chatpeg" clip="[10, 16]" when="@uk_12_versions_1.value &gt;= 9"/>
+<Markdown id="uk_12_versions_assent" when="@uk_12_versions_2.value &gt;= 16">
+*Both Houses eventually agree the same text. Royal Assent makes it an Act.*
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s3" title="The room without a reply">
+<Markdown id="uk_12_s3_text">
+They go to the Association room on a wet afternoon. Ollie's umbrella folds inside out before he gets it through the entrance. He carries it downstairs like something he has arrested.
+
+The room smells of wet coats and a radiator warming dust. Len's tablet is where it was. So is the scuffed chair Zofia used to pull round so she could face him without looking as though she were talking to the wall.
+
+She leaves the chair facing the table.
+
+The Association has given them permission to use the room. The answer came from somewhere else: the Historical Accounts Office, whose unit-account custodian has signed it. The covering sheet identifies the application, lists the evidence searched and gives the decision date. Ollie checks that the attachment is the published version. He has brought the earlier holding reply too. Its promise to consider future policy fits on half a page.
+
+The new answer takes several pages. One corner has caught in the staple. Zofia eases it free with her nail rather than tearing it.
+
+She has heard Ollie talk all the way here: about the rain, a missed bus, somebody who has apparently become somebody else's boyfriend. Now he holds the failed umbrella between his shoes and waits for her to begin.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s4" title="The purpose annotation">
+<Markdown id="uk_12_len_answer_scene">
+*In the Association room, Zofia rests the signed answer beneath Len's tablet.*
+</Markdown>
+<Chat id="uk_12_len_answer" src="silence.chatpeg" clip="len_answer"/>
+</Vertical>
+
+<Vertical id="uk_12_s5" title="Beside the allegation">
+<Markdown id="uk_12_correction_scene">
+*At the House review meeting, Ruth holds an envelope open on the table between herself and Ewa.*
+</Markdown>
+<Chat id="uk_12_correction" src="silence.chatpeg" clip="correction"/>
+</Vertical>
+
+<Vertical id="uk_12_s6" title="A second journey">
+<Markdown id="uk_12_s6_text">
+On another day, Morwenna meets Zofia outside the station with a folder pressed flat against her coat. She has put it inside a plastic bag. The bag advertises oranges.
+
+They walk to the scaffold-site memorial on Tower Hill. Traffic moves beyond the gardens; a delivery rider stops to adjust something at his ankle. Zofia remembers arriving here with a demand that seemed impossible to misunderstand. Record why he refused. She hadn't known how many different ways a person could avoid answering that.
+
+Morwenna takes the folder out of the bag. There is a separate sheet for the annotation and another for the refusal of reversal. The original case summary is reproduced with both.
+
+Zofia looks at the place where Hale used to stand. She can remember the angle of his head when he thought her question had omitted the important part. Remembering it does not put him there.
+
+A gust lifts the top sheet. Morwenna holds its edge, then passes the whole folder over.
+
+Zofia had asked her to come because she did not want to do this alone. Now Morwenna is here, and Zofia wishes she could tell her to go and buy oranges and leave the answer unread for another hour.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s7" title="His stated reason">
+<Markdown id="uk_12_hale_answer_scene">
+*At the Tower Hill memorial, Morwenna steadies the folder against the wind.*
+</Markdown>
+<Chat id="uk_12_hale_answer" src="silence.chatpeg" clip="hale_answer"/>
+</Vertical>
+
+<Vertical id="uk_12_s8" title="The day of the slam">
+<Markdown id="uk_12_s8_text">
+The day of the slam.
+
+Grace had kept her hand round Zofia's sleeve. Zofia could feel the seam pressing against her wrist. Kit was on her other side. Their mouths moved. She could see when they asked a question because they waited afterwards.
+
+She kept looking back.
+
+They brought her to the Serpentine bank that same day. Ewa was there when they arrived. Grace showed her the messages on her phone, then stepped aside without letting go until Ewa had taken Zofia's hand.
+
+The water was below the bank. Zofia's shoes stayed on the path.
+
+Ewa spread a coat on a bench and sat beside her. There was mud on Kit's trouser leg. Ollie had brought a bag with a split handle, which he held underneath with both hands. Nobody put anything in the water. Nobody tried to take Zofia into it.
+
+Ewa turned so that Zofia could see her face. She pointed to herself, then to the space beside Zofia on the bench. She spoke slowly. Zofia could not hear a word.
+
+She looked over Ewa's shoulder. Grace was standing there with Zofia's bag. The strap had left a red line across her hand.
+
+Ewa waited. Zofia could still feel her fingers.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s9" title="The first living answer">
+<Markdown id="uk_12_bank_then_scene">
+*On the Serpentine bench that day, Ewa keeps her hand round Zofia's cold fingers.*
+</Markdown>
+<Chat id="uk_12_bank_then" src="silence.chatpeg" clip="bank_then"/>
+</Vertical>
+
+<Vertical id="uk_12_s10" title="The bag on the bench">
+<Markdown id="uk_12_s10_text">
+Now, months later, the bag on the bench belongs to Ewa. It contains bread, a leaking pen in a separate pocket and the printed correction folded inside a clear sleeve. Zofia puts her own papers beside it. Ewa moves them away from the damp patch on the wood.
+
+The Serpentine has little broken ridges across it. Each one catches light, then loses it. A runner comes past breathing hard enough that Zofia hears him before his shoes. Somewhere behind the bench a bicycle bell rings twice.
+
+She has come here with Ewa. There was no search to arrange first, no one to collect on the way.
+
+For a while they watch a crisp packet snag against a twig near the edge. Zofia starts to stand. Ewa catches the back of her coat.
+
+“Leave it. We can tell someone with a grabber.”
+
+Zofia sits down again. The packet keeps tugging at the twig.
+
+She has told her mother about the late answers. She has not told her what she did after reading Hale's, how long she stood there, or what Morwenna asked. Ewa has not filled the gap for her. She unfastens the bag, checks the lid of her water bottle and fastens it again.
+</Markdown>
+</Vertical>
+
+<Vertical id="uk_12_s11" title="Which part">
+<Markdown id="uk_12_bank_now_scene">
+*Months later, on the same bank, Ewa closes the shopping bag between them.*
+</Markdown>
+<Chat id="uk_12_bank_now" src="silence.chatpeg" clip="bank_now"/>
+</Vertical>
+
+</Sequential>

@@ -1,0 +1,110 @@
+<Sequential id="uk_10">
+
+  <Vertical id="uk_10_s1" title="Give it back">
+    <Chat id="uk_10_give_it_back" src="wool-and-lords.chatpeg" clip="give_it_back"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s2" title="The extra permission">
+    <Markdown id="uk_10_s2_text">
+The envelope left a pale rectangle on the table where the dust had stuck to Zofia's damp sleeve. Niamh put it in her own bag. Zofia nearly reminded her about the attachment. Niamh had already checked it.
+
+Today’s permission covered the supervised Lords visit and a booked room, not their surrendered gallery access. Morwenna counted the visitors, then counted again when Kit came out of the wrong coat.
+
+“That one's mine,” Grace said.
+
+“I wondered why the sleeves had stopped,” Kit said.
+
+Beyond the window, somebody on a bus ate from a paper bag. Zofia wanted five minutes of being that person.
+
+The coat came off. The right coat went on. Their escort opened the next door.
+
+Hale came with Zofia as a voice close to her ear. There was no figure beside the wall. She had brought him from his anchor; he had not been waiting inside for them. Under the voice came the old pressure across her shoulders, the tug towards a departing footstep, the small restless need to return. The animals were still with her too.
+
+She shifted her bag. Nothing shifted the other weight.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_10_s3" title="Which House?">
+    <!-- image: alt="The Woolsack, the Lord Speaker’s wool-stuffed seat in the House of Lords". Checked photograph of the Woolsack in the Lords; supply the actual source and licence (license attribute required on the Image); no placeholder image. -->
+    <Chat id="uk_10_which_house" src="wool-and-lords.chatpeg" clip="which_house"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s4" title="Keep the damage visible">
+    <Chat id="uk_10_keep_damage" src="wool-and-lords.chatpeg" clip="keep_damage"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s5" title="A table with no cushion">
+    <Markdown id="uk_10_s5_text">
+The meeting room smelled of wet coats and somebody's hot lunch. A radiator clicked below a window that would not quite shut. Grace folded a spare agenda and wedged it into the gap. The paper rattled once, then held.
+
+Mara had booked this campaign room; this was no parliamentary committee. The speakerphone swallowed half of every sentence until Kit found its volume button.
+
+Zofia chose the chair nearest the door. The dog-pull had strengthened when their escort left. She kept her feet still and watched Grace sit down rather than follow. The pull eased a little. She could not tell anybody what that proved.
+
+Darwin’s voice, carried from his grave, came from beside the radiator. She turned. Only a loose thread hung from the chair back.
+
+The Workshop's animal-service page lay between two mugs. Under its claim that all service had been voluntary, someone had drawn a neat line in pencil. The paper beside it offered spaces for a reviewer, a representative and a conclusion.
+
+Zofia found a pen that worked. She tested it in the margin until Grace put her hand over the nib.
+
+“Leave room,” Grace said. “We might need to write something.”
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_10_s6" title="The unfinished qualification">
+    <Chat id="uk_10_unfinished" src="wool-and-lords.chatpeg" clip="unfinished"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s7" title="Three open claims">
+    <Chat id="uk_10_open_claims" src="wool-and-lords.chatpeg" clip="open_claims"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s8" title="Ask admission">
+    <Chat id="uk_10_ask_admission" src="wool-and-lords.chatpeg" clip="ask_admission"/>
+  </Vertical>
+
+  <Vertical id="uk_10_s9" title="Repair Kit’s packet">
+    <!-- image: alt="Union Flag: St George's red cross, St Andrew's white diagonal cross on blue, St Patrick's red diagonal cross". Checked, licensed teaching asset (license attribute required on the Image); must not imply which flag flies today. -->
+    <!-- image: alt="Royal Standard, non-Scottish version: England's three lions in the first and fourth quarters, Scotland's upright lion in the second, Ireland's harp in the third". Checked, licensed teaching asset (license attribute required on the Image); must not imply a flag flies today. -->
+    <!-- image: alt="Royal Coat of Arms, non-Scottish version: the shield with a lion and a unicorn as supporters". Checked, licensed teaching asset (license attribute required on the Image). -->
+    <Markdown id="uk_10_s9_intro">
+Kit has put three teaching images beside his cue sheet. Grace checks their labels aloud.
+
+“Union Flag: St George's red cross, St Andrew's white diagonal cross on blue, St Patrick's red diagonal cross. No Welsh dragon: Wales was part of the Kingdom of England when the flag was designed.”
+
+“Royal Standard: in the version here, England's three lions in the first and fourth quarters, Scotland's upright lion in the second, Ireland's harp in the third.”
+
+“Royal Coat of Arms: the shield has supporters beside it, a lion and a unicorn. That isn't a fourth flag.”
+
+Kit taps the empty cue-sheet pocket. “One packet. Which goes in?”
+    </Markdown>
+    <CapaProblem id="uk_10_packet" title="Which packet goes in?" dontKnow="true" showanswer="attempted" maxAttempts="1">
+      <RulesGrader id="uk_10_packet_grader">
+        <StringMatch answer="a" score="1" feedback="Keep this packet. The speech is delivered in the Lords. Introduction hasn't made our Bill an Act. Without carry-over it falls when prorogation ends the session."/>
+        <StringMatch answer="b" score="0" feedback="Swap the flag labels. The Union Flag combines crosses; the Royal Standard has quarters with lions and a harp. The supporters identify the arms."/>
+        <StringMatch answer="c" score="0" feedback="Keep the image labels; replace the route and Bill note. The speech is in the Lords. An introduced Bill doesn't survive prorogation automatically. Ours has no carry-over arranged."/>
+        <Markdown id="uk_10_packet_prompt">**Select one packet.**</Markdown>
+        <ChoiceInput id="uk_10_packet_input">
+          <Key id="uk_10_packet_a" value="a">A. Union Flag = crosses; Royal Standard = quartered lions and harp; Royal Arms = lion and unicorn supporters. Speech = Lords. Bill = introduced, no carry-over arranged; falls at prorogation, needs reintroduction.</Key>
+          <Distractor id="uk_10_packet_b" value="b">B. Union Flag = quartered lions and harp; Royal Standard = crosses; Royal Arms = lion and unicorn supporters. Speech = Lords. Bill = introduced, no carry-over arranged; falls at prorogation, needs reintroduction.</Distractor>
+          <Distractor id="uk_10_packet_c" value="c">C. Union Flag = crosses; Royal Standard = quartered lions and harp; Royal Arms = lion and unicorn supporters. Speech = Commons. Bill = introduced, so survives prorogation automatically.</Distractor>
+        </ChoiceInput>
+        <Explanation id="uk_10_packet_explanation" showWhen="answered">
+          <Markdown id="uk_10_packet_explanation_text">
+**Packet A goes in.** Union Flag = crosses; Royal Standard = quartered lions and harp; Royal Arms = lion and unicorn supporters. Speech = Lords. Bill = introduced, no carry-over arranged; falls at prorogation, needs reintroduction.
+
+“Keep this packet. The speech is delivered in the Lords. Introduction hasn't made our Bill an Act. Without carry-over it falls when prorogation ends the session.”
+          </Markdown>
+        </Explanation>
+      </RulesGrader>
+    </CapaProblem>
+  </Vertical>
+
+  <Vertical id="uk_10_s10" title="No second cue" when="@uk_10_packet.correct === correctness.correct || @uk_10_packet.correct === correctness.gaveUp || @uk_10_packet.correct === correctness.incorrect">
+    <Chat id="uk_10_no_second_cue" src="wool-and-lords.chatpeg" clip="no_second_cue"/>
+    <Markdown id="uk_10_s10_end">
+He drew a line through the space.
+    </Markdown>
+  </Vertical>
+
+</Sequential>

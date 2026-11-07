@@ -1,0 +1,94 @@
+<Sequential id="uk_03">
+
+  <Vertical id="uk_03_s01" title="The booked way">
+    <Markdown id="uk_03_s01_text">
+The queue moved far enough for Zofia to take her glove off, find the booking, and put her glove back on. Then it stopped. Rain gathered on the shoulders of the coat in front of her. Somewhere beyond the entrance, a child was arguing that a fortress ought to have a better place to keep people dry.
+
+Zofia had a place to be. That place was outside the Tower, but Morwenna had already booked them onto the Tower route, and changing the plan involved an adult, a message, and waiting for the adult to read the message. Apparently the dead could wait more easily than a booking could.
+
+Will had come with her from the Monument. Doyle, collected at his plaque, had complained about the weather all the way here. Neither had a visible body now. They occupied the space where she usually kept her thoughts about lunch.
+
+Morwenna held their route sheet inside a transparent sleeve. Zofia's own papers were going soft at the corners.
+
+Beyond the wet coats, the White Tower rose pale and square. Zofia tried to imagine arriving here with no return ticket. Then the queue moved, and somebody's umbrella emptied down her neck.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_03_s02" title="A prison with jewels">
+    <Markdown id="uk_03_s02_lead">
+At the Jewel House queue, Zofia folded the route sheet towards its exit arrow. The printed history on the back offered no shortcut: William the Conqueror, 1066; White Tower, begun around 1078; Warders, Henry VII, 1485. She turned past the prisoner panel—Edward V and Richard, vanished in 1483; Elizabeth I; Walter Raleigh—and found herself facing more coats.
+    </Markdown>
+    <Chat id="uk_03_tower_route" src="oath.chatpeg" clip="tower-route"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="tower-founder tower-prisoners tower-jewels tower-warders"-->
+
+  <Vertical id="uk_03_s03" title="The sentence on the sheet">
+    <Markdown id="uk_03_s03_lead">
+At the Tower’s exit, Zofia held the meeting sheet above the dripping edge of her folder.
+    </Markdown>
+    <Chat id="uk_03_the_summary" src="oath.chatpeg" clip="the-summary"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="tower-executions"-->
+
+  <Vertical id="uk_03_s04" title="What repeal cannot do">
+    <Markdown id="uk_03_s04_lead">
+Beside the Tower Hill memorial, Hale waited while Zofia found a dry margin to write in.
+    </Markdown>
+    <Chat id="uk_03_the_repeal" src="oath.chatpeg" clip="the-repeal"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="supremacy-what supremacy-date supremacy-why supremacy-treason supremacy-repeal-eliz"-->
+
+  <Vertical id="uk_03_s05" title="The dry side">
+    <Markdown id="uk_03_s05_text">
+Before they left the memorial, Zofia invited Hale to come with her. He stepped close enough for her to see the seam at his wrist. Then she walked away, and the seam, the sleeve and the man disappeared. His voice remained beside her.
+
+That was worse than being followed. With someone following, you could look back and find out how annoyed they were.
+
+On the journey to Westminster, Morwenna sat with the route sheet on her knees. Rain made little running races down the window. Zofia's folder had left a dark rectangle on her coat. She lifted it and found that the bottom page had stuck to the lining.
+
+She peeled it off slowly. A corner stayed behind.
+
+Nobody spoke for a moment. Outside, a delivery rider bent over his handlebars at a red light, one trainer planted in a puddle. Zofia could see water dripping from his heel.
+
+She turned the damaged page over. Her sentence about the bakery was still readable. There was a blank space beneath it, where Will had so far refused to let her put the amount he remembered carrying.
+
+Now there were three men waiting for her to say something useful, and Morwenna waiting for her to notice that she was holding out a tissue.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_03_s06" title="The weight he carried">
+    <Markdown id="uk_03_s06_lead">
+On the journey to Westminster, Zofia spread her wet folder across her knees.
+    </Markdown>
+    <Chat id="uk_03_the_weight" src="oath.chatpeg" clip="the-weight"/>
+  </Vertical>
+
+  <Vertical id="uk_03_s07" title="The case behind the visitor">
+    <Markdown id="uk_03_s07_lead">
+In the Palace’s supervised family-programme waiting area, Ruth stood between the marked seats and the equipment table.
+    </Markdown>
+    <Chat id="uk_03_the_case" src="oath.chatpeg" clip="the-case"/>
+  </Vertical>
+
+  <Vertical id="uk_03_s08" title="Space on the cards">
+    <Markdown id="uk_03_s08_lead">
+At the waiting-area table, Niamh laid her mother’s letter across Morwenna’s unfinished cards; the mosaic pictures on the worksheet disappeared beneath it.
+    </Markdown>
+    <Chat id="uk_03_the_cards" src="oath.chatpeg" clip="the-cards"/>
+  </Vertical>
+
+  <Vertical id="uk_03_s09" title="The chair is summoned">
+    <Markdown id="uk_03_s09_lead">
+In the rehearsal room, Kit had set two chairs facing a door and Grace had claimed one with her coat.
+    </Markdown>
+    <Chat id="uk_03_the_chair" src="oath.chatpeg" clip="the-chair"/>
+  </Vertical>
+
+  <Vertical id="uk_03_s10" title="A promise small enough">
+    <Markdown id="uk_03_s10_lead">
+Beside the rehearsal-room door, Zofia checked the bus time and opened a clean page.
+    </Markdown>
+    <Chat id="uk_03_the_undertaking" src="oath.chatpeg" clip="the-undertaking"/>
+  </Vertical>
+
+</Sequential>

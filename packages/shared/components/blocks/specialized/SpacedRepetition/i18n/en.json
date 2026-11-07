@@ -1,0 +1,15 @@
+{
+  "flashcardDeck": "Flashcard deck",
+  "preparingCards": "Preparing cards…",
+  "cardsDue_one": "{{due}} of {{count}} card due",
+  "cardsDue_other": "{{due}} of {{count}} cards due",
+  "nothingDue": "Nothing is due right now.",
+  "nextDueAt": "Next card due {{when}}.",
+  "studyAhead": "Study ahead",
+  "studyAheadLabel": "Study ahead: review the card due soonest",
+  "reviewCorrect": "Correct. Next review {{when}}.",
+  "reviewIncorrect": "Not yet. This card comes back {{when}}.",
+  "reviewGaveUp": "Gave up. This card comes back {{when}}.",
+  "nextCard": "Next card",
+  "nextCardLabel": "Next card: show the next due card"
+}

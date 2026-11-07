@@ -10,7 +10,7 @@
 // See docs/architecture/problem-submission-modes.md for design rationale.
 //
 
-import { correctness as correctnessEnum, completion, type Completion } from './correctness';
+import { correctness as correctnessEnum, completion, type Completion, type Correctness } from './correctness';
 import { showAnswerModes, type ShowAnswerMode } from '../blocks/attributeSchemas';
 
 // Re-export for consumers
@@ -23,10 +23,13 @@ export type { ShowAnswerMode };
 /**
  * State needed to evaluate problem modes.
  */
+// TODO: this record mixes live state (submitCount, correct) with an authored
+// limit (maxAttempts). Pass them as explicit parameters instead; the bag only
+// exists so the helpers below take one argument.
 export interface ProblemState {
   submitCount: number;
   maxAttempts: number | null;  // null = unlimited
-  correct: string | null;      // Correctness state ('correct', 'incorrect', etc.)
+  correct: Correctness;
 }
 
 /**
@@ -39,7 +42,8 @@ export interface ProblemState {
  * scoring ask the correctness question. Conflating the two is a classic
  * platform mistake — keep the axes separate.
  *
- *   done        - correct; nothing left to do
+ *   done        - the learner finished it: answered correctly, or gave up.
+ *                 Done without correct is the point of keeping the axes apart.
  *   closed      - can no longer be worked (attempts exhausted; future:
  *                 deadline passed). Not-done-but-can-no-longer-do: shows
  *                 differently in a progress bar than in content gating.
@@ -47,7 +51,7 @@ export interface ProblemState {
  *   notStarted  - no attempts
  */
 export function problemCompletion(state: ProblemState): Completion {
-  if (state.correct === correctnessEnum.correct) return completion.done;
+  if (state.correct === correctnessEnum.correct || state.correct === correctnessEnum.gaveUp) return completion.done;
   if (isAttemptsClosed(state)) return completion.closed;
   if (state.submitCount > 0) return completion.inProgress;
   return completion.notStarted;
@@ -68,6 +72,10 @@ export function isProblemFinished(state: ProblemState): boolean {
  * - 'closed'    — COMPLETION axis: can no longer be worked
  * - 'finished'  — COMPLETION axis: terminal (done or closed)
  *
+ * A give-up satisfies every mode but 'never': the learner asked for the
+ * answer, and whether that reveals it is the mode's policy (an exam with
+ * showanswer="never" gives up without revealing).
+ *
  * @param mode - The showanswer mode from problem attributes
  * @param state - Current problem state
  * @returns true if Show Answer should be visible
@@ -76,6 +84,7 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
   // Default to 'attempted': reveal the answer after the learner has made a
   // real submission, without requiring correctness or exhausted attempts.
   const effectiveMode = (mode || 'attempted') as ShowAnswerMode;
+  if (state.correct === correctnessEnum.gaveUp && effectiveMode !== 'never') return true;
 
   switch (effectiveMode) {
     case 'always':

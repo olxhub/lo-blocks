@@ -130,8 +130,11 @@ Two enums are available for comparing state values:
 correctness.correct          # Answer is correct
 correctness.incorrect        # Answer is incorrect
 correctness.partiallyCorrect # Partially correct
-correctness.unknown          # Not yet graded
+correctness.gaveUp           # Gave up ("Don't know")
+correctness.unsubmitted      # Not yet graded
 ```
+
+A give-up is neither correct nor incorrect: `@q.correct !== correctness.incorrect` is true after "Don't know".
 
 ### completion
 

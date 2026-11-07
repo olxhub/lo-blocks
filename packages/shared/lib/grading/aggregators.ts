@@ -55,7 +55,7 @@ export function countCorrectness(values: string[]): CorrectnessCounts {
  * Worst-case aggregation: returns the "worst" correctness state.
  *
  * Priority (worst to best):
- *   invalid > unsubmitted > incomplete > submitted > incorrect > partiallyCorrect > correct
+ *   invalid > unsubmitted > incomplete > submitted > incorrect > gaveUp > partiallyCorrect > correct
  *
  * Use case: Strict prerequisite checking where any failure blocks progress.
  */
@@ -83,6 +83,11 @@ export function worstCaseCorrectness(values: string[]): string {
     return counts[correctness.correct] > 0 ? correctness.partiallyCorrect : correctness.incorrect;
   }
 
+  // Any give-up without a wrong answer: gave up (or partial if some correct)
+  if (counts[correctness.gaveUp] > 0) {
+    return counts[correctness.correct] > 0 ? correctness.partiallyCorrect : correctness.gaveUp;
+  }
+
   // Any partial means partial
   if (counts[correctness.partiallyCorrect] > 0) return correctness.partiallyCorrect;
 
@@ -94,7 +99,7 @@ export function worstCaseCorrectness(values: string[]): string {
  * Proportional aggregation: returns state based on fraction correct.
  *
  * - All correct → correctness.correct
- * - All incorrect → correctness.incorrect
+ * - Nothing correct or partial → correctness.incorrect, or gaveUp if no answer was wrong
  * - Mixed → correctness.partiallyCorrect
  * - Any unsubmitted/incomplete/submitted → that state (not final)
  *
@@ -112,7 +117,9 @@ export function proportionalCorrectness(values: string[]): string {
   if (counts[correctness.incomplete] > 0) return correctness.incomplete;
   if (counts[correctness.submitted] > 0) return correctness.submitted;
   if (counts[correctness.correct] === counts.total) return correctness.correct;
-  if (counts[correctness.incorrect] === counts.total) return correctness.incorrect;
+  if (counts[correctness.correct] + counts[correctness.partiallyCorrect] === 0) {
+    return counts[correctness.incorrect] > 0 ? correctness.incorrect : correctness.gaveUp;
+  }
 
   return correctness.partiallyCorrect;
 }
@@ -123,6 +130,8 @@ export function proportionalCorrectness(values: string[]): string {
  * - correctness.correct = 1
  * - correctness.partiallyCorrect = 0.5 (could be customized)
  * - correctness.incorrect = 0
+ * - correctness.gaveUp = 0 here; attempted. (A give-up could reasonably earn
+ *   the guessing expectation, 1/k on k options; that is a consumer's policy.)
  * - unsubmitted/invalid = not counted as attempted
  *
  * Returns { score, attempted, total }
@@ -135,7 +144,7 @@ export function computeScore(values: string[]): { score: number; attempted: numb
   const counts = countCorrectness(values);
   const correct = counts[correctness.correct];
   const partial = counts[correctness.partiallyCorrect];
-  const incorrect = counts[correctness.incorrect];
+  const incorrect = counts[correctness.incorrect] + counts[correctness.gaveUp];
 
   const attempted = correct + partial + incorrect;
   const score = correct + (partial * 0.5);

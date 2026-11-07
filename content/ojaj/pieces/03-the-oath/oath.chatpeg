@@ -1,0 +1,185 @@
+cast:
+  Zofia:
+  Morwenna:
+  Hale:
+  Will:
+  Doyle:
+  Ruth:
+  Ewa:
+  Banda:
+  Niamh:
+  Kit:
+  Grace:
+~~~~
+
+tower-route
+---
+Zofia: Hale is outside. We're still queuing for the Jewel House. Can we leave after it?
+Morwenna: I'll ask the Warder. Please stay here while I do.
+Zofia: The Guard by the door?
+Morwenna: Yeoman Warder. The Yeomen of the Guard are the monarch's bodyguard. Different people.
+Zofia: Will the correct noun get us outside?
+Morwenna: It might get us directions instead of another correction.
+Zofia: Fine. I'll watch the jewellery cupboard.
+Morwenna: Jewel House. The Crown Jewels are kept there.
+Zofia: Thomas Blood got in. Why can't we get out?
+Morwenna: He tried stealing a crown, a sceptre and an orb around 1671. He was caught. Let's try asking.
+Zofia: That is a very low target for a school visit.
+
+the-summary
+---
+Zofia: Anne Boleyn was executed on Tower Green. Nineteenth of May, 1536. That's the place we passed inside.
+Morwenna: Yes. Our meeting place is Tower Hill, outside the Tower, at the scaffold-site memorial in Trinity Square Gardens. We leave first. No shortcut through the Jewel House.
+Zofia: You enjoyed saying that.
+Morwenna: A little.
+Zofia: Here. By the memorial. There's a man with his hands inside his sleeves.
+Hale: Madam, if you bring a clerk, let the clerk stand where she may hear the charge. [class=dead]
+Zofia: Only I can hear you. Morwenna's helping me check things. Are you Hale?
+Hale: I am Hale; and if you have business with me, I would know its terms before its conclusion. [class=dead]
+Zofia: This sheet. The Witness Workshop copied it from the Historical Accounts Office. HAO. Morwenna, who are they?
+Morwenna: The office set up for this collection of historical accounts. They're the ones responsible for the case summaries. This is their collection, not a Tower display.
+Zofia: The copy is dated last Friday. Your name, then “Executed, 1535.” Then: “Refusal admitted disloyalty.”
+Hale: If those be their words, they have made my refusal confess what my tongue denied. I have neither seen that paper nor authorised that conclusion. [class=dead]
+Zofia: You haven't seen it before today. Right. What do you want it to say?
+Hale: Record my reason: that I refused the oath for conscience, not that I confessed disloyalty. Let them retain my refusal; let them cease making it their witness. [class=dead]
+Zofia: He wants his reason recorded. Not his name rubbed off the sheet.
+Morwenna: Then we need the office's copy as well as the Workshop's. I can help you request it. I can't promise their reply.
+Hale: A copy may be faithful to its parent and false in its accusation. Madam, ask who wrote the parent. [class=dead]
+
+the-repeal
+---
+Hale: If they repair the record, let them repair the act which injured it. Repeal the supremacy; restore what it displaced. [class=dead]
+Zofia: Repeal it now? Morwenna, can they do that?
+Morwenna: Which Act? We have to be exact before we ask anybody.
+Zofia: He wants the supremacy repealed so things go back.
+Morwenna: Henry VIII's Act of Supremacy was in 1534. It declared him Supreme Head of the Church of England, independent of the Pope.
+Zofia: Because the Pope wouldn't end his marriage?
+Morwenna: Pope Clement VII refused to annul his marriage to Catherine of Aragon. That conflict was behind the break with Rome. But don't put all the laws into one sentence.
+Hale: If you divide the instruments, mistress, I shall not object; a clerk who binds unlike pages together will mistake the charge. [class=dead]
+Zofia: He says keep the laws separate. Which other law?
+Morwenna: The Treasons Act of 1534. Denying the king's title could be prosecuted as treason under that separate Act. Thomas More was convicted and beheaded in 1535. We aren't going to copy his charge onto Hale just because the year matches.
+Zofia: Hale, tell me your own reason. We can ask for that.
+Hale: I have given you my reason; I have not yet granted that naming the injury is sufficient remedy. [class=dead]
+Zofia: He says writing it down isn't enough.
+Morwenna: Mary I already repealed Henry's Act, in 1554. Then Elizabeth I's settlement in 1559 made her Supreme Governor of the Church of England. Governor, not her father's title of Supreme Head.
+Zofia: Did you know that, Hale?
+Hale: No, madam. If the first enactment has fallen, then its repeal must restore the obedience it displaced. Otherwise what remedy have you named? [class=dead]
+Zofia: He thinks the repeal puts everything back.
+Morwenna: It didn't. The later settlement was different again. Repealing a law couldn't undo his death, or restore his household to the day before it.
+Hale: Then you offer a reason upon paper while the consequence stands. I would have you understand the smallness of that offer. [class=dead]
+Zofia: I do. I hate it too. But I'm not promising to get your life back.
+Hale: Madam, hatred is no undertaking. Tell me what you will put your name beneath. [class=dead]
+Zofia: I don't know yet.
+
+the-weight
+---
+Will: Mistress, flour takes water quicker than your coat. Put the paper on the dry side, away from the window. [class=dead]
+Zofia: I don't have a dry side.
+Will: Then borrow one, mistress. A baker who promises dry flour must first find a shelf. [class=dead]
+Zofia: Morwenna, can my folder go in your sleeve thing?
+Morwenna: If you take the route sheet out first. There isn't room for both.
+Doyle: My dear, I should surrender the route; it has already delivered us to an excellent puddle. [class=dead]
+Zofia: Doyle votes for sacrificing the route.
+Morwenna: Of course he does. He doesn't have to explain losing it.
+Zofia: Will, I kept the sentence. “Cannot establish ignition.” It's still there. I'm not saying the delivery proves who started the fire.
+Will: Twelve pounds, mistress. I carried twelve pounds of flour, weighed before I took the sack. That is the weight I have been keeping from you. [class=dead]
+Zofia: Twelve pounds. You could have said that yesterday.
+Will: Yesterday, mistress, you wanted the sack to carry my master's innocence as well. It was not weighed for that. [class=dead]
+Doyle: My dear, a sack enters the story and is promptly asked to acquit the whole bakery. An ambitious promotion for flour. Did he see it weighed? [class=dead]
+Zofia: Did you watch the weighing?
+Will: I watched the balance settle, mistress. I can speak for that sack; I cannot weigh every hand that went near the oven. [class=dead]
+Zofia: So I write that you remember seeing twelve pounds weighed. Not that we have the delivery book.
+Doyle: Precisely, my dear. Now seek the book. [class=dead]
+Zofia: Morwenna, can you leave a space for an attachment we haven't found?
+Morwenna: Yes. But I'm writing “not found” in it. Otherwise somebody will think I forgot to staple it.
+Will: Mistress, staple it when it is dry. You cannot preserve a page by fastening it to a wet one. [class=dead]
+
+the-case
+---
+Ruth: Morwenna, seal the log envelope. Zofia, keep your folder off the equipment table.
+Zofia: We were told to wait here.
+Ruth: Zofia, the marked seats. The table is not a seat.
+Ewa: The sleeve is wet. Give it here. I'll wipe it before you put anything else inside.
+Zofia: Mum, that long case. I saw it going towards the holding room instead of following the others. Was it supposed to?
+Ruth: Today's transfer rehearsal used that route. Nothing is missing.
+Banda: Fourteen ten. I was at the door. Visitor first; man with the case behind. It’s in Tuesday’s rehearsal log, week two.
+Zofia: The holding room had something in it, then?
+Ewa: At 14:45 I checked it. Floor clear. No case behind the door, nothing beneath the shelf. I finished that room and closed it.
+Ruth: Ewa, your duty period?
+Ewa: Fourteen hundred to eighteen hundred today. The room check was at fourteen forty-five. Those are different things.
+Doyle: My dear, give a man a welcoming party and every parcel behind him becomes his luggage. At a hotel one might profit by that arrangement. Who had the handle? [class=dead]
+Zofia: Mr Banda, who had the handle? The visitor or the man behind?
+Banda: Vale. Martin Vale, the contractor. Visitor through first. Vale through second, handle in his hand.
+Zofia: Then my sketch is wrong. I put the handle beside the visitor.
+Banda: Put Vale at the handle. Keep this sketch with it. Ruth gets my doorway log; she’ll need to see why yours changed.
+Ruth: Morwenna, label it rehearsal. No one files this as an incident report.
+Morwenna: Rehearsal, Tuesday, week two. And the envelope stays with you?
+Ruth: Morwenna, hand it to me.
+Ewa: Zofia, ask before you give anyone my hours. I told you what I checked. I didn't give you my whole afternoon.
+Zofia: I asked about a case.
+Ewa: And now you've heard my shift. Ask before passing it on.
+
+the-cards
+---
+Niamh: My mum's letter needs the Belfast address. Can you move those cards so I can copy it?
+Zofia: They're Morwenna's. Saints and plants. We haven't finished the last one.
+Morwenna: Use the backs if you need them. The drawing can wait.
+Zofia: England, Scotland, Wales, Northern Ireland. Four cards. I've written Great Britain across the top.
+Morwenna: Then change the heading. Great Britain is England, Scotland and Wales. The United Kingdom includes Northern Ireland too.
+Niamh: Belfast goes on the card you've left outside your heading. My mum would notice.
+Zofia: Okay. UK. That's a bigger mistake than the thistle.
+Morwenna: England: St George and the rose. Scotland: St Andrew and the thistle. Your thistle looks like a fork, but the label is right.
+Zofia: Wales gets St David. Leek and daffodil. Two plants. I gave the leek most of the space because I can draw it.
+Niamh: My mum gets St Patrick and a shamrock, does she? Leave space for flax too. Both are used as emblems for Northern Ireland. They don't tell you everybody there thinks the same thing.
+Zofia: Does St Patrick’s mosaic need changing too?
+Morwenna: That mosaic represents Ireland. Your card says Northern Ireland. They aren’t interchangeable.
+Niamh: And don't turn my mother's letter into an Irish symbol. Her care record has a sentence in it that isn't hers. She wants it checked.
+Morwenna: Health and social care are devolved in Northern Ireland. We need the body responsible for her record. A Westminster address on the envelope won't give someone here custody of it.
+Zofia: We could put hers with Hale's. Get someone important to read both.
+Niamh: Which someone? Hale can wait in your ear. My mum is waiting by her phone in Belfast.
+Morwenna: I'll help find the receiving desk, if you'll let me read the address already on the letter. Also, I want a Cornish card.
+Zofia: Five countries now?
+Morwenna: Four constituent countries. I know. I'm Cornish as well as living inside one of those labels. Recognition doesn't require me to pretend I have a legislature that can answer Niamh's letter.
+Niamh: Good. Then put my mum's address where the crown was going. I can post an address.
+
+the-chair
+---
+Kit: From the cue. Grace, can you sit there? No, wait. You don't have to stand yet.
+Grace: I'm taking my coat off. Has that got a cue too?
+Kit: Sorry. State Opening starts a new session of Parliament. Before it, prorogation ends the old session. That's the order I need to stop mixing up.
+Grace: And you need me to be a session?
+Kit: A member. For the rehearsal. The monarch gives the speech in the Lords. Black Rod goes to summon the Commons to hear it. I need someone who doesn't move until the summons.
+Grace: Why do we still do this? Also, who pays for the extra rehearsal you're asking me to sit through?
+Kit: I need to learn it while it doesn't matter if I drop the card. On the day I'm helping the office, not being Black Rod. If I send a cue early, real people move early.
+Grace: You get training. I get another bus fare. Has the office budgeted for either?
+Kit: I haven’t asked. One run now? I’ll ask my supervisor before I book another.
+Grace: One. I'm getting my coat from the other chair first.
+Kit: Right. From the beginning. I summon the Commons to attend—wait. I've summoned the chair.
+Grace: It heard you. It's refusing.
+Kit: My cue card's under your coat. Under its coat. Under the coat on it.
+Zofia: The chair has taken a hostage.
+Kit: Please. I need the words.
+Grace: You need my coat off your card. There.
+Kit: Thank you. Again. The summons comes from Black Rod, not from me. I'm only practising the support cue.
+Grace: Ask what they’ll pay. “We value your help” won’t buy my ticket.
+
+the-undertaking
+---
+Hale: Madam, the young gentleman may rehearse a summons; I require an undertaking. Have you settled what you will sign? [class=dead]
+Zofia: I can put your reason in our request. I can ask someone living to read it.
+Hale: If you ask and they decline, what then? A request which permits refusal may leave the injured party precisely where he stood. [class=dead]
+Zofia: I don't know how to stop them refusing.
+Hale: Then do not dress permission to neglect me in the garments of redress. I have worn out one such suit already. [class=dead]
+Zofia: You said there was something about a Table. Tell me that part and I can find out whether we can get you heard.
+Hale: I said I had a supposition concerning a Table. A supposition is not yet evidence; nor shall I exchange it for a promise with no recipient. [class=dead]
+Zofia: Fine. Keep it.
+Hale: Madam, if anger could sign an undertaking, you would have furnished me a handsome instrument. [class=dead]
+Zofia: I'm not promising that they'll put everything back. Even if that means you won't help.
+Hale: Then bring me a narrower promise: whose ear, for what reason, and under whose name. I shall hear its terms before I offer mine. [class=dead]
+Zofia: Morwenna. I need someone who can agree to listen to a case. Not agree with it. Just actually listen.
+Morwenna: If you mean an appointment, we need a name before we make that promise. Please don't write mine in. I can help ask; I can't answer for somebody else.
+Zofia: Will you help me find the name tonight, before the next sitting?
+Morwenna: Until my bus. I mean that.
+Hale: Bring the undertaking when next you come, madam. Until then, my supposition remains with its author. [class=dead]
+Zofia: My bus is in twelve minutes. Show me which office we ask first.
+

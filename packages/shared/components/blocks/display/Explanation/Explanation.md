@@ -16,7 +16,7 @@ Displays explanation content conditionally based on grader state. Compatible wit
 
 **Important:** Explanation must be nested inside the grader (like inputs). It auto-targets the containing grader.
 
-By default, the explanation appears only after the learner answers correctly.
+By default, the explanation appears only after the learner answers correctly, or after they give up with the problem's "Don't know" button (`dontKnow="true"`). Any `showWhen` except `never` also shows it after a give-up. This follows the explanation's own `showWhen`, not the problem's `showanswer`: an exam that must reveal nothing sets `showWhen="never"` here as well.
 
 ## showWhen Attribute
 

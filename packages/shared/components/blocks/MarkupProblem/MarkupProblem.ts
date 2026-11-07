@@ -476,7 +476,7 @@ function generateProblemComponents({ parsed, storeEntry, definitionKey, attribut
         storeEntry(explRef, {
           id: explRef,
           tag: 'Explanation',
-          attributes: { id: explRef },
+          attributes: { id: explRef, ...(attributes.showanswer === 'never' && { showWhen: 'never' }) },
           kids: [blockRef(explContentRef)]
         });
         problemKids.push(blockRef(explRef));
@@ -518,8 +518,8 @@ function generateProblemComponents({ parsed, storeEntry, definitionKey, attribut
 }
 
 // Metagrader like CapaProblem: aggregate grading state is derived on read
-// (lib/grading/selectGradingState.ts), not stored. Only showAnswer is real state.
-export const fields = state.fields([state.commonFields.showAnswer]);
+// (lib/grading/selectGradingState.ts), not stored. Only showAnswer and gaveUp are real state.
+export const fields = state.fields([state.commonFields.showAnswer, state.commonFields.gaveUp]);
 
 const MarkupProblem = dev({
   ...peggyParser(capaParser, {

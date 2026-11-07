@@ -7,7 +7,7 @@ import { problemAttributes, z_stateRefList, z_stateRef } from '@/lib/blocks/attr
 const CapaFooter = blocks.dev({
   ...ignore(),
   name: 'CapaFooter',
-  description: 'Problem footer with action buttons (Check, Show Answer) and status display',
+  description: 'Problem footer with action buttons (Check, Don\'t know, Show Answer) and status display',
   internal: true,
   // Note: Receives runtime attributes from _CapaProblem
   attributes: z.object({
@@ -18,6 +18,7 @@ const CapaFooter = blocks.dev({
     // Runtime state (passed from CapaProblem)
     submitCount: z.number().optional().describe('Current submission count'),
     correct: z.string().optional().describe('Current correctness state'),
+    problem: z.string().optional().describe('StateKey of the enclosing problem, where "Don\'t know" is recorded'),
   }).strict(),
 });
 
