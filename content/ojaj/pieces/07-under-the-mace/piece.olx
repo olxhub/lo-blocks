@@ -1,0 +1,154 @@
+<Sequential id="uk_07">
+
+  <Vertical id="uk_07_s1" title="One visit">
+    <Markdown id="uk_07_s1_intro">
+Outside the gallery entrance, Ruth held the visitor agreement flat against her folder.
+    </Markdown>
+    <Chat id="uk_07_exception" src="under-the-mace.chatpeg" clip="exception"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s2" title="The bottle beneath the seat">
+    <Markdown id="uk_07_s2_text">
+Zofia's coat was too warm across her shoulders and her hands were cold. She tucked them under her knees. Beside her, Grace was trying to stop the visitor paper crackling every time she breathed.
+
+Below them, the Mace lay on the Table. From here it looked smaller than the object everyone had been talking about. Zofia could put her thumb in front of her eye and cover it. She tried, then dropped her hand before Grace could ask.
+
+Below, someone was still finding a sheet when the response began.
+
+Will complained about her water bottle. Hale wanted the exact words. Behind those voices there was the familiar pull across her shoulders, the Horse's load that wasn't there. She moved her bag off her lap. That did nothing.
+
+She could not see her companions. They hadn't become extra visitors in empty seats.
+
+The bottle slid against her shoe. She bent to catch it. When she sat up, Grace touched the edge of her paper and pointed below.
+
+It was starting. Zofia had missed the first name.
+    </Markdown>
+    <!-- image: own schematic of Table, Mace and gallery. alt="View from a visitor seat towards the Commons Table, with the Mace resting on its surface." Licence: own work, license attribute required on the Image. Not drawn until sightlines and gallery layout are checked (VERIFY.md). -->
+  </Vertical>
+
+  <Vertical id="uk_07_s3" title="On the Table">
+    <Markdown id="uk_07_s3_intro">
+In the gallery, Kit crouched beside their row, clear of the aisle.
+    </Markdown>
+    <Chat id="uk_07_on_the_table" src="under-the-mace.chatpeg" clip="on-the-table"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s4" title="A date, not a verdict">
+    <Markdown id="uk_07_s4_intro">
+Below the gallery, the minister turned to the next page of the response.
+    </Markdown>
+    <Chat id="uk_07_what_was_promised" src="under-the-mace.chatpeg" clip="what-was-promised"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s5" title="Two leaves together">
+    <Markdown id="uk_07_s5_intro">
+In the adjoining waiting area, their escort stopped beside the gallery door. Zofia's phone lit up.
+    </Markdown>
+    <Chat id="uk_07_reply" src="under-the-mace.chatpeg" clip="reply"/>
+    <Markdown id="uk_07_s5_correction">
+**Workshop correction — week 4, Tuesday. Signed by the responsible editor.**
+
+> Our attached original accused Farriner's bakery of deliberately starting the Fire. We retract that claim. The Fire began at Thomas Farriner's bakery in Pudding Lane in 1666; its origin does not establish deliberate ignition.
+>
+> Robert Hubert's confession was false. We withdraw foreign-arson rumours as evidence. Our linked sources cover the bakery origin, Hubert and the later Monument accusation; none establishes deliberate ignition by Farriner. We confused a place of origin with proof of intent. We accept responsibility for publishing the allegation.
+>
+> The correction will remain beside the crossed-through display copy. The unmarked original remains linked below.
+
+Zofia read it aloud, keeping her thumb beneath each line. At the signature she stopped.
+    </Markdown>
+    <Chat id="uk_07_read_correction" src="under-the-mace.chatpeg" clip="read-correction"/>
+    <Markdown id="uk_07_s5_pause">
+---
+    </Markdown>
+    <Chat id="uk_07_ask_once" src="under-the-mace.chatpeg" clip="ask-once"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s6" title="Ask while it is there">
+    <Markdown id="uk_07_s6_intro">
+Back in their gallery row, Zofia could see Kit checking the aisle. The sitting was nearly over.
+    </Markdown>
+    <Chat id="uk_07_last_question" src="under-the-mace.chatpeg" clip="last-question"/>
+    <CapaProblem id="uk_07_mace_state" title="Ask while it is there" maxAttempts="1" showanswer="attempted">
+      <CorrectGrader id="uk_07_mace_state_grader">
+        <Markdown id="uk_07_mace_state_prompt">
+Kit has time to pass on one request. What should Zofia ask him to do?
+        </Markdown>
+        <ChoiceInput id="uk_07_mace_state_input">
+          <Key id="uk_07_mace_state_table" value="table">Ask for the debate date to be repeated now. Hale hears it himself; Kit leaves before Zofia can ask about the case.</Key>
+          <Key id="uk_07_mace_state_case" value="case">Ask Kit which end of the case he watched. Get that down now; ask Mara about the date afterwards.</Key>
+        </ChoiceInput>
+        <Explanation id="uk_07_mace_state_explanation" showWhen="answered">
+          <Markdown id="uk_07_mace_state_explanation_text">
+The genuine Mace on the Table lets Hale witness this sitting. When the whole House sits as a committee, the Mace rests on brackets beneath the Table; this is a Committee of the whole House, not a committee meeting elsewhere. The brackets, a procession and a recording cannot preserve Hale's access under Zofia's tested rule. At the end of the sitting the Serjeant carries the Mace out. Kit cannot extend Hale's time.
+          </Markdown>
+        </Explanation>
+      </CorrectGrader>
+    </CapaProblem>
+    <Chat id="uk_07_date_first" src="under-the-mace.chatpeg" clip="date-first" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; @uk_07_mace_state_input.value === 'table'"/>
+    <Chat id="uk_07_case_first" src="under-the-mace.chatpeg" clip="case-first" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; @uk_07_mace_state_input.value === 'case'"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s7" title="The lift" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; (@uk_07_mace_state_input.value === 'table' || @uk_07_mace_state_input.value === 'case')">
+    <Markdown id="uk_07_s7_open_table" when="@uk_07_mace_state_input.value === 'table'">
+Zofia heard the debate date repeated. Kit had already moved away. The question about the case stayed on her tongue.
+    </Markdown>
+    <Markdown id="uk_07_s7_open_case" when="@uk_07_mace_state_input.value === 'case'">
+Zofia had written “Kit: near end” on her paper. Below, the reply about the debate date began before she had put her pencil down.
+    </Markdown>
+    <Markdown id="uk_07_s7_text">
+The House rose. Hale was still asking whether the office's promised reply would contain reasons.
+
+Then the Serjeant lifted the Mace.
+
+Hale's question stopped in the chamber. It continued beside her, from the direction of the way out. The words hadn't changed. Their place had. Below, papers were being gathered. People were leaving. Nothing waited for him to finish.
+
+Zofia stood too quickly and caught her bag strap beneath her heel. Grace pulled the loose end free. Their escort waited for both of them before moving.
+
+In the cooler corridor, shoes clicked towards them, then away. Zofia stopped near the wall to leave room for people passing. Hale was still there. She couldn't point to a body or offer him the paper Grace was carrying.
+
+She had wanted him to hear the reply without her in the middle. Now he would have to trust her for what came afterwards.
+
+Grace held out the visitor paper. Zofia took it by the damp edge.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_07_s8" title="What he missed" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; (@uk_07_mace_state_input.value === 'table' || @uk_07_mace_state_input.value === 'case')">
+    <Markdown id="uk_07_s8_intro">
+In the corridor outside the gallery, Grace waited with the visitor paper.
+    </Markdown>
+    <Chat id="uk_07_after_rising" src="under-the-mace.chatpeg" clip="after-rising"/>
+    <Chat id="uk_07_relay_date" src="under-the-mace.chatpeg" clip="relay-date" when="@uk_07_mace_state_input.value === 'case'"/>
+    <Chat id="uk_07_still_arguing" src="under-the-mace.chatpeg" clip="still-arguing"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s9" title="Reconciliation" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; (@uk_07_mace_state_input.value === 'table' || @uk_07_mace_state_input.value === 'case')">
+    <Markdown id="uk_07_s9_caption">
+Later that Tuesday, 14:40, at the supervised transfer waiting point, an equipment case rolled back towards them.
+    </Markdown>
+    <Chat id="uk_07_reconciliation" src="under-the-mace.chatpeg" clip="reconciliation"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s10" title="The old time" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; (@uk_07_mace_state_input.value === 'table' || @uk_07_mace_state_input.value === 'case')">
+    <Markdown id="uk_07_s10_intro">
+At the corridor wall, Ewa spread the incident sheet against her bag.
+    </Markdown>
+    <Chat id="uk_07_old_time" src="under-the-mace.chatpeg" clip="old-time"/>
+  </Vertical>
+
+  <Vertical id="uk_07_s11" title="The price of the original" when="@uk_07_mace_state.correct === correctness.correct &amp;&amp; (@uk_07_mace_state_input.value === 'table' || @uk_07_mace_state_input.value === 'case')">
+    <Markdown id="uk_07_s11_intro">
+Beside the returning equipment case, Ruth closed her folder.
+    </Markdown>
+    <Chat id="uk_07_exception_withdrawn" src="under-the-mace.chatpeg" clip="exception-withdrawn"/>
+    <Markdown id="uk_07_s11_text">
+Kit was looking past Grace at the equipment case. His eyes reached the scraped corner and stopped. Zofia remembered him standing beside it before the transfer. She waited for him to look at her.
+
+He straightened the dispatch sheet against his thigh.
+
+“Kit.”
+
+He knew which case. She needed him to say it before the debate.
+    </Markdown>
+  </Vertical>
+
+</Sequential>

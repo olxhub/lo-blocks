@@ -1,0 +1,108 @@
+<Sequential id="uk_01">
+
+  <Vertical id="uk_01_s01" title="The dry side">
+    <Markdown id="uk_01_s01_text">
+The sleeve was dry. Zofia checked it again anyway, pinching the cuff until the seam left a little ladder on her thumb.
+
+It was not even the coat she had worn when she slipped. That one was at home, hanging over a chair with its pockets turned out. This was the spare, with a zip that caught halfway up and made her look as if she had dressed in an argument.
+
+Ewa had brought her out for a short walk. Short meant back in time to eat together before Ewa left for work. It did not mean stopping whenever Zofia stopped, which was what they were doing now.
+
+Across the water, bare branches made a dark tangle against the sky. Wind pressed little folds into the Serpentine. A gull hung above it, hardly moving, then dropped out of sight behind somebody's head. Zofia kept to the dry side of the path. Her mother kept to the side nearest the water.
+
+The slip came back in small bits: her foot going, the shock, somebody reaching. She did not need to remember it from beginning to end. There had been rescue, dry clothes, medical care. Ewa had followed the advice they were given and kept asking how she felt. Zofia had run out of different ways to say fine.
+
+Then there was the other thing.
+
+Since the accident, she sometimes turned towards a sound and found nothing where it ought to be. Not a voice yet. More like the moment before somebody called her name.
+
+She had told Ewa because she had promised to tell her if anything changed.
+
+She had not expected the promise to make every silence into a question.
+
+Grace waited beside a bench, holding the folded information sheet they had picked up. Ewa looked at her watch. Zofia put her hands in her pockets, so nobody would see her checking the cuff again.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_01_s02" title="A short walk">
+    <Markdown id="uk_01_s02_text">
+Beside the Serpentine bench, Ewa tucked Zofia’s cuff over her wrist.
+    </Markdown>
+    <Chat id="uk_01_short_walk" src="queue.chatpeg" clip="short_walk"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="hyde-serpentine"-->
+
+  <Vertical id="uk_01_s03" title="Three waiting">
+    <Markdown id="uk_01_s03_text">
+At Animals in War, traffic kept passing behind her. Tyres hissed. Somewhere in the queue of cars a horn sounded, stopped, and started again as if the first attempt had been misunderstood.
+
+Zofia stood near the memorial wall. There were people here, moving around one another to read, and then there was a horse nobody moved around.
+
+It waited with its head lowered. She could see the space beneath its belly and the paving through that space, but looking at its back made her shoulders ache. It felt as though something needed lifting. She nearly put her school bag down before remembering that she wasn't carrying it.
+
+The dog was different. It faced away from the horse, towards a gap between passing coats. When a person went through the gap, a pull started under Zofia's ribs. Follow. No word had been spoken. Her foot moved before she stopped it.
+
+And there was a pigeon.
+
+It stood where a pigeon could quite reasonably stand, except that its arrival seemed to require a response. It settled, looked at her, settled again. Zofia had the extraordinary feeling that she was late opening an office.
+
+She looked down at her spare coat. Damp-looking cuff, broken zip, one tissue in the pocket. Apparently these were the qualifications.
+
+The pigeon waited.
+
+She gave it a tiny nod. Nothing changed. Evidently a nod was not the correct form.
+
+Grace had gone ahead to read the wall. Ewa stood a little way off, answering a message on her phone. Neither had turned towards the horse. A visitor stepped through the place where its lowered head had been. Zofia flinched; the visitor carried on.
+
+She reached for Grace's sleeve and missed because Grace was already turning.
+
+The horse had not moved. The dog still watched the gap. The pigeon had returned to exactly the same spot.
+
+Zofia could not work out which of them was first.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_01_s04" title="The word on the sheet">
+    <Markdown id="uk_01_s04_text">
+At the memorial wall, Grace caught the loose corner of the sheet before the wind could fold it shut.
+    </Markdown>
+    <Chat id="uk_01_the_sheet" src="queue.chatpeg" clip="the_sheet"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="aiw-inscription"-->
+
+  <Vertical id="uk_01_s05" title="Nothing in her hand">
+    <Markdown id="uk_01_s05_text">
+Zofia opened her hand beside the horse.
+
+It was a stupidly small hand for anything that size. There was a red mark where she had pinched her cuff. She held it palm up, with nothing in it.
+
+The weight came again. Her knees bent.
+
+She nearly said, Come on, then. Instead she lowered her hand and stepped away. The horse's nose passed through her knuckles. She snatched them back and hit her own zip.
+
+Behind it, the carved words stayed sharp: THEY HAD NO CHOICE.
+
+She had offered it an empty hand. Perhaps it had been expecting food. Perhaps she had just stood beside a wall doing something embarrassing with her fingers.
+
+Grace went to fetch Ewa. The pull under Zofia's ribs went after her; Zofia stayed where she was. The pigeon settled near her shoe. Her shoulders still hurt.
+
+“If you want to come with me, you can,” she said quietly. “I'm walking back to the water. On the path.”
+
+She walked to Grace and Ewa. Beyond the memorial she looked back. No horse followed on the paving. No dog slipped between people's legs. The pigeon was gone from sight.
+
+Then her shoulders tightened. The pull shifted with her next step, and the small restless lifting returned beneath her sleeves.
+
+She stopped. They stopped with her.
+
+Grace held out the folded sheet. Zofia took it, and they walked together towards the Serpentine.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_01_s06" title="Before the next shift">
+    <Markdown id="uk_01_s06_text">
+Back at the Serpentine, Ewa stood between the bench and the water, her work bag still on her shoulder.
+    </Markdown>
+    <Chat id="uk_01_before_shift" src="queue.chatpeg" clip="before_shift"/>
+  </Vertical>
+
+</Sequential>

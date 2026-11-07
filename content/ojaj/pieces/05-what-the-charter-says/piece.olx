@@ -1,0 +1,108 @@
+<Sequential id="uk_05">
+
+  <Vertical id="uk_05_s1" title="A name above the pavement">
+    <Markdown id="uk_05_s1_text">
+The bus had left a stripe of dirty water up Zofia's tights. She rubbed it with a tissue until the tissue came apart, then stood beneath the blue plaque at 12 St James's Square with white shreds stuck to her knee.
+
+Morwenna held the folder under her coat, tucking back its cracked corner.
+
+Above them was Ada's name. Below it, on Morwenna's phone, was a different account of her work: a caption from the Witness Workshop. They had brought that one themselves. It wasn't part of the building.
+
+Zofia looked from the phone to the woman beside the wall. A passing man walked between them without slowing down. Morwenna watched Zofia instead.
+
+The woman looked at the folder, then at the tissue disintegrating in Zofia's hand.
+
+Zofia had practised an introduction on the bus. It began with the petition and ended with the date they were running out of time. Now she couldn't remember the middle.
+
+She pocketed the tissue. She wasn't asking a dead mathematician to wait while she found a bin.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_05_s2" title="The missing author">
+    <Markdown id="uk_05_s2_intro">Beneath the plaque, Morwenna shields the phone from the rain.</Markdown>
+    <Chat id="uk_05_missing_author" src="charter.chatpeg" clip="missing_author"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="ada-life ada-babbage ada-notes ada-vision"-->
+
+  <Vertical id="uk_05_s3" title="The room they had booked">
+    <Markdown id="uk_05_s3_text">
+The study room smelled of damp coats and hot printer paper. Someone had left a strip of blue tack stuck to the table. Ollie stretched it between his fingers until Grace put the folder on top of it.
+
+Their escort checked the booking, pointed out where they were to wait afterwards, and sat by the door. Morwenna put the return time face up beside her pencil case. Nobody could pretend not to have seen it.
+
+The radiator clicked. Zofia kept her coat on. Ada was only a voice now, carried from the square at Zofia's invitation. Hale had come too, objecting before they reached the table.
+
+The petition lay in the middle, underneath everybody's elbows. It had a title and room for living signatures. It did not yet have a first sentence that survived Hale reading it.
+
+Morwenna laid out the Charter extracts. One agreed paragraph before the booking ended, and Grace could take it for signatures. Otherwise: another afternoon on “require”.
+
+Zofia uncapped her pen with her teeth. Grace held out a hand for the cap.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_05_s4" title="Forty days">
+    <Markdown id="uk_05_s4_intro">At the study-room table, Hale starts again before Zofia can write.</Markdown>
+    <Chat id="uk_05_forty_days" src="charter.chatpeg" clip="forty_days"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="mc-date-place mc-why-1215 mc-25-barons mc-clause-39-40 mc-reissues"-->
+
+  <Vertical id="uk_05_s5" title="First for whom?">
+    <Markdown id="uk_05_s5_intro">At the same table, Zofia puts her Polish source beside the Charter extracts.</Markdown>
+    <Chat id="uk_05_first_for_whom" src="charter.chatpeg" clip="first_for_whom"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="mc-what-changed"-->
+
+  <Vertical id="uk_05_s6" title="Six pictures">
+    <Markdown id="uk_05_s6_intro">Six printouts cover the study-room table; Grace puts two side by side.</Markdown>
+    <Chat id="uk_05_six_pictures" src="charter.chatpeg" clip="six_pictures"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="mc-surviving-copies"-->
+
+  <Vertical id="uk_05_s7" title="What can go in the attachment?">
+    <Markdown id="uk_05_s7_intro">
+Grace stood beside the study-room door with her bag on. Her bus was due. Morwenna slid the attachment over for a last look before Grace signed it.
+
+Zofia's heading read **Two independent witnesses**. Under Will's name she had put **Hubert hanged, 27 October 1666**.
+
+She drew a line on the back:
+
+**September 1666: Will dies → 27 October: Hubert is hanged → today: Zofia tells Will.**
+
+The pen stopped. She had heard him repeat it. She had counted that as another source.
+
+“Sign now?” Grace asked. “Or am I going?”
+    </Markdown>
+    <CapaProblem id="uk_05_choice" title="What does Zofia do?" maxAttempts="1" showanswer="never">
+      <CorrectGrader id="uk_05_choice_grader">
+        <Markdown id="uk_05_choice_prompt">**What does Zofia do?**</Markdown>
+        <ChoiceInput id="uk_05_choice_input">
+          <Key id="uk_05_choice_a" value="a">A. Cross out “independent” and separate what Will remembers from what she told him. Ask Grace to wait for the corrected sheet.</Key>
+          <Key id="uk_05_choice_b" value="b">B. Get Grace's signature now. Will knows about Hubert now; fix the heading after Grace catches her bus.</Key>
+        </ChoiceInput>
+        <Explanation id="uk_05_choice_explanation" showWhen="answered">
+          <Markdown id="uk_05_choice_explanation_text">
+Will remembers a delivery being weighed, not deliberate fire-setting. He died in September 1666, before Hubert's execution on 27 October. Hubert's confession was false; later evidence placed him at sea when the Fire began, arriving two days afterwards. Zofia has told Will this. His repeating it supplies no independent confirmation. Doyle likewise believed the Cottingley photographs at his death in 1930; Zofia's later update that they were fakes cannot become his original memory. Both updates must be labelled as coming through her.
+          </Markdown>
+        </Explanation>
+      </CorrectGrader>
+    </CapaProblem>
+    <Markdown id="uk_05_s7_after_a" when="@uk_05_choice_grader.lastSubmission ? (@uk_05_choice_grader.lastSubmission).includes('a') : false">
+Zofia rewrites the dates. Grace watches the clock, then shoulders her bag. “Send me the finished one.” She leaves without signing. Under the later evidence Zofia puts her own name: she supplied it. There is one fewer signature today.
+    </Markdown>
+    <Markdown id="uk_05_s7_after_b" when="@uk_05_choice_grader.lastSubmission ? (@uk_05_choice_grader.lastSubmission).includes('b') : false">
+Grace signs and runs. Morwenna reads the heading before clipping on the sheet. “This isn't the account I thought she was signing.” She sets it aside and asks Zofia to date each statement. The escort calls time before they finish. They must leave the table and complete the correction outside; Grace will have to see the corrected version before her signature can accompany it.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_05_s8" title="A request we can sign" when="@uk_05_choice.correct === correctness.correct">
+    <Markdown id="uk_05_s8_intro_a" when="@uk_05_choice_grader.lastSubmission ? (@uk_05_choice_grader.lastSubmission).includes('a') : false">At the study-room table, Zofia moves the unsigned copy away from Grace's empty chair.</Markdown>
+    <Markdown id="uk_05_s8_intro_b" when="@uk_05_choice_grader.lastSubmission ? (@uk_05_choice_grader.lastSubmission).includes('b') : false">In the waiting corridor, Zofia balances the corrected attachment on the folder while Morwenna checks it.</Markdown>
+    <Chat id="uk_05_request_we_can_sign" src="charter.chatpeg" clip="request_we_can_sign"/>
+  </Vertical>
+
+  <Vertical id="uk_05_s9" title="One appointment" when="@uk_05_choice.correct === correctness.correct">
+    <Markdown id="uk_05_s9_intro">In the waiting area, Ollie holds the folder while Morwenna opens the office reply.</Markdown>
+    <Chat id="uk_05_one_appointment" src="charter.chatpeg" clip="one_appointment"/>
+  </Vertical>
+
+</Sequential>

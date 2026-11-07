@@ -1,0 +1,164 @@
+<Sequential id="uk_09">
+
+  <Vertical id="uk_09_s1" title="Page zero">
+    <Markdown id="uk_09_s1_caption">
+Outside the Association's stuck door, Kit balanced the folders on Zofia's bag.
+    </Markdown>
+    <Chat id="uk_09_numbered_cover" src="hidden.chatpeg" clip="numbered-cover"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="nolan-life nolan-films"-->
+
+  <Vertical id="uk_09_s2" title="The room behind the wet coats">
+    <Markdown id="uk_09_s2_text">
+The Westminster Witness Association had its name on a strip of paper behind the glass. Someone had squeezed PRIVATE ASSOCIATION above the letterbox. Zofia had expected an entrance with steps. She got a door that stuck against a mat.
+
+Inside, wet coats hung over a radiator. A bus filled the window with red, then slid away. Mara was waiting; their appointment with Ruth was next.
+
+Len stood beside a narrow tablet, hands down his trouser seams. Across the room, under a separate ship tablet, Alec sat with one foot hooked behind the other. Between them hung the Association's local memorial board. Zofia could see both men here. She could not find Alec's name on the board.
+
+A heavy pull settled across Zofia's shoulders: the carried horse, she thought. She stayed still until it eased.
+
+On the table lay a unit account with another organisation's name stamped on it: Historical Accounts Office. Under that, in smaller print, COPY. The Association secretary had left a note: amendments to that account must go to its government custodian. Questions about the Association's own board went to her.
+
+Two tablets. Two envelopes. Zofia pulled out the first page.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_09_s3" title="Two requests">
+    <Markdown id="uk_09_s3_caption">
+At the table between the two memorial tablets, Zofia opened the copied unit account.
+    </Markdown>
+    <Chat id="uk_09_two_tablets" src="hidden.chatpeg" clip="two-tablets"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="suez-trigger suez-sevres suez-timeline falk-invasion falk-surrender falk-numbers"-->
+
+  <Vertical id="uk_09_s4" title="Separate sleeves">
+    <Markdown id="uk_09_s4_caption">
+Under the wet coats, Zofia tried to fit both requests into one sleeve.
+    </Markdown>
+    <Chat id="uk_09_separate_wars" src="hidden.chatpeg" clip="separate-wars"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="suez-pressure suez-eden suez-casualties-significance falk-why falk-aftermath"-->
+
+  <Vertical id="uk_09_s5" title="What goes to Ruth?">
+    <Markdown id="uk_09_s5_slips">
+Ruth's message lights the phone: **Bring the evidence now. Officers are waiting for my report.**
+
+Ruth has time to open one packet first.
+
+**Samuel's original log:** Week 2, Tuesday, 14:10. Rehearsal. Vale follows the visitor with the equipment case.
+
+**Ruth's copied sheet:** Week 2, Tuesday, 14:40. Rehearsal. Ewa's shift: 14:00–18:00.
+
+**Transfer dispatch sheet:** Week 4, Tuesday, 14:40.
+
+**Ruth's incident summary:** Same route/time. Ewa's shift: 14:00–18:00.
+
+**Kit's signed statement:** Saw Vale divert the case at 14:40 on week-4 Tuesday. His earlier denial was false.
+
+**Ewa's signed rota:** Week 4, Tuesday, 06:00–10:00. Samuel confirms her departure and Vale at both transfer endpoints.
+    </Markdown>
+    <CapaProblem id="uk_09_packet" title="Which packet should Ruth receive?" dontKnow="true" showanswer="attempted" maxAttempts="1">
+      <KeyGrader id="uk_09_packet_grader">
+        <Markdown id="uk_09_packet_prompt">**Which packet should Ruth receive?**</Markdown>
+        <ChoiceInput id="uk_09_packet_input">
+          <Distractor id="uk_09_packet_a" value="sametime">**A — Same time, same event.** Combine both 14:40 entries; identify Ewa's afternoon shift as the opportunity. Attach a joint statement vindicating Len and Alec.</Distractor>
+          <Key id="uk_09_packet_b" value="weeks">**B — Keep the weeks visible.** Send original log, copied rehearsal sheet, dispatch, incident summary, Kit's statement and signed rota. Keep Len's purpose evidence and Alec's identity request in separate sleeves.</Key>
+          <Distractor id="uk_09_packet_c" value="onewitness">**C — One witness settles it.** Send Kit's statement alone. Demand Vale's mother's guaranteed correction in exchange for the case's return.</Distractor>
+        </ChoiceInput>
+        <Explanation id="uk_09_packet_explanation" showWhen="answered">
+          <Markdown id="uk_09_packet_explanation_text">
+Zofia puts the two week labels side by side. She sends packet B. On the front she writes: **Keep the originals. The shift was copied from the rehearsal.**
+          </Markdown>
+        </Explanation>
+      </KeyGrader>
+      <Markdown id="uk_09_packet_fb_a" when="@uk_09_packet_grader.lastSubmission ? (@uk_09_packet_grader.lastSubmission).includes('sametime') : false">
+Ruth starts to summon Ewa back. Zofia stops her: the afternoon shift is week 2; Ewa left at 10:00 in week 4. The correction has cost them time.
+      </Markdown>
+      <Markdown id="uk_09_packet_fb_b" when="@uk_09_packet_grader.lastSubmission ? (@uk_09_packet_grader.lastSubmission).includes('weeks') : false">
+Ruth asks Ewa to identify her signature immediately. The weeks stay separate; so do Len's purpose evidence and Alec's identity request.
+      </Markdown>
+      <Markdown id="uk_09_packet_fb_c" when="@uk_09_packet_grader.lastSubmission ? (@uk_09_packet_grader.lastSubmission).includes('onewitness') : false">
+Ruth refuses the bargain and waits for corroboration of Kit, who admitted lying. Zofia must unpack the bag again while Ewa waits.
+      </Markdown>
+    </CapaProblem>
+  </Vertical>
+
+  <Vertical id="uk_09_s6" title="Keep my name with it">
+    <Markdown id="uk_09_s6_caption">
+In Ruth's office, Ewa stood beside the desk rather than take the offered chair.
+    </Markdown>
+    <Chat id="uk_09_signed_copy" src="hidden.chatpeg" clip="signed-copy"/>
+  </Vertical>
+
+  <Vertical id="uk_09_s7" title="The price of a word">
+    <Markdown id="uk_09_s7_caption">
+At the office doorway, Ruth kept the children on her side of the threshold while Vale faced Hugh.
+    </Markdown>
+    <Chat id="uk_09_hearing_not_price" src="hidden.chatpeg" clip="hearing-not-price"/>
+  </Vertical>
+
+  <Vertical id="uk_09_s8" title="Outside the door">
+    <Markdown id="uk_09_s8_text">
+Samuel stood between the children and the door. Beyond it came a low voice, then a scrape that might have been a chair. Nobody told Zofia what it was. She pressed her cold hands against the warm sides of her phone.
+
+Ollie had stopped explaining. His father sat beside him while an officer took his account. Grace pulled a loose thread from her cuff, wound it round a finger, and unwound it. Through the window Zofia could see rain flattening itself against the pavement. People stepped over a puddle without looking up at their building.
+
+Ruth came back with empty hands.
+
+The officers had recovered the genuine Mace. She had arranged its identification, the record of who received it, and its return through authorised staff. Vale would face the investigation. Nobody had bought him a verdict about his mother.
+
+Ewa read the signed correction twice. She photographed it, including Ruth's name, and sent it to herself. Then she put on her coat. Her next shift would begin without Zofia beside her.
+
+Their escort for the debate was booked. After that visit, the family arrangement would end. Samuel checked the time, not the closed door.
+
+Zofia's phone lit again. This message had an attachment from the Workshop editor. She recognised the caption in the thumbnail. Emmeline had been waiting for it while helping everyone else demand their replies.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_09_s9" title="The next office">
+    <Markdown id="uk_09_s9_caption">
+In the waiting area, Zofia opened the Workshop editor's attachment.
+
+> **Workshop editor — signed, published correction**
+> Our caption wrongly placed Pankhurst's death after equal franchise. She died on 14 June 1928; the Act giving women the vote on equal terms with men followed in July. Those dates establish the error. We retract that sequence; the original and this correction remain published together.
+    </Markdown>
+    <Chat id="uk_09_unfinished_instruction" src="hidden.chatpeg" clip="unfinished-instruction"/>
+  </Vertical>
+
+  <Vertical id="uk_09_s10" title="The words they had">
+    <Markdown id="uk_09_s10_text">
+The escort waited while Zofia folded the editor's reply. She had expected to spend the walk rehearsing with Emmeline. Instead she counted the corners of the paper until they lined up.
+
+At their permitted place, Kit checked what he could see. The genuine Mace was back on the Table. Len could hear the sitting with her now. Alec complained softly about the waiting; she almost smiled, then pressed the folded reply flat on her knee.
+
+Mara asked for the overdue answers by name. Zofia could hear her without any help. She followed the words until the minister reached the Historical Accounts Office.
+
+The Office's response was still pending policy. It had provided no evidence-based decision on Len's unit account or Hale's case summary. Zofia waited for a date. None came. Mara asked again what would make the Office search and answer rather than wait for its own policy.
+
+The Association had answered. The minister recorded its secretary's search and refusal. The signed decision and its evidence waited in Mara's folder. Not established.
+
+Hugh, on the Conservative opposition benches, asked that the missing link remain visible. Mara rose from the Labour government benches. Her hand closed around her papers.
+
+There was a reply to carry out of this room. It did not contain the word Zofia had wanted.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_09_s11" title="Extra time">
+    <Markdown id="uk_09_s11_caption">
+Outside the debating room, Mara spread the secretary's signed answer on a window ledge.
+
+> **Association secretary — signed, published decision**
+> We searched the accession papers and surviving board lists. A fragment names Alec, but the damaged list supplies no secure link to this board or proof of eligibility. Decision: **not established**. We refuse to add the name on this evidence; this is no finding that he did not serve. The search list, fragment and missing link are published with this decision.
+    </Markdown>
+    <Chat id="uk_09_after_response" src="hidden.chatpeg" clip="after-response"/>
+  </Vertical>
+
+  <Vertical id="uk_09_s12" title="The returned envelope">
+    <Markdown id="uk_09_s12_caption">
+At the exit desk, Kit held out his hand for the visitor pass.
+    </Markdown>
+    <Chat id="uk_09_return_the_pass" src="hidden.chatpeg" clip="return-the-pass"/>
+  </Vertical>
+
+</Sequential>

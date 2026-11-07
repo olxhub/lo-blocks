@@ -1,0 +1,16 @@
+<Cast cast="characters.cast" id="ojajCast">
+  <Course id="ojajUk" title="OJAJ 2026/27: the UK">
+    <Chapter title="1. The Queue"><Use ref="uk_01"/></Chapter>
+    <Chapter title="2. 311 Steps"><Use ref="uk_02"/></Chapter>
+    <Chapter title="3. The Oath"><Use ref="uk_03"/></Chapter>
+    <Chapter title="4. Speakers' Corner"><Use ref="uk_04"/></Chapter>
+    <Chapter title="5. What the Charter Says"><Use ref="uk_05"/></Chapter>
+    <Chapter title="6. Two Members"><Use ref="uk_06"/></Chapter>
+    <Chapter title="7. Under the Mace"><Use ref="uk_07"/></Chapter>
+    <Chapter title="8. The Handover"><Use ref="uk_08"/></Chapter>
+    <Chapter title="9. Hidden from the House"><Use ref="uk_09"/></Chapter>
+    <Chapter title="10. Wool and Lords"><Use ref="uk_10"/></Chapter>
+    <Chapter title="11. Three Knocks"><Use ref="uk_11"/></Chapter>
+    <Chapter title="12. Silence"><Use ref="uk_12"/></Chapter>
+  </Course>
+</Cast>

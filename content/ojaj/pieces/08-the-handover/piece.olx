@@ -1,0 +1,140 @@
+<Sequential id="uk_08">
+
+  <Vertical id="uk_08_s1" title="The withheld envelope">
+    <Markdown id="uk_08_s1_caption">
+Half-term daylight. No Palace visit today. Ewa has her own copy; Grace has the envelope she said she couldn't find.
+    </Markdown>
+    <Chat id="uk_08_withheld_envelope" src="handover.chatpeg" clip="The withheld envelope"/>
+  </Vertical>
+
+  <Vertical id="uk_08_s2" title="What Kit saw">
+    <Markdown id="uk_08_s2_caption">
+Albert sat gold under his pointed canopy, the exhibition catalogue on his knee. Zofia's map snapped in the wind. Across the road stood the Royal Albert Hall; behind her, the garden paths. Kit planted himself in front of the map. Doyle's voice came with her. No figure, nothing she could point to.
+    </Markdown>
+    <Chat id="uk_08_what_kit_saw" src="handover.chatpeg" clip="What Kit saw"/>
+  </Vertical>
+
+  <Vertical id="uk_08_s3" title="The blank after whether">
+    <Markdown id="uk_08_s3_text">
+Zofia held the phone until the screen dimmed. Tapped it. The editor's name was still there. Up to the top. Down again. No more words.
+
+Kit clicked his pen cap on and off. Grace told him to stop. He stopped. That was worse.
+
+Doyle had always had another question. Even when she wanted him to shut up, he had one. Now she needed him to finish a single sentence.
+
+A gust got under the map. Grace caught it against Zofia's wrist.
+
+“Albert first,” she said. “Then the other card. Hold this end?”
+
+Zofia put the phone away. Two hands for a piece of paper. Apparently that was what she could do now.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_08_s4" title="Two statues, one packet">
+    <!-- image: alt="Two parks: Round Pond by Kensington Palace; Peter Pan west of the Long Water; Albert Memorial north of the Royal Albert Hall; Speakers' Corner northeast in Hyde Park; Animals in War on its Park Lane edge." Original schematic, labelled "Schematic; not to scale", north arrow, labelled Kensington Palace, Round Pond outline, Long Water/Serpentine, Albert Memorial, Peter Pan, Speakers' Corner, Animals in War, with connecting paths from the Royal Parks visitor map; licence CC0 (own work), license attribute required on the Image. -->
+    <Markdown id="uk_08_s4_intro">
+Grace has mixed the meeting cards with the park notes. Samuel's shift starts soon. Open map pins to check the notes, then choose where to take the packet.
+
+**Grace's card:** “Albert with the book first, opposite the Hall. Kit, bring a pen that works.”
+
+**Samuel's card:** “Ewa and I will wait at the boy with the pipe, west of the water that continues from the Serpentine into Kensington Gardens. Not the pond by the palace. Keep the envelope dry, please.”
+    </Markdown>
+    <CheckboxInput id="uk_08_search">
+      <Distractor id="uk_08_pin_albert" value="albert">Albert Memorial</Distractor>
+      <Distractor id="uk_08_pin_longwater" value="longwater">Long Water</Distractor>
+      <Distractor id="uk_08_pin_peterpan" value="peterpan">Peter Pan</Distractor>
+      <Distractor id="uk_08_pin_roundpond" value="roundpond">Round Pond</Distractor>
+      <Distractor id="uk_08_pin_serpentine" value="serpentine">Serpentine</Distractor>
+      <Distractor id="uk_08_pin_speakers" value="speakers">Speakers' Corner</Distractor>
+      <Distractor id="uk_08_pin_animals" value="animals">Animals in War</Distractor>
+    </CheckboxInput>
+    <Markdown id="uk_08_card_albert" when="'albert' in @uk_08_search.value">
+**Albert Memorial.** Victoria commissioned it for Prince Albert; Sir George Gilbert Scott designed it. The seated figure holds the catalogue of the Great Exhibition of 1851, held in Hyde Park in Joseph Paxton’s Crystal Palace.
+    </Markdown>
+    <Markdown id="uk_08_card_longwater" when="'longwater' in @uk_08_search.value">
+**Long Water.** The Serpentine's section in Kensington Gardens, made when Queen Caroline and Charles Bridgeman reshaped the gardens from 1728. The gardens began around Kensington Palace in 1689, when William III and Mary II took part of Hyde Park.
+    </Markdown>
+    <Markdown id="uk_08_card_peterpan" when="'peterpan' in @uk_08_search.value">
+**Peter Pan.** The boy playing a pipe is Peter Pan: bronze by Sir George Frampton, commissioned and paid for by J. M. Barrie. Discovered on 1 May 1912 after an overnight installation. West of the Long Water.
+    </Markdown>
+    <Markdown id="uk_08_card_roundpond" when="'roundpond' in @uk_08_search.value">
+**Round Pond.** In front of Kensington Palace. Roughly rectangular with rounded corners; a separate pond, despite the tempting name.
+    </Markdown>
+    <Markdown id="uk_08_card_serpentine" when="'serpentine' in @uk_08_search.value">
+**Serpentine.** Connected to the Long Water. The name alone won't tell Samuel which part you mean.
+    </Markdown>
+    <Markdown id="uk_08_card_speakers" when="'speakers' in @uk_08_search.value">
+**Speakers' Corner.** Northeast Hyde Park, near Marble Arch. A meeting place they have used before.
+    </Markdown>
+    <Markdown id="uk_08_card_animals" when="'animals' in @uk_08_search.value">
+**Animals in War.** Park Lane, near Brook Gate, at Hyde Park's eastern edge, outside the railings. A Hyde Park association, not a pin in its middle.
+    </Markdown>
+    <CapaProblem id="uk_08_route" title="Which route fits both cards?" dontKnow="true" showanswer="attempted">
+      <KeyGrader id="uk_08_route_grader">
+        <Markdown id="uk_08_route_prompt">**Which route fits both cards?**</Markdown>
+        <ChoiceInput id="uk_08_route_input">
+          <Distractor id="uk_08_route_palace" value="palace">Albert Memorial → Round Pond, by Kensington Palace.</Distractor>
+          <Key id="uk_08_route_west" value="west">Albert Memorial → Peter Pan, west of the Long Water.</Key>
+          <Distractor id="uk_08_route_east" value="east">Albert Memorial → east bank of the Long Water, opposite Peter Pan.</Distractor>
+          <Distractor id="uk_08_route_corner" value="corner">Albert Memorial → Speakers' Corner, near Marble Arch.</Distractor>
+        </ChoiceInput>
+        <Explanation id="uk_08_route_explanation">
+          <Markdown id="uk_08_route_explanation_text">
+Both cards fit. Scott's memorial first; Frampton's statue west of the Long Water next. Keep the packet with you until Ewa and Samuel check the copies.
+          </Markdown>
+        </Explanation>
+      </KeyGrader>
+      <Markdown id="uk_08_route_fb_palace" when="@uk_08_route_grader.lastSubmission ? (@uk_08_route_grader.lastSubmission).includes('palace') : false">
+The palace is a strong landmark, but Samuel ruled out its pond. Compare its rounded rectangle with the connected water, then find Frampton's statue.
+      </Markdown>
+      <Markdown id="uk_08_route_fb_east" when="@uk_08_route_grader.lastSubmission ? (@uk_08_route_grader.lastSubmission).includes('east') : false">
+Right water, wrong bank. You would be opposite the meeting. Peter Pan stands west of the Long Water; keep the packet on that side.
+      </Markdown>
+      <Markdown id="uk_08_route_fb_corner" when="@uk_08_route_grader.lastSubmission ? (@uk_08_route_grader.lastSubmission).includes('corner') : false">
+You remember a real meeting place, but neither Frampton's statue nor the water clue puts Samuel there today. Check both cards.
+      </Markdown>
+    </CapaProblem>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="albert-what albert-statue hyde-great-exhibition kg-palace kg-caroline kg-round-pond pp-sculptor pp-overnight"-->
+
+  <Vertical id="uk_08_s5" title="Keep moving" when="@uk_08_route.correct === correctness.correct || @uk_08_route.correct === correctness.gaveUp">
+    <Chat id="uk_08_keep_moving" src="handover.chatpeg" clip="Keep moving"/>
+  </Vertical>
+
+  <Vertical id="uk_08_s6" title="The card in his hand" when="@uk_08_route.correct === correctness.correct || @uk_08_route.correct === correctness.gaveUp">
+    <Markdown id="uk_08_s6_text">
+Ewa's message arrived: Where are you? Grace sent “Peter Pan” instead of guessing how many minutes. They followed the map towards Peter Pan, west of the Long Water. Kit held his statement against his coat.
+
+He stopped to add “watch”. Zofia waited. His pen scratched through the paper's damp patch. She kept her hands in her pockets.
+
+At the water, the wind cut through her sleeves. Bare branches broke up the grey reflection. Peter Pan stood among bronze rabbits, squirrels, mice and fairies. Zofia looked past them. Ewa had a folder under her arm. Samuel held her bag.
+
+Kit hung back. He turned his statement over, hiding the writing. Then turned it back.
+
+Grace tried to fold the map. One corner wouldn't fit. She shoved it into her pocket and held out the envelope.
+
+“Here.”
+
+Ewa took it by the edges. Samuel gave back her bag and made a dry space on his closed folder. Kit stepped forward. Nobody took his card until he offered it.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_08_s7" title="Names on the copy" when="@uk_08_route.correct === correctness.correct || @uk_08_route.correct === correctness.gaveUp">
+    <Chat id="uk_08_names_on_copy" src="handover.chatpeg" clip="Names on the copy"/>
+  </Vertical>
+
+  <Vertical id="uk_08_s8" title="The unfinished condition" when="@uk_08_route.correct === correctness.correct || @uk_08_route.correct === correctness.gaveUp">
+    <Markdown id="uk_08_s8_caption">
+Samuel has signed for the packet. Zofia opens her request to go back in under the families' supervised visit plan. Ada is a voice beside her, still helping.
+    </Markdown>
+    <Chat id="uk_08_unfinished_condition" src="handover.chatpeg" clip="The unfinished condition"/>
+  </Vertical>
+
+  <Vertical id="uk_08_s9" title="Receive it" when="@uk_08_route.correct === correctness.correct || @uk_08_route.correct === correctness.gaveUp">
+    <Markdown id="uk_08_s9_caption">
+Samuel puts the copies in a fresh envelope. Ewa keeps her original. Ruth comes along the path to meet them. Zofia slides her signed request in with the copies.
+    </Markdown>
+    <Chat id="uk_08_receive_it" src="handover.chatpeg" clip="Receive it"/>
+  </Vertical>
+
+</Sequential>

@@ -1,0 +1,1360 @@
+Zofia:
+  name: Zofia Kowalczyk
+  profile:
+    role: Viewpoint; symbols become clues; tests the dead against records
+    bio: Notices what is out of place. After the Serpentine she prefers petitioners who need her to living
+      friends who contradict her; each answered grievance costs a voice; she chooses a living reply at the
+      safe bank after refusing it at the door.
+    placeOfOrigin: Kraków; unfamiliar London makes familiar emblems worth a second look.
+    familyBackground: Fourteen; daughter of Ewa Kowalczyk, a Palace cleaner. They compare observations and
+      disagree about risks.
+    gender: Girl; the sharpest reader of discrepancies in the room, impatient with being underestimated.
+    education: Polish school pupil; studies Britain as a subject and brings her own country's parliamentary
+      history to comparisons.
+    professionalExperience: No staff post or security privilege; waiting for her mother teaches her to watch
+      routines.
+    culturalTouchstones:
+    - Door emblems; Marshal’s staff beside the Mace (extra-sejm-staff [VERIFY])
+    - Neminem captivabimus, 1430–1433, beside Magna Carta (extra-neminem [VERIFY])
+    - Liberum veto beside the slam (extra-liberum-veto [VERIFY])
+    - Wojtek beside Animals in War (extra-wojtek [VERIFY])
+    coreTraits:
+    - observant
+    - wry
+    - possessive of people who need her
+    confidenceLevel: 8
+    reactionToStress: Counts objects and omits the person she fears losing.
+    emotionalRange: Shows irritation easily; hides loneliness as practical help.
+    copingMechanisms: Draws a route before trying to sleep.
+    decisionMakingStyle: analytical
+    moralFramework: A person deserves a hearing; a hearing does not make their claim true.
+    speechPatterns: 'Noun first, then the discrepancy. Invented sample: The chain. Somebody has polished around
+      it.'
+    vocabularyLevel: Concrete objects before institutional names; asks for the name once and retains it.
+    humorStyle: Quiet mismatches between a grand title and a dirty hinge.
+    catchphrases:
+    - Which bit did you see?
+    formality: 3
+    relationshipToAuthority: Requires evidence from officials as readily as from ghosts.
+    teamRole: Observer and carrier, with the power to refuse the next journey.
+    keyRelationship: Grace must accept that the dead deserve an evidenced hearing; Zofia must accept that Grace
+      can refuse another unpaid afternoon. Each can call the other back.
+    conflictStyle: collaborative
+    mentorInfluence: Her mother checks the room she is leaving; Zofia learns to check the witness she is carrying.
+    storyArc: After the Serpentine she prefers petitioners who need her to living friends who contradict her;
+      each answered grievance costs a voice; she chooses a living reply at the safe bank after refusing it
+      at the door.
+    definingMoment:
+    - The animal queue at the Serpentine bank and Animals in War
+    - Assembles the living evidence that clears Ewa and herself before Ruth signs it
+    recurringJoke: Keeps finding the thing everyone has just said is not there.
+    blindSpots:
+    - Treats being indispensable as being loved
+    behavioralRules:
+    - Only she hears the dead; she must relay their words and identify her own additions.
+    - Never acquires knowledge by drowning; the accident grants access, not truth.
+    - Never translates a ghost’s certainty into a verified fact.
+    hiddenMotivations: Wants someone to need her without treating her mother as a service.
+  groups:
+  - living
+  openPeeps:
+    face: suspicious
+    head: bangs
+Grace:
+  name: Grace Banda
+  profile:
+    role: Demands origin and present significance; contests unpaid institutional loyalty
+    bio: Demands origin and present significance; contests unpaid institutional loyalty. Withholds the rota
+      because she half hopes the search will stop; gives it up when she sees whose hearing her delay costs.
+      Defends a safeguard while demanding paid, accountable work.
+    placeOfOrigin: London; the Palace is her father’s workplace before it is a national symbol.
+    familyBackground: Fifteen; Ollie’s twin, daughter of a Commons doorkeeper. Shared routes do not mean shared
+      secrets.
+    gender: Girl; resents being asked to tidy a crisis the boys call an adventure.
+    education: School pupil; good at finding the premise hidden in a question.
+    professionalExperience: No Palace job; knows the cost of being expected to help for nothing.
+    culturalTouchstones:
+    - Bus rides away from Westminster
+    - A private list of things she will do elsewhere
+    coreTraits:
+    - sceptical
+    - economical
+    - loyal in action
+    confidenceLevel: 8
+    reactionToStress: Stops joking and asks who is carrying the risk.
+    emotionalRange: Shows contempt too readily; affection arrives as food or a dry coat.
+    copingMechanisms: Walks the long way home.
+    decisionMakingStyle: intuitive
+    moralFramework: Tradition must answer to the people doing its work.
+    speechPatterns: 'Questions tied to what her friends are being made to do. Invented, at a locked door: Are
+      we missing the last bus for this, or has somebody actually booked us in?'
+    vocabularyLevel: Plain verbs; translates ceremony into the labour it requires.
+    humorStyle: Deadpan literal description of pomp.
+    catchphrases:
+    - And we still do this because?
+    formality: 2
+    relationshipToAuthority: Will help a person before she helps an office save face.
+    teamRole: Tests the cost nobody has priced.
+    keyRelationship: Morwenna hears an attack on safeguards where Grace means an attack on exploitation. Ollie
+      sells the story she wanted kept inside the family.
+    conflictStyle: confrontational
+    mentorInfluence: Her father’s sore feet matter more to her than his ceremonial gloves.
+    storyArc: Withholds the rota because she half hopes the search will stop; gives it up when she sees whose
+      hearing her delay costs. Defends a safeguard while demanding paid, accountable work.
+    definingMoment:
+    - Learns whose testimony vanishes without the Mace
+    - Hands over the withheld clue
+    recurringJoke: Calls the search a shift and keeps count of its hours.
+    blindSpots:
+    - Confuses loving ceremony with loving hierarchy
+    behavioralRules:
+    - Must concede a ritual can protect people.
+    - Never treats Morwenna or Kit as stupid for caring.
+    hiddenMotivations: Wants to leave without becoming someone who despises her father’s life.
+  groups:
+  - living
+  openPeeps:
+    face: contempt
+    head: buns
+Ollie:
+  name: Ollie Banda
+  profile:
+    role: Delivers rumours whose sources and accuracy must be tested
+    bio: Knows what was said in corridors. Trades a secret to a lobby journalist, endangering his father and
+      Zofia; repairs by naming his source and accepting a refusal to publish.
+    placeOfOrigin: London; recognises people by routes and tea breaks.
+    familyBackground: Fifteen; Grace’s twin, doorkeeper’s son; wants their father’s knowledge respected.
+    gender: Boy; performs being unshockable when he is frightened.
+    education: School pupil; remembers conversations faster than documents.
+    professionalExperience: No official access; overhearing is not authorisation.
+    culturalTouchstones:
+    - Corridor tea rituals
+    - Voice notes he should delete
+    coreTraits:
+    - sociable
+    - quick
+    - careless with confidence
+    confidenceLevel: 8
+    reactionToStress: Adds another source rather than checking the first.
+    emotionalRange: Shows delight and outrage; hides shame by accelerating.
+    copingMechanisms: Retells the day until someone laughs.
+    decisionMakingStyle: impulsive
+    moralFramework: Information should move; learns that consent must move with it.
+    speechPatterns: 'Runs on with a delayed qualification. Invented sample: Right, so three people know. Four
+      if he told his mum.'
+    vocabularyLevel: Names, routes and reported speech; distinguishes heard from checked only after trouble.
+    humorStyle: Conspiratorial escalation; never phonetic dialect.
+    catchphrases:
+    - Right, so—
+    formality: 2
+    relationshipToAuthority: Likes being admitted more than being obedient.
+    teamRole: Connector who can also expose the group.
+    keyRelationship: Kit hates his leaks; Ollie mistakes Kit’s rehearsal for fear of life. Grace stops confiding
+      in him after the journalist.
+    conflictStyle: diplomatic
+    mentorInfluence: His father remembers the person standing behind an important visitor.
+    storyArc: Trades a secret to a lobby journalist, endangering his father and Zofia; repairs by naming his
+      source and accepting a refusal to publish.
+    definingMoment:
+    - The journalist prints what he thought was a private hint
+    recurringJoke: Each secret has allegedly only one recipient.
+    blindSpots:
+    - Believes being liked means being trusted
+    behavioralRules:
+    - A rumour always arrives with a traceable speaker or an explicit gap.
+    - Never supplies unmarked exam facts as corridor lore.
+    hiddenMotivations: Wants proof that his father’s family belongs inside the story of the Palace.
+  groups:
+  - living
+  openPeeps:
+    face: cheeky
+    head: short2
+Morwenna:
+  name: Morwenna Treloar
+  profile:
+    role: Models procedure and jurisdiction; distinguishes a petition from a bill
+    bio: Reads the rule before acting; frightened under control. Her report breaches a promise, and accuracy
+      does not excuse it.
+    placeOfOrigin: Cornwall; dislikes being collapsed into a decorative regional emblem.
+    familyBackground: Sixteen; a family accustomed to forms deciding whether help arrives. Fictional background,
+      not a claim about Cornwall.
+    gender: Girl; overprepares when adults mistake youth for incompetence.
+    education: Fictional clerk’s apprentice; reads the current rule and its exceptions.
+    professionalExperience: Her apprenticeship is a story arrangement, not a documented recruitment route.
+    culturalTouchstones:
+    - Indexed manuals
+    - Cornish place names she expects people to learn
+    coreTraits:
+    - careful
+    - literal about scope
+    - liable to report friends
+    confidenceLevel: 7
+    reactionToStress: Lists conditions until somebody asks for a decision.
+    emotionalRange: Shows alarm as precision; delight at an exact solution escapes as a grin.
+    copingMechanisms: Reindexes notes.
+    decisionMakingStyle: analytical
+    moralFramework: A rule matters when it gives the weaker party a claim.
+    speechPatterns: 'Overprepared conditions with anxious qualifications. Invented official register: If it
+      is signed, they can receive it—unless I missed an attachment. I checked twice. Peer register: Please
+      do not make me ask again. I promised I would keep it between us, and now I have told her.'
+    vocabularyLevel: Uses the technical term, then explains what action it permits.
+    humorStyle: Unintended comedy from refusing an approximate number.
+    catchphrases:
+    - Under which rule?
+    formality: 8
+    relationshipToAuthority: Trusts accountable procedure; initially overtrusts its officers.
+    teamRole: Checks the route and the permission separately.
+    keyRelationship: Grace makes her name the unpaid worker protected by a form. Ruth accepts her report and
+      then conceals its implications.
+    conflictStyle: confrontational
+    mentorInfluence: A family member’s rejected form taught her to keep copies; invented writers’ backstory.
+    storyArc: Breaks an explicit confidence by reporting her friends; the technically accurate report helps
+      exclude them. Admits this wrong and demands reasons from Ruth as rigorously as compliance from friends.
+    definingMoment:
+    - Her report becomes evidence against Zofia
+    - Requests Ruth’s concealment be recorded
+    recurringJoke: Offers an appendix when asked for a yes.
+    blindSpots:
+    - Assumes everyone can afford the time needed to appeal
+    behavioralRules:
+    - Cornish identity is her argued position, never a mistake for others to correct. National-minority recognition
+      is distinct from devolved legislative powers (extra-cornish-status [VERIFY]).
+    - Do not let her manual contain supernatural law.
+    hiddenMotivations: Wants a process that would have protected her family, and fears admitting it sometimes
+      fails.
+  groups:
+  - living
+  - staff
+  openPeeps:
+    face: concerned
+    head: bun
+Kit:
+  name: Kit Adeyemi
+  profile:
+    role: Rehearses State Opening; delivers the decisive invented support cue for the real Black Rod’s three
+      knocks
+    bio: Earnest about ritual; loyalty tempts him to lie, then exact knowledge lets him act decisively.
+    placeOfOrigin: London; old ceremony offers him a craft he can practise.
+    familyBackground: Seventeen; London-born. His Nigerian-born father repairs buses; his mother runs a school
+      library. Sunday dinner includes his younger sister timing his rehearsals. Chosen fictional family, not
+      inferred biography.
+    gender: Boy; earnestness makes him easy to tease, and he refuses to disown it.
+    education: Fictional supervised trainee in Black Rod’s office, not Black Rod.
+    professionalExperience: Rehearsal and errands; his age, access and duties require institutional review
+      [VERIFY].
+    culturalTouchstones:
+    - Practice counts
+    - Shoes polished before anyone asks
+    coreTraits:
+    - earnest
+    - anxious
+    - protective of a superior
+    confidenceLevel: 4
+    reactionToStress: Repeats the sequence and misses the person asking him to stop.
+    emotionalRange: Shows excitement; shame becomes frantic helpfulness.
+    copingMechanisms: Rehearses with an ordinary stick in private.
+    decisionMakingStyle: avoidant
+    moralFramework: Promises should be kept; learns a promise of silence can be wrong.
+    speechPatterns: 'Breathless sequence followed by self-correction. Invented sample: Wait. From the door.
+      I can do it from the door.'
+    vocabularyLevel: Action words and counts; titles become steadier than his own sentences.
+    humorStyle: Accidental solemnity about tiny rehearsal errors.
+    catchphrases:
+    - From the beginning.
+    formality: 6
+    relationshipToAuthority: Loyal to the person teaching him before he tests what they ask.
+    teamRole: Rehearsal partner and keeper of one damaging observation.
+    keyRelationship: Ollie makes his calling into gossip. Morwenna catches the mismatch in his account; Zofia
+      asks whom the lie protects.
+    conflictStyle: avoidant
+    mentorInfluence: His unnamed superior’s patient first rehearsal; invented, not an actual officeholder.
+    storyArc: Lies about the diverted case to shield his superior; confesses at risk of his placement. At the
+      climax his authorised support cue makes the real Black Rod’s three knocks possible on schedule; he refuses
+      Zofia’s request to delay.
+    definingMoment:
+    - Admits the lie before being offered immunity
+    recurringJoke: Counts silently with his fingers when someone says relax.
+    blindSpots:
+    - Mistakes shielding a superior for serving the office
+    behavioralRules:
+    - Never replaces Black Rod. The three knocks are his decisive responsibility through an invented authorised
+      cue to the real office-holder, who physically knocks.
+    - Youth placement, support duties and corridor access are invented; real ceremonial sequence remains [VERIFY].
+    hiddenMotivations: Wants to master a craft and be trusted with responsibility; learns trust requires an
+      uncomfortable truth.
+  groups:
+  - living
+  - staff
+  openPeeps:
+    face: concernedFear
+    head: cornrows
+Ruth:
+  name: Ms Ruth Achebe-Lane
+  profile:
+    role: Authority whose admission changes evidence, access and consequences
+    bio: Protects her office; her command competence is real and her concealment is culpable.
+    placeOfOrigin: London; fictional family history specified rather than inferred from her surname.
+    familyBackground: London-born daughter of a Ghanaian nurse and an English railway signal technician; shares
+      care for her father with her sister and mends his radio between shifts. Chosen fictional lives.
+    gender: Woman; accustomed to having competence tested, now too ready to treat criticism as another test.
+    education: Fictional professional preparation; no invented qualification presented as an appointment requirement.
+    professionalExperience: Fictional holder of the real title Deputy Serjeant at Arms; actual remit must be
+      checked [VERIFY].
+    culturalTouchstones:
+    - Incident books
+    - A cold cup left untouched during a crisis
+    coreTraits:
+    - controlled
+    - protective
+    - capable of public admission
+    confidenceLevel: 9
+    reactionToStress: Narrows the list of people allowed to know.
+    emotionalRange: Shows command and irritation; hides fear behind confidentiality.
+    copingMechanisms: Checks an incident log nobody has asked to see.
+    decisionMakingStyle: analytical
+    moralFramework: Duty to the House; initially substitutes the office’s reputation.
+    speechPatterns: 'Named recipient, operational noun, instruction; explanation withheld. Invented routine:
+      Morwenna, seal the log envelope. Nobody makes another copy yet. Confession breaks the pattern: I kept
+      it quiet. That protected me.'
+    vocabularyLevel: Operational nouns; explains a restriction only when challenged.
+    humorStyle: Sparse dry correction of her own euphemisms.
+    catchphrases:
+    - Who has the original?
+    formality: 8
+    relationshipToAuthority: Exercises authority as custody; must accept that custody requires an account.
+    teamRole: Gatekeeper who eventually supplies the concealed record.
+    keyRelationship: Morwenna’s report gives her cover; Grace removes it by naming who paid for the silence.
+      Zofia saw what her officers missed.
+    conflictStyle: confrontational
+    mentorInfluence: No named mentor; institutional habits supply her internal instruction to contain a crisis.
+    storyArc: 'Conceals the loss, then releases the original log and signs the correction Zofia has proved.
+      Wins against the children on chain of custody: officers recover the Mace, with evidence preserved, while
+      children stay outside.'
+    definingMoment:
+    - Signs the corrected incident account under her own name
+    recurringJoke: Calls tea a pause while never taking one.
+    blindSpots:
+    - Believes junior invisibility keeps junior people safe
+    behavioralRules:
+    - Concession must change access and accountability, not merely compliment the children.
+    - She does not solve the theft for them.
+    hiddenMotivations: Fears that one failure will erase a career; this explains concealment and does not excuse
+      it.
+  groups:
+  - living
+  - staff
+  - parliament
+  openPeeps:
+    face: serious
+    head: grayBun
+Mara:
+  name: Mara Reed
+  profile:
+    role: Fictional Labour backbencher; turns a grievance into parliamentary action
+    bio: Believes a witness before she has finished checking. Believes Zofia, seeks presentation of the petition
+      and a separate Records (Correction) Bill; withdraws a clause implying official belief makes a contested
+      claim true. Parliamentary route and timing [VERIFY].
+    placeOfOrigin: Fictional London constituency; no real seat or election result implied.
+    familyBackground: Adult mother grieving a son lost at sea in a recent civilian accident; he is not the
+      1982 sailor.
+    gender: Woman; refuses the suggestion that bereavement disqualifies her judgment.
+    education: Fictional former caseworker; knows how a request gets lost between offices.
+    professionalExperience: Fictional Labour MP, not a portrait of any present member.
+    culturalTouchstones:
+    - Constituency case folders
+    - Her son’s unfinished shopping list
+    coreTraits:
+    - receptive
+    - persistent
+    - vulnerable to a consoling claim
+    confidenceLevel: 7
+    reactionToStress: Promises a deadline she does not control.
+    emotionalRange: Shows anger at dismissal; keeps grief out of speeches until it leaks into an analogy.
+    copingMechanisms: Works through unanswered letters.
+    decisionMakingStyle: consultative
+    moralFramework: Hear the excluded; then establish what the evidence warrants.
+    speechPatterns: 'Names the person, commits too quickly, then revises aloud. Invented: Zofia, I will get
+      you an answer by Friday—no, I can ask for Friday. I cannot promise their diary.'
+    vocabularyLevel: Casework language; explains the difference between recording a request and granting it.
+    humorStyle: Weary jokes about forms sent to the wrong desk.
+    catchphrases:
+    - Who can answer this?
+    formality: 6
+    relationshipToAuthority: Uses her office for petitioners; initially treats her belief as sufficient warrant.
+    teamRole: Living sponsor, never a supernatural proof machine.
+    keyRelationship: Alec refuses substitution for her son. She catches Hugh’s provenance error; he improves
+      her preservation clause.
+    conflictStyle: collaborative
+    mentorInfluence: People who brought her cases with no tidy remedy; fictional background.
+    storyArc: Makes sponsorship conditional on Zofia defending a clause with evidence; catches Hugh mistaking
+      a recopied account for an independent source using her casework paper trail. Withdraws her own overpromise
+      and secures a separate petition, debate and Bill introduction [VERIFY].
+    definingMoment:
+    - Stops herself calling the sailor by her son’s name
+    recurringJoke: Keeps asking for a contact name rather than a department.
+    blindSpots:
+    - Belief can become another way to overwrite the witness
+    behavioralRules:
+    - Her son’s death is invented; no real casualty is borrowed.
+    - She cannot guarantee parliamentary time or an answer [VERIFY].
+    hiddenMotivations: Wants an answer the sea cannot give and must stop asking other people’s dead for it.
+  groups:
+  - living
+  - parliament
+  openPeeps:
+    face: tired
+    head: mediumStraight
+Hugh:
+  name: Hugh Mercer
+  profile:
+    role: Fictional Conservative MP and historian; makes correction preserve evidence
+    bio: Will not rewrite the past for comfort. Rejects ghost testimony as public proof; correctly rejects
+      comforting erasure; supports a narrower remedy that preserves originals and records evidence-based corrections
+      without needing to believe in ghosts.
+    placeOfOrigin: Fictional English background; no real constituency assigned.
+    familyBackground: Fictional English family; attached to a Palace rescue story his father used to tell.
+      He must surrender its comforting version when the maintenance evidence contradicts it.
+    gender: Man; used to having a measured tone mistaken for neutrality.
+    education: Fictional historian trained to preserve provenance and distinguish sources.
+    professionalExperience: Fictional Conservative MP; scholarship does not make him expert in every period.
+    culturalTouchstones:
+    - Facsimiles with editorial notes
+    - Pencil marks kept separate from originals
+    coreTraits:
+    - exacting
+    - sceptical
+    - too quick to dismiss a person
+    confidenceLevel: 8
+    reactionToStress: Requests the exact wording and can forget the witness is still present.
+    emotionalRange: Shows irritation at sentiment used as proof; tenderness appears in care for a damaged page.
+    copingMechanisms: Collates versions.
+    decisionMakingStyle: analytical
+    moralFramework: Correction must leave an auditable record of what was wrong and why.
+    speechPatterns: 'Measured distinction followed by its reason, longer than an order. Invented: I would retain
+      the page with an annotation, because destroying the error also destroys the evidence of who authorised
+      it.'
+    vocabularyLevel: Sources, dates and amendments; no antique parliamentary bluster.
+    humorStyle: Dry attention to the verb that makes an overclaim collapse.
+    catchphrases:
+    - Which record?
+    formality: 8
+    relationshipToAuthority: Distrusts claims protected from challenge, including his own side’s.
+    teamRole: Adversarial reader who improves the remedy.
+    keyRelationship: Mara traces a copied source he treated as corroboration. Hale forces him to admit that
+      preserving an unannotated error can continue an injury.
+    conflictStyle: confrontational
+    mentorInfluence: Historical method, not an invented famous tutor.
+    storyArc: Right about preserving originals; wrong to treat preservation as sufficient. Publicly concedes
+      Mara’s provenance correction and gives up his father’s institutional myth, then helps design independent
+      review.
+    definingMoment:
+    - Returns a disputed page with both the lie and the correction legible
+    recurringJoke: Can stop a room with a pencil resting on one verb.
+    blindSpots:
+    - Dismisses young witnesses before checking their documents
+    behavioralRules:
+    - The story agrees with him that the past cannot be rewritten for comfort.
+    - Do not expose a secret cruelty to invalidate his sound argument.
+    hiddenMotivations: Wants useful historical judgment to survive a spectacle he fears will discredit it.
+  groups:
+  - living
+  - parliament
+  openPeeps:
+    face: solemn
+    head: grayShort
+Will:
+  name: Will, the baker’s boy
+  profile:
+    role: Great Fire and the difference between origin, accident and scapegoating
+    bio: Great Fire and the difference between origin, accident and scapegoating. Seeks blanket vindication
+      of Farriner; accepts the bakery as the origin and narrows the petition to false blame and the suppressed
+      witness. His silence is Zofia’s first costly success.
+    placeOfOrigin: Fictional Pudding Lane worker who died during the Fire; gfl-dates-start.
+    familyBackground: Invented boy with a livelihood tied to his master; not a documented Farriner employee.
+    gender: Boy; expects adults to treat his work as evidence and his testimony as noise.
+    education: Practical measures, fires and deliveries; literacy is limited, not intelligence.
+    professionalExperience: Fictional bakery work, not an eyewitness source for the real Fire.
+    culturalTouchstones:
+    - Bread weights
+    - The oven door; invented sensory memories
+    coreTraits:
+    - loyal
+    - defensive
+    - alert to unfair blame
+    confidenceLevel: 7
+    reactionToStress: Repeats the innocence claim without specifying what it means.
+    emotionalRange: Shows anger; fear appears as a demand that Zofia stay.
+    copingMechanisms: Counts imagined loaves.
+    decisionMakingStyle: intuitive
+    moralFramework: No one should hang because a crowd needs a culprit.
+    speechPatterns: 'Practical apprentice measures and assumed dependence, without mock dialect. Invented:
+      Master counts every loaf before I may shut the oven. Count what you accuse him of as carefully. Ordinary
+      inconvenience: Mistress, a dry place for the flour first; we can stand.'
+    vocabularyLevel: Fire, flour and names; later learns the word attribution.
+    humorStyle: Suspicious of grand names for ordinary burnt things.
+    catchphrases:
+    - Say which charge.
+    formality: 3
+    relationshipToAuthority: Wants an official verdict until he sees how officials recorded one.
+    teamRole: First claimant whose remedy must become more exact.
+    keyRelationship: Zofia distinguishes loyalty from proof and later recognises the parallel with suspicion
+      of her family. Doyle cross-checks Robert Hubert, the French watchmaker (gfl-blame-hubert).
+    conflictStyle: confrontational
+    mentorInfluence: His fictional master’s demand to weigh before selling.
+    storyArc: Seeks blanket vindication of Farriner; accepts the bakery as the origin and narrows the petition
+      to false blame and the suppressed witness. His silence is Zofia’s first costly success.
+    definingMoment:
+    - Hears the 1681 accusation and 1830 removal record through Zofia’s checked transcription; remembers neither
+      at death.
+    recurringJoke: Insists flour dust is different from dust, even while dead.
+    blindSpots:
+    - Thinks correcting blame requires denying the point of origin.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: Foreign-arson rumours heard before death establish who caused the Fire → Doyle and
+      Zofia test later evidence about Robert Hubert, the French watchmaker, and distinguish origin from intent
+      (gfl-dates-start; gfl-blame-hubert; monument-inscription).'
+    hiddenMotivations: Wants his loyalty to have been worth something.
+    anchor: Monument precinct, including staircase
+    grievance: An invented teaching account conflates the bakery origin with proof of deliberate arson.
+    beliefAtDeath: Foreign-arson rumours heard before death establish who caused the Fire → Doyle and Zofia
+      test later evidence about Robert Hubert, the French watchmaker, and distinguish origin from intent (gfl-dates-start;
+      gfl-blame-hubert; monument-inscription).
+    answerPiece: 5
+  groups:
+  - dead
+  openPeeps:
+    face: driven
+    head: short3
+Hale:
+  name: Hale, the Tudor lawyer
+  profile:
+    role: Act of Supremacy; limits of retrospective legal repair
+    bio: Act of Supremacy; limits of retrospective legal repair. Attempts to make the bill invalidate the world
+      after his death; confronted with repeal and replacement, must choose acknowledgment without restoration.
+      He remains the most dangerous petitioner because his grievance is real.
+    placeOfOrigin: Fictional lawyer imprisoned at the Tower and executed in 1535; never identified as Thomas
+      More.
+    familyBackground: Invented adult household left behind; particulars withheld, not attached to a real victim.
+    gender: Man; assumes male officeholders and must be corrected when that assumption acts.
+    education: Fictional legal training; knows his own period, not modern constitutional law.
+    professionalExperience: Fictional lawyer who refused the oath required under the 1534 settlement, executed
+      for treason in 1535; exact legal wording remains provisional (extra-tudor-charge [VERIFY]). Never borrow
+      More’s indictment.
+    culturalTouchstones:
+    - An oath reconstructed only after source review
+    - The Tower as confinement, not a tour route
+    coreTraits:
+    - literal
+    - aggrieved
+    - dangerously persuasive
+    confidenceLevel: 7
+    reactionToStress: Turns a request for acknowledgment into a demand for obedience.
+    emotionalRange: Shows indignation; loss appears in the names he refuses to abbreviate.
+    copingMechanisms: Recites the limits of a clause.
+    decisionMakingStyle: analytical
+    moralFramework: Conscience must survive an order; extends his conscience into control over others.
+    speechPatterns: 'Balanced conditional clauses and assumed rank. Invented disagreement: If the oath bound
+      me, show me whom it bound to answer. Ordinary inconvenience: Madam, with your leave, a place beside the
+      clerk; I would hear the words before I assent.'
+    vocabularyLevel: Uses title and jurisdiction; no decorative thee or thou.
+    humorStyle: A cutting distinction when someone confuses law with justice.
+    catchphrases:
+    - Read the condition.
+    formality: 9
+    relationshipToAuthority: Recognises Parliament as powerful enough to injure; imagines it can restore his
+      whole world.
+    teamRole: Tempts the petition toward reversal rather than correction.
+    keyRelationship: Morwenna refuses his supposed modern authority. Hugh shares his respect for a record and
+      rejects his remedy.
+    conflictStyle: confrontational
+    mentorInfluence: The law he served; no invented association with More.
+    storyArc: Attempts to make the bill invalidate the world after his death; confronted with repeal and replacement,
+      must choose acknowledgment without restoration. He remains the most dangerous petitioner because his
+      grievance is real.
+    definingMoment:
+    - Hears that the 1534 settlement did not remain untouched.
+    recurringJoke: Corrects a modern title and has to be corrected in return.
+    blindSpots:
+    - Assumes a later statute can return the dead their lost choices.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: Repealing an injurious statute can restore the world it displaced → Morwenna distinguishes
+      repeal, the Elizabethan settlement and an irreversible death (supremacy-what; supremacy-repeal-eliz).'
+    hiddenMotivations: 'Fictional motive: wants the verdict reversed without admitting the household cannot
+      be returned.'
+    anchor: Tower Hill scaffold-site memorial, Trinity Square Gardens (extra-hale-anchor [VERIFY])
+    grievance: An invented case summary calls his refusal an admission of disloyalty; record his reason without
+      reversing history.
+    beliefAtDeath: Repealing an injurious statute can restore the world it displaced → Morwenna distinguishes
+      repeal, the Elizabethan settlement and an irreversible death (supremacy-what; supremacy-repeal-eliz).
+    answerPiece: 10
+  groups:
+  - dead
+  openPeeps:
+    face: serious
+    head: medium1
+Len:
+  name: Len, the national serviceman
+  profile:
+    role: Suez; tests an official explanation against the concealed plan
+    bio: Suez; tests an official explanation against the concealed plan. Starts believing the neutral-intervention
+      account he was told. Ollie’s checked sources expose Sèvres; Len asks that the fictional unit account
+      be annotated, never that Hansard be rewritten.
+    placeOfOrigin: Fictional Scottish national serviceman, nineteen, killed at Port Said in November 1956;
+      no real casualty or unit borrowed.
+    familyBackground: Invented young adult with a home address he still gives for replies.
+    gender: Man; received certainty as a duty and questions as insubordination.
+    education: Service instruction equips him to repeat an operational explanation, not to know cabinet decisions.
+    professionalExperience: Fictional death within the real Anglo-French landings setting (suez-timeline),
+      never one of a real casualty list.
+    culturalTouchstones:
+    - A letter he never finished
+    - The official explanation he was given; suez-sevres
+    coreTraits:
+    - literal
+    - obedient until answered
+    - persistent
+    confidenceLevel: 7
+    reactionToStress: Asks the same question more quietly.
+    emotionalRange: Shows embarrassment at not knowing; anger arrives after the evidence.
+    copingMechanisms: Rehearses the address on his letter.
+    decisionMakingStyle: consultative
+    moralFramework: An order does not absolve the person who concealed its purpose.
+    speechPatterns: 'Echoes a noun across a reply; habitual deference becomes insistence. Invented locked-door
+      exchange, relayed by Zofia: A delay, miss? / They say the office is closed. / Closed. Yes, miss. And
+      who will take the letter when it opens?'
+    vocabularyLevel: Orders, dates, addressees; never a retrospective historian’s summary in his first scene.
+    humorStyle: Understatement about paperwork travelling better than men.
+    catchphrases:
+    - Who signed it?
+    formality: 4
+    relationshipToAuthority: Trusted the explanation he was issued; does not equate questioning it with disloyalty
+      to fellow servicemen.
+    teamRole: Makes secrecy become a particular unanswerable letter.
+    keyRelationship: Mara wants his testimony to indict a government; he demands she first state what he actually
+      knew. Zofia brings the later evidence.
+    conflictStyle: collaborative
+    mentorInfluence: An invented instructor’s insistence on identifying the person giving an order.
+    storyArc: Starts believing the neutral-intervention account he was told. Ollie’s checked sources expose
+      Sèvres; Len asks that the fictional unit account be annotated, never that Hansard be rewritten.
+    definingMoment:
+    - Zofia puts the secret agreement beside the public explanation.
+    recurringJoke: Keeps asking for the forwarding address.
+    blindSpots:
+    - Mistakes an official explanation for a full explanation.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: Britain and France intervened solely to separate combatants and protect the Canal
+      → Ollie checks the secret agreement and public chronology with Zofia before she relays it (suez-sevres;
+      suez-timeline; suez-pressure).'
+    hiddenMotivations: Wants a straight answer more than an honour.
+    anchor: Fixed invented memorial tablet in the invented Westminster Witness Association room
+    grievance: The association’s invented unit account calls the operation neutral peacekeeping; annotate its
+      stated purpose against the evidence.
+    beliefAtDeath: Britain and France intervened solely to separate combatants and protect the Canal → Ollie
+      checks the secret agreement and public chronology with Zofia before she relays it (suez-sevres; suez-timeline;
+      suez-pressure).
+    answerPiece: 9
+  groups:
+  - dead
+  openPeeps:
+    face: solemn
+    head: short1
+Alec:
+  name: Alec, the sailor
+  profile:
+    role: Falklands; separates a named life from victory and aggregate losses
+    bio: Falklands; separates a named life from victory and aggregate losses. Learns the surrender from Kit’s
+      sourced chronology, then insists on his own omitted name on a fictional local board. Refuses to become
+      Mara’s son.
+    placeOfOrigin: Fictional Welsh sailor, twenty, lost in May 1982 from an invented ship in the South Atlantic;
+      no real vessel or casualty borrowed.
+    familyBackground: Invented family; no relationship to Mara, and no real casualty’s biography.
+    gender: Man; refuses to let the uniform substitute for the person.
+    education: Service training; knows the shipboard task, not the eventual war’s outcome.
+    professionalExperience: Fictional ship and loss, never described as one of the real 255 (falk-numbers).
+    culturalTouchstones:
+    - A borrowed cassette; invented
+    - A shore errand left undone
+    coreTraits:
+    - particular
+    - unsentimental
+    - protective of names
+    confidenceLevel: 7
+    reactionToStress: Asks Zofia to repeat his name without his rank.
+    emotionalRange: Shows annoyance; grief slips out as a mundane unfinished plan.
+    copingMechanisms: Lists things he meant to do ashore.
+    decisionMakingStyle: intuitive
+    moralFramework: Remember the dead without turning them into an argument for more deaths.
+    speechPatterns: 'Conversational complaint wandering into an ordinary unfinished errand. Invented locked-door
+      line: Lovely. Another closed office. I could have taken the cassette back by now; Dai will still think
+      I pinched it.'
+    vocabularyLevel: Shipboard terms only when checked; refuses war-poster rhetoric.
+    humorStyle: Dry complaints about a task nobody has finished.
+    catchphrases:
+    - The name as well.
+    formality: 3
+    relationshipToAuthority: Wants a record that survives a change of government, not a party’s ownership.
+    teamRole: Refuses both total anonymity and borrowed bereavement.
+    keyRelationship: Mara tries to hear her son in him; he refuses gently once and sharply if repeated. Len
+      asks about orders; Alec asks about who is left out of the summary.
+    conflictStyle: confrontational
+    mentorInfluence: His fictional shipmates’ habit of checking one another’s work.
+    storyArc: Learns the surrender from Kit’s sourced chronology, then insists on his own omitted name on a
+      fictional local board. Refuses to become Mara’s son.
+    definingMoment:
+    - Makes Mara repeat his own name.
+    recurringJoke: His shore list grows while the petition gets shorter.
+    blindSpots:
+    - Treats an omission in one record as proof of universal forgetting.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: The war remains undecided and his ship’s loss will be reported with names → Kit supplies
+      the later surrender and Zofia reads the fictional omission (falk-surrender; falk-numbers).'
+    - His investigated omission receives a justified “not established” answer in piece 9; silence is not acceptance.
+    hiddenMotivations: Wants a particular life back; settles for its accurate trace.
+    anchor: Separate fixed invented memorial tablet in the same association room
+    grievance: The association’s invented local memorial board omits his name; investigate that omission.
+    beliefAtDeath: The war remains undecided and his ship’s loss will be reported with names → Kit supplies
+      the later surrender and Zofia reads the fictional omission (falk-surrender; falk-numbers).
+    answerPiece: 9
+  groups:
+  - dead
+  openPeeps:
+    face: tired
+    head: hatBeanie
+Horse:
+  name: The horse
+  profile:
+    role: Makes coerced labour visible
+    bio: Makes coerced labour visible. Its service habit loosens through a human action in piece 1. Shares
+      one collective account; the claim remains unresolved at the piece-11 R11 cutoff.
+    placeOfOrigin: Fictional animal remembered at the Park Lane memorial; no named service animal or medal
+      claimed.
+    familyBackground: No human family background; handler and route are invented sensory attachments.
+    gender: Sex unspecified; gender norms do not explain the behaviour.
+    education: Conditioned service responses, not human schooling.
+    professionalExperience: Fictional wartime service without an assigned war; not one of Backhouse’s sculptures
+      come alive (aiw-designer).
+    culturalTouchstones:
+    - Weight, scent and route; no human cultural references
+    coreTraits:
+    - waits for the load to be lifted
+    - wary of a command
+    confidenceLevel: 7
+    reactionToStress: Harness pressure, a shifting hoof, an empty palm.
+    emotionalRange: Fear and trust appear in distance and repeated movement.
+    copingMechanisms: Harness pressure, a shifting hoof, an empty palm.
+    decisionMakingStyle: intuitive
+    moralFramework: No human moral argument is attributed to an animal.
+    speechPatterns: No human speeches. Zofia receives an image or impulse and labels her translation as an
+      inference.
+    vocabularyLevel: Sensory fragments; cannot supply dates, slogans or parliamentary language.
+    humorStyle: Comedy belongs to living misreadings, never animal distress.
+    catchphrases: []
+    formality: 1
+    relationshipToAuthority: Responds to a command before trusting its giver.
+    teamRole: Unsigning petitioner who exposes the limits of the form.
+    keyRelationship: Grace will not call endurance consent; Hale initially treats an unsigned claim as defective.
+    conflictStyle: avoidant
+    mentorInfluence: A fictional remembered handler; no documented person inferred.
+    storyArc: Its service habit loosens through a human action in piece 1. Shares one collective account; the
+      claim remains unresolved at the piece-11 R11 cutoff.
+    definingMoment:
+    - Harness pressure, a shifting hoof, an empty palm.
+    recurringJoke: None; bodily specificity replaces comic human speech.
+    blindSpots:
+    - Human interpretation may overstate what the impression establishes.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: An approaching hand means another load → Zofia holds out an empty hand and walks
+      away without issuing an order; an inferred expectation, never human testimony.'
+    hiddenMotivations: Wants to stand without weight on its back.
+    anchor: Animals in War memorial precinct
+    grievance: The invented Witness Workshop’s animal-service account calls all service voluntary.
+    beliefAtDeath: An approaching hand means another load → Zofia holds out an empty hand and walks away without
+      issuing an order; an inferred expectation, never human testimony.
+    answerPiece: null
+    cutoffPiece: 11
+  groups:
+  - dead
+  style: emoji
+  emoji: 🐎
+Dog:
+  name: The dog
+  profile:
+    role: Tests whether care requires ownership
+    bio: Tests whether care requires ownership. Its service habit loosens through a human action in piece 1.
+      Shares one collective account; the claim remains unresolved at the piece-11 R11 cutoff.
+    placeOfOrigin: Fictional animal remembered at the Park Lane memorial; no named service animal or medal
+      claimed.
+    familyBackground: No human family background; handler and route are invented sensory attachments.
+    gender: Sex unspecified; gender norms do not explain the behaviour.
+    education: Conditioned service responses, not human schooling.
+    professionalExperience: Fictional wartime service without an assigned war; not one of Backhouse’s sculptures
+      come alive (aiw-designer).
+    culturalTouchstones:
+    - Weight, scent and route; no human cultural references
+    coreTraits:
+    - waits for the missing handler
+    - wary of a command
+    confidenceLevel: 7
+    reactionToStress: Turns towards retreating footsteps; settles when someone stays.
+    emotionalRange: Fear and trust appear in distance and repeated movement.
+    copingMechanisms: Turns towards retreating footsteps; settles when someone stays.
+    decisionMakingStyle: intuitive
+    moralFramework: No human moral argument is attributed to an animal.
+    speechPatterns: No human speeches. Zofia receives an image or impulse and labels her translation as an
+      inference.
+    vocabularyLevel: Sensory fragments; cannot supply dates, slogans or parliamentary language.
+    humorStyle: Comedy belongs to living misreadings, never animal distress.
+    catchphrases: []
+    formality: 1
+    relationshipToAuthority: Responds to a command before trusting its giver.
+    teamRole: Unsigning petitioner who exposes the limits of the form.
+    keyRelationship: Zofia must ask for company rather than issue a command; Hale initially treats an unsigned
+      claim as defective.
+    conflictStyle: avoidant
+    mentorInfluence: A fictional remembered handler; no documented person inferred.
+    storyArc: Its service habit loosens through a human action in piece 1. Shares one collective account; the
+      claim remains unresolved at the piece-11 R11 cutoff.
+    definingMoment:
+    - Turns towards retreating footsteps; settles when someone stays.
+    recurringJoke: None; bodily specificity replaces comic human speech.
+    blindSpots:
+    - Human interpretation may overstate what the impression establishes.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: Every departure means the handler must be followed → Zofia stays while Grace leaves;
+      an inferred service habit changes through action.'
+    hiddenMotivations: Wants to rest near a familiar human scent.
+    anchor: Animals in War memorial precinct
+    grievance: The invented Witness Workshop’s animal-service account calls all service voluntary.
+    beliefAtDeath: Every departure means the handler must be followed → Zofia stays while Grace leaves; an
+      inferred service habit changes through action.
+    answerPiece: null
+    cutoffPiece: 11
+  groups:
+  - dead
+  style: emoji
+  emoji: 🐕
+Pigeon:
+  name: The pigeon
+  profile:
+    role: Tests whether a witness needs a signature
+    bio: Tests whether a witness needs a signature. Its service habit loosens through a human action in piece
+      1. Shares one collective account; the claim remains unresolved at the piece-11 R11 cutoff.
+    placeOfOrigin: Fictional animal remembered at the Park Lane memorial; no named service animal or medal
+      claimed.
+    familyBackground: No human family background; handler and route are invented sensory attachments.
+    gender: Sex unspecified; gender norms do not explain the behaviour.
+    education: Conditioned service responses, not human schooling.
+    professionalExperience: Fictional wartime service without an assigned war; not one of Backhouse’s sculptures
+      come alive (aiw-designer).
+    culturalTouchstones:
+    - Weight, scent and route; no human cultural references
+    coreTraits:
+    - returns to an address that no longer answers
+    - wary of a command
+    confidenceLevel: 7
+    reactionToStress: Circles towards home, then folds its wings rather than departing again.
+    emotionalRange: Fear and trust appear in distance and repeated movement.
+    copingMechanisms: Circles towards home, then folds its wings rather than departing again.
+    decisionMakingStyle: intuitive
+    moralFramework: No human moral argument is attributed to an animal.
+    speechPatterns: No human speeches. Zofia receives an image or impulse and labels her translation as an
+      inference.
+    vocabularyLevel: Sensory fragments; cannot supply dates, slogans or parliamentary language.
+    humorStyle: Comedy belongs to living misreadings, never animal distress.
+    catchphrases: []
+    formality: 1
+    relationshipToAuthority: Responds to a command before trusting its giver.
+    teamRole: Unsigning petitioner who exposes the limits of the form.
+    keyRelationship: Ada cannot fit the bird’s evidence into a signature line; Hale initially treats an unsigned
+      claim as defective.
+    conflictStyle: avoidant
+    mentorInfluence: A fictional remembered handler; no documented person inferred.
+    storyArc: Its service habit loosens through a human action in piece 1. Shares one collective account; the
+      claim remains unresolved at the piece-11 R11 cutoff.
+    definingMoment:
+    - Circles towards home, then folds its wings rather than departing again.
+    recurringJoke: None; bodily specificity replaces comic human speech.
+    blindSpots:
+    - Human interpretation may overstate what the impression establishes.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Believes, wrongly: A return must be followed by dispatch → Zofia remains at rest without sending it;
+      an inferred bodily expectation, never an argument about law.'
+    hiddenMotivations: Wants the shelter of its remembered loft.
+    anchor: Animals in War memorial precinct
+    grievance: The invented Witness Workshop’s animal-service account calls all service voluntary.
+    beliefAtDeath: A return must be followed by dispatch → Zofia remains at rest without sending it; an inferred
+      bodily expectation, never an argument about law.
+    answerPiece: null
+    cutoffPiece: 11
+  groups:
+  - dead
+  style: emoji
+  emoji: 🐦
+Ada:
+  name: Ada Lovelace
+  profile:
+    role: Drafting; exposes what a petition’s wording leaves out
+    bio: Drafting; exposes what a petition’s wording leaves out. Helps Zofia specify a remedy, then accepts
+      that an exact form can exclude a claimant. Her narrow attribution correction silences her in piece 6.
+    placeOfOrigin: 'London (ada-life). Fixed remembrance anchor: Blue plaque at 12 St James’s Square (extra-ada-anchor
+      [VERIFY]).'
+    familyBackground: Daughter of Byron and Anne Isabella Milbanke; married William King (ada-life). Do not
+      invent domestic scenes.
+    gender: Woman whose published work must be named before her father’s fame.
+    education: Mathematical collaboration; Mary Somerville introduced her to Babbage (ada-babbage). No unsourced
+      school history.
+    professionalExperience: Translation and Notes A–G in 1843; Note G’s published Bernoulli-number algorithm
+      (ada-notes).
+    culturalTouchstones:
+    - The symbol-manipulating engine and imagined music; ada-vision
+    coreTraits:
+    - precise about operations
+    - imaginative about their scope
+    confidenceLevel: 7
+    reactionToStress: Restates the input and finds the unhandled case.
+    emotionalRange: 'Fictional staging: shows impatience with a vague verb, pleasure at a workable distinction.'
+    copingMechanisms: Returns to the proposed operation.
+    decisionMakingStyle: analytical
+    moralFramework: 'Fictional drafting ethic: a remedy must specify who can use it.'
+    speechPatterns: Conditional sentences that open into a concrete analogy; this is fictional register inferred
+      from the Notes, not a recovered mannerism.
+    vocabularyLevel: Operations, symbols, patterns; mathematics is not shorthand for coldness.
+    humorStyle: Restrained amusement when a grand claim lacks an instruction.
+    catchphrases: []
+    formality: 8
+    relationshipToAuthority: 'Fictional encounter: will not accept a title as an explanation of a mechanism.'
+    teamRole: Challenges Zofia’s living draft through relayed questions; neither authors nor signs a Bill.
+    keyRelationship: Morwenna checks attribution; the animals expose a human signature assumption. Zofia keeps
+      authorship of her draft.
+    conflictStyle: collaborative
+    mentorInfluence: Mary Somerville and Babbage are documented influences (ada-babbage); no invented advice
+      attributed to either.
+    storyArc: Helps Zofia specify a remedy, then accepts that an exact form can exclude a claimant. Her narrow
+      attribution correction silences her in piece 6.
+    definingMoment:
+    - The draft works for every human claimant and fails at the pigeon.
+    recurringJoke: A demand for brevity produces a crucial qualification.
+    blindSpots:
+    - An exact procedure can still specify the wrong set of people.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Historical person in a fictional encounter: dialogue is invented, never presented as a recovered quotation.'
+    - Use only the documented attitudes identified here; do not invent private history or private motives as
+      biography.
+    - No claimed verbatim quotation without checking the facts entry’s quotation caveat.
+    - 'Believes, wrongly: Naming a translation and its author will suffice to distinguish the translator’s
+      added Notes → Morwenna shows a later fictional caption that collapses them, then checks the 1843 attribution
+      (ada-notes; ada-vision).'
+    - The starting expectation is an invented dramatic inference compatible with knowledge at death, not a
+      documented private historical belief. No later memorial supplies knowledge.
+    hiddenMotivations: 'Fictional scene objective: have the work read on its own terms; not asserted as a documented
+      private resentment.'
+    anchor: Blue plaque at 12 St James’s Square (extra-ada-anchor [VERIFY])
+    grievance: The invented Witness Workshop’s teaching caption misattributes her Notes; distinguish translation
+      from authorship.
+    beliefAtDeath: Naming a translation and its author will suffice to distinguish the translator’s added Notes
+      → Morwenna shows a later fictional caption that collapses them, then checks the 1843 attribution (ada-notes;
+      ada-vision).
+    answerPiece: 6
+    sampleLines:
+    - If the door is an input which always returns refusal, adding petitioners will not alter the operation;
+      we must change the condition of entry.
+    - A pencil will serve until the door opens. We can work the instructions without the machine.
+  groups:
+  - dead
+  - britons
+  openPeeps:
+    face: explaining
+    head: bun2
+Emmeline:
+  name: Emmeline Pankhurst
+  profile:
+    role: Political pressure; tests who remains outside a declared victory
+    bio: Demands action after promises; her documented wartime and Conservative choices prevent automatic alignment
+      with Mara.
+    placeOfOrigin: Manchester; pank-life. Use the city, not a disputed birthday.
+    familyBackground: Born Goulden; other family detail is not supplied here. Do not invent it.
+    gender: Woman who organised for women’s political power; do not turn a militant into a patient motivational
+      coach.
+    education: No schooling specified in the facts; do not fill the gap with invented credentials.
+    professionalExperience: Founded the WSPU in 1903; tactics and imprisonment are part of the record (pank-wspu;
+      pank-prison).
+    culturalTouchstones:
+    - WSPU and Hartford speech (pank-wspu; pank-hartford), no unchecked quotation
+    - 1914 truce and patriotic campaign; later Conservative candidacy (extra-pankhurst-politics [VERIFY])
+    coreTraits:
+    - insistent
+    - strategic about pressure
+    confidenceLevel: 7
+    reactionToStress: Asks what delay costs the excluded person.
+    emotionalRange: 'Fictional staging: shows indignation and impatience; no invented account of private grief.'
+    copingMechanisms: Turns a complaint into an immediate demand.
+    decisionMakingStyle: intuitive
+    moralFramework: Rights require action; her tactics remain open to challenge.
+    speechPatterns: Builds a public argument from grievance to demand; dialogue is invented from documented
+      campaigning attitudes, not a string of misattributed slogans.
+    vocabularyLevel: Political agency, refusal and consequences; no modern therapy language.
+    humorStyle: Sharp exposure of the courteous excuse.
+    catchphrases: []
+    formality: 8
+    relationshipToAuthority: Petitioning is a means, not a reason to wait forever.
+    teamRole: Makes refusal to answer politically costly.
+    keyRelationship: Grace challenges who bears the labour of a campaign; Emmeline’s Conservative candidacy
+      complicates Mara’s assumption of an ally (extra-pankhurst-politics [VERIFY]).
+    conflictStyle: confrontational
+    mentorInfluence: No invented mentor; organised militancy is grounded in pank-wspu.
+    storyArc: Distinguishes a bill nearing passage from enacted rights; demands her caption’s dates be corrected
+      and challenges Grace over tactics and paid work.
+    definingMoment:
+    - Zofia reads the sequence of her death and the later 1928 Act.
+    recurringJoke: Refuses an agenda item titled further discussion.
+    blindSpots:
+    - A tactic that forces attention can also impose risks on someone else.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Historical person in a fictional encounter: dialogue is invented, never presented as a recovered quotation.'
+    - Use only the documented attitudes identified here; do not invent private history or private motives as
+      biography.
+    - No claimed verbatim quotation without checking the facts entry’s quotation caveat.
+    - 'Believes, wrongly: A franchise bill already advancing can be treated as victory secured → Zofia separates
+      the June parliamentary progress she could know from the July enactment she did not live to see (extra-pankhurst-june;
+      pank-life; pank-1918 [VERIFY]).'
+    - The starting expectation is an invented dramatic inference compatible with knowledge at death, not a
+      documented private historical belief. No later memorial supplies knowledge.
+    hiddenMotivations: 'Fictional scene objective: prevent acknowledgment from substituting for action; not
+      a documented private intention.'
+    anchor: Pankhurst statue precinct, Victoria Tower Gardens (pank-statue)
+    grievance: The invented Witness Workshop’s caption puts her death after equal franchise; correct its sequence.
+    beliefAtDeath: A franchise bill already advancing can be treated as victory secured → Zofia separates the
+      June parliamentary progress she could know from the July enactment she did not live to see (extra-pankhurst-june;
+      pank-life; pank-1918 [VERIFY]).
+    answerPiece: 4
+    sampleLines:
+    - They have denied a room, then an appointment, and now an answer. We must make the refusal public and
+      require a name beneath it.
+    - Bring the chairs here. A closed room need not make a silent meeting.
+  groups:
+  - dead
+  - britons
+  openPeeps:
+    face: driven
+    head: grayBun
+Doyle:
+  name: Arthur Conan Doyle
+  profile:
+    role: Detection; separates good inference from the wish to be proved right
+    bio: Detection; separates good inference from the wish to be proved right. Checks Will’s remembered detail
+      against records; accepts later evidence against the Cottingley photographs and an accurate caption naming
+      his spiritualist work.
+    placeOfOrigin: 'Edinburgh (doyle-life); his Edinburgh perspective is heard in piece 2. Fixed remembrance
+      anchor: Green plaque at 2 Upper Wimpole Street (extra-doyle-anchor [VERIFY]).'
+    familyBackground: Family particulars are withheld; the facts file does not support a domestic character
+      sketch.
+    gender: Man; accustomed to a learned public voice; does not become Holmes in a moustache.
+    education: Edinburgh medicine, graduating in 1881; Joseph Bell as an influence (doyle-life).
+    professionalExperience: Author of Holmes and Challenger; publicly supported spiritualism and the Cottingley
+      photographs (doyle-other).
+    culturalTouchstones:
+    - Sherlock Holmes and other works (doyle-holmes-works; doyle-other)
+    - Boer War pamphlet and knighthood (doyle-knight)
+    - George Edalji and Oscar Slater campaigns (extra-doyle-cases [VERIFY])
+    coreTraits:
+    - case-minded
+    - eager to vindicate spiritualism
+    confidenceLevel: 7
+    reactionToStress: Announces the pattern before testing alternatives.
+    emotionalRange: 'Fictional staging: shows delight at a mystery, discomfort when his preferred inference
+      fails.'
+    copingMechanisms: Sets accounts side by side.
+    decisionMakingStyle: intuitive
+    moralFramework: An accused person needs evidence tested, even when the investigator dislikes the result.
+    speechPatterns: Discursive setup followed by a confident inference; the register is a fictional choice
+      grounded in authorship and documented belief.
+    vocabularyLevel: Observation and inference; never treats fictional Holmes’s words as Doyle’s sworn personal
+      creed.
+    humorStyle: Pleasure at a reversed expectation; no Watson impersonation.
+    catchphrases: []
+    formality: 7
+    relationshipToAuthority: Trusts a persuasive explanation too quickly when it confirms spiritualism.
+    teamRole: Helps check Hubert’s chronology, then becomes a test case himself.
+    keyRelationship: Will wants a defender; Doyle’s wrongful-conviction work supplies method, not a licence
+      to vindicate. No meeting with Darwin is required.
+    conflictStyle: confrontational
+    mentorInfluence: Joseph Bell (doyle-life); no invented tutorial or advice.
+    storyArc: Checks Will’s remembered detail against records; accepts later evidence against the Cottingley
+      photographs and an accurate caption naming his spiritualist work.
+    definingMoment:
+    - Accepts an adverse source while his own grievance remains under discussion.
+    recurringJoke: Nearly gives the solution before Zofia has finished giving him the case.
+    blindSpots:
+    - Confuses one apparently confirming event with proof of a whole belief system.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Historical person in a fictional encounter: dialogue is invented, never presented as a recovered quotation.'
+    - Use only the documented attitudes identified here; do not invent private history or private motives as
+      biography.
+    - No claimed verbatim quotation without checking the facts entry’s quotation caveat.
+    - 'Believes, wrongly: The Cottingley photographs are sound evidence → Zofia supplies their later exposure,
+      while Doyle’s work on wrongful convictions helps him accept adverse evidence (doyle-other; extra-doyle-cases
+      [VERIFY]).'
+    hiddenMotivations: 'Fictional scene objective: have his spiritualist work treated seriously enough to be
+      tested, not quietly edited out.'
+    anchor: Green plaque at 2 Upper Wimpole Street (extra-doyle-anchor [VERIFY])
+    grievance: The invented Witness Workshop’s caption erases his spiritualist writing as though it never existed;
+      name it and test its claims.
+    beliefAtDeath: The Cottingley photographs are sound evidence → Zofia supplies their later exposure, while
+      Doyle’s work on wrongful convictions helps him accept adverse evidence (doyle-other; extra-doyle-cases
+      [VERIFY]).
+    answerPiece: 5
+    sampleLines:
+    - 'Consider the fresh scrape below the lock and the light beyond it: someone has taken considerable trouble
+      to suggest an empty room. I should begin with that someone.'
+    - A locked door is an excellent invitation to inquiry, though I confess I should prefer an invitation to
+      lunch.
+  groups:
+  - dead
+  - britons
+  openPeeps:
+    face: explaining
+    head: short4
+Darwin:
+  name: Charles Robert Darwin
+  profile:
+    role: Scepticism without dismissing the witness; separates evidence from a tidy origin story
+    bio: Scepticism without dismissing the witness; separates evidence from a tidy origin story. Tests rival
+      explanations only with Zofia’s consent. Hugh’s source check repairs the Wallace omission in piece 7.
+    placeOfOrigin: Shrewsbury; later Down House; remembered at Westminster Abbey (darwin-life).
+    familyBackground: Married Emma Wedgwood; ten children (darwin-books). No invented intimate scenes.
+    gender: Man whose published authority must not excuse speaking over Zofia.
+    education: No schooling detail supplied; use the Beagle voyage as a documented field experience (darwin-beagle).
+    professionalExperience: Naturalist and author; natural selection must include Wallace’s independent contribution
+      (darwin-wallace).
+    culturalTouchstones:
+    - Beagle observations; darwin-beagle
+    - Origin and Expression of the Emotions; darwin-origin; darwin-books
+    coreTraits:
+    - observational
+    - patient with uncertainty
+    confidenceLevel: 7
+    reactionToStress: Asks for a second observation before answering the first.
+    emotionalRange: 'Fictional staging: permits wonder and doubt together; no invented diagnosis of his inner
+      life.'
+    copingMechanisms: Looks again at the smallest difference.
+    decisionMakingStyle: analytical
+    moralFramework: An explanation must survive an inconvenient observation.
+    speechPatterns: Qualified claims tied to particulars; a fictional register inferred from the recorded work,
+      not an asserted transcript of his conversation.
+    vocabularyLevel: Observation, variation, alternatives; explains a term through the specimen at hand.
+    humorStyle: Dry awareness of an explanation becoming too convenient.
+    catchphrases: []
+    formality: 7
+    relationshipToAuthority: Does not let reputation replace evidence, including his own.
+    teamRole: Makes the apparently impossible encounter a question rather than a universal answer.
+    keyRelationship: Zofia refuses to be studied without consent. His documented 1874 scepticism informs his
+      register, not proof against this fictional encounter (extra-darwin-seance [VERIFY]).
+    conflictStyle: collaborative
+    mentorInfluence: Wallace, Lyell and Hooker enter only through documented joint work (darwin-wallace), not
+      invented private advice.
+    storyArc: Tests rival explanations only with Zofia’s consent. Hugh’s source check repairs the Wallace omission
+      in piece 7.
+    definingMoment:
+    - Zofia stops an observation and he respects the refusal.
+    recurringJoke: Every apparently conclusive account acquires one more variable.
+    blindSpots:
+    - Can turn a distressed witness into an interesting phenomenon.
+    behavioralRules:
+    - Cannot knowingly lie; a confident mistake is not knowledge.
+    - Starts with knowledge ending at death; later learning requires a living report or something witnessed
+      beside Zofia.
+    - Bound to a place of death or remembrance; cannot travel independently of Zofia.
+    - Only Zofia hears this voice; other characters respond to her relay.
+    - An answered grievance brings silence, not a reward speech.
+    - 'Historical person in a fictional encounter: dialogue is invented, never presented as a recovered quotation.'
+    - Use only the documented attitudes identified here; do not invent private history or private motives as
+      biography.
+    - No claimed verbatim quotation without checking the facts entry’s quotation caveat.
+    - 'Believes, wrongly: Posterity will preserve the joint history of discovery → Hugh shows a later fictional
+      caption beside the joint-reading record, relayed by Zofia (darwin-wallace).'
+    - The starting expectation is an invented dramatic inference compatible with knowledge at death, not a
+      documented private historical belief. No later memorial supplies knowledge.
+    hiddenMotivations: 'Fictional scene objective: resist a summary that makes inquiry into revelation; no
+      private motive asserted as biography.'
+    anchor: Westminster Abbey grave precinct (darwin-life)
+    grievance: The invented Witness Workshop’s teaching caption credits him alone with the first public presentation;
+      restore Wallace’s part.
+    beliefAtDeath: Posterity will preserve the joint history of discovery → Hugh shows a later fictional caption
+      beside the joint-reading record, relayed by Zofia (darwin-wallace).
+    answerPiece: 7
+    sampleLines:
+    - The light may indicate an occupant; it may also have been left burning. I think we require a second observation
+      before accusing anybody.
+    - If we sit here a little, we may learn when it opens. Though I had supposed, rather rashly, that we would
+      already be inside.
+  groups:
+  - dead
+  - britons
+  openPeeps:
+    face: old
+    head: noHair1
+Ewa:
+  name: Ewa Kowalczyk
+  profile:
+    role: Checks what a finished job leaves behind
+    bio: Checks what a finished job leaves behind. Checks an empty holding room in piece 3 and identifies the
+      legitimate rehearsal route from what was absent. In piece 8 supplies her own signed rota, insists on
+      credit and refuses another unpaid journey.
+    familyBackground: Kraków; Zofia’s mother, Palace cleaner. Chosen fictional worker with her own pay and
+      safety priorities.
+    coreTraits:
+    - Checks what a finished job leaves behind
+    speechPatterns: Objects and completed actions, then an inference.
+    sampleLines:
+    - I cleaned beneath that trolley. I did not clean a wheel mark running out of this room.
+    - You have my route. You do not have my permission to give away my shift.
+    storyArc: Checks an empty holding room in piece 3 and identifies the legitimate rehearsal route from what
+      was absent. In piece 8 supplies her own signed rota, insists on credit and refuses another unpaid journey.
+    behavioralRules:
+    - Fictional character; no independent access beyond authorised duties; never hears a ghost.
+  groups:
+  - living
+  openPeeps:
+    face: serious
+    head: bun
+Banda:
+  name: Samuel Banda
+  profile:
+    role: Remembers the person behind an important visitor
+    bio: Remembers the person behind an important visitor. In piece 3 names who followed the visitor; in piece
+      8 authenticates the rota and rejects both the leak and Ruth’s euphemism.
+    familyBackground: London-raised son of Malawian migrants; Commons doorkeeper, father of Grace and Ollie.
+      Takes pride in craft and wants evenings off. Fictional family, not surname inference.
+    coreTraits:
+    - Remembers the person behind an important visitor
+    speechPatterns: Courteous full sentences with an overlooked person at the end.
+    sampleLines:
+    - The visitor was not carrying it. The contractor behind him had the case.
+    - Grace, loving the job does not mean owing it every evening.
+    storyArc: In piece 3 names who followed the visitor; in piece 8 authenticates the rota and rejects both
+      the leak and Ruth’s euphemism.
+    behavioralRules:
+    - Fictional character; no independent access beyond authorised duties; never hears a ghost.
+  groups:
+  - living
+  openPeeps:
+    face: serious
+    head: short3
+Niamh:
+  name: Niamh Kerr
+  profile:
+    role: Checks where an answer must actually come from
+    bio: Checks where an answer must actually come from. Speaks in piece 3 when a UK label erases her actual
+      addressee; in piece 10 helps route the living care request to the relevant Northern Irish body [VERIFY
+      politics-devolution].
+    familyBackground: Belfast-born Palace catering worker in the supervised staff-family circle; wants a reply
+      about her living mother’s devolved care record, not a symbolic UK-wide promise. Fictional.
+    coreTraits:
+    - Checks where an answer must actually come from
+    speechPatterns: Personal destination before jurisdiction; no accent spelling.
+    sampleLines:
+    - My mum is in Belfast. Which desk will actually answer her letter?
+    - Put her name on your card before you colour in the shamrock.
+    storyArc: Speaks in piece 3 when a UK label erases her actual addressee; in piece 10 helps route the living
+      care request to the relevant Northern Irish body [VERIFY politics-devolution].
+    behavioralRules:
+    - Fictional character; no independent access beyond authorised duties; never hears a ghost.
+  groups:
+  - living
+  openPeeps:
+    face: serious
+    head: short3
+Vale:
+  name: Martin Vale
+  profile:
+    role: Demands a verdict before submitting to scrutiny
+    bio: Demands a verdict before submitting to scrutiny. After piece 4’s leak plans the theft; diverts the
+      genuine Mace in week 4. In piece 9 refuses a hearing until his evidence-based objection is distinguished
+      from blackmail; officers recover it and he faces consequences.
+    familyBackground: English-coded adult contractor. His late mother’s rescue work and his father’s rejected
+      complaint belong to an invented Palace maintenance incident.
+    coreTraits:
+    - Demands a verdict before submitting to scrutiny
+    speechPatterns: Conditional bargains narrowing to one demanded word.
+    sampleLines:
+    - I do not want another tribute. I want the record to say she did it.
+    - A hearing is what they offered my father. A correction is my price.
+    storyArc: After piece 4’s leak plans the theft; diverts the genuine Mace in week 4. In piece 9 refuses
+      a hearing until his evidence-based objection is distinguished from blackmail; officers recover it and
+      he faces consequences.
+    behavioralRules:
+    - Fictional character; no independent access beyond authorised duties; never hears a ghost.
+  groups:
+  - living
+  openPeeps:
+    face: serious
+    head: short3
+
+# Review responses
+# Applied: voice 1–5; representation 1–8 except the details below; consistency fixes
+# to people, anchors, beliefs, timing and R11/R12 are shared with the bible/world.
+# Declined: representation 1 Warsaw comparison (four mandatory lenses suffice);
+# representation 7 Sylvia rupture (scope; wartime politics/candidacy supply friction);
+# representation 9 surname joke/rename (dignity; family and culpability now developed).
+# Consistency 1 proposed Pankhurst memory of enactment declined because it breaks R6.
+# World-only review responses and verification dependencies are in world/world.md.

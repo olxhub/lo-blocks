@@ -1,0 +1,78 @@
+<Sequential id="uk_04">
+
+  <Vertical id="uk_04_s1" title="A sight she never had">
+    <Markdown id="uk_04_s1_lead">In Victoria Tower Gardens, Zofia tilted her head back towards the raised bronze hand.</Markdown>
+    <Chat id="uk_04_statue" src="corner.chatpeg" clip="statue"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="pank-statue pank-life pank-1918"-->
+
+  <Vertical id="uk_04_s2" title="Urgent in capitals">
+    <Markdown id="uk_04_s2_lead">On a garden bench, Grace scrolled through the unanswered emails.</Markdown>
+    <Chat id="uk_04_outbox" src="corner.chatpeg" clip="outbox"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="pank-wspu"-->
+
+  <Vertical id="uk_04_s3" title="Count people, not coats">
+    <Markdown id="uk_04_s3_lead">At the Palace visitor checkpoint, Kit held the list against his chest.</Markdown>
+    <Chat id="uk_04_access" src="corner.chatpeg" clip="access"/>
+  </Vertical>
+
+  <Vertical id="uk_04_s4" title="Stay where you are">
+    <!-- image: alt="The House of Commons chamber seen from the public gallery: the Table between the front benches, with the Mace lying on it." Lawful gallery viewpoint, no children shown near the Table; needs a checked source and licence (e.g. UK Parliament open licence or CC-BY), license attribute required on the Image. -->
+    <Markdown id="uk_04_s4_text">
+The seat folded down harder than Zofia expected. She caught it before it banged and sat on the edge. She put both soles flat on the floor.
+
+Below, a head turned. Papers moved. The Table caught the light, and so did the object resting on it. From here the Mace looked too far away to matter to anything inside her coat. She was still cold. Grace had stopped offering her a glove because she kept forgetting to take it.
+
+The escort pointed out where they would leave. Zofia looked at the exit, then back at the Table. Ruth had forbidden detours.
+
+Grace set her watch where both of them could see it. Zofia pulled her sleeve back from the watch face.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_04_s5" title="Same weights both times">
+    <Markdown id="uk_04_s5_lead">In the Commons gallery, Zofia kept her feet flat and Grace’s watch in view.</Markdown>
+    <Chat id="uk_04_test" src="corner.chatpeg" clip="test"/>
+  </Vertical>
+
+  <Vertical id="uk_04_s6" title="A small circle">
+    <Markdown id="uk_04_s6_lead">Outside the Palace after the visit, Vale caught Ollie beside the railings.</Markdown>
+    <Chat id="uk_04_leak" src="corner.chatpeg" clip="leak"/>
+  </Vertical>
+
+  <Vertical id="uk_04_s7" title="At the railings">
+    <!-- image: alt="The Animals in War memorial on Park Lane: a curved Portland stone wall, two bronze mules laden with packs climbing towards a gap, a horse and a dog in bronze beyond it, traffic passing on the road." Needs a checked photograph with its licence (own work CC0 or a CC-BY/CC-BY-SA source with attribution), license attribute required on the Image. -->
+    <Markdown id="uk_04_s7_text">
+Traffic kept coming past the stone. Every small gap filled with another engine. Zofia waited for a quieter moment to speak, then gave up waiting. Grace had her hood pulled tight enough that only the front of her face showed.
+
+On the walk here, Emmeline had been a voice. At the memorial, the horse's waiting pressed into Zofia's shoulders. She loosened her bag strap. That helped her shoulder; it did nothing to the other weight.
+
+The bronze animals stayed exactly where they were. Water had gathered in a dark patch near a hoof. Zofia looked down at her own wet shoe and moved it away from the stone.
+
+Grace held the folded signature sheet under her coat. Its corner had gone soft. They had brought plenty of copies and no clipboard. Ahead, people were walking quickly with their heads down. Zofia tried to imagine asking one of them to stop. She rehearsed the opening in her mouth without making a sound.
+    </Markdown>
+  </Vertical>
+
+  <Vertical id="uk_04_s8" title="What the bronze doesn't say">
+    <Markdown id="uk_04_s8_lead">Beside the Park Lane memorial, Grace sheltered the signature sheet under her coat.</Markdown>
+    <Chat id="uk_04_walk" src="corner.chatpeg" clip="walk"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="aiw-unveiled aiw-designer hyde-henry"-->
+
+  <Vertical id="uk_04_s9" title="A reason to stay">
+    <Markdown id="uk_04_s9_lead">At Speakers’ Corner, Zofia raised her voice as two listeners turned away.</Markdown>
+    <Chat id="uk_04_corner" src="corner.chatpeg" clip="corner"/>
+  </Vertical>
+  <!--AddFlashcardActions deck="ojaj-uk" cards="speakers-origins speakers-1872 speakers-rules"-->
+
+  <Vertical id="uk_04_s10" title="No applause required">
+    <Markdown id="uk_04_s10_lead">By the path at Speakers’ Corner, Grace held the damp paper flat.</Markdown>
+    <Chat id="uk_04_signature" src="corner.chatpeg" clip="signature"/>
+  </Vertical>
+
+  <Vertical id="uk_04_s11" title="The genuine one">
+    <Markdown id="uk_04_s11_lead">Later that afternoon, Ollie found Vale still waiting by the Palace railings.</Markdown>
+    <Chat id="uk_04_replica" src="corner.chatpeg" clip="replica"/>
+  </Vertical>
+
+</Sequential>
