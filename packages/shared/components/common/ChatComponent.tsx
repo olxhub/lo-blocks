@@ -355,8 +355,11 @@ export function ChatComponent({
     } else if (initialScrollPosition === 'top') {
       el.scrollTop = 0;
     } else if (typeof initialScrollPosition === 'number') {
-      const items = el.querySelectorAll('.message-item');
-      items[initialScrollPosition]?.scrollIntoView({ behavior: 'smooth' });
+      // Container-scoped, deliberately NOT scrollIntoView: that scrolls every
+      // scrollable ancestor, including the page, which yanks the whole layout.
+      const items = el.querySelectorAll<HTMLElement>('.message-item');
+      const item = items[initialScrollPosition];
+      if (item) el.scrollTop = item.offsetTop - el.offsetTop;
     }
   }, [initialScrollPosition]);
 

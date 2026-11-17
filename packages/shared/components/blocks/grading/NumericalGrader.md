@@ -91,4 +91,4 @@ For complex number answers:
 
 ## Compatible Inputs
 
-Any input that returns a number: `NumberInput`, `ComplexInput`, or future inputs like sliders, number lines, etc.
+Any input that returns a number: `NumberInput`, `NumberLineInput`, or `ComplexInput`.

@@ -5,6 +5,22 @@
  * Usage:
  *   tsx sync-images.ts                          # default: ./content → apps/web/public/content
  *   tsx sync-images.ts --source content/psychology --target dist/psych/content
+ *
+ * MOUNT POINT: the source is mounted at 'content', matching how xml2json.ts
+ * mounts the same directory for the single-course/static build. That mount is
+ * what determines the URL prefix assets are copied under (copyAssetsToPublic's
+ * `prefix`), and it MUST agree with the mount that resolved the `src`
+ * attributes at parse time. Letting it default to basename(source) makes the
+ * prefix the checkout's directory name (e.g. 'edu.mtsu.temperance'), while the
+ * parsed src stays mount-relative ('images/foo.jpg' → /content/images/foo.jpg),
+ * so every image 404s in the built site.
+ *
+ * MIRROR, NOT MERGE: copyAssetsToPublic makes the target match the source it
+ * is given, deleting assets no source claims (staticAssetSync.ts). Point this
+ * at ONE source and the target holds that source's assets and nothing else —
+ * fine for a single-course static build, but it means this script does not
+ * add to a target another source also feeds. The running server's boot sync
+ * mirrors every mounted source, so a default-target run restores itself.
  */
 
 import { FileStorageProvider } from '../lib/storage/lofs/providers/file.js';
@@ -18,7 +34,7 @@ function getArg(flag: string): string | undefined {
 async function main() {
   try {
     const source = getArg('--source') || './content';
-    const provider = new FileStorageProvider(source);
+    const provider = new FileStorageProvider(source, 'content');
     const target = getArg('--target');
     await copyAssetsToPublic(provider, target);
   } catch (error) {

@@ -27,6 +27,41 @@
      * the read side. Flipped to fields 2026-07-07 — destabilize on purpose
      * and flush the bugs out at once; blob remains the escape hatch. */
     state-canonical: fields;
+    /* How often the server re-scans content sources while running, in
+     * milliseconds; 0 turns re-scanning off.
+     *
+     * The websocket event path derives routing from content (field levels,
+     * grouping, aggregation targets), so every field write consults indexes
+     * built from a content scan. A scan re-stats and re-reads every content
+     * file in every mounted source — hundreds of files, ~80ms — so how often
+     * it may happen is a deployment decision, not a constant.
+     *
+     * DEV (default): 2000ms. Content is edited under a running server, and
+     * an edit must affect routing without a restart. Set 0 while working on
+     * something else to take the scans out of the event path entirely.
+     *
+     * PRODUCTION (below): off. A deployed host serves a checkout that only a
+     * deploy updates, and a deploy restarts the server — the tree cannot
+     * change underneath it, so a re-scan can only find what the boot scan
+     * already found.
+     *
+     * OVERRIDING either default from local.pmss: PMSS gives higher
+     * specificity the value and breaks ties in favor of the FIRST rule, and
+     * local.pmss is concatenated last — so an override needs MORE classes
+     * than the rule it replaces. Both defaults below are one class or none,
+     * so two classes always wins:
+     *   .server.production  { content-rescan-ms: 2000; }  operator: content
+     *                                                     mutates in place
+     *   .server.development { content-rescan-ms: 0; }     dev: keep scans
+     *                                                     off the event path
+     */
+    content-rescan-ms: 2000;
+}
+
+/* Static content between deploys — see content-rescan-ms above. One class,
+ * deliberately: it must stay overridable by a two-class rule in local.pmss. */
+.production {
+    content-rescan-ms: 0;
 }
 
 /* Auto-select based on available credentials (last wins at equal specificity) */

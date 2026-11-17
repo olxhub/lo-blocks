@@ -1,0 +1,114 @@
+/* Sliding-switch structure adapted from Open edX DoneXBlock (AGPL):
+ * https://github.com/openedx/DoneXBlock */
+.done-control {
+  display: flex;
+  width: 100%;
+}
+
+.done-control-left { justify-content: flex-start; }
+.done-control-center { justify-content: center; }
+.done-control-right { justify-content: flex-end; }
+
+.done-switch {
+  display: inline-block;
+  position: relative;
+  user-select: none;
+  width: 11.25rem;
+}
+
+/* Keep native checkbox semantics, keyboard behavior, and screen-reader access. */
+.done-switch-input,
+.done-sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.done-switch-label {
+  border: 2px solid #999;
+  border-radius: 0.625rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: block;
+  height: 2.125rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.done-switch-input:focus-visible + .done-switch-label {
+  outline: 3px solid var(--color-accent, #087f23);
+  outline-offset: 2px;
+}
+
+/* Two full-width state panels slide behind the traveling thumb. */
+.done-switch-track {
+  display: flex;
+  height: 100%;
+  transform: translateX(-50%);
+  transition: transform 100ms ease-in;
+  width: 200%;
+}
+
+.done-switch-state {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 50%;
+  font-family: Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  height: 100%;
+  white-space: nowrap;
+}
+
+.done-switch-unmark {
+  background: #eee;
+  color: #666;
+  justify-content: flex-start;
+  padding-left: 0.75rem;
+}
+
+.done-switch-mark {
+  background: #009ee7;
+  color: white;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+}
+
+.done-switch-thumb {
+  align-items: center;
+  background: white;
+  border: 2px solid #777;
+  border-radius: 50%;
+  box-sizing: border-box;
+  color: #087f23;
+  display: flex;
+  height: 1.375rem;
+  justify-content: center;
+  left: 0.25rem;
+  line-height: 1;
+  position: absolute;
+  top: 0.25rem;
+  transition: left 100ms ease-in, background-color 100ms ease-in;
+  width: 1.375rem;
+}
+
+.done-switch-input:checked + .done-switch-label .done-switch-track {
+  transform: translateX(0);
+}
+
+.done-switch-input:checked + .done-switch-label .done-switch-thumb {
+  background-color: #eaffee;
+  left: calc(100% - 1.625rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .done-switch-track,
+  .done-switch-thumb {
+    transition: none;
+  }
+}

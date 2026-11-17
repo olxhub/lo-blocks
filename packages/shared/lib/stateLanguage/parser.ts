@@ -96,6 +96,11 @@ export interface ObjectLiteral {
   properties: Record<string, ASTNode>;
 }
 
+export interface ArrayLiteral {
+  type: 'Array';
+  elements: ASTNode[];
+}
+
 export type ASTNode =
   | SigilRef
   | BinaryOp
@@ -109,7 +114,8 @@ export type ASTNode =
   | TemplateLiteral
   | Identifier
   | BooleanLiteral
-  | ObjectLiteral;
+  | ObjectLiteral
+  | ArrayLiteral;
 
 // ============================================
 // Parser Functions

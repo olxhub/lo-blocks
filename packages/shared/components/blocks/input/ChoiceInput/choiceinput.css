@@ -5,6 +5,14 @@
 .lo-choice-item {
   display: flex;
   align-items: flex-start;
+  /* Containing block for the visually-hidden native input below. Without it,
+     the absolutely-positioned input escapes any scrolling ancestor (its
+     containing block becomes the ICB), so its box lands at the item's
+     UNSCROLLED document coordinate — thousands of pixels down inside a
+     scrolled chat transcript. Clicking the label focuses that input, and the
+     browser scrolls every ancestor (including the page) to bring the focused
+     box into view: the page jumps. */
+  position: relative;
   gap: var(--lo-space-md);
   padding: var(--lo-space-xs) var(--lo-space-sm);
   border-radius: var(--lo-radius-md);

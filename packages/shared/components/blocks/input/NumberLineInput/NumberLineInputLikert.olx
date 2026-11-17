@@ -1,0 +1,19 @@
+<Vertical id="NumberLineInputLikertDemo" title="Likert scales">
+<Markdown id="likert_prompt">**Spacing my practice over several days helps me remember more than studying it all at once.**</Markdown>
+
+<NumberLineInput id="likert_spacing" min="1" max="5" step="1" snap="ticks">
+  <Tick value="1"> Strongly disagree </Tick>
+  <Tick value="2"> Disagree          </Tick>
+  <Tick value="3"> Neutral           </Tick>
+  <Tick value="4"> Agree             </Tick>
+  <Tick value="5"> Strongly agree    </Tick>
+</NumberLineInput>
+
+<Markdown id="faces_prompt">**Did you like this exercise?**</Markdown>
+
+<NumberLineInput id="likert_faces" min="1" max="3" step="1" snap="ticks">
+  <Tick value="1" label="no"    > 🙁 </Tick>
+  <Tick value="2" label="mixed" > 😐 </Tick>
+  <Tick value="3" label="yes"   > 🙂 </Tick>
+</NumberLineInput>
+</Vertical>

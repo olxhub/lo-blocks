@@ -59,15 +59,27 @@ function Course(props: RuntimeProps) {
   // and treat only the survivors as visible — both in the nav and as valid
   // selections. Memoized so the synthetic kid array is stable across renders.
   const childKids = React.useMemo(() => {
-    const definitionKeys: string[] = [];
+    const entries: any[] = [];
+    // Carry the child's WHOLE reference, not just its definitionKey: a
+    // <Use ref="x" when="..."/> keeps its gate in `overrides`, and dropping
+    // that here left Use-gated course children permanently visible.
+    const push = (child: any) => {
+      if (!child?.definitionKey) return;
+      entries.push({
+        type: 'block',
+        definitionKey: child.definitionKey,
+        ...(child.stateKey ? { stateKey: child.stateKey } : {}),
+        ...(child.overrides ? { overrides: child.overrides } : {}),
+      });
+    };
     for (const section of sections) {
       if (section.type === 'chapter') {
-        for (const child of (section.children || [])) if (child.definitionKey) definitionKeys.push(child.definitionKey);
-      } else if (section.definitionKey) {
-        definitionKeys.push(section.definitionKey);
+        for (const child of (section.children || [])) push(child);
+      } else {
+        push(section);
       }
     }
-    return definitionKeys.map(definitionKey => ({ type: 'block', definitionKey }));
+    return entries;
   }, [sections]);
   const visibleDefinitionKeys = new Set<string>(
     useKidsJson({ ...props, kids: childKids } as any).map((k: any) => k.definitionKey)

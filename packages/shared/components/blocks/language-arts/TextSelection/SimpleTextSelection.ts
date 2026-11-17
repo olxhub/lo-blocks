@@ -15,7 +15,7 @@
 //                                no button.
 //   mode="graded"              → grade="submit": the standard Check button and
 //                                submit-time grading.
-//   mode="selfcheck"           → grade="submit" + showanswer="always": the
+//   mode="selfcheck"           → grade="submit" + showAnswer="always": the
 //                                learner selects and reveals the answer to
 //                                compare (grading is available but incidental).
 //
@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { dev } from '@/lib/blocks';
 import * as state from '@/lib/state';
 import { blockReference, peggyParser, directKidDefinitionKeys } from '@/lib/content/parsers';
-import { src } from '@/lib/blocks/attributeSchemas';
+import { src, problemAttributes, z_olx_boolean } from '@/lib/blocks/attributeSchemas';
 import { problemGradeMode } from '@/lib/grading';
 import { splitNs, asDefinitionRef, joinDefinitionRef, parseLeafId } from '@/lib/types/id-grammar';
 import type { KidEntry, DefinitionRef } from '@/lib/types';
@@ -35,11 +35,11 @@ const GRADER  = parseLeafId('grader');
 const INPUT   = parseLeafId('input');
 
 // Map the authoring mode onto the problem attributes CapaProblem's renderer
-// reads. Returns the (grade, showanswer) the generated problem should carry.
-function problemAttrsForMode(mode: string): { grade: 'immediate' | 'submit'; showanswer?: string } {
+// reads. Returns the (grade, showAnswer) the generated problem should carry.
+function problemAttrsForMode(mode: string): { grade: 'immediate' | 'submit'; showAnswer?: string } {
   switch (mode) {
     case 'graded':    return { grade: 'submit' };
-    case 'selfcheck': return { grade: 'submit', showanswer: 'always' };
+    case 'selfcheck': return { grade: 'submit', showAnswer: 'always' };
     case 'immediate':
     default:          return { grade: 'immediate' };
   }
@@ -60,21 +60,28 @@ function generateComposition({ parsed, storeEntry, definitionKey, attributes }) 
   const inputRef   = joinDefinitionRef(parentRef, INPUT);
 
   // `mode` and `src` are consumed here; the block's own `id` is replaced by the
-  // generated problem ref. Everything else (title, maxAttempts, ...) passes
-  // through to the CapaProblem. Order matters: the mode mapping wins over any
-  // stray grade/showanswer the author passed through.
-  const { mode, src: _src, id: _id, ...passthrough } = attributes;
+  // generated problem ref. `separatorRegexp`/`separatorHidden` belong to the
+  // input, so they are forwarded there rather than to the problem. Everything
+  // else (title, maxAttempts, ...) passes through to the CapaProblem. Order
+  // matters: the mode mapping wins over any stray grade/showAnswer the author
+  // passed through.
+  const { mode, src: _src, id: _id, separatorRegexp, separatorHidden, ...passthrough } = attributes;
   const problemAttrs = {
     id: problemRef,
     ...passthrough,
     ...problemAttrsForMode(mode ?? 'immediate'),
   };
 
-  // The input carries the parsed passage as pre-parsed kids.
+  // The input carries the parsed passage as pre-parsed kids, plus the selectable
+  // unit the author asked for (omitted entirely when they didn't ask, so the
+  // generated input's attributes stay as bare as they always were).
+  const inputAttrs: Record<string, unknown> = { id: inputRef };
+  if (separatorRegexp !== undefined) inputAttrs.separatorRegexp = separatorRegexp;
+  if (separatorHidden !== undefined) inputAttrs.separatorHidden = separatorHidden;
   storeEntry(inputRef, {
     id: inputRef,
     tag: 'TextSelectionInput',
-    attributes: { id: inputRef },
+    attributes: inputAttrs,
     kids: { type: 'parsed', parsed },
   });
 
@@ -114,14 +121,23 @@ const SimpleTextSelection = dev({
   // renderer (the SimpleSortable / MarkupProblem pattern).
   componentLoader: () => import('@/components/blocks/layout/_Noop').then(m => m.default),
   fields,
-  // `mode` and `src` are the author-facing knobs; passthrough lets the generated
-  // CapaProblem receive title/maxAttempts/etc. without re-declaring the whole
-  // problem schema here (the SimpleSortable srcAttributes.passthrough() approach).
+  // `mode` and `src` are the author-facing knobs; the problem attributes are
+  // declared so they can be authored here and passed through to the generated
+  // CapaProblem. They are declared rather than passed through by
+  // `.passthrough()`: mixin composition merges every layer into one `.strict()`
+  // schema (lib/blocks/factory.tsx), so an undeclared attribute is an
+  // authoring error no matter what this layer says.
   attributes: z.object({
     mode: z.enum(['immediate', 'graded', 'selfcheck']).optional()
       .describe('Interaction mode: "immediate" (live feedback, default), "graded" (Check button), or "selfcheck" (reveal answer to compare)'),
+    ...problemAttributes.shape,
+    // Forwarded to the generated TextSelectionInput, which owns their semantics.
+    separatorRegexp: z.string().optional()
+      .describe('JavaScript regexp source dividing the passage into selectable chunks (e.g. "\\." for sentences, "\\|" for hand-placed markers). Absent: the learner selects single words.'),
+    separatorHidden: z_olx_boolean.optional()
+      .describe('true: the matched separator is consumed and never rendered. false (default): it stays at the end of the left chunk and renders as content.'),
     ...src,  // Optional external passage file (peggyParser loads it).
-  }).passthrough(),
+  }),
   // peggyParser sets staticKids: () => [], but SimpleTextSelection generates its
   // CapaProblem (and its grader/input subtree) dynamically in postprocess.
   // Without this, collectBlockWithKids won't ship the generated CapaProblem and
