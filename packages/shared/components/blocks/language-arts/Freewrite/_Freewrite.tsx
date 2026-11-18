@@ -20,6 +20,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useFieldState } from '@/lib/state';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 import type { RuntimeProps } from '@/lib/types';
 
 // ─── Word count ───────────────────────────────────────────────────────────
@@ -45,6 +46,8 @@ function Freewrite(props: RuntimeProps) {
   const [value, setValue] = useFieldState(props, fields.value, '');
   const [revealed, setRevealed] = useFieldState(props, fields.revealed, false);
   const [lastKeystrokeTime, setLastKeystrokeTime] = useFieldState(props, fields.lastKeystrokeTime, null);
+  const problemLocked = useInputReadOnly(props);
+  const readOnly = revealed || problemLocked;
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,12 +82,12 @@ function Freewrite(props: RuntimeProps) {
     };
   }, [pace, revealed, lastKeystrokeTime, pacedecay, setRevealed]);
 
-  // Blur textarea when revealed
+  // Blur when either Freewrite or its enclosing problem locks the input.
   useEffect(() => {
-    if (revealed && textareaRef.current) {
+    if (readOnly && textareaRef.current) {
       textareaRef.current.blur();
     }
-  }, [revealed]);
+  }, [readOnly]);
 
   // In nodelete mode, force cursor to end after each change
   useEffect(() => {
@@ -167,13 +170,13 @@ function Freewrite(props: RuntimeProps) {
         ref={textareaRef}
         className={textareaClasses}
         value={value}
-        onChange={revealed ? undefined : handleChange}
-        onKeyDown={revealed ? undefined : handleKeyDown}
-        onSelect={revealed ? undefined : handleSelect}
-        readOnly={revealed}
+        onChange={readOnly ? undefined : handleChange}
+        onKeyDown={readOnly ? undefined : handleKeyDown}
+        onSelect={readOnly ? undefined : handleSelect}
+        readOnly={readOnly}
         placeholder={placeholder}
         rows={rows}
-        autoFocus={autofocus && !revealed}
+        autoFocus={autofocus && !readOnly}
         spellCheck={false}
         autoComplete="off"
         autoCorrect="off"

@@ -8,11 +8,13 @@ import { useInputField } from '@/lib/state';
 import { useKids } from '@/lib/player/client/render';
 import { DisplayAnswer } from '@/components/common/DisplayAnswer';
 import { latexPreview } from '@/lib/grading/calc/index.js';
+import { useInputReadOnly } from '@/lib/player/inputInteraction';
 
 export default function FormulaInput(props: RuntimeProps) {
   const { fields, ...rest } = props;
 
   const [value, inputProps] = useInputField(props, fields.value, '');
+  const readOnly = useInputReadOnly(props);
 
   const { kids } = useKids(props);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -56,6 +58,7 @@ export default function FormulaInput(props: RuntimeProps) {
         <div className="flex items-center gap-2">
           <input
             {...inputProps}
+            readOnly={readOnly}
             type="text"
             size={size}
             placeholder={rest.placeholder as string || ''}

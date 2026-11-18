@@ -240,6 +240,7 @@ function useResolvedTheme(theme: 'light' | 'dark' | 'auto'): 'light' | 'dark' {
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
   /** File path - used to detect language from extension */
   path?: string;
   /** Explicit language override (takes precedence over path) */
@@ -350,6 +351,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   lineWrapping = true,
   basicSetup = { lineNumbers: true, foldGutter: false },
   extensions: additionalExtensions = [],
+  readOnly = false,
 }, ref) {
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const CodeMirror = useCodeMirrorComponent();
@@ -361,6 +363,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     insertAtCursor: (text: string) => {
+      if (readOnly) return;
       const view = editorRef.current?.view;
       if (!view) {
         // Fallback: append to end if no view available (chunk still loading)
@@ -414,7 +417,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
       view.focus();
       return true;
     },
-  }), [value, onChange, path]);
+  }), [value, onChange, path, readOnly]);
 
   const extensions = useMemo(() => {
     const exts: Extension[] = [];
@@ -456,6 +459,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
       ref={editorRef}
       value={value}
       onChange={onChange}
+      readOnly={readOnly}
       theme={resolvedTheme}
       extensions={extensions}
       height={height}
