@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { VALID, validateAnyStateRef, parseAnyStateRef, z_anyStateRef as z_anyStateRef_canonical } from '../types/id-grammar';
 import type { StateRef } from '../types/id-grammar';
 import { z_locale } from '../types/i18n';
-import { parse as parseExpr } from '@/lib/stateLanguage';
+import { parse as parseExpr, type ParsedStateExpression } from '@/lib/stateLanguage';
 import { parseDuration } from '@/lib/util/duration';
 import { CastSchema, Face, AvatarStyle } from '@/lib/avatar/types';
 
@@ -63,11 +63,12 @@ export const z_olx_duration = z.union([z.string(), z.number()])
   .refine(v => !isNaN(v) && v > 0, 'Must be a positive duration (e.g. "5 minutes", "1 hour 30 minutes", "300")');
 
 /**
- * Pre-parsed expression: string → { expr, ast }. Idempotent (accepts already-parsed objects).
- * Used for visibility conditions (when=) and grading expressions (Rule match=).
+ * Parsed state expression: string → { expr, ast }. Idempotent (accepts
+ * already-parsed objects). Used for visibility conditions (when=) and grading
+ * expressions (Rule match=).
  */
 export const z_expression = z.union([
-  z.string().transform(expr => ({ expr, ast: parseExpr(expr) })),
+  z.string().transform((expr): ParsedStateExpression => ({ expr, ast: parseExpr(expr) })),
   z.object({ expr: z.string(), ast: z.any() }),
 ]);
 
@@ -76,6 +77,9 @@ export const z_expression = z.union([
  * Shared by OnShow, Trigger, and future trigger-like blocks.
  */
 export const z_triggerMode = z.enum(['once', 'each']).default('once');
+
+/** Base print modes. Blocks may explicitly override this enum to add modes. */
+export const printModes = ['true', 'false'] as const;
 
 // =============================================================================
 // Reusable ID Schemas
@@ -248,8 +252,8 @@ export const baseAttributes = z.object({
     'fullscreen:tl', 'fullscreen:tr', 'fullscreen:bl', 'fullscreen:br',
   ]).optional()
     .describe('Pop-out mode: "window" or "fullscreen", with optional button position (:tl, :tr, :bl, :br)'),
-  print: z_olx_boolean.optional()
-    .describe('Set to "false" to hide this block from print/PDF output'),
+  print: z.enum(printModes).optional()
+    .describe('Print/PDF output: "false" omits this block; omitted or "true" prints it. Some blocks support additional modes.'),
   'grouped-by': z.string().optional()
     .describe('Partition shared/server fields by a field of each user\'s own state: "pickerBlockId.fieldName" (e.g. "topic_picker.activeIndex"). The server resolves each user\'s group from their committed choice; users who haven\'t chosen share the unpartitioned bucket. See docs/fields-design.md "Groups".'),
 }).strict();
@@ -282,25 +286,37 @@ export const graderAttributes = z.object({
 // Problem Mode Attributes (shared by CapaProblem, MarkupProblem, etc.)
 // =============================================================================
 
-/**
- * Valid showanswer modes - when the Show Answer button becomes available.
- */
-export const showAnswerModes = [
-  'always',     // Always visible
-  'never',      // Never visible
-  'attempted',  // After first attempt (submitCount > 0)
-  'correct',    // After a correct answer
-  'closed',     // After attempts exhausted (submitCount >= maxAttempts)
-  'finished',   // correct OR closed
+/** Conditions shared by answer visibility and input locking. */
+export const problemConditions = [
+  'always',     // From the start
+  'never',      // At no point
+  'attempted',  // Once a submission is recorded (submitCount > 0)
+  'correct',    // Once the answer is correct
+  'closed',     // Once attempts are exhausted (submitCount >= maxAttempts)
+  'finished',   // Once correct OR closed
 ] as const;
 
-export type ShowAnswerMode = typeof showAnswerModes[number];
+export type ProblemCondition = typeof problemConditions[number];
 
-/**
- * Schema for showanswer attribute - validates against allowed modes.
- */
-export const showAnswerAttr = z.enum(showAnswerModes).optional()
-  .describe('When to show answer: always, never, attempted, correct, closed, finished');
+export const showAnswerModes = problemConditions;
+
+export type ShowAnswerMode = ProblemCondition;
+
+export const showAnswerAttr = z.enum(problemConditions).optional()
+  .describe('When the answer becomes available: always, never, attempted, correct, closed, finished');
+
+export const answerRevealModes = [
+  'button',  // A Show Answer button appears; the learner presses it (default)
+  'auto',    // The answer appears on its own; no button is ever rendered
+] as const;
+
+export type AnswerRevealMode = typeof answerRevealModes[number];
+
+export const answerRevealAttr = z.enum(answerRevealModes).optional()
+  .describe('How the answer arrives when its showAnswer condition holds: button (default) or auto (revealed automatically, no button)');
+
+export const lockInputAttr = z.enum(problemConditions).optional()
+  .describe('When inputs stop accepting changes: never (default), attempted, correct, closed, finished, always');
 
 /**
  * Schema for maxAttempts attribute - positive integer string or empty for unlimited.
@@ -337,7 +353,12 @@ export const gradeAttr = z.enum(gradeModes).optional()
  */
 export const problemAttributes = z.object({
   maxAttempts: maxAttemptsAttr,
+  showAnswer: showAnswerAttr,
+  // TODO(course-migration): REMOVE THIS LOUD BACKWARDS-COMPATIBILITY HACK
+  // once every fall course has migrated to showAnswer. _CapaProblem warns.
   showanswer: showAnswerAttr,
+  answerReveal: answerRevealAttr,
+  lockInput: lockInputAttr,
   grade: gradeAttr,
 });
 

@@ -466,15 +466,20 @@ function createBlock(config: BlueprintInputWithMixins): LoBlock {
 
   assertUnimplemented(parsed.reducers, 'reducers');
 
-  // Default value getter for input blocks: the decoded commonFields.value.
-  // Level 2 (not 3): this getter IS the block's value getter, so it must read
-  // its own backing store — a level-3 read would re-enter itself. Decoded so
-  // docField-valued inputs yield their string, not the raw JsonUpdate.
+  // An input either supplies a computed value selector or declares the stored
+  // value field from which the factory can supply one.
   if (block.isInput && !block.selectors?.value) {
+    if (!block.fields.value) {
+      throw new Error(
+        `createBlock(${olxName}): input blocks must declare fields.value or selectors.value`,
+      );
+    }
     block.selectors = {
       ...block.selectors,
       value: (reduxState, props, id) =>
-        state.decodedFieldSelector(reduxState, { ...props, id }, state.commonFields.value, { fallback: '' }),
+        // Read the backing field directly; fieldSelector would call this
+        // selector again. The block's declaration owns any required decoder.
+        state.decodedFieldSelector(reduxState, { ...props, id }, block.fields.value, { fallback: '' }),
     };
   }
 

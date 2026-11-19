@@ -96,6 +96,11 @@ export interface ObjectLiteral {
   properties: Record<string, ASTNode>;
 }
 
+export interface ArrayLiteral {
+  type: 'Array';
+  elements: ASTNode[];
+}
+
 export type ASTNode =
   | SigilRef
   | BinaryOp
@@ -109,7 +114,12 @@ export type ASTNode =
   | TemplateLiteral
   | Identifier
   | BooleanLiteral
-  | ObjectLiteral;
+  | ObjectLiteral
+  | ArrayLiteral;
+
+/** Authored state-language source and its syntax tree. Parsing is static;
+ * evaluation supplies the current state separately. */
+export type ParsedStateExpression = { expr: string; ast: ASTNode };
 
 // ============================================
 // Parser Functions

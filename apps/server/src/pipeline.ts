@@ -24,6 +24,7 @@ import type { WebSocket } from 'ws';
 import type { AuthUser } from './auth.js';
 import type { ConnectionLog } from './eventLog.js';
 import { appendEvent, appendEventDurable } from './eventLog.js';
+import { deployStampEvent } from './deployIdentity.js';
 import type { KVStore } from '@/lib/storage/kvs';
 import { kvsKey } from '@/lib/types/identity';
 import type { ServerState } from '@/lib/state/sync/materialization';
@@ -418,6 +419,24 @@ export async function runPipeline(context: PipelineContext) {
   // keys against the principal — adopt them now (startup race; see
   // subscriptions.ts "Pending subscriptions").
   context.subscriptions.adoptPending(context.user.safe_user_id, context.ws);
+
+  // Stamp the deploy identity as the FIRST record in this connection's
+  // stream. Without it, "which build produced this event" is only
+  // answerable by correlating timestamps against a deploy log — which is
+  // how a stale platform stayed invisible long enough to cost a debugging
+  // round. Once per connection, not per event; deployIdentity.ts resolved
+  // the manifest at boot, so this costs a JSON.stringify.
+  //
+  // appendEvent, not appendEventDurable: nothing acks a server-generated
+  // record, and a stamp is not worth a flush + fd round-trip. It lands in
+  // the file with the first client event that does flush, and it is written
+  // before any of them.
+  //
+  // It does NOT enter the pipeline. Server-authored provenance must not
+  // travel the stage chain that folds events into student state — and its
+  // shape (no top-level id/scope/field/tag) means it would be inert even if
+  // it did. See deployIdentity.ts, "WIRE SHAPE".
+  appendEvent(context.conn, deployStampEvent(context.conn.id));
 
   // The message listener must attach SYNCHRONOUSLY with the connection —
   // an await before messagesFrom() would drop events arriving in the gap

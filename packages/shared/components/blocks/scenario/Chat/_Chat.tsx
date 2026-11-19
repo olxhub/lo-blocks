@@ -12,7 +12,7 @@ import { DisplayError } from '@/lib/util/debug';
 import { useCast, mergeCasts } from '@/lib/avatar/cast';
 import type { RuntimeProps, PeggyKids, DefinitionRef } from '@/lib/types';
 import type { ParsedConversation } from './_chatTypes';
-import { useWaitConditions, interludeExitAllowed } from './waitConditions';
+import { useWaitConditions, interludeExitAllowed, hasContentAfter } from './waitConditions';
 import { useLlmInterlude } from './llmInterlude';
 
 import * as chatUtils from './chatUtils';
@@ -159,7 +159,12 @@ export default function Chat(props: RuntimeProps) {
       .filter(b => b.type === 'Line' || b.type === 'EmbedCommand').length;
   }, [allEntries, windowRange, windowedIndex]);
 
-  const conversationFinished = windowedIndex >= clipRange.end;
+  // A script that ends in `--- pause ---` is finished at its last line: a
+  // pause separates commands, and there is no command after it to hold back.
+  // Showing a Continue there would offer a click that reveals nothing (and,
+  // were it disabled instead, no way forward at all).
+  const conversationFinished = windowedIndex >= clipRange.end
+    || !hasContentAfter(allEntries, windowedIndex, clipRange.end);
 
   /* ----------------------------------------------------------------
    * Wait conditions - check if we can advance past any wait commands

@@ -12,7 +12,7 @@
 
 // Parser
 export { parse, tryParse, parseResult } from './parser';
-export type { ASTNode, SigilRef } from './parser';
+export type { ASTNode, ParsedStateExpression, SigilRef } from './parser';
 
 // References
 export {
@@ -32,6 +32,7 @@ export type { Reference, References, Interpolation } from './references';
 
 // Evaluation
 export { evaluate, createContext, wordcount } from './evaluate';
+export { isTruthy, isNumber, isMissing } from './valuePredicates';
 export { formatDuration } from '@/lib/util/duration';
 export type { ContextData } from './evaluate';
 
@@ -46,6 +47,9 @@ export {
 
 // Keywords
 export { ACTIVE_METHODS, RESERVED_KEYWORDS, assertNotReserved } from './keywords';
+
+// Member vocabulary (the table member access and method calls dispatch through)
+export { readMember, callMember, isValueMethodName, ACTIVE_MEMBER_NAMES, ACTIVE_METHOD_NAMES, FORBIDDEN_PROPERTIES } from './methods';
 
 // React hooks (require Redux)
 export { useReferences, selectReferences, getReferences, useDSLExpression } from './hooks';

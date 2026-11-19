@@ -4,6 +4,9 @@ import type { RuntimeProps, StateKey } from '@/lib/types';
 import { correctness } from '@/lib/blocks';
 import { inferRelatedNodes } from '@/lib/blocks/dynamicDom';
 import { useGradingState, childGraderStateKeys, whenGatedGradingKids } from '@/lib/grading';
+import {
+  isAnswerAutoRevealed, isInputLocked, parseMaxAttempts,
+} from '@/lib/grading/problemModes';
 import { staticEntryForStateKey, blueprintFor } from '@/lib/blocks/staticDom';
 import { useKids, Block } from '@/lib/player/client/render';
 import { DisplayError } from '@/lib/util/debug';
@@ -87,13 +90,20 @@ function FooterWrapper({ children }) {
 
 // --- Main Component ---
 
+const warnedLegacyShowAnswer = new Set<StateKey>();
+
 export default function CapaProblem(props: RuntimeProps) {
   const { id } = props;
 
-  const isImmediate = props.grade === 'immediate';
+  // TODO(course-migration): DELETE showanswer support and this deliberately
+  // loud warning once every fall course uses showAnswer.
+  if (props.showanswer !== undefined && !warnedLegacyShowAnswer.has(props.nodeInfo.stateKey)) {
+    warnedLegacyShowAnswer.add(props.nodeInfo.stateKey);
+    console.warn(`🚨 <${props.loBlock.name} id="${id}"> uses deprecated showanswer=; migrate to showAnswer=.`);
+  }
+  const showAnswer = props.showAnswer ?? props.showanswer;
 
-  // Render content first to populate dynamic OLX DOM
-  const { kids: content } = useKids(props);
+  const isImmediate = props.grade === 'immediate';
 
   // Boundary-aware static topology: these are the grader instances governed
   // directly by this problem (nested problems own their own descendants).
@@ -103,14 +113,31 @@ export default function CapaProblem(props: RuntimeProps) {
     props,
     props.nodeInfo.stateKey,
   );
-  const hintsId = findDemandHintsId(props);
-
   // Grading state is DERIVED (never stored): useGradingState aggregates the
   // child graders on read — stored fields in submit mode, live evaluation
   // of input values in immediate mode. See lib/grading/selectGradingState.ts.
   // (The render entrypoint's useBlocksReady gate readies lazy engines before
   // this component renders.)
   const { correct: problemCorrectness, submitCount } = useGradingState(props, props.nodeInfo.stateKey);
+
+  const problemState = {
+    correct: problemCorrectness,
+    submitCount,
+    maxAttempts: parseMaxAttempts(props.maxAttempts),
+  };
+  const inputPolicy = {
+    readOnly: props.runtime.inputPolicy?.readOnly
+      || isInputLocked(props.lockInput, problemState),
+    revealAnswer: props.runtime.inputPolicy?.revealAnswer
+      || isAnswerAutoRevealed(showAnswer, props.answerReveal, problemState),
+  };
+
+  // Container policy flows only into problem content, not its controls.
+  const { kids: content } = useKids({
+    ...props,
+    runtime: { ...props.runtime, inputPolicy },
+  });
+  const hintsId = findDemandHintsId(props);
 
   // Slow graders can't grade immediately — there is no submit button to
   // trigger them and no meaningful per-keystroke pending state. Recompute on
@@ -177,7 +204,8 @@ export default function CapaProblem(props: RuntimeProps) {
       label={props.submitLabel}
       // Problem mode settings
       maxAttempts={props.maxAttempts}
-      showanswer={props.showanswer}
+      showAnswer={showAnswer}
+      answerReveal={props.answerReveal}
       grade={props.grade}
       submitCount={submitCount}
       correct={problemCorrectness}

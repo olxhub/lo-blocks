@@ -18,6 +18,7 @@
 import { z } from 'zod';
 import { inferRelatedNodes, getDomNodeByStateKey, propsFromNode } from './dynamicDom';
 import { inputAttributes } from './attributeSchemas';
+import { ACTION_ERROR, errorEventPayload, logErrorEvent } from '@/lib/state/errorEvents';
 import type { BlockAction, RuntimeProps, LoBlock } from '@/lib/types';
 
 // Mix-in to make a block an action
@@ -92,6 +93,31 @@ export async function executeNodeActions(props: RuntimeProps) {
       console.warn(`[executeNodeActions] Block "${targetId}" (${node.olxJson.tag}) has no action method`);
       continue;
     }
-    await node.loBlock.action({ props: propsFromNode(node) });
+    // Actions on one caller are independent: report a rejected action and
+    // continue with its siblings. The console retains the original exception;
+    // the event gives production diagnostics the action and caller identity.
+    try {
+      await node.loBlock.action({ props: propsFromNode(node) });
+    } catch (e) {
+      console.error(
+        `[executeNodeActions] <${node.olxJson.tag} id="${node.olxJson.id}"> `
+        + `(${targetId}) threw; its effect did not happen:`,
+        e
+      );
+      logErrorEvent(ACTION_ERROR, {
+        actionTag: node.olxJson.tag,
+        actionId: node.olxJson.id,
+        actionStateKey: targetId,
+        callerTag: props.nodeInfo?.olxJson?.tag,
+        callerId: props.nodeInfo?.olxJson?.id,
+        callerStateKey: props.nodeInfo?.stateKey,
+        ns: props.runtime?.ns,
+        error: errorEventPayload(e),
+      }, props.runtime?.logEvent);
+      // TODO(action-errors): Return structured failures to ActionButton and
+      // authoring surfaces so learners/instructors get useful feedback. That
+      // UI needs policy for automatic Trigger/OnShow actions and sibling
+      // failures; durable diagnostics alone do not explain a dead control.
+    }
   }
 }

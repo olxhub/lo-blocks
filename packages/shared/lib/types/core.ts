@@ -1308,6 +1308,12 @@ export type OlxDomSelector = (node: OlxDomNode) => boolean;
 import type { Cast, OpenPeeps, CastMember, FaceExpression, AvatarStyleValue } from '@/lib/avatar/types';
 export type { OpenPeeps, CastMember, Cast, FaceExpression, AvatarStyleValue };
 
+/** Behavior a rendered container imposes on descendant inputs. */
+export interface InputPolicy {
+  readOnly?: boolean;
+  revealAnswer?: boolean;
+}
+
 /**
  * LoBlockRuntimeContext - runtime configuration that flows through the component tree.
  *
@@ -1332,6 +1338,7 @@ export interface LoBlockRuntimeContext {
   ns: ContentNamespace;  // Content namespace — identifies the logical content source
   locale: LocaleContext;  // Language and text direction
   cast: Cast;  // Cast of characters
+  inputPolicy?: InputPolicy;
   /** INTERIM (see the declared-source gate note in lib/state/content.ts).
    *  True when this render tree's root declared LOCAL source text
    *  (inline/files): its blocks were parsed locally, so an absent block is

@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import { useBlock } from '@/lib/player/client/render';
 import { useFieldState, useValue } from '@/lib/state';
 import type { StateRef } from '@/lib/types';
-import { stateKeyForGlobalRef } from '@/lib/types/id-grammar';
+import { stateKeyForGlobalRef, qualifyDefinitionRef, parseAnyDefinitionRef } from '@/lib/types/id-grammar';
 import HistoryBar from '@/components/common/HistoryBar';
 
 function HistoryContent({ props, current }: { props: RuntimeProps; current: StateRef }) {
@@ -29,7 +29,13 @@ export default function UseHistory(props: RuntimeProps) {
   // `value` to only `effectiveTarget` was a regression: with just initial= and
   // no target, it was undefined, so we rendered "[Missing <Use> resolution]"
   // until the first popout fired.)
-  const initialValue = initial ?? effectiveTarget;
+  // Qualified before storing: everything else that writes value/history writes
+  // a qualified DefinitionKey (target embeds qualify in Chat's postprocess), so
+  // a bare initial= would record the same screen twice — one duplicate dot.
+  const rawInitial = initial ?? effectiveTarget;
+  const initialValue = rawInitial
+    ? qualifyDefinitionRef(parseAnyDefinitionRef(rawInitial), props.runtime.ns)
+    : rawInitial;
   const defaultHistory = initialValue ? [initialValue] : [];
 
   // `value` is the single source of truth for what we show. It's written by

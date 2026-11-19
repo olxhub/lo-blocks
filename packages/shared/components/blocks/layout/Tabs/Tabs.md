@@ -36,6 +36,10 @@ Core idea: Learners build understanding through experience and social interactio
 
 ## Properties
 - `id` (required): Unique identifier for the tabs container
+- `print`: Controls printed/PDF output:
+  - omitted or `true`: print the tab header and currently active tab
+  - `false`: omit the entire Tabs block
+  - `no-chrome`: omit the tab header and print only the currently active tab's content
 
 ## Child Properties
 Each child block's `title` attribute becomes the tab header text.

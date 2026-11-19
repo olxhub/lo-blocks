@@ -21,48 +21,68 @@ import {
   extractStructuredRefs, mergeReferences, EMPTY_REFS,
   selectReferences,
 } from '@/lib/stateLanguage';
-import type { RuntimeProps } from '@/lib/types';
+import type { ParsedStateExpression } from '@/lib/stateLanguage';
+import type { KidEntry, OlxJson, RuntimeProps } from '@/lib/types';
+
+type HtmlKid = Extract<KidEntry, { type: 'html' }>;
+type StaticHtmlKid = Omit<HtmlKid, 'kids'> & { kids: StaticKid[] };
+type StaticKid = Exclude<KidEntry, HtmlKid> | StaticHtmlKid | OlxJson | string;
+type WhenByKid = Map<StaticKid, ParsedStateExpression>;
+
+function isStructuredKid(kid: StaticKid): kid is Exclude<StaticKid, string> {
+  return typeof kid === 'object' && kid !== null;
+}
 
 // Returns the pre-parsed { expr, ast } from the when= attribute, or undefined.
 // Pure over the PASSED state — one selectKidsJson evaluation reads whens and
 // reference values from the same snapshot (getKidsJson is the only boundary
 // that calls getState()).
-function getWhen(kid: any, props: RuntimeProps, reduxState: any) {
-  if (kid.type === 'html') return undefined;
-  if (kid.type === 'block') {
+function getWhen(kid: StaticKid, props: RuntimeProps, reduxState: any): ParsedStateExpression | undefined {
+  if (!isStructuredKid(kid)) return undefined;
+  if ('type' in kid && kid.type === 'html') return undefined;
+  if ('type' in kid && kid.type === 'block') {
+    // `when` on a BlockReference belongs to that occurrence of the block.
+    // Without an override, the referenced definition supplies the condition.
+    if (kid.overrides?.when !== undefined) {
+      return kid.overrides.when as unknown as ParsedStateExpression;
+    }
     const definitionKey = kid.definitionKey;
     const sources = props.runtime.olxJsonSources ?? ['content'];
     const block = selectBlock(reduxState, sources, definitionKey, props.runtime.locale.code);
     if (!block) return undefined;  // not yet loaded — show by default
-    return block.attributes.when;
+    return block.attributes.when as unknown as ParsedStateExpression | undefined;
   }
-  if (kid.tag) {
-    return kid.attributes.when;
+  if (!('type' in kid)) {
+    return kid.attributes.when as unknown as ParsedStateExpression | undefined;
   }
   return undefined;
 }
 
-function collectWhens(kids: any[], props: RuntimeProps, reduxState: any) {
-  // DefinitionKey is sufficient while a block may occur only once in a
-  // navigable sibling list. A future kidKey must replace this map key before
-  // repeated references become independently selectable.
-  const map: Record<string, any> = {};
+function collectWhens(
+  kids: StaticKid[], props: RuntimeProps, reduxState: any,
+  whenByKid: WhenByKid = new Map(),
+): WhenByKid {
   for (const kid of kids) {
-    if (kid.type === 'html') Object.assign(map, collectWhens(kid.kids ?? [], props, reduxState));
+    if (isStructuredKid(kid) && 'type' in kid && kid.type === 'html') {
+      collectWhens(kid.kids, props, reduxState, whenByKid);
+    }
     const when = getWhen(kid, props, reduxState);
     if (!when) continue;
-    map[kid.definitionKey] = when;
+    whenByKid.set(kid, when);
   }
-  return map;
+  return whenByKid;
 }
 
-function filterKids(kids: any[], whenMap: Record<string, any>, ctx: ReturnType<typeof createContext>): any[] {
-  return kids.flatMap(kid => {
-    const when = kid.type === 'html' ? undefined : whenMap[kid.definitionKey];
-    if (when && !Boolean(evaluate(when.ast, ctx))) return [];
-    if (kid.type !== 'html') return [kid];
-    return [{ ...kid, kids: filterKids(kid.kids ?? [], whenMap, ctx) }];
-  });
+function filterKids(kids: StaticKid[], whenByKid: WhenByKid, ctx: ReturnType<typeof createContext>): StaticKid[] {
+  const visibleKids: StaticKid[] = [];
+  for (const kid of kids) {
+    const when = whenByKid.get(kid);
+    if (when && !Boolean(evaluate(when.ast, ctx))) continue;
+    visibleKids.push(isStructuredKid(kid) && 'type' in kid && kid.type === 'html'
+      ? { ...kid, kids: filterKids(kid.kids, whenByKid, ctx) }
+      : kid);
+  }
+  return visibleKids;
 }
 
 /**
@@ -72,19 +92,19 @@ function filterKids(kids: any[], whenMap: Record<string, any>, ctx: ReturnType<t
  * are unavailable.  Composable — wrap with `.length` for kid count, etc.
  */
 export function selectKidsJson(props: RuntimeProps, reduxState: any): any[] {
-  const rawKids = (props.kids || []) as any[];
-  const whenMap = collectWhens(rawKids, props, reduxState);
-  if (Object.keys(whenMap).length === 0) return rawKids;
+  const rawKids = (props.kids || []) as StaticKid[];
+  const whenByKid = collectWhens(rawKids, props, reduxState);
+  if (whenByKid.size === 0) return rawKids;
 
   const allRefs = (() => {
-    const entries = Object.values(whenMap) as { expr: string }[];
+    const entries = [...whenByKid.values()];
     if (entries.length === 0) return EMPTY_REFS;
     return mergeReferences(...entries.map(w => extractStructuredRefs(w.expr)));
   })();
 
   const resolved = selectReferences(reduxState, props, allRefs);
   const ctx = createContext(resolved);
-  return filterKids(rawKids, whenMap, ctx);
+  return filterKids(rawKids, whenByKid, ctx);
 }
 
 /** One-shot imperative form: grabs current state and calls selectKidsJson. */

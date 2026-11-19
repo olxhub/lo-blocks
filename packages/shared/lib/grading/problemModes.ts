@@ -1,20 +1,18 @@
 // packages/shared/lib/grading/problemModes.ts
 //
-// Utility functions for problem submission modes, attempts, and answer visibility.
-//
-// This module provides shared logic for:
-// - When to show the "Show Answer" button (showanswer modes)
-// - Button labels (Check vs Submit)
-// - Attempts tracking and enforcement
-//
-// See docs/architecture/problem-submission-modes.md for design rationale.
-//
+// Shared decisions for attempts, answer visibility, and input locking.
 
 import { correctness as correctnessEnum, completion, type Completion } from './correctness';
-import { showAnswerModes, type ShowAnswerMode } from '../blocks/attributeSchemas';
+import {
+  type AnswerRevealMode, type ProblemCondition, type ShowAnswerMode,
+} from '../blocks/attributeSchemas';
 
 // Re-export for consumers
-export type { ShowAnswerMode };
+export type { AnswerRevealMode, ProblemCondition, ShowAnswerMode };
+
+const DEFAULT_SHOW_ANSWER: ProblemCondition = 'attempted';
+const DEFAULT_LOCK_INPUT: ProblemCondition = 'never';
+const DEFAULT_ANSWER_REVEAL: AnswerRevealMode = 'button';
 
 // Future modes (require due date infrastructure):
 // | 'past_due'           // After due date passes
@@ -59,25 +57,9 @@ export function isProblemFinished(state: ProblemState): boolean {
   return c === completion.done || c === completion.closed;
 }
 
-/**
- * Determine if the Show Answer button should be visible.
- *
- * Each mode gates on ONE axis:
- * - 'attempted' — any recorded submission
- * - 'correct'   — CORRECTNESS axis: answered correctly
- * - 'closed'    — COMPLETION axis: can no longer be worked
- * - 'finished'  — COMPLETION axis: terminal (done or closed)
- *
- * @param mode - The showanswer mode from problem attributes
- * @param state - Current problem state
- * @returns true if Show Answer should be visible
- */
-export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, state: ProblemState): boolean {
-  // Default to 'attempted': reveal the answer after the learner has made a
-  // real submission, without requiring correctness or exhausted attempts.
-  const effectiveMode = (mode || 'attempted') as ShowAnswerMode;
-
-  switch (effectiveMode) {
+/** Evaluate the condition vocabulary shared by showAnswer and lockInput. */
+export function conditionHolds(condition: ProblemCondition | string, state: ProblemState): boolean {
+  switch (condition) {
     case 'always':
       return true;
 
@@ -101,10 +83,30 @@ export function shouldShowAnswer(mode: ShowAnswerMode | string | undefined, stat
       return isProblemFinished(state);
 
     default:
-      // Unknown mode - log warning and default to 'attempted' behavior
-      console.warn(`Unknown showanswer mode: "${mode}", defaulting to 'attempted'`);
-      return state.submitCount > 0;
+      console.warn(`Unknown problem condition: "${condition}"`);
+      return false;
   }
+}
+
+export function shouldShowAnswer(
+  mode: ShowAnswerMode | string | undefined,
+  reveal: AnswerRevealMode | string | undefined,
+  state: ProblemState,
+): boolean {
+  return (reveal ?? DEFAULT_ANSWER_REVEAL) === 'button'
+    && conditionHolds(mode ?? DEFAULT_SHOW_ANSWER, state);
+}
+
+export function isAnswerAutoRevealed(
+  mode: ShowAnswerMode | string | undefined,
+  reveal: AnswerRevealMode | string | undefined,
+  state: ProblemState,
+): boolean {
+  return reveal === 'auto' && conditionHolds(mode ?? DEFAULT_SHOW_ANSWER, state);
+}
+
+export function isInputLocked(mode: ProblemCondition | string | undefined, state: ProblemState): boolean {
+  return conditionHolds(mode ?? DEFAULT_LOCK_INPUT, state);
 }
 
 /**
@@ -131,78 +133,36 @@ export function isSubmitDisabled(state: ProblemState): boolean {
   return isAttemptsClosed(state) || state.correct === correctnessEnum.submitted;
 }
 
-/**
- * Get the appropriate button label based on problem state.
- *
- * Pattern:
- * - Unlimited attempts: "Check"
- * - Single attempt: "Submit"
- * - Multiple attempts, not final: "Check" or "Check (X/Y)"
- * - Multiple attempts, final: "Submit"
- * - Attempts exhausted: "Submit" (button will be disabled)
- *
- * @param state - Current problem state
- * @param options - Display options
- * @returns Button label string
- */
-export function getButtonLabel(
-  state: ProblemState,
-  options: { showCount?: boolean } = {}
-): string {
-  const { submitCount, maxAttempts } = state;
-  const { showCount = true } = options;
-
-  // Unlimited attempts
-  if (maxAttempts === null || maxAttempts === undefined) {
-    return 'Check';
-  }
-
-  // Single attempt
-  if (maxAttempts === 1) {
-    return 'Submit';
-  }
-
-  // Multiple attempts - check if this is the final one
-  const attemptsRemaining = maxAttempts - submitCount;
-
-  if (attemptsRemaining <= 1) {
-    // Final attempt (or already exhausted)
-    return 'Submit';
-  }
-
-  // Not final - show Check with optional count
-  if (showCount) {
-    return `Check (${submitCount + 1}/${maxAttempts})`;
-  }
-
-  return 'Check';
+/** Keep the action label and adjacent attempts text in one decision table. */
+export interface AttemptsPresentation {
+  /** Action-button label. */
+  label: string;
+  /** Attempts status text, or null when there is nothing worth saying. */
+  attemptsText: string | null;
 }
 
-/**
- * Get a display string for attempts status.
- *
- * @param state - Current problem state
- * @returns Display string like "2 of 3 attempts used" or null for unlimited
- */
-export function getAttemptsDisplay(state: ProblemState): string | null {
+export function getAttemptsPresentation(state: ProblemState): AttemptsPresentation {
   const { submitCount, maxAttempts } = state;
 
-  // Unlimited attempts - no display needed
   if (maxAttempts === null || maxAttempts === undefined) {
-    return null;
+    return { label: 'Check', attemptsText: null };
+  }
+
+  if (maxAttempts === 1) {
+    return { label: 'Submit', attemptsText: null };
   }
 
   const remaining = maxAttempts - submitCount;
 
   if (remaining <= 0) {
-    return 'No attempts remaining';
+    return { label: 'Submit', attemptsText: 'No attempts remaining' };
   }
 
   if (remaining === 1) {
-    return '1 attempt remaining';
+    return { label: 'Submit', attemptsText: 'Final attempt' };
   }
 
-  return `${remaining} attempts remaining`;
+  return { label: 'Check', attemptsText: `${remaining} attempts remaining` };
 }
 
 /**
@@ -220,17 +180,4 @@ export function parseMaxAttempts(value: string | number | undefined | null): num
   }
 
   return num;
-}
-
-/**
- * All valid showanswer mode values (for validation/documentation).
- * Re-exported from attributeSchemas for convenience.
- */
-export const SHOWANSWER_MODES = showAnswerModes;
-
-/**
- * Check if a string is a valid showanswer mode.
- */
-export function isValidShowAnswerMode(mode: string): mode is ShowAnswerMode {
-  return (showAnswerModes as readonly string[]).includes(mode);
 }

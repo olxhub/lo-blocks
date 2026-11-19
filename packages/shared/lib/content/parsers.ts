@@ -384,7 +384,7 @@ function createBlocksParser(options: { text?: BlocksTextMode; wrapTag?: string }
             results.push({ type: 'text', text });
           } else if (textMode === 'wrap' && wrapTag) {
             // Auto-wrap text in a synthetic block (e.g. Markdown)
-            const syntheticNode = { [wrapTag]: [{ '#text': text }] };
+            const syntheticNode = { [wrapTag]: [{ '#text': text.trimEnd() }] }; // Leading whitespace is handled by the wrapped block parser.
             const result = await parseNode(syntheticNode, null, -1);
             if (result?.definitionKey) {
               results.push(result);

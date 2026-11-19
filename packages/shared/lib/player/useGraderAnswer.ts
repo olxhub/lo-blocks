@@ -10,6 +10,9 @@
 // 1. Grader with target pointing to this input (sibling graders - most specific)
 // 2. Parent grader (input nested inside grader - includes metagraders)
 //
+// Answers appear after either a stored Show Answer click or an inherited
+// container policy.
+//
 // Answer display is controlled by the grader's answerDisplayMode:
 // - 'per-input': Show answer next to each input (default)
 // - 'summary': Show answer once after all inputs (inputs get undefined)
@@ -173,7 +176,9 @@ export function useGraderAnswer(props: RuntimeProps) {
     showAnswerField ?? state.commonFields.showAnswer,
     { stateKey: graderStateKey ?? undefined, fallback: false },
   );
-  const showAnswer = showAnswerField ? rawShowAnswer : false;
+  const buttonRevealed = showAnswerField ? rawShowAnswer : false;
+
+  const showAnswer = buttonRevealed || props.runtime.inputPolicy?.revealAnswer === true;
 
   // Get grader instance unconditionally (hook must always be called).
   // Convert StateKey to DefinitionKey for useOlxJson lookup.
@@ -241,7 +246,9 @@ export function useGraderSummary(props: RuntimeProps, graderId: StateKey | null)
     showAnswerField ?? state.commonFields.showAnswer,
     { stateKey: summaryGraderStateKey ?? undefined, fallback: false },
   );
-  const showAnswer = showAnswerField ? rawShowAnswer : false;
+  const buttonRevealed = showAnswerField ? rawShowAnswer : false;
+
+  const showAnswer = buttonRevealed || props.runtime.inputPolicy?.revealAnswer === true;
 
   const summaryGraderDefKey = graderId ? leafDefinitionKeyFromStateKey(graderId) : null;
   const { olxJson: graderInstance } = useOlxJson(props, summaryGraderDefKey);

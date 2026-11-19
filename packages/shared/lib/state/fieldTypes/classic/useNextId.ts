@@ -13,8 +13,9 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 
-import { useFieldSelector, dispatchFieldEvent } from '../../redux';
+import { rawFieldSelector, dispatchFieldEvent } from '../../redux';
 import { assertValidField } from '../../fields';
 import type { FieldInfo, RuntimeProps, StateKey } from '../../../types';
 
@@ -45,8 +46,12 @@ export function useNextId(
   }
   assertValidField(field);
 
-  // Subscribe to raw counter value (pre-read) for optimistic updates
-  const raw = useFieldSelector(props, field, { stateKey, tag });
+  // ID writers operate on the storage representation. In particular, the
+  // CRDT idField stores a per-actor counter map but decodes to a total count;
+  // feeding that decoded number back into write() restarts allocation at 0.
+  const raw = useSelector((state: any) =>
+    rawFieldSelector(state, props, field, { stateKey, tag })
+  );
 
   // Ref for optimistic rapid-fire calls within the same render cycle
   const ref = useRef({ raw, props, field, stateKey, tag });
@@ -68,7 +73,8 @@ export function useNextId(
 
     // Optimistic update: advance the raw value for rapid consecutive calls
     // so the next call within the same render cycle gets the right counter.
-    ref.current.raw = payload[field.name] ?? raw;
+    const patch = field.reduce?.({ [field.name]: raw }, payload, field.name);
+    ref.current.raw = patch?.[field.name] ?? payload[field.name] ?? raw;
 
     return payload.allocatedId;
   }, []);

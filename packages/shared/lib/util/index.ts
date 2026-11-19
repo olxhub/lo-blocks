@@ -46,6 +46,18 @@ export function safeStringify(value: unknown, { pretty = false }: { pretty?: boo
 }
 
 /**
+ * Shorten a string to at most `maxLength`, marking omitted text with an
+ * ellipsis. Useful at durable/logging boundaries where strings must be
+ * bounded without producing malformed JSON.
+ */
+export function truncateString(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  if (maxLength <= 0) return '';
+  if (maxLength === 1) return '…';
+  return `${value.slice(0, maxLength - 1)}…`;
+}
+
+/**
  * Hash content (file body) for replicability in learning analytics.
  * Used to identify files across sessions and enable download restoration.
  * Returns 16-char hex string (64 bits of SHA256).

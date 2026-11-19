@@ -163,12 +163,22 @@ Kim: Take a look at the problem on the right.
 
 ### Commands
 
-**Pause** — Inserts a hard stop between commands that would otherwise execute together. **Rarely needed.** Each "Continue" click already advances dialogue, so `--- pause ---` is not for progressive reveal between messages. Use it only when consecutive commands must run sequentially with a user confirmation in between:
+**Pause** — Separates commands that would otherwise execute together on one click. **Rarely needed.** Each "Continue" click already advances dialogue, so `--- pause ---` is not for progressive reveal between messages. Use it only when consecutive commands must run sequentially with a user confirmation in between:
 
 ```
 sidebar <- intro_panel
 --- pause ---
 sidebar <- activity_panel
+```
+
+The commands after a pause run on the next Continue. A pause costs a click only when it has something to hold back: written straight after a dialogue line, the click that revealed the line has already stopped there, so the pause has nothing to separate and the next Continue steps over it and runs what follows. A trailing pause — nothing after it at all — is a no-op; the chat is finished at its last line.
+
+```
+Alma: that's the end of this part — tap Continue and it'll take you to the meeting
+
+--- pause ---
+
+wj_course.selectedChild <- edu.memphis.writing.sba/wj2b_sba_part1
 ```
 
 **Wait** — Blocks until a state language expression is truthy:

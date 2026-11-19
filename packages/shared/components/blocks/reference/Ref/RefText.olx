@@ -1,0 +1,8 @@
+<Vertical id="RefTextDemo" title="Ref: a student's text as typed">
+  <Markdown>Type a few lines with a blank line between paragraphs, then read it back below.</Markdown>
+  <TextArea id="ref_text_source" rows="4" placeholder="First line.&#10;&#10;Second paragraph." />
+  <Markdown>**As typed** (`format="text"`: breaks kept, no Markdown):</Markdown>
+  <Ref id="ref_text_shown" target="ref_text_source" format="text" />
+  <Markdown>**Default** (a span; single line breaks collapse):</Markdown>
+  <Ref id="ref_text_default" target="ref_text_source" />
+</Vertical>
